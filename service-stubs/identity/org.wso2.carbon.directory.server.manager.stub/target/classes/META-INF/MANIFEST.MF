@@ -1,0 +1,39 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290903985
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: WSO2 is an open source application development softw
+ are company focused on providing service-oriented        architecture s
+ olutions for professional developers.
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.directory.server.manager.stub
+Bundle-SymbolicName: org.wso2.carbon.directory.server.manager.stub
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.directory.common.stub.types;version="5.0
+ .8.SNAPSHOT";uses:="javax.xml.namespace,javax.xml.stream,org.apache.axi
+ om.om,org.apache.axis2.databinding",org.wso2.carbon.directory.server.ma
+ nager.stub;version="5.0.8.SNAPSHOT";uses:="org.apache.axis2,org.apache.
+ axis2.client,org.apache.axis2.context,org.apache.axis2.description,org.
+ wso2.carbon.directory.common.stub.types,org.wso2.carbon.directory.serve
+ r.stub.types.carbon",org.wso2.carbon.directory.server.manager.xsd;versi
+ on="5.0.8.SNAPSHOT";uses:="javax.xml.namespace,javax.xml.stream,org.apa
+ che.axiom.om,org.apache.axis2.databinding",org.wso2.carbon.directory.se
+ rver.stub.types.carbon;version="5.0.8.SNAPSHOT";uses:="javax.xml.namesp
+ ace,javax.xml.stream,org.apache.axiom.om,org.apache.axis2.databinding,o
+ rg.wso2.carbon.directory.common.stub.types,org.wso2.carbon.directory.se
+ rver.manager.xsd"
+Import-Package: javax.xml.namespace,javax.xml.stream;version="[1.0,2)",o
+ rg.apache.axiom.om,org.apache.axiom.soap,org.apache.axis2;version="[1.6
+ ,2)",org.apache.axis2.addressing;version="[1.6,2)",org.apache.axis2.cli
+ ent;version="[1.6,2)",org.apache.axis2.client.async;version="[1.6,2)",o
+ rg.apache.axis2.context;version="[1.6,2)",org.apache.axis2.databinding;
+ version="[1.6,2)",org.apache.axis2.databinding.utils;version="[1.6,2)",
+ org.apache.axis2.databinding.utils.reader;version="[1.6,2)",org.apache.
+ axis2.description;version="[1.6,2)",org.apache.axis2.engine;version="[1
+ .6,2)",org.apache.axis2.transport;version="[1.6,2)",org.apache.axis2.ut
+ il;version="[1.6,2)"
+Tool: Bnd-2.1.0.20130426-122213

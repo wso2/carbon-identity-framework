@@ -1,0 +1,684 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ns="http://services.mgt.identity.carbon.wso2.org" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ax2304="http://dto.mgt.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2302="http://mgt.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://services.mgt.identity.carbon.wso2.org">
+    <wsdl:documentation>UserIdentityManagementAdminService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema xmlns:ax2305="http://dto.mgt.identity.carbon.wso2.org/xsd" xmlns:ax2303="http://mgt.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://services.mgt.identity.carbon.wso2.org">
+            <xs:import namespace="http://mgt.identity.carbon.wso2.org/xsd"></xs:import>
+            <xs:import namespace="http://dto.mgt.identity.carbon.wso2.org/xsd"></xs:import>
+            <xs:element name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityMgtServiceException" nillable="true" type="ax2302:IdentityMgtServiceException"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateUserIdentityClaims">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="userIdentityClaims" nillable="true" type="ax2304:UserIdentityClaimDTO"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="unlockUserAccount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="notificationType" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="setChallengeQuestionsOfUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="challengesDTOs" nillable="true" type="ax2304:UserChallengesDTO"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="setChallengeQuestions">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="challengeQuestionDTOs" nillable="true" type="ax2304:ChallengeQuestionDTO"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="resetUserPassword">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="newPassword" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="lockUserAccount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isReadOnlyUserStore">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isReadOnlyUserStoreResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getChallengeQuestionsOfUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getChallengeQuestionsOfUserResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2304:UserChallengesDTO"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllUserIdentityClaims">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllUserIdentityClaimsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2304:UserIdentityClaimDTO"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllPromotedUserChallenge">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllPromotedUserChallengeResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2304:UserChallengesSetDTO"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllChallengeQuestions">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllChallengeQuestionsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2304:ChallengeQuestionDTO"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="changeUserPassword">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="newPassword" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="oldPassword" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.mgt.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="UserIdentityClaimDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="claimValue" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UserChallengesDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="answer" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="error" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="key" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="order" type="xs:int"></xs:element>
+                    <xs:element minOccurs="0" name="primary" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="question" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="verfied" type="xs:boolean"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ChallengeQuestionDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="order" type="xs:int"></xs:element>
+                    <xs:element minOccurs="0" name="promoteQuestion" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="question" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="questionSetId" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UserChallengesSetDTO">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="challengesDTOs" nillable="true" type="ax2304:UserChallengesDTO"></xs:element>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityMgtServiceException">
+                <xs:sequence></xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="getAllChallengeQuestionsRequest">
+        <wsdl:part name="parameters" element="ns:getAllChallengeQuestions"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllChallengeQuestionsResponse">
+        <wsdl:part name="parameters" element="ns:getAllChallengeQuestionsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+        <wsdl:part name="parameters" element="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getChallengeQuestionsOfUserRequest">
+        <wsdl:part name="parameters" element="ns:getChallengeQuestionsOfUser"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getChallengeQuestionsOfUserResponse">
+        <wsdl:part name="parameters" element="ns:getChallengeQuestionsOfUserResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="isReadOnlyUserStoreRequest">
+        <wsdl:part name="parameters" element="ns:isReadOnlyUserStore"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="isReadOnlyUserStoreResponse">
+        <wsdl:part name="parameters" element="ns:isReadOnlyUserStoreResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateUserIdentityClaimsRequest">
+        <wsdl:part name="parameters" element="ns:updateUserIdentityClaims"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setChallengeQuestionsOfUserRequest">
+        <wsdl:part name="parameters" element="ns:setChallengeQuestionsOfUser"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setChallengeQuestionsOfUserResponse"></wsdl:message>
+    <wsdl:message name="deleteUserRequest">
+        <wsdl:part name="parameters" element="ns:deleteUser"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllPromotedUserChallengeRequest">
+        <wsdl:part name="parameters" element="ns:getAllPromotedUserChallenge"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllPromotedUserChallengeResponse">
+        <wsdl:part name="parameters" element="ns:getAllPromotedUserChallengeResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setChallengeQuestionsRequest">
+        <wsdl:part name="parameters" element="ns:setChallengeQuestions"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllUserIdentityClaimsRequest">
+        <wsdl:part name="parameters" element="ns:getAllUserIdentityClaims"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllUserIdentityClaimsResponse">
+        <wsdl:part name="parameters" element="ns:getAllUserIdentityClaimsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="unlockUserAccountRequest">
+        <wsdl:part name="parameters" element="ns:unlockUserAccount"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="resetUserPasswordRequest">
+        <wsdl:part name="parameters" element="ns:resetUserPassword"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="changeUserPasswordRequest">
+        <wsdl:part name="parameters" element="ns:changeUserPassword"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="lockUserAccountRequest">
+        <wsdl:part name="parameters" element="ns:lockUserAccount"></wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="UserIdentityManagementAdminServicePortType">
+        <wsdl:operation name="getAllChallengeQuestions">
+            <wsdl:input message="ns:getAllChallengeQuestionsRequest" wsaw:Action="urn:getAllChallengeQuestions"></wsdl:input>
+            <wsdl:output message="ns:getAllChallengeQuestionsResponse" wsaw:Action="urn:getAllChallengeQuestionsResponse"></wsdl:output>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:getAllChallengeQuestionsUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getChallengeQuestionsOfUser">
+            <wsdl:input message="ns:getChallengeQuestionsOfUserRequest" wsaw:Action="urn:getChallengeQuestionsOfUser"></wsdl:input>
+            <wsdl:output message="ns:getChallengeQuestionsOfUserResponse" wsaw:Action="urn:getChallengeQuestionsOfUserResponse"></wsdl:output>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:getChallengeQuestionsOfUserUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <wsdl:input message="ns:isReadOnlyUserStoreRequest" wsaw:Action="urn:isReadOnlyUserStore"></wsdl:input>
+            <wsdl:output message="ns:isReadOnlyUserStoreResponse" wsaw:Action="urn:isReadOnlyUserStoreResponse"></wsdl:output>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:isReadOnlyUserStoreUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateUserIdentityClaims">
+            <wsdl:input message="ns:updateUserIdentityClaimsRequest" wsaw:Action="urn:updateUserIdentityClaims"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:updateUserIdentityClaimsUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestionsOfUser">
+            <wsdl:input message="ns:setChallengeQuestionsOfUserRequest" wsaw:Action="urn:setChallengeQuestionsOfUser"></wsdl:input>
+            <wsdl:output message="ns:setChallengeQuestionsOfUserResponse" wsaw:Action="urn:setChallengeQuestionsOfUserResponse"></wsdl:output>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:setChallengeQuestionsOfUserUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <wsdl:input message="ns:deleteUserRequest" wsaw:Action="urn:deleteUser"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:deleteUserUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPromotedUserChallenge">
+            <wsdl:input message="ns:getAllPromotedUserChallengeRequest" wsaw:Action="urn:getAllPromotedUserChallenge"></wsdl:input>
+            <wsdl:output message="ns:getAllPromotedUserChallengeResponse" wsaw:Action="urn:getAllPromotedUserChallengeResponse"></wsdl:output>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:getAllPromotedUserChallengeUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestions">
+            <wsdl:input message="ns:setChallengeQuestionsRequest" wsaw:Action="urn:setChallengeQuestions"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:setChallengeQuestionsUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllUserIdentityClaims">
+            <wsdl:input message="ns:getAllUserIdentityClaimsRequest" wsaw:Action="urn:getAllUserIdentityClaims"></wsdl:input>
+            <wsdl:output message="ns:getAllUserIdentityClaimsResponse" wsaw:Action="urn:getAllUserIdentityClaimsResponse"></wsdl:output>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:getAllUserIdentityClaimsUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="unlockUserAccount">
+            <wsdl:input message="ns:unlockUserAccountRequest" wsaw:Action="urn:unlockUserAccount"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:unlockUserAccountUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="resetUserPassword">
+            <wsdl:input message="ns:resetUserPasswordRequest" wsaw:Action="urn:resetUserPassword"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:resetUserPasswordUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changeUserPassword">
+            <wsdl:input message="ns:changeUserPasswordRequest" wsaw:Action="urn:changeUserPassword"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:changeUserPasswordUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="lockUserAccount">
+            <wsdl:input message="ns:lockUserAccountRequest" wsaw:Action="urn:lockUserAccount"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:lockUserAccountUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="UserIdentityManagementAdminServiceSoap11Binding" type="ns:UserIdentityManagementAdminServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"></soap:binding>
+        <wsdl:operation name="getChallengeQuestionsOfUser">
+            <soap:operation soapAction="urn:getChallengeQuestionsOfUser" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllChallengeQuestions">
+            <soap:operation soapAction="urn:getAllChallengeQuestions" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <soap:operation soapAction="urn:isReadOnlyUserStore" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateUserIdentityClaims">
+            <soap:operation soapAction="urn:updateUserIdentityClaims" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <soap:operation soapAction="urn:deleteUser" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestionsOfUser">
+            <soap:operation soapAction="urn:setChallengeQuestionsOfUser" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPromotedUserChallenge">
+            <soap:operation soapAction="urn:getAllPromotedUserChallenge" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestions">
+            <soap:operation soapAction="urn:setChallengeQuestions" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllUserIdentityClaims">
+            <soap:operation soapAction="urn:getAllUserIdentityClaims" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="unlockUserAccount">
+            <soap:operation soapAction="urn:unlockUserAccount" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="resetUserPassword">
+            <soap:operation soapAction="urn:resetUserPassword" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="lockUserAccount">
+            <soap:operation soapAction="urn:lockUserAccount" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changeUserPassword">
+            <soap:operation soapAction="urn:changeUserPassword" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserIdentityManagementAdminServiceSoap12Binding" type="ns:UserIdentityManagementAdminServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"></soap12:binding>
+        <wsdl:operation name="getChallengeQuestionsOfUser">
+            <soap12:operation soapAction="urn:getChallengeQuestionsOfUser" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllChallengeQuestions">
+            <soap12:operation soapAction="urn:getAllChallengeQuestions" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <soap12:operation soapAction="urn:isReadOnlyUserStore" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateUserIdentityClaims">
+            <soap12:operation soapAction="urn:updateUserIdentityClaims" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <soap12:operation soapAction="urn:deleteUser" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestionsOfUser">
+            <soap12:operation soapAction="urn:setChallengeQuestionsOfUser" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPromotedUserChallenge">
+            <soap12:operation soapAction="urn:getAllPromotedUserChallenge" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestions">
+            <soap12:operation soapAction="urn:setChallengeQuestions" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllUserIdentityClaims">
+            <soap12:operation soapAction="urn:getAllUserIdentityClaims" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="unlockUserAccount">
+            <soap12:operation soapAction="urn:unlockUserAccount" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="resetUserPassword">
+            <soap12:operation soapAction="urn:resetUserPassword" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="lockUserAccount">
+            <soap12:operation soapAction="urn:lockUserAccount" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changeUserPassword">
+            <soap12:operation soapAction="urn:changeUserPassword" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserIdentityManagementAdminServiceHttpBinding" type="ns:UserIdentityManagementAdminServicePortType">
+        <http:binding verb="POST"></http:binding>
+        <wsdl:operation name="getChallengeQuestionsOfUser">
+            <http:operation location="getChallengeQuestionsOfUser"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllChallengeQuestions">
+            <http:operation location="getAllChallengeQuestions"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <http:operation location="isReadOnlyUserStore"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateUserIdentityClaims">
+            <http:operation location="updateUserIdentityClaims"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUser">
+            <http:operation location="deleteUser"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestionsOfUser">
+            <http:operation location="setChallengeQuestionsOfUser"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPromotedUserChallenge">
+            <http:operation location="getAllPromotedUserChallenge"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setChallengeQuestions">
+            <http:operation location="setChallengeQuestions"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getAllUserIdentityClaims">
+            <http:operation location="getAllUserIdentityClaims"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="unlockUserAccount">
+            <http:operation location="unlockUserAccount"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="resetUserPassword">
+            <http:operation location="resetUserPassword"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="lockUserAccount">
+            <http:operation location="lockUserAccount"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="changeUserPassword">
+            <http:operation location="changeUserPassword"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="UserIdentityManagementAdminService">
+        <wsdl:port name="UserIdentityManagementAdminServiceHttpsSoap11Endpoint" binding="ns:UserIdentityManagementAdminServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/UserIdentityManagementAdminService.UserIdentityManagementAdminServiceHttpsSoap11Endpoint/"></soap:address>
+        </wsdl:port>
+        <wsdl:port name="UserIdentityManagementAdminServiceHttpsSoap12Endpoint" binding="ns:UserIdentityManagementAdminServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/UserIdentityManagementAdminService.UserIdentityManagementAdminServiceHttpsSoap12Endpoint/"></soap12:address>
+        </wsdl:port>
+        <wsdl:port name="UserIdentityManagementAdminServiceHttpsEndpoint" binding="ns:UserIdentityManagementAdminServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/UserIdentityManagementAdminService.UserIdentityManagementAdminServiceHttpsEndpoint/"></http:address>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

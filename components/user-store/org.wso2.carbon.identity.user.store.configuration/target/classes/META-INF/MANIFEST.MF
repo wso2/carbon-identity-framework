@@ -1,0 +1,46 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290982452
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: This is a Carbon bundle that represent the User Stor
+ e Aggregator module.
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.identity.user.store.configuration
+Bundle-SymbolicName: org.wso2.carbon.identity.user.store.configuration
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.user.store.configuration;versio
+ n="5.0.8.SNAPSHOT";uses:="javax.xml.transform,org.apache.commons.loggin
+ g,org.wso2.carbon.core,org.wso2.carbon.identity.user.store.configuratio
+ n.dto,org.wso2.carbon.identity.user.store.configuration.utils,org.wso2.
+ carbon.user.api",org.wso2.carbon.identity.user.store.configuration.bean
+ s;version="5.0.8.SNAPSHOT",org.wso2.carbon.identity.user.store.configur
+ ation.cache;version="5.0.8.SNAPSHOT";uses:="javax.cache,org.wso2.carbon
+ .identity.user.store.configuration.beans",org.wso2.carbon.identity.user
+ .store.configuration.dto;version="5.0.8.SNAPSHOT",org.wso2.carbon.ident
+ ity.user.store.configuration.listener;version="5.0.8.SNAPSHOT";uses:="o
+ rg.wso2.carbon.user.api",org.wso2.carbon.identity.user.store.configurat
+ ion.utils;version="5.0.8.SNAPSHOT";uses:="org.apache.commons.logging"
+Import-Package: javax.cache;version="[1.0,2)",javax.crypto,javax.xml.bin
+ d,javax.xml.parsers;version="[0.0.0,1.0.0)",javax.xml.transform,javax.x
+ ml.transform.dom,javax.xml.transform.stream,org.apache.axiom.om.util;ve
+ rsion="[1.2.11,2.0.0)",org.apache.commons.logging;version="[1.2,2.0)",o
+ rg.osgi.service.component;version="[1.2.0,2.0.0)",org.w3c.dom,org.wso2.
+ carbon.base.api;version="[1.0.0,2.0.0)",org.wso2.carbon.context;version
+ ="[4.4.0,5.0.0)",org.wso2.carbon.core;version="[4.4.0,5.0.0)",org.wso2.
+ carbon.ndatasource.common;version="[4.4.0,5.0.0)",org.wso2.carbon.ndata
+ source.core;version="[4.4.0,5.0.0)",org.wso2.carbon.ndatasource.core.se
+ rvices;version="[4.4.0,5.0.0)",org.wso2.carbon.ndatasource.rdbms;versio
+ n="[4.4.0,5.0.0)",org.wso2.carbon.user.api;version="[1.0.1,2.0.0)",org.
+ wso2.carbon.user.core.common;version="[4.4.0,5.0.0)",org.wso2.carbon.us
+ er.core.config;version="[4.4.0,5.0.0)",org.wso2.carbon.user.core.servic
+ e;version="[4.4.0,5.0.0)",org.wso2.carbon.user.core.tenant;version="[4.
+ 4.0,5.0.0)",org.wso2.carbon.user.core.tracker;version="[4.4.0,5.0.0)",o
+ rg.wso2.carbon.user.core.util;version="[4.4.0,5.0.0)",org.wso2.carbon.u
+ tils;version="[4.4.0,5.0.0)",org.wso2.carbon.identity.core.util;version
+ ="[5.0.0,6.0.0)",org.wso2.carbon.identity.base;version="[5.0.0,6.0.0)"
+Service-Component: OSGI-INF/serviceComponents.xml
+Tool: Bnd-2.1.0.20130426-122213

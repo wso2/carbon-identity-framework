@@ -1,0 +1,487 @@
+
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2385="http://dto.registration.user.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ax2381="http://registration.user.identity.carbon.wso2.org/xsd" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://registration.user.identity.carbon.wso2.org" xmlns:ax2383="http://base.identity.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://registration.user.identity.carbon.wso2.org">
+    <wsdl:documentation>UserRegistrationAdminService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.registration.user.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="PasswordRegExDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="domainName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="regEx" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UserFieldDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="defaultValue" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="displayOrder" type="xs:int"/>
+                    <xs:element minOccurs="0" name="fieldName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="fieldValue" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="inputValues" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="maxLength" type="xs:int"/>
+                    <xs:element minOccurs="0" name="minLength" type="xs:int"/>
+                    <xs:element minOccurs="0" name="regEx" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="required" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="supportedByDefault" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UserDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="openID" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="password" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="userFields" nillable="true" type="ax2385:UserFieldDTO"/>
+                    <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ax2384="http://base.identity.carbon.wso2.org/xsd" xmlns:ax2386="http://dto.registration.user.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2382="http://registration.user.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://registration.user.identity.carbon.wso2.org/xsd"/>
+            <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
+            <xs:import namespace="http://dto.registration.user.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="UserRegistrationAdminServiceUserRegistrationException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserRegistrationException" nillable="true" type="ax2381:UserRegistrationException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isUserExist">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isUserExistResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="UserRegistrationAdminServiceIdentityException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityException" nillable="true" type="ax2384:IdentityException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPasswordRegularExpressions">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPasswordRegularExpressionsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2385:PasswordRegExDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="readUserFieldsForUserRegistration">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="dialect" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="readUserFieldsForUserRegistrationResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2385:UserFieldDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="UserRegistrationAdminServiceException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserRegistrationAdminServiceException" nillable="true" type="ns1:Exception"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:complexType name="Exception">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="isAddUserEnabled">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddUserEnabledResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddUserWithOpenIDEnabled">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddUserWithOpenIDEnabledResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddUserWithInfoCardEnabled">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddUserWithInfoCardEnabledResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="user" nillable="true" type="ax2385:UserDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityException">
+                <xs:sequence/>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://registration.user.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="UserRegistrationException">
+                <xs:sequence/>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="isAddUserWithInfoCardEnabledRequest">
+        <wsdl:part name="parameters" element="ns1:isAddUserWithInfoCardEnabled"/>
+    </wsdl:message>
+    <wsdl:message name="isAddUserWithInfoCardEnabledResponse">
+        <wsdl:part name="parameters" element="ns1:isAddUserWithInfoCardEnabledResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UserRegistrationAdminServiceException">
+        <wsdl:part name="parameters" element="ns1:UserRegistrationAdminServiceException"/>
+    </wsdl:message>
+    <wsdl:message name="readUserFieldsForUserRegistrationRequest">
+        <wsdl:part name="parameters" element="ns1:readUserFieldsForUserRegistration"/>
+    </wsdl:message>
+    <wsdl:message name="readUserFieldsForUserRegistrationResponse">
+        <wsdl:part name="parameters" element="ns1:readUserFieldsForUserRegistrationResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UserRegistrationAdminServiceIdentityException">
+        <wsdl:part name="parameters" element="ns1:UserRegistrationAdminServiceIdentityException"/>
+    </wsdl:message>
+    <wsdl:message name="isAddUserWithOpenIDEnabledRequest">
+        <wsdl:part name="parameters" element="ns1:isAddUserWithOpenIDEnabled"/>
+    </wsdl:message>
+    <wsdl:message name="isAddUserWithOpenIDEnabledResponse">
+        <wsdl:part name="parameters" element="ns1:isAddUserWithOpenIDEnabledResponse"/>
+    </wsdl:message>
+    <wsdl:message name="isUserExistRequest">
+        <wsdl:part name="parameters" element="ns1:isUserExist"/>
+    </wsdl:message>
+    <wsdl:message name="isUserExistResponse">
+        <wsdl:part name="parameters" element="ns1:isUserExistResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UserRegistrationAdminServiceUserRegistrationException">
+        <wsdl:part name="parameters" element="ns1:UserRegistrationAdminServiceUserRegistrationException"/>
+    </wsdl:message>
+    <wsdl:message name="getPasswordRegularExpressionsRequest">
+        <wsdl:part name="parameters" element="ns1:getPasswordRegularExpressions"/>
+    </wsdl:message>
+    <wsdl:message name="getPasswordRegularExpressionsResponse">
+        <wsdl:part name="parameters" element="ns1:getPasswordRegularExpressionsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="addUserRequest">
+        <wsdl:part name="parameters" element="ns1:addUser"/>
+    </wsdl:message>
+    <wsdl:message name="isAddUserEnabledRequest">
+        <wsdl:part name="parameters" element="ns1:isAddUserEnabled"/>
+    </wsdl:message>
+    <wsdl:message name="isAddUserEnabledResponse">
+        <wsdl:part name="parameters" element="ns1:isAddUserEnabledResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="UserRegistrationAdminServicePortType">
+        <wsdl:operation name="isAddUserWithInfoCardEnabled">
+            <wsdl:input message="tns:isAddUserWithInfoCardEnabledRequest" wsaw:Action="urn:isAddUserWithInfoCardEnabled"/>
+            <wsdl:output message="tns:isAddUserWithInfoCardEnabledResponse" wsaw:Action="urn:isAddUserWithInfoCardEnabledResponse"/>
+            <wsdl:fault message="tns:UserRegistrationAdminServiceException" name="UserRegistrationAdminServiceException" wsaw:Action="urn:isAddUserWithInfoCardEnabledUserRegistrationAdminServiceException"/>
+        </wsdl:operation>
+        <wsdl:operation name="readUserFieldsForUserRegistration">
+            <wsdl:input message="tns:readUserFieldsForUserRegistrationRequest" wsaw:Action="urn:readUserFieldsForUserRegistration"/>
+            <wsdl:output message="tns:readUserFieldsForUserRegistrationResponse" wsaw:Action="urn:readUserFieldsForUserRegistrationResponse"/>
+            <wsdl:fault message="tns:UserRegistrationAdminServiceIdentityException" name="UserRegistrationAdminServiceIdentityException" wsaw:Action="urn:readUserFieldsForUserRegistrationUserRegistrationAdminServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserWithOpenIDEnabled">
+            <wsdl:input message="tns:isAddUserWithOpenIDEnabledRequest" wsaw:Action="urn:isAddUserWithOpenIDEnabled"/>
+            <wsdl:output message="tns:isAddUserWithOpenIDEnabledResponse" wsaw:Action="urn:isAddUserWithOpenIDEnabledResponse"/>
+            <wsdl:fault message="tns:UserRegistrationAdminServiceException" name="UserRegistrationAdminServiceException" wsaw:Action="urn:isAddUserWithOpenIDEnabledUserRegistrationAdminServiceException"/>
+        </wsdl:operation>
+        <wsdl:operation name="isUserExist">
+            <wsdl:input message="tns:isUserExistRequest" wsaw:Action="urn:isUserExist"/>
+            <wsdl:output message="tns:isUserExistResponse" wsaw:Action="urn:isUserExistResponse"/>
+            <wsdl:fault message="tns:UserRegistrationAdminServiceUserRegistrationException" name="UserRegistrationAdminServiceUserRegistrationException" wsaw:Action="urn:isUserExistUserRegistrationAdminServiceUserRegistrationException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getPasswordRegularExpressions">
+            <wsdl:input message="tns:getPasswordRegularExpressionsRequest" wsaw:Action="urn:getPasswordRegularExpressions"/>
+            <wsdl:output message="tns:getPasswordRegularExpressionsResponse" wsaw:Action="urn:getPasswordRegularExpressionsResponse"/>
+            <wsdl:fault message="tns:UserRegistrationAdminServiceIdentityException" name="UserRegistrationAdminServiceIdentityException" wsaw:Action="urn:getPasswordRegularExpressionsUserRegistrationAdminServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="addUser">
+            <wsdl:input message="tns:addUserRequest" wsaw:Action="urn:addUser"/>
+            <wsdl:fault message="tns:UserRegistrationAdminServiceException" name="UserRegistrationAdminServiceException" wsaw:Action="urn:addUserUserRegistrationAdminServiceException"/>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserEnabled">
+            <wsdl:input message="tns:isAddUserEnabledRequest" wsaw:Action="urn:isAddUserEnabled"/>
+            <wsdl:output message="tns:isAddUserEnabledResponse" wsaw:Action="urn:isAddUserEnabledResponse"/>
+            <wsdl:fault message="tns:UserRegistrationAdminServiceException" name="UserRegistrationAdminServiceException" wsaw:Action="urn:isAddUserEnabledUserRegistrationAdminServiceException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="UserRegistrationAdminServiceSoap11Binding" type="tns:UserRegistrationAdminServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="isAddUserWithInfoCardEnabled">
+            <soap:operation soapAction="urn:isAddUserWithInfoCardEnabled" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="readUserFieldsForUserRegistration">
+            <soap:operation soapAction="urn:readUserFieldsForUserRegistration" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceIdentityException">
+                <soap:fault use="literal" name="UserRegistrationAdminServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserWithOpenIDEnabled">
+            <soap:operation soapAction="urn:isAddUserWithOpenIDEnabled" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isUserExist">
+            <soap:operation soapAction="urn:isUserExist" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceUserRegistrationException">
+                <soap:fault use="literal" name="UserRegistrationAdminServiceUserRegistrationException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPasswordRegularExpressions">
+            <soap:operation soapAction="urn:getPasswordRegularExpressions" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceIdentityException">
+                <soap:fault use="literal" name="UserRegistrationAdminServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addUser">
+            <soap:operation soapAction="urn:addUser" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserEnabled">
+            <soap:operation soapAction="urn:isAddUserEnabled" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserRegistrationAdminServiceSoap12Binding" type="tns:UserRegistrationAdminServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="isAddUserWithInfoCardEnabled">
+            <soap12:operation soapAction="urn:isAddUserWithInfoCardEnabled" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap12:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="readUserFieldsForUserRegistration">
+            <soap12:operation soapAction="urn:readUserFieldsForUserRegistration" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceIdentityException">
+                <soap12:fault use="literal" name="UserRegistrationAdminServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserWithOpenIDEnabled">
+            <soap12:operation soapAction="urn:isAddUserWithOpenIDEnabled" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap12:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isUserExist">
+            <soap12:operation soapAction="urn:isUserExist" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceUserRegistrationException">
+                <soap12:fault use="literal" name="UserRegistrationAdminServiceUserRegistrationException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPasswordRegularExpressions">
+            <soap12:operation soapAction="urn:getPasswordRegularExpressions" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceIdentityException">
+                <soap12:fault use="literal" name="UserRegistrationAdminServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addUser">
+            <soap12:operation soapAction="urn:addUser" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap12:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserEnabled">
+            <soap12:operation soapAction="urn:isAddUserEnabled" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserRegistrationAdminServiceException">
+                <soap12:fault use="literal" name="UserRegistrationAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserRegistrationAdminServiceHttpBinding" type="tns:UserRegistrationAdminServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="isAddUserWithInfoCardEnabled">
+            <http:operation location="isAddUserWithInfoCardEnabled"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="readUserFieldsForUserRegistration">
+            <http:operation location="readUserFieldsForUserRegistration"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserWithOpenIDEnabled">
+            <http:operation location="isAddUserWithOpenIDEnabled"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isUserExist">
+            <http:operation location="isUserExist"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getPasswordRegularExpressions">
+            <http:operation location="getPasswordRegularExpressions"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addUser">
+            <http:operation location="addUser"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="isAddUserEnabled">
+            <http:operation location="isAddUserEnabled"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="UserRegistrationAdminService">
+        <wsdl:port name="UserRegistrationAdminServiceHttpsSoap11Endpoint" binding="tns:UserRegistrationAdminServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/UserRegistrationAdminService.UserRegistrationAdminServiceHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserRegistrationAdminServiceHttpsSoap12Endpoint" binding="tns:UserRegistrationAdminServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/UserRegistrationAdminService.UserRegistrationAdminServiceHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserRegistrationAdminServiceHttpsEndpoint" binding="tns:UserRegistrationAdminServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/UserRegistrationAdminService.UserRegistrationAdminServiceHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.wso2.carbon.user.core.LDAPTestCase
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.121 sec - in org.wso2.carbon.user.core.LDAPTestCase

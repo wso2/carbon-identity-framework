@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <scr:component enabled="true" immediate="true" name="identity.entitlement.component">
+        <implementation class="org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent"/>
+        <property name="service.pid" value="identity.entitlement.component"/>
+        <reference name="registry.service" interface="org.wso2.carbon.registry.core.service.RegistryService" cardinality="1..1" policy="dynamic" bind="setRegistryService" unbind="unsetRegistryService"/>
+        <reference name="user.realmservice.default" interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1" policy="dynamic" bind="setRealmService" unbind="unsetRealmService"/>
+        <reference name="identityCoreInitializedEventService" interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1" policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"/>
+        <reference name="org.wso2.carbon.identity.thrift.authentication.internal.ThriftAuthenticationServiceComponent" interface="org.wso2.carbon.identity.thrift.authentication.ThriftAuthenticatorService" cardinality="1..1" policy="dynamic" bind="setThriftAuthenticationService" unbind="unsetThriftAuthenticationService"/>
+        <reference name="carbon.identity.notification.mgt" interface="org.wso2.carbon.identity.notification.mgt.NotificationSender" cardinality="1..1" policy="dynamic" bind="setNotificationSender" unbind="unsetNotificationSender"/>
+    </scr:component>
+</components>

@@ -1,0 +1,123 @@
+<!--
+  ~ Copyright 2008-2011 WSO2, Inc. (http://wso2.com)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1"></meta>
+  <title>Entitlement Management - User Guide</title>
+  <link href="../../admin/css/documentation.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+
+<body style="font-family: Times New Roman,Times,serif; font-size: 12pt;">
+<h1>Entitlement Management</h1>
+<p>This user guide describes various configuration and management options available with entitlement management.</p>
+
+<p>Left hand menu has been separated in to three main management categories. i.e. PAP (Policy Administrator Point),
+PDP (Policy Decision Policy) and PEP (Policy Enforcement Point)</p>
+
+<p><img alt="" src="../images/ent-options.png"/></p>
+<p>Figure 1: Entitlement Management</p>
+
+
+<h3>PAP - Policy Administration</h3>
+<p> Policy Administration Point provides various operations in policy management. Following are the list of them</p>
+<ol>
+    <li>Create XACML 3.0 based Entitlement Policy using three type of policy editor, i.e Simple, Basic and Standard Policy Editors</li>
+    <li>Create XACML 3.0 based Entitlement Policy Sets using policy editor</li>
+    <li>Policy editors are configurable. You can feed attribute ids, categories and data types.</li>
+    <li>Import XACML based Entitlement Policy - use to import a policy using either via file system or registry.</li>
+    <li>Write XACML based Entitlement Policy using XML editor</li>
+    <li>Try out defined policy using XACML 3.0 requests</li>
+    <li>Update Entitlement Policy using policy editors or XML view</li>
+    <li>Roll Back Entitlement Policy to older versions</li>
+    <li>Publish Entitlement Policy to PDP policy store or external policy stores</li>
+    <li>Delete Entitlement Policy from PAP</li>
+    <li>View Entitlement Policy Status</li>
+</ol>
+<p>The defined policies can be search using the Search Policy option. Here you can provide regular
+    expression of the policy identifier or else some attribute value that is contain in the policy</p>
+<p><img alt="" src="../images/policy-admin.png"/></p>
+<p>Figure 2: Policy administration</p>
+
+<P>There are five different ways that you can add policy in to PAP</P>
+<p><img alt="" src="../images/add-policy.png"/></p>
+<p>Figure 3: Select Policy Creation Wizard</p>
+
+<p><img alt="" src="../images/simple-pap.png"/></p>
+<p>Figure 4: Simple Policy Creation Wizard UI</p>
+
+<p><img alt="" src="../images/basic-pap.png"/></p>
+<p>Figure 5: Basic Policy Creation Wizard UI</p>
+
+<p><img alt="" src="../images/standard-pap.png"/></p>
+<p>Figure 6: Standard Policy Creation Wizard UI</p>
+
+<p><img alt="" src="../images/policy-set-pap.png"/></p>
+<p>Figure 7: Creating a policy set</p>
+
+<p><img alt="" src="../images/import-policy.png"/></p>
+<p>Figure 8: Import a policy or Policy Set from file system or registry</p>
+
+
+<h3>PAP - Policy Publisher</h3>
+<p>The defined policy can be published using policy publishers to any Policy store. You can create a policy in PAP
+    and then can publish to registered subscribers. By default, there are two publisher, i.e PDP publisher and Carbon Basic Auth
+    Publisher. There is one registered subscriber for PDP publisher. You can  use 'Add Subscriber' to define more subscriber.
+    Subscribers can be search by providing regular expression and You can view the status of subscribers</p>
+<p><img alt="" src="../images/policy-pub.png"/></p>
+<p>Figure 9: Publishing a policy</p>
+
+
+<h3>PDP - Policy View</h3>
+<p>This shows the actual PDP policy store. You can view, order and enable PDP policies from here. Also you can configure the
+global policy combining algorithm for PDP policies. The defined policies can be search using the Search Policy option. Here you can provide regular expression of the policy identifier</p>
+<p><img alt="" src="../images/pdp-policy.png"/></p>
+<p>Figure 10: PDP Policy View</p>
+
+<h3>PDP Configurations</h3>
+<p>This editor provides the UI for view the PDP extension points. You can reinitialize extensions, clear decision cache and attribute cache using this UI</p>
+<p><img alt="" src="../images/pdp-config.png"/></p>
+<p>Figure 11: PDP extension</p>
+
+
+<h3>PEP - Evaluate Entitlement Policy</h3>
+<p>You can evaluate the PDP engine using this editor. You can create XACML 3.0 request and do the evaluation.</p>
+<p><img alt="" src="../images/try-pdp.png"/></p>
+<p>Figure 12: Evaluate the defined entitlement policy</p>
+
+
+
+<h3> PEP - Search</h3>
+<p>This UI can be used to locate defined policy. Following options can be configured in the search query.</p>
+<ol>
+    <li>Search by - search either by user or role.</li>
+    <li>User/Role name - name of the user or role.</li>
+    <li>Subject Id - the id of the policy.</li>
+    <li>Action - the action of the resource.</li>
+    <li>Resource - the name of the resource</li>
+    <li>Enable search through child resources - enable this if you want to search through child resources.</li>
+</ol>
+<p><img alt="" src="../images/advance-search.png"/></p>
+<p>Figure 13: Search</p>
+
+<p>External References:</p>
+<ul>
+  <li><a href="http://blog.facilelogin.com/2009/05/identity-server-20-as-xacml-engine.html">Identity Server 2.0 as an XACML engine</a></li>
+  <li><a href="http://blog.facilelogin.com/2009/05/adding-fine-grained-authorization-for.html">Adding fine-grained authorization for proxy services in WSO2 ESB</a></li>
+  <li><a href="http://blog.facilelogin.com/2009/06/guide-to-write-xacml-policies-in-wso2.html">Guide to write XACML policies in WSO2 Identity Server 2.0 - Part - I</a></li>
+</ul>
+</body>
+</html>

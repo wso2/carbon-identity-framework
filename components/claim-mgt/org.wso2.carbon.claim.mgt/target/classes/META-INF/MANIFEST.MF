@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290979689
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: Claim management for WSO2 Carbon
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: WSO2 Carbon - Claim Management BE
+Bundle-SymbolicName: org.wso2.carbon.claim.mgt
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.claim.mgt;version="5.0.8.SNAPSHOT";uses:
+ ="org.wso2.carbon.claim.mgt.dto,org.wso2.carbon.identity.base,org.wso2.
+ carbon.user.api",org.wso2.carbon.claim.mgt.dto;version="5.0.8.SNAPSHOT"
+Import-Package: org.osgi.framework;version="[1.7.0,2.0.0)",org.osgi.serv
+ ice.component;version="[1.2.0,2.0.0)",org.apache.commons.logging;versio
+ n="[1.2,2.0)",org.apache.commons.lang;version="[2.6.0,3.0.0)",org.wso2.
+ carbon;version="[4.4.0,5.0.0)",org.wso2.carbon.core.util;version="[4.4.
+ 0,5.0.0)",org.wso2.carbon.registry.core.service;version="[1.0.1,2.0.0)"
+ ,org.wso2.carbon.user.api;version="[1.0.1,2.0.0)",org.wso2.carbon.user.
+ core;version="[4.4.0,5.0.0)",org.wso2.carbon.user.core.claim;version="[
+ 4.4.0,5.0.0)",org.wso2.carbon.user.core.service;version="[4.4.0,5.0.0)"
+ ,org.wso2.carbon.identity.base;version="[5.0.0,6.0.0)"
+Service-Component: OSGI-INF/serviceComponents.xml
+Tool: Bnd-2.1.0.20130426-122213

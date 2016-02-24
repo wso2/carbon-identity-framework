@@ -1,0 +1,46 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290882189
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: WSO2 is an open source application development softw
+ are company focused on providing service-oriented        architecture s
+ olutions for professional developers.
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.identity.provider.stub
+Bundle-SymbolicName: org.wso2.carbon.identity.provider.stub
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.provider.stub;version="5.0.8.SN
+ APSHOT";uses:="org.apache.axis2,org.apache.axis2.client,org.apache.axis
+ 2.context,org.apache.axis2.description,org.wso2.carbon.identity.provide
+ r.stub.dto,org.wso2.carbon.identity.provider.stub.rp.dto,org.wso2.carbo
+ n.identity.provider.stub.rp.types.axis2,org.wso2.carbon.identity.provid
+ er.stub.types.axis2",org.wso2.carbon.identity.provider.stub.dto;version
+ ="5.0.8.SNAPSHOT";uses:="javax.xml.namespace,javax.xml.stream,org.apach
+ e.axiom.om,org.apache.axis2.databinding",org.wso2.carbon.identity.provi
+ der.stub.rp.dto;version="5.0.8.SNAPSHOT";uses:="javax.xml.namespace,jav
+ ax.xml.stream,org.apache.axiom.om,org.apache.axis2.databinding",org.wso
+ 2.carbon.identity.provider.stub.rp.types.axis2;version="5.0.8.SNAPSHOT"
+ ;uses:="javax.xml.namespace,javax.xml.stream,org.apache.axiom.om,org.ap
+ ache.axis2.databinding,org.wso2.carbon.identity.provider.stub.rp.dto",o
+ rg.wso2.carbon.identity.provider.stub.types;version="5.0.8.SNAPSHOT";us
+ es:="javax.xml.namespace,javax.xml.stream,org.apache.axiom.om,org.apach
+ e.axis2.databinding,org.wso2.carbon.identity.provider.stub.types.axis2"
+ ,org.wso2.carbon.identity.provider.stub.types.axis2;version="5.0.8.SNAP
+ SHOT";uses:="javax.xml.namespace,javax.xml.stream,org.apache.axiom.om,o
+ rg.apache.axis2.databinding,org.wso2.carbon.identity.provider.stub.dto,
+ org.wso2.carbon.identity.provider.stub.types"
+Import-Package: javax.xml.namespace,javax.xml.stream;version="[1.0,2)",o
+ rg.apache.axiom.om,org.apache.axiom.soap,org.apache.axis2;version="[1.6
+ ,2)",org.apache.axis2.addressing;version="[1.6,2)",org.apache.axis2.cli
+ ent;version="[1.6,2)",org.apache.axis2.client.async;version="[1.6,2)",o
+ rg.apache.axis2.context;version="[1.6,2)",org.apache.axis2.databinding;
+ version="[1.6,2)",org.apache.axis2.databinding.utils;version="[1.6,2)",
+ org.apache.axis2.databinding.utils.reader;version="[1.6,2)",org.apache.
+ axis2.description;version="[1.6,2)",org.apache.axis2.engine;version="[1
+ .6,2)",org.apache.axis2.transport;version="[1.6,2)",org.apache.axis2.ut
+ il;version="[1.6,2)"
+Tool: Bnd-2.1.0.20130426-122213

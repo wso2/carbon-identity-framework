@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456291011036
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: core tree menu structure
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.identity.core.ui
+Bundle-SymbolicName: org.wso2.carbon.identity.core.ui
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Carbon-Component: UIBundle
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.menu.ui.i18n;version="5.0.8.SNA
+ PSHOT",web.identity.validation.js;version="5.0.8.SNAPSHOT"
+Tool: Bnd-2.1.0.20130426-122213

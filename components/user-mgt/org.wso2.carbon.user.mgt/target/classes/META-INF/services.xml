@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2006 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+
+   WSO2 Inc. licenses this file to you under the Apache License,
+   Version 2.0 (the "License"); you may not use this file except
+   in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+  -->
+<serviceGroup>
+    <service name="MultipleCredentialsUserAdmin" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass" locked="false">
+            org.wso2.carbon.user.mgt.multiplecredentials.MultipleCredentialsUserAdmin
+        </parameter>
+
+        <operation name="addUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users
+            </parameter>
+
+        </operation>
+
+        <operation name="addUsers">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users
+            </parameter>
+
+        </operation>
+        <operation name="deleteUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users
+            </parameter>
+        
+        </operation>
+
+        <operation name="addCredential">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords
+            </parameter>
+   
+        </operation>
+        <operation name="updateCredential">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords
+            </parameter>
+        
+        </operation>
+        <operation name="deleteCredential">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords
+            </parameter>
+        
+        </operation>
+        <operation name="getCredentials">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords
+            </parameter>
+        
+        </operation>
+        <operation name="setUserClaimValue">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+    
+        </operation>
+        <operation name="setUserClaimValues">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+           
+        </operation>
+        <operation name="deleteUserClaimValue">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+         
+        </operation>
+         <operation name="deleteUserClaimValues">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+          
+        </operation>
+         <operation name="getUserClaimValue">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+           
+        </operation>
+        <operation name="getUserClaimValues">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+      
+        </operation>
+        <operation name="getAllUserClaimValues">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
+            </parameter>
+        </operation>
+
+        <operation name="addUserWithUserId">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+         
+        </operation>
+
+        <operation name="getUserId">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+         
+        </operation>
+        <operation name="authenticate">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt
+            </parameter>
+          
+        </operation>
+
+    </service>
+
+
+	<service name="UserAdmin" scope="transportsession">
+		<transports>
+			<transport>https</transport>
+		</transports>
+		<parameter name="ServiceClass" locked="false">
+			org.wso2.carbon.user.mgt.UserAdmin
+		</parameter>
+
+        <schema schemaNamespace="http://org.apache.axis2/xsd" elementFormDefaultQualified="true"/>
+
+
+		<parameter name="AuthorizationAction" locked="false">/permission/admin/configure/security
+		</parameter>
+		<operation name="changePasswordByUser">
+            <parameter name="DoAuthentication" locked="true">false</parameter>
+		</operation>
+		<operation name="getRolesOfCurrentUser">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/login
+			</parameter>
+		</operation>
+		<operation name="getUserRealmInfo">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/login
+			</parameter>
+		</operation>
+		<operation name="getAllRolesNames">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/rolemgt,/permission/admin/manage/modify/service
+			</parameter>
+		</operation>
+		<operation name="getUsersOfRole">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/rolemgt
+			</parameter>
+		</operation>
+		<operation name="updateUsersOfRole">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security
+			</parameter>
+	
+		</operation>
+		<operation name="addUser">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users
+			</parameter>
+			
+		</operation>
+		<operation name="changePassword">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords
+			</parameter>
+
+		</operation>
+		<operation name="deleteUser">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users
+			</parameter>
+	
+		</operation>
+		<operation name="listUsers">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users,/permission/admin/configure/security/usermgt/passwords,/permission/admin/configure/security/usermgt/profiles
+			</parameter>
+		</operation>
+
+        <operation name="listAllUsers">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users,/permission/admin/configure/security/usermgt/passwords,/permission/admin/configure/security/usermgt/profiles
+			</parameter>
+		</operation>
+  
+
+        <operation name="hasMultipleUserStores">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
+            </parameter>
+        </operation>
+	</service>
+
+	<parameter name="adminService" locked="false">true</parameter>
+	<parameter name="hiddenService" locked="false">true</parameter>
+
+</serviceGroup>

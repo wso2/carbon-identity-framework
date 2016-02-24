@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/metatype">
+    <OCD id="identity.user.store.org.wso2.carbon.identity.user.store.configuration.component" name="%identity.user.store.org.wso2.carbon.identity.user.store.configuration.component.name" description="%identity.user.store.org.wso2.carbon.identity.user.store.configuration.component.description"/>
+    <Designate pid="identity.user.store.org.wso2.carbon.identity.user.store.configuration.component">
+        <Object ocdref="identity.user.store.org.wso2.carbon.identity.user.store.configuration.component"/>
+    </Designate>
+</metatype:MetaData>

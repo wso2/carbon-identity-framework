@@ -1,0 +1,59 @@
+// ------------------------------------------------------------------
+// Transitive dependencies of this project determined from the
+// maven pom organized by organization.
+// ------------------------------------------------------------------
+
+WSO2 Carbon - Identity Application Authentication Endpoint
+
+
+From: 'an unknown organization'
+  - CLI  commons-cli:commons-cli:jar:1.0
+
+  - commons.codec.wso2 (http://wso2.org) commons-codec.wso2:commons-codec:bundle:1.4.0.wso2v1
+
+  - commons.lang.wso2 (http://wso2.org) commons-lang.wso2:commons-lang:bundle:2.6.0.wso2v1
+
+  - jstl  javax.servlet:jstl:jar:1.2
+
+  - JLine (http://jline.sourceforge.net) jline:jline:jar:0.9.94
+    License: BSD  (LICENSE.txt)
+  - Log4j (http://logging.apache.org/log4j/docs/) log4j:log4j:jar:1.2.13
+
+  - OWASP Java Encoder (http://www.wso2.com) org.wso2.orbit.org.owasp.encoder:encoder:bundle:1.2.0.wso2v1
+
+  - WSO2 Secure Vault  org.wso2.securevault:org.wso2.securevault:bundle:1.0.0-wso2v2
+
+
+From: 'Apache Software Foundation' (http://www.apache.org)
+  - Activation 1.1 (http://geronimo.apache.org/specs/geronimo-activation_1.1_spec) org.apache.geronimo.specs:geronimo-activation_1.1_spec:jar:1.0.2
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Streaming API for XML (STAX API 1.0) (http://geronimo.apache.org/specs/geronimo-stax-api_1.0_spec) org.apache.geronimo.specs:geronimo-stax-api_1.0_spec:bundle:1.0.1
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'Codehaus' (http://codehaus.org)
+  - jaxen (http://jaxen.codehaus.org/) jaxen:jaxen:jar:1.1.1
+
+
+From: 'Codehaus' (http://www.codehaus.org/)
+  - Woodstox (http://woodstox.codehaus.org) org.codehaus.woodstox:wstx-asl:jar:3.2.9
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'The Apache Software Foundation' (http://www.apache.org)
+  - JavaMail 1.4 (http://geronimo.apache.org/maven/specs/geronimo-javamail_1.4_spec/1.6) org.apache.geronimo.specs:geronimo-javamail_1.4_spec:bundle:1.6
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'The Apache Software Foundation' (http://www.apache.org/)
+  - Commons Codec (http://commons.apache.org/codec/) commons-codec:commons-codec:jar:1.4
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Commons IO (http://commons.apache.org/io/) commons-io:commons-io:jar:2.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Commons Logging (http://commons.apache.org/proper/commons-logging/) commons-logging:commons-logging:jar:1.2
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Axiom API (http://ws.apache.org/axiom/) org.apache.ws.commons.axiom:axiom-api:bundle:1.2.11-wso2v9
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Axiom Impl (http://ws.apache.org/axiom/) org.apache.ws.commons.axiom:axiom-impl:bundle:1.2.11-wso2v9
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+
+
+

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  Version 2.0 (the "License"); you may not use this file except
+  ~  in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing,
+  ~  software distributed under the License is distributed on an
+  ~  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~  KIND, either express or implied.  See the License for the
+  ~  specific language governing permissions and limitations
+  ~  under the License.
+  -->
+<serviceGroup>
+
+	<service name="UserInformationRecoveryService" scope="transportsession">
+		<transports>
+			<transport>https</transport>
+		</transports>
+		<parameter name="ServiceClass" locked="false">
+			org.wso2.carbon.identity.mgt.services.UserInformationRecoveryService
+		</parameter>
+		<parameter name="adminService" locked="true">true</parameter>
+		<parameter name="hiddenService" locked="false">false</parameter>
+		<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+	</service>
+
+	<service name="AccountCredentialMgtConfigService" scope="transportsession">
+		<transports>
+			<transport>https</transport>
+		</transports>
+		<parameter name="ServiceClass" locked="false">
+			org.wso2.carbon.identity.mgt.services.AccountCredentialMgtConfigService
+		</parameter>
+		<parameter name="adminService" locked="true">true</parameter>
+		<parameter name="hiddenService" locked="false">true</parameter>
+		<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+	</service>
+
+    <service name="UserIdentityManagementAdminService" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass" locked="false">
+            org.wso2.carbon.identity.mgt.services.UserIdentityManagementAdminService
+        </parameter>
+		<operation name="getChallengeQuestionsOfUser">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+		</operation>
+        <operation name="getAllChallengeQuestions">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
+		<operation name="setChallengeQuestionsOfUser">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+		</operation>
+        <operation name="updateUserIdentityClaims">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
+        <operation name="getAllUserIdentityClaims">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
+        <operation name="changeUserPassword">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
+        <operation name="updateUserIdentityClaims">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
+		<operation name="isReadOnlyUserStore">
+			<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+		</operation>
+        <operation name="deleteUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+        </operation>
+        <operation name="lockUserAccount">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+        </operation>
+        <operation name="unlockUserAccount">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+        </operation>
+        <operation name="resetUserPassword">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords</parameter>
+        </operation>
+        <operation name="setChallengeQuestions">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security</parameter>
+        </operation>
+        <operation name="getAllPromotedUserChallenge">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security</parameter>
+        </operation>
+        <parameter name="adminService" locked="false">true</parameter>
+        <parameter name="hiddenService" locked="false">true</parameter>
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/configure/security</parameter>
+   </service>
+
+</serviceGroup>

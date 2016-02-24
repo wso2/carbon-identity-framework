@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290964628
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: This will add/delete server principles to a director
+ y server.
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.directory.server.manager
+Bundle-SymbolicName: org.wso2.carbon.directory.server.manager
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.directory.server.manager;version="5.0.8.
+ SNAPSHOT";uses:="org.wso2.carbon.core,org.wso2.carbon.directory.server.
+ manager.common,org.wso2.carbon.identity.base"
+Import-Package: javax.naming,javax.naming.directory,org.apache.axiom.om.
+ util;version="[1.2.11,2.0.0)",org.apache.commons.logging;version="[1.2,
+ 2.0)",org.wso2.carbon.core;version="[4.4.0,5.0.0)",org.wso2.carbon.user
+ .api;version="[1.0.1,2.0.0)",org.wso2.carbon.user.core;version="[4.4.0,
+ 5.0.0)",org.wso2.carbon.user.core.ldap;version="[4.4.0,5.0.0)",org.wso2
+ .carbon.user.core.util;version="[4.4.0,5.0.0)",org.wso2.carbon.director
+ y.server.manager.common;version="[5.0.0,6.0.0)",org.wso2.carbon.identit
+ y.base;version="[5.0.0,6.0.0)",org.apache.commons.lang;version="[2.6.0,
+ 3.0.0)"
+Tool: Bnd-2.1.0.20130426-122213

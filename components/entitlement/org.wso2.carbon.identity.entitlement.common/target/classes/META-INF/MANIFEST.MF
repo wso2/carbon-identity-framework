@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290990945
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: A custom wso2 products or solution
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: WSO2 Carbon - Identity Entitlement Common
+Bundle-SymbolicName: org.wso2.carbon.identity.entitlement.common
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.entitlement.common;version="5.0
+ .8.SNAPSHOT";uses:="org.wso2.carbon.identity.base,org.wso2.carbon.ident
+ ity.entitlement.common.dto",org.wso2.carbon.identity.entitlement.common
+ .dto;version="5.0.8.SNAPSHOT",org.wso2.carbon.identity.entitlement.comm
+ on.util;version="5.0.8.SNAPSHOT";uses:="org.xml.sax"
+Import-Package: javax.xml.parsers;version="[0.0.0,1.0.0)",org.w3c.dom,or
+ g.apache.commons.logging;version="[1.2,2.0)",org.wso2.balana.utils.Cons
+ tants;version="[1.0.1,2.0.0)",org.apache.xerces.util;resolution:=option
+ al,org.wso2.carbon.context;version="[4.4.0,5.0.0)",org.wso2.carbon.regi
+ stry.api;version="[1.0.1,2.0.0)",org.xml.sax,org.wso2.carbon.identity.b
+ ase;version="[5.0.0,6.0.0)"
+Tool: Bnd-2.1.0.20130426-122213

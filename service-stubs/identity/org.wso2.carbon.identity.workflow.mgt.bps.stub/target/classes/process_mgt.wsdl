@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+<definitions name="ProcessManagement"
+             targetNamespace="http://wso2.org/bps/management/wsdl/ProcessManagement"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:tns="http://wso2.org/bps/management/wsdl/ProcessManagement"
+             xmlns:ns="http://wso2.org/bps/management/schema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <types>
+        <xsd:schema targetNamespace="http://wso2.org/bps/management/wsdl/ProcessManagement">
+            <xsd:import namespace="http://wso2.org/bps/management/schema"
+                        schemaLocation="bps_management.xsd"/>
+        </xsd:schema>
+    </types>
+    <message name="getPaginatedProcessListRequest">
+        <part name="part1" element="ns:getPaginatedProcessListInput"/>
+    </message>
+    <message name="getPaginatedProcessListResponse">
+        <part name="part1" element="ns:PaginatedProcessInfoList"/>
+    </message>
+    <message name="retireProcessRequest">
+        <part name="part1" element="ns:retireProcessIn"/>
+    </message>
+    <message name="activateProcessRequest">
+        <part name="part1" element="ns:activateProcessIn"/>
+    </message>
+    <message name="getProcessInfoRequest">
+        <part name="part1" element="ns:getProcessInfoIn"/>
+    </message>
+    <message name="getProcessInfoResponse">
+        <part name="part1" element="ns:ProcessInfo"/>
+    </message>
+    <message name="getAllProcessesRequest">
+        <part name="part1" element="ns:getAllProcesses"/>
+    </message>
+    <message name="getAllProcessesResponse">
+        <part name="part1" element="ns:ProcessIDList"/>
+    </message>
+    <message name="processManagementException">
+        <part name="part"  element="ns:processManagementException" />
+    </message>
+
+
+    <!-- This part is added to get process contents from deploy.xml -->
+    <message name="getProcessDeployDetailsRequest">
+        <part name="part1" element="ns:getProcessDeployDetails"/>
+    </message>
+    <message name="getProcessDeployDetailsResponse">
+        <!--<part name="part1" element="ns:ProcessDeployDetailsList"/>-->
+        <part name="part1" element="ns:ProcessDeploymentInfo"/>
+    </message>
+
+    <!-- This part is added to update contents from process deploy table -->
+    <message name="updateDeployInfoRequest">
+       <part name="part1" element="ns:ProcessDeploymentInfo"/>
+    </message>
+
+
+
+
+    <portType name="ProcessManagementPortType">
+        <operation name="getPaginatedProcessList">
+            <input message="tns:getPaginatedProcessListRequest"/>
+            <output message="tns:getPaginatedProcessListResponse"/>
+            <fault name="processManagementException" message="tns:processManagementException" />
+        </operation>
+        <operation name="retireProcess">
+            <input message="tns:retireProcessRequest"/>
+            <fault name="processManagementException" message="tns:processManagementException" />
+        </operation>
+        <operation name="activateProcess">
+            <input message="tns:activateProcessRequest"/>
+            <fault name="processManagementException" message="tns:processManagementException" />
+        </operation>
+        <operation name="getProcessInfo">
+            <input message="tns:getProcessInfoRequest"/>
+            <output message="tns:getProcessInfoResponse"/>
+            <fault name="processManagementException" message="tns:processManagementException" />
+        </operation>
+        <operation name="getAllProcesses">
+            <input message="tns:getAllProcessesRequest"/>
+            <output message="tns:getAllProcessesResponse"/>
+            <fault name="processManagementException" message="tns:processManagementException" />
+        </operation>
+
+        <!--This is the operation to method get process contents-->
+        <operation name="getProcessDeploymentInfo">
+            <input message="tns:getProcessDeployDetailsRequest"/>
+            <output message="tns:getProcessDeployDetailsResponse"/>
+            <fault name="processManagementException" message="tns:processManagementException" />
+        </operation>
+        <!--This is the operation to method update deploy info-->
+        <operation name="updateDeployInfo">
+            <input message="tns:updateDeployInfoRequest"/>
+            <fault name="processManagementException" message="tns:processManagementException" />
+        </operation>
+
+
+    </portType>
+    <binding name="ProcessManagementSOAPBinding" type="tns:ProcessManagementPortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="getPaginatedProcessList">
+            <soap:operation soapAction="urn:getPaginatedProcessList"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="processManagementException">
+                <soap:fault name="processManagementException" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="retireProcess">
+            <soap:operation soapAction="urn:retireProcess"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <fault name="processManagementException">
+                <soap:fault name="processManagementException" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="activateProcess">
+            <soap:operation soapAction="urn:activateProcess"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <fault name="processManagementException">
+                <soap:fault name="processManagementException" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="getProcessInfo">
+            <soap:operation soapAction="urn:getProcessInfo"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="processManagementException">
+                <soap:fault name="processManagementException" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="getAllProcesses">
+            <soap:operation soapAction="urn:getAllProcesses"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="processManagementException">
+                <soap:fault name="processManagementException" use="literal"/>
+            </fault>
+        </operation>
+
+
+        <!--This binding operation is to get process contents-->
+        <operation name="getProcessDeploymentInfo">
+            <soap:operation soapAction="urn:getProcessDeploymentInfo"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="processManagementException">
+                <soap:fault name="processManagementException" use="literal"/>
+            </fault>
+        </operation>
+
+        <!--This binding operation is to update deploy table-->
+        <operation name="updateDeployInfo">
+            <soap:operation soapAction="urn:updateDeployInfo"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <fault name="processManagementException">
+                <soap:fault name="processManagementException" use="literal"/>
+            </fault>
+        </operation>
+
+    </binding>
+    <service name="ProcessManagementService">
+        <port name="ProcessManagementSOAPPort" binding="tns:ProcessManagementSOAPBinding">
+            <soap:address location="https://localhost:9763/services/ProcessManagementService"/>
+        </port>
+    </service>
+</definitions>

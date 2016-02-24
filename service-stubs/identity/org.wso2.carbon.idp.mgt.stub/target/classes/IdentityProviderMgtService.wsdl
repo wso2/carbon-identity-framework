@@ -1,0 +1,719 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2394="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ns="http://mgt.idp.carbon.wso2.org" xmlns:ax2392="http://common.application.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://mgt.idp.carbon.wso2.org">
+    <wsdl:documentation>IdentityProviderMgtService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://common.application.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityProviderManagementException">
+                <xs:sequence></xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityProvider">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="certificate" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2394:ClaimConfig"></xs:element>
+                    <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2394:FederatedAuthenticatorConfig"></xs:element>
+                    <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2394:ProvisioningConnectorConfig"></xs:element>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="enable" type="xs:boolean"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2394:FederatedAuthenticatorConfig"></xs:element>
+                    <xs:element minOccurs="0" name="federationHub" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2394:IdentityProviderProperty"/>
+                    <xs:element minOccurs="0" name="justInTimeProvisioningConfig" nillable="true" type="ax2394:JustInTimeProvisioningConfig"></xs:element>
+                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2394:PermissionsAndRoleConfig"></xs:element>
+                    <xs:element minOccurs="0" name="primary" type="xs:boolean"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2394:ProvisioningConnectorConfig"></xs:element>
+                    <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ClaimConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="alwaysSendMappedLocalSubjectId" type="xs:boolean"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax2394:ClaimMapping"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpClaims" nillable="true" type="ax2394:Claim"></xs:element>
+                    <xs:element minOccurs="0" name="localClaimDialect" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="roleClaimURI" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="userClaimURI" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ClaimMapping">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="defaultValue" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2394:Claim"></xs:element>
+                    <xs:element minOccurs="0" name="remoteClaim" nillable="true" type="ax2394:Claim"></xs:element>
+                    <xs:element minOccurs="0" name="requested" type="xs:boolean"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="Claim">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="claimId" type="xs:int"></xs:element>
+                    <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="FederatedAuthenticatorConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2394:Property"></xs:element>
+                    <xs:element minOccurs="0" name="valid" type="xs:boolean"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="Property">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="confidential" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="defaultValue" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="displayOrder" type="xs:int"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="required" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="type" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ProvisioningConnectorConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="blocking" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2394:Property"></xs:element>
+                    <xs:element minOccurs="0" name="valid" type="xs:boolean"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="IdentityProviderProperty">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="InboundProvisioningConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="dumbMode" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="provisioningEnabled" type="xs:boolean"></xs:element>
+                    <xs:element minOccurs="0" name="provisioningUserStore" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="JustInTimeProvisioningConfig">
+                <xs:complexContent>
+                    <xs:extension base="ax2394:InboundProvisioningConfig">
+                        <xs:sequence>
+                            <xs:element minOccurs="0" name="userStoreClaimUri" nillable="true" type="xs:string"></xs:element>
+                        </xs:sequence>
+                    </xs:extension>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="PermissionsAndRoleConfig">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpRoles" nillable="true" type="xs:string"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="permissions" nillable="true" type="ax2394:ApplicationPermission"></xs:element>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roleMappings" nillable="true" type="ax2394:RoleMapping"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ApplicationPermission">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="RoleMapping">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="localRole" nillable="true" type="ax2394:LocalRole"></xs:element>
+                    <xs:element minOccurs="0" name="remoteRole" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="LocalRole">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="localRoleName" nillable="true" type="xs:string"></xs:element>
+                    <xs:element minOccurs="0" name="userStoreId" nillable="true" type="xs:string"></xs:element>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ax2393="http://mgt.idp.carbon.wso2.org/xsd" xmlns:ax2395="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.idp.carbon.wso2.org">
+            <xs:import namespace="http://mgt.idp.carbon.wso2.org/xsd"></xs:import>
+            <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"></xs:import>
+            <xs:element name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityProviderManagementException" nillable="true" type="ax2393:IdentityProviderManagementException"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateResidentIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2394:IdentityProvider"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="oldIdPName" nillable="true" type="xs:string"></xs:element>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2394:IdentityProvider"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResidentIdP">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResidentIdPResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2394:IdentityProvider"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getIdPByName">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getIdPByNameResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2394:IdentityProvider"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getEnabledAllIdPs">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getEnabledAllIdPsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2394:IdentityProvider"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllProvisioningConnectors">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllProvisioningConnectorsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2394:ProvisioningConnectorConfig"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllLocalClaimUris">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllLocalClaimUrisResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPs">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2394:IdentityProvider"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllFederatedAuthenticators">
+                <xs:complexType>
+                    <xs:sequence></xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllFederatedAuthenticatorsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2394:FederatedAuthenticatorConfig"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idPName" nillable="true" type="xs:string"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2394:IdentityProvider"></xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="deleteIdPRequest">
+        <wsdl:part name="parameters" element="ns:deleteIdP"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="IdentityProviderMgtServiceIdentityProviderManagementException">
+        <wsdl:part name="parameters" element="ns:IdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllIdPsRequest">
+        <wsdl:part name="parameters" element="ns:getAllIdPs"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllIdPsResponse">
+        <wsdl:part name="parameters" element="ns:getAllIdPsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllLocalClaimUrisRequest">
+        <wsdl:part name="parameters" element="ns:getAllLocalClaimUris"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllLocalClaimUrisResponse">
+        <wsdl:part name="parameters" element="ns:getAllLocalClaimUrisResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getIdPByNameRequest">
+        <wsdl:part name="parameters" element="ns:getIdPByName"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getIdPByNameResponse">
+        <wsdl:part name="parameters" element="ns:getIdPByNameResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="addIdPRequest">
+        <wsdl:part name="parameters" element="ns:addIdP"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllProvisioningConnectorsRequest">
+        <wsdl:part name="parameters" element="ns:getAllProvisioningConnectors"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllProvisioningConnectorsResponse">
+        <wsdl:part name="parameters" element="ns:getAllProvisioningConnectorsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateResidentIdPRequest">
+        <wsdl:part name="parameters" element="ns:updateResidentIdP"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getEnabledAllIdPsRequest">
+        <wsdl:part name="parameters" element="ns:getEnabledAllIdPs"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getEnabledAllIdPsResponse">
+        <wsdl:part name="parameters" element="ns:getEnabledAllIdPsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateIdPRequest">
+        <wsdl:part name="parameters" element="ns:updateIdP"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllFederatedAuthenticatorsRequest">
+        <wsdl:part name="parameters" element="ns:getAllFederatedAuthenticators"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAllFederatedAuthenticatorsResponse">
+        <wsdl:part name="parameters" element="ns:getAllFederatedAuthenticatorsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getResidentIdPRequest">
+        <wsdl:part name="parameters" element="ns:getResidentIdP"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getResidentIdPResponse">
+        <wsdl:part name="parameters" element="ns:getResidentIdPResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="IdentityProviderMgtServicePortType">
+        <wsdl:operation name="deleteIdP">
+            <wsdl:input message="ns:deleteIdPRequest" wsaw:Action="urn:deleteIdP"></wsdl:input>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:deleteIdPIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllIdPs">
+            <wsdl:input message="ns:getAllIdPsRequest" wsaw:Action="urn:getAllIdPs"></wsdl:input>
+            <wsdl:output message="ns:getAllIdPsResponse" wsaw:Action="urn:getAllIdPsResponse"></wsdl:output>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllIdPsIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllLocalClaimUris">
+            <wsdl:input message="ns:getAllLocalClaimUrisRequest" wsaw:Action="urn:getAllLocalClaimUris"></wsdl:input>
+            <wsdl:output message="ns:getAllLocalClaimUrisResponse" wsaw:Action="urn:getAllLocalClaimUrisResponse"></wsdl:output>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllLocalClaimUrisIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getIdPByName">
+            <wsdl:input message="ns:getIdPByNameRequest" wsaw:Action="urn:getIdPByName"></wsdl:input>
+            <wsdl:output message="ns:getIdPByNameResponse" wsaw:Action="urn:getIdPByNameResponse"></wsdl:output>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getIdPByNameIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addIdP">
+            <wsdl:input message="ns:addIdPRequest" wsaw:Action="urn:addIdP"></wsdl:input>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:addIdPIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllProvisioningConnectors">
+            <wsdl:input message="ns:getAllProvisioningConnectorsRequest" wsaw:Action="urn:getAllProvisioningConnectors"></wsdl:input>
+            <wsdl:output message="ns:getAllProvisioningConnectorsResponse" wsaw:Action="urn:getAllProvisioningConnectorsResponse"></wsdl:output>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllProvisioningConnectorsIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateResidentIdP">
+            <wsdl:input message="ns:updateResidentIdPRequest" wsaw:Action="urn:updateResidentIdP"></wsdl:input>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:updateResidentIdPIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getEnabledAllIdPs">
+            <wsdl:input message="ns:getEnabledAllIdPsRequest" wsaw:Action="urn:getEnabledAllIdPs"></wsdl:input>
+            <wsdl:output message="ns:getEnabledAllIdPsResponse" wsaw:Action="urn:getEnabledAllIdPsResponse"></wsdl:output>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getEnabledAllIdPsIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateIdP">
+            <wsdl:input message="ns:updateIdPRequest" wsaw:Action="urn:updateIdP"></wsdl:input>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:updateIdPIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllFederatedAuthenticators">
+            <wsdl:input message="ns:getAllFederatedAuthenticatorsRequest" wsaw:Action="urn:getAllFederatedAuthenticators"></wsdl:input>
+            <wsdl:output message="ns:getAllFederatedAuthenticatorsResponse" wsaw:Action="urn:getAllFederatedAuthenticatorsResponse"></wsdl:output>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllFederatedAuthenticatorsIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getResidentIdP">
+            <wsdl:input message="ns:getResidentIdPRequest" wsaw:Action="urn:getResidentIdP"></wsdl:input>
+            <wsdl:output message="ns:getResidentIdPResponse" wsaw:Action="urn:getResidentIdPResponse"></wsdl:output>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getResidentIdPIdentityProviderMgtServiceIdentityProviderManagementException"></wsdl:fault>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="IdentityProviderMgtServiceSoap11Binding" type="ns:IdentityProviderMgtServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"></soap:binding>
+        <wsdl:operation name="deleteIdP">
+            <soap:operation soapAction="urn:deleteIdP" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllIdPs">
+            <soap:operation soapAction="urn:getAllIdPs" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllLocalClaimUris">
+            <soap:operation soapAction="urn:getAllLocalClaimUris" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getIdPByName">
+            <soap:operation soapAction="urn:getIdPByName" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllProvisioningConnectors">
+            <soap:operation soapAction="urn:getAllProvisioningConnectors" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addIdP">
+            <soap:operation soapAction="urn:addIdP" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateResidentIdP">
+            <soap:operation soapAction="urn:updateResidentIdP" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getEnabledAllIdPs">
+            <soap:operation soapAction="urn:getEnabledAllIdPs" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateIdP">
+            <soap:operation soapAction="urn:updateIdP" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllFederatedAuthenticators">
+            <soap:operation soapAction="urn:getAllFederatedAuthenticators" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getResidentIdP">
+            <soap:operation soapAction="urn:getResidentIdP" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentityProviderMgtServiceSoap12Binding" type="ns:IdentityProviderMgtServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"></soap12:binding>
+        <wsdl:operation name="deleteIdP">
+            <soap12:operation soapAction="urn:deleteIdP" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllIdPs">
+            <soap12:operation soapAction="urn:getAllIdPs" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllLocalClaimUris">
+            <soap12:operation soapAction="urn:getAllLocalClaimUris" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getIdPByName">
+            <soap12:operation soapAction="urn:getIdPByName" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllProvisioningConnectors">
+            <soap12:operation soapAction="urn:getAllProvisioningConnectors" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addIdP">
+            <soap12:operation soapAction="urn:addIdP" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateResidentIdP">
+            <soap12:operation soapAction="urn:updateResidentIdP" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getEnabledAllIdPs">
+            <soap12:operation soapAction="urn:getEnabledAllIdPs" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateIdP">
+            <soap12:operation soapAction="urn:updateIdP" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllFederatedAuthenticators">
+            <soap12:operation soapAction="urn:getAllFederatedAuthenticators" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getResidentIdP">
+            <soap12:operation soapAction="urn:getResidentIdP" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentityProviderMgtServiceHttpBinding" type="ns:IdentityProviderMgtServicePortType">
+        <http:binding verb="POST"></http:binding>
+        <wsdl:operation name="deleteIdP">
+            <http:operation location="deleteIdP"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getAllIdPs">
+            <http:operation location="getAllIdPs"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllLocalClaimUris">
+            <http:operation location="getAllLocalClaimUris"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getIdPByName">
+            <http:operation location="getIdPByName"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllProvisioningConnectors">
+            <http:operation location="getAllProvisioningConnectors"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addIdP">
+            <http:operation location="addIdP"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="updateResidentIdP">
+            <http:operation location="updateResidentIdP"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getEnabledAllIdPs">
+            <http:operation location="getEnabledAllIdPs"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateIdP">
+            <http:operation location="updateIdP"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getAllFederatedAuthenticators">
+            <http:operation location="getAllFederatedAuthenticators"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getResidentIdP">
+            <http:operation location="getResidentIdP"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="IdentityProviderMgtService">
+        <wsdl:port name="IdentityProviderMgtServiceHttpsSoap11Endpoint" binding="ns:IdentityProviderMgtServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/IdentityProviderMgtService.IdentityProviderMgtServiceHttpsSoap11Endpoint/"></soap:address>
+        </wsdl:port>
+        <wsdl:port name="IdentityProviderMgtServiceHttpsSoap12Endpoint" binding="ns:IdentityProviderMgtServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/IdentityProviderMgtService.IdentityProviderMgtServiceHttpsSoap12Endpoint/"></soap12:address>
+        </wsdl:port>
+        <wsdl:port name="IdentityProviderMgtServiceHttpsEndpoint" binding="ns:IdentityProviderMgtServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/IdentityProviderMgtService.IdentityProviderMgtServiceHttpsEndpoint/"></http:address>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

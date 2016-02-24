@@ -1,0 +1,754 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2385="http://mgt.profile.user.identity.carbon.wso2.org/xsd"
+                  xmlns:ns="http://mgt.profile.user.identity.carbon.wso2.org" xmlns:ax2387="http://core.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://mgt.profile.user.identity.carbon.wso2.org">
+    <wsdl:documentation>UserProfileMgtService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.profile.user.identity.carbon.wso2.org">
+            <xs:import namespace="http://mgt.profile.user.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="UserProfileMgtServiceUserProfileException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserProfileException" nillable="true" type="ax2385:UserProfileException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="setUserProfile">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="profile" nillable="true" type="ax2385:UserProfileDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isReadOnlyUserStore">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isReadOnlyUserStoreResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserProfiles">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserProfilesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2385:UserProfileDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteUserProfile">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="profileName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getProfileFieldsForInternalStore">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getProfileFieldsForInternalStoreResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2385:UserProfileDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserProfile">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="profileName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserProfileResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2385:UserProfileDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddProfileEnabled">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddProfileEnabledResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddProfileEnabledForDomain">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="domain" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isAddProfileEnabledForDomainResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="associateID">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idpID" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="associatedID" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getNameAssociatedWith">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idpID" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="associatedID" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getNameAssociatedWithResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAssociatedIDs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAssociatedIDsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2385:AssociatedAccountDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeAssociateID">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="idpID" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="associatedID" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getInstance">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getInstanceResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2385:UserProfileAdmin"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://core.carbon.wso2.org/xsd">
+            <xs:complexType abstract="true" name="AbstractAdmin">
+                <xs:sequence/>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
+                   targetNamespace="http://mgt.profile.user.identity.carbon.wso2.org/xsd">
+            <xs:import namespace="http://core.carbon.wso2.org/xsd"/>
+            <xs:complexType name="UserProfileException">
+                <xs:sequence/>
+            </xs:complexType>
+            <xs:complexType name="UserProfileDTO">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="fieldValues" nillable="true" type="ax2385:UserFieldDTO"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="profileConfigurations" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="profileConifuration" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="profileName" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UserFieldDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="checkedAttribute" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="displayOrder" type="xs:int"/>
+                    <xs:element minOccurs="0" name="fieldValue" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="readOnly" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="regEx" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="required" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="AssociatedAccountDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="UserProfileAdmin">
+                <xs:complexContent>
+                    <xs:extension base="ax2387:AbstractAdmin">
+                        <xs:sequence>
+                            <xs:element minOccurs="0" name="addProfileEnabled" type="xs:boolean"/>
+                            <xs:element maxOccurs="unbounded" minOccurs="0" name="associatedIDs" nillable="true" type="ax2385:AssociatedAccountDTO"/>
+                            <xs:element minOccurs="0" name="profileFieldsForInternalStore" nillable="true" type="ax2385:UserProfileDTO"/>
+                            <xs:element minOccurs="0" name="readOnlyUserStore" type="xs:boolean"/>
+                        </xs:sequence>
+                    </xs:extension>
+                </xs:complexContent>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="getInstanceRequest">
+        <wsdl:part name="parameters" element="ns:getInstance"/>
+    </wsdl:message>
+    <wsdl:message name="getInstanceResponse">
+        <wsdl:part name="parameters" element="ns:getInstanceResponse"/>
+    </wsdl:message>
+    <wsdl:message name="isAddProfileEnabledRequest">
+        <wsdl:part name="parameters" element="ns:isAddProfileEnabled"/>
+    </wsdl:message>
+    <wsdl:message name="isAddProfileEnabledResponse">
+        <wsdl:part name="parameters" element="ns:isAddProfileEnabledResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UserProfileMgtServiceUserProfileException">
+        <wsdl:part name="parameters" element="ns:UserProfileMgtServiceUserProfileException"/>
+    </wsdl:message>
+    <wsdl:message name="isReadOnlyUserStoreRequest">
+        <wsdl:part name="parameters" element="ns:isReadOnlyUserStore"/>
+    </wsdl:message>
+    <wsdl:message name="isReadOnlyUserStoreResponse">
+        <wsdl:part name="parameters" element="ns:isReadOnlyUserStoreResponse"/>
+    </wsdl:message>
+    <wsdl:message name="deleteUserProfileRequest">
+        <wsdl:part name="parameters" element="ns:deleteUserProfile"/>
+    </wsdl:message>
+    <wsdl:message name="isAddProfileEnabledForDomainRequest">
+        <wsdl:part name="parameters" element="ns:isAddProfileEnabledForDomain"/>
+    </wsdl:message>
+    <wsdl:message name="isAddProfileEnabledForDomainResponse">
+        <wsdl:part name="parameters" element="ns:isAddProfileEnabledForDomainResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getUserProfileRequest">
+        <wsdl:part name="parameters" element="ns:getUserProfile"/>
+    </wsdl:message>
+    <wsdl:message name="getUserProfileResponse">
+        <wsdl:part name="parameters" element="ns:getUserProfileResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getProfileFieldsForInternalStoreRequest">
+        <wsdl:part name="parameters" element="ns:getProfileFieldsForInternalStore"/>
+    </wsdl:message>
+    <wsdl:message name="getProfileFieldsForInternalStoreResponse">
+        <wsdl:part name="parameters" element="ns:getProfileFieldsForInternalStoreResponse"/>
+    </wsdl:message>
+    <wsdl:message name="associateIDRequest">
+        <wsdl:part name="parameters" element="ns:associateID"/>
+    </wsdl:message>
+    <wsdl:message name="removeAssociateIDRequest">
+        <wsdl:part name="parameters" element="ns:removeAssociateID"/>
+    </wsdl:message>
+    <wsdl:message name="getAssociatedIDsRequest">
+        <wsdl:part name="parameters" element="ns:getAssociatedIDs"/>
+    </wsdl:message>
+    <wsdl:message name="getAssociatedIDsResponse">
+        <wsdl:part name="parameters" element="ns:getAssociatedIDsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getUserProfilesRequest">
+        <wsdl:part name="parameters" element="ns:getUserProfiles"/>
+    </wsdl:message>
+    <wsdl:message name="getUserProfilesResponse">
+        <wsdl:part name="parameters" element="ns:getUserProfilesResponse"/>
+    </wsdl:message>
+    <wsdl:message name="setUserProfileRequest">
+        <wsdl:part name="parameters" element="ns:setUserProfile"/>
+    </wsdl:message>
+    <wsdl:message name="getNameAssociatedWithRequest">
+        <wsdl:part name="parameters" element="ns:getNameAssociatedWith"/>
+    </wsdl:message>
+    <wsdl:message name="getNameAssociatedWithResponse">
+        <wsdl:part name="parameters" element="ns:getNameAssociatedWithResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="UserProfileMgtServicePortType">
+        <wsdl:operation name="getInstance">
+            <wsdl:input message="ns:getInstanceRequest" wsaw:Action="urn:getInstance"/>
+            <wsdl:output message="ns:getInstanceResponse" wsaw:Action="urn:getInstanceResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="isAddProfileEnabled">
+            <wsdl:input message="ns:isAddProfileEnabledRequest" wsaw:Action="urn:isAddProfileEnabled"/>
+            <wsdl:output message="ns:isAddProfileEnabledResponse" wsaw:Action="urn:isAddProfileEnabledResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:isAddProfileEnabledUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <wsdl:input message="ns:isReadOnlyUserStoreRequest" wsaw:Action="urn:isReadOnlyUserStore"/>
+            <wsdl:output message="ns:isReadOnlyUserStoreResponse" wsaw:Action="urn:isReadOnlyUserStoreResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:isReadOnlyUserStoreUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUserProfile">
+            <wsdl:input message="ns:deleteUserProfileRequest" wsaw:Action="urn:deleteUserProfile"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:deleteUserProfileUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="isAddProfileEnabledForDomain">
+            <wsdl:input message="ns:isAddProfileEnabledForDomainRequest" wsaw:Action="urn:isAddProfileEnabledForDomain"/>
+            <wsdl:output message="ns:isAddProfileEnabledForDomainResponse" wsaw:Action="urn:isAddProfileEnabledForDomainResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:isAddProfileEnabledForDomainUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfile">
+            <wsdl:input message="ns:getUserProfileRequest" wsaw:Action="urn:getUserProfile"/>
+            <wsdl:output message="ns:getUserProfileResponse" wsaw:Action="urn:getUserProfileResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:getUserProfileUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getProfileFieldsForInternalStore">
+            <wsdl:input message="ns:getProfileFieldsForInternalStoreRequest" wsaw:Action="urn:getProfileFieldsForInternalStore"/>
+            <wsdl:output message="ns:getProfileFieldsForInternalStoreResponse" wsaw:Action="urn:getProfileFieldsForInternalStoreResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:getProfileFieldsForInternalStoreUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="associateID">
+            <wsdl:input message="ns:associateIDRequest" wsaw:Action="urn:associateID"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:associateIDUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="removeAssociateID">
+            <wsdl:input message="ns:removeAssociateIDRequest" wsaw:Action="urn:removeAssociateID"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:removeAssociateIDUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociatedIDs">
+            <wsdl:input message="ns:getAssociatedIDsRequest" wsaw:Action="urn:getAssociatedIDs"/>
+            <wsdl:output message="ns:getAssociatedIDsResponse" wsaw:Action="urn:getAssociatedIDsResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:getAssociatedIDsUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfiles">
+            <wsdl:input message="ns:getUserProfilesRequest" wsaw:Action="urn:getUserProfiles"/>
+            <wsdl:output message="ns:getUserProfilesResponse" wsaw:Action="urn:getUserProfilesResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:getUserProfilesUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="setUserProfile">
+            <wsdl:input message="ns:setUserProfileRequest" wsaw:Action="urn:setUserProfile"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:setUserProfileUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getNameAssociatedWith">
+            <wsdl:input message="ns:getNameAssociatedWithRequest" wsaw:Action="urn:getNameAssociatedWith"/>
+            <wsdl:output message="ns:getNameAssociatedWithResponse" wsaw:Action="urn:getNameAssociatedWithResponse"/>
+            <wsdl:fault message="ns:UserProfileMgtServiceUserProfileException" name="UserProfileMgtServiceUserProfileException" wsaw:Action="urn:getNameAssociatedWithUserProfileMgtServiceUserProfileException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="UserProfileMgtServiceSoap11Binding" type="ns:UserProfileMgtServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="isAddProfileEnabled">
+            <soap:operation soapAction="urn:isAddProfileEnabled" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getInstance">
+            <soap:operation soapAction="urn:getInstance" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <soap:operation soapAction="urn:isReadOnlyUserStore" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUserProfile">
+            <soap:operation soapAction="urn:deleteUserProfile" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isAddProfileEnabledForDomain">
+            <soap:operation soapAction="urn:isAddProfileEnabledForDomain" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfile">
+            <soap:operation soapAction="urn:getUserProfile" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getProfileFieldsForInternalStore">
+            <soap:operation soapAction="urn:getProfileFieldsForInternalStore" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="associateID">
+            <soap:operation soapAction="urn:associateID" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeAssociateID">
+            <soap:operation soapAction="urn:removeAssociateID" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociatedIDs">
+            <soap:operation soapAction="urn:getAssociatedIDs" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfiles">
+            <soap:operation soapAction="urn:getUserProfiles" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setUserProfile">
+            <soap:operation soapAction="urn:setUserProfile" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getNameAssociatedWith">
+            <soap:operation soapAction="urn:getNameAssociatedWith" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserProfileMgtServiceSoap12Binding" type="ns:UserProfileMgtServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="isAddProfileEnabled">
+            <soap12:operation soapAction="urn:isAddProfileEnabled" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getInstance">
+            <soap12:operation soapAction="urn:getInstance" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <soap12:operation soapAction="urn:isReadOnlyUserStore" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUserProfile">
+            <soap12:operation soapAction="urn:deleteUserProfile" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isAddProfileEnabledForDomain">
+            <soap12:operation soapAction="urn:isAddProfileEnabledForDomain" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfile">
+            <soap12:operation soapAction="urn:getUserProfile" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getProfileFieldsForInternalStore">
+            <soap12:operation soapAction="urn:getProfileFieldsForInternalStore" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="associateID">
+            <soap12:operation soapAction="urn:associateID" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeAssociateID">
+            <soap12:operation soapAction="urn:removeAssociateID" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociatedIDs">
+            <soap12:operation soapAction="urn:getAssociatedIDs" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfiles">
+            <soap12:operation soapAction="urn:getUserProfiles" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setUserProfile">
+            <soap12:operation soapAction="urn:setUserProfile" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getNameAssociatedWith">
+            <soap12:operation soapAction="urn:getNameAssociatedWith" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserProfileMgtServiceUserProfileException">
+                <soap12:fault use="literal" name="UserProfileMgtServiceUserProfileException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserProfileMgtServiceHttpBinding" type="ns:UserProfileMgtServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="isAddProfileEnabled">
+            <http:operation location="isAddProfileEnabled"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getInstance">
+            <http:operation location="getInstance"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isReadOnlyUserStore">
+            <http:operation location="isReadOnlyUserStore"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="deleteUserProfile">
+            <http:operation location="deleteUserProfile"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="isAddProfileEnabledForDomain">
+            <http:operation location="isAddProfileEnabledForDomain"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfile">
+            <http:operation location="getUserProfile"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getProfileFieldsForInternalStore">
+            <http:operation location="getProfileFieldsForInternalStore"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="associateID">
+            <http:operation location="associateID"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="removeAssociateID">
+            <http:operation location="removeAssociateID"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getAssociatedIDs">
+            <http:operation location="getAssociatedIDs"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getUserProfiles">
+            <http:operation location="getUserProfiles"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setUserProfile">
+            <http:operation location="setUserProfile"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getNameAssociatedWith">
+            <http:operation location="getNameAssociatedWith"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="UserProfileMgtService">
+        <wsdl:port name="UserProfileMgtServiceHttpsSoap11Endpoint" binding="ns:UserProfileMgtServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/UserProfileMgtService.UserProfileMgtServiceHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserProfileMgtServiceHttpsSoap12Endpoint" binding="ns:UserProfileMgtServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/UserProfileMgtService.UserProfileMgtServiceHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserProfileMgtServiceHttpsEndpoint" binding="ns:UserProfileMgtServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/UserProfileMgtService.UserProfileMgtServiceHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

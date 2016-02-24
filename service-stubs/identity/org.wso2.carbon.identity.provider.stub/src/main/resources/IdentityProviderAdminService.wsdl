@@ -1,0 +1,280 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://provider.identity.carbon.wso2.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://provider.identity.carbon.wso2.org">
+    <wsdl:documentation>IdentityProviderAdminService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema xmlns:ns="http://org.apache.axis2/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:element name="addOpenID">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="openID" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="IdentityProviderAdminServiceException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityProviderAdminServiceException" nillable="true" type="ns1:Exception"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:complexType name="Exception">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="extractPrimaryUserName">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="ppid" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="extractPrimaryUserNameResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeOpenID">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="openID" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllOpenIDs">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllOpenIDsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPrimaryOpenID">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPrimaryOpenIDResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="addOpenIDRequest">
+        <wsdl:part name="parameters" element="ns1:addOpenID"/>
+    </wsdl:message>
+    <wsdl:message name="extractPrimaryUserNameRequest">
+        <wsdl:part name="parameters" element="ns1:extractPrimaryUserName"/>
+    </wsdl:message>
+    <wsdl:message name="extractPrimaryUserNameResponse">
+        <wsdl:part name="parameters" element="ns1:extractPrimaryUserNameResponse"/>
+    </wsdl:message>
+    <wsdl:message name="IdentityProviderAdminServiceException">
+        <wsdl:part name="parameters" element="ns1:IdentityProviderAdminServiceException"/>
+    </wsdl:message>
+    <wsdl:message name="removeOpenIDRequest">
+        <wsdl:part name="parameters" element="ns1:removeOpenID"/>
+    </wsdl:message>
+    <wsdl:message name="getPrimaryOpenIDRequest">
+        <wsdl:part name="parameters" element="ns1:getPrimaryOpenID"/>
+    </wsdl:message>
+    <wsdl:message name="getPrimaryOpenIDResponse">
+        <wsdl:part name="parameters" element="ns1:getPrimaryOpenIDResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getAllOpenIDsRequest">
+        <wsdl:part name="parameters" element="ns1:getAllOpenIDs"/>
+    </wsdl:message>
+    <wsdl:message name="getAllOpenIDsResponse">
+        <wsdl:part name="parameters" element="ns1:getAllOpenIDsResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="IdentityProviderAdminServicePortType">
+        <wsdl:operation name="addOpenID">
+            <wsdl:input message="tns:addOpenIDRequest" wsaw:Action="urn:addOpenID"/>
+        </wsdl:operation>
+        <wsdl:operation name="extractPrimaryUserName">
+            <wsdl:input message="tns:extractPrimaryUserNameRequest" wsaw:Action="urn:extractPrimaryUserName"/>
+            <wsdl:output message="tns:extractPrimaryUserNameResponse" wsaw:Action="urn:extractPrimaryUserNameResponse"/>
+            <wsdl:fault message="tns:IdentityProviderAdminServiceException" name="IdentityProviderAdminServiceException" wsaw:Action="urn:extractPrimaryUserNameIdentityProviderAdminServiceException"/>
+        </wsdl:operation>
+        <wsdl:operation name="removeOpenID">
+            <wsdl:input message="tns:removeOpenIDRequest" wsaw:Action="urn:removeOpenID"/>
+        </wsdl:operation>
+        <wsdl:operation name="getPrimaryOpenID">
+            <wsdl:input message="tns:getPrimaryOpenIDRequest" wsaw:Action="urn:getPrimaryOpenID"/>
+            <wsdl:output message="tns:getPrimaryOpenIDResponse" wsaw:Action="urn:getPrimaryOpenIDResponse"/>
+            <wsdl:fault message="tns:IdentityProviderAdminServiceException" name="IdentityProviderAdminServiceException" wsaw:Action="urn:getPrimaryOpenIDIdentityProviderAdminServiceException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getAllOpenIDs">
+            <wsdl:input message="tns:getAllOpenIDsRequest" wsaw:Action="urn:getAllOpenIDs"/>
+            <wsdl:output message="tns:getAllOpenIDsResponse" wsaw:Action="urn:getAllOpenIDsResponse"/>
+            <wsdl:fault message="tns:IdentityProviderAdminServiceException" name="IdentityProviderAdminServiceException" wsaw:Action="urn:getAllOpenIDsIdentityProviderAdminServiceException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="IdentityProviderAdminServiceSoap11Binding" type="tns:IdentityProviderAdminServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="addOpenID">
+            <soap:operation soapAction="urn:addOpenID" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="extractPrimaryUserName">
+            <soap:operation soapAction="urn:extractPrimaryUserName" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderAdminServiceException">
+                <soap:fault use="literal" name="IdentityProviderAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeOpenID">
+            <soap:operation soapAction="urn:removeOpenID" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getPrimaryOpenID">
+            <soap:operation soapAction="urn:getPrimaryOpenID" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderAdminServiceException">
+                <soap:fault use="literal" name="IdentityProviderAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllOpenIDs">
+            <soap:operation soapAction="urn:getAllOpenIDs" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderAdminServiceException">
+                <soap:fault use="literal" name="IdentityProviderAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentityProviderAdminServiceSoap12Binding" type="tns:IdentityProviderAdminServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="addOpenID">
+            <soap12:operation soapAction="urn:addOpenID" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="extractPrimaryUserName">
+            <soap12:operation soapAction="urn:extractPrimaryUserName" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderAdminServiceException">
+                <soap12:fault use="literal" name="IdentityProviderAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeOpenID">
+            <soap12:operation soapAction="urn:removeOpenID" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getPrimaryOpenID">
+            <soap12:operation soapAction="urn:getPrimaryOpenID" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderAdminServiceException">
+                <soap12:fault use="literal" name="IdentityProviderAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllOpenIDs">
+            <soap12:operation soapAction="urn:getAllOpenIDs" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderAdminServiceException">
+                <soap12:fault use="literal" name="IdentityProviderAdminServiceException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentityProviderAdminServiceHttpBinding" type="tns:IdentityProviderAdminServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="addOpenID">
+            <http:operation location="addOpenID"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="extractPrimaryUserName">
+            <http:operation location="extractPrimaryUserName"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="removeOpenID">
+            <http:operation location="removeOpenID"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getPrimaryOpenID">
+            <http:operation location="getPrimaryOpenID"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllOpenIDs">
+            <http:operation location="getAllOpenIDs"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="IdentityProviderAdminService">
+        <wsdl:port name="IdentityProviderAdminServiceHttpsSoap11Endpoint" binding="tns:IdentityProviderAdminServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/IdentityProviderAdminService.IdentityProviderAdminServiceHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="IdentityProviderAdminServiceHttpsSoap12Endpoint" binding="tns:IdentityProviderAdminServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/IdentityProviderAdminService.IdentityProviderAdminServiceHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="IdentityProviderAdminServiceHttpsEndpoint" binding="tns:IdentityProviderAdminServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/IdentityProviderAdminService.IdentityProviderAdminServiceHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

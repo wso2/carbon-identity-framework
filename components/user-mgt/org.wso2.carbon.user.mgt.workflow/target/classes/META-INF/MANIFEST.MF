@@ -1,0 +1,39 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456291057309
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: This is a Carbon bundle that represent the User Mana
+ gement Aggregator module.
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.user.mgt.workflow
+Bundle-SymbolicName: org.wso2.carbon.user.mgt.workflow
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.user.mgt.workflow.userstore;version="5.0
+ .8.SNAPSHOT";uses:="org.wso2.carbon.identity.core,org.wso2.carbon.ident
+ ity.workflow.mgt.bean,org.wso2.carbon.identity.workflow.mgt.exception,o
+ rg.wso2.carbon.identity.workflow.mgt.extension,org.wso2.carbon.user.api
+ ,org.wso2.carbon.user.core",org.wso2.carbon.user.mgt.workflow;version="
+ 5.0.8.SNAPSHOT";uses:="org.wso2.carbon.identity.workflow.mgt.exception"
+ ,org.wso2.carbon.user.mgt.workflow.util;version="5.0.8.SNAPSHOT"
+Import-Package: org.apache.commons.lang;version="[2.6.0,3.0.0)",org.apac
+ he.commons.logging;version="[1.2,2.0)",org.osgi.framework;version="[1.7
+ .0,2.0.0)",org.osgi.service.component;version="[1.2.0,2.0.0)",org.wso2.
+ carbon.identity.workflow.mgt.exception;version="[5.0.0,6.0.0)",org.wso2
+ .carbon.user.api;version="[1.0.1,2.0.0)",org.wso2.carbon.user.core;vers
+ ion="[4.4.0,5.0.0)",org.wso2.carbon.user.core.common;version="[4.4.0,5.
+ 0.0)",org.wso2.carbon.user.core.listener;version="[4.4.0,5.0.0)",org.ws
+ o2.carbon.user.core.service;version="[4.4.0,5.0.0)",org.wso2.carbon.uti
+ ls;version="[4.4.0,5.0.0)",org.wso2.carbon.identity.workflow.mgt.extens
+ ion;version="[5.0.0,6.0.0)",org.wso2.carbon.identity.workflow.mgt.util;
+ version="[5.0.0,6.0.0)",org.wso2.carbon.context;version="[4.4.0,5.0.0)"
+ ,org.wso2.carbon.identity.workflow.mgt;version="[5.0.0,6.0.0)",org.wso2
+ .carbon.identity.workflow.mgt.bean;version="[5.0.0,6.0.0)",org.wso2.car
+ bon.identity.core;version="[5.0.0,6.0.0)",org.wso2.carbon.identity.core
+ .util;version="[5.0.0,6.0.0)",org.wso2.carbon.user.core.util;version="[
+ 4.4.0,5.0.0)",org.wso2.carbon.core.util;version="[4.4.0,5.0.0)"
+Service-Component: OSGI-INF/serviceComponents.xml
+Tool: Bnd-2.1.0.20130426-122213

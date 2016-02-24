@@ -1,0 +1,164 @@
+<!--
+  ~ Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>
+    <title>Kerberos Service Principals - User Guide</title>
+    <link href="../../admin/css/documentation.css" rel="stylesheet" type="text/css" media="all"/>
+</head>
+<body>
+
+<h1>Kerberos Security</h1>
+
+<p> Kerberos is an authentication protocol which can be used to secure communications in web services. Kerberos enables
+us to exchange user credentials securely. Thus it also provides mutual authentication in which server can also
+authenticate it self to the client.</p>
+
+<p>Kerberos protocol uses a trusted third party called “Key Distribution Center” (KDC). KDC consists 2 logical parts.
+    They are, </p>
+
+<p>
+1. Authentication Server<br/>
+2. Ticket Granting Server<br/>
+</p>
+
+<p>
+    Actual user credentials are stored within the "Authentication Server". Communicating parties will retrieve a Kerberos
+    ticket from "Ticket Granting Server". TGS validates ticket requesting users credentials with "Authentication Server".
+</p>
+
+<h2>Kerberos Security within "WSO2 Identity Server"</h2>
+
+<p>"WSO2 Identity Server" uses ApacheDS based LDAP server user store. It also has an ApacheDS based on KDC implementation.
+Users can use "WSO2 Identity Server" as a KDC and implement Kerberos security to secure communications between services and clients.
+</p>
+
+<h3>Enable KDC within "WSO2 Identity Server"</h3>
+
+<p>
+    To use KDC in "Identity Server" you need to use embedded LDAP which ships with "WSO2 Identity Server". Thus, by
+default KDC server is disabled. To enable KDC server you need to enable KDS server in two places. First locate the configuration
+    section "UserStoreManager" in repository/conf/user-mgt.xml and set the property "kdcEnabled" to true.
+    Then go to "Identity Server" home directory and navigate to repository/conf
+folder. There you will find a file called <b>embedded-ldap.xml</b>. Open embedded-ldap.xml and find &lt;KDCServer/&gt; XML tag.
+You will configuration XML element called "enabled". Set its value to "true".
+
+    After modifying, the XML configuration should looks like follows,
+</p>
+
+<p>
+        &lt;!-- KDC configurations --&gt;<br/>
+  &lt;KDCServer&gt;<br/>
+    &lt;Property name="name"&gt;defaultKDC&lt;/Property&gt;<br/>
+    &lt;Property name="enabled"&gt;<b>true</b>&lt;/Property&gt;<br/>
+    &lt;Property name="protocol"&gt;UDP&lt;/Property&gt;<br/>
+    &lt;Property name="host"&gt;localhost&lt;/Property&gt;<br/>
+    &lt;Property name="port"&gt;8000&lt;/Property&gt;<br/>
+    &lt;Property name="maximumTicketLifeTime"&gt;8640000&lt;/Property&gt;<br/>
+    &lt;Property name="maximumRenewableLifeTime"&gt;604800000&lt;/Property&gt;<br/>
+    &lt;Property name="preAuthenticationTimeStampEnabled"&gt;true&lt;/Property&gt;<br/>
+  &lt;/KDCServer&gt;<br/>
+</p>
+
+
+<h3>Service Principals</h3>
+
+<p>
+     The "KDC Server" issues tickets to access a particular service. Thus the services are associated with a
+    service name. In Kerberos context we call this service name as “Service Principal Name” (SPN). Before we assign a
+    SPN to a service we need to define “Service Principal Name” in KDC.
+</p>
+
+<p>
+    Users can use this screen to do operations on service principals.
+</p>
+
+<h4><b>List Service Principals</b></h4>
+
+<p><img src="images/list_principals.png" alt="List Service Principals" border="1" style="border-color:darkgray"/></p>
+<p><em><strong>Figure 1:</strong>List Service Principals</em></p>
+
+<p>
+    You can list all service principals by selecting <b>Configure -> Kerberos KDC -> Service Principals</b> in left hand menu.
+
+<li>Service Principal Name – Name of the service principal. This usually takes following format;
+&lt;Service Name&gt;/&lt;Host where service is running&gt;.</li>
+E.g :- hello/localhost
+
+<li>Description – Brief description about the service principal. This field is not mandatory.</li>
+<li>Actions – This column lists the actions you can carry on a selected service principal.</li>
+    You may delete existing service principal or you can change password associated with a service principal.
+
+</p>
+
+<h4><b>Add Service Principal</b></h4>
+
+<p><img src="images/add_principal.png" alt="Add Service Principal" border="1" style="border-color:darkgray"/></p>
+<p><em><strong>Figure 2:</strong>Add Service Principal</em></p>
+
+<p>
+    Figure 2, describes how you can add a service principal.
+
+<li>Service Principal Name – Name of the service principal. This usually takes following format;</li>
+&lt;Service Name&gt;/&lt;Host where service is running&gt;. This field is mandatory.
+E.g :- EchoService/127.0.0.1
+
+<li>Password – This is the password given service principal. You would use this password in appropriate service's
+    rampart configuration. Thus appropriate service will provide password given in rampart configuration to KDC, when
+    it needs to authenticate it self to KDC. This field is mandatory.</li>
+
+<li>Re-Type Password – Re-type password provided in “Password” section to make sure given password is accurate.
+    This field is mandatory.</li>
+
+<li>Description – Brief description about the service principal. This field is not mandatory.</li>
+
+</p>
+
+<h4><b>Change Password of a Service Principal</b></h4>
+
+<p><img src="images/change_password_main.png" alt="Change Password of a Service Principal" border="1" style="border-color:darkgray"/></p>
+<p><em><strong>Figure 3:</strong>Change Password of a Service Principal</em></p>
+
+
+<p>
+
+To change password of a service principal; chose service principal and click <b>Change Password</b> hyperlink in "Actions"
+column. (See Figure 3)
+Then you will see a screen as depicted in Figure 4. To change password, enter existing password and the new password.
+</p>
+
+<p><img src="images/change_password.png" alt="Change Password of a Service Principal" border="1" style="border-color:darkgray"/></p>
+<p><em><strong>Figure 4:</strong>Change Password of a Service Principal</em></p>
+
+<h4><b>Delete Service Principal</b></h4>
+
+<p><img src="images/delete_principal.png" alt="Delete Service Principal" border="1" style="border-color:darkgray"/></p>
+<p><em><strong>Figure 5:</strong>Delete Service Principal</em></p>
+
+<p>
+    Figure 5, describes how you can delete a service principal.
+
+In the "Actions" column select <b>Delete</b> hyperlink to delete a particular service principal.
+
+</p>
+
+
+
+</body>
+</html>

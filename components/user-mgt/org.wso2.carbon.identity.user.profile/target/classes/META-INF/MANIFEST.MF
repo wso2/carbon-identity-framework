@@ -1,0 +1,43 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290984679
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: A custom wso2 product
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: WSO2 Carbon - User Profile Management
+Bundle-SymbolicName: org.wso2.carbon.identity.user.profile
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.user.profile.mgt;version="5.0.8
+ .SNAPSHOT";uses:="org.wso2.carbon.core,org.wso2.carbon.identity.base,or
+ g.wso2.carbon.user.core",org.wso2.carbon.identity.user.profile.mgt.dao;
+ version="5.0.8.SNAPSHOT";uses:="org.wso2.carbon.identity.user.profile.m
+ gt",org.wso2.carbon.identity.user.profile.mgt.listener;version="5.0.8.S
+ NAPSHOT";uses:="org.wso2.carbon.identity.core,org.wso2.carbon.user.core
+ ",org.wso2.carbon.identity.user.profile.mgt.util;version="5.0.8.SNAPSHO
+ T";uses:="org.wso2.carbon.identity.user.profile.mgt,org.wso2.carbon.use
+ r.core"
+Import-Package: javax.servlet.http;version="[2.6.0,3.0.0)",org.apache.ax
+ is2.context;version="[1.6.1.wso2v12,2.0.0)",org.apache.axis2.transport.
+ http;version="[1.6.1.wso2v12,2.0.0)",org.apache.commons.logging;version
+ ="[1.2,2.0)",org.osgi.framework;version="[1.7.0,2.0.0)",org.osgi.servic
+ e.component;version="[1.2.0,2.0.0)",org.wso2.carbon;version="[4.4.0,5.0
+ .0)",org.wso2.carbon.context;version="[4.4.0,5.0.0)",org.wso2.carbon.co
+ re;version="[4.4.0,5.0.0)",org.wso2.carbon.user.core;version="[4.4.0,5.
+ 0.0)",org.wso2.carbon.user.core.claim;version="[4.4.0,5.0.0)",org.wso2.
+ carbon.user.core.common;version="[4.4.0,5.0.0)",org.wso2.carbon.user.co
+ re.listener;version="[4.4.0,5.0.0)",org.wso2.carbon.user.core.profile;v
+ ersion="[4.4.0,5.0.0)",org.wso2.carbon.utils.multitenancy;version="[4.4
+ .0,5.0.0)",org.wso2.carbon.user.api;version="[1.0.1,2.0.0)",org.wso2.ca
+ rbon.registry.core.session;version="[1.0.1,2.0.0)",org.wso2.carbon.iden
+ tity.application.common.util;version="[5.0.0,6.0.0)",org.wso2.carbon.id
+ entity.base;version="[5.0.0,6.0.0)",org.wso2.carbon.identity.core;versi
+ on="[5.0.0,6.0.0)",org.wso2.carbon.identity.core.util;version="[5.0.0,6
+ .0.0)",org.wso2.carbon.identity.user.store.configuration.listener;versi
+ on="[5.0.0,6.0.0)",org.apache.commons.lang;version="[2.6.0,3.0.0)"
+Service-Component: OSGI-INF/serviceComponents.xml
+Tool: Bnd-2.1.0.20130426-122213
+WSO2-Bundle-StartLevel: 50

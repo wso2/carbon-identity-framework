@@ -1,0 +1,118 @@
+<!--
+  ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:ns="http://services.deployer.humantask.carbon.wso2.org"
+                  xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:ax216="http://services.deployer.humantask.carbon.wso2.org/xsd"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                  targetNamespace="http://services.deployer.humantask.carbon.wso2.org">
+    <wsdl:documentation>HumanTaskUploader</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
+                   targetNamespace="http://services.deployer.humantask.carbon.wso2.org">
+            <xs:import namespace="http://services.deployer.humantask.carbon.wso2.org/xsd"/>
+            <xs:complexType name="Exception">
+                <xs:sequence>
+                    <xs:element name="Exception" nillable="true" type="xs:anyType"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="uploadHumanTask">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" name="fileItems" nillable="true"
+                                    type="ax216:UploadedFileItem"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
+                   targetNamespace="http://services.deployer.humantask.carbon.wso2.org/xsd">
+            <xs:complexType name="UploadedFileItem">
+                <xs:sequence>
+                    <xs:element name="dataHandler" nillable="true" type="xs:base64Binary"/>
+                    <xs:element name="fileName" nillable="true" type="xs:string"/>
+                    <xs:element name="fileType" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="uploadHumanTaskRequest">
+        <wsdl:part name="parameters" element="ns:uploadHumanTask"/>
+    </wsdl:message>
+    <wsdl:message name="uploadHumanTaskResponse"/>
+    <wsdl:portType name="HumanTaskUploaderPortType">
+        <wsdl:operation name="uploadHumanTask">
+            <wsdl:input message="ns:uploadHumanTaskRequest" wsaw:Action="urn:uploadHumanTask"/>
+            <wsdl:output message="ns:uploadHumanTaskResponse" wsaw:Action="urn:uploadHumanTaskResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="HumanTaskUploaderSoap11Binding" type="ns:HumanTaskUploaderPortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="uploadHumanTask">
+            <soap:operation soapAction="urn:uploadHumanTask" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="HumanTaskUploaderSoap12Binding" type="ns:HumanTaskUploaderPortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="uploadHumanTask">
+            <soap12:operation soapAction="urn:uploadHumanTask" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="HumanTaskUploaderHttpBinding" type="ns:HumanTaskUploaderPortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="uploadHumanTask">
+            <http:operation location="uploadHumanTask"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="uploadHumanTask"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="uploadHumanTask"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="HumanTaskUploader">
+        <wsdl:port name="HumanTaskUploaderHttpsSoap11Endpoint" binding="ns:HumanTaskUploaderSoap11Binding">
+            <soap:address
+                    location="https://10.100.1.150:9443/services/HumanTaskUploader.HumanTaskUploaderHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="HumanTaskUploaderHttpsSoap12Endpoint" binding="ns:HumanTaskUploaderSoap12Binding">
+            <soap12:address
+                    location="https://10.100.1.150:9443/services/HumanTaskUploader.HumanTaskUploaderHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="HumanTaskUploaderHttpsEndpoint" binding="ns:HumanTaskUploaderHttpBinding">
+            <http:address
+                    location="https://10.100.1.150:9443/services/HumanTaskUploader.HumanTaskUploaderHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

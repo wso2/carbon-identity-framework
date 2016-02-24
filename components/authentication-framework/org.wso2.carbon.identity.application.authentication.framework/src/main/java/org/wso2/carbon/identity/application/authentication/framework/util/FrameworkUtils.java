@@ -1,0 +1,1097 @@
+/*
+ * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.identity.application.authentication.framework.util;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.claim.mgt.ClaimManagementException;
+import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
+import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer;
+import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.common.model.Claim;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
+public class FrameworkUtils {
+
+    public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String UTF_8 = "UTF-8";
+    private static final Log log = LogFactory.getLog(FrameworkUtils.class);
+    private static int maxInactiveInterval;
+    private static final String EMAIL = "email";
+    private static List<String> cacheDisabledAuthenticators = Arrays
+            .asList(new String[] { FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2 });
+
+    private FrameworkUtils() {
+    }
+
+    public static List<String> getCacheDisabledAuthenticators() {
+        return cacheDisabledAuthenticators;
+    }
+
+    /**
+     * To add authentication request cache entry to cache
+     *
+     * @param key          cache entry key
+     * @param authReqEntry AuthenticationReqCache Entry.
+     */
+    public static void addAuthenticationRequestToCache(String key, AuthenticationRequestCacheEntry authReqEntry) {
+        AuthenticationRequestCacheKey cacheKey = new AuthenticationRequestCacheKey(key);
+        AuthenticationRequestCache.getInstance().addToCache(cacheKey, authReqEntry);
+    }
+
+    /**
+     * To get authentication cache request from cache
+     *
+     * @param key Key of the cache entry
+     * @return
+     */
+    public static AuthenticationRequestCacheEntry getAuthenticationRequestFromCache(String key) {
+
+        AuthenticationRequestCacheKey cacheKey = new AuthenticationRequestCacheKey(key);
+        AuthenticationRequestCacheEntry authRequest = AuthenticationRequestCache.getInstance().getValueFromCache(cacheKey);
+        return authRequest;
+    }
+
+    /**
+     * removes authentication request from cache.
+     *
+     * @param key SessionDataKey
+     */
+    public static void removeAuthenticationRequestFromCache(String key) {
+
+        if (key != null) {
+            AuthenticationRequestCacheKey cacheKey = new AuthenticationRequestCacheKey(key);
+            AuthenticationRequestCache.getInstance().clearCacheEntry(cacheKey);
+        }
+    }
+
+    /**
+     * Builds the wrapper, wrapping incoming request and information take from cache entry
+     *
+     * @param request    Original request coming to authentication framework
+     * @param cacheEntry Cache entry from the cache, which is added from calling servlets
+     * @return
+     */
+    public static HttpServletRequest getCommonAuthReqWithParams(HttpServletRequest request,
+                                                                AuthenticationRequestCacheEntry cacheEntry) {
+
+        // add this functionality as a constructor
+        Map<String, String[]> modifiableParameters = new TreeMap<String, String[]>();
+        if (cacheEntry != null) {
+            AuthenticationRequest authenticationRequest = cacheEntry.getAuthenticationRequest();
+
+            if (!authenticationRequest.getRequestQueryParams().isEmpty()) {
+                modifiableParameters.putAll(authenticationRequest.getRequestQueryParams());
+            }
+
+            // Adding field variables to wrapper
+            if (authenticationRequest.getType() != null) {
+                modifiableParameters.put(FrameworkConstants.RequestParams.TYPE,
+                                         new String[]{authenticationRequest.getType()});
+            }
+            if (authenticationRequest.getCommonAuthCallerPath() != null) {
+                modifiableParameters.put(FrameworkConstants.RequestParams.CALLER_PATH,
+                                         new String[]{authenticationRequest.getCommonAuthCallerPath()});
+            }
+            if (authenticationRequest.getRelyingParty() != null) {
+                modifiableParameters.put(FrameworkConstants.RequestParams.ISSUER,
+                                         new String[]{authenticationRequest.getRelyingParty()});
+            }
+            if (authenticationRequest.getTenantDomain() != null) {
+                modifiableParameters.put(FrameworkConstants.RequestParams.TENANT_DOMAIN,
+                                         new String[]{authenticationRequest.getTenantDomain()});
+            }
+            modifiableParameters.put(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE,
+                                     new String[]{String.valueOf(authenticationRequest.getForceAuth())});
+            modifiableParameters.put(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION,
+                                     new String[]{String.valueOf(authenticationRequest.getPassiveAuth())});
+
+            if (log.isDebugEnabled()) {
+                StringBuilder queryStringBuilder = new StringBuilder("");
+
+                for (Map.Entry<String, String[]> entry : modifiableParameters.entrySet()) {
+                    StringBuilder paramValueBuilder = new StringBuilder("");
+                    String[] paramValueArr = entry.getValue();
+
+                    if (paramValueArr != null) {
+                        for (String paramValue : paramValueArr) {
+                            paramValueBuilder.append("{").append(paramValue).append("}");
+                        }
+                    }
+
+                    queryStringBuilder.append("\n").append(
+                            entry.getKey() + "=" + paramValueBuilder.toString());
+                }
+
+                log.debug("\nInbound Request parameters: " + queryStringBuilder.toString());
+            }
+
+            return new AuthenticationFrameworkWrapper(request, modifiableParameters,
+                                                      authenticationRequest.getRequestHeaders());
+        }
+        return request;
+    }
+
+    /**
+     * @param name
+     * @return
+     */
+    public static ApplicationAuthenticator getAppAuthenticatorByName(String name) {
+
+        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+
+            if (name.equals(authenticator.getName())) {
+                return authenticator;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param request
+     * @return
+     */
+    public static AuthenticationContext getContextData(HttpServletRequest request) {
+
+        AuthenticationContext context = null;
+
+        for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
+            try {
+                String contextIdentifier = authenticator.getContextIdentifier(request);
+
+                if (contextIdentifier != null && !contextIdentifier.isEmpty()) {
+                    context = FrameworkUtils.getAuthenticationContextFromCache(contextIdentifier);
+                    if (context != null) {
+                        break;
+                    }
+                }
+            } catch (UnsupportedOperationException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Ignore UnsupportedOperationException.", e);
+                }
+                continue;
+            }
+        }
+
+        return context;
+    }
+
+    public static RequestCoordinator getRequestCoordinator() {
+
+        RequestCoordinator requestCoordinator = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_REQ_COORDINATOR);
+
+        if (obj instanceof RequestCoordinator) {
+            requestCoordinator = (RequestCoordinator) obj;
+        } else {
+            requestCoordinator = DefaultRequestCoordinator.getInstance();
+        }
+
+        return requestCoordinator;
+    }
+
+    /**
+     * @return
+     */
+    public static AuthenticationRequestHandler getAuthenticationRequestHandler() {
+
+        AuthenticationRequestHandler authenticationRequestHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_AUTH_REQ_HANDLER);
+
+        if (obj instanceof AuthenticationRequestHandler) {
+            authenticationRequestHandler = (AuthenticationRequestHandler) obj;
+        } else {
+            authenticationRequestHandler = DefaultAuthenticationRequestHandler.getInstance();
+        }
+
+        return authenticationRequestHandler;
+    }
+
+    /**
+     * @return
+     */
+    public static LogoutRequestHandler getLogoutRequestHandler() {
+
+        LogoutRequestHandler logoutRequestHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_LOGOUT_REQ_HANDLER);
+
+        if (obj instanceof LogoutRequestHandler) {
+            logoutRequestHandler = (LogoutRequestHandler) obj;
+        } else {
+            logoutRequestHandler = DefaultLogoutRequestHandler.getInstance();
+        }
+
+        return logoutRequestHandler;
+    }
+
+    /**
+     * @return
+     */
+    public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
+
+        StepBasedSequenceHandler stepBasedSequenceHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
+
+        if (obj instanceof StepBasedSequenceHandler) {
+            stepBasedSequenceHandler = (StepBasedSequenceHandler) obj;
+        } else {
+            stepBasedSequenceHandler = DefaultStepBasedSequenceHandler.getInstance();
+        }
+
+        return stepBasedSequenceHandler;
+    }
+
+    /**
+     * @return
+     */
+    public static RequestPathBasedSequenceHandler getRequestPathBasedSequenceHandler() {
+
+        RequestPathBasedSequenceHandler reqPathBasedSeqHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_REQ_PATH_BASED_SEQ_HANDLER);
+
+        if (obj instanceof RequestPathBasedSequenceHandler) {
+            reqPathBasedSeqHandler = (RequestPathBasedSequenceHandler) obj;
+        } else {
+            reqPathBasedSeqHandler = DefaultRequestPathBasedSequenceHandler.getInstance();
+        }
+
+        return reqPathBasedSeqHandler;
+    }
+
+    /**
+     * @return
+     */
+    public static StepHandler getStepHandler() {
+
+        StepHandler stepHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
+
+        if (obj instanceof StepHandler) {
+            stepHandler = (StepHandler) obj;
+        } else {
+            stepHandler = DefaultStepHandler.getInstance();
+        }
+
+        return stepHandler;
+    }
+
+    /**
+     * @return
+     */
+    public static HomeRealmDiscoverer getHomeRealmDiscoverer() {
+
+        HomeRealmDiscoverer homeRealmDiscoverer = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_HRD);
+
+        if (obj instanceof HomeRealmDiscoverer) {
+            homeRealmDiscoverer = (HomeRealmDiscoverer) obj;
+        } else {
+            homeRealmDiscoverer = DefaultHomeRealmDiscoverer.getInstance();
+        }
+
+        return homeRealmDiscoverer;
+    }
+
+    /**
+     * @return
+     */
+    public static ClaimHandler getClaimHandler() {
+
+        ClaimHandler claimHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_CLAIM_HANDLER);
+
+        if (obj instanceof ClaimHandler) {
+            claimHandler = (ClaimHandler) obj;
+        } else {
+            claimHandler = DefaultClaimHandler.getInstance();
+        }
+
+        return claimHandler;
+    }
+
+    /**
+     * @return
+     */
+    public static ProvisioningHandler getProvisioningHandler() {
+
+        ProvisioningHandler provisioningHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_PROVISIONING_HANDLER);
+
+        if (obj instanceof ProvisioningHandler) {
+            provisioningHandler = (ProvisioningHandler) obj;
+        } else {
+            provisioningHandler = DefaultProvisioningHandler.getInstance();
+        }
+
+        return provisioningHandler;
+    }
+
+    /**
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        // TODO read the URL from framework config file rather than carbon.xml
+        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        response.sendRedirect(ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
+    }
+
+    /**
+     * @param req
+     * @param resp
+     */
+    public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp) {
+
+        Cookie[] cookies = req.getCookies();
+
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(FrameworkConstants.COMMONAUTH_COOKIE)) {
+                    cookie.setMaxAge(0);
+                    cookie.setHttpOnly(true);
+                    cookie.setSecure(true);
+                    resp.addCookie(cookie);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param req
+     * @param resp
+     * @param id
+     */
+    public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id) {
+        storeAuthCookie(req, resp, id, null);
+    }
+
+    /**
+     * @param req
+     * @param resp
+     * @param id
+     * @param age
+     */
+    public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id, Integer age) {
+
+        Cookie authCookie = new Cookie(FrameworkConstants.COMMONAUTH_COOKIE, id);
+        authCookie.setSecure(true);
+        authCookie.setHttpOnly(true);
+        authCookie.setPath("/");
+
+        if (age != null) {
+            authCookie.setMaxAge(age.intValue() * 60);
+        }
+
+        resp.addCookie(authCookie);
+    }
+
+    /**
+     * @param req
+     * @return
+     */
+    public static Cookie getAuthCookie(HttpServletRequest req) {
+
+        Cookie[] cookies = req.getCookies();
+
+        if (cookies != null) {
+
+            for (Cookie cookie : cookies) {
+
+                if (cookie.getName().equals(FrameworkConstants.COMMONAUTH_COOKIE)) {
+                    return cookie;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param contextId
+     * @param context
+     */
+    public static void addAuthenticationContextToCache(String contextId, AuthenticationContext context) {
+
+        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
+        AuthenticationContextCacheEntry cacheEntry = new AuthenticationContextCacheEntry(context);
+        AuthenticationContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
+     * @param key
+     * @param authenticationResult
+     */
+    public static void addAuthenticationResultToCache(String key, AuthenticationResult authenticationResult) {
+
+        AuthenticationResultCacheKey cacheKey = new AuthenticationResultCacheKey(key);
+        AuthenticationResultCacheEntry cacheEntry = new AuthenticationResultCacheEntry();
+        cacheEntry.setResult(authenticationResult);
+        AuthenticationResultCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
+     * To get authentication cache result from cache
+     * @param key
+     * @return
+     */
+    public static AuthenticationResultCacheEntry getAuthenticationResultFromCache(String key) {
+        AuthenticationResultCacheKey cacheKey = new AuthenticationResultCacheKey(key);
+        AuthenticationResultCacheEntry authResult = AuthenticationResultCache.getInstance().getValueFromCache(cacheKey);
+        return authResult;
+    }
+
+    /**
+     *  Removes authentication result from cache.
+     * @param autheticationResultId
+     */
+    public static void removeAuthenticationResultFromCache(String autheticationResultId) {
+        if (autheticationResultId != null) {
+            AuthenticationResultCacheKey cacheKey = new AuthenticationResultCacheKey(autheticationResultId);
+            AuthenticationResultCache.getInstance().clearCacheEntry(cacheKey);
+        }
+    }
+
+    /**
+     * @param key
+     * @param sessionContext
+     */
+    public static void addSessionContextToCache(String key, SessionContext sessionContext) {
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+
+        Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
+        if (seqData != null) {
+            for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
+                if (entry.getValue() != null) {
+                    entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+                }
+            }
+        }
+
+        cacheEntry.setContext(sessionContext);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
+     * @param key
+     * @return
+     */
+    public static SessionContext getSessionContextFromCache(String key) {
+
+        SessionContext sessionContext = null;
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
+
+        if (cacheEntryObj != null) {
+            sessionContext = ((SessionContextCacheEntry) cacheEntryObj).getContext();
+        }
+
+        return sessionContext;
+    }
+
+    /**
+     * @param key
+     */
+    public static void removeSessionContextFromCache(String key) {
+
+        if (key != null) {
+            SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+            SessionContextCache.getInstance().clearCacheEntry(cacheKey);
+        }
+    }
+
+    /**
+     * @param contextId
+     */
+    public static void removeAuthenticationContextFromCache(String contextId) {
+
+        if (contextId != null) {
+            AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
+            AuthenticationContextCache.getInstance().clearCacheEntry(cacheKey);
+        }
+    }
+
+    /**
+     * @param contextId
+     * @return
+     */
+    public static AuthenticationContext getAuthenticationContextFromCache(String contextId) {
+
+        AuthenticationContext authenticationContext = null;
+        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(contextId);
+        AuthenticationContextCacheEntry authenticationContextCacheEntry = AuthenticationContextCache.getInstance().
+                getValueFromCache(cacheKey);
+
+        if (authenticationContextCacheEntry != null) {
+            authenticationContext = authenticationContextCacheEntry.getContext();
+        }
+
+        if (log.isDebugEnabled() && authenticationContext == null) {
+            log.debug("Authentication Context is null");
+        }
+
+        return authenticationContext;
+    }
+
+    /**
+     * @param req
+     */
+    public static void setRequestPathCredentials(HttpServletRequest req) {
+        // reading the authorization header for request path authentication
+        String reqPathCred = req.getHeader("Authorization");
+        if (reqPathCred == null) {
+            reqPathCred = req.getParameter("ReqPathCredential");
+        }
+        if (reqPathCred != null) {
+            log.debug("A Request path credential found");
+            req.getSession().setAttribute("Authorization", reqPathCred);
+        }
+    }
+
+    /**
+     * @param externalIdPConfig
+     * @param name
+     * @return
+     */
+    public static Map<String, String> getAuthenticatorPropertyMapFromIdP(
+            ExternalIdPConfig externalIdPConfig, String name) {
+
+        Map<String, String> propertyMap = new HashMap<String, String>();
+
+        if (externalIdPConfig != null) {
+            FederatedAuthenticatorConfig[] authenticatorConfigs = externalIdPConfig
+                    .getIdentityProvider().getFederatedAuthenticatorConfigs();
+
+            for (FederatedAuthenticatorConfig authenticatorConfig : authenticatorConfigs) {
+
+                if (authenticatorConfig.getName().equals(name)) {
+
+                    for (Property property : authenticatorConfig.getProperties()) {
+                        propertyMap.put(property.getName(), property.getValue());
+                    }
+                    break;
+                }
+            }
+        }
+
+        return propertyMap;
+    }
+
+    /**
+     * @param attributeValue
+     * @return
+     */
+    public static Map<ClaimMapping, String> buildClaimMappings(Map<String, String> attributeValue) {
+
+        Map<ClaimMapping, String> claimMap = new HashMap<ClaimMapping, String>();
+
+        for (Iterator<Entry<String, String>> iterator = attributeValue.entrySet().iterator(); iterator
+                .hasNext(); ) {
+            Entry<String, String> entry = iterator.next();
+            if (entry.getValue() == null) {
+                continue;
+            }
+            claimMap.put(ClaimMapping.build(entry.getKey(), entry.getKey(), null, false),
+                         entry.getValue());
+        }
+
+        return claimMap;
+
+    }
+
+    /**
+     * @param attributeValues
+     * @return
+     */
+    public static Set<String> getKeySet(Map<ClaimMapping, String> attributeValues) {
+
+        Set<String> claimList = new HashSet<String>();
+
+        for (Iterator<Entry<ClaimMapping, String>> iterator = attributeValues.entrySet().iterator(); iterator
+                .hasNext(); ) {
+            Entry<ClaimMapping, String> entry = iterator.next();
+            claimList.add(entry.getKey().getLocalClaim().getClaimUri());
+
+        }
+
+        return claimList;
+
+    }
+
+    /**
+     * @param claimMappings
+     * @return
+     */
+    public static Map<String, String> getClaimMappings(ClaimMapping[] claimMappings,
+                                                       boolean useLocalDialectAsKey) {
+
+        Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
+
+        for (ClaimMapping claimMapping : claimMappings) {
+            if (useLocalDialectAsKey) {
+                remoteToLocalClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), claimMapping
+                        .getRemoteClaim().getClaimUri());
+            } else {
+                remoteToLocalClaimMap.put(claimMapping.getRemoteClaim().getClaimUri(), claimMapping
+                        .getLocalClaim().getClaimUri());
+            }
+        }
+        return remoteToLocalClaimMap;
+    }
+
+    /**
+     * @param claimMappings
+     * @param useLocalDialectAsKey
+     * @return
+     */
+    public static Map<String, String> getClaimMappings(Map<ClaimMapping, String> claimMappings,
+                                                       boolean useLocalDialectAsKey) {
+
+        Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
+
+        for (Entry<ClaimMapping, String> entry : claimMappings.entrySet()) {
+            ClaimMapping claimMapping = entry.getKey();
+            if (useLocalDialectAsKey) {
+                remoteToLocalClaimMap.put(claimMapping.getLocalClaim().getClaimUri(), entry.getValue());
+            } else {
+                remoteToLocalClaimMap.put(claimMapping.getRemoteClaim().getClaimUri(), entry.getValue());
+            }
+        }
+        return remoteToLocalClaimMap;
+    }
+
+    /**
+     * @param claimMappings
+     * @return
+     */
+    public static Map<String, String> getLocalToSPClaimMappings(Map<String, String> claimMappings) {
+
+        Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
+
+        for (Entry<String, String> entry : claimMappings.entrySet()) {
+            remoteToLocalClaimMap.put(entry.getValue(), entry.getKey());
+        }
+        return remoteToLocalClaimMap;
+    }
+
+    public static String getQueryStringWithFrameworkContextId(String originalQueryStr,
+                                                              String callerContextId, String frameworkContextId) {
+
+        String queryParams = originalQueryStr;
+
+        /*
+         * Upto now, query-string contained a 'sessionDataKey' of the calling servlet. At here we
+         * replace it with the framework context id.
+         */
+        queryParams = queryParams.replace(callerContextId, frameworkContextId);
+
+        return queryParams;
+    }
+
+    public static List<String> getStepIdPs(StepConfig stepConfig) {
+
+        List<String> stepIdps = new ArrayList<String>();
+        List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+
+        for (AuthenticatorConfig authenticatorConfig : authenticatorConfigs) {
+            List<String> authenticatorIdps = authenticatorConfig.getIdpNames();
+
+            for (String authenticatorIdp : authenticatorIdps) {
+                stepIdps.add(authenticatorIdp);
+            }
+        }
+
+        return stepIdps;
+    }
+
+    public static List<String> getAuthenticatedStepIdPs(List<String> stepIdPs,
+                                                        List<String> authenticatedIdPs) {
+
+        List<String> idps = new ArrayList<String>();
+
+        if (stepIdPs != null && authenticatedIdPs != null) {
+            for (String stepIdP : stepIdPs) {
+                if (authenticatedIdPs.contains(stepIdP)) {
+                    idps.add(stepIdP);
+                    break;
+                }
+            }
+        }
+
+        return idps;
+    }
+
+    public static Map<String, AuthenticatorConfig> getAuthenticatedStepIdPs(StepConfig stepConfig,
+                                                                            Map<String, AuthenticatedIdPData> authenticatedIdPs) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Finding already authenticated IdPs of the Step");
+        }
+
+        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<String, AuthenticatorConfig>();
+        List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+
+        if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {
+
+            for (AuthenticatorConfig authenticatorConfig : authenticatorConfigs) {
+                List<String> authenticatorIdps = authenticatorConfig.getIdpNames();
+
+                for (String authenticatorIdp : authenticatorIdps) {
+                    AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs
+                            .get(authenticatorIdp);
+
+                    if (authenticatedIdPData != null
+                        && authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
+                        idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return idpAuthenticatorMap;
+    }
+
+    public static String getAuthenticatorIdPMappingString(List<AuthenticatorConfig> authConfigList) {
+
+        StringBuilder authenticatorIdPStr = new StringBuilder("");
+
+        for (AuthenticatorConfig authConfig : authConfigList) {
+            StringBuilder idpsOfAuthenticatorStr = new StringBuilder("");
+
+            for (String idpName : authConfig.getIdpNames()) {
+
+                if (idpName != null) {
+
+                    if (idpsOfAuthenticatorStr.length() != 0) {
+                        idpsOfAuthenticatorStr.append(":");
+                    }
+
+                    IdentityProvider idp = authConfig.getIdps().get(idpName);
+
+                    if (idp.isFederationHub()) {
+                        idpName += ".hub";
+                    }
+
+                    idpsOfAuthenticatorStr.append(idpName);
+                }
+            }
+
+            if (authenticatorIdPStr.length() != 0) {
+                authenticatorIdPStr.append(";");
+            }
+
+            authenticatorIdPStr.append(authConfig.getName()).append(":")
+                    .append(idpsOfAuthenticatorStr);
+        }
+
+        return authenticatorIdPStr.toString();
+    }
+
+    /**
+     * when getting query params through this, only configured params will be appended as query params
+     * The required params can be configured from application-authenticators.xml
+     *
+     * @param request
+     * @return
+     */
+    public static String getQueryStringWithConfiguredParams(HttpServletRequest request) {
+
+        boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
+                .isAuthEndpointQueryParamsConfigAvailable();
+        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointQueryParams();
+        String action = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointQueryParamsAction();
+
+        StringBuilder queryStrBuilder = new StringBuilder("");
+        Map<String, String[]> reqParamMap = request.getParameterMap();
+
+        if (configAvailable) {
+            if (action != null
+                && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
+                if (reqParamMap != null) {
+                    for (Map.Entry<String, String[]> entry : reqParamMap.entrySet()) {
+                        String paramName = entry.getKey();
+                        String paramValue = entry.getValue()[0];
+
+                        //skip issuer and type and sessionDataKey parameters
+                        if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
+                                (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
+                            continue;
+                        }
+
+                        if (!queryParams.contains(paramName)) {
+                            if (queryStrBuilder.length() > 0) {
+                                queryStrBuilder.append('&');
+                            }
+
+                            try {
+                                queryStrBuilder.append(URLEncoder.encode(paramName, UTF_8)).append('=')
+                                        .append(URLEncoder.encode(paramValue, UTF_8));
+                            } catch (UnsupportedEncodingException e) {
+                                log.error(
+                                        "Error while URL Encoding query param to be sent to the AuthenticationEndpoint",
+                                        e);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (String param : queryParams) {
+                    String paramValue = request.getParameter(param);
+
+                    if (paramValue != null) {
+                        if (queryStrBuilder.length() > 0) {
+                            queryStrBuilder.append('&');
+                        }
+                        try {
+                            queryStrBuilder.append(URLEncoder.encode(param, UTF_8)).append('=')
+                                    .append(URLEncoder.encode(paramValue, UTF_8));
+                        } catch (UnsupportedEncodingException e) {
+                            log.error(
+                                    "Error while URL Encoding query param to be sent to the AuthenticationEndpoint",
+                                    e);
+                        }
+                    }
+                }
+            }
+        } else {
+            if (reqParamMap != null) {
+                for (Map.Entry<String, String[]> entry : reqParamMap.entrySet()) {
+                    String paramName = entry.getKey();
+                    String paramValue = entry.getValue()[0];
+
+                    //skip issuer and type and sessionDataKey parameters
+                    if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
+                            (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
+                        continue;
+                    }
+
+                    if (queryStrBuilder.length() > 0) {
+                        queryStrBuilder.append('&');
+                    }
+
+                    try {
+                        queryStrBuilder.append(URLEncoder.encode(paramName, UTF_8)).append('=')
+                                .append(URLEncoder.encode(paramValue, UTF_8));
+                    } catch (UnsupportedEncodingException e) {
+                        log.error(
+                                "Error while URL Encoding query param to be sent to the AuthenticationEndpoint",
+                                e);
+                    }
+                }
+            }
+        }
+
+        return queryStrBuilder.toString();
+    }
+
+    public static int getMaxInactiveInterval() {
+        return maxInactiveInterval;
+    }
+
+    public static void setMaxInactiveInterval(int maxInactiveInterval) {
+        FrameworkUtils.maxInactiveInterval = maxInactiveInterval;
+    }
+
+    public static String prependUserStoreDomainToName(String authenticatedSubject) {
+
+        if (authenticatedSubject == null || authenticatedSubject.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid argument. authenticatedSubject : "
+                                               + authenticatedSubject);
+        }
+        if (!authenticatedSubject.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
+            if (UserCoreUtil.getDomainFromThreadLocal() != null
+                && !UserCoreUtil.getDomainFromThreadLocal().isEmpty()) {
+                authenticatedSubject = UserCoreUtil.getDomainFromThreadLocal()
+                                       + CarbonConstants.DOMAIN_SEPARATOR + authenticatedSubject;
+            }
+        } else if (authenticatedSubject.indexOf(CarbonConstants.DOMAIN_SEPARATOR) == 0) {
+            throw new IllegalArgumentException("Invalid argument. authenticatedSubject : "
+                                               + authenticatedSubject + " begins with \'" + CarbonConstants.DOMAIN_SEPARATOR
+                                               + "\'");
+        }
+        return authenticatedSubject;
+    }
+
+    /*
+     * Find the Subject identifier among federated claims
+     */
+    public static String getFederatedSubjectFromClaims(IdentityProvider identityProvider,
+                                                       Map<ClaimMapping, String> claimMappings) {
+
+        String userIdClaimURI = identityProvider.getClaimConfig().getUserClaimURI();
+        ClaimMapping claimMapping = new ClaimMapping();
+        Claim claim = new Claim();
+        claim.setClaimUri(userIdClaimURI);
+        claimMapping.setRemoteClaim(claim);
+        claimMapping.setLocalClaim(claim);
+        return claimMappings.get(claimMapping);
+    }
+
+    /*
+     * Find the Subject identifier among federated claims
+     */
+    public static String getFederatedSubjectFromClaims(AuthenticationContext context, String otherDialect)
+            throws FrameworkException {
+        String value;
+        boolean useLocalClaimDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+        String userIdClaimURI = context.getExternalIdP().getUserIdClaimUri();
+        Map<ClaimMapping, String> claimMappings = context.getSubject().getUserAttributes();
+
+        if (useLocalClaimDialect) {
+            Map<String, String> extAttributesValueMap = FrameworkUtils.getClaimMappings(claimMappings, false);
+            Map<String, String> mappedAttrs = null;
+            try {
+                mappedAttrs = ClaimManagerHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
+                                                                                                       extAttributesValueMap.keySet(), context.getTenantDomain(), true);
+            } catch (ClaimManagementException e) {
+                throw new FrameworkException("Error while loading claim mappings.", e);
+            }
+
+            String spUserIdClaimURI = mappedAttrs.get(userIdClaimURI);
+            value = extAttributesValueMap.get(spUserIdClaimURI);
+        } else {
+            ClaimMapping claimMapping = new ClaimMapping();
+            Claim claim = new Claim();
+            claim.setClaimUri(userIdClaimURI);
+            claimMapping.setRemoteClaim(claim);
+            value = claimMappings.get(claimMapping);
+        }
+        return value;
+    }
+
+    /**
+     * Starts the tenant flow for the given tenant domain
+     *
+     * @param tenantDomain tenant domain
+     */
+    public static void startTenantFlow(String tenantDomain) {
+        String tenantDomainParam = tenantDomain;
+        int tenantId = MultitenantConstants.SUPER_TENANT_ID;
+
+        if (tenantDomainParam != null && !tenantDomainParam.trim().isEmpty()) {
+            try {
+                tenantId = FrameworkServiceComponent.getRealmService().getTenantManager()
+                        .getTenantId(tenantDomain);
+            } catch (UserStoreException e) {
+                log.error("Error while getting tenantId from tenantDomain query param", e);
+            }
+        } else {
+            tenantDomainParam = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
+                .getThreadLocalCarbonContext();
+        carbonContext.setTenantId(tenantId);
+        carbonContext.setTenantDomain(tenantDomainParam);
+    }
+
+    /**
+     * Ends the tenant flow
+     */
+    public static void endTenantFlow() {
+        PrivilegedCarbonContext.endTenantFlow();
+    }
+}

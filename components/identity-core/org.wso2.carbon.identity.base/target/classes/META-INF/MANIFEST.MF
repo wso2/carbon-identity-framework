@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290948802
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: A custom wso2 products or solution
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.identity.base
+Bundle-SymbolicName: org.wso2.carbon.identity.base
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.base;version="5.0.8.SNAPSHOT";u
+ ses:="javax.security.auth.callback,org.apache.neethi,org.xml.sax"
+Import-Package: javax.security.auth.callback,org.apache.axiom.om;version
+ ="[1.2.11,2.0.0)",org.apache.axiom.om.impl.llom.util;version="[1.2.11,2
+ .0.0)",org.apache.commons.logging;version="[1.2,2.0)",org.apache.common
+ s.lang;version="[2.6.0,3.0.0)",org.apache.commons.collections;version="
+ [3.2.0,4.0.0)",org.apache.neethi;version="[2.0.4.wso2v4,3.0.0)",org.apa
+ che.rampart.policy.model;version="[1.6.1,2.0.0)",org.apache.ws.security
+ ;version="[1.5.11.wso2v11,2.0.0)",org.wso2.carbon.base;version="[1.0.0,
+ 2.0.0)",org.xml.sax
+Tool: Bnd-2.1.0.20130426-122213

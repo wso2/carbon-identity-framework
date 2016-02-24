@@ -1,0 +1,198 @@
+#==================================================================================#
+#  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+#
+#  WSO2 Inc. licenses this file to you under the Apache License,
+#  Version 2.0 (the "License"); you may not use this file except
+#  in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#===================================================================================#
+
+#In-order to run tests, import example_partition_test_data.ldif to a ApacheDS server instance.
+
+version: 1
+
+dn: dc=example,dc=com
+objectClass: organization
+objectClass: dcObject
+objectClass: top
+dc: example
+o: example.com
+
+dn: ou=Users,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: Users
+
+dn: uid=krbtgt,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: krb5Principal
+objectClass: inetOrgPerson
+objectClass: krb5KDCEntry
+objectClass: top
+cn: KDC Service
+krb5KeyVersionNumber: 0
+krb5PrincipalName: krbtgt/EXAMPLE.COM@EXAMPLE.COM
+sn: Service
+krb5Key:: MCmgAwIBEqEiBCAlByVodvD/G4iJ0ESziHkdoLc8Cohr5TXj4RlWNYp53A==
+krb5Key:: MBmgAwIBF6ESBBCHjYAUYGzaKWd6RO+hNT/H
+krb5Key:: MBGgAwIBA6EKBAiYBzcx2afCmA==
+krb5Key:: MCGgAwIBEKEaBBgNeZgpIOlr8TLT9F5wTwGu3wRAMWfORnY=
+krb5Key:: MBmgAwIBEaESBBBk617eSbkkOLYMgJquqlm0
+uid: krbtgt
+userPassword:: c2VjcmV0
+
+dn: uid=ldap,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: krb5Principal
+objectClass: inetOrgPerson
+objectClass: krb5KDCEntry
+objectClass: top
+cn: LDAP
+krb5KeyVersionNumber: 0
+krb5PrincipalName: ldap/localhost@EXAMPLE.COM
+sn: Service
+krb5Key:: MCmgAwIBEqEiBCBXTJEPCrgd8ozZnRfsUqtGT6zXFjVUauJQvYO7DYKguQ==
+krb5Key:: MBmgAwIBF6ESBBAb6C6vsFSgv/x3J88x0Ojn
+krb5Key:: MBGgAwIBA6EKBAhRnRxKlPSSIw==
+krb5Key:: MCGgAwIBEKEaBBhbGg5FudDEzcfcp5h63BnLaFIcrSngjA4=
+krb5Key:: MBmgAwIBEaESBBAR56orZymxBbflkhCqzOrS
+uid: ldap
+userPassword:: cmFuZGFsbA==
+
+dn: uid=amilaj,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: krb5KDCEntry
+objectClass: krb5Principal
+objectClass: inetOrgPerson
+objectClass: top
+cn: Amila Jayasekara
+krb5KeyVersionNumber: 4
+krb5PrincipalName: amilaj@EXAMPLE.COM
+sn: Jayasekara
+krb5Key:: MBGgAwIBA6EKBAjNkq7VcDLVmA==
+krb5Key:: MBmgAwIBF6ESBBAC52VlHJKTl5DpVpdtwXSo
+krb5Key:: MCGgAwIBEKEaBBhox/KubkPsbRquj8tuedP72V0agLUf064=
+krb5Key:: MBmgAwIBEaESBBDpTOFAM0M/fdLe2toRT6+F
+krb5Key:: MCmgAwIBEqEiBCAYAgDSnwAtg9FalybbeVDDwe1UTZnFJgCHF9QpyO1dMQ==
+uid: amilaj
+userPassword:: aWNlYWdl
+
+dn: uid=myserver,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: krb5Principal
+objectClass: krb5KDCEntry
+objectClass: inetOrgPerson
+objectClass: top
+cn: LDAP
+krb5KeyVersionNumber: 5
+krb5PrincipalName: myserver/localhost@EXAMPLE.COM
+sn: Service
+krb5Key:: MBmgAwIBF6ESBBCHjYAUYGzaKWd6RO+hNT/H
+krb5Key:: MBmgAwIBEaESBBCLNiSaRAFMg8azyjWqMbxY
+krb5Key:: MBGgAwIBA6EKBAhwtTENO10j2g==
+krb5Key:: MCmgAwIBEqEiBCBe5VLw92YUNe+OkFY93NArtjmvzydAqpk7s/JCvfAvLg==
+krb5Key:: MCGgAwIBEKEaBBiS9FGGejJ80+Pl6pEQupTQ1irNwUy/wbw=
+uid: myserver
+userPassword:: c2VjcmV0
+
+dn: uid=kadmin,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: krb5Principal
+objectClass: krb5KDCEntry
+objectClass: inetOrgPerson
+objectClass: top
+cn: LDAP
+krb5KeyVersionNumber: 1
+krb5PrincipalName: kadmin/admin@EXAMPLE.COM
+sn: Service
+krb5Key:: MBmgAwIBEaESBBDUYkFg9/v0I5RVZYcaArOE
+krb5Key:: MBGgAwIBA6EKBAhDLOB85qShCA==
+krb5Key:: MBmgAwIBF6ESBBCHjYAUYGzaKWd6RO+hNT/H
+krb5Key:: MCGgAwIBEKEaBBgpXkVb5lg0FlKYzlcC9IU9bWjmIFi1lL8=
+krb5Key:: MCmgAwIBEqEiBCDNF9f1gPWnzcs+Tf5Ou6B1aXqkPgHVnV+bDYrqn9VN/A==
+uid: kadmin
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: Groups
+
+dn: cn=admin,ou=Groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: admin
+member: uid=amilaj,ou=Users,dc=example,dc=com
+
+dn: uid=admin,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: krb5Principal
+objectClass: inetOrgPerson
+objectClass: krb5KDCEntry
+objectClass: top
+cn: Amila Jayasekara
+krb5KeyVersionNumber: 1
+krb5PrincipalName: amilaj@EXAMPLE.COM
+sn: Jayasekara
+krb5Key:: MBGgAwIBA6EKBAgLTMJGDuNJmw==
+krb5Key:: MCmgAwIBEqEiBCD/P2qfr3b/SlB94WJyHAxmO3BQMm+ZDu9AObPFcA+L7A==
+krb5Key:: MBmgAwIBF6ESBBB8tcgf8UdxAdQHKP/0oST4
+krb5Key:: MCGgAwIBEKEaBBhGVz4CnlsLpEqYZ61YGeoTlz18HxqrbgQ=
+krb5Key:: MBmgAwIBEaESBBDuegV52//gp7AbqRGRowdF
+uid: admin
+userPassword:: e1NIQX0wRFBpS3VOSXJyVm1EOElVQ3V3MWhReE5xWmM9
+
+dn: uid=ftp-localhost,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: subschema
+objectClass: krb5Principal
+objectClass: inetOrgPerson
+objectClass: krb5KDCEntry
+objectClass: top
+cn: Test FTP Server
+krb5KeyVersionNumber: 0
+krb5PrincipalName: ftp/localhost@EXAMPLE..COM
+sn: Service
+krb5Key:: MBGgAwIBA6EKBAjZIwiKIF4cIw==
+krb5Key:: MBmgAwIBEaESBBD4jD3E+OorPXanHOwmWPIO
+krb5Key:: MBmgAwIBF6ESBBBM6c35knFMSKmPwCegoAqg
+krb5Key:: MCGgAwIBEKEaBBjQztlr/kPfQLkca1g9BHAQQ/IT2fhwdiM=
+krb5Key:: MCmgAwIBEqEiBCDQ4HzxCY2ZJT2lLZLi47GNV7i6+YtWAbuWJOCNHz+dvQ==
+uid: ftp-localhost
+userPassword:: cWF3c2VkcmY=
+
+dn: uid=mms-localhost,ou=Users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: subschema
+objectClass: krb5Principal
+objectClass: inetOrgPerson
+objectClass: krb5KDCEntry
+objectClass: top
+cn: Test FTP Server
+krb5KeyVersionNumber: 0
+krb5PrincipalName: mms/localhost@EXAMPLE..COM
+sn: Service
+krb5Key:: MBGgAwIBA6EKBAioFa6bUvHvNA==
+krb5Key:: MBmgAwIBEaESBBBACnOmv/nCcL2UGR3J+0ks
+krb5Key:: MBmgAwIBF6ESBBBM6c35knFMSKmPwCegoAqg
+krb5Key:: MCGgAwIBEKEaBBgLik/CetUEx/LqHPTE6UmRvwinzUDTduo=
+krb5Key:: MCmgAwIBEqEiBCDE7inpKFVXfcGqBo7X04qBHTxYzUNV1ntkAkfpmuCriA==
+uid: mms-localhost
+userPassword:: cWF3c2VkcmY=
+

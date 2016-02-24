@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <scr:component enabled="true" immediate="true" name="identity.workflow">
+        <implementation class="org.wso2.carbon.user.mgt.workflow.internal.IdentityWorkflowServiceComponent"/>
+        <property name="service.pid" value="identity.workflow"/>
+        <reference name="user.realmservice.default" interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1" policy="dynamic" bind="setRealmService" unbind="unsetRealmService"/>
+        <reference name="workflowservice.default" interface="org.wso2.carbon.identity.workflow.mgt.WorkflowManagementService" cardinality="1..1" policy="dynamic" bind="setWorkflowService" unbind="unsetWorkflowService"/>
+        <reference name="config.context.service" interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1" policy="dynamic" bind="setConfigurationContextService" unbind="unsetConfigurationContextService"/>
+    </scr:component>
+</components>

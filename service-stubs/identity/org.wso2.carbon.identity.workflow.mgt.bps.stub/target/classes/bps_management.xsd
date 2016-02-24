@@ -1,0 +1,1199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:tns="http://wso2.org/bps/management/schema"
+            attributeFormDefault="unqualified" elementFormDefault="qualified"
+            targetNamespace="http://wso2.org/bps/management/schema">
+
+    <!--The following elements are added to update process contents-->
+    <xsd:element name="ProcessDeploymentInfo">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="tns:ProcessDeployDetailsList"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="InstanceViewVariableLength" type="xsd:int"/>
+    <!--The following elements are added to describe process contents-->
+    <xsd:element name="getProcessDeployDetails" type="xsd:QName"/>
+    <xsd:element name="ProcessDeployDetailsList">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="processName" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+                <xsd:element name="processState" type="tns:ProcessStatus" minOccurs="1"
+                             maxOccurs="1"/>
+                <xsd:element name="isInMemory" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+                <xsd:element name="processType" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                <xsd:element name="provideServiceList" type="tns:provideServiceListType"
+                             minOccurs="0"
+                             maxOccurs="1"/>
+                <xsd:element name="invokeServiceList" type="tns:invokeServiceListType" minOccurs="0"
+                             maxOccurs="1"/>
+                <xsd:element name="mexInterperterList" type="tns:mexInterpreterListType"
+                             minOccurs="0"
+                             maxOccurs="1"/>
+                <xsd:element name="propertyList" type="tns:propertyListType" minOccurs="0"
+                             maxOccurs="1 "/>
+                <xsd:element name="processEventsList" type="tns:processEventsListType" minOccurs="0"
+                             maxOccurs="1"/>
+                <xsd:element name="cleanUpList" type="tns:cleanUpListType" minOccurs="0"
+                             maxOccurs="1"/>
+
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+
+    <xsd:complexType name="provideServiceListType">
+        <xsd:sequence>
+            <xsd:element name="providedService" type="tns:providedServiceType" minOccurs="0"
+                         maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="providedServiceType">
+        <xsd:annotation>
+            <xsd:documentation>Information about the list of providing services in BPEL Process.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="service" minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="xsd:QName" maxOccurs="1" minOccurs="1"/>
+                        <xsd:element name="port" type="xsd:string" maxOccurs="1" minOccurs="1"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="binding" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="partnerLink" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="invokeServiceListType">
+        <xsd:sequence>
+            <xsd:element name="invokedService" type="tns:invokedServiceType" minOccurs="0"
+                         maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="invokedServiceType">
+        <xsd:annotation>
+            <xsd:documentation>Information about the list of invoking services in BPEL Process.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="service" minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+                        <xsd:element name="port" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="binding" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="partnerLink" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="mexInterpreterListType">
+        <xsd:annotation>
+            <xsd:documentation>Information about the message exchange interceptors that should be
+                registered for this BPEL Process.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="mexinterpreter" type="xsd:string" minOccurs="0"
+                         maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="propertyListType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the user-defined properties that will be attached to a process
+                upon
+                deployment.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="processProperty" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="xsd:QName"/>
+                        <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    </xsd:sequence>
+                    <!--<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>-->
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="processEventsListType">
+        <!--<xsd:complexContent>
+            <xsd:extension base="tns:EnableEventListType">-->
+        <xsd:sequence>
+            <xsd:element name="enableEventsList" minOccurs="0" maxOccurs="1"
+                         type="tns:EnableEventListType"/>
+            <xsd:element name="scopeEventsList" minOccurs="0" maxOccurs="1"
+                         type="tns:ScopeEventListType"/>
+            <xsd:element name="generate" minOccurs="0" maxOccurs="1">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="all"/>
+                        <xsd:enumeration value="none"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+        </xsd:sequence>
+        <!--</xsd:extension>
+        </xsd:complexContent>-->
+    </xsd:complexType>
+
+    <xsd:complexType name="EnableEventListType">
+        <xsd:sequence>
+            <xsd:element name="enable-event" minOccurs="0" maxOccurs="unbounded" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScopeEventListType">
+        <!--<xsd:complexContent>
+            <xsd:extension base="EnableEventListType">-->
+        <xsd:sequence>
+            <xsd:element name="scope-event" type="tns:ScopeEventType" minOccurs="0"
+                         maxOccurs="unbounded"/>
+        </xsd:sequence>
+
+        <!-- </xsd:extension>
+        </xsd:complexContent>-->
+    </xsd:complexType>
+
+    <xsd:complexType name="ScopeEventType">
+        <xsd:sequence>
+            <xsd:element name="scope" type="xsd:string"/>
+            <xsd:element name="enabledEventList" type="tns:EnableEventListType" minOccurs="0"
+                         maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="cleanUpListType">
+        <xsd:sequence>
+            <xsd:element name="cleanUp" minOccurs="0" maxOccurs="unbounded" type="tns:cleanUpType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="cleanUpType">
+        <xsd:sequence>
+            <xsd:element name="on" minOccurs="0" maxOccurs="1">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="success"/>
+                        <xsd:enumeration value="failure"/>
+                        <xsd:enumeration value="always"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="categoryList" minOccurs="0" maxOccurs="1"
+                         type="tns:categoryListType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="categoryListType">
+        <xsd:sequence>
+            <xsd:element name="category" minOccurs="0" maxOccurs="unbounded">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="instance"/>
+                        <xsd:enumeration value="variables"/>
+                        <xsd:enumeration value="messages"/>
+                        <xsd:enumeration value="correlations"/>
+                        <xsd:enumeration value="events"/>
+                        <xsd:enumeration value="all"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <!--End of Process deploy Info method definitions-->
+    <xsd:element name="ProcessInfo" type="tns:ProcessInfoType"/>
+    <xsd:element name="ProcessIDList">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pid" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="getAllProcesses" type="xsd:string"/>
+    <xsd:simpleType name="ProcessStatus">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ACTIVE">
+                <xsd:annotation>
+                    <xsd:documentation>Process is accepting new requests.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="RETIRED">
+                <xsd:annotation>
+                    <xsd:documentation>Process is not accepting new reqests.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="DISABLED">
+                <xsd:annotation>
+                    <xsd:documentation>Process is not accepting new requests or old requests.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="ProcessInfoType">
+        <xsd:annotation>
+            <xsd:documentation>Information about a BPEL Process.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="pid" type="xsd:string"/>
+            <xsd:element name="version" type="xsd:long"/>
+            <xsd:element name="status" type="tns:ProcessStatus"/>
+            <xsd:element name="olderVersion" type="xsd:int"/>
+            <xsd:element name="definitionInfo" type="tns:DefinitionInfo"/>
+            <xsd:element name="deploymentInfo" type="tns:DeploymentInfo"/>
+            <xsd:element minOccurs="0" name="instanceSummary" type="tns:InstanceSummary"/>
+            <xsd:element minOccurs="0" name="properties" type="tns:ProcessProperties"/>
+            <xsd:element minOccurs="1" maxOccurs="1" name="endpoints"
+                         type="tns:EndpointReferencesType"/>
+            <!--xsd:element name="documents">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="document" type="tns:DocumentInfo"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element-->
+            <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+    <xsd:complexType name="DefinitionInfo">
+        <xsd:sequence>
+            <xsd:element name="ProcessName" type="xsd:QName"/>
+            <xsd:element name="Definition" type="tns:bpelDefinition"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="DocumentInfo">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:anyURI"/>
+            <xsd:element name="source" type="xsd:anyURI"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="DeploymentInfo">
+        <xsd:sequence>
+            <xsd:element name="packageName" type="xsd:string"/>
+            <xsd:element name="document" type="xsd:string"/>
+            <xsd:element name="deployDate" type="xsd:dateTime"/>
+            <xsd:element name="deployer" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="InstanceSummary">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="instances">
+                <xsd:complexType>
+                    <xsd:attribute name="count" type="xsd:int" use="required"/>
+                    <xsd:attribute name="state" type="tns:InstanceStatus"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="failures" type="tns:FailuresInfo"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="InstanceStatus">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ACTIVE"/>
+            <xsd:enumeration value="COMPLETED"/>
+            <xsd:enumeration value="TERMINATED"/>
+            <xsd:enumeration value="FAILED"/>
+            <xsd:enumeration value="SUSPENDED"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="FailuresInfo">
+        <xsd:sequence>
+            <xsd:element name="failureDate" type="xsd:dateTime"/>
+            <xsd:element name="count" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ProcessProperties">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="property">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other"
+                                 processContents="lax"/>
+                    </xsd:sequence>
+                    <xsd:attribute name="name" type="xsd:QName"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="EndpointReferencesType">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="1" name="endpointRef">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="partnerLink" type="xsd:string"/>
+                        <xsd:element name="service" type="xsd:QName"/>
+                        <xsd:element name="serviceLocations" type="tns:serviceLocation"/>
+                        <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other"
+                                 processContents="lax"/>
+                    </xsd:sequence>
+                    <!--xsd:attribute name="partnerLink" type="xsd:string"/>
+                    <xsd:attribute name="partnerRole" type="xsd:string"/-->
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="getPaginatedProcessListInputType">
+        <xsd:sequence>
+            <xsd:element name="filter" type="xsd:string"/>
+            <xsd:element name="orderbyKeys" type="xsd:string"/>
+            <xsd:element name="page" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="getPaginatedProcessListInput" type="tns:getPaginatedProcessListInputType"/>
+    <xsd:element name="PaginatedProcessInfoList">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pages" type="xsd:int"/>
+                <xsd:element maxOccurs="unbounded" minOccurs="0" name="ProcessInfo"
+                             type="tns:LimitedProcessInfoType"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="LimitedProcessInfoType">
+        <xsd:sequence>
+            <xsd:element name="pid" type="xsd:string"/>
+            <xsd:element name="version" type="xsd:long"/>
+            <xsd:element name="status" type="tns:ProcessStatus"/>
+            <xsd:element name="deployedDate" type="xsd:dateTime"/>
+            <xsd:element name="olderVersion" type="xsd:int"/>
+            <xsd:element name="packageName" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="listProcessesCustomPaginatedInput">
+        <xsd:sequence>
+            <xsd:element name="filter" type="xsd:string"/>
+            <xsd:element name="orderbyKeys" type="xsd:string"/>
+            <xsd:element name="customizer" type="xsd:string"/>
+            <xsd:element name="page" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="listProcessesCustomPaginatedIn"
+                 type="tns:listProcessesCustomPaginatedInput"/>
+    <xsd:element name="getProcessInfoIn">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pid" type="xsd:QName"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="getProcessInfoCustomIn">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pid" type="xsd:QName"/>
+                <xsd:element name="customizer" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="activateProcessIn">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pid" type="xsd:QName"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="retireProcessIn">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pid" type="xsd:QName"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="bpelDefinition">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="getProcessDefinitionIn" type="xsd:QName"/>
+    <xsd:element name="processDefinition" type="tns:bpelDefinition"/>
+    <xsd:complexType name="InstanceSummaryType">
+        <xsd:sequence>
+            <xsd:element name="active" type="xsd:int"/>
+            <xsd:element name="completed" type="xsd:int"/>
+            <xsd:element name="terminated" type="xsd:int"/>
+            <xsd:element name="suspended" type="xsd:int"/>
+            <xsd:element name="failed" type="xsd:int"/>
+            <xsd:element name="error" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="ProcessAndInstanceSummary">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="instances" type="tns:InstanceSummaryType"/>
+                <xsd:element name="activeProcesses" type="xsd:int"/>
+                <xsd:element name="retiredProcesses" type="xsd:int"/>
+                <xsd:element name="disabledProcesses" type="xsd:int"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="ProcessInstanceSummary" type="tns:InstanceSummaryType"/>
+    <xsd:element name="getInstanceSummaryIn">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pid" type="xsd:QName"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="getServiceLocationForProcess">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="processId" type="xsd:QName"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="serviceLocationForProcess" type="tns:serviceLocation"/>
+    <xsd:complexType name="serviceLocation">
+        <xsd:sequence>
+            <xsd:element name="serviceLocation" type="xsd:string" minOccurs="1"
+                         maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Instance Management WSDL scpecific -->
+    <xsd:complexType name="InstanceInfoType">
+        <xsd:sequence>
+            <xsd:element name="iid" type="xsd:string"/>
+            <xsd:element name="pid" type="xsd:string"/>
+            <xsd:element name="isEventsEnabled" type="xsd:boolean"/>
+            <xsd:element name="rootScope" type="tns:ScopeInfoType" minOccurs="0"/>
+            <xsd:element name="status" type="tns:InstanceStatus"/>
+            <xsd:element name="dateStarted" type="xsd:dateTime"/>
+            <xsd:element name="dateLastActive" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="dateErrorSince" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="faultInfo" type="tns:FaultInfoType" minOccurs="0"/>
+            <xsd:element name="failuresInfo" type="tns:FailuresInfoType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="CorrelationPropertyType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="csetid" type="xsd:string" use="required"/>
+                <xsd:attribute name="propertyName" type="xsd:QName" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="ScopeStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ACTIVE"/>
+            <xsd:enumeration value="COMPLETED"/>
+            <xsd:enumeration value="FAULTED"/>
+            <xsd:enumeration value="FAULTHANDLING"/>
+            <xsd:enumeration value="COMPENSATING"/>
+            <xsd:enumeration value="COMPENSATED"/>
+            <xsd:enumeration value="NEW"/>
+            <xsd:enumeration value="FAULT"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="FaultInfoType">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName"/>
+            <xsd:element name="explanation" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lineNumber" type="xsd:int"/>
+            <xsd:element name="aiid" type="xsd:int"/>
+            <xsd:element name="data" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any namespace="##other" processContents="lax" minOccurs="0"
+                                 maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="FailuresInfoType">
+        <xsd:sequence>
+            <xsd:element name="dateFailure" type="xsd:dateTime"/>
+            <xsd:element name="count" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="getPaginatedInstanceListInput" type="tns:getPaginatedInstanceListInputType"/>
+    <xsd:element name="getLongRunningInstancesInput">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="limit" type="xsd:int"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="getPaginatedInstanceListInputType">
+        <xsd:sequence>
+            <xsd:element name="filter" type="xsd:string"/>
+            <xsd:element name="order" type="xsd:string"/>
+            <xsd:element name="limit" type="xsd:int"/>
+            <xsd:element name="page" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="PaginatedInstanceList">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pages" type="xsd:int"/>
+                <xsd:element name="Instance" type="tns:LimitedInstanceInfoType"
+                             maxOccurs="unbounded" minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="getLongRunningInstancesResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Instance" type="tns:LimitedInstanceInfoType"
+                             maxOccurs="unbounded" minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="LimitedInstanceInfoType">
+        <xsd:sequence>
+            <xsd:element name="iid" type="xsd:string"/>
+            <xsd:element name="pid" type="xsd:string"/>
+            <xsd:element name="status" type="tns:InstanceStatus"/>
+            <xsd:element name="dateStarted" type="xsd:dateTime"/>
+            <xsd:element name="dateLastActive" type="xsd:dateTime" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="suspendInstance">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="suspendInstanceOut" type="tns:InstanceInfoType"/>
+    <xsd:element name="terminateInstance">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="terminateInstanceOut" type="tns:InstanceInfoType"/>
+    <xsd:element name="resumeInstance">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="resumeInstanceOut" type="tns:InstanceInfoType"/>
+    <xsd:element name="faultInstance">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+                <xsd:element name="faultName" type="xsd:QName"/>
+                <xsd:any namespace="##other" processContents="lax"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="faultInstanceOut" type="tns:InstanceInfoType"/>
+    <xsd:element name="deleteInstance">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="deleteInstanceOut" type="tns:InstanceDeleteStatusType"/>
+    <xsd:simpleType name="InstanceDeleteStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="SUCCESS"/>
+            <xsd:enumeration value="FAILED"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="getInstanceInfoIn">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="InstanceInfo" type="tns:InstanceInfoType"/>
+    <xsd:element name="getScopeInfo">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="siid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="ScopeInfo" type="tns:ScopeInfoType"/>
+    <xsd:element name="getScopeInfoWithActivities">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="siid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="ScopeInfoType">
+        <xsd:sequence>
+            <xsd:element name="siid" type="xsd:string"/>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="status" type="tns:ScopeStatusType"/>
+            <xsd:element name="children" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="childRef" type="tns:ScopeInfoType" minOccurs="0"
+                                     maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="activities" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="activityInfo" type="tns:ActivityInfoType" minOccurs="0"
+                                     maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variables" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="variableInfo" type="tns:VariableInfoType" minOccurs="0"
+                                     maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="correlationSets" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="correlationSet" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="correlationProperty"
+                                                 type="tns:CorrelationPropertyType"
+                                                 minOccurs="0" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                                <xsd:attribute name="name" type="xsd:string" use="required"/>
+                                <xsd:attribute name="csetid" type="xsd:string" use="required"/>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="ActivityStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ENABLED"/>
+            <xsd:enumeration value="STARTED"/>
+            <xsd:enumeration value="COMPLETED"/>
+            <xsd:enumeration value="FAILURE"/>
+            <xsd:enumeration value="DEAD"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="FailureInfoType">
+        <xsd:sequence>
+            <xsd:element name="dateFailure" type="xsd:dateTime"/>
+            <xsd:element name="retries" type="xsd:int"/>
+            <xsd:element name="reason" type="xsd:string"/>
+            <xsd:element name="actions" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ActivityInfoType">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="aiid" type="xsd:string"/>
+            <xsd:element name="status" type="tns:ActivityStatusType"/>
+            <xsd:element name="dateEnabled" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="dateStarted" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="dateCompleted" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="datedied" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="failure" type="tns:FailureInfoType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="getActivityLifeCycleFilterIn">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="ActivityLifeCycleEvents" type="tns:ActivityLifeCycleEventsType"/>
+    <xsd:complexType name="ActivityLifeCycleEventsType">
+        <xsd:sequence>
+            <!--<xsd:element ref="tns:event-info" minOccurs="0" maxOccurs="unbounded"/>-->
+            <xsd:element name="iid" type="xsd:string"/>
+            <xsd:element name="pid" type="xsd:string"/>
+            <xsd:element name="eventInfoList" type="tns:ActivityLifeCycleEventsListType"
+                         minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ActivityLifeCycleEventsListType">
+        <xsd:sequence>
+            <!--<xsd:element name="event-Info" type="tns:EventInfo" minOccurs="0" maxOccurs="unbounded"/>-->
+            <xsd:element ref="tns:event-info" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="InstanceInfoWithEvents" type="tns:InstanceInfoWithEventsType"/>
+    <xsd:complexType name="InstanceInfoWithEventsType">
+        <xsd:sequence>
+            <xsd:element name="iid" type="xsd:string"/>
+            <xsd:element name="pid" type="xsd:string"/>
+            <xsd:element name="rootScope" type="tns:ScopeInfoWithEventsType" minOccurs="0"/>
+            <xsd:element name="status" type="tns:InstanceStatus"/>
+            <xsd:element name="dateStarted" type="xsd:dateTime"/>
+            <xsd:element name="dateLastActive" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="dateErrorSince" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="faultInfo" type="tns:FaultInfoType" minOccurs="0"/>
+            <xsd:element name="failuresInfo" type="tns:FailuresInfoType" minOccurs="0"/>
+
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScopeInfoWithEventsType">
+        <xsd:sequence>
+            <xsd:element name="siid" type="xsd:string"/>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="status" type="tns:ScopeStatusType"/>
+            <xsd:element name="childrenWithEvents" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="childWithEventsRef" type="tns:ScopeInfoWithEventsType"
+                                     minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="activitiesWithEvents" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="activityInfoWithEvents"
+                                     type="tns:ActivityInfoWithEventsType" minOccurs="0"
+                                     maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variablesWithEvents" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="variableInfoWithEvents"
+                                     type="tns:VariableInfoWithEventsType" minOccurs="0"
+                                     maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="correlationSets" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="correlationSet" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="correlationProperty"
+                                                 type="tns:CorrelationPropertyType"
+                                                 minOccurs="0" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                                <xsd:attribute name="name" type="xsd:string" use="required"/>
+                                <xsd:attribute name="csetid" type="xsd:string" use="required"/>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityInfoWithEventsType">
+        <xsd:sequence>
+            <xsd:element name="activityInfo" type="tns:ActivityInfoType" minOccurs="1"
+                         maxOccurs="1"/>
+            <xsd:element name="activityEventsList" type="tns:EventInfoList" minOccurs="0"
+                         maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="EventInfoList">
+        <xsd:sequence>
+            <xsd:element ref="tns:event-info" minOccurs="0" maxOccurs="unbounded"/>
+            <!--<xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="line-number" type="xsd:int"/>
+            <xsd:element name="timestamp" type="xsd:dateTime"/>
+            <xsd:element name="process-id" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="process-type" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="instance-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="scope-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="parent-scope-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="scope-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="scope-definition-id" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-type" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-definition-id" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-failure-reason" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-recovery-action" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="variable-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="new-value" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="port-type" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="operation" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="correlation-set" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="mex-id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="correlation-key" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="expression" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="fault" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="fault-line-number" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="explanation" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="result" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="root-scope-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="root-scope-declaration-id" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="partner-link-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="old-state" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="new-state" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="success" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>-->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="event-info" type="tns:EventInfo"/>
+
+    <xsd:complexType name="EventInfo">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="line-number" type="xsd:int"/>
+            <xsd:element name="timestamp" type="xsd:dateTime"/>
+            <!--<xsd:element name="process-id" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="process-type" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="instance-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>-->
+            <xsd:element name="scope-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <!--<xsd:element name="parent-scope-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>-->
+            <xsd:element name="scope-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <!--<xsd:element name="scope-definition-id" type="xsd:int" minOccurs="0" maxOccurs="1"/>-->
+            <xsd:element name="activity-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-type" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="isRecoveryRequired" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <!--<xsd:element name="activity-definition-id" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-failure-reason" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activity-recovery-action" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="variable-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="new-value" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="port-type" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="operation" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="correlation-set" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="mex-id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="correlation-key" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="expression" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="fault" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="fault-line-number" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="explanation" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="result" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="root-scope-id" type="xsd:long" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="root-scope-declaration-id" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="partner-link-name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="old-state" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="new-state" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="success" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>-->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="VariableInfoWithEventsType">
+        <xsd:sequence>
+            <xsd:element name="self" type="tns:VariableRefType"/>
+            <xsd:element name="value" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any namespace="##other" processContents="lax" minOccurs="0"
+                                 maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="variableEventsList" type="tns:EventInfoList" minOccurs="0"
+                         maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="VariableRefType">
+        <xsd:attribute name="iid" type="xsd:string" use="required"/>
+        <xsd:attribute name="siid" type="xsd:string" use="required"/>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="VariableInfoType">
+        <xsd:sequence>
+            <xsd:element name="self" type="tns:VariableRefType"/>
+            <xsd:element name="value" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any namespace="##other" processContents="lax" minOccurs="0"
+                                 maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="getVariableInfo">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="sid" type="xsd:string"/>
+                <xsd:element name="varName" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="VariableInfo" type="tns:VariableInfoType"/>
+    <xsd:element name="recoverActivity">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="iid" type="xsd:long"/>
+                <xsd:element name="aid" type="xsd:long"/>
+                <xsd:element name="action">
+                    <xsd:simpleType>
+                        <xsd:restriction base="xsd:string">
+                            <xsd:enumeration value="cancel"/>
+                            <xsd:enumeration value="retry"/>
+                            <xsd:enumeration value="fault"/>
+                        </xsd:restriction>
+                    </xsd:simpleType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="hasInstances">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pid" type="xsd:QName"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="hasInstancesResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="result" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="deleteInstances">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="filter" type="xsd:string"/>
+                <xsd:element name="deleteMessageExchanges" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="deleteInstanceResponse">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="numberOfInstances" type="xsd:int"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="activityRecoveryInfoType">
+        <xsd:sequence>
+            <xsd:element name="instanceID" type="xsd:long"/>
+            <xsd:element name="activityID" type="xsd:long"/>
+            <xsd:element name="dateTime" type="xsd:string"/>
+            <xsd:element name="reason" type="xsd:string"/>
+            <xsd:element name="retires" type="xsd:int"/>
+            <xsd:element name="actions" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="activityRecoveryResultType">
+        <xsd:sequence>
+            <xsd:element name="activityRecoveryInfo" type="tns:activityRecoveryInfoType" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="failedActivitiesForInstanceType">
+        <xsd:sequence>
+            <xsd:element name="instanceID" type="xsd:long" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="getFailedActivitiesForInstance" type="tns:failedActivitiesForInstanceType" />
+    <xsd:element name="getFailedActivitiesForInstanceResponse" type="tns:activityRecoveryResultType" />
+
+    <!-- Deployment management -->
+    <xsd:element name="undeployBPELPackage">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="package" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="undeployStatus">
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="SUCCESS"/>
+                <xsd:enumeration value="FAILED"/>
+                <xsd:enumeration value="INVALID_PACKAGE_NAME"/>
+                <xsd:enumeration value="REGISTRY_OUT_OF_SYNC"/>
+                <xsd:enumeration value="INSTANCE_DELETE_LIMIT_REACHED"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+    <xsd:element name="redeployPackage">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="package" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="redeployStatus">
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="SUCCESS"/>
+                <xsd:enumeration value="FAILED"/>
+                <xsd:enumeration value="EXISITS"/>
+                <xsd:enumeration value="NOTINREGISTRY"/>
+                <xsd:enumeration value="INVALID_PACKAGE_NAME"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+    <xsd:element name="deletePackage">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="package" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="deleteStatus">
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="SUCCESS"/>
+                <xsd:enumeration value="FAILED"/>
+                <xsd:enumeration value="REGFAILED"/>
+                <xsd:enumeration value="INVALID_PACKAGE_NAME"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+    <xsd:element name="listDeployedPackagesPaginated">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="page" type="xsd:int"/>
+		<xsd:element name="packageSearchString" type="xsd:string" minOccurs="0" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="deployedPackagesPaginated">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="pages" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+                <xsd:element name="package" maxOccurs="unbounded" minOccurs="0" type="tns:packageType" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="packageType">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" maxOccurs="1" minOccurs="1"/>
+            <xsd:element name="versions" maxOccurs="1" minOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="version" minOccurs="1" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="name" maxOccurs="1" minOccurs="1"
+                                                 type="xsd:string"/>
+                                    <xsd:element name="isLatest" maxOccurs="1" minOccurs="1"
+                                                 type="xsd:boolean"/>
+                                    <xsd:element name="processes" maxOccurs="1" minOccurs="1">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="process"
+                                                             type="tns:LimitedProcessInfoType"
+                                                             minOccurs="0" maxOccurs="unbounded"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="errorLog" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="state" type="tns:PackageStatusType"/>
+    </xsd:complexType>
+    <xsd:simpleType name="PackageStatusType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="UNDEPLOYED"/>
+            <xsd:enumeration value="DEPLOYED"/>
+            <xsd:enumeration value="UPDATED"/>
+            <xsd:enumeration value="FAILED"/>
+            <xsd:enumeration value="UNDEFINED"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="listProcessesInPackage">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="package" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="processesInPackage">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="package" maxOccurs="1" minOccurs="0" type="tns:packageType" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="instanceSummary">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="active" type="xsd:int"/>
+                <xsd:element name="completed" type="xsd:int"/>
+                <xsd:element name="terminated" type="xsd:int"/>
+                <xsd:element name="failed" type="xsd:int"/>
+                <xsd:element name="suspended" type="xsd:int"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="instanceManagementException">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="result" type="xsd:string"/>
+                <xsd:element name="stackTrace" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="processManagementException">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="result" type="xsd:string"/>
+                <xsd:element name="stackTrace" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="packageManagementException">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="result" type="xsd:string"/>
+                <xsd:element name="stackTrace" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>

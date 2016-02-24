@@ -1,0 +1,8 @@
+<PIPConfig>
+	<AttributeDesignators>
+		<Designator class="org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder" />
+	</AttributeDesignators>
+    <ResourceFinders>
+        <Finder class="org.wso2.carbon.identity.entitlement.pip.DefaultResourceFinder"/>
+    </ResourceFinders>
+</PIPConfig>

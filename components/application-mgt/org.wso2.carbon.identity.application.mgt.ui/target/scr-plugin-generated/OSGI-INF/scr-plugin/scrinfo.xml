@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <scr:component enabled="true" immediate="true" name="org.wso2.carbon.identity.application.mgt.ui">
+        <implementation class="org.wso2.carbon.identity.application.mgt.ui.internal.ApplicationMgtUIServiceComponent"/>
+        <property name="service.pid" value="org.wso2.carbon.identity.application.mgt.ui" private="false"/>
+        <reference name="config.context.service" interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1" policy="dynamic" bind="setConfigurationContextService" unbind="unsetConfigurationContextService" checked="true" strategy="event"/>
+    </scr:component>
+</components>

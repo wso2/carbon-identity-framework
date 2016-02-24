@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456291059043
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: This is the core module of the project.
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.identity.user.profile.ui
+Bundle-SymbolicName: org.wso2.carbon.identity.user.profile.ui
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Carbon-Component: UIBundle
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.user.profile.ui.client;version=
+ "5.0.8.SNAPSHOT";uses:="org.apache.axis2.context,org.wso2.carbon.identi
+ ty.user.profile.stub.types",org.wso2.carbon.identity.user.profile.ui.i1
+ 8n;version="5.0.8.SNAPSHOT"
+Import-Package: org.apache.axis2.client;version="[1.6.1.wso2v12,2.0.0)",
+ org.apache.axis2.context;version="[1.6.1.wso2v12,2.0.0)",org.apache.com
+ mons.logging;version="[1.2,2.0)",org.wso2.carbon.identity.user.profile.
+ stub;version="[5.0.0,6.0.0)",org.wso2.carbon.identity.user.profile.stub
+ .types;version="[5.0.0,6.0.0)",org.apache.commons.lang;version="[2.6.0,
+ 3.0.0)"
+Tool: Bnd-2.1.0.20130426-122213

@@ -1,0 +1,582 @@
+<!--
+  ~ Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2357="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2355="http://base.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://saml.sso.identity.carbon.wso2.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://saml.sso.identity.carbon.wso2.org">
+    <wsdl:documentation>IdentitySAMLSSOConfigService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema xmlns:ax2358="http://dto.saml.sso.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2356="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
+            <xs:import namespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="IdentitySAMLSSOConfigServiceIdentityException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityException" nillable="true" type="ax2356:IdentityException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceProviders">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceProvidersResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:SAMLSSOServiceProviderInfoDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCertAliasOfPrimaryKeyStore">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCertAliasOfPrimaryKeyStoreResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getSigningAlgorithmUris">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getSigningAlgorithmUrisResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDigestAlgorithmURIs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDigestAlgorithmURIsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDigestAlgorithmURIByConfig">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDigestAlgorithmURIByConfigResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeServiceProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeServiceProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getClaimURIs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getClaimURIsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addRPServiceProvider">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="spDto" nillable="true" type="ax2358:SAMLSSOServiceProviderDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addRPServiceProviderResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getSigningAlgorithmUriByConfig">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getSigningAlgorithmUriByConfigResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.saml.sso.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="SAMLSSOServiceProviderInfoDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="pubCertFilePath" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="serviceProviders" nillable="true" type="ax2357:SAMLSSOServiceProviderDTO"/>
+                    <xs:element minOccurs="0" name="tenantZero" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="SAMLSSOServiceProviderDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="assertionConsumerUrl" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="assertionConsumerUrls" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="attributeConsumingServiceIndex" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="certAlias" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="defaultAssertionConsumerUrl" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="digestAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="doEnableEncryptedAssertion" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSignAssertions" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSignResponse" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doSingleLogout" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="doValidateSignatureInRequests" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableAttributeProfile" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enableAttributesByDefault" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="idPInitSLOEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="idPInitSSOEnabled" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpInitSLOReturnToURLs" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="issuer" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="loginPageURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="nameIDFormat" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="nameIdClaimUri" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedAudiences" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedClaims" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="requestedRecipients" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="signingAlgorithmURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="sloRequestURL" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="sloResponseURL" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityException">
+                <xs:sequence/>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="removeServiceProviderRequest">
+        <wsdl:part name="parameters" element="ns1:removeServiceProvider"/>
+    </wsdl:message>
+    <wsdl:message name="removeServiceProviderResponse">
+        <wsdl:part name="parameters" element="ns1:removeServiceProviderResponse"/>
+    </wsdl:message>
+    <wsdl:message name="IdentitySAMLSSOConfigServiceIdentityException">
+        <wsdl:part name="parameters" element="ns1:IdentitySAMLSSOConfigServiceIdentityException"/>
+    </wsdl:message>
+    <wsdl:message name="getCertAliasOfPrimaryKeyStoreRequest">
+        <wsdl:part name="parameters" element="ns1:getCertAliasOfPrimaryKeyStore"/>
+    </wsdl:message>
+    <wsdl:message name="getCertAliasOfPrimaryKeyStoreResponse">
+        <wsdl:part name="parameters" element="ns1:getCertAliasOfPrimaryKeyStoreResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getClaimURIsRequest">
+        <wsdl:part name="parameters" element="ns1:getClaimURIs"/>
+    </wsdl:message>
+    <wsdl:message name="getClaimURIsResponse">
+        <wsdl:part name="parameters" element="ns1:getClaimURIsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getServiceProvidersRequest">
+        <wsdl:part name="parameters" element="ns1:getServiceProviders"/>
+    </wsdl:message>
+    <wsdl:message name="getServiceProvidersResponse">
+        <wsdl:part name="parameters" element="ns1:getServiceProvidersResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getSigningAlgorithmUriByConfigRequest">
+        <wsdl:part name="parameters" element="ns1:getSigningAlgorithmUriByConfig"/>
+    </wsdl:message>
+    <wsdl:message name="getSigningAlgorithmUriByConfigResponse">
+        <wsdl:part name="parameters" element="ns1:getSigningAlgorithmUriByConfigResponse"/>
+    </wsdl:message>
+    <wsdl:message name="addRPServiceProviderRequest">
+        <wsdl:part name="parameters" element="ns1:addRPServiceProvider"/>
+    </wsdl:message>
+    <wsdl:message name="addRPServiceProviderResponse">
+        <wsdl:part name="parameters" element="ns1:addRPServiceProviderResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getDigestAlgorithmURIByConfigRequest">
+        <wsdl:part name="parameters" element="ns1:getDigestAlgorithmURIByConfig"/>
+    </wsdl:message>
+    <wsdl:message name="getDigestAlgorithmURIByConfigResponse">
+        <wsdl:part name="parameters" element="ns1:getDigestAlgorithmURIByConfigResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getSigningAlgorithmUrisRequest">
+        <wsdl:part name="parameters" element="ns1:getSigningAlgorithmUris"/>
+    </wsdl:message>
+    <wsdl:message name="getSigningAlgorithmUrisResponse">
+        <wsdl:part name="parameters" element="ns1:getSigningAlgorithmUrisResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getDigestAlgorithmURIsRequest">
+        <wsdl:part name="parameters" element="ns1:getDigestAlgorithmURIs"/>
+    </wsdl:message>
+    <wsdl:message name="getDigestAlgorithmURIsResponse">
+        <wsdl:part name="parameters" element="ns1:getDigestAlgorithmURIsResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="IdentitySAMLSSOConfigServicePortType">
+        <wsdl:operation name="removeServiceProvider">
+            <wsdl:input message="tns:removeServiceProviderRequest" wsaw:Action="urn:removeServiceProvider"/>
+            <wsdl:output message="tns:removeServiceProviderResponse" wsaw:Action="urn:removeServiceProviderResponse"/>
+            <wsdl:fault message="tns:IdentitySAMLSSOConfigServiceIdentityException" name="IdentitySAMLSSOConfigServiceIdentityException" wsaw:Action="urn:removeServiceProviderIdentitySAMLSSOConfigServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getCertAliasOfPrimaryKeyStore">
+            <wsdl:input message="tns:getCertAliasOfPrimaryKeyStoreRequest" wsaw:Action="urn:getCertAliasOfPrimaryKeyStore"/>
+            <wsdl:output message="tns:getCertAliasOfPrimaryKeyStoreResponse" wsaw:Action="urn:getCertAliasOfPrimaryKeyStoreResponse"/>
+            <wsdl:fault message="tns:IdentitySAMLSSOConfigServiceIdentityException" name="IdentitySAMLSSOConfigServiceIdentityException" wsaw:Action="urn:getCertAliasOfPrimaryKeyStoreIdentitySAMLSSOConfigServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimURIs">
+            <wsdl:input message="tns:getClaimURIsRequest" wsaw:Action="urn:getClaimURIs"/>
+            <wsdl:output message="tns:getClaimURIsResponse" wsaw:Action="urn:getClaimURIsResponse"/>
+            <wsdl:fault message="tns:IdentitySAMLSSOConfigServiceIdentityException" name="IdentitySAMLSSOConfigServiceIdentityException" wsaw:Action="urn:getClaimURIsIdentitySAMLSSOConfigServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getServiceProviders">
+            <wsdl:input message="tns:getServiceProvidersRequest" wsaw:Action="urn:getServiceProviders"/>
+            <wsdl:output message="tns:getServiceProvidersResponse" wsaw:Action="urn:getServiceProvidersResponse"/>
+            <wsdl:fault message="tns:IdentitySAMLSSOConfigServiceIdentityException" name="IdentitySAMLSSOConfigServiceIdentityException" wsaw:Action="urn:getServiceProvidersIdentitySAMLSSOConfigServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUriByConfig">
+            <wsdl:input message="tns:getSigningAlgorithmUriByConfigRequest" wsaw:Action="urn:getSigningAlgorithmUriByConfig"/>
+            <wsdl:output message="tns:getSigningAlgorithmUriByConfigResponse" wsaw:Action="urn:getSigningAlgorithmUriByConfigResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="addRPServiceProvider">
+            <wsdl:input message="tns:addRPServiceProviderRequest" wsaw:Action="urn:addRPServiceProvider"/>
+            <wsdl:output message="tns:addRPServiceProviderResponse" wsaw:Action="urn:addRPServiceProviderResponse"/>
+            <wsdl:fault message="tns:IdentitySAMLSSOConfigServiceIdentityException" name="IdentitySAMLSSOConfigServiceIdentityException" wsaw:Action="urn:addRPServiceProviderIdentitySAMLSSOConfigServiceIdentityException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIByConfig">
+            <wsdl:input message="tns:getDigestAlgorithmURIByConfigRequest" wsaw:Action="urn:getDigestAlgorithmURIByConfig"/>
+            <wsdl:output message="tns:getDigestAlgorithmURIByConfigResponse" wsaw:Action="urn:getDigestAlgorithmURIByConfigResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUris">
+            <wsdl:input message="tns:getSigningAlgorithmUrisRequest" wsaw:Action="urn:getSigningAlgorithmUris"/>
+            <wsdl:output message="tns:getSigningAlgorithmUrisResponse" wsaw:Action="urn:getSigningAlgorithmUrisResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIs">
+            <wsdl:input message="tns:getDigestAlgorithmURIsRequest" wsaw:Action="urn:getDigestAlgorithmURIs"/>
+            <wsdl:output message="tns:getDigestAlgorithmURIsResponse" wsaw:Action="urn:getDigestAlgorithmURIsResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="IdentitySAMLSSOConfigServiceSoap11Binding" type="tns:IdentitySAMLSSOConfigServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="removeServiceProvider">
+            <soap:operation soapAction="urn:removeServiceProvider" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCertAliasOfPrimaryKeyStore">
+            <soap:operation soapAction="urn:getCertAliasOfPrimaryKeyStore" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimURIs">
+            <soap:operation soapAction="urn:getClaimURIs" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getServiceProviders">
+            <soap:operation soapAction="urn:getServiceProviders" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUriByConfig">
+            <soap:operation soapAction="urn:getSigningAlgorithmUriByConfig" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addRPServiceProvider">
+            <soap:operation soapAction="urn:addRPServiceProvider" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUris">
+            <soap:operation soapAction="urn:getSigningAlgorithmUris" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIByConfig">
+            <soap:operation soapAction="urn:getDigestAlgorithmURIByConfig" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIs">
+            <soap:operation soapAction="urn:getDigestAlgorithmURIs" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentitySAMLSSOConfigServiceSoap12Binding" type="tns:IdentitySAMLSSOConfigServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="removeServiceProvider">
+            <soap12:operation soapAction="urn:removeServiceProvider" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap12:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCertAliasOfPrimaryKeyStore">
+            <soap12:operation soapAction="urn:getCertAliasOfPrimaryKeyStore" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap12:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimURIs">
+            <soap12:operation soapAction="urn:getClaimURIs" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap12:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getServiceProviders">
+            <soap12:operation soapAction="urn:getServiceProviders" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap12:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUriByConfig">
+            <soap12:operation soapAction="urn:getSigningAlgorithmUriByConfig" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addRPServiceProvider">
+            <soap12:operation soapAction="urn:addRPServiceProvider" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentitySAMLSSOConfigServiceIdentityException">
+                <soap12:fault use="literal" name="IdentitySAMLSSOConfigServiceIdentityException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUris">
+            <soap12:operation soapAction="urn:getSigningAlgorithmUris" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIByConfig">
+            <soap12:operation soapAction="urn:getDigestAlgorithmURIByConfig" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIs">
+            <soap12:operation soapAction="urn:getDigestAlgorithmURIs" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentitySAMLSSOConfigServiceHttpBinding" type="tns:IdentitySAMLSSOConfigServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="removeServiceProvider">
+            <http:operation location="removeServiceProvider"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCertAliasOfPrimaryKeyStore">
+            <http:operation location="getCertAliasOfPrimaryKeyStore"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimURIs">
+            <http:operation location="getClaimURIs"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getServiceProviders">
+            <http:operation location="getServiceProviders"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUriByConfig">
+            <http:operation location="getSigningAlgorithmUriByConfig"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addRPServiceProvider">
+            <http:operation location="addRPServiceProvider"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getSigningAlgorithmUris">
+            <http:operation location="getSigningAlgorithmUris"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIByConfig">
+            <http:operation location="getDigestAlgorithmURIByConfig"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDigestAlgorithmURIs">
+            <http:operation location="getDigestAlgorithmURIs"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="IdentitySAMLSSOConfigService">
+        <wsdl:port name="IdentitySAMLSSOConfigServiceHttpsSoap11Endpoint" binding="tns:IdentitySAMLSSOConfigServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/IdentitySAMLSSOConfigService.IdentitySAMLSSOConfigServiceHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="IdentitySAMLSSOConfigServiceHttpsSoap12Endpoint" binding="tns:IdentitySAMLSSOConfigServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/IdentitySAMLSSOConfigService.IdentitySAMLSSOConfigServiceHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="IdentitySAMLSSOConfigServiceHttpsEndpoint" binding="tns:IdentitySAMLSSOConfigServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/IdentitySAMLSSOConfigService.IdentitySAMLSSOConfigServiceHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

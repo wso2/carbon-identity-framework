@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <scr:component enabled="true" immediate="true" name="identity.application.authentication.framework.component">
+        <implementation class="org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent"/>
+        <property name="service.pid" value="identity.application.authentication.framework.component" private="false"/>
+        <reference name="osgi.httpservice" interface="org.osgi.service.http.HttpService" cardinality="1..1" policy="dynamic" bind="setHttpService" unbind="unsetHttpService" checked="true" strategy="event"/>
+        <reference name="user.realmservice.default" interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1" policy="dynamic" bind="setRealmService" unbind="unsetRealmService" checked="true" strategy="event"/>
+        <reference name="registry.service" interface="org.wso2.carbon.registry.core.service.RegistryService" cardinality="1..1" policy="dynamic" bind="setRegistryService" unbind="unsetRegistryService" checked="true" strategy="event"/>
+        <reference name="application.authenticator" interface="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator" cardinality="1..n" policy="dynamic" bind="setAuthenticator" unbind="unsetAuthenticator" checked="true" strategy="event"/>
+        <reference name="identityCoreInitializedEventService" interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1" policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService" checked="true" strategy="event"/>
+        <reference name="application.requestprocessor" interface="org.wso2.carbon.identity.application.authentication.framework.inbound.InboundAuthenticationRequestProcessor" cardinality="0..n" policy="dynamic" bind="setInboundRequestProcessor" unbind="unsetInboundRequestProcessor" checked="true" strategy="event"/>
+        <reference name="application.responseprocessor" interface="org.wso2.carbon.identity.application.authentication.framework.inbound.InboundAuthenticationResponseProcessor" cardinality="0..n" policy="dynamic" bind="setInboundResponseProcessor" unbind="unsetInboundResponseProcessor" checked="true" strategy="event"/>
+        <reference name="application.requestbuilder" interface="org.wso2.carbon.identity.application.authentication.framework.inbound.InboundAuthenticationRequestBuilder" cardinality="0..n" policy="dynamic" bind="setInboundRequestBuilder" unbind="unsetInboundRequestBuilder" checked="true" strategy="event"/>
+    </scr:component>
+</components>

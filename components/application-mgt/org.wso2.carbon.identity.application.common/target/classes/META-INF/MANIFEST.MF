@@ -1,0 +1,41 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1456290959765
+Build-Jdk: 1.7.0_67
+Built-By: godwin
+Bundle-Description: This is a Carbon bundle that represent the Applicati
+ on Management Aggregator Module.
+Bundle-DocURL: http://www.wso2.org/
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: org.wso2.carbon.identity.application.common
+Bundle-SymbolicName: org.wso2.carbon.identity.application.common
+Bundle-Vendor: WSO2
+Bundle-Version: 5.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: org.wso2.carbon.identity.application.common;version="5.0
+ .8.SNAPSHOT";uses:="org.wso2.carbon.identity.application.common.model",
+ org.wso2.carbon.identity.application.common.cache;version="5.0.8.SNAPSH
+ OT";uses:="org.wso2.carbon.caching.impl,org.wso2.carbon.identity.applic
+ ation.common.listener,org.wso2.carbon.identity.application.common.model
+ ",org.wso2.carbon.identity.application.common.listener;version="5.0.8.S
+ NAPSHOT";uses:="javax.cache.event",org.wso2.carbon.identity.application
+ .common.model;version="5.0.8.SNAPSHOT";uses:="org.apache.axiom.om,org.w
+ so2.carbon.identity.application.common",org.wso2.carbon.identity.applic
+ ation.common.processors;version="5.0.8.SNAPSHOT";uses:="org.wso2.carbon
+ .identity.application.common.model",org.wso2.carbon.identity.applicatio
+ n.common.util;version="5.0.8.SNAPSHOT";uses:="javax.xml.namespace,org.a
+ pache.axiom.om,org.wso2.carbon.identity.application.common.model"
+Import-Package: javax.cache;version="[1.0,2)",javax.cache.event;version=
+ "[1.0,2)",javax.crypto,javax.crypto.spec,javax.xml.namespace,org.apache
+ .axiom.om;version="[1.2.11,2.0.0)",org.apache.axiom.om.util;version="[1
+ .2.11,2.0.0)",org.apache.axiom.util.base64;version="[1.2.11,2.0.0)",org
+ .apache.commons.logging;version="[1.2,2.0)",org.apache.commons.lang;ver
+ sion="[2.6.0,3.0.0)",org.apache.commons.collections;version="[3.2.0,4.0
+ .0)",org.wso2.carbon.user.core.util;version="[4.4.0,5.0.0)",org.wso2.ca
+ rbon.context;version="[4.4.0,5.0.0)",org.wso2.carbon.caching.impl;versi
+ on="[4.4.0,5.0.0)",org.wso2.carbon.identity.core.model;version="[5.0.0,
+ 6.0.0)",org.wso2.carbon.identity.core.util;version="[5.0.0,6.0.0)",java
+ x.xml.stream;version="[1.0,2)",javax.naming,org.wso2.carbon.identity.ba
+ se;version="[5.0.0,6.0.0)",javax.sql,org.wso2.carbon.identity.core.pers
+ istence;version="[5.0.0,6.0.0)"
+Tool: Bnd-2.1.0.20130426-122213
