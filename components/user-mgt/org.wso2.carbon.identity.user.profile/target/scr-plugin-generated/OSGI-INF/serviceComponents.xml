@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <scr:component enabled="true" immediate="true" name="identity.user.profile.mgt.component">
-        <implementation class="org.wso2.carbon.identity.user.profile.mgt.internal.IdentityUserProfileServiceComponent"/>
-        <property name="service.pid" value="identity.user.profile.mgt.component"/>
-        <reference name="user.realm.default" interface="org.wso2.carbon.user.core.UserRealm" cardinality="1..1" policy="dynamic" bind="setUserRealmDefault" unbind="unsetUserRealmDefault"/>
-    </scr:component>
-</components>

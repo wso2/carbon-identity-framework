@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/metatype">
-    <OCD id="identity.entitlement.component" name="%identity.entitlement.component.name" description="%identity.entitlement.component.description"/>
-    <Designate pid="identity.entitlement.component">
-        <Object ocdref="identity.entitlement.component"/>
-    </Designate>
-</metatype:MetaData>

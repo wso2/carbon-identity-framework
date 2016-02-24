@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/metatype">
-    <OCD id="carbon.identity.notification.mgt" name="%carbon.identity.notification.mgt.name" description="%carbon.identity.notification.mgt.description"/>
-    <Designate pid="carbon.identity.notification.mgt">
-        <Object ocdref="carbon.identity.notification.mgt"/>
-    </Designate>
-</metatype:MetaData>

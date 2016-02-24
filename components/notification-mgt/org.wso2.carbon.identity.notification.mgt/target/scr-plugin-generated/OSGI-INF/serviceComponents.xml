@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <scr:component enabled="true" immediate="true" name="carbon.identity.notification.mgt">
-        <implementation class="org.wso2.carbon.identity.notification.mgt.internal.NotificationManagementServiceComponent"/>
-        <property name="service.pid" value="carbon.identity.notification.mgt"/>
-        <reference name="ldap.tenant.manager.listener.service" interface="org.wso2.carbon.identity.notification.mgt.NotificationSendingModule" cardinality="0..n" policy="dynamic" bind="addNotificationSendingModule" unbind="removeNotificationSendingModule"/>
-    </scr:component>
-</components>

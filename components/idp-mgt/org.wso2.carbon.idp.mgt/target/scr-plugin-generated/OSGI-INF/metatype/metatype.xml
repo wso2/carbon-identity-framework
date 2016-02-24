@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/metatype">
-    <OCD id="idp.mgt.dscomponent" name="%idp.mgt.dscomponent.name" description="%idp.mgt.dscomponent.description"/>
-    <Designate pid="idp.mgt.dscomponent">
-        <Object ocdref="idp.mgt.dscomponent"/>
-    </Designate>
-</metatype:MetaData>

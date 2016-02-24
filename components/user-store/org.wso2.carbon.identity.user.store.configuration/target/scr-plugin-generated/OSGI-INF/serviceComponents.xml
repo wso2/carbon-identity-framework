@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?><components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
-    <scr:component enabled="true" immediate="true" name="org.wso2.carbon.identity.user.store.configuration.component">
-        <implementation class="org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigComponent"/>
-        <property name="service.pid" value="org.wso2.carbon.identity.user.store.configuration.component"/>
-        <reference name="user.realmservice.default" interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1" policy="dynamic" bind="setRealmService" unbind="unsetRealmService"/>
-        <reference name="server.configuration.service" interface="org.wso2.carbon.base.api.ServerConfigurationService" cardinality="1..1" policy="dynamic" bind="setServerConfigurationService" unbind="unsetServerConfigurationService"/>
-        <reference name="user.store.config.event.listener.service" interface="org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener" cardinality="0..n" policy="dynamic" bind="setUserStoreConfigListenerService" unbind="unsetIdentityProviderMgtListerService"/>
-    </scr:component>
-</components>
