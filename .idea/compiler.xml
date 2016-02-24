@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <option name="DEFAULT_COMPILER" value="Javac" />
+    <resourceExtensions />
+    <wildcardResourcePatterns>
+      <entry name="!?*.java" />
+      <entry name="!?*.form" />
+      <entry name="!?*.class" />
+      <entry name="!?*.groovy" />
+      <entry name="!?*.scala" />
+      <entry name="!?*.flex" />
+      <entry name="!?*.kt" />
+      <entry name="!?*.clj" />
+    </wildcardResourcePatterns>
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="false">
+        <processorPath useClasspath="true" />
+      </profile>
+      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="org.wso2.carbon.claim.mgt" />
+        <module name="org.wso2.carbon.claim.mgt.stub" />
+        <module name="org.wso2.carbon.claim.mgt.ui" />
+        <module name="org.wso2.carbon.directory.server.manager" />
+        <module name="org.wso2.carbon.directory.server.manager.common" />
+        <module name="org.wso2.carbon.directory.server.manager.stub" />
+        <module name="org.wso2.carbon.directory.server.manager.ui" />
+        <module name="org.wso2.carbon.identity.application.authentication.endpoint" />
+        <module name="org.wso2.carbon.identity.application.authentication.endpoint.util" />
+        <module name="org.wso2.carbon.identity.application.authentication.framework" />
+        <module name="org.wso2.carbon.identity.application.common" />
+        <module name="org.wso2.carbon.identity.application.mgt" />
+        <module name="org.wso2.carbon.identity.application.mgt.stub" />
+        <module name="org.wso2.carbon.identity.application.mgt.ui" />
+        <module name="org.wso2.carbon.identity.base" />
+        <module name="org.wso2.carbon.identity.core" />
+        <module name="org.wso2.carbon.identity.core.ui" />
+        <module name="org.wso2.carbon.identity.entitlement" />
+        <module name="org.wso2.carbon.identity.entitlement.common" />
+        <module name="org.wso2.carbon.identity.entitlement.stub" />
+        <module name="org.wso2.carbon.identity.entitlement.ui" />
+        <module name="org.wso2.carbon.identity.mgt" />
+        <module name="org.wso2.carbon.identity.mgt.stub" />
+        <module name="org.wso2.carbon.identity.mgt.ui" />
+        <module name="org.wso2.carbon.identity.notification.mgt" />
+        <module name="org.wso2.carbon.identity.provider.stub" />
+        <module name="org.wso2.carbon.identity.provisioning" />
+        <module name="org.wso2.carbon.identity.user.profile" />
+        <module name="org.wso2.carbon.identity.user.profile.stub" />
+        <module name="org.wso2.carbon.identity.user.profile.ui" />
+        <module name="org.wso2.carbon.identity.user.registration" />
+        <module name="org.wso2.carbon.identity.user.registration.stub" />
+        <module name="org.wso2.carbon.identity.user.store.configuration" />
+        <module name="org.wso2.carbon.identity.user.store.configuration.deployer" />
+        <module name="org.wso2.carbon.identity.user.store.configuration.stub" />
+        <module name="org.wso2.carbon.identity.user.store.configuration.ui" />
+        <module name="org.wso2.carbon.identity.workflow.impl.stub" />
+        <module name="org.wso2.carbon.identity.workflow.mgt" />
+        <module name="org.wso2.carbon.identity.workflow.mgt.bps.stub" />
+        <module name="org.wso2.carbon.identity.workflow.mgt.stub" />
+        <module name="org.wso2.carbon.identity.workflow.mgt.ui" />
+        <module name="org.wso2.carbon.idp.mgt" />
+        <module name="org.wso2.carbon.idp.mgt.stub" />
+        <module name="org.wso2.carbon.idp.mgt.ui" />
+        <module name="org.wso2.carbon.policyeditor" />
+        <module name="org.wso2.carbon.policyeditor.ui" />
+        <module name="org.wso2.carbon.security.mgt" />
+        <module name="org.wso2.carbon.security.mgt.stub" />
+        <module name="org.wso2.carbon.security.mgt.ui" />
+        <module name="org.wso2.carbon.user.mgt" />
+        <module name="org.wso2.carbon.user.mgt.common" />
+        <module name="org.wso2.carbon.user.mgt.stub" />
+        <module name="org.wso2.carbon.user.mgt.ui" />
+        <module name="org.wso2.carbon.user.mgt.workflow" />
+        <module name="org.wso2.carbon.user.mgt.workflow.stub" />
+        <module name="org.wso2.carbon.user.mgt.workflow.ui" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="1.6" />
+  </component>
+</project>
+
