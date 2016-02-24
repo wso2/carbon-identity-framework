@@ -1,0 +1,3524 @@
+<!--
+  ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:htt="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/types/200803" targetNamespace="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803">
+    <wsdl:documentation>
+        Web Service Definition for WS-HumanTask 1.1 - Operations for Client Applications
+    </wsdl:documentation>
+    <wsdl:types>
+        <xsd:schema blockDefault="#all" elementFormDefault="qualified" targetNamespace="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803">
+            <xsd:import namespace="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/types/200803" schemaLocation="ws-humantask-types.xsd"/>
+            <!--  Input and output elements  -->
+            <xsd:element name="addAttachment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                        <xsd:element name="accessType" type="xsd:string"/>
+                        <xsd:element name="contentType" type="xsd:string"/>
+                        <xsd:element name="attachment" type="xsd:anyType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="addAttachmentResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="isAssociated" type="xsd:boolean"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="addComment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="text" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="addCommentResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="commentID" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="claim">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="claimResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchClaim">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchClaimResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="complete">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="taskData" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="completeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchComplete">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="taskData" type="xsd:anyType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchCompleteResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="delegate">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="organizationalEntity" type="htt:tOrganizationalEntity"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="delegateResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchDelegate">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="organizationalEntity" type="htt:tOrganizationalEntity"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchDelegateResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteAttachment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                        <xsd:element name="attachmentIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteAttachmentResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteComment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                        <xsd:element name="commentIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteCommentResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteFault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteFaultResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteOutput">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteOutputResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fail">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="fault" type="htt:tFault"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="failResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchFail">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="fault" type="htt:tFault"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchFailResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="forward">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="organizationalEntity" type="htt:tOrganizationalEntity"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="forwardResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchForward">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="organizationalEntity" type="htt:tOrganizationalEntity"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchForwardResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getAttachment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                        <xsd:element name="attachmentIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getAttachmentResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="attachment" type="htt:tAttachment"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getAttachmentInfos">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getAttachmentInfosResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="info" type="htt:tAttachmentInfo"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getComments">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getCommentsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="comment" type="htt:tComment"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getFault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getFaultResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fault" type="htt:tFault"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getInput">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="part" type="xsd:NCName"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getInputResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskData" type="xsd:anyType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getOutcome">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getOutcomeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="outcome" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getOutput">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="part" type="xsd:NCName"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getOutputResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskData" type="xsd:anyType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getParentTask">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getParentTaskResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" name="parentTask" type="htt:tTaskDetails"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getParentTaskIdentifier">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getParentTaskIdentifierResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" name="parentTaskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getRendering">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="renderingType" type="xsd:QName"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getRenderingResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="rendering" type="xsd:anyType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getRenderingTypes">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getRenderingTypesResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="renderingType" type="xsd:QName"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getSubtaskIdentifiers">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getSubtaskIdentifiersResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="subtaskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getSubtasks">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getSubtasksResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="subtask" type="htt:tTaskDetails"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskDescription">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="contentType" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskDescriptionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="description" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskDetailsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskDetails" type="htt:tTaskDetails"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskHistory">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="filter" type="htt:tTaskHistoryFilter"/>
+                        <xsd:element minOccurs="0" name="startIndex" type="xsd:int"/>
+                        <xsd:element minOccurs="0" name="maxTasks" type="xsd:int"/>
+                    </xsd:sequence>
+                    <xsd:attribute name="includeData" type="xsd:boolean"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskHistoryResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="taskEvent" type="htt:tTaskEventType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskInstanceData">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="properties" type="xsd:string"/>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="renderingPreferences" type="htt:tRenderingTypes"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskInstanceDataResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskInstanceData" type="htt:tTaskInstanceData"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskOperations">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getTaskOperationsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskOperations" type="htt:tTaskOperations"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="hasSubtasks">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="hasSubtasksResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:boolean"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="instantiateSubtask">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                        <xsd:element name="name" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="instantiateSubtaskResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="subtaskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="isSubtask">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="isSubtaskResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="xsd:boolean"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="release">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="releaseResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchRelease">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchReleaseResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="remove">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="removeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchRemove">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchRemoveResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="resume">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="resumeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchResume">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchResumeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setFault">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="fault" type="htt:tFault"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setFaultResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setOutput">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element minOccurs="0" name="part" type="xsd:NCName"/>
+                        <xsd:element name="taskData" type="xsd:anyType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setOutputResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setPriority">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="priority" type="htt:tPriority"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setPriorityResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSetPriority">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="priority" type="htt:tPriority"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSetPriorityResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskCompletionDeadlineExpression">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="deadlineName" type="xsd:NCName"/>
+                        <xsd:element name="deadlineExpression" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskCompletionDeadlineExpressionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskCompletionDurationExpression">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="deadlineName" type="xsd:NCName"/>
+                        <xsd:element name="durationExpression" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskCompletionDurationExpressionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskStartDeadlineExpression">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="deadlineName" type="xsd:NCName"/>
+                        <xsd:element name="deadlineExpression" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskStartDeadlineExpressionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskStartDurationExpression">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="deadlineName" type="xsd:NCName"/>
+                        <xsd:element name="durationExpression" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setTaskStartDurationExpressionResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="skip">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="skipResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSkip">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSkipResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="start">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="startResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchStart">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchStartResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="stop">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="stopResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchStop">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchStopResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="suspend">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="suspendResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSuspend">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSuspendResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="suspendUntil">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="time" type="htt:tTime"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="suspendUntilResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSuspendUntil">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="time" type="htt:tTime"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSuspendUntilResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="updateComment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskIdentifier" type="xsd:anyURI"/>
+                        <xsd:element name="commentIdentifier" type="xsd:anyURI"/>
+                        <xsd:element name="text" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="updateCommentResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getMyTaskAbstracts">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskType" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="genericHumanRole" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="workQueue" type="xsd:string"/>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="status" type="htt:tStatus"/>
+                        <xsd:element minOccurs="0" name="whereClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="orderByClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="createdOnClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="maxTasks" type="xsd:int"/>
+                        <xsd:element minOccurs="0" name="taskIndexOffset" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getMyTaskAbstractsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="taskAbstract" type="htt:tTaskAbstract"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getMyTaskDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskType" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="genericHumanRole" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="workQueue" type="xsd:string"/>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="status" type="htt:tStatus"/>
+                        <xsd:element minOccurs="0" name="whereClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="orderByClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="createdOnClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="maxTasks" type="xsd:int"/>
+                        <xsd:element minOccurs="0" name="taskIndexOffset" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getMyTaskDetailsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="taskDetails" type="htt:tTaskDetails"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="query">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="selectClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="whereClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="orderByClause" type="xsd:string"/>
+                        <xsd:element minOccurs="0" name="maxTasks" type="xsd:int"/>
+                        <xsd:element minOccurs="0" name="taskIndexOffset" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="queryResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskQueryResultSet" type="htt:tTaskQueryResultSet"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="simpleQuery">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="simpleQueryInput" type="htt:tSimpleQueryInput"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="simpleQueryResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskSimpleQueryResultSet" type="htt:tTaskSimpleQueryResultSet"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="loadAuthorisationParams">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="loadAuthorisationParamsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskAuthorisationParamsResult" type="htt:tTaskAuthorisationParams"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="loadTaskEvents">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="loadTaskEventsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="taskEvents" type="htt:tTaskEvents"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getAssignableUserList">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getAssignableUserListResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="user" type="htt:tUser"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="activate">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="activateResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchActivate">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchActivateResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="nominate">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="organizationalEntity" type="htt:tOrganizationalEntity"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="nominateResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchNominate">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchNominateResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setGenericHumanRole">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="genericHumanRole" type="xsd:string"/>
+                        <xsd:element name="organizationalEntity" type="htt:tOrganizationalEntity"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="setGenericHumanRoleResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:annotation>
+                            <xsd:documentation>Empty message</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSetGenericHumanRole">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="identifier" type="xsd:anyURI"/>
+                        <xsd:element name="genericHumanRole" type="xsd:string"/>
+                        <xsd:element name="organizationalEntity" type="htt:tOrganizationalEntity"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="batchSetGenericHumanRoleResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="batchResponse" type="tBatchResponse"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="loadTask">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="identifier" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="loadTaskResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="1" minOccurs="0" name="taskAbstract" type="htt:tTaskAbstract"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <!--  Fault elements  -->
+            <xsd:element name="illegalState">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="status" type="htt:tStatus"/>
+                        <xsd:element name="message" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="illegalArgument" type="xsd:string"/>
+            <xsd:element name="illegalAccess" type="xsd:string"/>
+            <xsd:element name="illegalOperation" type="xsd:string"/>
+            <xsd:element name="recipientNotAllowed" type="xsd:string"/>
+            <xsd:complexType name="tBatchResponse">
+                <xsd:sequence>
+                    <xsd:element name="identifier" type="xsd:anyURI"/>
+                    <xsd:choice>
+                        <xsd:element ref="illegalState"/>
+                        <xsd:element ref="illegalArgument"/>
+                        <xsd:element ref="illegalAccess"/>
+                        <xsd:element ref="illegalOperation"/>
+                        <xsd:element ref="recipientNotAllowed"/>
+                        <xsd:any namespace="##other" processContents="lax"/>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </wsdl:types>
+    <wsdl:message name="batchForwardResponse">
+        <wsdl:part name="batchForwardResponse" element="batchForwardResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="claimResponse">
+        <wsdl:part name="claimResponse" element="claimResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="skip">
+        <wsdl:part name="skip" element="skip"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="suspend">
+        <wsdl:part name="suspend" element="suspend"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchDelegateResponse">
+        <wsdl:part name="batchDelegateResponse" element="batchDelegateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteAttachment">
+        <wsdl:part name="deleteAttachment" element="deleteAttachment"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getOutputResponse">
+        <wsdl:part name="getOutputResponse" element="getOutputResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="illegalAccessFault">
+        <wsdl:part name="illegalAccess" element="illegalAccess"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskDescription">
+        <wsdl:part name="getTaskDescription" element="getTaskDescription"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="releaseResponse">
+        <wsdl:part name="releaseResponse" element="releaseResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSuspendUntilResponse">
+        <wsdl:part name="batchSuspendUntilResponse" element="batchSuspendUntilResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="delegateResponse">
+        <wsdl:part name="delegateResponse" element="delegateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchClaimResponse">
+        <wsdl:part name="batchClaimResponse" element="batchClaimResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSetPriorityResponse">
+        <wsdl:part name="batchSetPriorityResponse" element="batchSetPriorityResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSetGenericHumanRoleResponse">
+        <wsdl:part name="batchSetGenericHumanRoleResponse" element="batchSetGenericHumanRoleResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="addComment">
+        <wsdl:part name="addComment" element="addComment"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setOutputResponse">
+        <wsdl:part name="setOutputResponse" element="setOutputResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="loadAuthorisationParamsResponse">
+        <wsdl:part name="loadAuthorisationParamsResponse" element="loadAuthorisationParamsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getMyTaskDetailsResponse">
+        <wsdl:part name="getMyTaskDetailsResponse" element="getMyTaskDetailsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getOutcomeResponse">
+        <wsdl:part name="getOutcomeResponse" element="getOutcomeResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskOperationsResponse">
+        <wsdl:part name="getTaskOperationsResponse" element="getTaskOperationsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchStopResponse">
+        <wsdl:part name="batchStopResponse" element="batchStopResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskStartDurationExpression">
+        <wsdl:part name="setTaskStartDurationExpression" element="setTaskStartDurationExpression"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskStartDeadlineExpression">
+        <wsdl:part name="setTaskStartDeadlineExpression" element="setTaskStartDeadlineExpression"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchCompleteResponse">
+        <wsdl:part name="batchCompleteResponse" element="batchCompleteResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAssignableUserListResponse">
+        <wsdl:part name="getAssignableUserListResponse" element="getAssignableUserListResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getParentTaskIdentifierResponse">
+        <wsdl:part name="getParentTaskIdentifierResponse" element="getParentTaskIdentifierResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="addCommentResponse">
+        <wsdl:part name="addCommentResponse" element="addCommentResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchComplete">
+        <wsdl:part name="batchComplete" element="batchComplete"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="release">
+        <wsdl:part name="release" element="release"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSetPriority">
+        <wsdl:part name="batchSetPriority" element="batchSetPriority"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSkipResponse">
+        <wsdl:part name="batchSkipResponse" element="batchSkipResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getInput">
+        <wsdl:part name="getInput" element="getInput"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getInputResponse">
+        <wsdl:part name="getInputResponse" element="getInputResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="completeResponse">
+        <wsdl:part name="completeResponse" element="completeResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAttachmentInfos">
+        <wsdl:part name="getAttachmentInfos" element="getAttachmentInfos"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchStart">
+        <wsdl:part name="batchStart" element="batchStart"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSetGenericHumanRole">
+        <wsdl:part name="batchSetGenericHumanRole" element="batchSetGenericHumanRole"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getParentTask">
+        <wsdl:part name="getParentTask" element="getParentTask"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="hasSubtasksResponse">
+        <wsdl:part name="hasSubtasksResponse" element="hasSubtasksResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateComment">
+        <wsdl:part name="updateComment" element="updateComment"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="stop">
+        <wsdl:part name="stop" element="stop"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="addAttachmentResponse">
+        <wsdl:part name="addAttachmentResponse" element="addAttachmentResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getCommentsResponse">
+        <wsdl:part name="getCommentsResponse" element="getCommentsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="illegalStateFault">
+        <wsdl:part name="illegalState" element="illegalState"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteOutput">
+        <wsdl:part name="deleteOutput" element="deleteOutput"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getOutcome">
+        <wsdl:part name="getOutcome" element="getOutcome"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskInstanceDataResponse">
+        <wsdl:part name="getTaskInstanceDataResponse" element="getTaskInstanceDataResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="removeResponse">
+        <wsdl:part name="removeResponse" element="removeResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRenderingTypes">
+        <wsdl:part name="getRenderingTypes" element="getRenderingTypes"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="isSubtask">
+        <wsdl:part name="isSubtask" element="isSubtask"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="resumeResponse">
+        <wsdl:part name="resumeResponse" element="resumeResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchResumeResponse">
+        <wsdl:part name="batchResumeResponse" element="batchResumeResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="complete">
+        <wsdl:part name="complete" element="complete"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="queryResponse">
+        <wsdl:part name="queryResponse" element="queryResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getMyTaskAbstractsResponse">
+        <wsdl:part name="getMyTaskAbstractsResponse" element="getMyTaskAbstractsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getParentTaskResponse">
+        <wsdl:part name="getParentTaskResponse" element="getParentTaskResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchRelease">
+        <wsdl:part name="batchRelease" element="batchRelease"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteAttachmentResponse">
+        <wsdl:part name="deleteAttachmentResponse" element="deleteAttachmentResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="instantiateSubtaskResponse">
+        <wsdl:part name="instantiateSubtaskResponse" element="instantiateSubtaskResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getComments">
+        <wsdl:part name="getComments" element="getComments"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRenderingTypesResponse">
+        <wsdl:part name="getRenderingTypesResponse" element="getRenderingTypesResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchActivate">
+        <wsdl:part name="batchActivate" element="batchActivate"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSkip">
+        <wsdl:part name="batchSkip" element="batchSkip"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setPriorityResponse">
+        <wsdl:part name="setPriorityResponse" element="setPriorityResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchNominate">
+        <wsdl:part name="batchNominate" element="batchNominate"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskStartDurationExpressionResponse">
+        <wsdl:part name="setTaskStartDurationExpressionResponse" element="setTaskStartDurationExpressionResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="claim">
+        <wsdl:part name="claim" element="claim"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getFault">
+        <wsdl:part name="getFault" element="getFault"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRenderingResponse">
+        <wsdl:part name="getRenderingResponse" element="getRenderingResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchActivateResponse">
+        <wsdl:part name="batchActivateResponse" element="batchActivateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="resume">
+        <wsdl:part name="resume" element="resume"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="loadAuthorisationParams">
+        <wsdl:part name="loadAuthorisationParams" element="loadAuthorisationParams"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="nominateResponse">
+        <wsdl:part name="nominateResponse" element="nominateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskHistoryResponse">
+        <wsdl:part name="getTaskHistoryResponse" element="getTaskHistoryResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAttachmentResponse">
+        <wsdl:part name="getAttachmentResponse" element="getAttachmentResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setFault">
+        <wsdl:part name="setFault" element="setFault"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getOutput">
+        <wsdl:part name="getOutput" element="getOutput"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getSubtasksResponse">
+        <wsdl:part name="getSubtasksResponse" element="getSubtasksResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskDetailsResponse">
+        <wsdl:part name="getTaskDetailsResponse" element="getTaskDetailsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="forwardResponse">
+        <wsdl:part name="forwardResponse" element="forwardResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchClaim">
+        <wsdl:part name="batchClaim" element="batchClaim"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchRemove">
+        <wsdl:part name="batchRemove" element="batchRemove"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="instantiateSubtask">
+        <wsdl:part name="instantiateSubtask" element="instantiateSubtask"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskInstanceData">
+        <wsdl:part name="getTaskInstanceData" element="getTaskInstanceData"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="activate">
+        <wsdl:part name="activate" element="activate"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSuspendUntil">
+        <wsdl:part name="batchSuspendUntil" element="batchSuspendUntil"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="forward">
+        <wsdl:part name="forward" element="forward"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSuspendResponse">
+        <wsdl:part name="batchSuspendResponse" element="batchSuspendResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="fail">
+        <wsdl:part name="fail" element="fail"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="updateCommentResponse">
+        <wsdl:part name="updateCommentResponse" element="updateCommentResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteCommentResponse">
+        <wsdl:part name="deleteCommentResponse" element="deleteCommentResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchResume">
+        <wsdl:part name="batchResume" element="batchResume"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchReleaseResponse">
+        <wsdl:part name="batchReleaseResponse" element="batchReleaseResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="isSubtaskResponse">
+        <wsdl:part name="isSubtaskResponse" element="isSubtaskResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="recipientNotAllowed">
+        <wsdl:part name="recipientNotAllowed" element="recipientNotAllowed"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteFault">
+        <wsdl:part name="deleteFault" element="deleteFault"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="loadTaskEventsResponse">
+        <wsdl:part name="loadTaskEventsResponse" element="loadTaskEventsResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getMyTaskDetails">
+        <wsdl:part name="getMyTaskDetails" element="getMyTaskDetails"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="loadTaskResponse">
+        <wsdl:part name="loadTaskResponse" element="loadTaskResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskCompletionDurationExpression">
+        <wsdl:part name="setTaskCompletionDurationExpression" element="setTaskCompletionDurationExpression"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="stopResponse">
+        <wsdl:part name="stopResponse" element="stopResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchFailResponse">
+        <wsdl:part name="batchFailResponse" element="batchFailResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchForward">
+        <wsdl:part name="batchForward" element="batchForward"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="loadTaskEvents">
+        <wsdl:part name="loadTaskEvents" element="loadTaskEvents"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteComment">
+        <wsdl:part name="deleteComment" element="deleteComment"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="skipResponse">
+        <wsdl:part name="skipResponse" element="skipResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskCompletionDurationExpressionResponse">
+        <wsdl:part name="setTaskCompletionDurationExpressionResponse" element="setTaskCompletionDurationExpressionResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteFaultResponse">
+        <wsdl:part name="deleteFaultResponse" element="deleteFaultResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getMyTaskAbstracts">
+        <wsdl:part name="getMyTaskAbstracts" element="getMyTaskAbstracts"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setOutput">
+        <wsdl:part name="setOutput" element="setOutput"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setPriority">
+        <wsdl:part name="setPriority" element="setPriority"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="suspendResponse">
+        <wsdl:part name="suspendResponse" element="suspendResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getSubtaskIdentifiersResponse">
+        <wsdl:part name="getSubtaskIdentifiersResponse" element="getSubtaskIdentifiersResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setGenericHumanRole">
+        <wsdl:part name="setGenericHumanRole" element="setGenericHumanRole"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="start">
+        <wsdl:part name="start" element="start"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="suspendUntilResponse">
+        <wsdl:part name="suspendUntilResponse" element="suspendUntilResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchFail">
+        <wsdl:part name="batchFail" element="batchFail"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="startResponse">
+        <wsdl:part name="startResponse" element="startResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="failResponse">
+        <wsdl:part name="failResponse" element="failResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="delegate">
+        <wsdl:part name="delegate" element="delegate"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskOperations">
+        <wsdl:part name="getTaskOperations" element="getTaskOperations"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="simpleQuery">
+        <wsdl:part name="simpleQuery" element="simpleQuery"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setFaultResponse">
+        <wsdl:part name="setFaultResponse" element="setFaultResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getSubtaskIdentifiers">
+        <wsdl:part name="getSubtaskIdentifiers" element="getSubtaskIdentifiers"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchNominateResponse">
+        <wsdl:part name="batchNominateResponse" element="batchNominateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAttachmentInfosResponse">
+        <wsdl:part name="getAttachmentInfosResponse" element="getAttachmentInfosResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="hasSubtasks">
+        <wsdl:part name="hasSubtasks" element="hasSubtasks"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="remove">
+        <wsdl:part name="remove" element="remove"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getSubtasks">
+        <wsdl:part name="getSubtasks" element="getSubtasks"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="query">
+        <wsdl:part name="query" element="query"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getRendering">
+        <wsdl:part name="getRendering" element="getRendering"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskCompletionDeadlineExpression">
+        <wsdl:part name="setTaskCompletionDeadlineExpression" element="setTaskCompletionDeadlineExpression"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskCompletionDeadlineExpressionResponse">
+        <wsdl:part name="setTaskCompletionDeadlineExpressionResponse" element="setTaskCompletionDeadlineExpressionResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getParentTaskIdentifier">
+        <wsdl:part name="getParentTaskIdentifier" element="getParentTaskIdentifier"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="nominate">
+        <wsdl:part name="nominate" element="nominate"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAttachment">
+        <wsdl:part name="getAttachment" element="getAttachment"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchSuspend">
+        <wsdl:part name="batchSuspend" element="batchSuspend"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskHistory">
+        <wsdl:part name="getTaskHistory" element="getTaskHistory"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="illegalArgumentFault">
+        <wsdl:part name="illegalArgument" element="illegalArgument"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getAssignableUserList">
+        <wsdl:part name="getAssignableUserList" element="getAssignableUserList"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setTaskStartDeadlineExpressionResponse">
+        <wsdl:part name="setTaskStartDeadlineExpressionResponse" element="setTaskStartDeadlineExpressionResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchStop">
+        <wsdl:part name="batchStop" element="batchStop"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="simpleQueryResponse">
+        <wsdl:part name="simpleQueryResponse" element="simpleQueryResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="setGenericHumanRoleResponse">
+        <wsdl:part name="setGenericHumanRoleResponse" element="setGenericHumanRoleResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchRemoveResponse">
+        <wsdl:part name="batchRemoveResponse" element="batchRemoveResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getFaultResponse">
+        <wsdl:part name="getFaultResponse" element="getFaultResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskDescriptionResponse">
+        <wsdl:part name="getTaskDescriptionResponse" element="getTaskDescriptionResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="activateResponse">
+        <wsdl:part name="activateResponse" element="activateResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="suspendUntil">
+        <wsdl:part name="suspendUntil" element="suspendUntil"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="deleteOutputResponse">
+        <wsdl:part name="deleteOutputResponse" element="deleteOutputResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchDelegate">
+        <wsdl:part name="batchDelegate" element="batchDelegate"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="addAttachment">
+        <wsdl:part name="addAttachment" element="addAttachment"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="loadTask">
+        <wsdl:part name="loadTask" element="loadTask"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="batchStartResponse">
+        <wsdl:part name="batchStartResponse" element="batchStartResponse"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="getTaskDetails">
+        <wsdl:part name="getTaskDetails" element="getTaskDetails"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="illegalOperationFault">
+        <wsdl:part name="illegalOperation" element="illegalOperation"></wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="taskOperations">
+        <wsdl:operation name="addAttachment">
+            <wsdl:input message="addAttachment"></wsdl:input>
+            <wsdl:output message="addAttachmentResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addComment">
+            <wsdl:input message="addComment"></wsdl:input>
+            <wsdl:output message="addCommentResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="claim">
+            <wsdl:input message="claim"></wsdl:input>
+            <wsdl:output message="claimResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchClaim">
+            <wsdl:input message="batchClaim"></wsdl:input>
+            <wsdl:output message="batchClaimResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="complete">
+            <wsdl:input message="complete"></wsdl:input>
+            <wsdl:output message="completeResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchComplete">
+            <wsdl:input message="batchComplete"></wsdl:input>
+            <wsdl:output message="batchCompleteResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="delegate">
+            <wsdl:input message="delegate"></wsdl:input>
+            <wsdl:output message="delegateResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="recipientNotAllowed" message="recipientNotAllowed"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchDelegate">
+            <wsdl:input message="batchDelegate"></wsdl:input>
+            <wsdl:output message="batchDelegateResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="deleteAttachment">
+            <wsdl:input message="deleteAttachment"></wsdl:input>
+            <wsdl:output message="deleteAttachmentResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteComment">
+            <wsdl:input message="deleteComment"></wsdl:input>
+            <wsdl:output message="deleteCommentResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteFault">
+            <wsdl:input message="deleteFault"></wsdl:input>
+            <wsdl:output message="deleteFaultResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteOutput">
+            <wsdl:input message="deleteOutput"></wsdl:input>
+            <wsdl:output message="deleteOutputResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="fail">
+            <wsdl:input message="fail"></wsdl:input>
+            <wsdl:output message="failResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchFail">
+            <wsdl:input message="batchFail"></wsdl:input>
+            <wsdl:output message="batchFailResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="forward">
+            <wsdl:input message="forward"></wsdl:input>
+            <wsdl:output message="forwardResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchForward">
+            <wsdl:input message="batchForward"></wsdl:input>
+            <wsdl:output message="batchForwardResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAttachment">
+            <wsdl:input message="getAttachment"></wsdl:input>
+            <wsdl:output message="getAttachmentResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAttachmentInfos">
+            <wsdl:input message="getAttachmentInfos"></wsdl:input>
+            <wsdl:output message="getAttachmentInfosResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getComments">
+            <wsdl:input message="getComments"></wsdl:input>
+            <wsdl:output message="getCommentsResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getFault">
+            <wsdl:input message="getFault"></wsdl:input>
+            <wsdl:output message="getFaultResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getInput">
+            <wsdl:input message="getInput"></wsdl:input>
+            <wsdl:output message="getInputResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getOutcome">
+            <wsdl:input message="getOutcome"></wsdl:input>
+            <wsdl:output message="getOutcomeResponse"></wsdl:output>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getOutput">
+            <wsdl:input message="getOutput"></wsdl:input>
+            <wsdl:output message="getOutputResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getParentTask">
+            <wsdl:input message="getParentTask"></wsdl:input>
+            <wsdl:output message="getParentTaskResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getParentTaskIdentifier">
+            <wsdl:input message="getParentTaskIdentifier"></wsdl:input>
+            <wsdl:output message="getParentTaskIdentifierResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRendering">
+            <wsdl:input message="getRendering"></wsdl:input>
+            <wsdl:output message="getRenderingResponse"></wsdl:output>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRenderingTypes">
+            <wsdl:input message="getRenderingTypes"></wsdl:input>
+            <wsdl:output message="getRenderingTypesResponse"></wsdl:output>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSubtaskIdentifiers">
+            <wsdl:input message="getSubtaskIdentifiers"></wsdl:input>
+            <wsdl:output message="getSubtaskIdentifiersResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSubtasks">
+            <wsdl:input message="getSubtasks"></wsdl:input>
+            <wsdl:output message="getSubtasksResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskDescription">
+            <wsdl:input message="getTaskDescription"></wsdl:input>
+            <wsdl:output message="getTaskDescriptionResponse"></wsdl:output>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskDetails">
+            <wsdl:input message="getTaskDetails"></wsdl:input>
+            <wsdl:output message="getTaskDetailsResponse"></wsdl:output>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskHistory">
+            <wsdl:input message="getTaskHistory"></wsdl:input>
+            <wsdl:output message="getTaskHistoryResponse"></wsdl:output>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskInstanceData">
+            <wsdl:input message="getTaskInstanceData"></wsdl:input>
+            <wsdl:output message="getTaskInstanceDataResponse"></wsdl:output>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskOperations">
+            <wsdl:input message="getTaskOperations"></wsdl:input>
+            <wsdl:output message="getTaskOperationsResponse"></wsdl:output>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="hasSubtasks">
+            <wsdl:input message="hasSubtasks"></wsdl:input>
+            <wsdl:output message="hasSubtasksResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="instantiateSubtask">
+            <wsdl:input message="instantiateSubtask"></wsdl:input>
+            <wsdl:output message="instantiateSubtaskResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isSubtask">
+            <wsdl:input message="isSubtask"></wsdl:input>
+            <wsdl:output message="isSubtaskResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="release">
+            <wsdl:input message="release"></wsdl:input>
+            <wsdl:output message="releaseResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchRelease">
+            <wsdl:input message="batchRelease"></wsdl:input>
+            <wsdl:output message="batchReleaseResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="remove">
+            <wsdl:input message="remove"></wsdl:input>
+            <wsdl:output message="removeResponse"></wsdl:output>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchRemove">
+            <wsdl:input message="batchRemove"></wsdl:input>
+            <wsdl:output message="batchRemoveResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="resume">
+            <wsdl:input message="resume"></wsdl:input>
+            <wsdl:output message="resumeResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchResume">
+            <wsdl:input message="batchResume"></wsdl:input>
+            <wsdl:output message="batchResumeResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setFault">
+            <wsdl:input message="setFault"></wsdl:input>
+            <wsdl:output message="setFaultResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setOutput">
+            <wsdl:input message="setOutput"></wsdl:input>
+            <wsdl:output message="setOutputResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setPriority">
+            <wsdl:input message="setPriority"></wsdl:input>
+            <wsdl:output message="setPriorityResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchSetPriority">
+            <wsdl:input message="batchSetPriority"></wsdl:input>
+            <wsdl:output message="batchSetPriorityResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskCompletionDeadlineExpression">
+            <wsdl:input message="setTaskCompletionDeadlineExpression"></wsdl:input>
+            <wsdl:output message="setTaskCompletionDeadlineExpressionResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskCompletionDurationExpression">
+            <wsdl:input message="setTaskCompletionDurationExpression"></wsdl:input>
+            <wsdl:output message="setTaskCompletionDurationExpressionResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskStartDeadlineExpression">
+            <wsdl:input message="setTaskStartDeadlineExpression"></wsdl:input>
+            <wsdl:output message="setTaskStartDeadlineExpressionResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskStartDurationExpression">
+            <wsdl:input message="setTaskStartDurationExpression"></wsdl:input>
+            <wsdl:output message="setTaskStartDurationExpressionResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="skip">
+            <wsdl:input message="skip"></wsdl:input>
+            <wsdl:output message="skipResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchSkip">
+            <wsdl:input message="batchSkip"></wsdl:input>
+            <wsdl:output message="batchSkipResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="start">
+            <wsdl:input message="start"></wsdl:input>
+            <wsdl:output message="startResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchStart">
+            <wsdl:input message="batchStart"></wsdl:input>
+            <wsdl:output message="batchStartResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="stop">
+            <wsdl:input message="stop"></wsdl:input>
+            <wsdl:output message="stopResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchStop">
+            <wsdl:input message="batchStop"></wsdl:input>
+            <wsdl:output message="batchStopResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="suspend">
+            <wsdl:input message="suspend"></wsdl:input>
+            <wsdl:output message="suspendResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchSuspend">
+            <wsdl:input message="batchSuspend"></wsdl:input>
+            <wsdl:output message="batchSuspendResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="suspendUntil">
+            <wsdl:input message="suspendUntil"></wsdl:input>
+            <wsdl:output message="suspendUntilResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchSuspendUntil">
+            <wsdl:input message="batchSuspendUntil"></wsdl:input>
+            <wsdl:output message="batchSuspendUntilResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateComment">
+            <wsdl:input message="updateComment"></wsdl:input>
+            <wsdl:output message="updateCommentResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getMyTaskAbstracts">
+            <wsdl:input message="getMyTaskAbstracts"></wsdl:input>
+            <wsdl:output message="getMyTaskAbstractsResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getMyTaskDetails">
+            <wsdl:input message="getMyTaskDetails"></wsdl:input>
+            <wsdl:output message="getMyTaskDetailsResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="query">
+            <wsdl:input message="query"></wsdl:input>
+            <wsdl:output message="queryResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="simpleQuery">
+            <wsdl:input message="simpleQuery"></wsdl:input>
+            <wsdl:output message="simpleQueryResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="loadTaskEvents">
+            <wsdl:input message="loadTaskEvents"></wsdl:input>
+            <wsdl:output message="loadTaskEventsResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAssignableUserList">
+            <wsdl:input message="getAssignableUserList"></wsdl:input>
+            <wsdl:output message="getAssignableUserListResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="loadAuthorisationParams">
+            <wsdl:input message="loadAuthorisationParams"></wsdl:input>
+            <wsdl:output message="loadAuthorisationParamsResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="activate">
+            <wsdl:input message="activate"></wsdl:input>
+            <wsdl:output message="activateResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchActivate">
+            <wsdl:input message="batchActivate"></wsdl:input>
+            <wsdl:output message="batchActivateResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="nominate">
+            <wsdl:input message="nominate"></wsdl:input>
+            <wsdl:output message="nominateResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchNominate">
+            <wsdl:input message="batchNominate"></wsdl:input>
+            <wsdl:output message="batchNominateResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setGenericHumanRole">
+            <wsdl:input message="setGenericHumanRole"></wsdl:input>
+            <wsdl:output message="setGenericHumanRoleResponse"></wsdl:output>
+            <wsdl:fault name="illegalStateFault" message="illegalStateFault"></wsdl:fault>
+            <wsdl:fault name="illegalOperationFault" message="illegalOperationFault"></wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault" message="illegalArgumentFault"></wsdl:fault>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchSetGenericHumanRole">
+            <wsdl:input message="batchSetGenericHumanRole"></wsdl:input>
+            <wsdl:output message="batchSetGenericHumanRoleResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="loadTask">
+            <wsdl:input message="loadTask"></wsdl:input>
+            <wsdl:output message="loadTaskResponse"></wsdl:output>
+            <wsdl:fault name="illegalAccessFault" message="illegalAccessFault"></wsdl:fault>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="taskOperationsSOAP" type="taskOperations">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="claim">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/claim"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="start">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/start"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="stop">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/stop"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="release">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/release"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="suspend">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/suspend"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="suspendUntil">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/suspendUntil"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="resume">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/resume"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="complete">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/complete"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="remove">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/remove"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="fail">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/fail"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setPriority">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setPriority"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addAttachment">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/addAttachment"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAttachmentInfos">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getAttachmentInfos"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAttachment">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getAttachment"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteAttachment">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/deleteAttachment"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addComment">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/addComment"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getComments">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getComments"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="skip">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/skip"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="forward">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/forward"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="delegate">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/delegate"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="recipientNotAllowed">
+                <soap:fault name="recipientNotAllowed" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRendering">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getRendering"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getRenderingTypes">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getRenderingTypes"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskDetails">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getTaskDetails"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskDescription">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getTaskDescription"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setOutput">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setOutput"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteOutput">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/deleteOutput"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setFault">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setFault"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteFault">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/deleteFault"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getInput">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getInput"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getOutput">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getOutput"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getFault">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getFault"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getMyTaskAbstracts">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getMyTaskAbstracts"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="query">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/query"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="simpleQuery">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/simpleQuery"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="loadAuthorisationParams">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/loadAuthorisationParams"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="loadTaskEvents">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/loadTaskEvents"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAssignableUserList">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getAssignableUserList"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="activate">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/activate"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="nominate">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/nominate"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setGenericHumanRole">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setGenericHumanRole"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchClaim">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchClaim"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchComplete">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchComplete"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchDelegate">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchDelegate"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="deleteComment">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/deleteComment"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchFail">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchFail"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchForward">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchForward"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getOutcome">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getOutcome"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getParentTask">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getParentTask"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getParentTaskIdentifier">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getParentTaskIdentifier"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSubtaskIdentifiers">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getSubtaskIdentifiers"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getSubtasks">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getSubtasks"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskHistory">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getTaskHistory"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskInstanceData">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getTaskInstanceData"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getTaskOperations">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getTaskOperations"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="hasSubtasks">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/hasSubtasks"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="instantiateSubtask">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/instantiateSubtask"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isSubtask">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/isSubtask"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchRelease">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchRelease"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchRemove">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchRemove"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchResume">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchResume"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchSetPriority">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchSetPriority"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskCompletionDeadlineExpression">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setTaskCompletionDeadlineExpression"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskCompletionDurationExpression">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setTaskCompletionDurationExpression"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskStartDeadlineExpression">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setTaskStartDeadlineExpression"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="setTaskStartDurationExpression">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/setTaskStartDurationExpression"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="batchSkip">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchSkip"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchStart">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchStart"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchStop">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchStop"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchSuspend">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchSuspend"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchSuspendUntil">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchSuspendUntil"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchActivate">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchActivate"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchSetGenericHumanRole">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchSetGenericHumanRole"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="batchNominate">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/batchNominate"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateComment">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/updateComment"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getMyTaskDetails">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/getMyTaskDetails"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalStateFault">
+                <soap:fault name="illegalStateFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalOperationFault">
+                <soap:fault name="illegalOperationFault" use="literal"/>
+            </wsdl:fault>
+            <wsdl:fault name="illegalArgumentFault">
+                <soap:fault name="illegalArgumentFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="loadTask">
+            <soap:operation soapAction="http://docs.oasis-open.org/ns/bpel4people/ws-humantask/api/200803/loadTask"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="illegalAccessFault">
+                <soap:fault name="illegalAccessFault" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="HumanTaskClientAPIAdmin">
+        <wsdl:port name="taskOperationsSOAP" binding="taskOperationsSOAP">
+            <soap:address location="https://10.100.7.66:9444/services/HumanTaskClientAPIAdmin/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,109 @@
+<!--
+  ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://services.deployer.bpel.carbon.wso2.org"
+                  xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                  targetNamespace="http://services.deployer.bpel.carbon.wso2.org">
+    <wsdl:documentation>BPELUploader</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
+                   targetNamespace="http://types.services.deployer.bpel.carbon.wso2.org/xsd">
+            <xs:complexType name="UploadedFileItem">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="dataHandler" nillable="true" type="xs:base64Binary"/>
+                    <xs:element minOccurs="0" name="fileName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="fileType" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ax212="http://types.services.deployer.bpel.carbon.wso2.org/xsd"
+                   attributeFormDefault="qualified" elementFormDefault="qualified"
+                   targetNamespace="http://services.deployer.bpel.carbon.wso2.org">
+            <xs:import namespace="http://types.services.deployer.bpel.carbon.wso2.org/xsd"/>
+            <xs:element name="uploadService">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="fileItems" nillable="true"
+                                    type="ax212:UploadedFileItem"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="uploadServiceRequest">
+        <wsdl:part name="parameters" element="ns:uploadService"/>
+    </wsdl:message>
+    <wsdl:message name="uploadServiceResponse"/>
+    <wsdl:portType name="BPELUploaderPortType">
+        <wsdl:operation name="uploadService">
+            <wsdl:input message="ns:uploadServiceRequest" wsaw:Action="urn:uploadService"/>
+            <wsdl:output message="ns:uploadServiceResponse" wsaw:Action="urn:uploadServiceResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="BPELUploaderSoap11Binding" type="ns:BPELUploaderPortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="uploadService">
+            <soap:operation soapAction="urn:uploadService" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="BPELUploaderSoap12Binding" type="ns:BPELUploaderPortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="uploadService">
+            <soap12:operation soapAction="urn:uploadService" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="BPELUploaderHttpBinding" type="ns:BPELUploaderPortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="uploadService">
+            <http:operation location="uploadService"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="BPELUploader">
+        <wsdl:port name="BPELUploaderHttpsSoap11Endpoint" binding="ns:BPELUploaderSoap11Binding">
+            <soap:address location="https://localhost:9449/services/BPELUploader.BPELUploaderHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="BPELUploaderHttpsSoap12Endpoint" binding="ns:BPELUploaderSoap12Binding">
+            <soap12:address location="https://localhost:9449/services/BPELUploader.BPELUploaderHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="BPELUploaderHttpsEndpoint" binding="ns:BPELUploaderHttpBinding">
+            <http:address location="https://localhost:9449/services/BPELUploader.BPELUploaderHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

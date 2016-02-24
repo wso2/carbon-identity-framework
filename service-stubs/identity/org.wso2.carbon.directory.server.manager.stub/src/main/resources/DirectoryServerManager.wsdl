@@ -1,0 +1,544 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ns="http://manager.server.directory.carbon.wso2.org" xmlns:ax222="http://manager.server.directory.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ax224="http://common.manager.server.directory.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://manager.server.directory.carbon.wso2.org">
+    <wsdl:documentation>DirectoryServerManager</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://manager.server.directory.carbon.wso2.org/xsd">
+            <xs:complexType name="DirectoryServerManagerException">
+                <xs:sequence />
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://common.manager.server.directory.carbon.wso2.org/xsd">
+
+            <xs:complexType name="ServerPrinciple">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="serverDescription" nillable="true" type="xs:string" />
+                    <xs:element minOccurs="0" name="serverName" nillable="true" type="xs:string" />
+                    <xs:element minOccurs="0" name="serverPassword" nillable="true" type="xs:string" />
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ax223="http://manager.server.directory.carbon.wso2.org/xsd" xmlns:ax225="http://common.manager.server.directory.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://manager.server.directory.carbon.wso2.org">
+
+            <xs:import namespace="http://manager.server.directory.carbon.wso2.org/xsd" />
+            <xs:import namespace="http://common.manager.server.directory.carbon.wso2.org/xsd" />
+            <xs:element name="DirectoryServerManagerException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="DirectoryServerManagerException" nillable="true" type="ax222:DirectoryServerManagerException" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="removeServer">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serverName" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listServicePrinciples">
+                <xs:complexType>
+
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="listServicePrinciplesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax224:ServerPrinciple" />
+
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isKDCEnabled">
+                <xs:complexType>
+                    <xs:sequence />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isKDCEnabledResponse">
+
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingServicePrinciple">
+                <xs:complexType>
+                    <xs:sequence>
+
+                        <xs:element minOccurs="0" name="servicePrinciple" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingServicePrincipleResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean" />
+                    </xs:sequence>
+
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceNameConformanceRegularExpression">
+                <xs:complexType>
+                    <xs:sequence />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getServiceNameConformanceRegularExpressionResponse">
+                <xs:complexType>
+
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPasswordConformanceRegularExpression">
+                <xs:complexType>
+                    <xs:sequence />
+                </xs:complexType>
+
+            </xs:element>
+            <xs:element name="getPasswordConformanceRegularExpressionResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="changePassword">
+
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serverPrinciple" nillable="true" type="xs:string" />
+                        <xs:element minOccurs="0" name="existingPassword" nillable="true" type="xs:string" />
+                        <xs:element minOccurs="0" name="newPassword" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addServer">
+
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="serverName" nillable="true" type="xs:string" />
+                        <xs:element minOccurs="0" name="serverDescription" nillable="true" type="xs:string" />
+                        <xs:element minOccurs="0" name="serverPassword" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+
+    </wsdl:types>
+    <wsdl:message name="addServerRequest">
+        <wsdl:part name="parameters" element="ns:addServer" />
+    </wsdl:message>
+    <wsdl:message name="addServerResponse" />
+    <wsdl:message name="DirectoryServerManagerException">
+        <wsdl:part name="parameters" element="ns:DirectoryServerManagerException" />
+    </wsdl:message>
+    <wsdl:message name="changePasswordRequest">
+
+        <wsdl:part name="parameters" element="ns:changePassword" />
+    </wsdl:message>
+    <wsdl:message name="changePasswordResponse" />
+    <wsdl:message name="getPasswordConformanceRegularExpressionRequest">
+        <wsdl:part name="parameters" element="ns:getPasswordConformanceRegularExpression" />
+    </wsdl:message>
+    <wsdl:message name="getPasswordConformanceRegularExpressionResponse">
+        <wsdl:part name="parameters" element="ns:getPasswordConformanceRegularExpressionResponse" />
+    </wsdl:message>
+
+    <wsdl:message name="listServicePrinciplesRequest">
+        <wsdl:part name="parameters" element="ns:listServicePrinciples" />
+    </wsdl:message>
+    <wsdl:message name="listServicePrinciplesResponse">
+        <wsdl:part name="parameters" element="ns:listServicePrinciplesResponse" />
+    </wsdl:message>
+    <wsdl:message name="removeServerRequest">
+        <wsdl:part name="parameters" element="ns:removeServer" />
+    </wsdl:message>
+
+    <wsdl:message name="removeServerResponse" />
+    <wsdl:message name="isExistingServicePrincipleRequest">
+        <wsdl:part name="parameters" element="ns:isExistingServicePrinciple" />
+    </wsdl:message>
+    <wsdl:message name="isExistingServicePrincipleResponse">
+        <wsdl:part name="parameters" element="ns:isExistingServicePrincipleResponse" />
+    </wsdl:message>
+    <wsdl:message name="isKDCEnabledRequest">
+        <wsdl:part name="parameters" element="ns:isKDCEnabled" />
+
+    </wsdl:message>
+    <wsdl:message name="isKDCEnabledResponse">
+        <wsdl:part name="parameters" element="ns:isKDCEnabledResponse" />
+    </wsdl:message>
+    <wsdl:message name="getServiceNameConformanceRegularExpressionRequest">
+        <wsdl:part name="parameters" element="ns:getServiceNameConformanceRegularExpression" />
+    </wsdl:message>
+    <wsdl:message name="getServiceNameConformanceRegularExpressionResponse">
+        <wsdl:part name="parameters" element="ns:getServiceNameConformanceRegularExpressionResponse" />
+
+    </wsdl:message>
+    <wsdl:portType name="DirectoryServerManagerPortType">
+        <wsdl:operation name="addServer">
+            <wsdl:input message="ns:addServerRequest" wsaw:Action="urn:addServer" />
+            <wsdl:output message="ns:addServerResponse" wsaw:Action="urn:addServerResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:addServerDirectoryServerManagerException" />
+        </wsdl:operation>
+        <wsdl:operation name="changePassword">
+            <wsdl:input message="ns:changePasswordRequest" wsaw:Action="urn:changePassword" />
+
+            <wsdl:output message="ns:changePasswordResponse" wsaw:Action="urn:changePasswordResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:changePasswordDirectoryServerManagerException" />
+        </wsdl:operation>
+        <wsdl:operation name="getPasswordConformanceRegularExpression">
+            <wsdl:input message="ns:getPasswordConformanceRegularExpressionRequest" wsaw:Action="urn:getPasswordConformanceRegularExpression" />
+            <wsdl:output message="ns:getPasswordConformanceRegularExpressionResponse" wsaw:Action="urn:getPasswordConformanceRegularExpressionResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:getPasswordConformanceRegularExpressionDirectoryServerManagerException" />
+        </wsdl:operation>
+        <wsdl:operation name="listServicePrinciples">
+
+            <wsdl:input message="ns:listServicePrinciplesRequest" wsaw:Action="urn:listServicePrinciples" />
+            <wsdl:output message="ns:listServicePrinciplesResponse" wsaw:Action="urn:listServicePrinciplesResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:listServicePrinciplesDirectoryServerManagerException" />
+        </wsdl:operation>
+        <wsdl:operation name="removeServer">
+            <wsdl:input message="ns:removeServerRequest" wsaw:Action="urn:removeServer" />
+            <wsdl:output message="ns:removeServerResponse" wsaw:Action="urn:removeServerResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:removeServerDirectoryServerManagerException" />
+        </wsdl:operation>
+
+        <wsdl:operation name="isExistingServicePrinciple">
+            <wsdl:input message="ns:isExistingServicePrincipleRequest" wsaw:Action="urn:isExistingServicePrinciple" />
+            <wsdl:output message="ns:isExistingServicePrincipleResponse" wsaw:Action="urn:isExistingServicePrincipleResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:isExistingServicePrincipleDirectoryServerManagerException" />
+        </wsdl:operation>
+        <wsdl:operation name="isKDCEnabled">
+            <wsdl:input message="ns:isKDCEnabledRequest" wsaw:Action="urn:isKDCEnabled" />
+            <wsdl:output message="ns:isKDCEnabledResponse" wsaw:Action="urn:isKDCEnabledResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:isKDCEnabledDirectoryServerManagerException" />
+
+        </wsdl:operation>
+        <wsdl:operation name="getServiceNameConformanceRegularExpression">
+            <wsdl:input message="ns:getServiceNameConformanceRegularExpressionRequest" wsaw:Action="urn:getServiceNameConformanceRegularExpression" />
+            <wsdl:output message="ns:getServiceNameConformanceRegularExpressionResponse" wsaw:Action="urn:getServiceNameConformanceRegularExpressionResponse" />
+            <wsdl:fault message="ns:DirectoryServerManagerException" name="DirectoryServerManagerException" wsaw:Action="urn:getServiceNameConformanceRegularExpressionDirectoryServerManagerException" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="DirectoryServerManagerSoap11Binding" type="ns:DirectoryServerManagerPortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+
+        <wsdl:operation name="addServer">
+            <soap:operation soapAction="urn:addServer" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changePassword">
+            <soap:operation soapAction="urn:changePassword" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPasswordConformanceRegularExpression">
+            <soap:operation soapAction="urn:getPasswordConformanceRegularExpression" style="document" />
+            <wsdl:input>
+
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="listServicePrinciples">
+            <soap:operation soapAction="urn:listServicePrinciples" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeServer">
+            <soap:operation soapAction="urn:removeServer" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isExistingServicePrinciple">
+            <soap:operation soapAction="urn:isExistingServicePrinciple" style="document" />
+            <wsdl:input>
+
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="getServiceNameConformanceRegularExpression">
+            <soap:operation soapAction="urn:getServiceNameConformanceRegularExpression" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isKDCEnabled">
+            <soap:operation soapAction="urn:isKDCEnabled" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="DirectoryServerManagerSoap12Binding" type="ns:DirectoryServerManagerPortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+
+        <wsdl:operation name="addServer">
+            <soap12:operation soapAction="urn:addServer" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="changePassword">
+            <soap12:operation soapAction="urn:changePassword" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPasswordConformanceRegularExpression">
+            <soap12:operation soapAction="urn:getPasswordConformanceRegularExpression" style="document" />
+            <wsdl:input>
+
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="listServicePrinciples">
+            <soap12:operation soapAction="urn:listServicePrinciples" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeServer">
+            <soap12:operation soapAction="urn:removeServer" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isExistingServicePrinciple">
+            <soap12:operation soapAction="urn:isExistingServicePrinciple" style="document" />
+            <wsdl:input>
+
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+
+        <wsdl:operation name="getServiceNameConformanceRegularExpression">
+            <soap12:operation soapAction="urn:getServiceNameConformanceRegularExpression" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isKDCEnabled">
+            <soap12:operation soapAction="urn:isKDCEnabled" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="DirectoryServerManagerException">
+                <soap12:fault use="literal" name="DirectoryServerManagerException" />
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="DirectoryServerManagerHttpBinding" type="ns:DirectoryServerManagerPortType">
+        <http:binding verb="POST" />
+
+        <wsdl:operation name="addServer">
+            <http:operation location="addServer" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="changePassword">
+            <http:operation location="changePassword" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="getPasswordConformanceRegularExpression">
+            <http:operation location="getPasswordConformanceRegularExpression" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="listServicePrinciples">
+            <http:operation location="listServicePrinciples" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="removeServer">
+            <http:operation location="removeServer" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="isExistingServicePrinciple">
+            <http:operation location="isExistingServicePrinciple" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="getServiceNameConformanceRegularExpression">
+            <http:operation location="getServiceNameConformanceRegularExpression" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+        <wsdl:operation name="isKDCEnabled">
+            <http:operation location="isKDCEnabled" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters" />
+            </wsdl:output>
+        </wsdl:operation>
+
+    </wsdl:binding>
+    <wsdl:service name="DirectoryServerManager">
+        <wsdl:port name="DirectoryServerManagerHttpsSoap11Endpoint" binding="ns:DirectoryServerManagerSoap11Binding">
+            <soap:address location="https://localhost:9443/services/DirectoryServerManager.DirectoryServerManagerHttpsSoap11Endpoint/" />
+        </wsdl:port>
+        <wsdl:port name="DirectoryServerManagerHttpsSoap12Endpoint" binding="ns:DirectoryServerManagerSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/DirectoryServerManager.DirectoryServerManagerHttpsSoap12Endpoint/" />
+        </wsdl:port>
+        <wsdl:port name="DirectoryServerManagerHttpsEndpoint" binding="ns:DirectoryServerManagerHttpBinding">
+
+            <http:address location="https://localhost:9443/services/DirectoryServerManager.DirectoryServerManagerHttpsEndpoint/" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

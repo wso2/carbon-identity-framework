@@ -1,0 +1,423 @@
+<!--
+ ~ Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:axis2="http://provider.identity.carbon.wso2.org" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ax263="http://provider.identity.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ax266="http://dto.provider.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://provider.identity.carbon.wso2.org">
+    <wsdl:documentation>XMPPConfigurationService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax265="http://provider.identity.carbon.wso2.org/xsd" xmlns:ax267="http://dto.provider.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://provider.identity.carbon.wso2.org/xsd" />
+            <xs:import namespace="http://dto.provider.identity.carbon.wso2.org/xsd" />
+            <xs:complexType name="Exception">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="Exception" nillable="true" type="xs:anyType" />
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="IdentityProviderException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="IdentityProviderException" nillable="true" type="ax265:IdentityProviderException" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isXMPPSettingsEnabled">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isXMPPSettingsEnabledResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="hasXMPPSettings">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="hasXMPPSettingsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getXmppSettings">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getXmppSettingsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax267:XMPPSettingsDTO" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Exception">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="Exception" nillable="true" type="ns:Exception" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserIM">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getUserIMResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="editXmppSettings">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="dto" nillable="true" type="ax267:XMPPSettingsDTO" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addUserXmppSettings">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="dto" nillable="true" type="ax267:XMPPSettingsDTO" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addUserXmppSettingsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean" />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.provider.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="XMPPSettingsDTO">
+                <xs:all>
+                    <xs:element minOccurs="0" name="PINEnabled" type="xs:boolean" />
+                    <xs:element minOccurs="0" name="userCode" nillable="true" type="xs:string" />
+                    <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string" />
+                    <xs:element minOccurs="0" name="xmppEnabled" type="xs:boolean" />
+                    <xs:element minOccurs="0" name="xmppServer" nillable="true" type="xs:string" />
+                    <xs:element minOccurs="0" name="xmppUserName" nillable="true" type="xs:string" />
+                </xs:all>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ax264="http://org.apache.axis2/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://provider.identity.carbon.wso2.org/xsd">
+            <xs:import namespace="http://org.apache.axis2/xsd" />
+            <xs:complexType name="IdentityProviderException">
+                <xs:complexContent>
+                    <xs:extension base="ax264:Exception">
+                        <xs:sequence />
+                    </xs:extension>
+                </xs:complexContent>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="hasXMPPSettingsRequest">
+        <wsdl:part name="parameters" element="ns1:hasXMPPSettings" />
+    </wsdl:message>
+    <wsdl:message name="hasXMPPSettingsResponse">
+        <wsdl:part name="parameters" element="ns1:hasXMPPSettingsResponse" />
+    </wsdl:message>
+    <wsdl:message name="IdentityProviderException">
+        <wsdl:part name="parameters" element="ns1:IdentityProviderException" />
+    </wsdl:message>
+    <wsdl:message name="getXmppSettingsRequest">
+        <wsdl:part name="parameters" element="ns1:getXmppSettings" />
+    </wsdl:message>
+    <wsdl:message name="getXmppSettingsResponse">
+        <wsdl:part name="parameters" element="ns1:getXmppSettingsResponse" />
+    </wsdl:message>
+    <wsdl:message name="getUserIMRequest">
+        <wsdl:part name="parameters" element="ns1:getUserIM" />
+    </wsdl:message>
+    <wsdl:message name="getUserIMResponse">
+        <wsdl:part name="parameters" element="ns1:getUserIMResponse" />
+    </wsdl:message>
+    <wsdl:message name="Exception">
+        <wsdl:part name="parameters" element="ns1:Exception" />
+    </wsdl:message>
+    <wsdl:message name="isXMPPSettingsEnabledRequest">
+        <wsdl:part name="parameters" element="ns1:isXMPPSettingsEnabled" />
+    </wsdl:message>
+    <wsdl:message name="isXMPPSettingsEnabledResponse">
+        <wsdl:part name="parameters" element="ns1:isXMPPSettingsEnabledResponse" />
+    </wsdl:message>
+    <wsdl:message name="addUserXmppSettingsRequest">
+        <wsdl:part name="parameters" element="ns1:addUserXmppSettings" />
+    </wsdl:message>
+    <wsdl:message name="addUserXmppSettingsResponse">
+        <wsdl:part name="parameters" element="ns1:addUserXmppSettingsResponse" />
+    </wsdl:message>
+    <wsdl:message name="editXmppSettingsRequest">
+        <wsdl:part name="parameters" element="ns1:editXmppSettings" />
+    </wsdl:message>
+    <wsdl:portType name="XMPPConfigurationServicePortType">
+        <wsdl:operation name="hasXMPPSettings">
+            <wsdl:input message="axis2:hasXMPPSettingsRequest" wsaw:Action="urn:hasXMPPSettings" />
+            <wsdl:output message="axis2:hasXMPPSettingsResponse" wsaw:Action="urn:hasXMPPSettingsResponse" />
+            <wsdl:fault message="axis2:IdentityProviderException" name="IdentityProviderException" wsaw:Action="urn:hasXMPPSettingsIdentityProviderException" />
+        </wsdl:operation>
+        <wsdl:operation name="getXmppSettings">
+            <wsdl:input message="axis2:getXmppSettingsRequest" wsaw:Action="urn:getXmppSettings" />
+            <wsdl:output message="axis2:getXmppSettingsResponse" wsaw:Action="urn:getXmppSettingsResponse" />
+            <wsdl:fault message="axis2:IdentityProviderException" name="IdentityProviderException" wsaw:Action="urn:getXmppSettingsIdentityProviderException" />
+        </wsdl:operation>
+        <wsdl:operation name="getUserIM">
+            <wsdl:input message="axis2:getUserIMRequest" wsaw:Action="urn:getUserIM" />
+            <wsdl:output message="axis2:getUserIMResponse" wsaw:Action="urn:getUserIMResponse" />
+            <wsdl:fault message="axis2:Exception" name="Exception" wsaw:Action="urn:getUserIMException" />
+        </wsdl:operation>
+        <wsdl:operation name="isXMPPSettingsEnabled">
+            <wsdl:input message="axis2:isXMPPSettingsEnabledRequest" wsaw:Action="urn:isXMPPSettingsEnabled" />
+            <wsdl:output message="axis2:isXMPPSettingsEnabledResponse" wsaw:Action="urn:isXMPPSettingsEnabledResponse" />
+            <wsdl:fault message="axis2:IdentityProviderException" name="IdentityProviderException" wsaw:Action="urn:isXMPPSettingsEnabledIdentityProviderException" />
+        </wsdl:operation>
+        <wsdl:operation name="addUserXmppSettings">
+            <wsdl:input message="axis2:addUserXmppSettingsRequest" wsaw:Action="urn:addUserXmppSettings" />
+            <wsdl:output message="axis2:addUserXmppSettingsResponse" wsaw:Action="urn:addUserXmppSettingsResponse" />
+            <wsdl:fault message="axis2:IdentityProviderException" name="IdentityProviderException" wsaw:Action="urn:addUserXmppSettingsIdentityProviderException" />
+        </wsdl:operation>
+        <wsdl:operation name="editXmppSettings">
+            <wsdl:input message="axis2:editXmppSettingsRequest" wsaw:Action="urn:editXmppSettings" />
+            <wsdl:fault message="axis2:IdentityProviderException" name="IdentityProviderException" wsaw:Action="urn:editXmppSettingsIdentityProviderException" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="XMPPConfigurationServiceSoap11Binding" type="axis2:XMPPConfigurationServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+        <wsdl:operation name="hasXMPPSettings">
+            <soap:operation soapAction="urn:hasXMPPSettings" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getXmppSettings">
+            <soap:operation soapAction="urn:getXmppSettings" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserIM">
+            <soap:operation soapAction="urn:getUserIM" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="Exception">
+                <soap:fault use="literal" name="Exception" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addUserXmppSettings">
+            <soap:operation soapAction="urn:addUserXmppSettings" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isXMPPSettingsEnabled">
+            <soap:operation soapAction="urn:isXMPPSettingsEnabled" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="editXmppSettings">
+            <soap:operation soapAction="urn:editXmppSettings" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderException">
+                <soap:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="XMPPConfigurationServiceSoap12Binding" type="axis2:XMPPConfigurationServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+        <wsdl:operation name="hasXMPPSettings">
+            <soap12:operation soapAction="urn:hasXMPPSettings" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap12:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getXmppSettings">
+            <soap12:operation soapAction="urn:getXmppSettings" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap12:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getUserIM">
+            <soap12:operation soapAction="urn:getUserIM" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="Exception">
+                <soap12:fault use="literal" name="Exception" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addUserXmppSettings">
+            <soap12:operation soapAction="urn:addUserXmppSettings" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap12:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isXMPPSettingsEnabled">
+            <soap12:operation soapAction="urn:isXMPPSettingsEnabled" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderException">
+                <soap12:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="editXmppSettings">
+            <soap12:operation soapAction="urn:editXmppSettings" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:fault name="IdentityProviderException">
+                <soap12:fault use="literal" name="IdentityProviderException" />
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="XMPPConfigurationServiceHttpBinding" type="axis2:XMPPConfigurationServicePortType">
+        <http:binding verb="POST" />
+        <wsdl:operation name="hasXMPPSettings">
+            <http:operation location="hasXMPPSettings" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="hasXMPPSettings" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="hasXMPPSettings" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getXmppSettings">
+            <http:operation location="getXmppSettings" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="getXmppSettings" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="getXmppSettings" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getUserIM">
+            <http:operation location="getUserIM" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="getUserIM" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="getUserIM" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addUserXmppSettings">
+            <http:operation location="addUserXmppSettings" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="addUserXmppSettings" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="addUserXmppSettings" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isXMPPSettingsEnabled">
+            <http:operation location="isXMPPSettingsEnabled" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="isXMPPSettingsEnabled" />
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="isXMPPSettingsEnabled" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="editXmppSettings">
+            <http:operation location="editXmppSettings" />
+            <wsdl:input>
+                <mime:content type="text/xml" part="editXmppSettings" />
+            </wsdl:input>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="XMPPConfigurationService">
+        <wsdl:port name="XMPPConfigurationServiceHttpsSoap11Endpoint" binding="axis2:XMPPConfigurationServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/XMPPConfigurationService.XMPPConfigurationServiceHttpsSoap11Endpoint/" />
+        </wsdl:port>
+        <wsdl:port name="XMPPConfigurationServiceHttpsSoap12Endpoint" binding="axis2:XMPPConfigurationServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/XMPPConfigurationService.XMPPConfigurationServiceHttpsSoap12Endpoint/" />
+        </wsdl:port>
+        <wsdl:port name="XMPPConfigurationServiceHttpsEndpoint" binding="axis2:XMPPConfigurationServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/XMPPConfigurationService.XMPPConfigurationServiceHttpsEndpoint/" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,96 @@
+<!--
+ ~ Copyright (c) 2005-2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+<Policy PolicyId="urn:sample:xacml:2.0:samplepolicy"
+	RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable"
+	xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os">
+	<Description>Sample XACML Authorization Policy</Description>
+	<Target>
+		<Subjects>
+			<AnySubject />
+		</Subjects>
+		<Actions>
+			<AnyAction />
+		</Actions>
+		<Resources>
+			<Resource>
+				<ResourceMatch
+					MatchId="urn:oasis:names:tc:xacml:1.0:function:string-regexp-match">
+					<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">
+						http://localhost:8280/services/echo/</AttributeValue>
+					<ResourceAttributeDesignator
+						DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" />
+				</ResourceMatch>
+			</Resource>
+		</Resources>
+	</Target>
+	<Rule RuleId="primary-user-rule" Effect="Permit">
+		<Target>
+			<Subjects>
+				<AnySubject />
+			</Subjects>
+			<Resources>
+				<AnyResource />
+			</Resources>
+			<Actions>
+				<Action>
+					<ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+						<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
+						<ActionAttributeDesignator
+							DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" />
+					</ActionMatch>
+				</Action>
+			</Actions>
+		</Target>
+		<Condition>
+			<Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
+				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">admin</AttributeValue>
+				<SubjectAttributeDesignator
+					AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id"
+					DataType="http://www.w3.org/2001/XMLSchema#string"
+					SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" />
+			</Apply>
+		</Condition>
+	</Rule>
+	<Rule RuleId="primary-group-rule" Effect="Permit">
+		<Target>
+			<Subjects>
+				<AnySubject />
+			</Subjects>
+			<Resources>
+				<AnyResource />
+			</Resources>
+			<Actions>
+				<Action>
+					<ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+						<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
+						<ActionAttributeDesignator
+							DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" />
+					</ActionMatch>
+				</Action>
+			</Actions>
+		</Target>
+		<Condition>
+			<Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
+				<AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">admin</AttributeValue>
+				<SubjectAttributeDesignator AttributeId="group"
+					DataType="http://www.w3.org/2001/XMLSchema#string" />
+			</Apply>
+		</Condition>
+	</Rule>
+	<Rule RuleId="deny-rule" Effect="Deny" />
+</Policy>

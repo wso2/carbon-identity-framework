@@ -1,0 +1,27 @@
+<Request xmlns="urn:oasis:names:tc:xacml:2.0:context:schema:os">
+<Subject>
+	<Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id"
+		    DataType="http://www.w3.org/2001/XMLSchema#string">
+		<AttributeValue>prabath</AttributeValue>
+	</Attribute>
+	<Attribute AttributeId="http://wso2.org/claims/emailaddress"
+		    DataType="http://www.w3.org/2001/XMLSchema#string">
+		<AttributeValue>prabath@wso2.com</AttributeValue>
+	</Attribute>
+</Subject>
+<Resource>
+	<Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+		<AttributeValue>http://localhost:8280/services/echo/echoString</AttributeValue>
+	</Attribute>
+</Resource>
+<Action>
+	<Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+		<AttributeValue>Read</AttributeValue>
+	</Attribute>
+</Action>
+<Environment/>
+</Request>		    
+		    		    
+		    
+		    
+		    

@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+<!--
+ ~ Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>WSO2 Identity Server</title>
+</head>
+<body>
+<strong>Note to the reviewer : Last column of the following tables will appear only if external user store is present.</strong>
+<form action="">
+<p>Dialect : http://wso2.org</p>
+<table border="1">
+<tr><td></td><td>Claim URI</td><td>Display Name</td><td>Internal Store Property</td><td>External Store Property</td></tr>
+<tr><td><input type="checkbox" name="select" value=""/></td><td>http://wso2.org/email</td><td>Email Address</td><td>email_address</td><td>Not Mapped</td></tr>
+<tr><td><input type="checkbox" name="select" value=""/></td><td>http://wso2.org/firstname</td><td>First Name</td><td>first_name</td><td>f_name</td></tr>
+<tr><td><input type="checkbox" name="select" value=""/></td><td>http://wso2.org/lastname</td><td>Last Name</td><td>last_name</td><td>l_name</td></tr>
+</table>
+<p><a href="#">Add Claim</a>&nbsp;&nbsp;<a href="#">Edit Claim</a>&nbsp;&nbsp;<a href="#">Delete</a></p>
+<p>&nbsp;</p>
+<p>Dialect : http://xyz.org</p>
+<table border="1">
+<tr><td></td><td>Claim URI</td><td>Display Name</td><td>Internal Store Property</td><td>External Store Property</td></tr>
+<tr><td><input type="checkbox" name="select" value=""/></td><td>http://xyz.org/email</td><td>Email Address</td><td>email_address</td><td>Not Mapped</td></tr>
+<tr><td><input type="checkbox" name="select" value=""/></td><td>http://xyz.org/firstname</td><td>First Name</td><td>first_name</td><td>f_name</td></tr>
+<tr><td><input type="checkbox" name="select" value=""/></td><td>http://xyz.org/lastname</td><td>Last Name</td><td>last_name</td><td>Not Mapped</td></tr>
+</table>
+<p><a href="#">Add Claim</a>&nbsp;&nbsp;<a href="#">Edit Claim</a>&nbsp;&nbsp;<a href="#">Delete</a></p>
+<p>&nbsp;</p>
+<a href="#">Add new dialect</a>
+</form>
+</body>
