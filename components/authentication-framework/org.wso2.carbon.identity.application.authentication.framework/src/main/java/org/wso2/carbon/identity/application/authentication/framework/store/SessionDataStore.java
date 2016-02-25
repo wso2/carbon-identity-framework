@@ -401,12 +401,17 @@ public class SessionDataStore {
             return;
         }
         PreparedStatement preparedStatement = null;
+        // create a nano time stamp relative to Unix Epoch
+        long currentStandardNano = timestamp.getTime() * 1000000;
+        long currentSystemNano = System.nanoTime();
+        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                .getNanoTimeReference());
         try {
             preparedStatement = connection.prepareStatement(sqlInsertDELETE);
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_DELETE);
-            preparedStatement.setLong(4, timestamp.getTime());
+            preparedStatement.setLong(4, currentStandardNano);
             preparedStatement.executeUpdate();
             if (!connection.getAutoCommit()) {
                 connection.commit();
