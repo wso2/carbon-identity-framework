@@ -26,7 +26,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>identity-carbon-policy-editor</artifactId>
+    <artifactId>policy-editor</artifactId>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - Policy Editor Aggregator Module</name>
     <description>
