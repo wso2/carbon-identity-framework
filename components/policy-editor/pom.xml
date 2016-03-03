@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>carbon-identity</artifactId>
-        <version>5.0.8-SNAPSHOT</version>
+        <version>5.0.9-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -35,8 +35,8 @@
     <url>http://wso2.org</url>
 
     <modules>
-        <module>components/org.wso2.carbon.policyeditor</module>
-        <module>components/org.wso2.carbon.policyeditor.ui</module>
+        <module>org.wso2.carbon.policyeditor</module>
+        <module>org.wso2.carbon.policyeditor.ui</module>
     </modules>
 
 </project>
