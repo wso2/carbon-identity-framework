@@ -142,61 +142,6 @@ public class UserIdentityManagementAdminService {
     }
 
     /**
-     * Admin disables the user account. Only the admin can enable the account using
-     * the {@literal enableUserAccount} method.
-     *
-     * @param userName
-     * @throws IdentityMgtServiceException
-     */
-    public void disableUserAccount(String userName) throws IdentityMgtServiceException {
-
-        try {
-            UserStoreManager userStoreManager = getUserStore(userName);
-            String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
-            UserIdentityManagementUtil.disableUserAccount(userNameWithoutDomain, userStoreManager);
-            log.info("User account disabled: " + userName);
-        } catch (UserStoreException | IdentityException e) {
-            log.error("Error occurred while trying to disable the account " + userName, e);
-            throw new IdentityMgtServiceException("Error occurred while trying to disable the account " + userName, e);
-        }
-    }
-
-    /**
-     * Admin enables the user account.
-     *
-     * @param userName
-     * @throws IdentityMgtServiceException
-     */
-    public void enableUserAccount(String userName, String notificationType) throws IdentityMgtServiceException {
-        try {
-            UserStoreManager userStoreManager = getUserStore(userName);
-            String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
-            UserIdentityManagementUtil.enableUserAccount(userNameWithoutDomain, userStoreManager);
-            int tenantID = userStoreManager.getTenantId();
-            String tenantDomain = IdentityMgtServiceComponent.getRealmService().getTenantManager().getDomain(tenantID);
-            boolean isNotificationSending = IdentityMgtConfig.getInstance().isNotificationSending();
-            if (notificationType != null && isNotificationSending) {
-                UserRecoveryDTO dto;
-                if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-                    dto = new UserRecoveryDTO(userName);
-                } else {
-                    UserDTO userDTO = new UserDTO(UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain));
-                    userDTO.setTenantId(tenantID);
-                    dto = new UserRecoveryDTO(userDTO);
-                }
-                dto.setNotification(IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
-                dto.setNotificationType(notificationType);
-                IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
-            }
-            log.info("Account enabled for: " + userName);
-        } catch (UserStoreException | IdentityException e) {
-            String message = "Error occurred while enabling account for: " + userName;
-            log.error(message, e);
-            throw new IdentityMgtServiceException(message, e);
-        }
-    }
-
-    /**
      * Admin resets the password of the user.
      *
      * @param userName

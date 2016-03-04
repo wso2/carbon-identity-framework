@@ -74,7 +74,6 @@ public class IdentityMgtConfig {
     private int authPolicyPasswordExpireTime;
     private int notificationExpireTime;
     private boolean authPolicyAccountLockCheck;
-    private boolean authPolicyAccountDisableCheck;
     private boolean authPolicyAccountExistCheck;
     private boolean authPolicyAccountLockOnFailure;
     private boolean authPolicyAccountLockOnCreation;
@@ -251,12 +250,6 @@ public class IdentityMgtConfig {
                     getProperty(IdentityMgtConstants.PropertyConfig.AUTH_POLICY_ACCOUNT_LOCK);
             if (authPolicyAccountLockCheckProperty != null) {
                 this.authPolicyAccountLockCheck = Boolean.parseBoolean(authPolicyAccountLockCheckProperty.trim());
-            }
-
-            String authPolicyAccountDisableCheckProperty = properties.
-                    getProperty(IdentityMgtConstants.PropertyConfig.AUTH_POLICY_ACCOUNT_DISABLE);
-            if (authPolicyAccountDisableCheckProperty != null) {
-                this.authPolicyAccountDisableCheck = Boolean.parseBoolean(authPolicyAccountDisableCheckProperty.trim());
             }
 
             String authPolicyAccountExistCheckProperty = properties.
@@ -459,10 +452,6 @@ public class IdentityMgtConfig {
 
     public boolean isAuthPolicyAccountLockCheck() {
         return authPolicyAccountLockCheck;
-    }
-
-    public boolean isAuthPolicyAccountDisableCheck() {
-        return authPolicyAccountDisableCheck;
     }
 
     public boolean isUserAccountVerificationByUser() {

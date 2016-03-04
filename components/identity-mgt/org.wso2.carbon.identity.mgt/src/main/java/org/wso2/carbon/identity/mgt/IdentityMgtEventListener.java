@@ -119,7 +119,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         .getBootstrapRealm().getUserStoreManager();
                 Map<String, String> claimMap = new HashMap<String, String>();
                 claimMap.put(UserIdentityDataStore.ACCOUNT_LOCK, Boolean.toString(false));
-                claimMap.put(UserIdentityDataStore.ACCOUNT_DISABLED, Boolean.toString(false));
                 // Directly "do" method of this listener is called because at the time of this execution,
                 // this listener or any other listener may have no registered.
                 doPreSetUserClaimValues(adminUserName, claimMap, null, userStoreMng);
@@ -189,23 +188,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                     UserIdentityClaimsDO userIdentityDTO = module.load(userName, userStoreManager);
 
-                    if (userIdentityDTO == null) {
-                        return true;
-                    }
-
-                    //If account is disabled, user should not be able to log in
-                    if (userIdentityDTO.getIsAccountDisabled()) {
-                        IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
-                                IdentityCoreConstants.USER_ACCOUNT_DISABLED);
-                        IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                        String errorMsg = "User account is disabled for user : " + userName;
-                        log.warn(errorMsg);
-                        throw new UserStoreException(IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE + " "
-                                + errorMsg);
-                    }
-
                     // if the account is locked, should not be able to log in
-                    if (userIdentityDTO.isAccountLocked()) {
+                    if (userIdentityDTO != null && userIdentityDTO.isAccountLocked()) {
 
                         // If unlock time is specified then unlock the account.
                         if ((userIdentityDTO.getUnlockTime() != 0) && (System.currentTimeMillis() >= userIdentityDTO.getUnlockTime())) {
@@ -803,17 +787,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
         IdentityUtil.clearIdentityErrorMsg();
         boolean accountLocked = Boolean.parseBoolean(claims.get(UserIdentityDataStore.ACCOUNT_LOCK));
-        boolean accountDisabled = Boolean.parseBoolean(claims.get(UserIdentityDataStore.ACCOUNT_DISABLED));
         if (accountLocked) {
             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
                     .ErrorCode.USER_IS_LOCKED);
             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-        } else if (accountDisabled) {
-            IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
-                    IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
-            IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-        } else {
-            // do nothing
         }
 
         // Top level try and finally blocks are used to unset thread local variables

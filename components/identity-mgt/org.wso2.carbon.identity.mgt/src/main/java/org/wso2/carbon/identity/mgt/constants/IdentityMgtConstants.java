@@ -141,8 +141,6 @@ public class IdentityMgtConstants {
 
         public static final String AUTH_POLICY_ACCOUNT_LOCK = "Authentication.Policy.Check.Account.Lock";
 
-        public static final String AUTH_POLICY_ACCOUNT_DISABLE = "Authentication.Policy.Check.Account.Disable";
-
         public static final String AUTH_POLICY_ACCOUNT_EXIST = "Authentication.Policy.Check.Account.Exist";
 
         public static final String AUTH_POLICY_ACCOUNT_LOCKING_TIME = "Authentication.Policy.Account.Lock.Time";
@@ -195,8 +193,6 @@ public class IdentityMgtConstants {
         public static final String OTP_PASSWORD = "otp";
 
         public static final String ASK_PASSWORD = "askPassword";
-
-        public static final String ACCOUNT_ENABLE = "accountEnable";
 
         private Notification(){
         }

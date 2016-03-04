@@ -213,9 +213,6 @@ public class RecoveryProcessor {
             } else if (IdentityMgtConstants.Notification.ACCOUNT_UNLOCK.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_UNLOCK);
                 persistData = false;
-            } else if(IdentityMgtConstants.Notification.ACCOUNT_ENABLE.equals(notification)) {
-                emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
-                persistData = false;
             } else if (IdentityMgtConstants.Notification.ACCOUNT_ID_RECOVERY.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_ID_RECOVERY);
                 persistData = false;
@@ -395,12 +392,6 @@ public class RecoveryProcessor {
                     if (!Boolean.parseBoolean(accountLock)) {
                         success = true;
                     }
-                } else if (IdentityMgtConfig.getInstance().isAuthPolicyAccountDisableCheck()) {
-                    String accountDisable = userStoreManager.
-                            getUserClaimValue(userId, UserIdentityDataStore.ACCOUNT_DISABLED, null);
-                    if (!Boolean.parseBoolean(accountDisable)) {
-                        success = true;
-                    }
                 } else {
                     success = true;
                 }
@@ -542,9 +533,6 @@ public class RecoveryProcessor {
                 notificationData.setNotificationCode(confirmationKey);
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ASK_PASSWORD);
                 emailNotificationData.setTagData(CONFIRMATION_CODE, confirmationKey);
-            } else if (IdentityMgtConstants.Notification.ACCOUNT_ENABLE.equals(notification)) {
-                emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
-                notificationData.setNotificationCode(userId);
             }
         }
 
