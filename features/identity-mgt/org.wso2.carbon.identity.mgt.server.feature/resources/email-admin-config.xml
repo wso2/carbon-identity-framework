@@ -148,4 +148,19 @@ http://www.wso2.com
     </footer>
     <redirectPath></redirectPath>
 </configuration>
+    <configuration type="accountEnable">
+        <targetEpr></targetEpr>
+        <subject>WSO2 Carbon - Your account enabled</subject>
+        <body>
+            Hi {first-name},
+
+            Please note that the account registered with us with the user name : {user-name} has been enabled by Admin.
+        </body>
+        <footer>
+            Best Regards,
+            WSO2 Identity Server Team
+            http://www.wso2.com
+        </footer>
+        <redirectPath></redirectPath>
+    </configuration>
 </configurations>
