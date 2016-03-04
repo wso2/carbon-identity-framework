@@ -235,10 +235,16 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     @Override
     public boolean doPostAuthenticate(String userName, boolean authenticated,
                                       UserStoreManager userStoreManager) throws UserStoreException {
+
+
+        if(!userStoreManager.isReadOnly() && authenticated){
+            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_LOGIN_TIME, Long.toString(System
+                    .currentTimeMillis()), null);
+        }
+
         if (!isEnable()) {
             return true;
         }
-
         // Top level try and finally blocks are used to unset thread local variables
         try {
             if (!IdentityUtil.threadLocalProperties.get().containsKey(DO_POST_AUTHENTICATE)) {
@@ -680,8 +686,21 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
         return true;
     }
-	
-	/**
+
+
+    @Override
+    public boolean doPostUpdateCredentialByAdmin(String userName, Object credential, UserStoreManager
+            userStoreManager) throws UserStoreException {
+
+        if (!userStoreManager.isReadOnly()) {
+            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
+                    .toString(System.currentTimeMillis()), null);
+        }
+        return true;
+
+    }
+
+    /**
 	 * This method is used when the admin is updating the credentials with an
 	 * empty credential. A random password will be generated and will be mailed
 	 * to the user. 
@@ -933,7 +952,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     @Override
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager)
             throws UserStoreException {
-
+        if (!userStoreManager.isReadOnly()) {
+            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
+                    .toString(System.currentTimeMillis()), null);
+        }
        return true;
     }
 
