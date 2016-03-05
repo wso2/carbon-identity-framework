@@ -960,4 +960,23 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
        return true;
     }
 
+    @Override
+    public boolean doPostSetUserClaimValues(String userName, Map<String, String> claims, String profileName,
+                                            UserStoreManager userStoreManager) throws UserStoreException {
+
+        //ToDO check if notification sending is enabled for account disabling
+        if(claims.containsKey(UserIdentityDataStore.ACCOUNT_DISABLED)){
+            boolean isDisabled = Boolean.parseBoolean(claims.get(UserIdentityDataStore.ACCOUNT_DISABLED));
+            if(isDisabled) {
+
+                //ToDO send notification with disabled template
+                log.info("Sent notification to " + userName + " for disabling account");
+            } else {
+                //ToDO send notification with enabled template
+                log.info("Sent notification to " + userName + " for enabling account");
+
+            }
+        }
+        return true;
+    }
 }

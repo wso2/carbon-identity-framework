@@ -64,6 +64,10 @@ public class UserIdentityManagementAdminService {
 
     private static Log log = LogFactory.getLog(UserIdentityManagementAdminService.class);
 
+    private static final Log audit = CarbonConstants.AUDIT_LOG;
+    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
+    private final String SUCCESS = "Success";
+
     // --------Operations require Admin permissions ---------//
 
     /**
@@ -148,17 +152,50 @@ public class UserIdentityManagementAdminService {
      * @param userName
      * @throws IdentityMgtServiceException
      */
-    public void disableUserAccount(String userName) throws IdentityMgtServiceException {
+    public void disableUserAccount(String userName, String notificationType) throws IdentityMgtServiceException {
 
         try {
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.disableUserAccount(userNameWithoutDomain, userStoreManager);
-            log.info("User account disabled: " + userName);
+
+            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Disable user account", userName,
+                    "Notification type :" + notificationType, SUCCESS));
+
+            int tenantID = userStoreManager.getTenantId();
+            String tenantDomain = IdentityMgtServiceComponent.getRealmService().getTenantManager().getDomain(tenantID);
+            boolean isNotificationSending = IdentityMgtConfig.getInstance().isNotificationSending();
+            if (notificationType != null && isNotificationSending) {
+                UserRecoveryDTO dto;
+                if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                    dto = new UserRecoveryDTO(userName);
+                } else {
+                    UserDTO userDTO = new UserDTO(UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain));
+                    userDTO.setTenantId(tenantID);
+                    dto = new UserRecoveryDTO(userDTO);
+                }
+                dto.setNotification(IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
+                dto.setNotificationType(notificationType);
+                IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
+
+                if(log.isDebugEnabled()){
+                    log.debug("Account enabled notification is sent in " + notificationType);
+                }
+            }
         } catch (UserStoreException | IdentityException e) {
             log.error("Error occurred while trying to disable the account " + userName, e);
             throw new IdentityMgtServiceException("Error occurred while trying to disable the account " + userName, e);
         }
+    }
+
+    private String getUser() {
+        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (user != null) {
+            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        } else {
+            user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        }
+        return user;
     }
 
     /**
@@ -172,6 +209,10 @@ public class UserIdentityManagementAdminService {
             UserStoreManager userStoreManager = getUserStore(userName);
             String userNameWithoutDomain = UserCoreUtil.removeDomainFromName(userName);
             UserIdentityManagementUtil.enableUserAccount(userNameWithoutDomain, userStoreManager);
+
+            audit.info(String.format(AUDIT_MESSAGE, getUser(), "Enable user account", userName,
+                    "Notification type :" + notificationType, SUCCESS));
+
             int tenantID = userStoreManager.getTenantId();
             String tenantDomain = IdentityMgtServiceComponent.getRealmService().getTenantManager().getDomain(tenantID);
             boolean isNotificationSending = IdentityMgtConfig.getInstance().isNotificationSending();
@@ -187,8 +228,12 @@ public class UserIdentityManagementAdminService {
                 dto.setNotification(IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
                 dto.setNotificationType(notificationType);
                 IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
+
+                if(log.isDebugEnabled()){
+                    log.debug("Account enabled notification is sent in " + notificationType);
+                }
             }
-            log.info("Account enabled for: " + userName);
+
         } catch (UserStoreException | IdentityException e) {
             String message = "Error occurred while enabling account for: " + userName;
             log.error(message, e);

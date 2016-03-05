@@ -390,16 +390,24 @@ public class RecoveryProcessor {
 
             if (userStoreManager.isExistingUser(userId)) {
                 if (IdentityMgtConfig.getInstance().isAuthPolicyAccountLockCheck()) {
-                    String accountLock = userStoreManager.
-                            getUserClaimValue(userId, UserIdentityDataStore.ACCOUNT_LOCK, null);
+                    String accountLock = Utils.getClaimFromUserStoreManager(
+                            userId, tenantId, UserIdentityDataStore.ACCOUNT_LOCK);
                     if (!Boolean.parseBoolean(accountLock)) {
                         success = true;
+                    } else {
+                        //account is Locked. Not allowing to recover.
                     }
                 } else if (IdentityMgtConfig.getInstance().isAuthPolicyAccountDisableCheck()) {
-                    String accountDisable = userStoreManager.
-                            getUserClaimValue(userId, UserIdentityDataStore.ACCOUNT_DISABLED, null);
+                    String accountDisable = Utils.getClaimFromUserStoreManager(
+                            userId, tenantId, UserIdentityDataStore.ACCOUNT_DISABLED);
                     if (!Boolean.parseBoolean(accountDisable)) {
                         success = true;
+                    } else {
+                        //account is Disabled. Not allowing to recover.
+                        if (log.isDebugEnabled()) {
+                            log.debug("Account is disabled. Can not allow to recover.");
+                        }
+                        bean = new VerificationBean(VerificationBean.ERROR_CODE_DISABLED_ACCOUNT);
                     }
                 } else {
                     success = true;
@@ -544,6 +552,9 @@ public class RecoveryProcessor {
                 emailNotificationData.setTagData(CONFIRMATION_CODE, confirmationKey);
             } else if (IdentityMgtConstants.Notification.ACCOUNT_ENABLE.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
+                notificationData.setNotificationCode(userId);
+            } else if (IdentityMgtConstants.Notification.ACCOUNT_DISABLE.equals(notification)) {
+                emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
                 notificationData.setNotificationCode(userId);
             }
         }

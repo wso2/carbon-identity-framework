@@ -136,6 +136,9 @@ public class UserInformationRecoveryService {
                 if (bean.getError().contains(VerificationBean.ERROR_CODE_INVALID_USER)) {
                     bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " User does not exist : " + username,
                             null);
+                } else if (bean.getError().contains(VerificationBean.ERROR_CODE_DISABLED_ACCOUNT)) {
+                    bean = handleError(VerificationBean.ERROR_CODE_DISABLED_ACCOUNT +
+                            " Account is disabled for user " + username + ". Can not allow to recover.", null);
                 } else {
                     bean = handleError(VerificationBean.ERROR_CODE_UNEXPECTED + " Error verifying user : " + username,
                             null);

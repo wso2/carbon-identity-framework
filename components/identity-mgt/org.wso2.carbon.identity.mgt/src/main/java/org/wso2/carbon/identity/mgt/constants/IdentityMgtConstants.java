@@ -198,6 +198,8 @@ public class IdentityMgtConstants {
 
         public static final String ACCOUNT_ENABLE = "accountEnable";
 
+        public static final String ACCOUNT_DISABLE = "accountDisable";
+
         private Notification(){
         }
 

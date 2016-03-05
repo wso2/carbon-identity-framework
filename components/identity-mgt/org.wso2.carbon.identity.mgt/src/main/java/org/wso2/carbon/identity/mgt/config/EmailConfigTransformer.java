@@ -63,6 +63,8 @@ public class EmailConfigTransformer {
                 template.setDisplayName("Account Unlock");
             } else if (IdentityMgtConstants.Notification.ACCOUNT_ENABLE.equals(key)) {
                 template.setDisplayName("Account Enable");
+            } else if (IdentityMgtConstants.Notification.ACCOUNT_DISABLE.equals(key)) {
+                template.setDisplayName("Account Disable");
             }else if (IdentityMgtConstants.Notification.ASK_PASSWORD.equals(key)) {
                 template.setDisplayName("Ask Password");
             } else if (IdentityMgtConstants.Notification.OTP_PASSWORD.equals(key)) {
