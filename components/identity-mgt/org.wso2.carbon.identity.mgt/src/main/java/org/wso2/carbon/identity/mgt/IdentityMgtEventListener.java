@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.beans.UserIdentityMgtBean;
 import org.wso2.carbon.identity.mgt.beans.VerificationBean;
@@ -34,10 +35,7 @@ import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
 import org.wso2.carbon.identity.mgt.config.ConfigType;
 import org.wso2.carbon.identity.mgt.config.StorageType;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
-import org.wso2.carbon.identity.mgt.dto.NotificationDataDTO;
-import org.wso2.carbon.identity.mgt.dto.UserIdentityClaimsDO;
-import org.wso2.carbon.identity.mgt.dto.UserRecoveryDTO;
-import org.wso2.carbon.identity.mgt.dto.UserRecoveryDataDO;
+import org.wso2.carbon.identity.mgt.dto.*;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.mail.Notification;
 import org.wso2.carbon.identity.mgt.mail.NotificationBuilder;
@@ -54,6 +52,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -964,19 +963,47 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     public boolean doPostSetUserClaimValues(String userName, Map<String, String> claims, String profileName,
                                             UserStoreManager userStoreManager) throws UserStoreException {
 
-        //ToDO check if notification sending is enabled for account disabling
-        if(claims.containsKey(UserIdentityDataStore.ACCOUNT_DISABLED)){
+        int tenantId = userStoreManager.getTenantId();
+        if (claims.containsKey(UserIdentityDataStore.ACCOUNT_DISABLED)) {
             boolean isDisabled = Boolean.parseBoolean(claims.get(UserIdentityDataStore.ACCOUNT_DISABLED));
-            if(isDisabled) {
 
-                //ToDO send notification with disabled template
-                log.info("Sent notification to " + userName + " for disabling account");
-            } else {
-                //ToDO send notification with enabled template
-                log.info("Sent notification to " + userName + " for enabling account");
+            try {
+                if (isDisabled && IdentityMgtConfig.getInstance().isAccountDisableNotificationSending()) {
+                    sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
 
+                    if (log.isDebugEnabled()) {
+                        log.debug("Sent notification to " + userName + " for disabling account");
+                    }
+                } else if (!isDisabled && IdentityMgtConfig.getInstance().isAccountEnableNotificationSending()) {
+                    sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Sent notification to " + userName + " for enabling account");
+                    }
+
+                } else {
+                    // no need to send notifications
+                }
+            } catch (IdentityException e) {
+                log.error("Failed to send email notification on user account disabling/enabling.");
             }
         }
         return true;
+    }
+
+    private void sendEmail(String userName, int tenantId, String notification) throws IdentityException {
+        UserRecoveryDTO dto;
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            dto = new UserRecoveryDTO(userName);
+        } else {
+            UserDTO userDTO = new UserDTO(UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain));
+            userDTO.setTenantId(tenantId);
+            dto = new UserRecoveryDTO(userDTO);
+        }
+        dto.setNotification(notification);
+        dto.setNotificationType(EMAIL_NOTIFICATION_TYPE);
+        IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
     }
 }
