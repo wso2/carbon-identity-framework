@@ -27,4 +27,11 @@ public class JDBCUserStoreMetricsConstants {
 
     public static final String COUNT_CLAIM_SQL = "SELECT COUNT(UM_ID) FROM UM_USER_ATTRIBUTE WHERE UM_ATTR_NAME = '?' " +
             "AND UM_ATTR_VALUE LIKE '?' AND UM_TENANT_ID = '?'";
+
+    public static final String SELECT_CLAIM_SQL = "SELECT UM_USER_ID FROM UM_USER_ATTRIBUTE WHERE UM_ATTR_NAME = '?' " +
+            "AND UM_ATTR_VALUE LIKE '?' AND UM_TENANT_ID = '?'";
+
+    public static final String SELECT_COUNT_SQL = "SELECT COUNT(UM_USER_ID) FROM (";
+
+    public static final String INTERSECT_SQL = "INTERSECT";
 }

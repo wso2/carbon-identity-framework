@@ -29,14 +29,18 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.Map;
 
 public class JDBCUserStoreMetrics extends AbstractUserStoreMetrics {
 
     private static Log log = LogFactory.getLog(JDBCUserStoreMetrics.class);
-    private final RealmConfiguration realmConfiguration;
-    private final int tenantId;
+    private RealmConfiguration realmConfiguration = null;
+    private int tenantId = 0;
 
+    public JDBCUserStoreMetrics() {
+
+    }
 
     public JDBCUserStoreMetrics(RealmConfiguration realmConfiguration, int tenantId) throws UserStoreException {
         this.realmConfiguration = realmConfiguration;
@@ -62,7 +66,7 @@ public class JDBCUserStoreMetrics extends AbstractUserStoreMetrics {
             if (resultSet.next()) {
                 return resultSet.getLong("COUNT(UM_ID)");
             } else {
-                log.error("No count is retrieved from the user store");
+                log.error("No user count is retrieved from the user store");
                 return Long.valueOf(-1);
             }
 
@@ -78,17 +82,126 @@ public class JDBCUserStoreMetrics extends AbstractUserStoreMetrics {
 
     @Override
     public Long countRolesInDomain(String filter, String domain) throws UserStoreMetricsException {
-        return null;
+        Connection dbConnection = null;
+        String sqlStmt = null;
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+
+        try {
+            dbConnection = getDBConnection(realmConfiguration);
+            sqlStmt = JDBCUserStoreMetricsConstants.COUNT_ROLES_SQL;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setString(1, filter);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setQueryTimeout(searchTime);
+
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getLong("COUNT(UM_ID)");
+            } else {
+                log.error("No role count is retrieved from the user store");
+                return Long.valueOf(-1);
+            }
+
+        } catch (SQLException e) {
+            log.error("Using sql : " + sqlStmt);
+            throw new UserStoreMetricsException(e.getMessage(), e);
+        } catch (Exception e) {
+            throw new UserStoreMetricsException(e.getMessage(), e);
+        } finally {
+            DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
     }
 
     @Override
     public Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreMetricsException {
-        return null;
+        Connection dbConnection = null;
+        String sqlStmt = null;
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+
+        try {
+            dbConnection = getDBConnection(realmConfiguration);
+            sqlStmt = JDBCUserStoreMetricsConstants.COUNT_CLAIM_SQL;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setString(1, claimURI);
+            prepStmt.setString(2, valueFilter);
+            prepStmt.setInt(3, tenantId);
+            prepStmt.setQueryTimeout(searchTime);
+
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getLong("COUNT(UM_ID)");
+            } else {
+                log.error("No claim count is retrieved from the user store");
+                return Long.valueOf(-1);
+            }
+
+        } catch (SQLException e) {
+            log.error("Using sql : " + sqlStmt);
+            throw new UserStoreMetricsException(e.getMessage(), e);
+        } catch (Exception e) {
+            throw new UserStoreMetricsException(e.getMessage(), e);
+        } finally {
+            DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
     }
 
     @Override
     public Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreMetricsException {
-        return null;
+        Connection dbConnection = null;
+        String sqlStmt = null;
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+
+        try {
+            dbConnection = getDBConnection(realmConfiguration);
+            sqlStmt = JDBCUserStoreMetricsConstants.SELECT_COUNT_SQL;
+
+            for (int i = 0; i < claimSetToFilter.size(); i++) {
+                //if the last one to append
+                if (i == claimSetToFilter.size() - 1) {
+                    sqlStmt = sqlStmt + JDBCUserStoreMetricsConstants.SELECT_CLAIM_SQL + ")";
+                } else {
+                    sqlStmt = sqlStmt + JDBCUserStoreMetricsConstants.SELECT_CLAIM_SQL + " " +
+                            JDBCUserStoreMetricsConstants.INTERSECT_SQL + " ";
+                }
+            }
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+
+            Iterator iterator = claimSetToFilter.entrySet().iterator();
+            int i = 0;
+            while (iterator.hasNext()) {
+                Map.Entry pair = (Map.Entry) iterator.next();
+
+                i = i++;
+                prepStmt.setString(i, (String) pair.getKey());
+
+                i = i++;
+                prepStmt.setString(i, (String) pair.getValue());
+
+                i = i++;
+                prepStmt.setInt(i, (Integer) pair.getValue());
+            }
+
+            prepStmt.setQueryTimeout(searchTime);
+
+            resultSet = prepStmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getLong("COUNT(UM_USER_ID)");
+            } else {
+                log.error("No claim count is retrieved from the user store");
+                return Long.valueOf(-1);
+            }
+
+        } catch (SQLException e) {
+            log.error("Using sql : " + sqlStmt);
+            throw new UserStoreMetricsException(e.getMessage(), e);
+        } catch (Exception e) {
+            throw new UserStoreMetricsException(e.getMessage(), e);
+        } finally {
+            DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
     }
 
     private Connection getDBConnection(RealmConfiguration realmConfiguration) throws SQLException, UserStoreException {

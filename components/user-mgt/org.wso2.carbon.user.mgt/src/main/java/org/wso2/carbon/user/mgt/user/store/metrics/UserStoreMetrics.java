@@ -75,7 +75,7 @@ public interface UserStoreMetrics {
     Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreMetricsException;
 
     /**
-     * Get the count of users, having claim values matching the given filter, for the given claim URI
+     * Get the count of users, having claim values matching the given filter, for the given claim URIs
      * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
      * @return the number of users matching the claims set based on the filters within this user store domain
      */
