@@ -91,8 +91,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     private static final String ASK_PASSWORD_FEATURE_IS_DISABLED = "Ask Password Feature is disabled";
 
 
-
-
     public IdentityMgtEventListener() {
         identityMgtConfig = IdentityMgtConfig.getInstance();
         // Get the policy registry with the loaded policies.
@@ -100,7 +98,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         module = IdentityMgtConfig.getInstance().getIdentityDataStore();
         String isAdminUnlockSysProp = System.getProperty(UNLOCK_ADMIN_SYS_PROP);
         // If the system property unlockAdmin is set, then admin account will be unlocked
-        if(StringUtils.isNotBlank(isAdminUnlockSysProp) && Boolean.parseBoolean(isAdminUnlockSysProp)) {
+        if (StringUtils.isNotBlank(isAdminUnlockSysProp) && Boolean.parseBoolean(isAdminUnlockSysProp)) {
             log.info("unlockAdmin system property is defined. Hence unlocking admin account");
             unlockAdmin();
         }
@@ -299,11 +297,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     if (notificationModules != null) {
 
                         NotificationDataDTO notificationData = new NotificationDataDTO();
-                        if(MessageContext.getCurrentMessageContext() != null &&
+                        if (MessageContext.getCurrentMessageContext() != null &&
                                 MessageContext.getCurrentMessageContext().getProperty(
                                         MessageContext.TRANSPORT_HEADERS) != null) {
                             notificationData.setTransportHeaders(new HashMap(
-                                    (Map)MessageContext.getCurrentMessageContext().getProperty(
+                                    (Map) MessageContext.getCurrentMessageContext().getProperty(
                                             MessageContext.TRANSPORT_HEADERS)));
                         }
 
@@ -664,13 +662,12 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     }
 
     /**
-	 * This method is used to check pre conditions when changing the user
-	 * password.
-	 * 
-	 */
+     * This method is used to check pre conditions when changing the user
+     * password.
+     */
     @Override
-	public boolean doPreUpdateCredential(String userName, Object newCredential,
-            Object oldCredential, UserStoreManager userStoreManager) throws UserStoreException {
+    public boolean doPreUpdateCredential(String userName, Object newCredential,
+                                         Object oldCredential, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -684,7 +681,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             // Enforcing the password policies.
             if (newCredential != null
                     && (newCredential instanceof String && (newCredential.toString().trim()
-                            .length() > 0))) {
+                    .length() > 0))) {
                 policyRegistry.enforcePasswordPolicies(newCredential.toString(), userName);
 
             }
@@ -695,15 +692,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
         return true;
     }
-	
-	/**
-	 * This method is used when the admin is updating the credentials with an
-	 * empty credential. A random password will be generated and will be mailed
-	 * to the user. 
-	 */
-	@Override
+
+    /**
+     * This method is used when the admin is updating the credentials with an
+     * empty credential. A random password will be generated and will be mailed
+     * to the user.
+     */
+    @Override
     public boolean doPreUpdateCredentialByAdmin(String userName, Object newCredential,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -718,7 +715,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             // Enforcing the password policies.
             if (newCredential != null
                     && (newCredential instanceof StringBuffer && (newCredential.toString().trim()
-                            .length() > 0))) {
+                    .length() > 0))) {
                 policyRegistry.enforcePasswordPolicies(newCredential.toString(), userName);
             }
 
@@ -728,7 +725,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
         if (newCredential == null
                 || (newCredential instanceof StringBuffer && ((StringBuffer) newCredential)
-                        .toString().trim().length() < 1)) {
+                .toString().trim().length() < 1)) {
 
             if (!config.isEnableTemporaryPassword()) {
                 log.error("Empty passwords are not allowed");
@@ -801,13 +798,24 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             return true;
         }
         IdentityUtil.clearIdentityErrorMsg();
-        boolean accountLocked = Boolean.parseBoolean(claims.get(UserIdentityDataStore.ACCOUNT_LOCK));
-        boolean accountDisabled = Boolean.parseBoolean(claims.get(UserIdentityDataStore.ACCOUNT_DISABLED));
-        if (accountLocked) {
+        String accountLocked = claims.get(UserIdentityDataStore.ACCOUNT_LOCK);
+        String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
+        boolean isAccountLocked = false;
+        boolean isAccountDisabled = false;
+
+        //Following logic is to avoid null value been interpreted as false
+        if (StringUtils.isNotEmpty(accountLocked)) {
+            isAccountLocked = Boolean.parseBoolean(accountLocked);
+        } else if (StringUtils.isNotEmpty(accountDisabled)) {
+            isAccountDisabled = Boolean.parseBoolean(accountDisabled);
+        }
+
+        if (isAccountLocked) {
             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
                     .ErrorCode.USER_IS_LOCKED);
             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-        } else if (accountDisabled) {
+
+        } else if (isAccountDisabled) {
             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                     IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
@@ -822,8 +830,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
+                Boolean wasAccountDisabled = identityDTO.getIsAccountDisabled();
                 if (identityDTO == null) {
                     identityDTO = new UserIdentityClaimsDO(userName);
+                }
+
+                //account is already disabled and trying to update the claims without enabling it
+                if (wasAccountDisabled && isAccountDisabled) {
+                    claims.clear();
+                    log.warn("Trying to update claims of a disabled user account. This is not permitted.");
                 }
 
                 Iterator<Entry<String, String>> it = claims.entrySet().iterator();
@@ -844,6 +859,16 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 // storing the identity claims and security questions
                 try {
                     identityDataStore.store(identityDTO, userStoreManager);
+                    int tenantId = userStoreManager.getTenantId();
+                    //case of enabling a disabled user account
+                    if (wasAccountDisabled && !isAccountDisabled) {
+                        sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
+
+                        //case of disabling an enabled account
+                    } else if (!wasAccountDisabled && isAccountDisabled) {
+                        sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
+                    }
+
                 } catch (IdentityException e) {
                     throw new UserStoreException(
                             "Error while saving user store data for user : " + userName, e);
@@ -956,42 +981,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-       return true;
-    }
-
-    @Override
-    public boolean doPostSetUserClaimValues(String userName, Map<String, String> claims, String profileName,
-                                            UserStoreManager userStoreManager) throws UserStoreException {
-
-        int tenantId = userStoreManager.getTenantId();
-        if (claims.containsKey(UserIdentityDataStore.ACCOUNT_DISABLED)) {
-            boolean isDisabled = Boolean.parseBoolean(claims.get(UserIdentityDataStore.ACCOUNT_DISABLED));
-
-            try {
-                if (isDisabled && IdentityMgtConfig.getInstance().isAccountDisableNotificationSending()) {
-                    sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Sent notification to " + userName + " for disabling account");
-                    }
-                } else if (!isDisabled && IdentityMgtConfig.getInstance().isAccountEnableNotificationSending()) {
-                    sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Sent notification to " + userName + " for enabling account");
-                    }
-
-                } else {
-                    // no need to send notifications
-                }
-            } catch (IdentityException e) {
-                log.error("Failed to send email notification on user account disabling/enabling.");
-            }
-        }
         return true;
     }
 
-    private void sendEmail(String userName, int tenantId, String notification) throws IdentityException {
+    private void sendEmail(String userName, int tenantId, String notification) {
         UserRecoveryDTO dto;
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
 
@@ -1004,6 +997,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
         dto.setNotification(notification);
         dto.setNotificationType(EMAIL_NOTIFICATION_TYPE);
-        IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
+        try {
+            IdentityMgtServiceComponent.getRecoveryProcessor().recoverWithNotification(dto);
+        } catch (IdentityException e) {
+            //proceed with the rest of the flow even if the email is not sent
+            log.error("Email notification sending failed for user:" + userName + " for " + notification);
+        }
     }
 }

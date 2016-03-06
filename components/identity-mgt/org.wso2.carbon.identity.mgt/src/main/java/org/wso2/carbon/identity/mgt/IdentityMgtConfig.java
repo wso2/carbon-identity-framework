@@ -163,7 +163,7 @@ public class IdentityMgtConfig {
             }
 
             String enableNotificationSendingProperty = properties.
-                    getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SEND_ACCOUNT_ENABLE;
+                    getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SEND_ACCOUNT_ENABLE);
             if (enableNotificationSendingProperty != null) {
                 this.enableNotificationSending = Boolean.parseBoolean(enableNotificationSendingProperty.trim());
             }
