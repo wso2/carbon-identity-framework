@@ -83,6 +83,8 @@ public class IdentityMgtConfig {
     private boolean temporaryPasswordOneTime;
     private String userAccountVerificationRole;
     private boolean notificationSending;
+    private boolean disableNotificationSending;
+    private boolean enableNotificationSending;
     private String digsestFunction;
     private RandomPasswordGenerator passwordGenerator;
     private UserIdentityDataStore identityDataStore;
@@ -152,6 +154,18 @@ public class IdentityMgtConfig {
                     getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SEND_ENABLE);
             if (notificationSendingProperty != null) {
                 this.notificationSending = Boolean.parseBoolean(notificationSendingProperty.trim());
+            }
+
+            String disableNotificationSendingProperty = properties.
+                    getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SEND_ACCOUNT_DISABLE);
+            if (disableNotificationSendingProperty != null) {
+                this.disableNotificationSending = Boolean.parseBoolean(disableNotificationSendingProperty.trim());
+            }
+
+            String enableNotificationSendingProperty = properties.
+                    getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SEND_ACCOUNT_ENABLE;
+            if (enableNotificationSendingProperty != null) {
+                this.enableNotificationSending = Boolean.parseBoolean(enableNotificationSendingProperty.trim());
             }
 
             String recoveryClaimProperty = properties.
@@ -495,6 +509,14 @@ public class IdentityMgtConfig {
 
     public boolean isNotificationSending() {
         return notificationSending;
+    }
+
+    public boolean isAccountDisableNotificationSending() {
+        return disableNotificationSending;
+    }
+
+    public boolean isAccountEnableNotificationSending() {
+        return enableNotificationSending;
     }
 
     public boolean isAuthPolicyAccountExistCheck() {

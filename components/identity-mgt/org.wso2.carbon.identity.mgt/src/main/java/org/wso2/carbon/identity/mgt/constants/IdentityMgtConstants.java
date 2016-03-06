@@ -115,6 +115,10 @@ public class IdentityMgtConstants {
 
         public static final String NOTIFICATION_SEND_ENABLE = "Notification.Sending.Enable";
 
+        public static final String NOTIFICATION_SEND_ACCOUNT_DISABLE = "Notification.Sending.Enable.Account.Disable";
+
+        public static final String NOTIFICATION_SEND_ACCOUNT_ENABLE = "Notification.Sending.Enable.Account.Enable";
+
         public static final String RECOVERY_CLAIM = "Recovery.Claim";
 
         public static final String IDENTITY_LISTENER_ENABLE = "Identity.Listener.Enable";

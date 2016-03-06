@@ -164,7 +164,7 @@ public class UserIdentityManagementAdminService {
 
             int tenantID = userStoreManager.getTenantId();
             String tenantDomain = IdentityMgtServiceComponent.getRealmService().getTenantManager().getDomain(tenantID);
-            boolean isNotificationSending = IdentityMgtConfig.getInstance().isNotificationSending();
+            boolean isNotificationSending = IdentityMgtConfig.getInstance().isAccountDisableNotificationSending();
             if (notificationType != null && isNotificationSending) {
                 UserRecoveryDTO dto;
                 if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
@@ -215,7 +215,7 @@ public class UserIdentityManagementAdminService {
 
             int tenantID = userStoreManager.getTenantId();
             String tenantDomain = IdentityMgtServiceComponent.getRealmService().getTenantManager().getDomain(tenantID);
-            boolean isNotificationSending = IdentityMgtConfig.getInstance().isNotificationSending();
+            boolean isNotificationSending = IdentityMgtConfig.getInstance().isAccountEnableNotificationSending();
             if (notificationType != null && isNotificationSending) {
                 UserRecoveryDTO dto;
                 if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
