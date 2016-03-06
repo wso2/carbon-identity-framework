@@ -216,6 +216,9 @@ public class RecoveryProcessor {
             } else if(IdentityMgtConstants.Notification.ACCOUNT_ENABLE.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
                 persistData = false;
+            } else if(IdentityMgtConstants.Notification.ACCOUNT_DISABLE.equals(notification)) {
+                emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
+                persistData = false;
             } else if (IdentityMgtConstants.Notification.ACCOUNT_ID_RECOVERY.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_ID_RECOVERY);
                 persistData = false;
