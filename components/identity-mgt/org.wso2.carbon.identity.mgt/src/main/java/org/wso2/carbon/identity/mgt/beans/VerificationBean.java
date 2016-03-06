@@ -39,6 +39,7 @@ public class VerificationBean implements Serializable {
     public static final String ERROR_CODE_INVALID_TENANT = "18016";
     public static final String ERROR_CODE_CHALLENGE_QUESTION_NOT_FOUND = "18016";
     public static final String ERROR_CODE_INVALID_CREDENTIALS = "17002";
+    public static final String ERROR_CODE_DISABLED_ACCOUNT = "17003";
 
     /**
      * user identifier according to the user store
