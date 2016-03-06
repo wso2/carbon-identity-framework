@@ -137,6 +137,84 @@ public class UserIdentityManagementUtil {
         }
     }
 
+    /**
+     * Disable the user account.
+     *
+     * @param userName
+     * @param userStoreManager
+     * @throws IdentityException
+     */
+    public static void disableUserAccount(String userName, UserStoreManager userStoreManager)
+            throws IdentityException {
+        if (!isIdentityMgtListenerEnable()) {
+            throw IdentityException.error("Cannot lock account, IdentityMgtEventListener is not enabled.");
+        }
+
+        String domainName = ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getRealmConfiguration().
+                getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        userName = UserCoreUtil.addDomainToName(userName, domainName);
+
+        try {
+            if (!userStoreManager.isExistingUser(userName)) {
+                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                throw IdentityException.error("No user account found for user " + userName + "to disable");
+            }
+        } catch (UserStoreException e) {
+            log.error("Error while reading user identity data", e);
+            throw IdentityException.error("Error while disabling user account : " + userName);
+
+        }
+
+        UserIdentityDataStore store = IdentityMgtConfig.getInstance().getIdentityDataStore();
+        UserIdentityClaimsDO userIdentityDO = store.load(UserCoreUtil.removeDomainFromName(userName), userStoreManager);
+        if (userIdentityDO != null) {
+            userIdentityDO.setAccountDisabled(true);
+            store.store(userIdentityDO, userStoreManager);
+        } else {
+            throw IdentityException.error("No user account found for user " + userName);
+        }
+    }
+
+
+    /**
+     * Enable the user account
+     *
+     * @param userName
+     * @param userStoreManager
+     * @throws IdentityException
+     */
+    public static void enableUserAccount(String userName, UserStoreManager userStoreManager)
+            throws IdentityException {
+
+        if (!isIdentityMgtListenerEnable()) {
+            throw IdentityException.error("Cannot enable account, IdentityMgtEventListener is not enabled.");
+        }
+
+        String domainName = ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getRealmConfiguration().
+                getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        userName = UserCoreUtil.addDomainToName(userName, domainName);
+
+        try {
+            if (!userStoreManager.isExistingUser(userName)) {
+                log.error("User " + userName + " does not exist in tenant "+userStoreManager.getTenantId());
+                throw IdentityException.error("No user account found for user " + userName + "to enable");
+            }
+        } catch (UserStoreException e) {
+            log.error("Error while reading user identity data", e);
+            throw IdentityException.error("Error while enabling user account " + userName);
+
+        }
+
+        UserIdentityDataStore store = IdentityMgtConfig.getInstance().getIdentityDataStore();
+        UserIdentityClaimsDO userIdentityDO = store.load(UserCoreUtil.removeDomainFromName(userName), userStoreManager);
+        if (userIdentityDO != null) {
+            userIdentityDO.setAccountDisabled(false);
+            store.store(userIdentityDO, userStoreManager);
+        } else {
+            throw IdentityException.error("No user account found for user " + userName);
+        }
+
+    }
     private static boolean isIdentityMgtListenerEnable() {
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
