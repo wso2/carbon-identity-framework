@@ -208,6 +208,13 @@
 				<Description>Account Locked</Description>
 		    </Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/accountDisabled</ClaimURI>
+				<DisplayName>Account Disabled</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>ref</AttributeID>
+				<Description>Account Disabled</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginAttempts</ClaimURI>
 				<DisplayName>Failed Login Attempts</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->

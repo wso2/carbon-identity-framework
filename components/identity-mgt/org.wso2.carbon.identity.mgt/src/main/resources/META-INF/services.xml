@@ -82,6 +82,12 @@
         <operation name="unlockUserAccount">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
         </operation>
+        <operation name="disableUserAccount">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+        </operation>
+        <operation name="enableUserAccount">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+        </operation>
         <operation name="resetUserPassword">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords</parameter>
         </operation>

@@ -56,6 +56,22 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="enableUserAccount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="notificationType" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="disableUserAccount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="notificationType" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="isReadOnlyUserStore">
                 <xs:complexType>
                     <xs:sequence>
@@ -235,6 +251,12 @@
     <wsdl:message name="lockUserAccountRequest">
         <wsdl:part name="parameters" element="ns:lockUserAccount"></wsdl:part>
     </wsdl:message>
+    <wsdl:message name="disableUserAccountRequest">
+        <wsdl:part name="parameters" element="ns:disableUserAccount"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="enableUserAccountRequest">
+        <wsdl:part name="parameters" element="ns:enableUserAccount"></wsdl:part>
+    </wsdl:message>
     <wsdl:portType name="UserIdentityManagementAdminServicePortType">
         <wsdl:operation name="getAllChallengeQuestions">
             <wsdl:input message="ns:getAllChallengeQuestionsRequest" wsaw:Action="urn:getAllChallengeQuestions"></wsdl:input>
@@ -293,6 +315,14 @@
         <wsdl:operation name="lockUserAccount">
             <wsdl:input message="ns:lockUserAccountRequest" wsaw:Action="urn:lockUserAccount"></wsdl:input>
             <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:lockUserAccountUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="disableUserAccount">
+            <wsdl:input message="ns:disableUserAccountRequest" wsaw:Action="urn:disableUserAccount"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:disableUserAccountUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="enableUserAccount">
+            <wsdl:input message="ns:enableUserAccountRequest" wsaw:Action="urn:enableUserAccount"></wsdl:input>
+            <wsdl:fault message="ns:UserIdentityManagementAdminServiceIdentityMgtServiceException" name="UserIdentityManagementAdminServiceIdentityMgtServiceException" wsaw:Action="urn:enableUserAccountUserIdentityManagementAdminServiceIdentityMgtServiceException"></wsdl:fault>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="UserIdentityManagementAdminServiceSoap11Binding" type="ns:UserIdentityManagementAdminServicePortType">
@@ -423,6 +453,30 @@
                 <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="disableUserAccount">
+            <soap:operation soapAction="urn:disableUserAccount" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="enableUserAccount">
+            <soap:operation soapAction="urn:enableUserAccount" style="document"></soap:operation>
+            <wsdl:input>
+                <soap:body use="literal"></soap:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"></soap:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap:fault>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="changeUserPassword">
             <soap:operation soapAction="urn:changeUserPassword" style="document"></soap:operation>
             <wsdl:input>
@@ -539,6 +593,30 @@
             <wsdl:input>
                 <soap12:body use="literal"></soap12:body>
             </wsdl:input>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="disableUserAccount">
+            <soap12:operation soapAction="urn:disableUserAccount" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
+            <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
+                <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="enableUserAccount">
+            <soap12:operation soapAction="urn:enableUserAccount" style="document"></soap12:operation>
+            <wsdl:input>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"></soap12:body>
+            </wsdl:output>
             <wsdl:fault name="UserIdentityManagementAdminServiceIdentityMgtServiceException">
                 <soap12:fault use="literal" name="UserIdentityManagementAdminServiceIdentityMgtServiceException"></soap12:fault>
             </wsdl:fault>
@@ -662,6 +740,24 @@
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"></mime:content>
             </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="disableUserAccount">
+            <http:operation location="disableUserAccount"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="enableUserAccount">
+            <http:operation location="enableUserAccount"></http:operation>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"></mime:content>
+            </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="changeUserPassword">
             <http:operation location="changeUserPassword"></http:operation>

@@ -119,6 +119,10 @@ public class IdentityMgtConstants {
 
         public static final String NOTIFICATION_SEND_ENABLE = "Notification.Sending.Enable";
 
+        public static final String NOTIFICATION_SEND_ACCOUNT_DISABLE = "Notification.Sending.Enable.Account.Disable";
+
+        public static final String NOTIFICATION_SEND_ACCOUNT_ENABLE = "Notification.Sending.Enable.Account.Enable";
+
         public static final String RECOVERY_CLAIM = "Recovery.Claim";
 
         public static final String IDENTITY_LISTENER_ENABLE = "Identity.Listener.Enable";
@@ -144,6 +148,8 @@ public class IdentityMgtConstants {
         public static final String AUTH_POLICY_PASSWORD_EXPIRE = "Authentication.Policy.Check.Password.Expire";
 
         public static final String AUTH_POLICY_ACCOUNT_LOCK = "Authentication.Policy.Check.Account.Lock";
+
+        public static final String AUTH_POLICY_ACCOUNT_DISABLE = "Authentication.Policy.Check.Account.Disable";
 
         public static final String AUTH_POLICY_ACCOUNT_EXIST = "Authentication.Policy.Check.Account.Exist";
 
@@ -197,6 +203,10 @@ public class IdentityMgtConstants {
         public static final String OTP_PASSWORD = "otp";
 
         public static final String ASK_PASSWORD = "askPassword";
+
+        public static final String ACCOUNT_ENABLE = "accountEnable";
+
+        public static final String ACCOUNT_DISABLE = "accountDisable";
 
         private Notification(){
         }

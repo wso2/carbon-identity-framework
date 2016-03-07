@@ -448,6 +448,7 @@ public class FrameworkUtils {
                     cookie.setMaxAge(0);
                     cookie.setHttpOnly(true);
                     cookie.setSecure(true);
+                    cookie.setPath("/");
                     resp.addCookie(cookie);
                     break;
                 }
