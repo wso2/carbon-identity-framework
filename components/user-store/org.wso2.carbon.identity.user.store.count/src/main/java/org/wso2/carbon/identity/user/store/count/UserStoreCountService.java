@@ -15,28 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.user.store.count.exception;
+package org.wso2.carbon.identity.user.store.count;
 
-public class UserStoreMetricsException extends Exception{
-    public UserStoreMetricsException() {
-        super();
-    }
-
-    public UserStoreMetricsException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public UserStoreMetricsException(String message, boolean convertMessage) {
-        super(message);
-    }
-
-
-    public UserStoreMetricsException(String message) {
-        super(message);
-    }
-
-    public UserStoreMetricsException(Throwable cause) {
-        super(cause);
-    }
+/**
+ * Service class that expose count functionality for underline user stores on users, roles and claims.
+ */
+public class UserStoreCountService {
 
 }

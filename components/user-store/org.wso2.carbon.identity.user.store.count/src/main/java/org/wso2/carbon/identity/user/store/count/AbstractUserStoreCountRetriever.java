@@ -18,11 +18,11 @@
 package org.wso2.carbon.identity.user.store.count;
 
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.mgt.internal.UserMgtDSComponent;
-import org.wso2.carbon.identity.user.store.count.exception.UserStoreMetricsException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,11 +33,11 @@ public abstract class AbstractUserStoreCountRetriever implements UserStoreCountR
     public int searchTime = UserCoreConstants.MAX_SEARCH_TIME;
 
 
-    private Map<String, RealmConfiguration> getUserStoreList() throws UserStoreMetricsException {
+    private Map<String, RealmConfiguration> getUserStoreList() throws UserStoreCounterException {
         String domain;
         RealmConfiguration realmConfiguration;
         try {
-            realmConfiguration = UserMgtDSComponent.getRealmService().getBootstrapRealm().getRealmConfiguration();
+            realmConfiguration = UserStoreCountDSComponent.getRealmService().getBootstrapRealm().getRealmConfiguration();
             domain = IdentityUtil.getPrimaryDomainName();
             userStoreList.put(domain, realmConfiguration);
 
@@ -54,41 +54,41 @@ public abstract class AbstractUserStoreCountRetriever implements UserStoreCountR
             }
 
         } catch (UserStoreException e) {
-            throw new UserStoreMetricsException("Error while listing user stores for metrics",e);
+            throw new UserStoreCounterException("Error while listing user stores for metrics",e);
         }
 
         return userStoreList;
     }
 
-    public final Long countUsers(String filter) throws UserStoreMetricsException {
+    public final Long countUsers(String filter) throws UserStoreCounterException {
         return Long.valueOf(0);
 
     }
 
     @Override
-    public final Long countRoles(String filter) throws UserStoreMetricsException {
+    public final Long countRoles(String filter) throws UserStoreCounterException {
         return null;
     }
 
     @Override
-    public final Long countClaim(String claimURI, String valueFilter) throws UserStoreMetricsException {
+    public final Long countClaim(String claimURI, String valueFilter) throws UserStoreCounterException {
         return null;
     }
 
     @Override
-    public final Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreMetricsException {
+    public final Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException {
         return null;
     }
 
     @Override
-    public abstract Long countUsersInDomain(String filter, String domain) throws UserStoreMetricsException;
+    public abstract Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException;
 
     @Override
-    public abstract Long countRolesInDomain(String filter, String domain) throws UserStoreMetricsException;
+    public abstract Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException;
 
     @Override
-    public abstract Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreMetricsException;
+    public abstract Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException;
 
     @Override
-    public abstract Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreMetricsException;
+    public abstract Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreCounterException, UserStoreCounterException;
 }

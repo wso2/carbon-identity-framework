@@ -16,14 +16,14 @@
 -->
 <serviceGroup>
 
-    <service name="UserStoreConfigAdminService" scope="transportsession">
+    <service name="UserStoreCountService" scope="transportsession">
         <transports>
             <transport>https</transport>
         </transports>
         <schema schemaNamespace="http://org.apache.axis2/xsd" elementFormDefaultQualified="true"/>
-        <description>To administer Identity User Store Configuration related functionality.</description>
+        <description>To get the counts by users, roles and claims on the active user stores.</description>
         <parameter name="ServiceClass">
-            org.wso2.carbon.identity.user.store.configuration.UserStoreConfigAdminService
+            org.wso2.carbon.identity.user.store.count.UserStoreCountService
         </parameter>
         <parameter name="AuthorizationAction" locked="true">/permission/admin</parameter>
     </service>

@@ -21,14 +21,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
+import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.user.core.internal.UserStoreMgtDSComponent;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
-import org.wso2.carbon.user.mgt.user.store.metrics.UserStoreCountRetriever;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserStoreMetricsRegistry extends UserStoreMgtDSComponent {
+public class UserStoreCounterRegistry extends UserStoreMgtDSComponent {
     private static Log log = LogFactory.getLog(UserStoreManagerRegistry.class);
     private static ServiceTracker userStoreMetricsTracker;
     private static Map<String, UserStoreCountRetriever> userStoreMetricServices = new HashMap<>();

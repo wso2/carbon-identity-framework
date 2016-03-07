@@ -17,8 +17,13 @@
  */
 package org.wso2.carbon.identity.user.store.count.jdbc;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
-import sun.rmi.runtime.Log;
+import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -43,7 +48,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     @Override
-    public Long countUsersInDomain(String filter, String domain) throws UserStoreMetricsException {
+    public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException{
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -67,16 +72,16 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
         } catch (SQLException e) {
             log.error("Using sql : " + sqlStmt);
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
     }
 
     @Override
-    public Long countRolesInDomain(String filter, String domain) throws UserStoreMetricsException {
+    public Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -100,16 +105,16 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
         } catch (SQLException e) {
             log.error("Using sql : " + sqlStmt);
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
     }
 
     @Override
-    public Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreMetricsException {
+    public Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -134,16 +139,16 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
         } catch (SQLException e) {
             log.error("Using sql : " + sqlStmt);
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
     }
 
     @Override
-    public Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreMetricsException {
+    public Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreCounterException {
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -191,9 +196,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
         } catch (SQLException e) {
             log.error("Using sql : " + sqlStmt);
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
-            throw new UserStoreMetricsException(e.getMessage(), e);
+            throw new UserStoreCounterException(e.getMessage(), e);
         } finally {
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
