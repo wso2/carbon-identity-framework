@@ -15,13 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.user.mgt.user.store.metrics;
+package org.wso2.carbon.identity.user.store.count;
 
-import org.wso2.carbon.user.mgt.user.store.metrics.exception.UserStoreMetricsException;
+import org.wso2.carbon.identity.user.store.count.exception.UserStoreMetricsException;
 
 import java.util.Map;
 
-public interface UserStoreMetrics {
+public interface UserStoreCountRetriever {
 
     /**
      * Get the count of users having a matching user name for the filter

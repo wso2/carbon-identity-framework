@@ -15,19 +15,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.user.mgt.user.store.metrics;
+package org.wso2.carbon.identity.user.store.count;
 
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.mgt.internal.UserMgtDSComponent;
-import org.wso2.carbon.user.mgt.user.store.metrics.exception.UserStoreMetricsException;
+import org.wso2.carbon.identity.user.store.count.exception.UserStoreMetricsException;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AbstractUserStoreMetrics implements UserStoreMetrics {
+public abstract class AbstractUserStoreCountRetriever implements UserStoreCountRetriever {
 
     private Map<String, RealmConfiguration> userStoreList = new HashMap<>();
     public int searchTime = UserCoreConstants.MAX_SEARCH_TIME;

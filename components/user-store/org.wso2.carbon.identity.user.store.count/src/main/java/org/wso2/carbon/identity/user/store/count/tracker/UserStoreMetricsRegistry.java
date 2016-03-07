@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.user.mgt.user.store.metrics.tracker;
+package org.wso2.carbon.identity.user.store.count.tracker;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,7 +23,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 import org.wso2.carbon.user.core.internal.UserStoreMgtDSComponent;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
-import org.wso2.carbon.user.mgt.user.store.metrics.UserStoreMetrics;
+import org.wso2.carbon.user.mgt.user.store.metrics.UserStoreCountRetriever;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,12 +31,12 @@ import java.util.Map;
 public class UserStoreMetricsRegistry extends UserStoreMgtDSComponent {
     private static Log log = LogFactory.getLog(UserStoreManagerRegistry.class);
     private static ServiceTracker userStoreMetricsTracker;
-    private static Map<String, UserStoreMetrics> userStoreMetricServices = new HashMap<>();
+    private static Map<String, UserStoreCountRetriever> userStoreMetricServices = new HashMap<>();
 
 
     public static void init(BundleContext bc) throws Exception {
         try {
-            userStoreMetricsTracker = new ServiceTracker(bc, UserStoreMetrics.class.getName(), null);
+            userStoreMetricsTracker = new ServiceTracker(bc, UserStoreCountRetriever.class.getName(), null);
             userStoreMetricsTracker.open();
             if(log.isDebugEnabled()) {
             	log.debug(userStoreMetricsTracker.getServices().length + " User Store Metrics Services registered.");
@@ -53,12 +53,12 @@ public class UserStoreMetricsRegistry extends UserStoreMgtDSComponent {
      *
      * @return Map<Class,<Map<Property,Value>>
      */
-    private static Map<String, UserStoreMetrics> getUserStoreMetricsServices() {
+    private static Map<String, UserStoreCountRetriever> getUserStoreMetricsServices() {
 
         Object[] objects = userStoreMetricsTracker.getServices();
         for(Object object:objects){
-            UserStoreMetrics userStoreMetrics = (UserStoreMetrics)object;
-            userStoreMetricServices.put(userStoreMetrics.getClass().getName(), userStoreMetrics);
+            UserStoreCountRetriever userStoreCountRetriever = (UserStoreCountRetriever)object;
+            userStoreMetricServices.put(userStoreCountRetriever.getClass().getName(), userStoreCountRetriever);
         }
         return userStoreMetricServices;
     }

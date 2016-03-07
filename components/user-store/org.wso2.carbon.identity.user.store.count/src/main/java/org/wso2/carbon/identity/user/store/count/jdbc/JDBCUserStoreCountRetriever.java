@@ -15,15 +15,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.user.mgt.user.store.metrics.jdbc;
+package org.wso2.carbon.identity.user.store.count.jdbc;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.user.api.RealmConfiguration;
-import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.util.DatabaseUtil;
-import org.wso2.carbon.user.mgt.user.store.metrics.AbstractUserStoreMetrics;
-import org.wso2.carbon.user.mgt.user.store.metrics.exception.UserStoreMetricsException;
+import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
+import sun.rmi.runtime.Log;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,17 +27,17 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map;
 
-public class JDBCUserStoreMetrics extends AbstractUserStoreMetrics {
+public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever {
 
-    private static Log log = LogFactory.getLog(JDBCUserStoreMetrics.class);
+    private static Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
     private RealmConfiguration realmConfiguration = null;
     private int tenantId = 0;
 
-    public JDBCUserStoreMetrics() {
+    public JDBCUserStoreCountRetriever() {
 
     }
 
-    public JDBCUserStoreMetrics(RealmConfiguration realmConfiguration, int tenantId) throws UserStoreException {
+    public JDBCUserStoreCountRetriever(RealmConfiguration realmConfiguration, int tenantId) throws UserStoreException {
         this.realmConfiguration = realmConfiguration;
         this.tenantId = tenantId;
     }

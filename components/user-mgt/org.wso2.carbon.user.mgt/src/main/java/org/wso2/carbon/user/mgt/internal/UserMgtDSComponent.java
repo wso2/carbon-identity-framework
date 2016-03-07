@@ -31,9 +31,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
 import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
 import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
-import org.wso2.carbon.user.mgt.user.store.metrics.UserStoreMetrics;
-import org.wso2.carbon.user.mgt.user.store.metrics.jdbc.JDBCUserStoreMetrics;
-import org.wso2.carbon.user.mgt.user.store.metrics.tracker.UserStoreMetricsRegistry;
 
 /**
  * @scr.component name="usermgt.component"" immediate="true"
@@ -91,12 +88,6 @@ public class UserMgtDSComponent {
                     log.debug("UserMgtAuditLogger successfully registered.");
                 }
             }
-
-            //Registering user store metrics services
-            UserStoreMetrics jdbcUserStoreMetrics = new JDBCUserStoreMetrics();
-            ctxt.getBundleContext().registerService(UserStoreMetrics.class.getName(), jdbcUserStoreMetrics, null);
-
-            UserStoreMetricsRegistry.init(ctxt.getBundleContext());
 
             log.info("Carbon UserStoreMgtDSComponent activated successfully.");
 
