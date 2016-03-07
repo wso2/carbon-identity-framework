@@ -88,9 +88,6 @@ public class UserMgtDSComponent {
                     log.debug("UserMgtAuditLogger successfully registered.");
                 }
             }
-
-            log.info("Carbon UserStoreMgtDSComponent activated successfully.");
-
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             // don't throw exception
