@@ -218,7 +218,7 @@
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute("idpUniqueIdMap");
 
     if (idpUniqueIdMap == null) {
-        idpUniqueIdMap = new HashMap<>();
+        idpUniqueIdMap = new HashMap<String, UUID>();
     }
 
     IdentityProvider identityProvider = null;
