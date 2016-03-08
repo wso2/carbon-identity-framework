@@ -15,79 +15,104 @@
 * specific language governing permissions and limitations
 * under the License.
 */
+
 package org.wso2.carbon.identity.user.store.count.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
+import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.List;
+
 /**
- * @scr.component name="org.wso2.carbon.identity.user.store.configuration.component" immediate="true"
+ * @scr.component name="identity.user.store.count.component"
+ * immediate="true"
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService"
  * cardinality="1..1" policy="dynamic" bind="setRealmService"
  * unbind="unsetRealmService"
  */
-public class UserStoreCountDSComponent {
-    private static Log log = LogFactory.getLog(UserStoreCountDSComponent.class);
-    private static RealmService realmService = null;
-    private static RealmConfiguration realmConfiguration = null;
 
-    public UserStoreCountDSComponent() {
-    }
+public class UserStoreCountDSComponent {
+
+    private static final Log log = LogFactory.getLog(UserStoreCountDSComponent.class);
 
     public static RealmService getRealmService() {
-        return realmService;
+        return UserStoreCountDataHolder.getInstance().getRealmService();
     }
 
     protected void setRealmService(RealmService realmService) {
-        UserStoreCountDSComponent.realmService = realmService;
         if (log.isDebugEnabled()) {
-            log.debug("Set the Realm Service");
+            log.debug("RealmService is set in the User Store Count bundle");
         }
-    }
-
-    public static RealmConfiguration getRealmConfiguration() {
-        realmConfiguration = UserStoreCountDSComponent.getRealmService().getBootstrapRealmConfiguration();
-        return realmConfiguration;
-    }
-
-    /**
-     * @param ctxt
-     */
-    protected void activate(ComponentContext ctxt) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Identity User Store bundle is activated.");
-        }
-        try {
-        } catch (Throwable e) {
-            log.error("Failed to load user store org.wso2.carbon.identity.user.store.configuration details.", e);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Identity User Store-Config bundle is activated.");
-
-        }
-    }
-
-    /**
-     * @param ctxt
-     */
-    protected void deactivate(ComponentContext ctxt) {
-        if (log.isDebugEnabled()) {
-            log.debug("Identity User Store-Config bundle is deactivated");
-        }
+        UserStoreCountDataHolder.getInstance().setRealmService(realmService);
     }
 
     protected void unsetRealmService(RealmService realmService) {
-        UserStoreCountDSComponent.realmService = null;
         if (log.isDebugEnabled()) {
-            log.debug("Unset the Realm Service");
+            log.debug("RealmService is unset in the Application Authentication Framework bundle");
         }
+        UserStoreCountDataHolder.getInstance().setRealmService(null);
+    }
+
+    public static BundleContext getBundleContext() throws UserStoreCounterException {
+        BundleContext bundleContext = UserStoreCountDataHolder.getInstance().getBundleContext();
+        if (bundleContext == null) {
+            String msg = "System has not been started properly. Bundle Context is null.";
+            log.error(msg);
+            throw new UserStoreCounterException(msg);
+        }
+
+        return bundleContext;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    protected void activate(ComponentContext ctxt) {
+        BundleContext bundleContext = ctxt.getBundleContext();
+        UserStoreCountDataHolder.getInstance().setBundleContext(bundleContext);
+
+        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().add(new JDBCUserStoreCountRetriever());
+
+        if (log.isDebugEnabled()) {
+            log.debug("User store count bundle is activated");
+        }
+    }
+
+    protected void deactivate(ComponentContext ctxt) {
+        if (log.isDebugEnabled()) {
+            log.debug("User store count bundle is deactivated");
+        }
+
+        UserStoreCountDataHolder.getInstance().setBundleContext(null);
+    }
+
+    protected void setUserStoreCountRetriever(UserStoreCountRetriever userStoreCountRetriever) {
+
+        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().add(userStoreCountRetriever);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added user store count retriever : " + userStoreCountRetriever.getClass().getName());
+        }
+    }
+
+    protected void unsetUserStoreCountRetriever(UserStoreCountRetriever userStoreCountRetriever) {
+
+        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().remove(userStoreCountRetriever);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed user store count retriever : " + userStoreCountRetriever.getClass().getName());
+        }
+    }
+
+    public static List<UserStoreCountRetriever> getUserStoreCountRetrievers() {
+        return UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers();
     }
 
 
 }
-

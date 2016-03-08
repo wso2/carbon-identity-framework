@@ -48,7 +48,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     @Override
-    public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException{
+    public Long countUsers(String filter) throws UserStoreCounterException{
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -81,7 +81,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     @Override
-    public Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
+    public Long countRoles(String filter) throws UserStoreCounterException {
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -114,7 +114,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     @Override
-    public Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
+    public Long countClaim(String claimURI, String valueFilter) throws UserStoreCounterException {
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -148,7 +148,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     @Override
-    public Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreCounterException {
+    public Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException {
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;

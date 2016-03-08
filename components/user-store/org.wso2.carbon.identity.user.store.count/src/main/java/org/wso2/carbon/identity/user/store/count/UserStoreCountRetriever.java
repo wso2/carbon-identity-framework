@@ -25,6 +25,7 @@ public interface UserStoreCountRetriever {
 
     /**
      * Get the count of users having a matching user name for the filter
+     *
      * @param filter the filter for the user name. Use '*' to have all.
      * @return the number of users matching the filter by each domain
      */
@@ -32,6 +33,7 @@ public interface UserStoreCountRetriever {
 
     /**
      * Get the count of roles having a matching role name for the filter
+     *
      * @param filter the filter for the role name. Use '*' to have all.
      * @return the number of roles matching the filter by each domain
      */
@@ -39,7 +41,8 @@ public interface UserStoreCountRetriever {
 
     /**
      * Get the count of users having claim values matching the given filter for the given claim URI
-     * @param claimURI the claim URI
+     *
+     * @param claimURI    the claim URI
      * @param valueFilter filter for the claim values
      * @return the number of users matching the given claim and filter by each domain
      */
@@ -47,38 +50,9 @@ public interface UserStoreCountRetriever {
 
     /**
      * Get the count of users, having claim values matching the given filter, for the given claim URI
+     *
      * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
      * @return the number of users matching the claims set based on the filters by each domain
      */
     Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException;
-
-    /**
-     * Get the count of users having a matching user name for the filter
-     * @param filter the filter for the user name. Use '*' to have all.
-     * @return the number of users matching the filter only within this user store domain
-     */
-    Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException;
-
-    /**
-     * Get the count of roles having a matching role name for the filter
-     * @param filter the filter for the role name. Use '*' to have all.
-     * @return the number of roles matching the filter within this user store domain
-     */
-    Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException;
-
-    /**
-     * Get the count of users having claim values matching the given filter for the given claim URI
-     * @param claimURI the claim URI
-     * @param valueFilter filter for the claim values
-     * @return the number of users matching the given claim and filter within this user store domain
-     */
-    Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException;
-
-    /**
-     * Get the count of users, having claim values matching the given filter, for the given claim URIs
-     * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
-     * @return the number of users matching the claims set based on the filters within this user store domain
-     */
-    Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreCounterException;
-
 }
