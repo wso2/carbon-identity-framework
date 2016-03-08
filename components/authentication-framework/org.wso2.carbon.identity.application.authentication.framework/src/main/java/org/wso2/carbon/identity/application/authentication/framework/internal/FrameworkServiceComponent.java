@@ -180,13 +180,13 @@ public class FrameworkServiceComponent {
         SessionDataStore.getInstance();
 
         if (log.isDebugEnabled()) {
-            log.info("Application Authentication Framework bundle is activated");
+            log.debug("Application Authentication Framework bundle is activated");
         }
     }
 
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
-            log.info("Application Authentication Framework bundle is deactivated");
+            log.debug("Application Authentication Framework bundle is deactivated");
         }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
