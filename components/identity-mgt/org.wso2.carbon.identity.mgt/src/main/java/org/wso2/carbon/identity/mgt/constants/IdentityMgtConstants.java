@@ -90,6 +90,10 @@ public class IdentityMgtConstants {
 
     public static final String DEFAULT_MAX_FAIL_LOGIN_ATTEMPTS = "10";
 
+    public static final String LAST_LOGIN_TIME = "http://wso2.org/claims/identity/lastLoginTime";
+
+    public static final String LAST_PASSWORD_UPDATE_TIME = "http://wso2.org/claims/identity/lastPasswordUpdateTime";
+
     private IdentityMgtConstants() {
     }
 
