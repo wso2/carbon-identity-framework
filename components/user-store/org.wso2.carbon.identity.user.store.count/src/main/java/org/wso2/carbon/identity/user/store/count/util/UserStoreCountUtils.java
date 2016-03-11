@@ -17,17 +17,37 @@
  */
 package org.wso2.carbon.identity.user.store.count.util;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
+import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
+/**
+ * Util class for user store counting functionality for users, roles and by claims
+ */
 public class UserStoreCountUtils {
+    public static final String countRetrieverClass = "CountRetrieverClass";
+    private static Log log = LogFactory.getLog(UserStoreCountUtils.class);
 
+
+    /**
+     * Get the available list of user store domains
+     *
+     * @return
+     * @throws UserStoreCounterException
+     */
     public static Map<String, RealmConfiguration> getUserStoreList() throws UserStoreCounterException {
         String domain;
         RealmConfiguration realmConfiguration;
@@ -52,5 +72,80 @@ public class UserStoreCountUtils {
         }
 
         return userStoreList;
+    }
+
+
+    /**
+     * Get the available user store domains
+     *
+     * @return
+     * @throws UserStoreCounterException
+     */
+    public static Set<String> getUserStoreDomains() throws UserStoreCounterException {
+        return getUserStoreList().keySet();
+    }
+
+    /**
+     * Create an instance of the given count retriever class
+     *
+     * @param domain
+     * @return
+     * @throws UserStoreCounterException
+     */
+    public static UserStoreCountRetriever getCounterInstanceForDomain(String domain) throws UserStoreCounterException {
+        if (StringUtils.isEmpty(domain)) {
+            domain = IdentityUtil.getPrimaryDomainName();
+        }
+
+        RealmConfiguration realmConfiguration = getUserStoreList().get(domain);
+        if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
+            try {
+                UserStoreCountRetriever userStoreCountRetriever = (UserStoreCountRetriever) Class.forName(
+                        realmConfiguration.getUserStoreProperty(countRetrieverClass)).newInstance();
+                return userStoreCountRetriever;
+            } catch (InstantiationException e) {
+                throw new UserStoreCounterException("Couldn't instantiate the class " + countRetrieverClass, e);
+            } catch (IllegalAccessException e) {
+                throw new UserStoreCounterException("Couldn't access the class " + countRetrieverClass, e);
+            } catch (ClassNotFoundException e) {
+                throw new UserStoreCounterException("Couldn't find the class " + countRetrieverClass, e);
+            }
+
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts a given array of PairDTOs to a Map
+     *
+     * @param pairDTOs
+     * @return
+     */
+    public static Map<String, String> convertArrayToMap(PairDTO[] pairDTOs) {
+        Map<String, String> map = new HashMap<>();
+        for (PairDTO pairDTO : pairDTOs) {
+            map.put(pairDTO.getKey(), pairDTO.getValue());
+        }
+        return map;
+    }
+
+    /**
+     * Converts a given Map to an array of PairDTOs
+     *
+     * @param claims
+     * @return
+     */
+    public static PairDTO[] convertMapToArray(Map<String, String> claims) {
+        PairDTO[] pairs = new PairDTO[claims.size()];
+        Iterator iterator = claims.entrySet().iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry) iterator.next();
+            pairs[i] = new PairDTO(entry.getKey().toString(), entry.getValue().toString());
+            i++;
+        }
+
+        return pairs;
     }
 }

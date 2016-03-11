@@ -17,9 +17,11 @@
  */
 package org.wso2.carbon.identity.user.store.count;
 
+import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Service class that expose count functionality for underline user stores on users, roles and claims.
@@ -32,8 +34,18 @@ public class UserStoreCountService {
      * @param filter the filter for the user name. Use '*' to have all.
      * @return the number of users matching the filter by each domain
      */
-    public Long countUsers(String filter) throws UserStoreCounterException {
-        return Long.valueOf(0);
+    public PairDTO[] countUsers(String filter) throws UserStoreCounterException {
+        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        PairDTO[] userCounts = new PairDTO[userStoreDomains.size()];
+        int i = 0;
+
+        for (String userStoreDomain : userStoreDomains) {
+            Long count = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain).countUsers(filter);
+            userCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
+            i++;
+        }
+
+        return userCounts;
     }
 
     /**
@@ -42,8 +54,18 @@ public class UserStoreCountService {
      * @param filter the filter for the role name. Use '*' to have all.
      * @return the number of roles matching the filter by each domain
      */
-    public Long countRoles(String filter) throws UserStoreCounterException {
-        return Long.valueOf(0);
+    public PairDTO[] countRoles(String filter) throws UserStoreCounterException {
+        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        PairDTO[] roleCounts = new PairDTO[userStoreDomains.size()];
+        int i = 0;
+
+        for (String userStoreDomain : userStoreDomains) {
+            Long count = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain).countRoles(filter);
+            roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
+            i++;
+        }
+
+        return roleCounts;
     }
 
     /**
@@ -53,8 +75,18 @@ public class UserStoreCountService {
      * @param valueFilter filter for the claim values
      * @return the number of users matching the given claim and filter by each domain
      */
-    public Long countClaim(String claimURI, String valueFilter) throws UserStoreCounterException {
-        return Long.valueOf(0);
+    public PairDTO[] countClaim(String claimURI, String valueFilter) throws UserStoreCounterException {
+        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        PairDTO[] claimCounts = new PairDTO[userStoreDomains.size()];
+        int i = 0;
+
+        for (String userStoreDomain : userStoreDomains) {
+            Long count = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain).countClaim(claimURI, valueFilter);
+            claimCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
+            i++;
+        }
+
+        return claimCounts;
     }
 
     /**
@@ -63,8 +95,19 @@ public class UserStoreCountService {
      * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
      * @return the number of users matching the claims set based on the filters by each domain
      */
-    public Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException {
-        return Long.valueOf(0);
+    public PairDTO[] countClaims(PairDTO[] claimSetToFilter) throws UserStoreCounterException {
+        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        PairDTO[] claimsCounts = new PairDTO[userStoreDomains.size()];
+        int i = 0;
+
+        for (String userStoreDomain : userStoreDomains) {
+            Long count = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain).countClaims(
+                    UserStoreCountUtils.convertArrayToMap(claimSetToFilter));
+            claimsCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
+            i++;
+        }
+
+        return claimsCounts;
     }
 
     /**
@@ -74,7 +117,7 @@ public class UserStoreCountService {
      * @return the number of users matching the filter only within this user store domain
      */
     public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
-        return Long.valueOf(0);
+        return UserStoreCountUtils.getCounterInstanceForDomain(domain).countUsers(filter);
     }
 
     /**
@@ -84,7 +127,7 @@ public class UserStoreCountService {
      * @return the number of roles matching the filter within this user store domain
      */
     public Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
-        return Long.valueOf(0);
+        return UserStoreCountUtils.getCounterInstanceForDomain(domain).countRoles(filter);
     }
 
     /**
@@ -94,8 +137,8 @@ public class UserStoreCountService {
      * @param valueFilter filter for the claim values
      * @return the number of users matching the given claim and filter within this user store domain
      */
-    public Long countClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
-        return Long.valueOf(0);
+    public Long countByClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
+        return UserStoreCountUtils.getCounterInstanceForDomain(domain).countClaim(claimURI, valueFilter);
     }
 
     /**
@@ -104,8 +147,9 @@ public class UserStoreCountService {
      * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
      * @return the number of users matching the claims set based on the filters within this user store domain
      */
-    public Long countClaimsInDomain(Map<String, String> claimSetToFilter, String domain) throws UserStoreCounterException {
-        return Long.valueOf(0);
+    public Long countByClaimsInDomain(PairDTO[] claimSetToFilter, String domain) throws UserStoreCounterException {
+        return UserStoreCountUtils.getCounterInstanceForDomain(domain).countClaims(
+                UserStoreCountUtils.convertArrayToMap(claimSetToFilter));
     }
 
 }
