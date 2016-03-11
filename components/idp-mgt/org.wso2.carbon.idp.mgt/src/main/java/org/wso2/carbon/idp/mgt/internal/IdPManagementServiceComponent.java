@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.IdpManagerService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
@@ -137,6 +138,8 @@ public class IdPManagementServiceComponent {
             } else {
                 log.error("Identity Provider Management - TenantMgtListener could not be registered");
             }
+
+            bundleCtx.registerService(IdpManagerService.class.getName(), IdentityProviderManager.getInstance(), null);
 
             ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
                     UserOperationEventListener.class.getName(), new UserStoreListener(), null);
