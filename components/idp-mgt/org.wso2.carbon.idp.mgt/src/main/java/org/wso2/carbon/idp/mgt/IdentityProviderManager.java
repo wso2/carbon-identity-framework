@@ -67,7 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class IdentityProviderManager {
+public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);
 
@@ -93,6 +93,7 @@ public class IdentityProviderManager {
      * @return <code>LocalIdentityProvider</code>
      * @throws IdentityProviderManagementException Error when getting Resident Identity Providers
      */
+    @Override
     public IdentityProvider getResidentIdP(String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -485,6 +486,7 @@ public class IdentityProviderManager {
      * @param tenantDomain     Tenant domain whose resident IdP is requested
      * @throws IdentityProviderManagementException Error when adding Resident Identity Provider
      */
+    @Override
     public void addResidentIdP(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -612,6 +614,7 @@ public class IdentityProviderManager {
      * @param tenantDomain     Tenant domain whose resident IdP is requested
      * @throws IdentityProviderManagementException Error when updating Resident Identity Provider
      */
+    @Override
     public void updateResidentIdP(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -667,6 +670,7 @@ public class IdentityProviderManager {
      * identifiers of each IdP
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
+    @Override
     public List<IdentityProvider> getIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -683,6 +687,7 @@ public class IdentityProviderManager {
      * identifiers of each IdP
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
+    @Override
     public List<IdentityProvider> getEnabledIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
         List<IdentityProvider> enabledIdentityProviders = new ArrayList<IdentityProvider>();
@@ -704,6 +709,7 @@ public class IdentityProviderManager {
      * @return
      * @throws IdentityProviderManagementException
      */
+    @Override
     public IdentityProvider getIdPByName(String idPName, String tenantDomain,
                                          boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
@@ -737,6 +743,7 @@ public class IdentityProviderManager {
      * @return
      * @throws IdentityProviderManagementException
      */
+    @Override
     public IdentityProvider getEnabledIdPByName(String idPName, String tenantDomain,
                                                 boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
@@ -756,6 +763,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP name
      */
+    @Override
     public IdentityProvider getIdPByName(String idPName, String tenantDomain)
             throws IdentityProviderManagementException {
         return getIdPByName(idPName, tenantDomain, false);
@@ -769,6 +777,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by authenticator property value
      */
+    @Override
     public IdentityProvider getIdPByAuthenticatorPropertyValue(String property, String value, String tenantDomain,
                                                                boolean ignoreFileBasedIdps)
             throws IdentityProviderManagementException {
@@ -800,6 +809,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP name
      */
+    @Override
     public IdentityProvider getEnabledIdPByName(String idPName, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -819,6 +829,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP home realm identifier
      */
+    @Override
     public IdentityProvider getIdPByRealmId(String realmId, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -845,6 +856,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP home realm identifier
      */
+    @Override
     public IdentityProvider getEnabledIdPByRealmId(String realmId, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -863,6 +875,7 @@ public class IdentityProviderManager {
      * @param idPClaimURIs IdP claim URIs which need to be mapped to tenant's local claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
+    @Override
     public Set<ClaimMapping> getMappedLocalClaims(String idPName, String tenantDomain,
                                                   List<String> idPClaimURIs) throws
             IdentityProviderManagementException {
@@ -915,6 +928,7 @@ public class IdentityProviderManager {
      * @param idPClaimURIs IdP claim URIs which need to be mapped to tenant's local claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
+    @Override
     public Map<String, String> getMappedLocalClaimsMap(String idPName, String tenantDomain,
                                                        List<String> idPClaimURIs) throws
             IdentityProviderManagementException {
@@ -936,6 +950,7 @@ public class IdentityProviderManager {
      * @param localClaimURIs Local claim URIs which need to be mapped to IdP's claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
+    @Override
     public Set<ClaimMapping> getMappedIdPClaims(String idPName, String tenantDomain,
                                                 List<String> localClaimURIs) throws
             IdentityProviderManagementException {
@@ -987,6 +1002,7 @@ public class IdentityProviderManager {
      * @param localClaimURIs Local claim URIs which need to be mapped to IdP's claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
+    @Override
     public Map<String, String> getMappedIdPClaimsMap(String idPName, String tenantDomain,
                                                      List<String> localClaimURIs) throws
             IdentityProviderManagementException {
@@ -1008,6 +1024,7 @@ public class IdentityProviderManager {
      * @param idPRoles     IdP roles which need to be mapped to local roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
+    @Override
     public Set<RoleMapping> getMappedLocalRoles(String idPName, String tenantDomain,
                                                 String[] idPRoles) throws IdentityProviderManagementException {
 
@@ -1058,6 +1075,7 @@ public class IdentityProviderManager {
      * @param idPRoles     IdP roles which need to be mapped to local roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
+    @Override
     public Map<String, LocalRole> getMappedLocalRolesMap(String idPName, String tenantDomain,
                                                          String[] idPRoles) throws IdentityProviderManagementException {
 
@@ -1077,6 +1095,7 @@ public class IdentityProviderManager {
      * @param localRoles   Local roles which need to be mapped to IdP roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
+    @Override
     public Set<RoleMapping> getMappedIdPRoles(String idPName, String tenantDomain,
                                               LocalRole[] localRoles) throws IdentityProviderManagementException {
 
@@ -1125,6 +1144,7 @@ public class IdentityProviderManager {
      * @param localRoles   Local roles which need to be mapped to IdP roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
+    @Override
     public Map<LocalRole, String> getMappedIdPRolesMap(String idPName, String tenantDomain,
                                                        LocalRole[] localRoles) throws
             IdentityProviderManagementException {
@@ -1144,6 +1164,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when adding Identity Provider
      *                                                information
      */
+    @Override
     public void addIdP(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -1220,6 +1241,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      *                                                information
      */
+    @Override
     public void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
         // invoking the pre listeners
@@ -1249,6 +1271,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when updating Identity Provider
      *                                                information
      */
+    @Override
     public void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider,
                           String tenantDomain) throws IdentityProviderManagementException {
 
@@ -1333,6 +1356,7 @@ public class IdentityProviderManager {
      * @throws IdentityProviderManagementException Error when getting authenticators registered
      *                                                in the system
      */
+    @Override
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators()
             throws IdentityProviderManagementException {
         List<FederatedAuthenticatorConfig> appConfig = ApplicationAuthenticatorService
@@ -1349,6 +1373,7 @@ public class IdentityProviderManager {
      * @return <code>ProvisioningConnectorConfig</code> array.
      * @throws IdentityProviderManagementException
      */
+    @Override
     public ProvisioningConnectorConfig[] getAllProvisioningConnectors()
             throws IdentityProviderManagementException {
         List<ProvisioningConnectorConfig> connectorConfigs = ProvisioningConnectorService
