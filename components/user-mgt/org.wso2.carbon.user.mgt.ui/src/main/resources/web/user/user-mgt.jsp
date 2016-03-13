@@ -379,6 +379,8 @@
 
                             <input class="button" type="submit"
                                    value="<fmt:message key="user.search"/>"/>
+                            <input class="button" type="submit"
+                                   value="<fmt:message key="user.count"/>"/>
                         </td>
                     </tr>
                     <tr>

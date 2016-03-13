@@ -370,6 +370,8 @@
 
                             <input class="button" type="submit"
                                    value="<fmt:message key="role.search"/>"/>
+                            <input class="button" type="submit"
+                                   value="<fmt:message key="role.count"/>"/>
                         </td>
 
                     </tr>
