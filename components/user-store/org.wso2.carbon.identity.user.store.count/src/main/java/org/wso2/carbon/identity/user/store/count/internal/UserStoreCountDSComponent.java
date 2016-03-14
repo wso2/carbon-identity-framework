@@ -30,8 +30,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import java.util.List;
 
 /**
- * @scr.component name="identity.user.store.count.component"
- * immediate="true"
+ * @scr.component name="identity.user.store.count.component" immediate="true"
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService"
  * cardinality="1..1" policy="dynamic" bind="setRealmService"
@@ -47,17 +46,19 @@ public class UserStoreCountDSComponent {
     }
 
     protected void setRealmService(RealmService realmService) {
+
+        UserStoreCountDataHolder.getInstance().setRealmService(realmService);
         if (log.isDebugEnabled()) {
             log.debug("RealmService is set in the User Store Count bundle");
         }
-        UserStoreCountDataHolder.getInstance().setRealmService(realmService);
     }
 
     protected void unsetRealmService(RealmService realmService) {
+
+        UserStoreCountDataHolder.getInstance().setRealmService(null);
         if (log.isDebugEnabled()) {
             log.debug("RealmService is unset in the Application Authentication Framework bundle");
         }
-        UserStoreCountDataHolder.getInstance().setRealmService(null);
     }
 
     public static BundleContext getBundleContext() throws UserStoreCounterException {

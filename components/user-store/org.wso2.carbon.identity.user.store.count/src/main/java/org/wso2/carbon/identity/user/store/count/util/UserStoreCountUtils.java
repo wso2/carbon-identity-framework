@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
-import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
+import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDataHolder;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -51,9 +51,10 @@ public class UserStoreCountUtils {
     public static Map<String, RealmConfiguration> getUserStoreList() throws UserStoreCounterException {
         String domain;
         RealmConfiguration realmConfiguration;
-        Map<String, RealmConfiguration> userStoreList = null;
+        Map<String, RealmConfiguration> userStoreList = new HashMap<>();
         try {
-            realmConfiguration = UserStoreCountDSComponent.getRealmService().getBootstrapRealm().getRealmConfiguration();
+            realmConfiguration = UserStoreCountDataHolder.getInstance().getRealmService().getBootstrapRealm().
+                    getRealmConfiguration();
             domain = IdentityUtil.getPrimaryDomainName();
             userStoreList.put(domain, realmConfiguration);
 
