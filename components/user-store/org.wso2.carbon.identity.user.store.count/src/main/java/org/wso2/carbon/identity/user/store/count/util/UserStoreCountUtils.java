@@ -20,15 +20,16 @@ package org.wso2.carbon.identity.user.store.count.util;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
-import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDataHolder;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -52,9 +53,9 @@ public class UserStoreCountUtils {
         String domain;
         RealmConfiguration realmConfiguration;
         Map<String, RealmConfiguration> userStoreList = new HashMap<>();
+
         try {
-            realmConfiguration = UserStoreCountDataHolder.getInstance().getRealmService().getBootstrapRealm().
-                    getRealmConfiguration();
+            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
             domain = IdentityUtil.getPrimaryDomainName();
             userStoreList.put(domain, realmConfiguration);
 
@@ -69,7 +70,7 @@ public class UserStoreCountUtils {
             }
 
         } catch (UserStoreException e) {
-            throw new UserStoreCounterException("Error while listing user stores for metrics", e);
+            throw new UserStoreCounterException("Error while listing user stores for count functionality", e);
         }
 
         return userStoreList;
@@ -102,7 +103,8 @@ public class UserStoreCountUtils {
         if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
             try {
                 UserStoreCountRetriever userStoreCountRetriever = (UserStoreCountRetriever) Class.forName(
-                        realmConfiguration.getUserStoreProperty(countRetrieverClass)).newInstance();
+                        realmConfiguration.getUserStoreProperty(countRetrieverClass)).getDeclaredConstructor(
+                        RealmConfiguration.class, Integer.TYPE).newInstance(realmConfiguration, realmConfiguration.getTenantId());
                 return userStoreCountRetriever;
             } catch (InstantiationException e) {
                 throw new UserStoreCounterException("Couldn't instantiate the class " + countRetrieverClass, e);
@@ -110,6 +112,12 @@ public class UserStoreCountUtils {
                 throw new UserStoreCounterException("Couldn't access the class " + countRetrieverClass, e);
             } catch (ClassNotFoundException e) {
                 throw new UserStoreCounterException("Couldn't find the class " + countRetrieverClass, e);
+            } catch (NoSuchMethodException e) {
+                throw new UserStoreCounterException("Couldn't find a proper constructor for the class " +
+                        countRetrieverClass, e);
+            } catch (InvocationTargetException e) {
+                throw new UserStoreCounterException("Error occurred creating an instance of the class " +
+                        countRetrieverClass, e);
             }
 
         } else {

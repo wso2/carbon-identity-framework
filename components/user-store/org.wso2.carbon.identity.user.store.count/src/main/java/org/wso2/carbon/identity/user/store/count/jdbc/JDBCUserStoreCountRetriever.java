@@ -48,7 +48,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     @Override
-    public Long countUsers(String filter) throws UserStoreCounterException{
+    public Long countUsers(String filter) throws UserStoreCounterException {
         Connection dbConnection = null;
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
@@ -58,7 +58,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_USERS_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            prepStmt.setString(1, filter);
+            prepStmt.setString(1, "%" + filter + "%");
             prepStmt.setInt(2, tenantId);
             prepStmt.setQueryTimeout(searchTime);
 
@@ -91,7 +91,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_ROLES_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            prepStmt.setString(1, filter);
+            prepStmt.setString(1, "%" + filter + "%");
             prepStmt.setInt(2, tenantId);
             prepStmt.setQueryTimeout(searchTime);
 
@@ -125,7 +125,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_CLAIM_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, claimURI);
-            prepStmt.setString(2, valueFilter);
+            prepStmt.setString(2, "%" + valueFilter + "%");
             prepStmt.setInt(3, tenantId);
             prepStmt.setQueryTimeout(searchTime);
 
@@ -178,7 +178,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
                 prepStmt.setString(i, (String) pair.getKey());
 
                 i = i++;
-                prepStmt.setString(i, (String) pair.getValue());
+                prepStmt.setString(i, "%" + pair.getValue() + "%");
 
                 i = i++;
                 prepStmt.setInt(i, (Integer) pair.getValue());
