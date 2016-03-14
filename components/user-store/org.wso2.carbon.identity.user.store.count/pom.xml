@@ -95,8 +95,6 @@
 
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
-                            org.w3c.dom,
-
                             org.wso2.carbon.base.api; version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
