@@ -135,9 +135,11 @@
         <OAuth2AuthzEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/authorize</OAuth2AuthzEPUrl>
         <OAuth2TokenEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/token</OAuth2TokenEPUrl>
         <OAuth2UserInfoEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/userinfo</OAuth2UserInfoEPUrl>
-        <OIDCConsentPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_consent.do</OIDCConsentPage>
         <OAuth2ConsentPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_authz.do</OAuth2ConsentPage>
         <OAuth2ErrorPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_error.do</OAuth2ErrorPage>
+        <OIDCConsentPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_consent.do</OIDCConsentPage>
+        <OIDCLogoutConsentPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_logout_consent.do</OIDCLogoutConsentPage>
+        <OIDCLogoutPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_logout.do</OIDCLogoutPage>
 
         <!-- Default validity period for Authorization Code in seconds -->
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
