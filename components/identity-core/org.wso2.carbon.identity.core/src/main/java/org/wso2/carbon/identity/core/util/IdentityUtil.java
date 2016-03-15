@@ -366,6 +366,15 @@ public class IdentityUtil {
     }
 
     /**
+     * Get the axis service path
+     *
+     * @return String
+     */
+    public static String getServicePath() {
+        return IdentityCoreServiceComponent.getConfigurationContextService().getServerConfigContext().getServicePath();
+    }
+
+    /**
      * Constructing the SAML or XACML Objects from a String
      *
      * @param xmlString Decoded SAML or XACML String
