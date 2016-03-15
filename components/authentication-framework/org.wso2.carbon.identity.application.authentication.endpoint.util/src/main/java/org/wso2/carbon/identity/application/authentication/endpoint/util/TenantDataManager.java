@@ -179,7 +179,7 @@ public class TenantDataManager {
      * @return Property value
      */
     protected static String getPropertyValue(String key) {
-        if ((key == Constants.SERVICES_URL) && !prop.containsKey(Constants.SERVICES_URL)) {
+        if ((Constants.SERVICES_URL.equals(key)) && !prop.containsKey(Constants.SERVICES_URL)) {
             String serviceUrl = IdentityUtil.getServicePath();
             return IdentityUtil.getServerURL(serviceUrl, true, true);
         }
