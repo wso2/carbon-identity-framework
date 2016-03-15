@@ -30,15 +30,8 @@ import org.wso2.carbon.utils.DataPaginator;
 
 import javax.activation.DataHandler;
 import javax.mail.util.ByteArrayDataSource;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 
 public class Util {
 

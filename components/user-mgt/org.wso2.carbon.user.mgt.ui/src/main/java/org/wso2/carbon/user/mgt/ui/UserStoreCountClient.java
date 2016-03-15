@@ -24,12 +24,10 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.count.stub.UserStoreCountServiceStub;
+import org.wso2.carbon.identity.user.store.count.stub.UserStoreCountServiceUserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.stub.dto.PairDTO;
-import org.wso2.carbon.identity.user.store.count.stub.exception.UserStoreCounterException;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class UserStoreCountClient {
 
@@ -99,7 +97,7 @@ public class UserStoreCountClient {
     public Map<String, String> countByClaims(Map<String, String> claims) throws AxisFault {
         Map<String, String> counts = new HashMap<>();
         try {
-            counts = convertArrayToMap(stub.countClaims(new PairDTO[]));
+            counts = convertArrayToMap(stub.countClaims(convertMapToArray(claims)));
         } catch (Exception e) {
             handleException(e);
         }
@@ -143,15 +141,24 @@ public class UserStoreCountClient {
         return -1;
     }
 
+    public Set<String> getCountableUserStores() throws AxisFault{
+        try {
+            return new HashSet<String>(Arrays.asList(stub.getCountEnabledUserStores()));
+        } catch (Exception e) {
+            handleException(e);
+        }
+        return new HashSet<>();
+    }
+
 
     protected String[] handleException(Exception e) throws AxisFault {
 
         String errorMessage = "Unknown";
 
-        if (e instanceof UserStoreCounterException) {
-            UserStoreCounterException countException = (UserStoreCounterException) e;
-            if (countException.getFaultMessage().getUserAdminException() != null) {
-                errorMessage = countException.getFaultMessage().getUserAdminException().getMessage();
+        if (e instanceof UserStoreCountServiceUserStoreCounterException) {
+            UserStoreCountServiceUserStoreCounterException countException = (UserStoreCountServiceUserStoreCounterException) e;
+            if (countException.getFaultMessage().getUserStoreCounterException() != null) {
+                errorMessage = countException.getFaultMessage().getUserStoreCounterException().getMessage();
             }
         } else {
             errorMessage = e.getMessage();
@@ -188,7 +195,10 @@ public class UserStoreCountClient {
         int i = 0;
         while (iterator.hasNext()) {
             Map.Entry entry = (Map.Entry) iterator.next();
-            pairs[i] = new PairDTO(entry.getKey().toString(), entry.getValue().toString());
+            PairDTO pair = new PairDTO();
+            pair.setKey((String) entry.getKey());
+            pair.setValue((String) entry.getValue());
+            pairs[i] = pair;
             i++;
         }
 

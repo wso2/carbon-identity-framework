@@ -198,4 +198,10 @@ public class UserStoreCountService {
 
     }
 
+    public String[] getCountEnabledUserStores() throws UserStoreCounterException {
+        Set<String> domains = UserStoreCountUtils.getCountEnabledUserStores();
+        return domains.toArray(new String[domains.size()]);
+
+    }
+
 }

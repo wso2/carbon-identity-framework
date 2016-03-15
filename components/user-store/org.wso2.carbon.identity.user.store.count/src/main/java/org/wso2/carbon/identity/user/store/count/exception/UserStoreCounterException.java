@@ -18,25 +18,37 @@
 package org.wso2.carbon.identity.user.store.count.exception;
 
 public class UserStoreCounterException extends Exception{
+
+    private static final long serialVersionUID = 8260611169153946414L;
+    private String message;
+
     public UserStoreCounterException() {
         super();
     }
 
     public UserStoreCounterException(String message, Throwable cause) {
         super(message, cause);
+        this.message = message;
     }
 
     public UserStoreCounterException(String message, boolean convertMessage) {
         super(message);
+        this.message = message;
     }
 
 
     public UserStoreCounterException(String message) {
         super(message);
+        this.message = message;
     }
 
     public UserStoreCounterException(Throwable cause) {
         super(cause);
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
     }
 
 }

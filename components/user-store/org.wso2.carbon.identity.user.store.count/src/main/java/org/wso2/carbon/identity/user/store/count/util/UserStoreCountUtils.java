@@ -30,10 +30,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Util class for user store counting functionality for users, roles and by claims
@@ -71,6 +68,31 @@ public class UserStoreCountUtils {
 
         } catch (UserStoreException e) {
             throw new UserStoreCounterException("Error while listing user stores for count functionality", e);
+        }
+
+        return userStoreList;
+    }
+
+    /**
+     * Get the domain names of user stores which has count functionality enabled
+     *
+     * @return
+     */
+    public static Set<String> getCountEnabledUserStores() throws UserStoreCounterException {
+        RealmConfiguration realmConfiguration;
+        Set<String> userStoreList = new HashSet<>();
+
+        try {
+            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
+
+            while (realmConfiguration != null) {
+                if (realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
+                    userStoreList.add(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                }
+                realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
+            }
+        } catch (UserStoreException e) {
+            throw new UserStoreCounterException("Error while getting the count enabled user stores", e);
         }
 
         return userStoreList;
