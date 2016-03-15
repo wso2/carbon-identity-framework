@@ -66,7 +66,6 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
@@ -1088,11 +1087,6 @@ public class FrameworkUtils {
                 .getThreadLocalCarbonContext();
         carbonContext.setTenantId(tenantId);
         carbonContext.setTenantDomain(tenantDomainParam);
-    }
-
-    public static String getServicePath() {
-        return FrameworkServiceDataHolder.getInstance().getConfigurationContextService().getServerConfigContext()
-                .getServicePath();
     }
 
     /**

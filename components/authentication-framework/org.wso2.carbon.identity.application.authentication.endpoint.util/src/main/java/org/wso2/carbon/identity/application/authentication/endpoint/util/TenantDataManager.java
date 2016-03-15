@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -181,7 +180,7 @@ public class TenantDataManager {
      */
     protected static String getPropertyValue(String key) {
         if ((key == Constants.SERVICES_URL) && !prop.containsKey(Constants.SERVICES_URL)) {
-            String serviceUrl = FrameworkUtils.getServicePath();
+            String serviceUrl = IdentityUtil.getServicePath();
             return IdentityUtil.getServerURL(serviceUrl, true, true);
         }
         return prop.getProperty(key);

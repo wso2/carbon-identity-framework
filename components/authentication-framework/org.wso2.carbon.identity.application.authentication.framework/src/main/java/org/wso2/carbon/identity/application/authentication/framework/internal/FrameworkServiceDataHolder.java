@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Inb
 import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundAuthenticationResponseProcessor;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,6 @@ public class FrameworkServiceDataHolder {
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
-    private ConfigurationContextService configurationContextService;
     private List<InboundAuthenticationRequestProcessor> inboundAuthenticationRequestProcessors = new ArrayList<InboundAuthenticationRequestProcessor>();
     private List<InboundAuthenticationRequestBuilder> inboundAuthenticationRequestBuilders = new ArrayList<InboundAuthenticationRequestBuilder>();
     private List<InboundAuthenticationResponseProcessor> inboundAuthenticationResponseProcessors = new ArrayList<InboundAuthenticationResponseProcessor>();
@@ -47,16 +45,6 @@ public class FrameworkServiceDataHolder {
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
         setUnixTimeReference(System.currentTimeMillis());
-    }
-
-    public ConfigurationContextService getConfigurationContextService() {
-
-        return configurationContextService;
-    }
-
-    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
-
-        this.configurationContextService = configurationContextService;
     }
 
     public static FrameworkServiceDataHolder getInstance() {
