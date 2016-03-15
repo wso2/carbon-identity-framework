@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import javax.servlet.Servlet;
 import java.util.Collections;
@@ -68,6 +69,10 @@ import java.util.List;
  * interface="org.wso2.carbon.registry.core.service.RegistryService"
  * cardinality="1..1" policy="dynamic" bind="setRegistryService"
  * unbind="unsetRegistryService"
+ * @scr.reference name="org.wso2.carbon.utils.contextservice"
+ * interface="org.wso2.carbon.utils.ConfigurationContextService"
+ * cardinality="1..1" policy="dynamic"  bind="setConfigurationContextService"
+ * unbind="unsetConfigurationContextService"
  * @scr.reference name="application.authenticator"
  * interface="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator"
  * cardinality="1..n" policy="dynamic" bind="setAuthenticator"
@@ -134,6 +139,10 @@ public class FrameworkServiceComponent {
 
     public static List<ApplicationAuthenticator> getAuthenticators() {
         return FrameworkServiceDataHolder.getInstance().getAuthenticators();
+    }
+
+    public static ConfigurationContextService getConfigurationContextService() {
+        return FrameworkServiceDataHolder.getInstance().getConfigurationContextService();
     }
 
     @SuppressWarnings("unchecked")
@@ -360,12 +369,22 @@ public class FrameworkServiceComponent {
          is started */
     }
 
+    protected void unsetConfigurationContextService(ConfigurationContextService contextService) {
+
+        FrameworkServiceDataHolder.getInstance().setConfigurationContextService(null);
+    }
+
+    protected void setConfigurationContextService(ConfigurationContextService contextService) {
+
+        FrameworkServiceDataHolder.getInstance().setConfigurationContextService(contextService);
+    }
+
     private static Comparator<InboundAuthenticationRequestProcessor> inboundRequestProcessor =
             new Comparator<InboundAuthenticationRequestProcessor>() {
 
                 @Override
                 public int compare(InboundAuthenticationRequestProcessor inboundRequestProcessor1,
-                        InboundAuthenticationRequestProcessor inboundRequestProcessor2) {
+                                   InboundAuthenticationRequestProcessor inboundRequestProcessor2) {
 
                     if (inboundRequestProcessor1.getPriority() > inboundRequestProcessor2.getPriority()) {
                         return 1;
