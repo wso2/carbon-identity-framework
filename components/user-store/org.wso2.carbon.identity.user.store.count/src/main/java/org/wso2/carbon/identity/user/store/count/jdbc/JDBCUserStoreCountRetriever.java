@@ -125,13 +125,13 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_CLAIM_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, claimURI);
-            prepStmt.setString(2, "%" + valueFilter + "%");
-            prepStmt.setInt(3, tenantId);
+            prepStmt.setInt(2, tenantId);
+            prepStmt.setString(3, "%" + valueFilter + "%");
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_ID)");
+                return resultSet.getLong("COUNT(UM_USER_ID)");
             } else {
                 log.error("No claim count is retrieved from the user store");
                 return Long.valueOf(-1);
