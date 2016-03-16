@@ -143,7 +143,9 @@ public class UserStoreCountClient {
 
     public Set<String> getCountableUserStores() throws AxisFault{
         try {
-            return new HashSet<String>(Arrays.asList(stub.getCountEnabledUserStores()));
+            if(stub.getCountEnabledUserStores() != null) {
+                return new HashSet<String>(Arrays.asList(stub.getCountEnabledUserStores()));
+            }
         } catch (Exception e) {
             handleException(e);
         }

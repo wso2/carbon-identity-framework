@@ -57,6 +57,7 @@
     String[] claimUris = null;
     FlaggedName[] users = null;
     String[] domainNames = null;
+    String userCount = "";
     int pageNumber = 0;
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
@@ -112,7 +113,19 @@
         newFilter = true;
     }
 
+    //  search filter
+    String selectedCountDomain = request.getParameter("countDomain");
+    if (selectedCountDomain == null || selectedCountDomain.trim().length() == 0) {
+        selectedCountDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER);
+        if (selectedCountDomain == null || selectedCountDomain.trim().length() == 0) {
+            selectedCountDomain = UserAdminUIConstants.ALL_DOMAINS;
+        }
+    } else {
+        newFilter = true;
+    }
+
     session.setAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER, selectedDomain.trim());
+    session.setAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER, selectedCountDomain.trim());
 
     String filter = request.getParameter(UserAdminUIConstants.USER_LIST_FILTER);
     if (filter == null || filter.trim().length() == 0) {
@@ -127,6 +140,22 @@
         }
         newFilter = true;
     }
+
+    String countFilter = request.getParameter(UserAdminUIConstants.USER_COUNT_FILTER);
+    if (countFilter == null || countFilter.trim().length() == 0) {
+        countFilter = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_COUNT_FILTER);
+        if (countFilter == null || countFilter.trim().length() == 0) {
+            countFilter = "%";
+        }
+    } else {
+        if (countFilter.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)) {
+            selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
+            session.removeAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
+        }
+        newFilter = true;
+    }
+
+
     String userDomainSelector;
     String modifiedFilter = filter.trim();
     if (!UserAdminUIConstants.ALL_DOMAINS.equalsIgnoreCase(selectedDomain)) {
@@ -138,6 +167,7 @@
     }
 
     session.setAttribute(UserAdminUIConstants.USER_LIST_FILTER, filter.trim());
+    session.setAttribute(UserAdminUIConstants.USER_COUNT_FILTER, countFilter.trim());
 
     // check page number
     String pageNumberStr = request.getParameter("pageNumber");
@@ -187,6 +217,7 @@
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
 
             countableUserStores = countClient.getCountableUserStores();
+            userCount = String.valueOf(countClient.countUsersInDomain(countFilter,selectedCountDomain));
 
             if (userRealmInfo == null) {
                 userRealmInfo = client.getUserRealmInfo();
@@ -414,62 +445,73 @@
             </form>
             <p>&nbsp;</p>
 
-            <table class="styledLeft">
-                <%
-                    if (countableUserStores != null && !countableUserStores.isEmpty()) {
-                %>
-                <thead>
-                <tr>
-                    <th colspan="2"><fmt:message key="user.count"/></th>
-                </tr>
-                </thead>
-                <tbody>
+            <form name="countForm" method="post" action="user-mgt.jsp">
+                <table class="styledLeft">
+                    <%
+                        if (countableUserStores != null && !countableUserStores.isEmpty()) {
+                    %>
+                    <thead>
+                    <tr>
+                        <th colspan="2"><fmt:message key="user.count"/></th>
+                    </tr>
+                    </thead>
+                    <tbody>
 
 
-                <tr>
-                    <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
-                            key="select.domain.search"/></td>
-                    <td><select id="domain" name="domain">
-                        <%
-                            for (String domainName : domainNames) {
-                                if (selectedDomain.equals(domainName)) {
-                        %>
-                        <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
-                            <%=Encode.forHtml(domainName)%>
-                        </option>
-                        <%
-                        } else {
-                        %>
-                        <option value="<%=Encode.forHtmlAttribute(domainName)%>">
-                            <%=Encode.forHtml(domainName)%>
-                        </option>
-                        <%
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="select.domain.search"/></td>
+                        <td><select id="countDomain" name="countDomain">
+                            <%
+                                for (String domainName : countableUserStores) {
+                                    if (selectedDomain.equals(domainName)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                                    }
                                 }
-                            }
-                        %>
-                    </select>
-                    </td>
-                </tr>
+                            %>
+                        </select>
+                        </td>
+                    </tr>
 
 
-                <tr>
-                    <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
-                            key="count.users"/></td>
-                    <td>
-                        <input type="text" name="<%=UserAdminUIConstants.USER_LIST_FILTER%>"
-                               value="<%=Encode.forHtmlAttribute(filter)%>" label="<fmt:message key="count.users"/>"
-                               black-list-patterns="xml-meta-exists"/>
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="count.users"/></td>
+                        <td>
+                            <input type="text" name="<%=UserAdminUIConstants.USER_COUNT_FILTER%>"
+                                   value="<%=Encode.forHtmlAttribute(countFilter)%>" label="<fmt:message key="count.users"/>"
+                                   black-list-patterns="xml-meta-exists"/>
 
-                        <input class="button" type="submit"
-                               value="<fmt:message key="user.count"/>"/>
-                    </td>
-                </tr>
+                            <input class="button" type="submit"
+                                   value="<fmt:message key="user.count"/>"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="count"/></td>
+                        <td>
+                            <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
+                                   value="<%=Encode.forHtmlAttribute(userCount)%>" />
 
-                </tbody>
-                <%
-                    }
-                %>
-            </table>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                    <%
+                        }
+                    %>
+                </table>
+            </form>
             <p>&nbsp;</p>
 
             <carbon:paginator pageNumber="<%=pageNumber%>"
