@@ -63,9 +63,9 @@
                                 <importFeatureDef>
                                     org.wso2.carbon.claim.mgt
                                 </importFeatureDef>
-                                <importFeatureDef>
-                                    org.wso2.carbon.identity.mgt
-                                </importFeatureDef>
+                                <!--<importFeatureDef>-->
+                                    <!--org.wso2.carbon.identity.event-->
+                                <!--</importFeatureDef>-->
                                 <importFeatureDef>
                                     org.wso2.carbon.identity.user.profile
                                 </importFeatureDef>
