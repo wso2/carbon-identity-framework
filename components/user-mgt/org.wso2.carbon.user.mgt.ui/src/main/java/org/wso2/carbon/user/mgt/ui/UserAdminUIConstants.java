@@ -49,11 +49,14 @@ public class UserAdminUIConstants {
 
     // filters
     public static final String USER_LIST_FILTER = "org.wso2.carbon.user.filter";
+    public static final String USER_COUNT_FILTER = "org.wso2.carbon.user.count.filter";
+    public static final String USER_COUNT = "org.wso2.carbon.user.count";
     public static final String USER_LIST_UNASSIGNED_ROLE_FILTER = "org.wso2.carbon.user.unassigned.role.filter";
     public static final String USER_LIST_VIEW_ROLE_FILTER = "org.wso2.carbon.user.view.role.filter";
     public static final String USER_LIST_ASSIGN_ROLE_FILTER = "org.wso2.carbon.user.assign.filter";
 
     public static final String USER_LIST_DOMAIN_FILTER = "org.wso2.carbon.user.domain.filter";
+    public static final String USER_LIST_COUNT_DOMAIN_FILTER = "org.wso2.carbon.user.count.domain.filter";
     public static final String USER_LIST_DOMAIN_UNASSIGNED_ROLE_FILTER = "org.wso2.carbon.user.domain.unassigned.role.filter";
     public static final String USER_LIST_DOMAIN_VIEW_ROLE_FILTER = "org.wso2.carbon.user.domain.view.role.filter";
     public static final String USER_LIST_DOMAIN_ASSIGN_ROLE_FILTER = "org.wso2.carbon.user.domain.assign.filter";
@@ -63,6 +66,10 @@ public class UserAdminUIConstants {
     public static final String ROLE_LIST_UNASSIGNED_USER_FILTER = "org.wso2.carbon.role.unassigned.user.filter";
     public static final String ROLE_LIST_VIEW_USER_FILTER = "org.wso2.carbon.role.view.user.filter";
     public static final String ROLE_LIST_ASSIGN_USER_FILTER = "org.wso2.carbon.role.assign.filter";
+    public static final String ROLE_COUNT_FILTER = "org.wso2.carbon.role.count.filter";
+    public static final String ROLE_COUNT = "org.wso2.carbon.role.count";
+    public static final String ROLE_LIST_COUNT_DOMAIN_FILTER = "org.wso2.carbon.role.count.domain.filter";
+
 
     public static final String ROLE_LIST_DOMAIN_FILTER = "org.wso2.carbon.role.domain.filter";
     public static final String ROLE_LIST_DOMAIN_UNASSIGNED_USER_FILTER = "org.wso2.carbon.role.domain.unassigned.user.filter";

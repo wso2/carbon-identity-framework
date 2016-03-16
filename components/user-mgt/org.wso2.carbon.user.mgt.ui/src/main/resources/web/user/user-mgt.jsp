@@ -30,8 +30,10 @@
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementWorkflowServiceClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserStoreCountClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Arrays" %>
@@ -61,6 +63,7 @@
     String[] claimUris = null;
     FlaggedName[] users = null;
     String[] domainNames = null;
+    String userCount = "";
     int pageNumber = 0;
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
@@ -74,6 +77,7 @@
     Set<String> showDeletePendingUsersList = new LinkedHashSet<String>();
     Set<FlaggedName> aggregateUserList = new LinkedHashSet<FlaggedName>();
     Set<FlaggedName> removeUserElement = new LinkedHashSet<FlaggedName>();
+    Set<String> countableUserStores = new LinkedHashSet<String>();
 
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -106,21 +110,33 @@
 
     //  search filter
     String selectedDomain = request.getParameter("domain");
-    if (selectedDomain == null || selectedDomain.trim().length() == 0) {
+    if (StringUtils.isBlank(selectedDomain)) {
         selectedDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
-        if (selectedDomain == null || selectedDomain.trim().length() == 0) {
+        if (StringUtils.isBlank(selectedDomain)) {
             selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
         }
     } else {
         newFilter = true;
     }
 
+    //  search filter
+    String selectedCountDomain = request.getParameter("countDomain");
+    if (StringUtils.isBlank(selectedCountDomain)) {
+        selectedCountDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER);
+        if (StringUtils.isBlank(selectedCountDomain)) {
+            selectedCountDomain = UserAdminUIConstants.ALL_DOMAINS;
+        }
+    } else {
+        newFilter = true;
+    }
+
     session.setAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER, selectedDomain.trim());
+    session.setAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER, selectedCountDomain.trim());
 
     String filter = request.getParameter(UserAdminUIConstants.USER_LIST_FILTER);
-    if (filter == null || filter.trim().length() == 0) {
+    if (StringUtils.isBlank(filter)) {
         filter = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_LIST_FILTER);
-        if (filter == null || filter.trim().length() == 0) {
+        if (StringUtils.isBlank(filter)) {
             filter = "*";
         }
     } else {
@@ -130,6 +146,22 @@
         }
         newFilter = true;
     }
+
+    String countFilter = request.getParameter(UserAdminUIConstants.USER_COUNT_FILTER);
+    if (StringUtils.isBlank(countFilter)) {
+        countFilter = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_COUNT_FILTER);
+        if (StringUtils.isBlank(countFilter)) {
+            countFilter = "%";
+        }
+    } else {
+        if (countFilter.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)) {
+            selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
+            session.removeAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
+        }
+        newFilter = true;
+    }
+
+
     String userDomainSelector;
     String modifiedFilter = filter.trim();
     if (!UserAdminUIConstants.ALL_DOMAINS.equalsIgnoreCase(selectedDomain)) {
@@ -141,6 +173,7 @@
     }
 
     session.setAttribute(UserAdminUIConstants.USER_LIST_FILTER, filter.trim());
+    session.setAttribute(UserAdminUIConstants.USER_COUNT_FILTER, countFilter.trim());
 
     // check page number
     String pageNumberStr = request.getParameter("pageNumber");
@@ -185,8 +218,13 @@
                     .getServletContext()
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
+            UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
+
+            countableUserStores = countClient.getCountableUserStores();
+            userCount = String.valueOf(countClient.countUsersInDomain(countFilter,selectedCountDomain));
+
             if (userRealmInfo == null) {
                 userRealmInfo = client.getUserRealmInfo();
                 session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
@@ -409,6 +447,75 @@
                         </td>
                     </tr>
                     </tbody>
+                </table>
+            </form>
+            <p>&nbsp;</p>
+
+            <form name="countForm" method="post" action="user-mgt.jsp">
+                <table class="styledLeft">
+                    <%
+                        if (countableUserStores != null && !countableUserStores.isEmpty()) {
+                    %>
+                    <thead>
+                    <tr>
+                        <th colspan="2"><fmt:message key="user.count"/></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="select.domain.search"/></td>
+                        <td><select id="countDomain" name="countDomain">
+                            <%
+                                for (String domainName : countableUserStores) {
+                                    if (selectedDomain.equals(domainName)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                                    }
+                                }
+                            %>
+                        </select>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="count.users"/></td>
+                        <td>
+                            <input type="text" name="<%=UserAdminUIConstants.USER_COUNT_FILTER%>"
+                                   value="<%=Encode.forHtmlAttribute(countFilter)%>" label="<fmt:message key="count.users"/>"
+                                   black-list-patterns="xml-meta-exists"/>
+
+                            <input class="button" type="submit"
+                                   value="<fmt:message key="user.count"/>"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="count"/></td>
+                        <td>
+                            <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
+                                   value="<%=Encode.forHtmlAttribute(userCount)%>" />
+
+                        </td>
+                    </tr>
+
+                    </tbody>
+                    <%
+                        }
+                    %>
                 </table>
             </form>
             <p>&nbsp;</p>

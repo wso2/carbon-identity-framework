@@ -28,8 +28,6 @@ import org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo;
 import org.wso2.carbon.utils.DataPaginator;
 
-import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,6 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.activation.DataHandler;
+import javax.mail.util.ByteArrayDataSource;
+
 
 public class Util {
 
