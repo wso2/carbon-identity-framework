@@ -22,15 +22,15 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserStoreCountDataHolder {
     private static UserStoreCountDataHolder instance = new UserStoreCountDataHolder();
 
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private List<UserStoreCountRetriever> countRetrievers = new ArrayList<>();
+    private Map<String, UserStoreCountRetriever> countRetrievers = new HashMap<>();
 
     private UserStoreCountDataHolder() {
 
@@ -56,7 +56,7 @@ public class UserStoreCountDataHolder {
         this.bundleContext = bundleContext;
     }
 
-    public List<UserStoreCountRetriever> getUserStoreCountRetrievers() {
+    public Map<String, UserStoreCountRetriever> getUserStoreCountRetrievers() {
         return countRetrievers;
     }
 

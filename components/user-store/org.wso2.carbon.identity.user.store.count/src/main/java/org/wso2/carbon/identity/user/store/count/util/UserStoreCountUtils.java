@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDataHolder;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -127,19 +128,10 @@ public class UserStoreCountUtils {
 
         RealmConfiguration realmConfiguration = getUserStoreList().get(domain);
         if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
-            try {
-                UserStoreCountRetriever userStoreCountRetriever = (UserStoreCountRetriever) Class.forName(
-                        realmConfiguration.getUserStoreProperty(countRetrieverClass)).newInstance();
-                userStoreCountRetriever.init(realmConfiguration);
-                return userStoreCountRetriever;
-            } catch (InstantiationException e) {
-                throw new UserStoreCounterException("Couldn't instantiate the class " + countRetrieverClass, e);
-            } catch (IllegalAccessException e) {
-                throw new UserStoreCounterException("Couldn't access the class " + countRetrieverClass, e);
-            } catch (ClassNotFoundException e) {
-                throw new UserStoreCounterException("Couldn't find the class " + countRetrieverClass, e);
-            }
-
+            UserStoreCountRetriever userStoreCountRetriever = UserStoreCountDataHolder.getInstance().
+                    getUserStoreCountRetrievers().get(realmConfiguration.getUserStoreProperty(countRetrieverClass));
+            userStoreCountRetriever.init(realmConfiguration);
+            return userStoreCountRetriever;
         } else {
             return null;
         }

@@ -76,7 +76,8 @@ public class UserStoreCountDSComponent {
         BundleContext bundleContext = ctxt.getBundleContext();
         UserStoreCountDataHolder.getInstance().setBundleContext(bundleContext);
 
-        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().add(new JDBCUserStoreCountRetriever());
+        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().put(
+                JDBCUserStoreCountRetriever.class.getName(), new JDBCUserStoreCountRetriever());
 
         if (log.isDebugEnabled()) {
             log.debug("User store count bundle is activated");
@@ -93,7 +94,8 @@ public class UserStoreCountDSComponent {
 
     protected void setUserStoreCountRetriever(UserStoreCountRetriever userStoreCountRetriever) {
 
-        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().add(userStoreCountRetriever);
+        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().put(
+                userStoreCountRetriever.getClass().getName(), userStoreCountRetriever);
 
         if (log.isDebugEnabled()) {
             log.debug("Added user store count retriever : " + userStoreCountRetriever.getClass().getName());
@@ -102,7 +104,8 @@ public class UserStoreCountDSComponent {
 
     protected void unsetUserStoreCountRetriever(UserStoreCountRetriever userStoreCountRetriever) {
 
-        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().remove(userStoreCountRetriever);
+        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().remove(
+                userStoreCountRetriever.getClass().getName());
 
         if (log.isDebugEnabled()) {
             log.debug("Removed user store count retriever : " + userStoreCountRetriever.getClass().getName());
