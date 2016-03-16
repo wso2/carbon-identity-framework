@@ -106,9 +106,9 @@
 
     //  search filter for count
     String selectedCountDomain = request.getParameter("countDomain");
-    if (selectedCountDomain == null || selectedCountDomain.trim().length() == 0) {
+    if (StringUtils.isBlank(selectedCountDomain)) {
         selectedCountDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER);
-        if (selectedCountDomain == null || selectedCountDomain.trim().length() == 0) {
+        if (StringUtils.isBlank(selectedCountDomain)) {
             selectedCountDomain = UserAdminUIConstants.ALL_DOMAINS;
         }
     } else {
@@ -134,9 +134,9 @@
 
 
     String countFilter = request.getParameter(UserAdminUIConstants.ROLE_COUNT_FILTER);
-    if (countFilter == null || countFilter.trim().length() == 0) {
+    if (StringUtils.isBlank(countFilter)) {
         countFilter = (java.lang.String) session.getAttribute(UserAdminUIConstants.ROLE_COUNT_FILTER);
-        if (countFilter == null || countFilter.trim().length() == 0) {
+        if (StringUtils.isBlank(countFilter)) {
             countFilter = "%";
         }
     } else {

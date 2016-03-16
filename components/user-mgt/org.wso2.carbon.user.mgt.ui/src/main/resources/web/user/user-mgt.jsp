@@ -110,9 +110,9 @@
 
     //  search filter
     String selectedDomain = request.getParameter("domain");
-    if (selectedDomain == null || selectedDomain.trim().length() == 0) {
+    if (StringUtils.isBlank(selectedDomain)) {
         selectedDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
-        if (selectedDomain == null || selectedDomain.trim().length() == 0) {
+        if (StringUtils.isBlank(selectedDomain)) {
             selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
         }
     } else {
@@ -121,9 +121,9 @@
 
     //  search filter
     String selectedCountDomain = request.getParameter("countDomain");
-    if (selectedCountDomain == null || selectedCountDomain.trim().length() == 0) {
+    if (StringUtils.isBlank(selectedCountDomain)) {
         selectedCountDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER);
-        if (selectedCountDomain == null || selectedCountDomain.trim().length() == 0) {
+        if (StringUtils.isBlank(selectedCountDomain)) {
             selectedCountDomain = UserAdminUIConstants.ALL_DOMAINS;
         }
     } else {
@@ -134,9 +134,9 @@
     session.setAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER, selectedCountDomain.trim());
 
     String filter = request.getParameter(UserAdminUIConstants.USER_LIST_FILTER);
-    if (filter == null || filter.trim().length() == 0) {
+    if (StringUtils.isBlank(filter)) {
         filter = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_LIST_FILTER);
-        if (filter == null || filter.trim().length() == 0) {
+        if (StringUtils.isBlank(filter)) {
             filter = "*";
         }
     } else {
@@ -148,9 +148,9 @@
     }
 
     String countFilter = request.getParameter(UserAdminUIConstants.USER_COUNT_FILTER);
-    if (countFilter == null || countFilter.trim().length() == 0) {
+    if (StringUtils.isBlank(countFilter)) {
         countFilter = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_COUNT_FILTER);
-        if (countFilter == null || countFilter.trim().length() == 0) {
+        if (StringUtils.isBlank(countFilter)) {
             countFilter = "%";
         }
     } else {

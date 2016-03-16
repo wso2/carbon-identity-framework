@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.user.store.count;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 
 import java.util.Map;
+import org.wso2.carbon.user.api.RealmConfiguration;
 
 public interface UserStoreCountRetriever {
 
+    void init(RealmConfiguration realmConfiguration) throws UserStoreCounterException;
     /**
      * Get the count of users having a matching user name for the filter
      *

@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.user.store.count;
 
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.Map;
@@ -25,6 +26,11 @@ import java.util.Map;
 public abstract class AbstractUserStoreCountRetriever implements UserStoreCountRetriever {
 
     public int searchTime = UserCoreConstants.MAX_SEARCH_TIME;
+
+    @Override
+    public void init(RealmConfiguration realmConfiguration) throws UserStoreCounterException {
+        return;
+    }
 
     @Override
     public Long countUsers(String filter) throws UserStoreCounterException {

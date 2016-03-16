@@ -27,8 +27,6 @@ import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterExcep
 import org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import java.util.List;
-
 /**
  * @scr.component name="identity.user.store.count.component" immediate="true"
  * @scr.reference name="user.realmservice.default"
@@ -109,10 +107,6 @@ public class UserStoreCountDSComponent {
         if (log.isDebugEnabled()) {
             log.debug("Removed user store count retriever : " + userStoreCountRetriever.getClass().getName());
         }
-    }
-
-    public static List<UserStoreCountRetriever> getUserStoreCountRetrievers() {
-        return UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers();
     }
 
 

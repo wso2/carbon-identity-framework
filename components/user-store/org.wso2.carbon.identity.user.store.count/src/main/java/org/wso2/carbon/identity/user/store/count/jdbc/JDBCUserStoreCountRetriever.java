@@ -19,10 +19,10 @@ package org.wso2.carbon.identity.user.store.count.jdbc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.user.api.RealmConfiguration;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
@@ -36,16 +36,17 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
     private static Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
     private RealmConfiguration realmConfiguration = null;
-    private int tenantId = 0;
+    private int tenantId = -1234;
 
     public JDBCUserStoreCountRetriever() {
 
     }
 
-    public JDBCUserStoreCountRetriever(RealmConfiguration realmConfiguration, int tenantId) throws UserStoreException {
+    public void init(RealmConfiguration realmConfiguration) {
         this.realmConfiguration = realmConfiguration;
-        this.tenantId = tenantId;
+        this.tenantId = realmConfiguration.getTenantId();
     }
+
 
     @Override
     public Long countUsers(String filter) throws UserStoreCounterException {
@@ -55,7 +56,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection(realmConfiguration);
+            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_USERS_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, "%" + filter + "%");
@@ -71,7 +72,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
-            log.error("Using sql : " + sqlStmt);
+            if (log.isDebugEnabled()) {
+                log.debug("Using sql : " + sqlStmt);
+            }
             throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
             throw new UserStoreCounterException(e.getMessage(), e);
@@ -88,7 +91,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection(realmConfiguration);
+            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_ROLES_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, "%" + filter + "%");
@@ -104,7 +107,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
-            log.error("Using sql : " + sqlStmt);
+            if (log.isDebugEnabled()) {
+                log.debug("Using sql : " + sqlStmt);
+            }
             throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
             throw new UserStoreCounterException(e.getMessage(), e);
@@ -121,7 +126,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection(realmConfiguration);
+            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_CLAIM_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, claimURI);
@@ -138,7 +143,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
-            log.error("Using sql : " + sqlStmt);
+            if (log.isDebugEnabled()) {
+                log.debug("Using sql : " + sqlStmt);
+            }
             throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
             throw new UserStoreCounterException(e.getMessage(), e);
@@ -155,7 +162,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection(realmConfiguration);
+            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
             sqlStmt = JDBCUserStoreMetricsConstants.SELECT_COUNT_SQL;
 
             for (int i = 0; i < claimSetToFilter.size(); i++) {
@@ -195,7 +202,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
-            log.error("Using sql : " + sqlStmt);
+            if (log.isDebugEnabled()) {
+                log.debug("Using sql : " + sqlStmt);
+            }
             throw new UserStoreCounterException(e.getMessage(), e);
         } catch (Exception e) {
             throw new UserStoreCounterException(e.getMessage(), e);
@@ -204,10 +213,4 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         }
     }
 
-    private Connection getDBConnection(RealmConfiguration realmConfiguration) throws SQLException, UserStoreException {
-        Connection dbConnection = DatabaseUtil.getDBConnection(DatabaseUtil.getRealmDataSource(realmConfiguration));
-        dbConnection.setAutoCommit(false);
-        dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        return dbConnection;
-    }
 }

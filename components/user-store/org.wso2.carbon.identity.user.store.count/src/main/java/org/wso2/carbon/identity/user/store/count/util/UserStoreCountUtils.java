@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.user.store.count.util;
 
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +30,6 @@ import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -129,8 +129,8 @@ public class UserStoreCountUtils {
         if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
             try {
                 UserStoreCountRetriever userStoreCountRetriever = (UserStoreCountRetriever) Class.forName(
-                        realmConfiguration.getUserStoreProperty(countRetrieverClass)).getDeclaredConstructor(
-                        RealmConfiguration.class, Integer.TYPE).newInstance(realmConfiguration, realmConfiguration.getTenantId());
+                        realmConfiguration.getUserStoreProperty(countRetrieverClass)).newInstance();
+                userStoreCountRetriever.init(realmConfiguration);
                 return userStoreCountRetriever;
             } catch (InstantiationException e) {
                 throw new UserStoreCounterException("Couldn't instantiate the class " + countRetrieverClass, e);
@@ -138,12 +138,6 @@ public class UserStoreCountUtils {
                 throw new UserStoreCounterException("Couldn't access the class " + countRetrieverClass, e);
             } catch (ClassNotFoundException e) {
                 throw new UserStoreCounterException("Couldn't find the class " + countRetrieverClass, e);
-            } catch (NoSuchMethodException e) {
-                throw new UserStoreCounterException("Couldn't find a proper constructor for the class " +
-                        countRetrieverClass, e);
-            } catch (InvocationTargetException e) {
-                throw new UserStoreCounterException("Error occurred creating an instance of the class " +
-                        countRetrieverClass, e);
             }
 
         } else {
