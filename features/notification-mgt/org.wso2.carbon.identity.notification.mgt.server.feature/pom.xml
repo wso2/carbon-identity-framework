@@ -37,14 +37,6 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.notification.mgt</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.notification.mgt.email</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.notification.mgt.json</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
@@ -95,10 +87,6 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.notification.mgt
-                                </bundleDef>
-                                <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.notification.mgt.email
-                                </bundleDef>
-                                <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.notification.mgt.json
                                 </bundleDef>
                             </bundles>
                             <importFeatures>
