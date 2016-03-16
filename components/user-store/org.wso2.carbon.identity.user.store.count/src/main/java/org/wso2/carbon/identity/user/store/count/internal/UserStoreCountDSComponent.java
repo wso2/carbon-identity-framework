@@ -21,10 +21,12 @@ package org.wso2.carbon.identity.user.store.count.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever;
+import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -76,11 +78,18 @@ public class UserStoreCountDSComponent {
         BundleContext bundleContext = ctxt.getBundleContext();
         UserStoreCountDataHolder.getInstance().setBundleContext(bundleContext);
 
+        UserStoreCountRetriever userStoreCountRetriever = new JDBCUserStoreCountRetriever();
+        ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService(
+                UserOperationEventListener.class.getName(), userStoreCountRetriever, null);
         UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().put(
-                JDBCUserStoreCountRetriever.class.getName(), new JDBCUserStoreCountRetriever());
+                JDBCUserStoreCountRetriever.class.getName(), userStoreCountRetriever);
 
-        if (log.isDebugEnabled()) {
-            log.debug("User store count bundle is activated");
+        if (serviceRegistration != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Identity User Store Count -  JDBCUserStoreCountRetriever registered.");
+            }
+        } else {
+            log.error("Identity User Store Count -  JDBCUserStoreCountRetriever could not be registered.");
         }
     }
 
