@@ -71,8 +71,16 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.provider</artifactId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity</groupId>
+            <artifactId>org.wso2.carbon.user.mgt</artifactId>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.wso2.carbon.identity</groupId>-->
+            <!--<artifactId>org.wso2.carbon.identity.provider</artifactId>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.notification.mgt</artifactId>
