@@ -54,7 +54,7 @@ public class UserStoreCountClient {
             throws java.lang.Exception {
         try {
 
-            stub = new UserStoreCountServiceStub(configContext, url + "UserAdmin");
+            stub = new UserStoreCountServiceStub(configContext, url + "UserStoreCountService");
             ServiceClient client = stub._getServiceClient();
             Options option = client.getOptions();
             option.setManageSession(true);

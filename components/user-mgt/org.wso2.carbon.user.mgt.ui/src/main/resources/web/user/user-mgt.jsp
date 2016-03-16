@@ -70,6 +70,7 @@
     Set<String> showDeletePendingUsersList = new LinkedHashSet<String>();
     Set<FlaggedName> aggregateUserList = new LinkedHashSet<FlaggedName>();
     Set<FlaggedName> removeUserElement = new LinkedHashSet<FlaggedName>();
+    Set<String> countableUserStores = new LinkedHashSet<String>();
 
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -184,6 +185,9 @@
             UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
+
+            countableUserStores = countClient.getCountableUserStores();
+
             if (userRealmInfo == null) {
                 userRealmInfo = client.getUserRealmInfo();
                 session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
@@ -376,8 +380,6 @@
 
                             <input class="button" type="submit"
                                    value="<fmt:message key="user.search"/>"/>
-                            <input class="button" type="submit"
-                                   value="<fmt:message key="user.count"/>"/>
                         </td>
                     </tr>
                     <tr>
@@ -410,6 +412,64 @@
                     </tbody>
                 </table>
             </form>
+            <p>&nbsp;</p>
+
+            <table class="styledLeft">
+                <%
+                    if (countableUserStores != null && !countableUserStores.isEmpty()) {
+                %>
+                <thead>
+                <tr>
+                    <th colspan="2"><fmt:message key="user.count"/></th>
+                </tr>
+                </thead>
+                <tbody>
+
+
+                <tr>
+                    <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                            key="select.domain.search"/></td>
+                    <td><select id="domain" name="domain">
+                        <%
+                            for (String domainName : domainNames) {
+                                if (selectedDomain.equals(domainName)) {
+                        %>
+                        <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
+                            <%=Encode.forHtml(domainName)%>
+                        </option>
+                        <%
+                        } else {
+                        %>
+                        <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                            <%=Encode.forHtml(domainName)%>
+                        </option>
+                        <%
+                                }
+                            }
+                        %>
+                    </select>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                            key="count.users"/></td>
+                    <td>
+                        <input type="text" name="<%=UserAdminUIConstants.USER_LIST_FILTER%>"
+                               value="<%=Encode.forHtmlAttribute(filter)%>" label="<fmt:message key="count.users"/>"
+                               black-list-patterns="xml-meta-exists"/>
+
+                        <input class="button" type="submit"
+                               value="<fmt:message key="user.count"/>"/>
+                    </td>
+                </tr>
+
+                </tbody>
+                <%
+                    }
+                %>
+            </table>
             <p>&nbsp;</p>
 
             <carbon:paginator pageNumber="<%=pageNumber%>"

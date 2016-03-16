@@ -1,0 +1,582 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2415="http://exception.count.store.user.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2417="http://dto.count.store.user.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:tns="http://count.store.user.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://count.store.user.identity.carbon.wso2.org">
+    <wsdl:documentation>UserStoreCountService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.count.store.user.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="PairDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="key" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2416="http://exception.count.store.user.identity.carbon.wso2.org/xsd" xmlns:ax2418="http://dto.count.store.user.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://exception.count.store.user.identity.carbon.wso2.org/xsd"/>
+            <xs:import namespace="http://dto.count.store.user.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="UserStoreCountServiceUserStoreCounterException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="UserStoreCounterException" nillable="true" type="ax2415:UserStoreCounterException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countRolesInDomain">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="domain" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countRolesInDomainResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:long"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countUsersInDomain">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="domain" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countUsersInDomainResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:long"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countByClaimInDomain">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="claimURI" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="valueFilter" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="domain" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countByClaimInDomainResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:long"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countByClaimsInDomain">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="claimSetToFilter" nillable="true" type="ax2417:PairDTO"/>
+                        <xs:element minOccurs="0" name="domain" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countByClaimsInDomainResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:long"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountEnabledUserStores">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountEnabledUserStoresResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countUsers">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countUsersResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2417:PairDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countRoles">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countRolesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2417:PairDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countClaim">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="claimURI" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="valueFilter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countClaimResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2417:PairDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countClaims">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="claimSetToFilter" nillable="true" type="ax2417:PairDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="countClaimsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2417:PairDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://exception.count.store.user.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="UserStoreCounterException">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="message" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="countUsersInDomainRequest">
+        <wsdl:part name="parameters" element="ns1:countUsersInDomain"/>
+    </wsdl:message>
+    <wsdl:message name="countUsersInDomainResponse">
+        <wsdl:part name="parameters" element="ns1:countUsersInDomainResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UserStoreCountServiceUserStoreCounterException">
+        <wsdl:part name="parameters" element="ns1:UserStoreCountServiceUserStoreCounterException"/>
+    </wsdl:message>
+    <wsdl:message name="countRolesRequest">
+        <wsdl:part name="parameters" element="ns1:countRoles"/>
+    </wsdl:message>
+    <wsdl:message name="countRolesResponse">
+        <wsdl:part name="parameters" element="ns1:countRolesResponse"/>
+    </wsdl:message>
+    <wsdl:message name="countByClaimInDomainRequest">
+        <wsdl:part name="parameters" element="ns1:countByClaimInDomain"/>
+    </wsdl:message>
+    <wsdl:message name="countByClaimInDomainResponse">
+        <wsdl:part name="parameters" element="ns1:countByClaimInDomainResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getCountEnabledUserStoresRequest">
+        <wsdl:part name="parameters" element="ns1:getCountEnabledUserStores"/>
+    </wsdl:message>
+    <wsdl:message name="getCountEnabledUserStoresResponse">
+        <wsdl:part name="parameters" element="ns1:getCountEnabledUserStoresResponse"/>
+    </wsdl:message>
+    <wsdl:message name="countClaimRequest">
+        <wsdl:part name="parameters" element="ns1:countClaim"/>
+    </wsdl:message>
+    <wsdl:message name="countClaimResponse">
+        <wsdl:part name="parameters" element="ns1:countClaimResponse"/>
+    </wsdl:message>
+    <wsdl:message name="countUsersRequest">
+        <wsdl:part name="parameters" element="ns1:countUsers"/>
+    </wsdl:message>
+    <wsdl:message name="countUsersResponse">
+        <wsdl:part name="parameters" element="ns1:countUsersResponse"/>
+    </wsdl:message>
+    <wsdl:message name="countRolesInDomainRequest">
+        <wsdl:part name="parameters" element="ns1:countRolesInDomain"/>
+    </wsdl:message>
+    <wsdl:message name="countRolesInDomainResponse">
+        <wsdl:part name="parameters" element="ns1:countRolesInDomainResponse"/>
+    </wsdl:message>
+    <wsdl:message name="countByClaimsInDomainRequest">
+        <wsdl:part name="parameters" element="ns1:countByClaimsInDomain"/>
+    </wsdl:message>
+    <wsdl:message name="countByClaimsInDomainResponse">
+        <wsdl:part name="parameters" element="ns1:countByClaimsInDomainResponse"/>
+    </wsdl:message>
+    <wsdl:message name="countClaimsRequest">
+        <wsdl:part name="parameters" element="ns1:countClaims"/>
+    </wsdl:message>
+    <wsdl:message name="countClaimsResponse">
+        <wsdl:part name="parameters" element="ns1:countClaimsResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="UserStoreCountServicePortType">
+        <wsdl:operation name="countUsersInDomain">
+            <wsdl:input message="tns:countUsersInDomainRequest" wsaw:Action="urn:countUsersInDomain"/>
+            <wsdl:output message="tns:countUsersInDomainResponse" wsaw:Action="urn:countUsersInDomainResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countUsersInDomainUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="countRoles">
+            <wsdl:input message="tns:countRolesRequest" wsaw:Action="urn:countRoles"/>
+            <wsdl:output message="tns:countRolesResponse" wsaw:Action="urn:countRolesResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countRolesUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimInDomain">
+            <wsdl:input message="tns:countByClaimInDomainRequest" wsaw:Action="urn:countByClaimInDomain"/>
+            <wsdl:output message="tns:countByClaimInDomainResponse" wsaw:Action="urn:countByClaimInDomainResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countByClaimInDomainUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getCountEnabledUserStores">
+            <wsdl:input message="tns:getCountEnabledUserStoresRequest" wsaw:Action="urn:getCountEnabledUserStores"/>
+            <wsdl:output message="tns:getCountEnabledUserStoresResponse" wsaw:Action="urn:getCountEnabledUserStoresResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:getCountEnabledUserStoresUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="countClaim">
+            <wsdl:input message="tns:countClaimRequest" wsaw:Action="urn:countClaim"/>
+            <wsdl:output message="tns:countClaimResponse" wsaw:Action="urn:countClaimResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countClaimUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="countUsers">
+            <wsdl:input message="tns:countUsersRequest" wsaw:Action="urn:countUsers"/>
+            <wsdl:output message="tns:countUsersResponse" wsaw:Action="urn:countUsersResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countUsersUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="countRolesInDomain">
+            <wsdl:input message="tns:countRolesInDomainRequest" wsaw:Action="urn:countRolesInDomain"/>
+            <wsdl:output message="tns:countRolesInDomainResponse" wsaw:Action="urn:countRolesInDomainResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countRolesInDomainUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimsInDomain">
+            <wsdl:input message="tns:countByClaimsInDomainRequest" wsaw:Action="urn:countByClaimsInDomain"/>
+            <wsdl:output message="tns:countByClaimsInDomainResponse" wsaw:Action="urn:countByClaimsInDomainResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countByClaimsInDomainUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+        <wsdl:operation name="countClaims">
+            <wsdl:input message="tns:countClaimsRequest" wsaw:Action="urn:countClaims"/>
+            <wsdl:output message="tns:countClaimsResponse" wsaw:Action="urn:countClaimsResponse"/>
+            <wsdl:fault message="tns:UserStoreCountServiceUserStoreCounterException" name="UserStoreCountServiceUserStoreCounterException" wsaw:Action="urn:countClaimsUserStoreCountServiceUserStoreCounterException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="UserStoreCountServiceSoap11Binding" type="tns:UserStoreCountServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="countUsersInDomain">
+            <soap:operation soapAction="urn:countUsersInDomain" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countRoles">
+            <soap:operation soapAction="urn:countRoles" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimInDomain">
+            <soap:operation soapAction="urn:countByClaimInDomain" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCountEnabledUserStores">
+            <soap:operation soapAction="urn:getCountEnabledUserStores" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countClaim">
+            <soap:operation soapAction="urn:countClaim" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countUsers">
+            <soap:operation soapAction="urn:countUsers" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countRolesInDomain">
+            <soap:operation soapAction="urn:countRolesInDomain" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimsInDomain">
+            <soap:operation soapAction="urn:countByClaimsInDomain" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countClaims">
+            <soap:operation soapAction="urn:countClaims" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserStoreCountServiceSoap12Binding" type="tns:UserStoreCountServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="countUsersInDomain">
+            <soap12:operation soapAction="urn:countUsersInDomain" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countRoles">
+            <soap12:operation soapAction="urn:countRoles" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimInDomain">
+            <soap12:operation soapAction="urn:countByClaimInDomain" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCountEnabledUserStores">
+            <soap12:operation soapAction="urn:getCountEnabledUserStores" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countClaim">
+            <soap12:operation soapAction="urn:countClaim" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countUsers">
+            <soap12:operation soapAction="urn:countUsers" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countRolesInDomain">
+            <soap12:operation soapAction="urn:countRolesInDomain" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimsInDomain">
+            <soap12:operation soapAction="urn:countByClaimsInDomain" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="countClaims">
+            <soap12:operation soapAction="urn:countClaims" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreCountServiceUserStoreCounterException">
+                <soap12:fault use="literal" name="UserStoreCountServiceUserStoreCounterException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="UserStoreCountServiceHttpBinding" type="tns:UserStoreCountServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="countUsersInDomain">
+            <http:operation location="countUsersInDomain"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="countRoles">
+            <http:operation location="countRoles"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimInDomain">
+            <http:operation location="countByClaimInDomain"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCountEnabledUserStores">
+            <http:operation location="getCountEnabledUserStores"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="countClaim">
+            <http:operation location="countClaim"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="countUsers">
+            <http:operation location="countUsers"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="countRolesInDomain">
+            <http:operation location="countRolesInDomain"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="countByClaimsInDomain">
+            <http:operation location="countByClaimsInDomain"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="countClaims">
+            <http:operation location="countClaims"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="UserStoreCountService">
+        <wsdl:port name="UserStoreCountServiceHttpsSoap11Endpoint" binding="tns:UserStoreCountServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/UserStoreCountService.UserStoreCountServiceHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserStoreCountServiceHttpsSoap12Endpoint" binding="tns:UserStoreCountServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/UserStoreCountService.UserStoreCountServiceHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="UserStoreCountServiceHttpsEndpoint" binding="tns:UserStoreCountServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/UserStoreCountService.UserStoreCountServiceHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>
