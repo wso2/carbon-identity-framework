@@ -91,9 +91,7 @@
                             org.wso2.carbon.identity.workflow.mgt.stub.metadata.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.bpel.stub.upload; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.bpel.stub.upload.types;version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.humantask.stub.upload;version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.humantask.stub.upload.types;version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.bpel.stub.upload.types;version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.workflow.mgt.ui.*;version="${carbon.identity.package.export.version}"
