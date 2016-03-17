@@ -19,10 +19,10 @@ package org.wso2.carbon.identity.user.store.count.jdbc;
 
 public class JDBCUserStoreMetricsConstants {
 
-    public static final String COUNT_USERS_SQL = "SELECT COUNT(UM_ID) FROM UM_USER WHERE UM_USER_NAME LIKE ? " +
+    public static final String COUNT_USERS_SQL = "SELECT COUNT(UM_USER_NAME) FROM UM_USER WHERE UM_USER_NAME LIKE ? " +
             "AND UM_TENANT_ID = ?";
 
-    public static final String COUNT_ROLES_SQL = "SELECT COUNT(UM_ID) FROM UM_ROLE WHERE UM_ROLE_NAME LIKE ? AND " +
+    public static final String COUNT_ROLES_SQL = "SELECT COUNT(UM_ROLE_NAME) FROM UM_ROLE WHERE UM_ROLE_NAME LIKE ? AND " +
             "UM_TENANT_ID = ?";
 
     public static final String COUNT_CLAIM_SQL = "SELECT COUNT(UM_USER_ID) FROM UM_USER_ATTRIBUTE WHERE UM_ATTR_NAME = ? " +
