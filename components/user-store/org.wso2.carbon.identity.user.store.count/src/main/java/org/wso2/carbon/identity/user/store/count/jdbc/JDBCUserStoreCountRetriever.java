@@ -214,7 +214,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     private Connection getDBConnection(RealmConfiguration realmConfiguration) throws SQLException, UserStoreException {
-        Connection dbConnection = DatabaseUtil.getDBConnection(DatabaseUtil.getRealmDataSource(realmConfiguration));
+        Connection dbConnection = DatabaseUtil.getDBConnection(DatabaseUtil.createUserStoreDataSource(realmConfiguration));
         dbConnection.setAutoCommit(false);
         dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         return dbConnection;
