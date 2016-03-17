@@ -26,7 +26,6 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -80,7 +79,7 @@ public class UserStoreCountDSComponent {
 
         UserStoreCountRetriever userStoreCountRetriever = new JDBCUserStoreCountRetriever();
         ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService(
-                UserOperationEventListener.class.getName(), userStoreCountRetriever, null);
+                UserStoreCountRetriever.class.getName(), userStoreCountRetriever, null);
         UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().put(
                 JDBCUserStoreCountRetriever.class.getName(), userStoreCountRetriever);
 
