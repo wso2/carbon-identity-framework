@@ -19,10 +19,10 @@ package org.wso2.carbon.identity.user.store.count.jdbc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
@@ -56,7 +56,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
+            dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_USERS_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, "%" + filter + "%");
@@ -65,7 +65,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_ID)");
+                return resultSet.getLong("COUNT(UM_USER_NAME)");
             } else {
                 log.error("No user count is retrieved from the user store");
                 return Long.valueOf(-1);
@@ -91,7 +91,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
+            dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_ROLES_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, "%" + filter + "%");
@@ -100,7 +100,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_ID)");
+                return resultSet.getLong("COUNT(UM_ROLE_NAME)");
             } else {
                 log.error("No role count is retrieved from the user store");
                 return Long.valueOf(-1);
@@ -126,7 +126,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
+            dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_CLAIM_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, claimURI);
@@ -162,7 +162,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         ResultSet resultSet = null;
 
         try {
-            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
+            dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.SELECT_COUNT_SQL;
 
             for (int i = 0; i < claimSetToFilter.size(); i++) {
@@ -212,5 +212,12 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
     }
+
+    private Connection getDBConnection(RealmConfiguration realmConfiguration) throws SQLException, UserStoreException {
+        Connection dbConnection = DatabaseUtil.getDBConnection(DatabaseUtil.createUserStoreDataSource(realmConfiguration));
+        dbConnection.setAutoCommit(false);
+        dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        return dbConnection;
+        }
 
 }
