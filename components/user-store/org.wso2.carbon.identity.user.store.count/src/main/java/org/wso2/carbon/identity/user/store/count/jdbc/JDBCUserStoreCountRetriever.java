@@ -100,7 +100,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_USER_NAME)");
+                return resultSet.getLong("COUNT(UM_ROLE_NAME)");
             } else {
                 log.error("No role count is retrieved from the user store");
                 return Long.valueOf(-1);
