@@ -17,12 +17,15 @@
  */
 package org.wso2.carbon.identity.user.store.count.jdbc;
 
+import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
@@ -214,7 +217,23 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
     }
 
     private Connection getDBConnection(RealmConfiguration realmConfiguration) throws SQLException, UserStoreException {
-        Connection dbConnection = DatabaseUtil.getDBConnection(DatabaseUtil.createUserStoreDataSource(realmConfiguration));
+
+        Connection dbConnection = null;
+        DataSource dataSource = DatabaseUtil.createUserStoreDataSource(realmConfiguration);
+
+        if(dataSource != null) {
+             dbConnection = DatabaseUtil.getDBConnection(dataSource);
+        }
+
+        //if primary user store, DB connection can be same as realm data source.
+        if(dbConnection == null && realmConfiguration.isPrimary()){
+            dbConnection = IdentityDatabaseUtil.getUserDBConnection();
+        } else if (dbConnection == null){
+            throw new UserStoreException("Could not create a database connection to " +
+                    realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+        } else {
+            // db connection is present
+        }
         dbConnection.setAutoCommit(false);
         dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         return dbConnection;
