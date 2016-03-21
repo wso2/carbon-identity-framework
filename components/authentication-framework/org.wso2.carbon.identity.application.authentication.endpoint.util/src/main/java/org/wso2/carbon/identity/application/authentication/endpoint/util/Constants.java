@@ -64,7 +64,7 @@ public class Constants {
         public static final String TENANT_LIST_ENABLED = "tenantListEnabled";
 
         // Service URL constants
-        public static final String TENANT_MGT_ADMIN_SERVICE_URL = "/TenantMgtAdminService/retrieveTenants";
+        public static final String TENANT_MGT_ADMIN_SERVICE_URL = "TenantMgtAdminService/retrieveTenants";
 
         // String constants for SOAP response processing
         public static final String RETURN = "return";
