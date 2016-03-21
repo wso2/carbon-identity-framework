@@ -195,12 +195,14 @@ public class TenantDataManager {
     private static String resolveServiceUrl(String serviceURL) {
         try {
             URI serviceURI = new URI(serviceURL);
-            if (StringUtils.isBlank(serviceURI.getHost()) || serviceURI.getPort() < 0) {
+            if (StringUtils.isBlank(serviceURI.getHost())) {
                 return IdentityUtil.getServerURL(serviceURL, true, true);
             } else {
                 return IdentityUtil.fillURLPlaceholders(serviceURL);
             }
         } catch (URISyntaxException e) {
+            log.warn("Error when parsing the service URL given in EndpointConfig.properties " + serviceURL + "" +
+                    ".\nDefaulting to " + IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true));
             return IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true);
         }
     }
