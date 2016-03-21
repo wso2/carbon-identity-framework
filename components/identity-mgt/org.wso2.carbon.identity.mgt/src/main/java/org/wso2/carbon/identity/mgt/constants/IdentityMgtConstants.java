@@ -204,6 +204,10 @@ public class IdentityMgtConstants {
 
         public static final String ASK_PASSWORD = "askPassword";
 
+        public static final String PASSWORD_EXPIRES = "passwordExpires";
+
+        public static final String PASSWORD_EXPIRED = "passwordExpired";
+
         public static final String ACCOUNT_ENABLE = "accountEnable";
 
         public static final String ACCOUNT_DISABLE = "accountDisable";
