@@ -42,6 +42,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -179,13 +181,29 @@ public class TenantDataManager {
      * @return Property value
      */
     protected static String getPropertyValue(String key) {
-        if ((Constants.SERVICES_URL.equals(key)) && !prop.containsKey(Constants.SERVICES_URL)) {
-            String serviceUrl = IdentityUtil.getServicePath();
-            return IdentityUtil.getServerURL(serviceUrl, true, true);
+        if ((Constants.SERVICES_URL.equals(key))) {
+            if (!prop.containsKey(Constants.SERVICES_URL)) {
+                String serviceUrl = IdentityUtil.getServicePath();
+                return IdentityUtil.getServerURL(serviceUrl, true, true);
+            } else {
+                return resolveServiceUrl(prop.getProperty(key));
+            }
         }
         return prop.getProperty(key);
     }
 
+    private static String resolveServiceUrl(String serviceURL) {
+        try {
+            URI serviceURI = new URI(serviceURL);
+            if (StringUtils.isBlank(serviceURI.getHost()) || serviceURI.getPort() < 0) {
+                return IdentityUtil.getServerURL(serviceURL, true, true);
+            } else {
+                return IdentityUtil.fillURLPlaceholders(serviceURL);
+            }
+        } catch (URISyntaxException e) {
+            return IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true);
+        }
+    }
     /**
      * Call service and return response
      *
