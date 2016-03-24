@@ -54,7 +54,7 @@
                                 </path>
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
                                     <arg
-                                            line="-uri src/main/resources/EventManagementAdminService.wsdl -u -uw -o target/generated-code -p org.wso2.carbon.identity.event.stub -ns2p http://services.mgt.identity.carbon.wso2.org=org.wso2.carbon.identity.event.stub,http://dto.mgt.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.event.stub.dto,http://beans.mgt.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.event.stub.beans, http://beans.mgt.captcha.carbon.wso2.org/xsd=org.wso2.carbon.captcha.mgt.beans" />
+                                            line="-uri src/main/resources/EventManagementAdminService.wsdl -u -uw -o target/generated-code -p org.wso2.carbon.identity.event.stub -ns2p http://services.event.identity.carbon.wso2.org=org.wso2.carbon.identity.event.stub,http://bean.event.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.event.stub.bean, http://beans.mgt.captcha.carbon.wso2.org/xsd=org.wso2.carbon.captcha.mgt.beans" />
                                     <classpath refid="wsdl2java.classpath" />
                                 </java>
                             </tasks>

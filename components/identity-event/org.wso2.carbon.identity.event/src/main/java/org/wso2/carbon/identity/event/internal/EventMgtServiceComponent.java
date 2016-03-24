@@ -25,14 +25,12 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
-import org.wso2.carbon.identity.event.listener.EventMgtListener;
 import org.wso2.carbon.identity.event.handler.EventHandler;
 import org.wso2.carbon.identity.event.listener.TenantCreationEventListener;
 import org.wso2.carbon.identity.event.services.EventMgtService;
 import org.wso2.carbon.identity.event.services.EventMgtServiceImpl;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -41,7 +39,7 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * @scr.component name="org.wso2.carbon.identity.event.internal.IdentityMgtServiceComponent"
+ * @scr.component name="org.wso2.carbon.identity.event.internal.EventMgtServiceComponent"
  * immediate="true
  * @scr.reference name="realm.service"
  * interface="org.wso2.carbon.user.core.service.RealmService"cardinality="1..1"
@@ -71,8 +69,6 @@ public class EventMgtServiceComponent {
 
     private ServiceRegistration serviceRegistration = null;
 
-    private static EventMgtListener listener = null;
-
     // list of all registered event handlers
     public static List<EventHandler> eventHandlerList = new ArrayList<>();
 
@@ -85,14 +81,13 @@ public class EventMgtServiceComponent {
         try {
             EventMgtServiceDataHolder.getInstance().setEventMgtService(new EventMgtServiceImpl(eventHandlerList,
                     Integer.parseInt(EventMgtConfigBuilder.getInstance().getThreadPoolSize())));
+
+            context.getBundleContext().registerService(EventMgtService.class.getName(),  EventMgtServiceDataHolder
+                    .getInstance().getEventMgtService(), null);
         } catch (EventMgtException e) {
             log.error("Error while initiating IdentityMgtService.");
         }
         init();
-        listener = new EventMgtListener();
-        serviceRegistration =
-                context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
-                        listener, null);
         if (log.isDebugEnabled()) {
             log.debug("Identity Management Listener is enabled");
         }

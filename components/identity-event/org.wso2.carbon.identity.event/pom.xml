@@ -95,7 +95,7 @@
                         </Private-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.event.*; version="${carbon.identity.package.export.version}",
-                            !org.wso2.carbon.identity.event.service
+                            !org.wso2.carbon.identity.event.internal
                         </Export-Package>
                         <Import-Package>
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
