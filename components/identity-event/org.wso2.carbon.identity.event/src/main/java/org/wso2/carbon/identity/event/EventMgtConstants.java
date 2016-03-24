@@ -29,7 +29,7 @@ public class EventMgtConstants {
 
         private PropertyConfig(){}
 
-        public static final String CONFIG_FILE_NAME = "identity-mgt.properties";
+        public static final String CONFIG_FILE_NAME = "identity-event.properties";
         public static final String ACCOUNT_LOCK_ENABLE = "Account.Lock.Enable";
         public static final String AUTH_POLICY_ENABLE = "Authentication.Policy.Enable";
         public static final String AUTH_POLICY_ACCOUNT_EXIST = "Authentication.Policy.Check.Account.Exist";
@@ -49,6 +49,7 @@ public class EventMgtConstants {
         private Event(){}
 
         public static final String PRE_AUTHENTICATION = "PRE_AUTHENTICATION";
+        public static final String POST_AUTHENTICATION = "POST_AUTHENTICATION";
 
     }
 
@@ -60,6 +61,9 @@ public class EventMgtConstants {
         public static final String USER_NAME = "userName";
         public static final String USER_STORE_MANAGER = "userStoreManager";
         public static final String IDENTITY_MGT_CONFIG = "identityMgtConfig";
+        public static final String TENANT_ID = "tenantId";
+        public static final String OPERATION_STATUS = "OPERATION_STATUS";
+
 
     }
 

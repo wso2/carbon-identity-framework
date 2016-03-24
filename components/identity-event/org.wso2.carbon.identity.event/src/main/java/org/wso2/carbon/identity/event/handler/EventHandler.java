@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.event.handler;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.event.Event;
 
+import java.util.Map;
+
 public interface EventHandler {
 
     boolean handleEvent(Event event) throws EventMgtException;
@@ -43,5 +45,7 @@ public interface EventHandler {
     String getModuleName();
 
     boolean isAssociationAsync(String eventName) throws EventMgtException;
+
+    Map<String, String> getTenantConfigurations (int tenantId) throws EventMgtException;
 
 }

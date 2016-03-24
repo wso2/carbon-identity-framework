@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
 import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.internal.EventMgtServiceDataHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,11 @@ public abstract class AbstractEventHandler implements EventHandler {
             }
         }
         return false;
+    }
+
+    @Override
+    public Map<String, String> getTenantConfigurations (int tenantId) throws EventMgtException {
+        return EventMgtServiceDataHolder.getInstance().getEventMgtService().getConfiguration(tenantId);
     }
 
 }
