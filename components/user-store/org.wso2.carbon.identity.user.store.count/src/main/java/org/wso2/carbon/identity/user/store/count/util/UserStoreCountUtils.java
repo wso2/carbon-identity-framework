@@ -138,6 +138,17 @@ public class UserStoreCountUtils {
     }
 
     /**
+     * Create an instance of the given count retriever for internal domain
+     *
+     * @return
+     * @throws UserStoreCounterException
+     */
+    public static UserStoreCountRetriever getInternalCounterInstance() throws UserStoreCounterException {
+        return UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().get(UserCoreConstants.INTERNAL_DOMAIN);
+
+    }
+
+    /**
      * Converts a given array of PairDTOs to a Map
      *
      * @param pairDTOs
@@ -168,5 +179,17 @@ public class UserStoreCountUtils {
         }
 
         return pairs;
+    }
+
+    public static Long getInternalRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(UserCoreConstants.INTERNAL_DOMAIN+"%"+filter);
+    }
+
+    public static Long getApplicationRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(InternalStoreCountConstants.APPLICATION_DOMAIN+"%" +filter + "%");
+    }
+
+    public static Long getWorkflowRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(InternalStoreCountConstants.WORKFLOW_DOMAIN+"%" +filter + "%");
     }
 }

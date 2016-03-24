@@ -19,9 +19,11 @@ package org.wso2.carbon.identity.user.store.count;
 
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.util.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
 
 import java.util.Set;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
  * Service class that expose count functionality for underline user stores on users, roles and claims.
@@ -62,7 +64,8 @@ public class UserStoreCountService {
      */
     public PairDTO[] countRoles(String filter) throws UserStoreCounterException {
         Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
-        PairDTO[] roleCounts = new PairDTO[userStoreDomains.size()];
+        //add 3 more for the counts of Internal, Application and Workflow domains
+        PairDTO[] roleCounts = new PairDTO[userStoreDomains.size() + 3];
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
@@ -77,6 +80,13 @@ public class UserStoreCountService {
             roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
+
+        roleCounts[i] =  new PairDTO(UserCoreConstants.INTERNAL_DOMAIN, String.valueOf(
+                UserStoreCountUtils.getInternalRoleCount(filter)));
+        roleCounts[++i] =  new PairDTO(InternalStoreCountConstants.APPLICATION_DOMAIN, String.valueOf(
+                UserStoreCountUtils.getApplicationRoleCount(filter)));
+        roleCounts[++i] =  new PairDTO(InternalStoreCountConstants.WORKFLOW_DOMAIN, String.valueOf(
+                UserStoreCountUtils.getWorkflowRoleCount(filter)));
 
         return roleCounts;
     }
