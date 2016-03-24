@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.base.IdentityException;
 
 public class FrameworkException extends IdentityException {
 
-    private static final long serialVersionUID = -6394814696453289135L;
+    private static final long serialVersionUID = 3330534644697317021L;
 
     public FrameworkException(String message) {
         super(message);
@@ -30,5 +30,13 @@ public class FrameworkException extends IdentityException {
 
     public FrameworkException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public static FrameworkException error(String message) {
+        return new FrameworkException(message);
+    }
+
+    public static FrameworkException error(String message, Throwable cause) {
+        return new FrameworkException(message, cause);
     }
 }

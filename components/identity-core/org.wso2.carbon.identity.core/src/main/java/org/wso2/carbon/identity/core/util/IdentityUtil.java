@@ -68,7 +68,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -725,5 +727,27 @@ public class IdentityUtil {
     public static String getHostName() {
 
         return ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+    }
+
+    public static String buildQueryString(Map<String,String[]> parameterMap) throws UnsupportedEncodingException {
+
+        StringBuilder queryString = new StringBuilder("?");
+        boolean isFirst = true;
+        for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+            for(String paramValue:entry.getValue()) {
+                if (isFirst) {
+                    queryString.append(entry.getKey());
+                    queryString.append("=");
+                    queryString.append(paramValue);
+                    isFirst = false;
+                }
+                queryString.append("&");
+                queryString.append(entry.getKey());
+                queryString.append("=");
+                queryString.append(paramValue);
+
+            }
+        }
+        return URLEncoder.encode(queryString.toString(), "UTF-8");
     }
 }
