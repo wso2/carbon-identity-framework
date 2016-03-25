@@ -55,7 +55,7 @@
                             </adviceFile>
                             <importFeatures>
                                 <importFeatureDef>
-                                    org.wso2.carbon.identity.notification.mgt
+                                    org.wso2.carbon.identity.notification.mgt:compatible:${identity.framework.version}
                                 </importFeatureDef>
                             </importFeatures>
                         </configuration>

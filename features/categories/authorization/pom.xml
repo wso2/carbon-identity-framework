@@ -55,7 +55,7 @@
                             </adviceFile>
                             <importFeatures>
                                 <importFeatureDef>
-                                    org.wso2.carbon.identity.xacml
+                                    org.wso2.carbon.identity.xacml:compatible:${identity.framework.version}
                                 </importFeatureDef>
                             </importFeatures>
                         </configuration>
