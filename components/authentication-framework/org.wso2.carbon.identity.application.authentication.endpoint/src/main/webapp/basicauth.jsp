@@ -17,6 +17,9 @@
   --%>
 
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.net.HttpURLConnection" %>
+<%@ page import="java.net.URL" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 
 <%
     String type = request.getParameter("type");
@@ -78,12 +81,21 @@
     </div>
 
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-
-        <%if(request.getParameter("relyingParty").equals("wso2.my.dashboard")) { %>
-        <a id="registerLink" href="create-account.jsp?sessionDataKey=<%=Encode.forHtmlAttribute
+        <%
+            if (request.getParameter("relyingParty").equals("wso2.my.dashboard")) {
+                URL u = new URL(IdentityUtil.getServerURL("/accountmanagementendpoint/createaccount.do", true, true));
+                HttpURLConnection huc = (HttpURLConnection) u.openConnection();
+                huc.setRequestMethod("HEAD");
+                huc.connect();
+                if (huc.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        %>
+        <a id="registerLink" href="/accountmanagementendpoint/createaccount.do?sessionDataKey=<%=Encode.forHtmlAttribute
             (request.getParameter("sessionDataKey"))%>" class="font-large">Create an
             account</a>
-        <%} %>
+        <%
+                }
+            }
+        %>
     </div>
     <div class="clearfix"></div>
 </form>
