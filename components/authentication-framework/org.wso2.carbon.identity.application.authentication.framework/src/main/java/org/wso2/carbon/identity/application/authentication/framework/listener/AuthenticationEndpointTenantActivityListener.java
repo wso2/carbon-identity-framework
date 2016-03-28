@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Class for listening to modifications of tenants and sending the tenant list to receiving endpoints.
  */
-public class AuthenticationEndpointTenantActivityListener implements AbstractIdentityTenantMgtListener {
+public class AuthenticationEndpointTenantActivityListener extends AbstractIdentityTenantMgtListener {
 
     /**
      * Logger for the class
