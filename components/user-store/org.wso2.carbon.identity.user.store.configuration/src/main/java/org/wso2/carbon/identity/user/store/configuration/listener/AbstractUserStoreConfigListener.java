@@ -16,13 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.core;
+package org.wso2.carbon.identity.user.store.configuration.listener;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
