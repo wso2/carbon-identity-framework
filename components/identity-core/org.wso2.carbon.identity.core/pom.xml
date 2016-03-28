@@ -78,10 +78,6 @@
             <groupId>org.wso2.carbon.commons</groupId>
             <artifactId>org.wso2.carbon.tenant.common</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.user.store.configuration</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
@@ -143,8 +139,6 @@
 
                             org.wso2.carbon.identity.base;version="${carbon.identity.package.import.version.range}",
 
-                            org.wso2.carbon.identity.user.store.configuration.*;
-                            version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.registry.core.*;version="${carbon.kernel.registry.imp.pkg.version}",
 
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
