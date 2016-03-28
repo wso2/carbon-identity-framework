@@ -814,4 +814,37 @@ public class UserIdentityManagementUtil {
         }
         return bean;
     }
+
+    /**
+     * This methods adds default challenge question set to current domain
+     */
+    public static void loadDefaultChallenges() {
+
+        List<ChallengeQuestionDTO> questionSetDTOs = new ArrayList<ChallengeQuestionDTO>();
+
+        for (String challenge : IdentityMgtConstants.getSecretQuestionsSet01()) {
+            ChallengeQuestionDTO dto = new ChallengeQuestionDTO();
+            dto.setQuestion(challenge);
+            dto.setPromoteQuestion(true);
+            dto.setQuestionSetId(IdentityMgtConstants.DEFAULT_CHALLENGE_QUESTION_URI01);
+            questionSetDTOs.add(dto);
+        }
+
+        for (String challenge : IdentityMgtConstants.getSecretQuestionsSet02()) {
+            ChallengeQuestionDTO dto = new ChallengeQuestionDTO();
+            dto.setQuestion(challenge);
+            dto.setPromoteQuestion(true);
+            dto.setQuestionSetId(IdentityMgtConstants.DEFAULT_CHALLENGE_QUESTION_URI02);
+            questionSetDTOs.add(dto);
+        }
+
+        try {
+            IdentityMgtServiceComponent.getRecoveryProcessor().getQuestionProcessor().setChallengeQuestions
+                    (questionSetDTOs.
+                            toArray(new ChallengeQuestionDTO[questionSetDTOs.size()]));
+        } catch (IdentityException e) {
+            log.error("Error while promoting default challenge questions", e);
+        }
+
+    }
 }
