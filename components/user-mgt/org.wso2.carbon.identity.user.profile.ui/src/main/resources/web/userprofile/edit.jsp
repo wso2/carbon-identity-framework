@@ -156,7 +156,7 @@
 
                     <% if (userFields != null) {
                         for (int i = 0; i < userFields.length; i++) {
-                            if(!userFields[i].getReadOnly()) {%>
+                            if(!userFields[i].getReadOnly() && !userFields[i].getClaimUri().equals(ACCOUNT_DISABLED)){%>
                     var value = document.getElementsByName("<%=userFields[i].getClaimUri()%>")[0].value;
                     <%if (userFields[i].getRequired() && userFields[i].getDisplayName()!=null) {%>
                     if (validateEmpty("<%=userFields[i].getClaimUri()%>").length > 0) {
