@@ -41,6 +41,9 @@
     String profile = request.getParameter("profile");
     String fromUserMgt = request.getParameter("fromUserMgt");
     String noOfProfiles = request.getParameter("noOfProfiles");
+    String ACCOUNT_DISABLED = "http://wso2.org/claims/identity/accountDisabled";
+    String currentUser = (String) session.getAttribute("logged-user");
+
     if (noOfProfiles == null) {
         noOfProfiles = "0";
     }
@@ -243,6 +246,10 @@
 		                    <%
 		                        if (userFields != null) {
 		                                for (int i = 0; i < userFields.length; i++) {
+                                            if (ACCOUNT_DISABLED.equals(userFields[i].getClaimUri()) &&
+                                                    username.equals(currentUser)) {
+                                                continue;
+                                            }
 		                    %>
 		                    <%
 		                        if (userFields[i].getDisplayName() != null) {
