@@ -22,8 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -32,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -40,12 +39,12 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreConfigConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -714,10 +713,10 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         Map<String, String> claimMapping = null;
         try {
-            claimMapping = ClaimManagerHandler.getInstance()
-                    .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet, tenantDomain,
-                                                            useLocalDialectAsKey);
-        } catch (ClaimManagementException e) {
+            claimMapping = ((org.wso2.carbon.identity.claim.mgt.ClaimManager)FrameworkServiceDataHolder.getInstance()
+                    .getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(tenantDomain)))
+                    .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet, useLocalDialectAsKey);
+        } catch (UserStoreException e) {
             throw new FrameworkException("Error while loading mappings.", e);
         }
 

@@ -432,6 +432,34 @@
             </dependency>
 
             <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.claim.mgt.server.feature</artifactId>
+                <version>${identity.framework.version}</version>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.claim.mgt.ui.feature</artifactId>
+                <version>${identity.framework.version}</version>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.claim.mgt</artifactId>
+                <version>${identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.claim.mgt.ui</artifactId>
+                <version>${identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.claim.mgt.stub</artifactId>
+                <version>${identity.framework.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.cxf.wso2</groupId>
                 <artifactId>cxf-bundle</artifactId>
                 <version>${cxf-bundle.wso2.version}</version>

@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Inb
 import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundAuthenticationRequestProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundAuthenticationResponseProcessor;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class FrameworkServiceDataHolder {
     private List<InboundAuthenticationRequestProcessor> inboundAuthenticationRequestProcessors = new ArrayList<InboundAuthenticationRequestProcessor>();
     private List<InboundAuthenticationRequestBuilder> inboundAuthenticationRequestBuilders = new ArrayList<InboundAuthenticationRequestBuilder>();
     private List<InboundAuthenticationResponseProcessor> inboundAuthenticationResponseProcessors = new ArrayList<InboundAuthenticationResponseProcessor>();
+    private ClaimManagerFactory claimManagerFactory = null;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -120,5 +122,13 @@ public class FrameworkServiceDataHolder {
     public void setInboundAuthenticationResponseProcessors(
             List<InboundAuthenticationResponseProcessor> inboundAuthenticationResponseProcessors) {
         this.inboundAuthenticationResponseProcessors = inboundAuthenticationResponseProcessors;
+    }
+
+    public ClaimManagerFactory getClaimManagerFactory() {
+        return claimManagerFactory;
+    }
+
+    public void setClaimManagerFactory(ClaimManagerFactory claimManagerFactory) {
+        this.claimManagerFactory = claimManagerFactory;
     }
 }

@@ -36,6 +36,9 @@
         <module>org.wso2.carbon.claim.mgt.ui.feature</module>
         <module>org.wso2.carbon.claim.mgt.server.feature</module>
         <module>org.wso2.carbon.claim.mgt.feature</module>
+        <module>org.wso2.carbon.identity.claim.mgt.ui.feature</module>
+        <module>org.wso2.carbon.identity.claim.mgt.server.feature</module>
+        <module>org.wso2.carbon.identity.claim.mgt.feature</module>
     </modules>
 
 </project>

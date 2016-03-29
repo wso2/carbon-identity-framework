@@ -61,7 +61,7 @@
                                     org.wso2.carbon.user.mgt.workflow
                                 </importFeatureDef>
                                 <importFeatureDef>
-                                    org.wso2.carbon.claim.mgt
+                                    org.wso2.carbon.identity.claim.mgt
                                 </importFeatureDef>
                                 <importFeatureDef>
                                     org.wso2.carbon.identity.mgt

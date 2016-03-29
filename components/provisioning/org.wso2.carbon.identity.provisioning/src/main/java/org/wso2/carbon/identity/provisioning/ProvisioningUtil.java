@@ -22,10 +22,11 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -149,9 +150,10 @@ public class ProvisioningUtil {
             // null argument is passed - because we do not know the required attributes for
             // out-bound provisioning. This will find carbon claim mappings for the entire out-bound
             // claim dialect.
-            outBoundToCarbonClaimMapppings = ClaimManagerHandler.getInstance()
-                    .getMappingsMapFromOtherDialectToCarbon(outboundClaimDialect, null,
-                            tenantDomain, true);
+            outBoundToCarbonClaimMapppings = ((org.wso2.carbon.identity.claim.mgt.ClaimManager)
+                    ProvisioningServiceDataHolder.getInstance()
+                    .getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(tenantDomain)))
+                    .getMappingsMapFromOtherDialectToCarbon(outboundClaimDialect, null, true);
 
             if (outBoundToCarbonClaimMapppings == null) {
                 // we did not find any carbon claim mappings corresponding to the out-bound claim
@@ -244,9 +246,10 @@ public class ProvisioningUtil {
                 // in-bound dialect is in default carbon dialect.
                 // otherDialectURI, carbonClaimURIs, tenantDomain, carbonDialectAsKey
                 // this map will have out-bound dialect as the key.
-                claimMap = ClaimManagerHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(outboundClaimDialect, null,
-                                tenantDomain, true);
+                claimMap = ((org.wso2.carbon.identity.claim.mgt.ClaimManager)
+                        ProvisioningServiceDataHolder.getInstance()
+                                .getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(tenantDomain)))
+                        .getMappingsMapFromOtherDialectToCarbon(outboundClaimDialect, null, true);
             } else {
                 // out-bound is not in wso2 carbon dialect. we need to find how it maps to wso2
                 // carbon dialect.
@@ -256,18 +259,18 @@ public class ProvisioningUtil {
                 // this will return back the mapped carbon dialect for the in-bound claims in the
                 // in-bound provisioning request.
                 // the key of this map will be in in-bound claim dialect.
-                inboundToCarbonClaimMaping = ClaimManagerHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(inboundClaimMappingDialect,
-                                inboundClaimValueMap.keySet(), tenantDomain, false);
+                inboundToCarbonClaimMaping = ((org.wso2.carbon.identity.claim.mgt.ClaimManager)
+                        ProvisioningServiceDataHolder.getInstance().getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(tenantDomain)))
+                        .getMappingsMapFromOtherDialectToCarbon(inboundClaimMappingDialect, inboundClaimValueMap.keySet(), false);
 
                 // we only know the dialect - it is standard claim dialect.
                 // this will return back all the wso2 carbon claims mapped to the out-bound dialect.
                 // we send null here because we do not know the required claims for out-bound
                 // provisioning.
                 // the key of this map will be in carbon dialect.
-                outBoundToCarbonClaimMappping = ClaimManagerHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(outboundClaimDialect, null,
-                                tenantDomain, true);
+                outBoundToCarbonClaimMappping = ((org.wso2.carbon.identity.claim.mgt.ClaimManager)
+                        ProvisioningServiceDataHolder.getInstance().getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(tenantDomain)))
+                        .getMappingsMapFromOtherDialectToCarbon(outboundClaimDialect, null, true);
 
                 // in-bound dialect / out-bound dialect.
                 claimMap = new HashMap<String, String>();
@@ -470,9 +473,9 @@ public class ProvisioningUtil {
             // we only know the dialect - it is standard claim dialect.
             // returns the carbon claim mapping corresponding to claims in the the in-bound
             // provisioning request with carbon in-bound claim uris as the key.
-            carbonToInboundClaimMapping = ClaimManagerHandler.getInstance()
-                    .getMappingsMapFromOtherDialectToCarbon(inboundClaimMappingDialect,
-                            inboundClaimValueMap.keySet(), tenantDomain, true);
+            carbonToInboundClaimMapping = ((org.wso2.carbon.identity.claim.mgt.ClaimManager)
+                    ProvisioningServiceDataHolder.getInstance().getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(tenantDomain)))
+                    .getMappingsMapFromOtherDialectToCarbon(inboundClaimMappingDialect, inboundClaimValueMap.keySet(), true);
 
             claimMap = new HashMap<String, String>();
 
