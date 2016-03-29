@@ -31,6 +31,10 @@
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
+<%!
+    private static final String ACCOUNT_LOCKED_CLAIM_URI = "http://wso2.org/claims/identity/accountLocked";
+    private static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
+%>
 <jsp:include page="../dialog/display_messages.jsp"/>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
@@ -44,7 +48,7 @@
     if (noOfProfiles == null) {
         noOfProfiles = "0";
     }
-    
+
     if (fromUserMgt==null) fromUserMgt = "false";
 
 
@@ -64,11 +68,11 @@
         UserProfileCient client = new UserProfileCient(cookie, backendServerURL,
                 configContext);
         userProfile = client.getUserProfile(username, profile);
-        
+
         if ("readonly".equals(userProfile.getProfileConifuration())){
         	readOnlyUserStore = true;
         }
-        
+
         if (userProfile != null) {
             userFields = client.getOrderedUserFields(userProfile.getFieldValues());
             profileConfigs = userProfile.getProfileConfigurations();
@@ -151,6 +155,11 @@
 
                 <% if (userFields != null) {
                     for (int i = 0; i < userFields.length; i++) {
+                        if ((ACCOUNT_DISABLED_CLAIM_URI.equals(userFields[i].getClaimUri()) ||
+                                ACCOUNT_LOCKED_CLAIM_URI.equals(userFields[i].getClaimUri())) &&
+                                userFields[i].getFieldValue() == null ) {
+                            userFields[i].setFieldValue("false");
+                        }
                         if(!userFields[i].getReadOnly()) {%>
                         var value = document.getElementsByName("<%=userFields[i].getClaimUri()%>")[0].value;
                         <%if (userFields[i].getRequired() && userFields[i].getDisplayName()!=null) {%>
@@ -159,7 +168,7 @@
                                                            getDisplayName()))%>" + " <fmt:message key='is.required'/>");
                                 return false;
                             }
-                        <%} 
+                        <%}
                           if(userFields[i].getRegEx() != null){ %>
                             var reg = new RegExp("<%=Encode.forJavaScript(userFields[i].getRegEx())%>");
                             var valid = reg.test(value);
@@ -173,11 +182,11 @@
                     }
                 }
                 %>
-                
+
 	                var unsafeCharPattern = /[<>`\"]/;
 	                var elements = document.getElementsByTagName("input");
 	                for(i = 0; i < elements.length; i++){
-	                    if((elements[i].type === 'text' || elements[i].type === 'password') && 
+	                    if((elements[i].type === 'text' || elements[i].type === 'password') &&
 	                       elements[i].value != null && elements[i].value.match(unsafeCharPattern) != null){
 	                        CARBON.showWarningDialog("<fmt:message key="unsafe.char.validation.msg"/>");
 	                        return false;
