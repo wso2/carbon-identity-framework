@@ -32,6 +32,10 @@
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
+<%!
+    private static final String ACCOUNT_LOCKED_CLAIM_URI = "http://wso2.org/claims/identity/accountLocked";
+    private static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
+%>
 <jsp:include page="../dialog/display_messages.jsp"/>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
@@ -68,11 +72,11 @@
         UserProfileCient client = new UserProfileCient(cookie, backendServerURL,
                 configContext);
         userProfile = client.getUserProfile(username, profile);
-
-        if ("readonly".equals(userProfile.getProfileConifuration())) {
-            readOnlyUserStore = true;
+        
+        if ("readonly".equals(userProfile.getProfileConifuration())){
+        	readOnlyUserStore = true;
         }
-
+        
         if (userProfile != null) {
             userFields = client.getOrderedUserFields(userProfile.getFieldValues());
             profileConfigs = userProfile.getProfileConfigurations();
@@ -97,7 +101,7 @@
     forward();
 </script>
 <%
-        return;
+    return;
     }
 %>
 
@@ -154,13 +158,18 @@
             <script type="text/javascript">
                 function validate() {
 
-                    <% if (userFields != null) {
-                        for (int i = 0; i < userFields.length; i++) {
-                            if(!userFields[i].getReadOnly() && !userFields[i].getClaimUri().equals(ACCOUNT_DISABLED)){%>
-                    var value = document.getElementsByName("<%=userFields[i].getClaimUri()%>")[0].value;
-                    <%if (userFields[i].getRequired() && userFields[i].getDisplayName()!=null) {%>
-                    if (validateEmpty("<%=userFields[i].getClaimUri()%>").length > 0) {
-                        CARBON.showWarningDialog("<%=Encode.forJavaScript(Encode.forHtml(userFields[i].
+                <% if (userFields != null) {
+                    for (int i = 0; i < userFields.length; i++) {
+                        if ((ACCOUNT_DISABLED_CLAIM_URI.equals(userFields[i].getClaimUri()) ||
+                                ACCOUNT_LOCKED_CLAIM_URI.equals(userFields[i].getClaimUri())) &&
+                                userFields[i].getFieldValue() == null ) {
+                            userFields[i].setFieldValue("false");
+                        }
+                        if(!userFields[i].getReadOnly()) {%>
+                        var value = document.getElementsByName("<%=userFields[i].getClaimUri()%>")[0].value;
+                        <%if (userFields[i].getRequired() && userFields[i].getDisplayName()!=null) {%>
+                            if (validateEmpty("<%=userFields[i].getClaimUri()%>").length > 0) {
+                                CARBON.showWarningDialog("<%=Encode.forJavaScript(Encode.forHtml(userFields[i].
                                                            getDisplayName()))%>" + " <fmt:message key='is.required'/>");
                         return false;
                     }
@@ -171,23 +180,23 @@
                     if (value != '' && !valid) {
                         CARBON.showWarningDialog("<%=Encode.forJavaScript(Encode.forHtml(userFields[i].
                                                           getDisplayName()))%>" + " <fmt:message key='is.not.valid'/>");
-                        return false;
-                    }
-                    <%}
-                    }
-                }
-            }
-            %>
-
-                    var unsafeCharPattern = /[<>`\"]/;
-                    var elements = document.getElementsByTagName("input");
-                    for (i = 0; i < elements.length; i++) {
-                        if ((elements[i].type === 'text' || elements[i].type === 'password') &&
-                                elements[i].value != null && elements[i].value.match(unsafeCharPattern) != null) {
-                            CARBON.showWarningDialog("<fmt:message key="unsafe.char.validation.msg"/>");
-                            return false;
+                                return false;
+                            }
+                        <%}
                         }
                     }
+                }
+                %>
+                
+	                var unsafeCharPattern = /[<>`\"]/;
+	                var elements = document.getElementsByTagName("input");
+	                for(i = 0; i < elements.length; i++){
+	                    if((elements[i].type === 'text' || elements[i].type === 'password') && 
+	                       elements[i].value != null && elements[i].value.match(unsafeCharPattern) != null){
+	                        CARBON.showWarningDialog("<fmt:message key="unsafe.char.validation.msg"/>");
+	                        return false;
+	                    }
+	                }
 
                     document.updateProfileform.submit();
                 }
