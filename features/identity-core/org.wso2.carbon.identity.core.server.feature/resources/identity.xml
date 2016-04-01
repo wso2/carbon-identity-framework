@@ -53,6 +53,8 @@
     <Security>
         <!-- The directory under which all other KeyStore files will be stored -->
         <KeyStoresDir>${carbon.home}/conf/keystores</KeyStoresDir>
+        <KeyManagerType>SunX509</KeyManagerType>
+        <TrustManagerType>SunX509</TrustManagerType>
     </Security>
 
     <Identity>
