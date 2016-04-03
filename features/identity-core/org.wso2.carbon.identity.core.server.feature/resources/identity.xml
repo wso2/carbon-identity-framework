@@ -30,6 +30,7 @@
         <!--SessionDataPersist>
             <Enable>true</Enable>
             <Temporary>false</Temporary>
+            <PoolSize>100</PoolSize>
             <SessionDataCleanUp>
                 <Enable>true</Enable>
                 <CleanUpTimeout>20160</CleanUpTimeout>
