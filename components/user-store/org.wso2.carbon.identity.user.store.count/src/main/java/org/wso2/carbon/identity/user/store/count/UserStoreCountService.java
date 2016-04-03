@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.user.store.count;
 
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
-import org.wso2.carbon.identity.user.store.count.util.InternalStoreCountConstants;
+import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
 
 import java.util.Set;
@@ -166,11 +166,20 @@ public class UserStoreCountService {
      * @return the number of roles matching the filter within this user store domain
      */
     public Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
-        UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
-        if (counter != null) {
-            return counter.countRoles(filter);
-        } else {
-            return Long.valueOf(-1);
+
+        if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain)) {
+            return UserStoreCountUtils.getInternalRoleCount(filter);
+        } else if (InternalStoreCountConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
+            return UserStoreCountUtils.getApplicationRoleCount(filter);
+        } else if (InternalStoreCountConstants.WORKFLOW_DOMAIN.equalsIgnoreCase(domain)) {
+            return UserStoreCountUtils.getWorkflowRoleCount(filter);
+        } else {              //Not an internal domain
+            UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+            if (counter != null) {
+                return counter.countRoles(filter);
+            } else {
+                return Long.valueOf(-1);
+            }
         }
     }
 

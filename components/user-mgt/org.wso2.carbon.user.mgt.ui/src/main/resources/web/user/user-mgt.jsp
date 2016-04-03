@@ -63,7 +63,7 @@
     String[] claimUris = null;
     FlaggedName[] users = null;
     String[] domainNames = null;
-    String userCount = "";
+    Map<String, String> userCount = new HashMap<String, String>();
     int pageNumber = 0;
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
@@ -105,7 +105,14 @@
     if (StringUtils.isBlank(claimUri)) {
         claimUri = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_CLAIM_FILTER);
     }
+
+    String countClaimUri = request.getParameter("countClaimUri");
+    if (StringUtils.isBlank(countClaimUri)) {
+        countClaimUri = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_CLAIM_COUNT_FILTER);
+    }
+
     session.setAttribute(UserAdminUIConstants.USER_CLAIM_FILTER, claimUri);
+    session.setAttribute(UserAdminUIConstants.USER_CLAIM_COUNT_FILTER, countClaimUri);
     exceededDomains = (FlaggedName) session.getAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED);
 
     //  search filter
@@ -223,7 +230,22 @@
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
 
             countableUserStores = countClient.getCountableUserStores();
-            userCount = String.valueOf(countClient.countUsersInDomain(countFilter,selectedCountDomain));
+
+            if (countClaimUri.equalsIgnoreCase(UserAdminUIConstants.SELECT)) {    //this is user name based search
+                if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                    userCount = countClient.countUsers(countFilter);
+                } else {
+                    userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter, selectedCountDomain)));
+                }
+            } else {                //this is a claim based search
+                if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                    userCount = countClient.countByClaim(countClaimUri, countFilter);
+                } else {
+                    userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain(countClaimUri,
+                            countFilter, selectedCountDomain)));
+                }
+            }
+
 
             if (userRealmInfo == null) {
                 userRealmInfo = client.getUserRealmInfo();
@@ -422,7 +444,7 @@
                     <tr>
                         <td><fmt:message key="claim.uri"/></td>
                         <td><select id="claimUri" name="claimUri">
-                            <option value="Select" selected="selected">Select</option>
+                            <option value="Select" selected="selected"><%=UserAdminUIConstants.SELECT%></option>
                             <%
                                 if (claimUris != null) {
 
@@ -455,6 +477,9 @@
                 <table class="styledLeft">
                     <%
                         if (countableUserStores != null && !countableUserStores.isEmpty()) {
+                            if (countableUserStores.size() > 1) {
+                                countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
+                            }
                     %>
                     <thead>
                     <tr>
@@ -502,15 +527,58 @@
                                    value="<fmt:message key="user.count"/>"/>
                         </td>
                     </tr>
+
                     <tr>
-                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
-                                key="count"/></td>
+                        <td><fmt:message key="claim.uri"/></td>
+                        <td><select id="countClaimUri" name="countClaimUri">
+                            <option value="Select" selected="selected"><%=UserAdminUIConstants.SELECT%></option>
+                            <%
+                                if (claimUris != null) {
+
+                                    for (String claim : claimUris) {
+                                        if (claimUri != null && claim.equals(claimUri)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(claim)%>">
+                                <%=Encode.forHtmlContent(claim)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(claim)%>">
+                                <%=Encode.forHtmlContent(claim)%>
+                            </option>
+                            <%
+                                        }
+                                    }
+                                }
+                            %>
+                        </select>
+                        </td>
+                    </tr>
+
+                    <%
+                        Iterator it = userCount.entrySet().iterator();
+                        String key = null;
+                        String value = null;
+                        while (it.hasNext()) {
+                            Map.Entry pair = (Map.Entry) it.next();
+                            key = (String) pair.getKey();
+                            value = (String) pair.getValue();
+                    %>
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><%=key%>
+                        </td>
                         <td>
                             <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
-                                   value="<%=Encode.forHtmlAttribute(userCount)%>" />
+                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
 
                         </td>
                     </tr>
+
+                    <% it.remove();
+                    }
+                    %>
 
                     </tbody>
                     <%

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.user.store.count.util;
+package org.wso2.carbon.identity.user.store.count.jdbc.internal;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

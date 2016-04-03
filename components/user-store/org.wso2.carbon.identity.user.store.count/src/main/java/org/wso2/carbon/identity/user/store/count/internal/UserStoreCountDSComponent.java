@@ -26,8 +26,7 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever;
-import org.wso2.carbon.identity.user.store.count.util.InternalCountRetriever;
-import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetriever;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -36,6 +35,10 @@ import org.wso2.carbon.user.core.service.RealmService;
  * interface="org.wso2.carbon.user.core.service.RealmService"
  * cardinality="1..1" policy="dynamic" bind="setRealmService"
  * unbind="unsetRealmService"
+ * @scr.reference name="user.store.count"
+ * interface="org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever"
+ * cardinality="0..n" policy="dynamic" bind="setUserStoreCountRetriever"
+ * unbind="unsetUserStoreCountRetriever"
  */
 
 public class UserStoreCountDSComponent {
@@ -81,12 +84,10 @@ public class UserStoreCountDSComponent {
 
         UserStoreCountRetriever userStoreCountRetriever = new JDBCUserStoreCountRetriever();
         UserStoreCountRetriever internalCountRetriever = new InternalCountRetriever();
-        ServiceRegistration serviceRegistration = ctxt.getBundleContext().registerService(
+        ServiceRegistration serviceRegistration = bundleContext.registerService(
                 UserStoreCountRetriever.class.getName(), userStoreCountRetriever, null);
-        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().put(
-                JDBCUserStoreCountRetriever.class.getName(), userStoreCountRetriever);
-        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().put(
-                UserCoreConstants.INTERNAL_DOMAIN, internalCountRetriever);
+        bundleContext.registerService(UserStoreCountRetriever.class.getName(), internalCountRetriever, null);
+
 
         if (serviceRegistration != null) {
             if (log.isDebugEnabled()) {
