@@ -54,8 +54,8 @@
             <artifactId>org.wso2.carbon.identity.authenticator.thrift</artifactId>
         </dependency>
         <dependency>
-            <groupId>opensaml.wso2</groupId>
-            <artifactId>opensaml2</artifactId>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
         </dependency>
     </dependencies>
 
@@ -115,7 +115,7 @@
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.entitlement
                                 </bundleDef>
                                 <bundleDef>org.wso2.balana:org.wso2.balana</bundleDef>
-                                <bundleDef>opensaml.wso2:opensaml2</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:${carbon.kernel.version}</importFeatureDef>
