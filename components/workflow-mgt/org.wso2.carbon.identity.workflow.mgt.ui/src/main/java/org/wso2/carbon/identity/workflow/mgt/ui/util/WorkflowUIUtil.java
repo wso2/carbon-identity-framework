@@ -15,6 +15,9 @@ import java.util.Set;
 
 public class WorkflowUIUtil {
 
+    private WorkflowUIUtil() {
+    }
+
     /**
      * Load parameters of a workflow template
      *

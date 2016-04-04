@@ -30,6 +30,9 @@ import javax.xml.namespace.QName;
  */
 public class ClientUtil {
 
+    private ClientUtil() {
+    }
+
     /**
      * Helper method to extract the boolean response
      *

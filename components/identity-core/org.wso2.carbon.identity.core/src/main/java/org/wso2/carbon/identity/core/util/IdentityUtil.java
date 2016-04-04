@@ -107,6 +107,9 @@ public class IdentityUtil {
             Constants.SECURITY_MANAGER_PROPERTY;
     private static final int ENTITY_EXPANSION_LIMIT = 0;
 
+    private IdentityUtil() {
+    }
+
     /**
      * @return
      */

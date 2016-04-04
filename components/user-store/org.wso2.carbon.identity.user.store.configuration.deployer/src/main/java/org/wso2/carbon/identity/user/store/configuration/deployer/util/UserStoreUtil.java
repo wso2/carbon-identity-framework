@@ -43,6 +43,9 @@ public class UserStoreUtil {
 
     private static Log log = LogFactory.getLog(UserStoreUtil.class);
 
+    private UserStoreUtil() {
+    }
+
     public static Cipher getCipherOfSuperTenant() throws UserStoreException {
         Cipher cipher;
         ServerConfigurationService config =

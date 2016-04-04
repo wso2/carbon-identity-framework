@@ -89,7 +89,9 @@ public class IdentityBaseUtil {
             "            </wsp:ExactlyOne>" +
             "        </wsp:Policy>";
 
-
+    private IdentityBaseUtil() {
+    }
+    
     public static Policy getDefaultRampartConfig() {
 
         //Extract the primary keystore information from server configuration

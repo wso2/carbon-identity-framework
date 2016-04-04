@@ -84,6 +84,9 @@ public class PolicyEditorUtil {
      */
     private static Map<String, ApplyElementDTO> applyElementMap = new HashMap<String, ApplyElementDTO>();
 
+    private PolicyEditorUtil() {
+    }
+
     /**
      * Create XACML policy with the simplest input attributes
      *

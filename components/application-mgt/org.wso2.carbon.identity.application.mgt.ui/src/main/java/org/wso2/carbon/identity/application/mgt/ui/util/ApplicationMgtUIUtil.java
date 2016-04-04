@@ -29,6 +29,9 @@ public class ApplicationMgtUIUtil {
 
     private static final String SP_UNIQUE_ID_MAP = "spUniqueIdMap";
 
+    private ApplicationMgtUIUtil() {
+    }
+
     /**
      * Get related application bean from the session.
      *

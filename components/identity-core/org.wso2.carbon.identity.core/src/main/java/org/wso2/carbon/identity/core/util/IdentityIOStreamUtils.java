@@ -30,6 +30,9 @@ public class IdentityIOStreamUtils {
 
     private static final Log log = LogFactory.getLog(IdentityIOStreamUtils.class);
 
+    private IdentityIOStreamUtils() {
+    }
+
     public static void closeAllStreams(InputStream input, OutputStream output){
         closeInputStream(input);
         closeOutputStream(output);

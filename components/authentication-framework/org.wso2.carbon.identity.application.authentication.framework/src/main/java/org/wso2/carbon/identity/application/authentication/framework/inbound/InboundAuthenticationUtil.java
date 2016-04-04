@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 public class InboundAuthenticationUtil {
 
+    private InboundAuthenticationUtil() {
+    }
+
     /**
      * Add to inbound authentication context cache
      * @param key Key

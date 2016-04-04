@@ -39,6 +39,9 @@ public class IdPManagementUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUtil.class);
 
+    private IdPManagementUtil() {
+    }
+
     /**
      * Get the tenant id of the given tenant domain.
      *

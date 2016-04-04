@@ -36,6 +36,9 @@ public class IdentityDatabaseUtil {
 
     private static final Log log = LogFactory.getLog(IdentityDatabaseUtil.class);
 
+    private IdentityDatabaseUtil() {
+    }
+
     /**
      * Get a database connection instance from the Identity Persistence Manager
      *

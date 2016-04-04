@@ -35,6 +35,8 @@ import java.util.Map;
  * This is Util class which help to create a XACML policy
  */
 public class PolicyCreatorUtil {
+    private PolicyCreatorUtil() {
+    }
 //
 //    /**
 //     * This method creates a policy element of the XACML policy
