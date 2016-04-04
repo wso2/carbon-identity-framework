@@ -90,8 +90,8 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
                                 .size()]), tenantId);
                     }
                 }
-            }catch (Exception e){
-                log.error("Error while populating the claim configurations", e);
+            } catch (Exception e) {
+                 log.error("Error while populating the claim configurations", e);
             }
 
         }
@@ -165,8 +165,8 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
         //TODO: need to check if these claim mappings can be directly loaded from the database
         List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId);
         List<ClaimMapping> supportedByDefaultClaimMappingList = new ArrayList<>();
-        for (ClaimMapping claimMapping : claimMappingList){
-            if (claimMapping.getClaim().isSupportedByDefault()){
+        for (ClaimMapping claimMapping : claimMappingList) {
+            if (claimMapping.getClaim().isSupportedByDefault()) {
                 supportedByDefaultClaimMappingList.add(claimMapping);
             }
         }
@@ -282,8 +282,8 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
         //TODO: need to check if these claim mappings can be directly loaded from the database
         List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId);
         List<ClaimMapping> requiredClaimMappingList = new ArrayList<>();
-        for (ClaimMapping claimMapping : claimMappingList){
-            if (claimMapping.getClaim().isRequired()){
+        for (ClaimMapping claimMapping : claimMappingList) {
+            if (claimMapping.getClaim().isRequired()) {
                 requiredClaimMappingList.add(claimMapping);
             }
         }
@@ -299,7 +299,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
     public String[] getAllClaimUris() throws UserStoreException {
         List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId);
         String[] claimUris = new String[claimMappingList.size()];
-        for (int i = 0; i < claimMappingList.size(); i++){
+        for (int i = 0; i < claimMappingList.size(); i++) {
             claimUris[i] = claimMappingList.get(i).getClaim().getClaimUri();
         }
         return claimUris;
@@ -328,7 +328,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
     public void addNewClaimMapping(ClaimMapping mapping) throws UserStoreException {
         if (mapping != null) {
             ClaimMapping claimMappingFromDB = claimDAO.getClaimMapping(mapping.getClaim().getClaimUri(), tenantId);
-            if (claimMappingFromDB == null){
+            if (claimMappingFromDB == null) {
                 claimDAO.addClaimMapping(mapping, tenantId);
             }
         }

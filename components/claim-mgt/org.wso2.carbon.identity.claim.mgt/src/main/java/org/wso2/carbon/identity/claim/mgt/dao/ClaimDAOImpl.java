@@ -387,13 +387,13 @@ public class ClaimDAOImpl implements ClaimDAO {
                 ClaimMapping cm = new ClaimMapping();
                 Claim claim = new Claim();
 
-                String dialectUri = claimResultSetLocal.getString("IDN_DIALECT_URI");
+                String dialectUri = claimResultSetAdditional.getString("IDN_DIALECT_URI");
                 claim.setIsLocalClaim(false);
                 claim.setDialectURI(dialectUri);
-                claim.setClaimUri(claimResultSetLocal.getString("IDN_CLAIM_URI"));
-                String attributeName = claimResultSetLocal.getString("IDN_MAPPED_ATTRIBUTE");
+                claim.setClaimUri(claimResultSetAdditional.getString("IDN_CLAIM_URI"));
+                String attributeName = claimResultSetAdditional.getString("IDN_MAPPED_ATTRIBUTE");
 
-                int claimId = claimResultSetLocal.getInt("IDN_CLAIM_ID");
+                int claimId = claimResultSetAdditional.getInt("IDN_CLAIM_ID");
                 populateClaimObject(beans, claim, claimId);
 
                 cm.setClaim(claim);
@@ -952,7 +952,7 @@ public class ClaimDAOImpl implements ClaimDAO {
             resultSet = prepStmt.executeQuery();
 
             dbConnection.commit();
-            if (resultSet.next()){
+            if (resultSet.next()) {
                 return resultSet.getString("IDN_MAPPED_ATTRIBUTE");
             }
         } catch (SQLException e) {
@@ -990,7 +990,7 @@ public class ClaimDAOImpl implements ClaimDAO {
             resultSet = prepStmt.executeQuery();
 
             dbConnection.commit();
-            if (resultSet.next()){
+            if (resultSet.next()) {
                 return resultSet.getString("IDN_MAPPED_ATTRIBUTE");
             }
         } catch (SQLException e) {
@@ -1018,7 +1018,7 @@ public class ClaimDAOImpl implements ClaimDAO {
             dbConnection.commit();
             Claim claim = new Claim();
             Map<String, String> customMetadata = new HashMap<>();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 String key = resultSet.getString("IDN_KEY");
                 String value = resultSet.getString("IDN_VALUE");
                 if (LOCAL_NAME_DISPLAY_NAME.equals(key)) {
@@ -1030,7 +1030,7 @@ public class ClaimDAOImpl implements ClaimDAO {
                 } else if (LOCAL_NAME_DISPLAY_ORDER.equals(key)) {
                     claim.setDisplayOrder(Integer.parseInt(value));
                 } else if (LOCAL_NAME_CHECKED_ATTR.equals(key)) {
-                    if (Integer.parseInt(key) == 1) {
+                    if (Integer.parseInt(value) == 1) {
                         claim.setCheckedAttribute(true);
                     }
                 } else if (LOCAL_NAME_REQUIRED.equals(key)) {
@@ -1069,6 +1069,8 @@ public class ClaimDAOImpl implements ClaimDAO {
             prepStmt = dbConnection.prepareStatement(ClaimDBConstants.GET_MAPPED_ATTRIBUTES);
             prepStmt.setString(1, claimURI);
             prepStmt.setInt(2, tenantId);
+            prepStmt.setString(3, claimURI);
+            prepStmt.setInt(4, tenantId);
             resultSet = prepStmt.executeQuery();
 
             dbConnection.commit();
@@ -1089,6 +1091,6 @@ public class ClaimDAOImpl implements ClaimDAO {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
         }
-        return null;
+        return claimMapping;
     }
 }

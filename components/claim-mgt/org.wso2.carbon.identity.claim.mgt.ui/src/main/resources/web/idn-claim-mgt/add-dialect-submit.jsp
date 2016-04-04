@@ -88,7 +88,7 @@
         }
 
         mapping.setClaim(claim);
-        if(attribute != null && attribute.toLowerCase().contains(LOCAL_CLAIM_URI)){
+        if (attribute != null && attribute.toLowerCase().contains(LOCAL_CLAIM_URI)) {
             mapping.setMappedAttribute(attribute);
         }
         else if (attribute != null) {

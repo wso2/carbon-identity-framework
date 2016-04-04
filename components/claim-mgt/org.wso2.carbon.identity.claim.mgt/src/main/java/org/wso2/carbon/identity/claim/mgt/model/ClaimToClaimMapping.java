@@ -42,7 +42,7 @@ public class ClaimToClaimMapping {
         this.additionalClaim = additionalClaim;
     }
 
-    public ClaimToClaimMapping(){
+    public ClaimToClaimMapping() {
 
     }
 

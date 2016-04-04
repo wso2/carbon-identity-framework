@@ -35,7 +35,7 @@ public class ClaimManagerFactory implements org.wso2.carbon.user.core.claim.Clai
     }
 
     public IdentityMgtClaimManager getClaimManager(int tenantId) {
-        if (claimManagerMap.get(tenantId)!=null){
+        if (claimManagerMap.get(tenantId)!=null) {
             return claimManagerMap.get(tenantId);
         }
         try {

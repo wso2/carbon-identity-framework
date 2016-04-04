@@ -85,12 +85,12 @@ public class ClaimBuilder {
             claim = new Claim();
             while (child.hasNext()) {
                 Map.Entry childPair = child.next();
-                if(LOCAL_NAME_DIALECT.equals(childPair.getKey())){
+                if (LOCAL_NAME_DIALECT.equals(childPair.getKey())) {
                     claim.setDialectURI(childPair.getValue().toString());
                 }
-                else if(LOCAL_NAME_CLAIM_URI.equals(childPair.getKey())){
+                else if (LOCAL_NAME_CLAIM_URI.equals(childPair.getKey())) {
                     claimUri=childPair.getValue().toString();
-                    if(claimUri.toLowerCase().contains(LOCAL_DIALECT_URI)){
+                    if (claimUri.toLowerCase().contains(LOCAL_DIALECT_URI)) {
                         claim.setIsLocalClaim(true);
                     }
                     else{
@@ -98,31 +98,31 @@ public class ClaimBuilder {
                     }
                     claim.setClaimUri(childPair.getValue().toString());
                 }
-                else if(LOCAL_NAME_DISPLAY_NAME.equals(childPair.getKey())){
+                else if (LOCAL_NAME_DISPLAY_NAME.equals(childPair.getKey())) {
                     claim.setDisplayTag(childPair.getValue().toString());
                 }
-                else if(LOCAL_NAME_DESCRIPTION.equals(childPair.getKey())){
+                else if (LOCAL_NAME_DESCRIPTION.equals(childPair.getKey())) {
                     claim.setDescription(childPair.getValue().toString());
                 }
-                else if(LOCAL_NAME_REG_EX.equals(childPair.getKey())){
+                else if (LOCAL_NAME_REG_EX.equals(childPair.getKey())) {
                     claim.setRegEx(childPair.getValue().toString());
                 }
-                else if(LOCAL_NAME_REQUIRED.equals(childPair.getKey())){
+                else if (LOCAL_NAME_REQUIRED.equals(childPair.getKey())) {
                     claim.setRequired(true);
                 }
-                else if(LOCAL_NAME_SUPPORTED_BY_DEFAULT.equals(childPair.getKey())){
+                else if (LOCAL_NAME_SUPPORTED_BY_DEFAULT.equals(childPair.getKey())) {
                     claim.setSupportedByDefault(true);
                 }
-                else if(LOCAL_NAME_DISPLAY_ORDER.equals(childPair.getKey())){
+                else if (LOCAL_NAME_DISPLAY_ORDER.equals(childPair.getKey())) {
                     claim.setDisplayOrder(Integer.parseInt(childPair.getValue().toString()));
                 }
-                else if(LOCAL_NAME_READ_ONLY.equals(childPair.getKey())){
+                else if (LOCAL_NAME_READ_ONLY.equals(childPair.getKey())) {
                     claim.setReadOnly(true);
                 }
-                else if(LOCAL_NAME_CHECKED_ATTR.equals(childPair.getKey())){
+                else if (LOCAL_NAME_CHECKED_ATTR.equals(childPair.getKey())) {
                     claim.setCheckedAttribute(true);
                 }
-                else if(LOCAL_NAME_ATTR_ID.equals(childPair.getKey())){
+                else if (LOCAL_NAME_ATTR_ID.equals(childPair.getKey())) {
                     attributeId = childPair.getValue().toString();
                 }
                 else{
@@ -145,7 +145,7 @@ public class ClaimBuilder {
      * @param realmName real name
      * @return the final claims from the build claim mappings
      */
-    public Map<String, ClaimMapping> buildClaimMappingsFromDatabase(String realmName){
+    public Map<String, ClaimMapping> buildClaimMappingsFromDatabase(String realmName) {
         Map<String, ClaimMapping> claims = new HashMap<>();
         try {
             ClaimDAO claimDAO = new ClaimDAOImpl();

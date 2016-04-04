@@ -69,7 +69,7 @@
         <div id="workArea">
 
             <script type="text/javascript">
-                $(document).ready(function(){
+                $(document).ready(function() {
                     function setSelectedIndex(s, valsearch)
                     {
                         // Loop through all the items in drop down list
@@ -257,7 +257,7 @@
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='mapped.attribute'/><font
                                             class="required">*</font></td>
-                                    <%if(LOCAL_DIALECT_URI.equals(dialectUri)){%>
+                                    <%if (LOCAL_DIALECT_URI.equals(dialectUri)) {%>
                                     <td class="leftCol-big"><input type="text" name="attribute" id="attribute"
                                                                    value="<%=claims[j].getMappedAttribute()%>"/>
 
@@ -268,7 +268,7 @@
                                     <%}else{%>
                                     <td class="leftCol-big">
                                         <select id="localClaim" name="localClaim" style="float:left; width: 50%">
-                                            <%for(ClaimMappingDTO map:mapping){%>
+                                            <%for(ClaimMappingDTO map:mapping) {%>
                                             <option value="<%=map.getClaim().getClaimUri()%>" selected> <%=map.getClaim().getClaimUri()%></option>
                                             <%}%>
                                         </select>

@@ -250,14 +250,14 @@
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='mapped.attribute'/><font
                                             color="red">*</font></td>
-                                    <%if(LOCAL_DIALECT_URI.equals(dialectUri)){%>
+                                    <%if (LOCAL_DIALECT_URI.equals(dialectUri)) {%>
                                     <td class="leftCol-big">
                                         <input type="text" name="localClaim" id="localClaim" class="text-box-big"/>
                                     </td>
                                     <%}else{%>
                                     <td class="leftCol-big">
                                         <select id="localClaim" name="localClaim" style="float:left; width: 50%">
-                                            <%for(ClaimMappingDTO map:mapping){%>
+                                            <%for(ClaimMappingDTO map:mapping) {%>
                                             <option value="<%=map.getClaim().getClaimUri()%>" selected> <%=map.getClaim().getClaimUri()%></option>
                                             <%}%>
                                         </select>
