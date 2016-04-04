@@ -250,12 +250,13 @@ public class SecurityDeploymentInterceptor implements AxisObserver {
                 String serviceGroupId = axisService.getAxisServiceGroup().getServiceGroupName();
                 String serviceName = axisService.getName();
                 removeAuthorization(userRealm,serviceGroupId,serviceName);
-            }
+           
 
-            AxisModule module = axisService.getAxisConfiguration().getModule(SecurityConstants
-                    .RAMPART_MODULE_NAME);
-            // disengage at axis2
-            axisService.disengageModule(module);
+                AxisModule module = axisService.getAxisConfiguration().getModule(SecurityConstants
+                        .RAMPART_MODULE_NAME);
+                // disengage at axis2
+                axisService.disengageModule(module);
+            }
             return;
         }
 
