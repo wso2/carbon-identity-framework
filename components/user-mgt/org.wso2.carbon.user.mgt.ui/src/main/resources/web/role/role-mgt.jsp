@@ -64,7 +64,6 @@
     FlaggedName[] roles = null;
     FlaggedName exceededDomains = null;
     String[] domainNames = null;
-    String roleCount = "";
     int pageNumber = 0;
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
@@ -80,6 +79,7 @@
     Set<FlaggedName> aggregateRoleList = new LinkedHashSet<FlaggedName>();
     Set<FlaggedName> removeRoleElement = new LinkedHashSet<FlaggedName>();
     Set<String> countableUserStores = new LinkedHashSet<String>();
+    Map<String, String> roleCount = new HashMap<String, String>();
 
     // clear session data
     session.removeAttribute("roleBean");
@@ -206,7 +206,16 @@
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
             countableUserStores = countClient.getCountableUserStores();
-            roleCount = String.valueOf(countClient.countRolesInDomain(countFilter, selectedCountDomain));
+
+            countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
+            countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
+            countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
+
+            if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                roleCount = countClient.countRoles(countFilter);
+            } else {
+                roleCount.put(selectedCountDomain, String.valueOf(countClient.countRolesInDomain(countFilter, selectedCountDomain)));
+            }
 
             boolean sharedRoleEnabled = client.isSharedRolesEnabled();
             session.setAttribute(UserAdminUIConstants.SHARED_ROLE_ENABLED, sharedRoleEnabled);
@@ -464,15 +473,30 @@
                                    value="<fmt:message key="role.count"/>"/>
                         </td>
                     </tr>
+
+                    <%
+                        Iterator it = roleCount.entrySet().iterator();
+                        String key = null;
+                        String value = null;
+                        while (it.hasNext()) {
+                            Map.Entry pair = (Map.Entry)it.next();
+                            key = (String) pair.getKey();
+                            value = (String) pair.getValue();
+                    %>
+
                     <tr>
-                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
-                                key="count"/></td>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><%=key%></td>
                         <td>
-                            <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
-                                   value="<%=Encode.forHtmlAttribute(roleCount)%>" />
+                            <input type="text" readonly=true name="<%=UserAdminUIConstants.ROLE_COUNT%>"
+                                   value="<%=Encode.forHtmlAttribute(value)%>" />
 
                         </td>
                     </tr>
+
+                    <%        it.remove();
+                        }
+                    %>
+
 
                     </tbody>
                     <%

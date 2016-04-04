@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDataHolder;
+import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetriever;
+import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -128,13 +130,30 @@ public class UserStoreCountUtils {
 
         RealmConfiguration realmConfiguration = getUserStoreList().get(domain);
         if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
+            String retriever = realmConfiguration.getUserStoreProperty(countRetrieverClass);
             UserStoreCountRetriever userStoreCountRetriever = UserStoreCountDataHolder.getInstance().
-                    getUserStoreCountRetrievers().get(realmConfiguration.getUserStoreProperty(countRetrieverClass));
+                    getUserStoreCountRetrievers().get(retriever);
+            if (userStoreCountRetriever == null) {
+                throw new UserStoreCounterException("Could not create an instance of class: " + retriever + " for " +
+                        "the domain: " + domain);
+            }
             userStoreCountRetriever.init(realmConfiguration);
             return userStoreCountRetriever;
         } else {
-            return null;
+            throw new UserStoreCounterException("Realm Configuration is not ready for count the domain: " + domain);
         }
+    }
+
+    /**
+     * Create an instance of the given count retriever for internal domain
+     *
+     * @return
+     * @throws UserStoreCounterException
+     */
+    public static UserStoreCountRetriever getInternalCounterInstance() throws UserStoreCounterException {
+        return UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().get(
+                InternalCountRetriever.class.getName());
+
     }
 
     /**
@@ -168,5 +187,17 @@ public class UserStoreCountUtils {
         }
 
         return pairs;
+    }
+
+    public static Long getInternalRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(UserCoreConstants.INTERNAL_DOMAIN+"%"+filter);
+    }
+
+    public static Long getApplicationRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(InternalStoreCountConstants.APPLICATION_DOMAIN+"%" +filter + "%");
+    }
+
+    public static Long getWorkflowRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(InternalStoreCountConstants.WORKFLOW_DOMAIN+"%" +filter + "%");
     }
 }
