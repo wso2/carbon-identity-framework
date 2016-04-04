@@ -106,6 +106,18 @@ public class IdentityConstants {
     public final static String CACHE_ENABLE = "enable";
     public final static String CACHE_TIMEOUT = "timeout";
     public final static String CACHE_CAPACITY = "capacity";
+    
+    // Cookie Config constants
+    public final static String COOKIES_CONFIG = "Cookies";
+    public final static String COOKIE = "Cookie";
+    public final static String COOKIE_NAME = "name";
+    public final static String COOKIE_DOMAIN = "domain";
+    public final static String COOKIE_COMMENT = "comment";
+    public final static String COOKIE_VERSION = "version";
+    public final static String COOKIE_PATH = "path";
+    public final static String COOKIE_MAX_AGE = "maxAge";
+    public final static String COOKIE_SECURE = "secure";
+    public final static String COOKIE_HTTP_ONLY = "httpOnly";
 
     private IdentityConstants() {
     }

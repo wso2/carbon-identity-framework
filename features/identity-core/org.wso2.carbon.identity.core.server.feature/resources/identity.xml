@@ -383,4 +383,8 @@
             <!--<Cache name="AppAuthFrameworkSessionContextCache" enable="false" timeout="1" capacity="5000"/>-->
         </CacheManager>
     </CacheConfig>
+
+    <!--Cookies>
+        <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
+    </Cookies-->
 </Server>

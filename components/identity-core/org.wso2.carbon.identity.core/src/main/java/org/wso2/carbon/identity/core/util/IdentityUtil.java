@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
@@ -101,6 +102,7 @@ public class IdentityUtil {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
             HashMap<>();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap<>();
+    private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
@@ -167,10 +169,19 @@ public class IdentityUtil {
         return identityCacheConfig;
     }
 
+    public static IdentityCookieConfig getIdentityCookieConfig(String cookieName)   {
+        return identityCookiesConfigurationHolder.get(cookieName);
+    }
+
+    public static Map<String, IdentityCookieConfig> getIdentityCookiesConfigurationHolder() {
+        return identityCookiesConfigurationHolder;
+    }
+
     public static void populateProperties() {
         configuration = IdentityConfigParser.getInstance().getConfiguration();
         eventListenerConfiguration = IdentityConfigParser.getInstance().getEventListenerConfiguration();
         identityCacheConfigurationHolder = IdentityConfigParser.getInstance().getIdentityCacheConfigurationHolder();
+        identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {

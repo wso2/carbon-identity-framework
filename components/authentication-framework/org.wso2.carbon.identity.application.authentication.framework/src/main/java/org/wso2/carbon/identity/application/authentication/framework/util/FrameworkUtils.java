@@ -75,6 +75,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.core.model.CookieBuilder;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -473,16 +475,43 @@ public class FrameworkUtils {
      */
     public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id, Integer age) {
 
-        Cookie authCookie = new Cookie(FrameworkConstants.COMMONAUTH_COOKIE, id);
-        authCookie.setSecure(true);
-        authCookie.setHttpOnly(true);
-        authCookie.setPath("/");
+        CookieBuilder cookieBuilder = new CookieBuilder(FrameworkConstants.COMMONAUTH_COOKIE, id);
 
-        if (age != null) {
-            authCookie.setMaxAge(age.intValue() * 60);
+        IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
+
+        if (commonAuthIdCookieConfig != null)   {
+            if (commonAuthIdCookieConfig.getDomain() != null)   {
+                cookieBuilder.setDomain(commonAuthIdCookieConfig.getDomain());
+            }
+
+            if (commonAuthIdCookieConfig.getPath() != null) {
+                cookieBuilder.setPath(commonAuthIdCookieConfig.getPath());
+            }
+
+            if (commonAuthIdCookieConfig.getComment() != null)  {
+                cookieBuilder.setComment(commonAuthIdCookieConfig.getComment());
+            }
+
+            if (commonAuthIdCookieConfig.getMaxAge() > 0)   {
+                cookieBuilder.setMaxAge(commonAuthIdCookieConfig.getMaxAge());
+            } else if (age != null) {
+                cookieBuilder.setMaxAge(age);
+            }
+
+            if (commonAuthIdCookieConfig.getVersion() > 0)  {
+                cookieBuilder.setVersion(commonAuthIdCookieConfig.getVersion());
+            }
+
+            if (commonAuthIdCookieConfig.isHttpOnly())  {
+                cookieBuilder.setHttpOnly(commonAuthIdCookieConfig.isHttpOnly());
+            }
+
+            if (commonAuthIdCookieConfig.isSecure())    {
+                cookieBuilder.setSecure(commonAuthIdCookieConfig.isSecure());
+            }
         }
 
-        resp.addCookie(authCookie);
+        resp.addCookie(cookieBuilder.build());
     }
 
     /**
