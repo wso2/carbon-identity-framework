@@ -660,10 +660,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         Map<String, String> spToLocalClaimMappings = applicationConfig.getClaimMappings();
         if (subjectURI != null) {
 
-            if (!isLocalClaimDialect && spStandardDialect != null) {
-                if (spToLocalClaimMappings != null) {
-                    subjectURI = spToLocalClaimMappings.get(subjectURI);
-                }
+            if (!isLocalClaimDialect && spStandardDialect != null && spToLocalClaimMappings != null) {
+                subjectURI = spToLocalClaimMappings.get(subjectURI);
             }
 
             if (attributesMap.get(subjectURI) != null) {

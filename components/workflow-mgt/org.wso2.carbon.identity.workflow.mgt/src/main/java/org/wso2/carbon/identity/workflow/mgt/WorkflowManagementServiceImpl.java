@@ -152,9 +152,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         for (WorkflowListener workflowListener : workflowListenerList) {
             if (workflowListener.isEnable()) {
-                if (workflowListener.isEnable()) {
-                    workflowListener.doPostListWorkflowEvents(eventList);
-                }
+                workflowListener.doPostListWorkflowEvents(eventList);
             }
         }
         return eventList;

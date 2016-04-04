@@ -767,25 +767,22 @@ public class PolicyEditorUtil {
             if (attributeValue != null && function != null) {
                 String[] values = attributeValue.split(",");
 
-                if (values != null && values.length > 0) {
-
-                    if (function.contains("concatenate")) {
-                        ApplyElementDTO applyElementDTO = new ApplyElementDTO();
-                        applyElementDTO.setFunctionId(processFunction(function, attributeDataType, "2.0"));
-                        // there can be any number of inputs
-                        for (String value : values) {
-                            if (map.containsKey(value)) {
-                                applyElementDTO.setApplyElement(createApplyElement(map.get(value), map));
-                            } else {
-                                AttributeValueElementDTO valueElementDTO = new AttributeValueElementDTO();
-                                valueElementDTO.setAttributeDataType(attributeDataType);
-                                valueElementDTO.setAttributeValue(value);
-                                applyElementDTO.setAttributeValueElementDTO(valueElementDTO);
-                            }
+                if (values != null && values.length > 0 && function.contains("concatenate")) {
+                    ApplyElementDTO applyElementDTO = new ApplyElementDTO();
+                    applyElementDTO.setFunctionId(processFunction(function, attributeDataType, "2.0"));
+                    // there can be any number of inputs
+                    for (String value : values) {
+                        if (map.containsKey(value)) {
+                            applyElementDTO.setApplyElement(createApplyElement(map.get(value), map));
+                        } else {
+                            AttributeValueElementDTO valueElementDTO = new AttributeValueElementDTO();
+                            valueElementDTO.setAttributeDataType(attributeDataType);
+                            valueElementDTO.setAttributeValue(value);
+                            applyElementDTO.setAttributeValueElementDTO(valueElementDTO);
                         }
-
-                        return applyElementDTO;
                     }
+
+                    return applyElementDTO;
                 }
             }
         }

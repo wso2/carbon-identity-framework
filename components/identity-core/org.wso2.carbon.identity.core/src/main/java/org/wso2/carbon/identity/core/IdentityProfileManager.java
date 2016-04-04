@@ -63,11 +63,9 @@ public class IdentityProfileManager {
      */
     public void setRealm(UserRealm realm) {
         this.realm = realm;
-        if (log.isDebugEnabled()) {
-            if (realm != null) {
-                log.debug("IdentityProfileManager UserRealm set successfully: "
-                        + realm.getClass().getName());
-            }
+        if (log.isDebugEnabled() && realm != null) {
+            log.debug("IdentityProfileManager UserRealm set successfully: "
+                    + realm.getClass().getName());
         }
     }
 

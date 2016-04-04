@@ -153,15 +153,11 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
 
                 //Now revert back to original password
-                if (userStoreProperties.containsKey(UserStoreConfigConstants.connectionPassword)) {
-                    if (originalPassword != null) {
-                        userStoreProperties.put(UserStoreConfigConstants.connectionPassword, originalPassword);
-                    }
+                if (userStoreProperties.containsKey(UserStoreConfigConstants.connectionPassword) && originalPassword != null) {
+                    userStoreProperties.put(UserStoreConfigConstants.connectionPassword, originalPassword);
                 }
-                if (userStoreProperties.containsKey(JDBCRealmConstants.PASSWORD)) {
-                    if (originalPassword != null) {
-                        userStoreProperties.put(JDBCRealmConstants.PASSWORD, originalPassword);
-                    }
+                if (userStoreProperties.containsKey(JDBCRealmConstants.PASSWORD) && originalPassword != null) {
+                    userStoreProperties.put(JDBCRealmConstants.PASSWORD, originalPassword);
                 }
 
                 domains.add(userStoreDTO);
@@ -559,10 +555,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 if (isPropertyToBeEncrypted(mandatoryProperties, propertyDTOName)) {
                     if (randomPasswordContainer != null) {
                         RandomPassword randomPassword = getRandomPassword(randomPasswordContainer, propertyDTOName);
-                        if (randomPassword != null) {
-                            if (propertyDTOValue.equalsIgnoreCase(randomPassword.getRandomPhrase())) {
-                                propertyDTOValue = randomPassword.getPassword();
-                            }
+                        if (randomPassword != null && propertyDTOValue.equalsIgnoreCase(randomPassword.getRandomPhrase())) {
+                            propertyDTOValue = randomPassword.getPassword();
+                            
                         }
                     }
 
@@ -709,10 +704,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             randomPasswordContainer = getRandomPasswordContainer(messageID);
             if (randomPasswordContainer != null) {
                 RandomPassword randomPassword = getRandomPassword(randomPasswordContainer, JDBCRealmConstants.PASSWORD);
-                if (randomPassword != null) {
-                    if (connectionPassword.equalsIgnoreCase(randomPassword.getRandomPhrase())) {
-                        connectionPassword = randomPassword.getPassword();
-                    }
+                if (randomPassword != null && connectionPassword.equalsIgnoreCase(randomPassword.getRandomPhrase())) {
+                    connectionPassword = randomPassword.getPassword();
                 }
             }
         }

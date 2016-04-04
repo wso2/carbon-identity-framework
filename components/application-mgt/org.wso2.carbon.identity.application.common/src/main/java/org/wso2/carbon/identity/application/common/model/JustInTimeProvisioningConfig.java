@@ -51,11 +51,8 @@ public class JustInTimeProvisioningConfig extends InboundProvisioningConfig impl
                 justInTimeProvisioningConfig.setUserStoreClaimUri(element.getText());
             } else if ("ProvisioningUserStore".equals(elementName)) {
                 justInTimeProvisioningConfig.setProvisioningUserStore(element.getText());
-            } else if ("IsProvisioningEnabled".equals(elementName)) {
-                if (element.getText() != null && element.getText().trim().length() > 0) {
-                    justInTimeProvisioningConfig.setProvisioningEnabled(Boolean
-                            .parseBoolean(element.getText()));
-                }
+            } else if ("IsProvisioningEnabled".equals(elementName) && element.getText() != null && element.getText().trim().length() > 0) {
+                    justInTimeProvisioningConfig.setProvisioningEnabled(Boolean.parseBoolean(element.getText()));
             }
         }
 

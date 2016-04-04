@@ -225,13 +225,11 @@ public class EntitlementPolicyAdminService {
                     }
                 }
 
-                if (!useAttributeFiler) {
+                if (!useAttributeFiler && policySearchString.trim().length() > 0) {
                     // Filter out policies based on policy Search String
-                    if (policySearchString.trim().length() > 0) {
                         Matcher matcher = pattern.matcher(policyDTO.getPolicyId());
-                        if (!matcher.matches()) {
-                            continue;
-                        }
+                    if (!matcher.matches()) {
+                        continue;
                     }
                 }
             }
@@ -730,11 +728,8 @@ public class EntitlementPolicyAdminService {
                     }
 
                     policyDTO.setPolicyId(policyId);
-                    if (isAdd) {
-                        if (policyAdmin.isExistPolicy(policyId)) {
-                            throw new EntitlementException(
-                                    "An Entitlement Policy with the given Id already exists");
-                        }
+                    if (isAdd && policyAdmin.isExistPolicy(policyId)) {
+                        throw new EntitlementException("An Entitlement Policy with the given Id already exists");
                     }
                 } else {
                     throw new EntitlementException("Unsupported Entitlement Policy. Policy can not be parsed");

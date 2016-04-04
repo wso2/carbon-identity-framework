@@ -232,49 +232,46 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
         } else {
             Collection<PolicyStatus> policies =
                     EntitlementEngine.getInstance().getPolicyCache().getInvalidatedPolicies();
-            if (policies != null) {
-                if (policies.size() > 0) {
-                    synchronized (policies) {
-                        boolean isReorder = false;
-                        policyReferenceCache.clear();
-                        EntitlementEngine.getInstance().clearDecisionCache();
-                        for (PolicyStatus policyStatus : policies) {
+            if (policies != null && policies.size() > 0) {
+               synchronized (policies) {
+                   boolean isReorder = false;
+                   policyReferenceCache.clear();
+                   EntitlementEngine.getInstance().clearDecisionCache();
+                   for (PolicyStatus policyStatus : policies) {
 
-                            if (EntitlementConstants.PolicyPublish.ACTION_DELETE
-                                    .equals(policyStatus.getPolicyAction())) {
-                                policyCollection.deletePolicy(policyStatus.getPolicyId());
-                                policyCollectionOrder.remove(new PolicyDTO(policyStatus.getPolicyId()));
-                            } else if (EntitlementConstants.PolicyPublish.ACTION_UPDATE
-                                    .equals(policyStatus.getPolicyAction())) {
-                                AbstractPolicy abstractPolicy = loadPolicy(policyStatus.getPolicyId());
-                                policyCollection.addPolicy(abstractPolicy);
-                            } else if (EntitlementConstants.PolicyPublish.ACTION_CREATE
-                                    .equals(policyStatus.getPolicyAction())) {
-                                AbstractPolicy abstractPolicy = loadPolicy(policyStatus.getPolicyId());
-                                policyCollection.addPolicy(abstractPolicy);
-                                isReorder = true;
-                            } else if (EntitlementConstants.PolicyPublish.ACTION_ORDER
-                                    .equals(policyStatus.getPolicyAction())) {
-                                int order = getPolicyOrder(policyStatus.getPolicyId());
-                                if (order != -1) {
-                                    PolicyDTO policyDTO = new PolicyDTO(policyStatus.getPolicyId());
-                                    if (policyCollectionOrder.indexOf(policyDTO) != -1) {
-                                        policyCollectionOrder.get(policyCollectionOrder.indexOf(policyDTO))
-                                                .setPolicyOrder(order);
-                                        isReorder = true;
-                                    }
-                                }
-                            }
+                       if (EntitlementConstants.PolicyPublish.ACTION_DELETE
+                               .equals(policyStatus.getPolicyAction())) {
+                           policyCollection.deletePolicy(policyStatus.getPolicyId());
+                           policyCollectionOrder.remove(new PolicyDTO(policyStatus.getPolicyId()));
+                       } else if (EntitlementConstants.PolicyPublish.ACTION_UPDATE
+                               .equals(policyStatus.getPolicyAction())) {
+                           AbstractPolicy abstractPolicy = loadPolicy(policyStatus.getPolicyId());
+                           policyCollection.addPolicy(abstractPolicy);
+                       } else if (EntitlementConstants.PolicyPublish.ACTION_CREATE
+                               .equals(policyStatus.getPolicyAction())) {
+                           AbstractPolicy abstractPolicy = loadPolicy(policyStatus.getPolicyId());
+                           policyCollection.addPolicy(abstractPolicy);
+                           isReorder = true;
+                       } else if (EntitlementConstants.PolicyPublish.ACTION_ORDER
+                               .equals(policyStatus.getPolicyAction())) {
+                           int order = getPolicyOrder(policyStatus.getPolicyId());
+                           if (order != -1) {
+                               PolicyDTO policyDTO = new PolicyDTO(policyStatus.getPolicyId());
+                               if (policyCollectionOrder.indexOf(policyDTO) != -1) {
+                                   policyCollectionOrder.get(policyCollectionOrder.indexOf(policyDTO))
+                                           .setPolicyOrder(order);
+                                   isReorder = true;
+                               }
+                           }
+                       }
 
-                        }
-                        if (isReorder) {
-                            orderPolicyCache();
-                        }
-                        policies.clear();
-                    }
+                   }
+                   if (isReorder) {
+                       orderPolicyCache();
+                   }
+                   policies.clear();
+               }
 
-
-                }
             }
         }
 

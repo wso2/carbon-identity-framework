@@ -73,18 +73,16 @@ public class PublisherDataHolder {
                             dto.setSecret(Boolean.parseBoolean((String) list.get(4)));
                         }
 
-                        if (dto.isSecret()) {
-                            if (returnSecrets) {
-                                String password = dto.getValue();
-                                try {
-                                    password = new String(CryptoUtil.getDefaultCryptoUtil().
-                                            base64DecodeAndDecrypt(dto.getValue()));
-                                } catch (CryptoException e) {
-                                    log.error(e);
-                                    // ignore
-                                }
-                                dto.setValue(password);
+                        if (dto.isSecret() && returnSecrets) {
+                            String password = dto.getValue();
+                            try {
+                                password = new String(CryptoUtil.getDefaultCryptoUtil().
+                                        base64DecodeAndDecrypt(dto.getValue()));
+                            } catch (CryptoException e) {
+                                log.error(e);
+                                // ignore
                             }
+                            dto.setValue(password);
                         }
                     }
                 }
