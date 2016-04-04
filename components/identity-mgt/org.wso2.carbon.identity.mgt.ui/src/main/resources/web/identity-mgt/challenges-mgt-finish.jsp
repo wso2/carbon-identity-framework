@@ -35,7 +35,7 @@
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%
-    List<ChallengeQuestionDTO> challenges =  new ArrayList<ChallengeQuestionDTO>();
+    List<ChallengeQuestionDTO> challenges = new ArrayList<>();
     String  removeSetId = request.getParameter("removeSetId");
 
     if(removeSetId != null && removeSetId.trim().length() > 0){

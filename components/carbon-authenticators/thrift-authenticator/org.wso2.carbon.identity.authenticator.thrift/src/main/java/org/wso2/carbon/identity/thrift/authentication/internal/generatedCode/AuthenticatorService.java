@@ -174,7 +174,7 @@ public class AuthenticatorService {
     public static class authenticate_args implements org.apache.thrift.TBase<authenticate_args, authenticate_args._Fields>, java.io.Serializable, Cloneable {
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
-            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<>(_Fields.class);
             tmpMap.put(_Fields.USER_NAME, new org.apache.thrift.meta_data.FieldMetaData("userName", org.apache.thrift.TFieldRequirementType.REQUIRED,
                     new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
             tmpMap.put(_Fields.PASSWORD, new org.apache.thrift.meta_data.FieldMetaData("password", org.apache.thrift.TFieldRequirementType.REQUIRED,
@@ -508,7 +508,7 @@ public class AuthenticatorService {
             USER_NAME((short) 1, "userName"),
             PASSWORD((short) 2, "password");
 
-            private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+            private static final Map<String, _Fields> byName = new HashMap<>();
 
             static {
                 for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -568,7 +568,7 @@ public class AuthenticatorService {
     public static class authenticate_result implements org.apache.thrift.TBase<authenticate_result, authenticate_result._Fields>, java.io.Serializable, Cloneable {
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
-            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<>(_Fields.class);
             tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
                     new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
             tmpMap.put(_Fields.AE, new org.apache.thrift.meta_data.FieldMetaData("ae", org.apache.thrift.TFieldRequirementType.DEFAULT,
@@ -895,7 +895,7 @@ public class AuthenticatorService {
             SUCCESS((short) 0, "success"),
             AE((short) 1, "ae");
 
-            private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+            private static final Map<String, _Fields> byName = new HashMap<>();
 
             static {
                 for (_Fields field : EnumSet.allOf(_Fields.class)) {

@@ -317,7 +317,7 @@ public class UserIdentityManagementAdminService {
 
         ChallengeQuestionProcessor processor = IdentityMgtServiceComponent.
                 getRecoveryProcessor().getQuestionProcessor();
-        List<UserChallengesSetDTO> challengeQuestionSetDTOs = new ArrayList<UserChallengesSetDTO>();
+        List<UserChallengesSetDTO> challengeQuestionSetDTOs = new ArrayList<>();
         List<ChallengeQuestionDTO> questionDTOs = null;
         try {
             questionDTOs = processor.getAllChallengeQuestions();
@@ -325,12 +325,12 @@ public class UserIdentityManagementAdminService {
             log.error("Error while loading user challenges", e);
             throw new IdentityMgtServiceException("Error while loading user challenges");
         }
-        Map<String, List<UserChallengesDTO>> listMap = new HashMap<String, List<UserChallengesDTO>>();
+        Map<String, List<UserChallengesDTO>> listMap = new HashMap<>();
         for (ChallengeQuestionDTO dto : questionDTOs) {
 
             List<UserChallengesDTO> dtoList = listMap.get(dto.getQuestionSetId());
             if (dtoList == null) {
-                dtoList = new ArrayList<UserChallengesDTO>();
+                dtoList = new ArrayList<>();
             }
 
             UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
@@ -483,7 +483,7 @@ public class UserIdentityManagementAdminService {
                     .getTenantUserRealm(CarbonContext.getThreadLocalCarbonContext().getTenantId())
                     .getUserStoreManager();
 
-            Map<String, String> claims = new HashMap<String, String>();
+            Map<String, String> claims = new HashMap<>();
             for (UserIdentityClaimDTO dto : userIdentityClaims) {
                 if (dto.getClaimUri().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
                     log.warn("WARNING! User " + userName + " tried to alter " + dto.getClaimUri());
@@ -610,7 +610,7 @@ public class UserIdentityManagementAdminService {
 
     private void validateSecurityQuestionDuplicate(UserChallengesDTO[] challengesDTOs) throws IdentityMgtServiceException {
 
-        Set<String> tmpMap = new HashSet<String>();
+        Set<String> tmpMap = new HashSet<>();
         for(int i = 0; i < challengesDTOs.length ; i++) {
             UserChallengesDTO userChallengesDTO = challengesDTOs[i];
             if(tmpMap.contains(userChallengesDTO.getId())){

@@ -54,7 +54,7 @@ public class PermissionsAndRoleConfig implements Serializable {
 
             if ("Permissions".equals(elementName)) {
                 Iterator<?> permissionsIter = element.getChildElements();
-                List<ApplicationPermission> permissionsArrList = new ArrayList<ApplicationPermission>();
+                List<ApplicationPermission> permissionsArrList = new ArrayList<>();
 
                 if (permissionsIter != null) {
                     while (permissionsIter.hasNext()) {
@@ -76,7 +76,7 @@ public class PermissionsAndRoleConfig implements Serializable {
 
             if ("RoleMappings".equals(elementName)) {
                 Iterator<?> roleMappingsIter = element.getChildElements();
-                ArrayList<RoleMapping> roleMappingsArrList = new ArrayList<RoleMapping>();
+                ArrayList<RoleMapping> roleMappingsArrList = new ArrayList<>();
 
                 if (roleMappingsIter != null) {
                     while (roleMappingsIter.hasNext()) {
@@ -97,7 +97,7 @@ public class PermissionsAndRoleConfig implements Serializable {
 
             if ("IdpRoles".equals(elementName)) {
                 Iterator<?> idpRolesIter = element.getChildElements();
-                List<String> roleMappingsArrList = new ArrayList<String>();
+                List<String> roleMappingsArrList = new ArrayList<>();
 
                 while (idpRolesIter.hasNext()) {
                     OMElement idpRolesElement = (OMElement) (idpRolesIter.next());

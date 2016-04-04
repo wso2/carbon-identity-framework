@@ -38,9 +38,9 @@ public class FrameworkServiceDataHolder {
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
-    private List<InboundAuthenticationRequestProcessor> inboundAuthenticationRequestProcessors = new ArrayList<InboundAuthenticationRequestProcessor>();
-    private List<InboundAuthenticationRequestBuilder> inboundAuthenticationRequestBuilders = new ArrayList<InboundAuthenticationRequestBuilder>();
-    private List<InboundAuthenticationResponseProcessor> inboundAuthenticationResponseProcessors = new ArrayList<InboundAuthenticationResponseProcessor>();
+    private List<InboundAuthenticationRequestProcessor> inboundAuthenticationRequestProcessors = new ArrayList<>();
+    private List<InboundAuthenticationRequestBuilder> inboundAuthenticationRequestBuilders = new ArrayList<>();
+    private List<InboundAuthenticationResponseProcessor> inboundAuthenticationResponseProcessors = new ArrayList<>();
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());

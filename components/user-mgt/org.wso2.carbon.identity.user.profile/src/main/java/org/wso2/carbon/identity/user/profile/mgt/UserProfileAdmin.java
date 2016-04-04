@@ -104,7 +104,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             realm = getUserRealm();
 
             UserFieldDTO[] udatas = profile.getFieldValues();
-            Map<String, String> map = new HashMap<String, String>();
+            Map<String, String> map = new HashMap<>();
             for (UserFieldDTO data : udatas) {
                 String claimURI = data.getClaimUri();
                 String value = data.getFieldValue();
@@ -228,7 +228,7 @@ public class UserProfileAdmin extends AbstractAdmin {
                 String profile = profileNames[i];
                 Map<String, String> valueMap =
                         userStoreManager.getUserClaimValues(username, claimUris, profile);
-                List<UserFieldDTO> userFields = new ArrayList<UserFieldDTO>();
+                List<UserFieldDTO> userFields = new ArrayList<>();
                 for (int j = 0; j < claims.length; j++) {
                     UserFieldDTO data = new UserFieldDTO();
                     Claim claim = claims[j];
@@ -415,7 +415,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             Map<String, String> valueMap =
                     userStoreManager
                             .getUserClaimValues(username, claimUris, profileName);
-            List<UserFieldDTO> userFields = new ArrayList<UserFieldDTO>();
+            List<UserFieldDTO> userFields = new ArrayList<>();
 
             for (int j = 0; j < claims.length; j++) {
                 UserFieldDTO data = new UserFieldDTO();
@@ -530,7 +530,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         List<Claim> reqClaims = null;
 
         claims = realm.getClaimManager().getAllSupportClaimMappingsByDefault();
-        reqClaims = new ArrayList<Claim>();
+        reqClaims = new ArrayList<>();
         for (int i = 0; i < claims.length; i++) {
             if (dialectUri.equals(claims[i].getClaim().getDialectURI()) && (claims[i] != null && claims[i].getClaim().getDisplayTag() != null
                     && !claims[i].getClaim().getClaimUri().equals(IdentityConstants.CLAIM_PPID))) {
@@ -646,7 +646,7 @@ public class UserProfileAdmin extends AbstractAdmin {
                                                                           .getUsername());
         String domainName = getDomainName(tenantAwareUsername);
         tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
-        List<AssociatedAccountDTO> associatedIDs = new ArrayList<AssociatedAccountDTO>();
+        List<AssociatedAccountDTO> associatedIDs = new ArrayList<>();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try {

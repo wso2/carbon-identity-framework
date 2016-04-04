@@ -27,7 +27,7 @@ public class DefaultPasswordPatternPolicyTest extends TestCase {
 
     public void testPassPatterns() {
 
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("pattern", "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{0,100}$");
         policy.init(params);
 
@@ -39,7 +39,7 @@ public class DefaultPasswordPatternPolicyTest extends TestCase {
 
     public void testFailPatterns() {
 
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("pattern", "^((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{0,100}$");
         policy.init(params);
 

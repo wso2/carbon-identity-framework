@@ -168,7 +168,7 @@ public class UserRealmProxy {
 
     public FlaggedName[] listAllUsers(String filter, int maxLimit) throws UserAdminException {
         FlaggedName[] flaggedNames = null;
-        Map<String, Integer> userCount = new HashMap<String, Integer>();
+        Map<String, Integer> userCount = new HashMap<>();
         try {
             UserStoreManager userStoreManager = realm.getUserStoreManager();
             String[] users = userStoreManager.listUsers(filter, maxLimit);
@@ -291,8 +291,8 @@ public class UserRealmProxy {
                         "Initialized User Store Manager is not capable of getting the shared roles");
             }
 
-            List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
-            Map<String, Integer> userCount = new HashMap<String, Integer>();
+            List<FlaggedName> flaggedNames = new ArrayList<>();
+            Map<String, Integer> userCount = new HashMap<>();
 
             for (String externalRole : externalRoles) {
                 FlaggedName fName = new FlaggedName();
@@ -400,8 +400,8 @@ public class UserRealmProxy {
                 externalRoles = userStoreMan.getRoleNames();
             }
 
-            List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
-            Map<String, Integer> userCount = new HashMap<String, Integer>();
+            List<FlaggedName> flaggedNames = new ArrayList<>();
+            Map<String, Integer> userCount = new HashMap<>();
 
             for (String externalRole : externalRoles) {
                 FlaggedName fName = new FlaggedName();
@@ -553,9 +553,9 @@ public class UserRealmProxy {
                 if (ArrayUtils.isNotEmpty(defaultClaims)) {
                     Arrays.sort(defaultClaims, new ClaimMappingsComparator());
                 }
-                List<String> fullClaimList = new ArrayList<String>();
-                List<String> requiredClaimsList = new ArrayList<String>();
-                List<String> defaultClaimList = new ArrayList<String>();
+                List<String> fullClaimList = new ArrayList<>();
+                List<String> requiredClaimsList = new ArrayList<>();
+                List<String> defaultClaimList = new ArrayList<>();
 
                 for (ClaimMapping claimMapping : defaultClaims) {
                     Claim claim = claimMapping.getClaim();
@@ -574,8 +574,8 @@ public class UserRealmProxy {
                 userRealmInfo.setDefaultUserClaims(defaultClaimList.toArray(new String[defaultClaimList.size()]));
             }
 
-            List<UserStoreInfo> storeInfoList = new ArrayList<UserStoreInfo>();
-            List<String> domainNames = new ArrayList<String>();
+            List<UserStoreInfo> storeInfoList = new ArrayList<>();
+            List<String> domainNames = new ArrayList<>();
             RealmConfiguration secondaryConfig = realmConfig;
             UserStoreManager secondaryManager = realm.getUserStoreManager();
 
@@ -761,7 +761,7 @@ public class UserRealmProxy {
                 }
             }
             UserStoreManager admin = realm.getUserStoreManager();
-            Map<String, String> claimMap = new HashMap<String, String>();
+            Map<String, String> claimMap = new HashMap<>();
             if (claims != null) {
                 for (ClaimValue claimValue : claims) {
                     claimMap.put(claimValue.getClaimURI(), claimValue.getValue());
@@ -1070,11 +1070,11 @@ public class UserRealmProxy {
             UserStoreManager usMan = realm.getUserStoreManager();
             String[] usersOfRole = usMan.getUserListOfRole(roleName);
             Arrays.sort(usersOfRole);
-            Map<String, Integer> userCount = new HashMap<String, Integer>();
+            Map<String, Integer> userCount = new HashMap<>();
             if (limit == 0) {
                 filter = filter.replace("*", ".*");
                 Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
-                List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
+                List<FlaggedName> flaggedNames = new ArrayList<>();
                 for (String anUsersOfRole : usersOfRole) {
                     //check if display name is present in the user name
                     int combinerIndex = anUsersOfRole.indexOf("|");
@@ -1264,7 +1264,7 @@ public class UserRealmProxy {
 
             UserStoreManager admin = realm.getUserStoreManager();
             String[] userRoles = ((AbstractUserStoreManager) admin).getRoleListOfUser(userName);
-            Map<String, Integer> userCount = new HashMap<String, Integer>();
+            Map<String, Integer> userCount = new HashMap<>();
 
             if (limit == 0) {
 
@@ -1432,7 +1432,7 @@ public class UserRealmProxy {
                 }
             }
 
-            List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
+            List<FlaggedName> flaggedNames = new ArrayList<>();
 
             Arrays.sort(userRoles);
             if (externalRoles != null) {
@@ -1545,7 +1545,7 @@ public class UserRealmProxy {
 
             UserStoreManager admin = realm.getUserStoreManager();
             String[] oldUserList = admin.getUserListOfRole(roleName);
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             if (oldUserList != null) {
                 for (String value : oldUserList) {
                     int combinerIndex = value.indexOf("|");
@@ -1704,8 +1704,8 @@ public class UserRealmProxy {
             String[] oldRoleList = admin.getRoleListOfUser(userName);
             Arrays.sort(oldRoleList);
 
-            List<String> delRoles = new ArrayList<String>();
-            List<String> addRoles = new ArrayList<String>();
+            List<String> delRoles = new ArrayList<>();
+            List<String> addRoles = new ArrayList<>();
 
             for (String name : roleList) {
                 int oldindex = Arrays.binarySearch(oldRoleList, name);
@@ -1784,7 +1784,7 @@ public class UserRealmProxy {
 
             UserStoreManager admin = realm.getUserStoreManager();
             String[] oldUserList = admin.getUserListOfRole(roleName);
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             if (oldUserList != null) {
                 for (String value : oldUserList) {
                     int combinerIndex = value.indexOf("|");
@@ -1799,8 +1799,8 @@ public class UserRealmProxy {
             }
 
 
-            List<String> delUser = new ArrayList<String>();
-            List<String> addUsers = new ArrayList<String>();
+            List<String> delUser = new ArrayList<>();
+            List<String> addUsers = new ArrayList<>();
 
             if (oldUserList != null) {
                 if (newUsers != null) {

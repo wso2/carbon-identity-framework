@@ -31,7 +31,7 @@
         <%@ page import="java.util.ResourceBundle" %>
 
         <%
-        	Map<String, String> properties = new HashMap<String, String>();
+        	Map<String, String> properties = new HashMap<>();
             String forwardTo = "index.jsp";
             String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
             ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -52,7 +52,7 @@
 
 
             UserStoreDTO userStoreDTO = new UserStoreDTO();
-            ArrayList<PropertyDTO> propertyList = new ArrayList<PropertyDTO>();
+            ArrayList<PropertyDTO> propertyList = new ArrayList<>();
             String value = null;
             for (int i = 0; i < defaultProperties; i++) {
                 PropertyDTO propertyDTO = new PropertyDTO();

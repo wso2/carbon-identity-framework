@@ -83,7 +83,7 @@ public class AccountCredentialMgtConfigClient {
         EmailConfigDTO emailConfig = new EmailConfigDTO();
         try {
             emailTemplates = stub.getEmailConfig();
-            Map<String, String> emailTypes = new HashMap<String, String>();
+            Map<String, String> emailTypes = new HashMap<>();
             for (int i = 0; i < emailTemplates.length; i++) {
                 emailTypes.put(emailTemplates[i].getName(), emailTemplates[i].getDisplayName());
             }

@@ -184,7 +184,7 @@ public class OutboundProvisioningManager {
             }
             // no out-bound provisioning configuration defined for local service provider.return an
             // empty list.
-            return new HashMap<String, RuntimeProvisioningConfig>();
+            return new HashMap<>();
         }
 
         // get the list of registered provisioning identity providers in out-bound provisioning

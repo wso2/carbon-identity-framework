@@ -38,9 +38,9 @@ public class PolicyDTO {
 
     private TargetDTO targetDTO;
 
-    private List<RuleDTO> ruleDTOs = new ArrayList<RuleDTO>();
+    private List<RuleDTO> ruleDTOs = new ArrayList<>();
 
-    private List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
+    private List<ObligationDTO> obligationDTOs = new ArrayList<>();
 
     public String getRuleAlgorithm() {
         return ruleAlgorithm;

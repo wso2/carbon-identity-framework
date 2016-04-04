@@ -36,17 +36,17 @@ public class PolicySetDTO {
 
     private String description;
 
-    private List<String> policySets = new ArrayList<String>();
+    private List<String> policySets = new ArrayList<>();
 
-    private List<String> policies = new ArrayList<String>();
+    private List<String> policies = new ArrayList<>();
 
-    private List<String> policySetIdReferences = new ArrayList<String>();
+    private List<String> policySetIdReferences = new ArrayList<>();
 
-    private List<String> PolicyIdReferences = new ArrayList<String>();
+    private List<String> PolicyIdReferences = new ArrayList<>();
 
-    private List<ObligationDTO> obligations = new ArrayList<ObligationDTO>();
+    private List<ObligationDTO> obligations = new ArrayList<>();
 
-    private List<PolicyRefIdDTO> policyRefIdDTOs = new ArrayList<PolicyRefIdDTO>();
+    private List<PolicyRefIdDTO> policyRefIdDTOs = new ArrayList<>();
 
     private String policyOrder;
 

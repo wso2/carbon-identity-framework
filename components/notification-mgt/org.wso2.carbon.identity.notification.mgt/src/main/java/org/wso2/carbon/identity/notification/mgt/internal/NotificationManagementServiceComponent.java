@@ -61,7 +61,7 @@ public class NotificationManagementServiceComponent {
     /**
      * Since Message Sending modules are dynamically registered a List is used
      */
-    private List<NotificationSendingModule> notificationSendingModules = new ArrayList<NotificationSendingModule>();
+    private List<NotificationSendingModule> notificationSendingModules = new ArrayList<>();
 
     protected void activate(ComponentContext context) {
         // Register Notification sender as an OSGI service. Other components can consume the service for sending

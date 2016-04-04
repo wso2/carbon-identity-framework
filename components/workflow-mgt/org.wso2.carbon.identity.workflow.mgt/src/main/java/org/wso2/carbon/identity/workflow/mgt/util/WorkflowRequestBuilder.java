@@ -99,7 +99,7 @@ public class WorkflowRequestBuilder {
         singleValuedParams = new HashMap<>();
         listTypeParams = new HashMap<>();
         mapTypeParams = new HashMap<>();
-        this.initParams = new HashMap<String, Object>();
+        this.initParams = new HashMap<>();
     }
 
     /**
@@ -409,14 +409,14 @@ public class WorkflowRequestBuilder {
     }
 
     private Map<String, Map<String, List<String>>> getApprovalStepMap() {
-        Map<String, Map<String, List<String>>> map = new HashMap<String, Map<String, List<String>>>();
+        Map<String, Map<String, List<String>>> map = new HashMap<>();
         for (Map.Entry<String, Object> entry : this.initParams.entrySet()) {
             if (entry.getKey().startsWith("step-")) {
                 String[] key = entry.getKey().split("-");
                 String step = key[1];
                 Map<String, List<String>> valueMap = map.get(step);
                 if (valueMap == null) {
-                    valueMap = new HashMap<String, List<String>>();
+                    valueMap = new HashMap<>();
                     map.put(step, valueMap);
                 }
 

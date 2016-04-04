@@ -47,7 +47,7 @@ import java.util.Stack;
 
 public class IdentityConfigParser {
 
-    private static Map<String, Object> configuration = new HashMap<String, Object>();
+    private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static IdentityConfigParser parser;
@@ -150,7 +150,7 @@ public class IdentityConfigParser {
 
             builder = new StAXOMBuilder(inStream);
             rootElement = builder.getDocumentElement();
-            Stack<String> nameStack = new Stack<String>();
+            Stack<String> nameStack = new Stack<>();
             secretResolver = SecretResolverFactory.create(rootElement, true);
             readChildElements(rootElement, nameStack);
             buildEventListenerData();

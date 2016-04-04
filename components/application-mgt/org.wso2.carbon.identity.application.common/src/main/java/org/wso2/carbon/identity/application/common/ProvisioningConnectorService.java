@@ -27,7 +27,7 @@ public class ProvisioningConnectorService {
 
     private static volatile ProvisioningConnectorService instance;
 
-    private List<ProvisioningConnectorConfig> provisioningConnectorConfigs = new ArrayList<ProvisioningConnectorConfig>();
+    private List<ProvisioningConnectorConfig> provisioningConnectorConfigs = new ArrayList<>();
 
     public static ProvisioningConnectorService getInstance() {
         if (instance == null) {

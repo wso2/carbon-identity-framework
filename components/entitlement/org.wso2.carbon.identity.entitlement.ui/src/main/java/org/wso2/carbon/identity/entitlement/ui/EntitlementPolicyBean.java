@@ -45,43 +45,43 @@ import java.util.Set;
  */
 public class EntitlementPolicyBean {
 
-    public Map<String, String> functionIdMap = new HashMap<String, String>();
-    public Map<String, String> functionIdElementValueMap = new HashMap<String, String>();
+    public Map<String, String> functionIdMap = new HashMap<>();
+    public Map<String, String> functionIdElementValueMap = new HashMap<>();
     private String policyName;
     private String algorithmName;
     private String policyDescription;
     private String userInputData;
-    private List<String> subscribersList = new ArrayList<String>();
+    private List<String> subscribersList = new ArrayList<>();
     private SimplePolicyEditorDTO SimplePolicyEditorDTO;
-    private Map<String, String> categoryMap = new HashMap<String, String>();
-    private Map<String, String> targetFunctionMap = new HashMap<String, String>();
-    private Map<String, String> attributeIdMap = new HashMap<String, String>();
-    private Map<String, String> ruleFunctionMap = new HashMap<String, String>();
+    private Map<String, String> categoryMap = new HashMap<>();
+    private Map<String, String> targetFunctionMap = new HashMap<>();
+    private Map<String, String> attributeIdMap = new HashMap<>();
+    private Map<String, String> ruleFunctionMap = new HashMap<>();
     private boolean editPolicy;
     private String[] policyCombiningAlgorithms = new String[0];
     private Map<String, EntitlementFinderDataHolder> entitlementFinders =
-            new HashMap<String, EntitlementFinderDataHolder>();
-    private Map<Integer, String> selectedEntitlementData = new HashMap<Integer, String>();
+            new HashMap<>();
+    private Map<Integer, String> selectedEntitlementData = new HashMap<>();
     private Map<Integer, EntitlementTreeNodeDTO> entitlementLevelData =
-            new HashMap<Integer, EntitlementTreeNodeDTO>();
+            new HashMap<>();
     private BasicTargetDTO basicTargetDTO = null;
     private TargetDTO targetDTO = null;
     private PolicySetDTO policySetDTO = null;
-    private List<BasicRuleDTO> basicRuleDTOs = new ArrayList<BasicRuleDTO>();
+    private List<BasicRuleDTO> basicRuleDTOs = new ArrayList<>();
 
-    private List<RuleDTO> ruleDTOs = new ArrayList<RuleDTO>();
+    private List<RuleDTO> ruleDTOs = new ArrayList<>();
 
-    private List<ExtendAttributeDTO> extendAttributeDTOs = new ArrayList<ExtendAttributeDTO>();
+    private List<ExtendAttributeDTO> extendAttributeDTOs = new ArrayList<>();
 
-    private List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
+    private List<ObligationDTO> obligationDTOs = new ArrayList<>();
 
     private String ruleElementOrder;
 
     private String policyReferenceOrder;
 
-    private Set<String> preFunctions = new HashSet<String>();
+    private Set<String> preFunctions = new HashSet<>();
 
-    private List<PolicyRefIdDTO> policyRefIds = new ArrayList<PolicyRefIdDTO>();
+    private List<PolicyRefIdDTO> policyRefIds = new ArrayList<>();
 
     /**
      * This method is temporally used to clear the entitlement bean. Need to
@@ -410,7 +410,7 @@ public class EntitlementPolicyBean {
     }
 
     public Set<EntitlementFinderDataHolder> getEntitlementFinders(String category) {
-        Set<EntitlementFinderDataHolder> holders = new HashSet<EntitlementFinderDataHolder>();
+        Set<EntitlementFinderDataHolder> holders = new HashSet<>();
         for (Map.Entry<String, EntitlementFinderDataHolder> entry : entitlementFinders.entrySet()) {
             EntitlementFinderDataHolder holder = entry.getValue();
             if (Arrays.asList(holder.getSupportedCategory()).contains(category)) {
@@ -474,7 +474,7 @@ public class EntitlementPolicyBean {
     }
 
     public void setSubscribersList(String[] subscribersList) {
-        List<String> list = new ArrayList<String>(Arrays.asList(subscribersList));
+        List<String> list = new ArrayList<>(Arrays.asList(subscribersList));
         this.subscribersList.addAll(list);
     }
 }

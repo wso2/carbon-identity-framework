@@ -170,7 +170,7 @@ public class RandomPasswordProcessor {
      */
     private RandomPassword[] replaceOriginalPasswordsWithRandomPasswords(String randomPhrase, Property[] properties) {
 
-        ArrayList<RandomPassword> randomPasswordArrayList = new ArrayList<RandomPassword>();
+        ArrayList<RandomPassword> randomPasswordArrayList = new ArrayList<>();
         if (properties != null) {
             for (Property property : properties) {
 

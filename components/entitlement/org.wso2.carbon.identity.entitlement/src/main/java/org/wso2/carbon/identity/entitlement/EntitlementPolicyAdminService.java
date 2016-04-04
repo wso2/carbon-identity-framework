@@ -184,7 +184,7 @@ public class EntitlementPolicyAdminService {
     public PaginatedPolicySetDTO getAllPolicies(String policyTypeFilter, String policySearchString,
                                                 int pageNumber, boolean isPDPPolicy) throws EntitlementException {
 
-        List<PolicyDTO> policyDTOList = new ArrayList<PolicyDTO>();
+        List<PolicyDTO> policyDTOList = new ArrayList<>();
         PolicyDTO[] policyDTOs = null;
 
         if (isPDPPolicy) {

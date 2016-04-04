@@ -53,8 +53,8 @@
     String workflowId = request.getParameter(WorkflowUIConstants.PARAM_WORKFLOW_ID);
 
 
-    Map<String,Map<String,Parameter>> templateParameterValues = new HashMap<String,Map<String,Parameter>>();
-    Map<String,Map<String,Parameter>> workflowParameterValues = new HashMap<String,Map<String,Parameter>>();
+    Map<String,Map<String,Parameter>> templateParameterValues = new HashMap<>();
+    Map<String,Map<String,Parameter>> workflowParameterValues = new HashMap<>();
 
     WorkflowWizard workflowWizard = null ;
 
@@ -77,7 +77,7 @@
             for (Parameter parameter: templateParameters){
                 Map<String, Parameter> stringParameterMap = templateParameterValues.get(parameter.getParamName());
                 if(stringParameterMap == null){
-                    stringParameterMap = new HashMap<String, Parameter>();
+                    stringParameterMap = new HashMap<>();
                     templateParameterValues.put(parameter.getParamName(), stringParameterMap);
                 }
                 stringParameterMap.put(parameter.getQName(),parameter);
@@ -91,7 +91,7 @@
             for (Parameter parameter: workflowImplParameters){
                 Map<String, Parameter> stringParameterMap = workflowParameterValues.get(parameter.getParamName());
                 if(stringParameterMap == null){
-                    stringParameterMap = new HashMap<String, Parameter>();
+                    stringParameterMap = new HashMap<>();
                     workflowParameterValues.put(parameter.getParamName(), stringParameterMap);
                 }
                 stringParameterMap.put(parameter.getQName(),parameter);

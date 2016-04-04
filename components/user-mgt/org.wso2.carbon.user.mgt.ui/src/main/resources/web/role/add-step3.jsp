@@ -123,11 +123,11 @@
                 } else {
                     datas = client.getUsersOfRole(roleName, filter, -1);
                 }
-                dataList = new ArrayList<FlaggedName>(Arrays.asList(datas));
+                dataList = new ArrayList<>(Arrays.asList(datas));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.ROLE_LIST_ADD_ROLE_USER_CACHE_EXCEEDED, exceededDomains);
                 if (dataList != null && dataList.size() > 0) {
-                    flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
+                    flaggedNameMap = new HashMap<>();
                     int max = pageNumber + cachePages;
                     for (int i = (pageNumber - cachePages); i < max; i++) {
                         if (i < 0) {

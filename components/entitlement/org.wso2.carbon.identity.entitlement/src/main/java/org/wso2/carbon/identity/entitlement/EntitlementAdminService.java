@@ -375,7 +375,7 @@ public class EntitlementAdminService {
                 getEntitlementConfig().getResourceFinders();
 
         if (finderModules != null) {
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             for (Map.Entry<PolicyFinderModule, Properties> entry : finderModules.entrySet()) {
                 PolicyFinderModule module = entry.getKey();
                 if (module != null) {
@@ -390,7 +390,7 @@ public class EntitlementAdminService {
         }
 
         if (attributeModules != null) {
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             for (Map.Entry<PIPAttributeFinder, Properties> entry : attributeModules.entrySet()) {
                 PIPAttributeFinder module = entry.getKey();
                 if (module != null) {
@@ -405,7 +405,7 @@ public class EntitlementAdminService {
         }
 
         if (resourceModules != null) {
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             for (Map.Entry<PIPResourceFinder, Properties> entry : resourceModules.entrySet()) {
                 PIPResourceFinder module = entry.getKey();
                 if (module != null) {

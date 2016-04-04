@@ -95,7 +95,7 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
         //First check for mandatory field with #encrypt
         Property[] mandatoryProperties = UserStoreManagerRegistry.getUserStoreProperties(userStoreClass).
                 getMandatoryProperties();
-        ArrayList<String> propertyList = new ArrayList<String>();
+        ArrayList<String> propertyList = new ArrayList<>();
         for (Property property : mandatoryProperties) {
             if (property != null) {
                 String propertyName = property.getName();

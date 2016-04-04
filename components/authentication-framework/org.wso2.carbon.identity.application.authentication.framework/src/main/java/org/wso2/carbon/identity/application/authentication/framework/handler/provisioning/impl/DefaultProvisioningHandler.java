@@ -114,7 +114,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     // addingRoles = (newRoles AND existingRoles) - currentRolesList)
                     addingRoles.removeAll(currentRolesList);
 
-                    Collection<String> deletingRoles = new ArrayList<String>();
+                    Collection<String> deletingRoles = new ArrayList<>();
                     deletingRoles.addAll(currentRolesList);
                     // deletingRoles = currentRolesList - newRoles
                     deletingRoles.removeAll(Arrays.asList(newRoles));
@@ -270,7 +270,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
      * @return
      */
     private List<String> removeDomainFromNamesExcludeInternal(List<String> names, int tenantId) {
-        List<String> nameList = new ArrayList<String>();
+        List<String> nameList = new ArrayList<>();
         for (String name : names) {
             String userStoreDomain = IdentityUtil.extractDomainFromName(name);
             if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain)) {

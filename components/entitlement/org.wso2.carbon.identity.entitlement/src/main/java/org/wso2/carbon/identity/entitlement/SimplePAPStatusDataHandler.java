@@ -96,7 +96,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
     @Override
     public void handle(String about, StatusHolder statusHolder) throws EntitlementException {
-        List<StatusHolder> list = new ArrayList<StatusHolder>();
+        List<StatusHolder> list = new ArrayList<>();
         list.add(statusHolder);
         handle(about, statusHolder.getKey(), list);
     }
@@ -109,7 +109,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
         if (EntitlementConstants.Status.ABOUT_POLICY.equals(about)) {
             String path = ENTITLEMENT_POLICY_STATUS + key;
             List<StatusHolder> holders = readStatus(path, EntitlementConstants.Status.ABOUT_POLICY);
-            List<StatusHolder> filteredHolders = new ArrayList<StatusHolder>();
+            List<StatusHolder> filteredHolders = new ArrayList<>();
             if (holders != null) {
                 searchString = searchString.replace("*", ".*");
                 Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
@@ -128,7 +128,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
             }
             return filteredHolders.toArray(new StatusHolder[filteredHolders.size()]);
         } else {
-            List<StatusHolder> filteredHolders = new ArrayList<StatusHolder>();
+            List<StatusHolder> filteredHolders = new ArrayList<>();
             String path = ENTITLEMENT_PUBLISHER_STATUS + key;
             List<StatusHolder> holders = readStatus(path, EntitlementConstants.Status.ABOUT_SUBSCRIBER);
             if (holders != null) {
@@ -225,7 +225,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
             throw new EntitlementException("Error while persisting policy status", e);
         }
 
-        List<StatusHolder> statusHolders = new ArrayList<StatusHolder>();
+        List<StatusHolder> statusHolders = new ArrayList<>();
         if (resource != null && resource.getProperties() != null) {
             Properties properties = resource.getProperties();
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
@@ -277,13 +277,13 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
             StatusHolder[] array = statusHolders.toArray(new StatusHolder[statusHolders.size()]);
             java.util.Arrays.sort(array, new StatusHolderComparator());
             if (statusHolders.size() > maxRecodes) {
-                statusHolders = new ArrayList<StatusHolder>();
+                statusHolders = new ArrayList<>();
                 for (int i = 0; i < maxRecodes; i++) {
                     statusHolders.add(array[i]);
                 }
                 persistStatus(path, statusHolders, true);
             } else {
-                statusHolders = new ArrayList<StatusHolder>(Arrays.asList(array));
+                statusHolders = new ArrayList<>(Arrays.asList(array));
             }
         }
 
@@ -299,7 +299,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
         if (statusHolders != null) {
             for (StatusHolder statusHolder : statusHolders) {
                 if (statusHolder != null) {
-                    List<String> list = new ArrayList<String>();
+                    List<String> list = new ArrayList<>();
                     list.add(statusHolder.getType());
                     list.add(statusHolder.getTimeInstance());
                     list.add(statusHolder.getUser());

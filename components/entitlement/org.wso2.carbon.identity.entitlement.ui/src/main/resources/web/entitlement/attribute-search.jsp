@@ -57,7 +57,7 @@
     attributeId = (String)request.getParameter("attributeId");
     attributeDataType = (String)request.getParameter("attributeDataType");
     
-    List<AttributeDTO> attributeValueDTOs = new ArrayList<AttributeDTO>();
+    List<AttributeDTO> attributeValueDTOs = new ArrayList<>();
 
     if(policyId != null && !"".equals(policyId)){
         AttributeDTO attributeValueDTO = new AttributeDTO();

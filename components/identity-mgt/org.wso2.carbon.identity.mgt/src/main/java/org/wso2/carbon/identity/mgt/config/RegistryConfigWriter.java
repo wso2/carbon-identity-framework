@@ -51,7 +51,7 @@ public class RegistryConfigWriter implements ConfigWriter {
             Set<String> names = props.stringPropertyNames();
             // Only key value pairs exists and no multiple values exists a key.
             for (String keyName : names) {
-                List<String> value = new ArrayList<String>();
+                List<String> value = new ArrayList<>();
                 String valueStr = props.getProperty(keyName);
                 
                 if(log.isDebugEnabled()) {

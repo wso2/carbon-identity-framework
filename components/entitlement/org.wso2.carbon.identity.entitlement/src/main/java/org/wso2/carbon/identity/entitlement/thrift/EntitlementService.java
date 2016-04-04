@@ -281,7 +281,7 @@ public class EntitlementService {
 
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
-            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<>(_Fields.class);
             tmpMap.put(_Fields.REQUEST, new org.apache.thrift.meta_data.FieldMetaData("request", org.apache.thrift.TFieldRequirementType.REQUIRED,
                     new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
             tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.REQUIRED,
@@ -615,7 +615,7 @@ public class EntitlementService {
             REQUEST((short) 1, "request"),
             SESSION_ID((short) 2, "sessionId");
 
-            private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+            private static final Map<String, _Fields> byName = new HashMap<>();
 
             static {
                 for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -675,7 +675,7 @@ public class EntitlementService {
     public static class getDecision_result implements org.apache.thrift.TBase<getDecision_result, getDecision_result._Fields>, java.io.Serializable, Cloneable {
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
-            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<>(_Fields.class);
             tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
                     new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
             tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
@@ -1002,7 +1002,7 @@ public class EntitlementService {
             SUCCESS((short) 0, "success"),
             E((short) 1, "e");
 
-            private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+            private static final Map<String, _Fields> byName = new HashMap<>();
 
             static {
                 for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -1062,7 +1062,7 @@ public class EntitlementService {
     public static class getDecisionByAttributes_args implements org.apache.thrift.TBase<getDecisionByAttributes_args, getDecisionByAttributes_args._Fields>, java.io.Serializable, Cloneable {
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
-            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<>(_Fields.class);
             tmpMap.put(_Fields.SUBJECT, new org.apache.thrift.meta_data.FieldMetaData("subject", org.apache.thrift.TFieldRequirementType.DEFAULT,
                     new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
             tmpMap.put(_Fields.RESOURCE, new org.apache.thrift.meta_data.FieldMetaData("resource", org.apache.thrift.TFieldRequirementType.REQUIRED,
@@ -1122,7 +1122,7 @@ public class EntitlementService {
                 this.action = other.action;
             }
             if (other.isSetEnvironment()) {
-                List<String> __this__environment = new ArrayList<String>();
+                List<String> __this__environment = new ArrayList<>();
                 for (String other_element : other.environment) {
                     __this__environment.add(other_element);
                 }
@@ -1234,7 +1234,7 @@ public class EntitlementService {
 
         public void addToEnvironment(String elem) {
             if (this.environment == null) {
-                this.environment = new ArrayList<String>();
+                this.environment = new ArrayList<>();
             }
             this.environment.add(elem);
         }
@@ -1545,7 +1545,7 @@ public class EntitlementService {
                         if (field.type == org.apache.thrift.protocol.TType.LIST) {
                             {
                                 org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                                this.environment = new ArrayList<String>(_list0.size);
+                                this.environment = new ArrayList<>(_list0.size);
                                 for (int _i1 = 0; _i1 < _list0.size; ++_i1) {
                                     String _elem2; // required
                                     _elem2 = iprot.readString();
@@ -1698,7 +1698,7 @@ public class EntitlementService {
             ENVIRONMENT((short) 4, "environment"),
             SESSION_ID((short) 5, "sessionID");
 
-            private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+            private static final Map<String, _Fields> byName = new HashMap<>();
 
             static {
                 for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -1764,7 +1764,7 @@ public class EntitlementService {
     public static class getDecisionByAttributes_result implements org.apache.thrift.TBase<getDecisionByAttributes_result, getDecisionByAttributes_result._Fields>, java.io.Serializable, Cloneable {
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
-            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<>(_Fields.class);
             tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT,
                     new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
             tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT,
@@ -2091,7 +2091,7 @@ public class EntitlementService {
             SUCCESS((short) 0, "success"),
             E((short) 1, "e");
 
-            private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+            private static final Map<String, _Fields> byName = new HashMap<>();
 
             static {
                 for (_Fields field : EnumSet.allOf(_Fields.class)) {

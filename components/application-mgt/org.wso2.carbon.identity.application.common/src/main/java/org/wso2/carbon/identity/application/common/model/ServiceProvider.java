@@ -110,7 +110,7 @@ public class ServiceProvider implements Serializable {
                 }
 
                 List<RequestPathAuthenticatorConfig> requestPathAuthenticatorConfigsArrList;
-                requestPathAuthenticatorConfigsArrList = new ArrayList<RequestPathAuthenticatorConfig>();
+                requestPathAuthenticatorConfigsArrList = new ArrayList<>();
 
                 while (requestPathAuthenticatorConfigsIter.hasNext()) {
                     OMElement requestPathAuthenticatorConfigsElement = (OMElement) (requestPathAuthenticatorConfigsIter

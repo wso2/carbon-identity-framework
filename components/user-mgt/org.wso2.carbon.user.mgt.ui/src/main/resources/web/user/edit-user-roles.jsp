@@ -148,7 +148,7 @@
                 if (CarbonUIUtil.isContextRegistered(config, "/usermgt-workflow/")) {
                     String[] DeletePendingRolesList = UserMgtClient.
                             listAllEntityNames("DELETE_ROLE", "PENDING", "ROLE", filter);
-                    workFlowDeletePendingRoles = new LinkedHashSet<String>(Arrays.asList(DeletePendingRolesList));
+                    workFlowDeletePendingRoles = new LinkedHashSet<>(Arrays.asList(DeletePendingRolesList));
 
                     if (data != null) {
                         for (int i = 0; i < data.length; i++) {
@@ -161,11 +161,11 @@
                         }
                     }
                 }
-                List<FlaggedName> dataList = new ArrayList<FlaggedName>(Arrays.asList(data));
+                List<FlaggedName> dataList = new ArrayList<>(Arrays.asList(data));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.USER_LIST_UNASSIGNED_ROLE_CACHE_EXCEEDED, exceededDomains);
                 if (dataList != null) {
-                    List<FlaggedName> nameList = new ArrayList<FlaggedName>();
+                    List<FlaggedName> nameList = new ArrayList<>();
                     for (FlaggedName value : dataList) {
                         if (!value.getSelected()) {
                             nameList.add(value);
@@ -175,7 +175,7 @@
                 }
 
                 if (CollectionUtils.isNotEmpty(dataList)) {
-                    flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
+                    flaggedNameMap = new HashMap<>();
                     int max = pageNumber + cachePages;
                     for (int i = (pageNumber - cachePages); i < max; i++) {
                         if (i < 0) {

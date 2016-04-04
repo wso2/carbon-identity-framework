@@ -1442,8 +1442,8 @@ public class PolicyCreatorUtil {
             return requestElement;
         }
 
-        Map<String, AttributesElementDTO> dtoMap = new HashMap<String, AttributesElementDTO>();
-        List<AttributesElementDTO> dtoList = new ArrayList<AttributesElementDTO>();
+        Map<String, AttributesElementDTO> dtoMap = new HashMap<>();
+        List<AttributesElementDTO> dtoList = new ArrayList<>();
 
         for (RowDTO rowDTO : rowDTOs) {
             String category = rowDTO.getCategory();
@@ -1500,7 +1500,7 @@ public class PolicyCreatorUtil {
         requestElement.setCombinedDecision(requestDTO.isCombinedDecision());
         requestElement.setReturnPolicyIdList(requestDTO.isReturnPolicyIdList());
         if (!requestDTO.isMultipleRequest()) {
-            dtoList = new ArrayList<AttributesElementDTO>();
+            dtoList = new ArrayList<>();
             for (Map.Entry<String, AttributesElementDTO> entry : dtoMap.entrySet()) {
                 dtoList.add(entry.getValue());
             }

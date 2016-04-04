@@ -99,7 +99,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @throws UserStoreException
      */
     public UserStoreDTO[] getSecondaryRealmConfigurations() throws IdentityUserStoreMgtException {
-        ArrayList<UserStoreDTO> domains = new ArrayList<UserStoreDTO>();
+        ArrayList<UserStoreDTO> domains = new ArrayList<>();
 
         RealmConfiguration secondaryRealmConfiguration = null;
         try {
@@ -180,7 +180,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     private PropertyDTO[] convertMapToArray(Map<String, String> properties) {
         Set<Map.Entry<String, String>> propertyEntries = properties.entrySet();
-        ArrayList<PropertyDTO> propertiesList = new ArrayList<PropertyDTO>();
+        ArrayList<PropertyDTO> propertiesList = new ArrayList<>();
         String key;
         String value;
         for (Map.Entry<String, String> entry : propertyEntries) {
@@ -875,7 +875,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                                                          String randomPhrase, RealmConfiguration secondaryRealmConfiguration) {
         //First check for mandatory field with #encrypt
         Property[] mandatoryProperties = getMandatoryProperties(userStoreClass);
-        ArrayList<RandomPassword> randomPasswordArrayList = new ArrayList<RandomPassword>();
+        ArrayList<RandomPassword> randomPasswordArrayList = new ArrayList<>();
         for (Property property : mandatoryProperties) {
             String propertyName = property.getName();
             if (property.getDescription().contains(UserStoreConfigurationConstant.ENCRYPT_TEXT)) {

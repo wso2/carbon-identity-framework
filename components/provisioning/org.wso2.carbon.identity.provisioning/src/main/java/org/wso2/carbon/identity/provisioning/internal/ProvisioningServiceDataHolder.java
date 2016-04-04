@@ -32,7 +32,7 @@ public class ProvisioningServiceDataHolder {
     private RealmService realmService;
     private RegistryService registryService;
     private BundleContext bundleContext;
-    private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<String, AbstractProvisioningConnectorFactory>();
+    private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<>();
 
     private ProvisioningServiceDataHolder() {
     }

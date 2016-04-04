@@ -41,7 +41,7 @@
 <%
     session.removeAttribute(IdentityManagementAdminClient.CHALLENGE_QUESTION);
     List<ChallengeQuestionDTO> challenges = null;
-    HashSet<String> questionSetNames = new HashSet<String>();
+    HashSet<String> questionSetNames = new HashSet<>();
 
     try {
         String cookie = (String) session
@@ -62,7 +62,7 @@
                     questionSetNames.add(questionDTO.getQuestionSetId());
                 }
             }
-            challenges = new ArrayList<ChallengeQuestionDTO>(Arrays.asList(questionDTOs));
+            challenges = new ArrayList<>(Arrays.asList(questionDTOs));
             session.setAttribute(IdentityManagementAdminClient.CHALLENGE_QUESTION, challenges);
         }
     } catch (Exception e) {

@@ -86,17 +86,17 @@ public class CarbonBasicPolicyPublisherModule extends AbstractPolicyPublisherMod
 
         Properties properties = new Properties();
 
-        Map<String, String> dataMap1 = new HashMap<String, String>();
+        Map<String, String> dataMap1 = new HashMap<>();
         dataMap1.put(AbstractPolicyPublisherModule.REQUIRED, "true");
         dataMap1.put(AbstractPolicyPublisherModule.DISPLAY_NAME, "Subscriber URL");
         dataMap1.put(AbstractPolicyPublisherModule.ORDER, "1");
 
-        Map<String, String> dataMap2 = new HashMap<String, String>();
+        Map<String, String> dataMap2 = new HashMap<>();
         dataMap2.put(AbstractPolicyPublisherModule.REQUIRED, "true");
         dataMap2.put(AbstractPolicyPublisherModule.DISPLAY_NAME, "Subscriber User Name");
         dataMap2.put(AbstractPolicyPublisherModule.ORDER, "2");
 
-        Map<String, String> dataMap3 = new HashMap<String, String>();
+        Map<String, String> dataMap3 = new HashMap<>();
         dataMap3.put(AbstractPolicyPublisherModule.REQUIRED, "true");
         dataMap3.put(AbstractPolicyPublisherModule.DISPLAY_NAME, "Subscriber Password");
         dataMap3.put(AbstractPolicyPublisherModule.ORDER, "3");

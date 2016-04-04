@@ -70,7 +70,7 @@
         // domain name preparations
         String primaryDomainName = userRealmInfo.getPrimaryUserStoreInfo().getDomainName();
 
-        domainNames = new ArrayList<String>();
+        domainNames = new ArrayList<>();
         allUserStoreInfo = userRealmInfo.getUserStoresInfo();
         if (allUserStoreInfo != null && allUserStoreInfo.length > 0) {
             for (int i = 0; i < allUserStoreInfo.length; i++) {

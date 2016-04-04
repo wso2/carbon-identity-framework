@@ -69,7 +69,7 @@ public class DefaultEmailSendingModule extends AbstractEmailSendingModule {
     @Override
     public void sendEmail() {
 
-        Map<String, String> headerMap = new HashMap<String, String>();
+        Map<String, String> headerMap = new HashMap<>();
 
         try {
             if (this.notification == null) {

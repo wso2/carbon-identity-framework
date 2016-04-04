@@ -70,16 +70,16 @@
     int numberOfPages = 0;
     Map<Integer, PaginatedNamesBean> flaggedNameMap = null;
     UserRealmInfo userRealmInfo = null;
-    Set<FlaggedName> workFlowAddPendingRoles = new LinkedHashSet<FlaggedName>();
-    Set<String> workFlowAddPendingRolesList = new LinkedHashSet<String>();
+    Set<FlaggedName> workFlowAddPendingRoles = new LinkedHashSet<>();
+    Set<String> workFlowAddPendingRolesList = new LinkedHashSet<>();
     Set<String> workFlowDeletePendingRoles = null;
     Set<FlaggedName> activeRoleList;
-    Set<FlaggedName> showDeletePendingRoles = new LinkedHashSet<FlaggedName>();
-    Set<String> showDeletePendingRolesList = new LinkedHashSet<String>();
-    Set<FlaggedName> aggregateRoleList = new LinkedHashSet<FlaggedName>();
-    Set<FlaggedName> removeRoleElement = new LinkedHashSet<FlaggedName>();
-    Set<String> countableUserStores = new LinkedHashSet<String>();
-    Map<String, String> roleCount = new HashMap<String, String>();
+    Set<FlaggedName> showDeletePendingRoles = new LinkedHashSet<>();
+    Set<String> showDeletePendingRolesList = new LinkedHashSet<>();
+    Set<FlaggedName> aggregateRoleList = new LinkedHashSet<>();
+    Set<FlaggedName> removeRoleElement = new LinkedHashSet<>();
+    Set<String> countableUserStores = new LinkedHashSet<>();
+    Map<String, String> roleCount = new HashMap<>();
 
     // clear session data
     session.removeAttribute("roleBean");
@@ -222,16 +222,16 @@
             if (filter.length() > 0) {
                 FlaggedName[] datas = client.getAllRolesNames(modifiedFilter, -1);
                 if (CarbonUIUtil.isContextRegistered(config, "/usermgt-workflow/")) {
-                    List<FlaggedName> preactiveRoleList = new ArrayList<FlaggedName>(Arrays.asList(datas));
+                    List<FlaggedName> preactiveRoleList = new ArrayList<>(Arrays.asList(datas));
                     FlaggedName excessiveDomainElement = preactiveRoleList.remove(datas.length - 1);
                     removeRoleElement.add(excessiveDomainElement);
 
-                    activeRoleList = new LinkedHashSet<FlaggedName>(preactiveRoleList);
+                    activeRoleList = new LinkedHashSet<>(preactiveRoleList);
 
                     String[] AddPendingRolesList = UserMgtClient.
                             listAllEntityNames("ADD_ROLE", "PENDING", "ROLE", modifiedFilter);
 
-                    workFlowAddPendingRolesList = new LinkedHashSet<String>(Arrays.asList(AddPendingRolesList));
+                    workFlowAddPendingRolesList = new LinkedHashSet<>(Arrays.asList(AddPendingRolesList));
 
                     for (String s : AddPendingRolesList) {
                         FlaggedName flaggedName = new FlaggedName();
@@ -242,7 +242,7 @@
 
                     String[] DeletePendingUsersList = UserMgtClient.
                             listAllEntityNames("DELETE_ROLE", "PENDING", "ROLE", modifiedFilter);
-                    workFlowDeletePendingRoles = new LinkedHashSet<String>(Arrays.asList(DeletePendingUsersList));
+                    workFlowDeletePendingRoles = new LinkedHashSet<>(Arrays.asList(DeletePendingUsersList));
 
                     for (Iterator<FlaggedName> iterator = activeRoleList.iterator(); iterator.hasNext(); ) {
                         FlaggedName flaggedName = iterator.next();
@@ -262,7 +262,7 @@
                     aggregateRoleList.addAll(removeRoleElement);
                     datas = aggregateRoleList.toArray(new FlaggedName[aggregateRoleList.size()]);
                 }
-                datasList = new ArrayList<FlaggedName>(Arrays.asList(datas));
+                datasList = new ArrayList<>(Arrays.asList(datas));
                 exceededDomains = datasList.remove(datasList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED, exceededDomains);
                 datas = datasList.toArray(new FlaggedName[datasList.size()]);
@@ -277,7 +277,7 @@
             }
 
             if (datasList != null) {
-                flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
+                flaggedNameMap = new HashMap<>();
                 int max = pageNumber + cachePages;
                 for (int i = (pageNumber - cachePages); i < max; i++) {
                     if (i < 0) {
@@ -309,7 +309,7 @@
     }
 
     if (userRealmInfo != null) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
 
         UserStoreInfo[]  allUserStoreInfo = userRealmInfo.getUserStoresInfo();
         if (allUserStoreInfo != null && allUserStoreInfo.length > 0) {

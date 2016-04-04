@@ -60,7 +60,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
                 federatedAuthenticatorConfig.setEnabled(Boolean.parseBoolean(element.getText()));
             } else if ("Properties".equals(elementName)) {
                 Iterator<?> propertiesIter = element.getChildElements();
-                List<Property> propertiesArrList = new ArrayList<Property>();
+                List<Property> propertiesArrList = new ArrayList<>();
 
                 if (propertiesIter != null) {
                     while (propertiesIter.hasNext()) {
@@ -128,7 +128,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
         if (properties == null) {
             return;
         }
-        Set<Property> propertySet = new HashSet<Property>(Arrays.asList(properties));
+        Set<Property> propertySet = new HashSet<>(Arrays.asList(properties));
         this.properties = propertySet.toArray(new Property[propertySet.size()]);
     }
 

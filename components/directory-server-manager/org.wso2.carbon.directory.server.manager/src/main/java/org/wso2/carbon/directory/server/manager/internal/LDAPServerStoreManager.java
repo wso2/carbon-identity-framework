@@ -375,7 +375,7 @@ public class LDAPServerStoreManager {
             dirContext = connectionSource.getContext();
             NamingEnumeration<SearchResult> answer = dirContext.search(searchBase, buff.toString(),
                                                                        searchCtls);
-            List<ServerPrinciple> list = new ArrayList<ServerPrinciple>();
+            List<ServerPrinciple> list = new ArrayList<>();
             int i = 0;
             while (answer.hasMoreElements() && i < maxItemLimit) {
                 SearchResult sr = answer.next();

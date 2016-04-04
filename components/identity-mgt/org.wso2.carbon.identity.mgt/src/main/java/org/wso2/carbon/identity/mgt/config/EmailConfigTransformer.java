@@ -42,7 +42,7 @@ public class EmailConfigTransformer {
     
     public static EmailTemplateDTO[] transform(Properties props) throws IdentityException {
 
-        List<EmailTemplateDTO> emailTemplates = new ArrayList<EmailTemplateDTO>();
+        List<EmailTemplateDTO> emailTemplates = new ArrayList<>();
 
         if (log.isDebugEnabled()) {
             log.debug("Transforming Properties to EmailTemplateDTO[]");

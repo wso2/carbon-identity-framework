@@ -62,7 +62,7 @@
             ChallengeQuestionDTO[] questionDTOs = client.getChallengeQuestions();
 
             if(questionDTOs != null && questionDTOs.length > 0){
-                challenges = new ArrayList<ChallengeQuestionDTO>(Arrays.asList(questionDTOs));
+                challenges = new ArrayList<>(Arrays.asList(questionDTOs));
                 session.setAttribute(IdentityManagementAdminClient.CHALLENGE_QUESTION, challenges);
             }
         } catch (Exception e) {
@@ -93,7 +93,7 @@
 
 
     } else {
-        challenges = new ArrayList<ChallengeQuestionDTO>();
+        challenges = new ArrayList<>();
     }
 
     if(addRowId != null){

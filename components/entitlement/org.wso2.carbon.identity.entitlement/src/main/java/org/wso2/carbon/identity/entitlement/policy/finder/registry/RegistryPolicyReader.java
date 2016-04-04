@@ -102,7 +102,7 @@ public class RegistryPolicyReader {
         if (resources == null) {
             return new PolicyDTO[0];
         }
-        List<PolicyDTO> policyDTOList = new ArrayList<PolicyDTO>();
+        List<PolicyDTO> policyDTOList = new ArrayList<>();
         for (Resource resource : resources) {
             PolicyDTO policyDTO = readPolicy(resource);
             if (active) {
@@ -135,7 +135,7 @@ public class RegistryPolicyReader {
         String path = null;
         Collection collection = null;
         String[] children = null;
-        List<String> resources = new ArrayList<String>();
+        List<String> resources = new ArrayList<>();
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all entitlement policies");
@@ -269,7 +269,7 @@ public class RegistryPolicyReader {
 
         String path = null;
         Collection collection = null;
-        List<Resource> resources = new ArrayList<Resource>();
+        List<Resource> resources = new ArrayList<>();
         String[] children = null;
 
         if (log.isDebugEnabled()) {

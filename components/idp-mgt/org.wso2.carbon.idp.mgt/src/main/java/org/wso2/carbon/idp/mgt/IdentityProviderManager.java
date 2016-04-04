@@ -243,7 +243,7 @@ public class IdentityProviderManager implements IdpManagerService {
             throw new IdentityProviderManagementException(msg, e);
         }
 
-        List<FederatedAuthenticatorConfig> fedAuthnCofigs = new ArrayList<FederatedAuthenticatorConfig>();
+        List<FederatedAuthenticatorConfig> fedAuthnCofigs = new ArrayList<>();
         List<Property> propertiesList = null;
 
         FederatedAuthenticatorConfig openIdFedAuthn = IdentityApplicationManagementUtil
@@ -253,7 +253,7 @@ public class IdentityProviderManager implements IdpManagerService {
             openIdFedAuthn = new FederatedAuthenticatorConfig();
             openIdFedAuthn.setName(IdentityApplicationConstants.Authenticator.OpenID.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(openIdFedAuthn.getProperties()));
+        propertiesList = new ArrayList<>(Arrays.asList(openIdFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(openIdFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.OpenID.OPEN_ID_URL) == null) {
             Property openIdUrlProp = new Property();
@@ -271,7 +271,7 @@ public class IdentityProviderManager implements IdpManagerService {
             saml2SSOFedAuthn = new FederatedAuthenticatorConfig();
             saml2SSOFedAuthn.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(saml2SSOFedAuthn.getProperties()));
+        propertiesList = new ArrayList<>(Arrays.asList(saml2SSOFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL) == null) {
             Property ssoUrlProp = new Property();
@@ -305,7 +305,7 @@ public class IdentityProviderManager implements IdpManagerService {
             oauth1FedAuthn = new FederatedAuthenticatorConfig();
             oauth1FedAuthn.setName(IdentityApplicationConstants.OAuth10A.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(oauth1FedAuthn.getProperties()));
+        propertiesList = new ArrayList<>(Arrays.asList(oauth1FedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oauth1FedAuthn.getProperties(),
                 IdentityApplicationConstants.OAuth10A.OAUTH1_REQUEST_TOKEN_URL) == null) {
             Property oauth1ReqTokUrlProp = new Property();
@@ -337,7 +337,7 @@ public class IdentityProviderManager implements IdpManagerService {
             oidcFedAuthn = new FederatedAuthenticatorConfig();
             oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(oidcFedAuthn.getProperties()));
+        propertiesList = new ArrayList<>(Arrays.asList(oidcFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL) == null) {
             Property authzUrlProp = new Property();
@@ -376,7 +376,7 @@ public class IdentityProviderManager implements IdpManagerService {
             passiveSTSFedAuthn = new FederatedAuthenticatorConfig();
             passiveSTSFedAuthn.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(passiveSTSFedAuthn.getProperties()));
+        propertiesList = new ArrayList<>(Arrays.asList(passiveSTSFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(passiveSTSFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL) == null) {
             Property passiveSTSUrlProp = new Property();
@@ -405,7 +405,7 @@ public class IdentityProviderManager implements IdpManagerService {
             stsFedAuthn = new FederatedAuthenticatorConfig();
             stsFedAuthn.setName(IdentityApplicationConstants.Authenticator.WSTrust.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(stsFedAuthn.getProperties()));
+        propertiesList = new ArrayList<>(Arrays.asList(stsFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(stsFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.WSTrust.IDENTITY_PROVIDER_URL) == null) {
             Property stsUrlProp = new Property();
@@ -418,7 +418,7 @@ public class IdentityProviderManager implements IdpManagerService {
         fedAuthnCofigs.add(stsFedAuthn);
 
 
-        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<IdentityProviderProperty>();
+        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>();
 
         FederatedAuthenticatorConfig sessionTimeoutConfig = IdentityApplicationManagementUtil
                 .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
@@ -427,7 +427,7 @@ public class IdentityProviderManager implements IdpManagerService {
             sessionTimeoutConfig = new FederatedAuthenticatorConfig();
             sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(sessionTimeoutConfig.getProperties()));
+        propertiesList = new ArrayList<>(Arrays.asList(sessionTimeoutConfig.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(sessionTimeoutConfig.getProperties(),
                 IdentityApplicationConstants.CLEAN_UP_PERIOD) == null) {
             Property cleanUpPeriodProp = new Property();
@@ -455,7 +455,7 @@ public class IdentityProviderManager implements IdpManagerService {
             scimProvConn = new ProvisioningConnectorConfig();
             scimProvConn.setName("scim");
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(scimProvConn
+        propertiesList = new ArrayList<>(Arrays.asList(scimProvConn
                 .getProvisioningProperties()));
         if (IdentityApplicationManagementUtil.getProperty(scimProvConn.getProvisioningProperties(),
                 "scimUserEndpoint") == null) {
@@ -538,7 +538,7 @@ public class IdentityProviderManager implements IdpManagerService {
             idpPropertiesResidentAuthenticatorConfig = new FederatedAuthenticatorConfig();
             idpPropertiesResidentAuthenticatorConfig.setName(IdentityApplicationConstants.NAME);
         }
-        List<Property> propertiesList = new ArrayList<Property>(Arrays.asList(idpPropertiesResidentAuthenticatorConfig.getProperties()));
+        List<Property> propertiesList = new ArrayList<>(Arrays.asList(idpPropertiesResidentAuthenticatorConfig.getProperties()));
         if(IdentityApplicationManagementUtil.getProperty(idpPropertiesResidentAuthenticatorConfig.getProperties(),
                 IdentityApplicationConstants.CLEAN_UP_PERIOD) == null){
             Property cleanUpPeriodProp = new Property();
@@ -690,7 +690,7 @@ public class IdentityProviderManager implements IdpManagerService {
     @Override
     public List<IdentityProvider> getEnabledIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
-        List<IdentityProvider> enabledIdentityProviders = new ArrayList<IdentityProvider>();
+        List<IdentityProvider> enabledIdentityProviders = new ArrayList<>();
         List<IdentityProvider> identityProviers = getIdPs(tenantDomain);
 
         for (IdentityProvider idp : identityProviers) {
@@ -904,7 +904,7 @@ public class IdentityProviderManager implements IdpManagerService {
             ClaimMapping[] claimMappings = claimConfiguration.getClaimMappings();
 
             if (claimMappings != null && claimMappings.length > 0 && idPClaimURIs != null) {
-                Set<ClaimMapping> returnSet = new HashSet<ClaimMapping>();
+                Set<ClaimMapping> returnSet = new HashSet<>();
                 for (String idpClaim : idPClaimURIs) {
                     for (ClaimMapping claimMapping : claimMappings) {
                         if (claimMapping.getRemoteClaim().getClaimUri().equals(idpClaim)) {
@@ -917,7 +917,7 @@ public class IdentityProviderManager implements IdpManagerService {
             }
         }
 
-        return new HashSet<ClaimMapping>();
+        return new HashSet<>();
     }
 
     /**
@@ -934,7 +934,7 @@ public class IdentityProviderManager implements IdpManagerService {
             IdentityProviderManagementException {
 
         Set<ClaimMapping> claimMappings = getMappedLocalClaims(idPName, tenantDomain, idPClaimURIs);
-        Map<String, String> returnMap = new HashMap<String, String>();
+        Map<String, String> returnMap = new HashMap<>();
         for (ClaimMapping claimMapping : claimMappings) {
             returnMap.put(claimMapping.getRemoteClaim().getClaimUri(), claimMapping.getLocalClaim()
                     .getClaimUri());
@@ -979,7 +979,7 @@ public class IdentityProviderManager implements IdpManagerService {
             ClaimMapping[] claimMappings = claimConfiguration.getClaimMappings();
 
             if (claimMappings != null && claimMappings.length > 0 && localClaimURIs != null) {
-                Set<ClaimMapping> returnSet = new HashSet<ClaimMapping>();
+                Set<ClaimMapping> returnSet = new HashSet<>();
                 for (String localClaimURI : localClaimURIs) {
                     for (ClaimMapping claimMapping : claimMappings) {
                         if (claimMapping.equals(localClaimURI)) {
@@ -991,7 +991,7 @@ public class IdentityProviderManager implements IdpManagerService {
                 return returnSet;
             }
         }
-        return new HashSet<ClaimMapping>();
+        return new HashSet<>();
     }
 
     /**
@@ -1008,7 +1008,7 @@ public class IdentityProviderManager implements IdpManagerService {
             IdentityProviderManagementException {
 
         Set<ClaimMapping> claimMappings = getMappedIdPClaims(idPName, tenantDomain, localClaimURIs);
-        Map<String, String> returnMap = new HashMap<String, String>();
+        Map<String, String> returnMap = new HashMap<>();
         for (ClaimMapping claimMapping : claimMappings) {
             returnMap.put(claimMapping.getLocalClaim().getClaimUri(), claimMapping.getRemoteClaim()
                     .getClaimUri());
@@ -1052,7 +1052,7 @@ public class IdentityProviderManager implements IdpManagerService {
             RoleMapping[] roleMappings = roleConfiguration.getRoleMappings();
 
             if (roleMappings != null && roleMappings.length > 0 && idPRoles != null) {
-                Set<RoleMapping> returnSet = new HashSet<RoleMapping>();
+                Set<RoleMapping> returnSet = new HashSet<>();
                 for (String idPRole : idPRoles) {
                     for (RoleMapping roleMapping : roleMappings) {
                         if (roleMapping.getRemoteRole().equals(idPRole)) {
@@ -1064,7 +1064,7 @@ public class IdentityProviderManager implements IdpManagerService {
                 return returnSet;
             }
         }
-        return new HashSet<RoleMapping>();
+        return new HashSet<>();
     }
 
     /**
@@ -1080,7 +1080,7 @@ public class IdentityProviderManager implements IdpManagerService {
                                                          String[] idPRoles) throws IdentityProviderManagementException {
 
         Set<RoleMapping> roleMappings = getMappedLocalRoles(idPName, tenantDomain, idPRoles);
-        Map<String, LocalRole> returnMap = new HashMap<String, LocalRole>();
+        Map<String, LocalRole> returnMap = new HashMap<>();
         for (RoleMapping roleMapping : roleMappings) {
             returnMap.put(roleMapping.getRemoteRole(), roleMapping.getLocalRole());
         }
@@ -1121,7 +1121,7 @@ public class IdentityProviderManager implements IdpManagerService {
             RoleMapping[] roleMappings = roleConfiguration.getRoleMappings();
 
             if (roleMappings != null && roleMappings.length > 0 && localRoles != null) {
-                Set<RoleMapping> returnSet = new HashSet<RoleMapping>();
+                Set<RoleMapping> returnSet = new HashSet<>();
                 for (LocalRole localRole : localRoles) {
                     for (RoleMapping roleMapping : roleMappings) {
                         if (roleMapping.getLocalRole().equals(localRole)) {
@@ -1133,7 +1133,7 @@ public class IdentityProviderManager implements IdpManagerService {
                 return returnSet;
             }
         }
-        return new HashSet<RoleMapping>();
+        return new HashSet<>();
     }
 
     /**
@@ -1150,7 +1150,7 @@ public class IdentityProviderManager implements IdpManagerService {
             IdentityProviderManagementException {
 
         Set<RoleMapping> roleMappings = getMappedIdPRoles(idPName, tenantDomain, localRoles);
-        Map<LocalRole, String> returnMap = new HashMap<LocalRole, String>();
+        Map<LocalRole, String> returnMap = new HashMap<>();
         for (RoleMapping roleMapping : roleMappings) {
             returnMap.put(roleMapping.getLocalRole(), roleMapping.getRemoteRole());
         }

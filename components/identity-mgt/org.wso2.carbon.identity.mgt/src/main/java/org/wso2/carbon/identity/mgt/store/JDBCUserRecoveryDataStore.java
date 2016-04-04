@@ -170,7 +170,7 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
             prepStmt.setInt(2, IdentityTenantUtil.getTenantIdOfUser(userName));
 
             results = prepStmt.executeQuery();
-            List<UserRecoveryDataDO> metada = new ArrayList<UserRecoveryDataDO>();
+            List<UserRecoveryDataDO> metada = new ArrayList<>();
             while (results.next()) {
                 metada.add(new UserRecoveryDataDO(results.getString(1), results.getInt(2),
                         results.getString(3), results.getString(4)));

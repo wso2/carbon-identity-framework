@@ -58,8 +58,8 @@
     FlaggedName[] groupData = null;
     KeyStoreData[] datas = null;
     String curr_pvtks = "";
-    List<String> curr_tstks = new ArrayList<String>();
-    List<String> curr_ugs = new ArrayList<String>();
+    List<String> curr_tstks = new ArrayList<>();
+    List<String> curr_ugs = new ArrayList<>();
     String category = null;
     boolean isPolicyFromRegistry = false;
     boolean fault = false;
@@ -229,7 +229,7 @@
             if(userRealmInfo != null){
                    domainNames = userRealmInfo.getDomainNames();
                    if(domainNames != null){
-                       List<String> list = new ArrayList<String>(Arrays.asList(domainNames));
+                       List<String> list = new ArrayList<>(Arrays.asList(domainNames));
                        list.add(SecurityUIConstants.ALL_DOMAINS);
                        domainNames = list.toArray(new String[list.size()]);
                    }
@@ -350,7 +350,7 @@
                         if(session.getAttribute("groupsInPage") != null) {
                             session.removeAttribute("groupsInPage");
                         }
-                        Map<String, Boolean> groupsInPage = new HashMap<String, Boolean>();
+                        Map<String, Boolean> groupsInPage = new HashMap<>();
 
                         for (FlaggedName data : groupData) {
                             if (data != null) { //Confusing!!. Sometimes a null object comes. Maybe a bug in Axis!!

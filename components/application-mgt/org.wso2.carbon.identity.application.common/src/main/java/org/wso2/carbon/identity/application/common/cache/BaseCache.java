@@ -43,7 +43,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
     private CacheBuilder<K, V> cacheBuilder;
     private String cacheName;
-    private List<AbstractCacheListener> cacheListeners = new ArrayList<AbstractCacheListener>();
+    private List<AbstractCacheListener> cacheListeners = new ArrayList<>();
 
     public BaseCache(String cacheName) {
         this.cacheName = cacheName;

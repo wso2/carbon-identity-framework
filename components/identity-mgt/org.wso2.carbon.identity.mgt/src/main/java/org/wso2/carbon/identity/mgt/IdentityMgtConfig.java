@@ -90,8 +90,8 @@ public class IdentityMgtConfig {
     private UserIdentityDataStore identityDataStore;
     private UserRecoveryDataStore recoveryDataStore;
     private List<NotificationSendingModule> sendingModules =
-            new ArrayList<NotificationSendingModule>();
-    private List<String> notificationTypes = new ArrayList<String>();
+            new ArrayList<>();
+    private List<String> notificationTypes = new ArrayList<>();
     private String recoveryClaim;
     private PolicyRegistry policyRegistry = new PolicyRegistry();
 
@@ -623,7 +623,7 @@ public class IdentityMgtConfig {
 
         Set<String> keys = prop.stringPropertyNames();
 
-        Map<String, String> keyValues = new HashMap<String, String>();
+        Map<String, String> keyValues = new HashMap<>();
 
         for (String key : keys) {
             // Get only the provided extensions.

@@ -97,7 +97,7 @@ public class UserBean {
         if (checkedRolesMap == null) {
             return;
         }
-        List<String> userRolesList = new ArrayList<String>();
+        List<String> userRolesList = new ArrayList<>();
 
         for (Map.Entry<String, Boolean> entry : checkedRolesMap.entrySet()) {
             if (entry.getValue()) {

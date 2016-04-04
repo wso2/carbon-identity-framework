@@ -44,7 +44,7 @@ public class WorkflowServiceDataHolder {
     private ConfigurationContextService configurationContextService;
     private BundleContext bundleContext;
 
-    private Map<String, WorkflowRequestHandler> workflowRequestHandlers =  new HashMap<String, WorkflowRequestHandler>();
+    private Map<String, WorkflowRequestHandler> workflowRequestHandlers = new HashMap<>();
 
     private List<WorkflowListener> workflowListenerList = new ArrayList<>();
     private List<WorkflowExecutorManagerListener> executorListenerList = new ArrayList<>();
@@ -67,8 +67,8 @@ public class WorkflowServiceDataHolder {
         this.executorListenerList = executorListenerList;
     }
 
-    private Map<String, AbstractTemplate> templates = new HashMap<String, AbstractTemplate>();
-    private Map<String, Map<String,AbstractWorkflow>> workflowImpls = new HashMap<String, Map<String,AbstractWorkflow>>();
+    private Map<String, AbstractTemplate> templates = new HashMap<>();
+    private Map<String, Map<String,AbstractWorkflow>> workflowImpls = new HashMap<>();
 
     private WorkflowManagementService workflowService = null ;
 

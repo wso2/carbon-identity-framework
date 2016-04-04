@@ -82,7 +82,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
      * @param maxInMemoryPolicies maximum no of policies that keeps in memory
      */
     public DefaultPolicyCollection(PolicyCombiningAlgorithm combiningAlg, int maxInMemoryPolicies) {
-        policies = new EntitlementLRUCache<String, TreeSet<AbstractPolicy>>(maxInMemoryPolicies);
+        policies = new EntitlementLRUCache<>(maxInMemoryPolicies);
         this.maxInMemoryPolicies = maxInMemoryPolicies;
         this.combiningAlg = combiningAlg;
     }
@@ -94,7 +94,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
      * @param combiningAlg Policy combining Algorithm
      */
     public DefaultPolicyCollection(PolicyCombiningAlgorithm combiningAlg) {
-        policies = new LinkedHashMap<String, TreeSet<AbstractPolicy>>();
+        policies = new LinkedHashMap<>();
         this.combiningAlg = combiningAlg;
     }
 
@@ -106,7 +106,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
      * @param parentPolicyId the identifier to use for the new PolicySet
      */
     public DefaultPolicyCollection(PolicyCombiningAlgorithm combiningAlg, URI parentPolicyId) {
-        policies = new LinkedHashMap<String, TreeSet<AbstractPolicy>>();
+        policies = new LinkedHashMap<>();
         this.combiningAlg = combiningAlg;
         this.parentId = parentPolicyId;
     }
@@ -149,7 +149,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
         } else {
             // this identifier isn't already being used, so create a new
             // set in the map for it, and add the policy
-            TreeSet<AbstractPolicy> set = new TreeSet<AbstractPolicy>(versionComparator);
+            TreeSet<AbstractPolicy> set = new TreeSet<>(versionComparator);
             policies.put(identifier, set);
             return set.add(policy);
         }
@@ -168,7 +168,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
      */
     public AbstractPolicy getEffectivePolicy(EvaluationCtx context) throws EntitlementException {
         // setup a list of matching policies
-        ArrayList<AbstractPolicy> list = new ArrayList<AbstractPolicy>();
+        ArrayList<AbstractPolicy> list = new ArrayList<>();
         // get an iterator over all the identifiers
         Iterator<TreeSet<AbstractPolicy>> it = policies.values().iterator();
 
@@ -196,7 +196,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
                 }
 
                 if ((combiningAlg == null) && (list.size() > 0)) {
-                    ArrayList<String> code = new ArrayList<String>();
+                    ArrayList<String> code = new ArrayList<>();
                     code.add(Status.STATUS_PROCESSING_ERROR);
                     Status status = new Status(code, "too many applicable top-level policies");
                     //throw new EntitlementException(status);     // TODO

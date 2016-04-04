@@ -664,7 +664,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                                                       boolean isFederatedClaims)
             throws FrameworkException {
 
-        Map<String, String> mappedAttrs = new HashMap<String, String>();
+        Map<String, String> mappedAttrs = new HashMap<>();
 
         try {
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context,

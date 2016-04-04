@@ -36,7 +36,7 @@ public class LDAPServerStoreManagerTest extends TestCase {
 
         this.realmConfiguration = new RealmConfiguration();
 
-        Map<String,String> map = new HashMap<String, String>();
+        Map<String,String> map = new HashMap<>();
         map.put(UserCoreConstants.RealmConfig.PROPERTY_JAVA_REG_EX, "[\\S]{5,30}");
         map.put(LDAPConstants.USER_SEARCH_BASE, "ou=Users,dc=example,dc=com");
         map.put("PASSWORD_HASH_METHOD", "PlainText");

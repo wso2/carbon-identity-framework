@@ -44,7 +44,7 @@ public class EntitlementDataFinder {
     /**
      * List of entitlement data finder modules
      */
-    Set<EntitlementDataFinderModule> dataFinderModules = new HashSet<EntitlementDataFinderModule>();
+    Set<EntitlementDataFinderModule> dataFinderModules = new HashSet<>();
 
     /**
      * tenant id
@@ -64,7 +64,7 @@ public class EntitlementDataFinder {
 
     public EntitlementFinderDataHolder[] getEntitlementDataModules() {
 
-        List<EntitlementFinderDataHolder> dataHolders = new ArrayList<EntitlementFinderDataHolder>();
+        List<EntitlementFinderDataHolder> dataHolders = new ArrayList<>();
 
         for (EntitlementDataFinderModule module : dataFinderModules) {
             EntitlementFinderDataHolder holder = new EntitlementFinderDataHolder();
@@ -76,12 +76,12 @@ public class EntitlementDataFinder {
 
             Set<String> applicationIds = module.getRelatedApplications();
             if (applicationIds == null) {
-                applicationIds = new HashSet<String>();
+                applicationIds = new HashSet<>();
             }
 
             Set<String> supportedCategories = module.getSupportedCategories();
             if (supportedCategories == null) {
-                supportedCategories = new HashSet<String>();
+                supportedCategories = new HashSet<>();
             }
 
             holder.setName(name);

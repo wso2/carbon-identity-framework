@@ -59,7 +59,7 @@
     <%
 
         boolean hasLocalLoginOptions = false;
-        List<String> localAuthenticatorNames = new ArrayList<String>();
+        List<String> localAuthenticatorNames = new ArrayList<>();
 
         if (idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) {
             String authList = idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME);

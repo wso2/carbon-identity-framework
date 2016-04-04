@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class InMemoryThriftSessionDAO implements ThriftSessionDAO {
 
-    private ConcurrentMap<String, ThriftSession> thriftSessionMap = new ConcurrentHashMap<String, ThriftSession>();
+    private ConcurrentMap<String, ThriftSession> thriftSessionMap = new ConcurrentHashMap<>();
 
     public InMemoryThriftSessionDAO() {
 
@@ -36,7 +36,7 @@ public class InMemoryThriftSessionDAO implements ThriftSessionDAO {
 
     @Override
     public List<ThriftSession> getAllSessions() {
-        return new ArrayList<ThriftSession>(thriftSessionMap.values());
+        return new ArrayList<>(thriftSessionMap.values());
     }
 
     @Override

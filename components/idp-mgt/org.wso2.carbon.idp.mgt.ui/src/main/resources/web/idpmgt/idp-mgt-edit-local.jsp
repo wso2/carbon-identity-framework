@@ -57,7 +57,7 @@
     String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
-    List<Property> destinationURLList = new ArrayList<Property>();
+    List<Property> destinationURLList = new ArrayList<>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
         Property[] properties = federatedAuthenticator.getProperties();

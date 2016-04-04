@@ -455,7 +455,7 @@ public class ProvisioningManagementDAO {
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        List<String> spNames = new ArrayList<String>();
+        List<String> spNames = new ArrayList<>();
         try {
             String sqlStmt = IdentityProvisioningConstants.SQLQueries.GET_SP_NAMES_OF_PROVISIONING_CONNECTORS_BY_IDP;
             prepStmt = dbConnection.prepareStatement(sqlStmt);

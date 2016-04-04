@@ -64,11 +64,11 @@ public class AuthenticationRequest implements Serializable {
     /**
      * used to store query params which should be sent to Authentication Framework
      */
-    private Map<String, String[]> requestQueryParams = new HashMap<String, String[]>();
+    private Map<String, String[]> requestQueryParams = new HashMap<>();
     /**
      * used to store request headers which should be sent to Authentication Framework.
      */
-    private Map<String, String> requestHeaders = new HashMap<String, String>();
+    private Map<String, String> requestHeaders = new HashMap<>();
 
     /**
      * To retrieve request query params which are stored.

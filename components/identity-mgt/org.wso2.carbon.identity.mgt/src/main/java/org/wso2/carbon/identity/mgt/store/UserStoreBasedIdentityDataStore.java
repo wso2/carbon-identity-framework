@@ -72,7 +72,7 @@ public class UserStoreBasedIdentityDataStore extends InMemoryIdentityDataStore {
                 // store then log a warn.
                 if(!userStoreManager.isReadOnly()) {
                     // Need to clone the map. If not iterative calls will refer the same map
-                    userStoreManager.setUserClaimValues(username, new HashMap<String,String>
+                    userStoreManager.setUserClaimValues(username, new HashMap<>
                             (userIdentityDTO.getUserDataMap()), null);
                 } else {
                     // If the user store is read only and still uses UserStoreBasedIdentityDataStore, then log a warn
@@ -125,7 +125,7 @@ public class UserStoreBasedIdentityDataStore extends InMemoryIdentityDataStore {
             userStoreInvoked.set(TRUE_STRING);
         }
 
-        Map<String, String> userDataMap = new HashMap<String, String>();
+        Map<String, String> userDataMap = new HashMap<>();
         try {
             // reading all claims of the user
             Claim[] claims =

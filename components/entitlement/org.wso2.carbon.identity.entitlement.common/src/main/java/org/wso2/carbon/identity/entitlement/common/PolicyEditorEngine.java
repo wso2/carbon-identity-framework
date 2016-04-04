@@ -34,10 +34,10 @@ public class PolicyEditorEngine {
 
     private static final Object lock = new Object();
     private static ConcurrentHashMap<String, PolicyEditorEngine> policyEditorEngine =
-            new ConcurrentHashMap<String, PolicyEditorEngine>();
+            new ConcurrentHashMap<>();
     private static Log log = LogFactory.getLog(PolicyEditorEngine.class);
     private int tenantId;
-    private Map<String, PolicyEditorDataHolder> dataHolder = new HashMap<String, PolicyEditorDataHolder>();
+    private Map<String, PolicyEditorDataHolder> dataHolder = new HashMap<>();
     private DataPersistenceManager manager;
 
     public PolicyEditorEngine(int tenantId) {

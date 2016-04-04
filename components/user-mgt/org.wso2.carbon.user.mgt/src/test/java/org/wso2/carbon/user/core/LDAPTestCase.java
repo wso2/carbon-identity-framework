@@ -39,7 +39,7 @@ import java.util.Hashtable;
 
 public class LDAPTestCase extends TestCase {
 	public void testLDAP() {
-		Hashtable<String, String> env = new Hashtable<String, String>();
+		Hashtable<String, String> env = new Hashtable<>();
 		env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
 		env.put(Context.PROVIDER_URL, "ldap://localhost:10389");
 

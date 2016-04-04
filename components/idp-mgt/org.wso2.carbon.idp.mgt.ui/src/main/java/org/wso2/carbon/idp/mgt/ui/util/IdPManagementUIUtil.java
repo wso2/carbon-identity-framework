@@ -98,14 +98,14 @@ public class IdPManagementUIUtil {
             FileItemFactory factory = new DiskFileItemFactory();
             ServletFileUpload upload = new ServletFileUpload(factory);
             List items = upload.parseRequest(servletContext);
-            Map<String, String> paramMap = new HashMap<String, String>();
-            List<String> idpClaims = new ArrayList<String>();
-            List<String> idpRoles = new ArrayList<String>();
-            List<String> customAuthenticatorNames = new ArrayList<String>();
-            List<String> proConnectorNames = new ArrayList<String>();
+            Map<String, String> paramMap = new HashMap<>();
+            List<String> idpClaims = new ArrayList<>();
+            List<String> idpRoles = new ArrayList<>();
+            List<String> customAuthenticatorNames = new ArrayList<>();
+            List<String> proConnectorNames = new ArrayList<>();
 
-            Map<String, List<Property>> customAuthenticatorProperties = new HashMap<String, List<Property>>();
-            Map<String, List<Property>> customProProperties = new HashMap<String, List<Property>>();
+            Map<String, List<Property>> customAuthenticatorProperties = new HashMap<>();
+            Map<String, List<Property>> customProProperties = new HashMap<>();
             String idpUUID = StringUtils.EMPTY;
 
             for (Object item : items) {
@@ -753,7 +753,7 @@ public class IdPManagementUIUtil {
         ClaimConfig claimConfiguration = new ClaimConfig();
 
         if (idpClaims != null && idpClaims.size() > 0) {
-            List<Claim> idPClaimList = new ArrayList<Claim>();
+            List<Claim> idPClaimList = new ArrayList<>();
             for (Iterator<String> iterator = idpClaims.iterator(); iterator.hasNext(); ) {
                 String claimUri = iterator.next();
                 Claim idpClaim = new Claim();
@@ -773,8 +773,8 @@ public class IdPManagementUIUtil {
 
     private static ClaimConfig claimMappingFromUI(ClaimConfig claimConfiguration,
                                                   Map<String, String> paramMap) {
-        Set<ClaimMapping> claimMappingList = new HashSet<ClaimMapping>();
-        Map<String, String> advancedMapping = new HashMap<String, String>();
+        Set<ClaimMapping> claimMappingList = new HashSet<>();
+        Map<String, String> advancedMapping = new HashMap<>();
 
         int mappedClaimCount = 0;
         int advancedClaimCount = 0;
@@ -865,7 +865,7 @@ public class IdPManagementUIUtil {
         claimMappings = claimMappingFromFile.replaceAll("\\s", "").split(",");
 
         if (claimMappings != null && claimMappings.length > 0) {
-            Set<ClaimMapping> claimMappingList = new HashSet<ClaimMapping>();
+            Set<ClaimMapping> claimMappingList = new HashSet<>();
             for (int i = 0; i < claimMappings.length; i++) {
                 String claimMappingString = claimMappings[i];
                 if (claimMappingString != null) {
@@ -1595,7 +1595,7 @@ public class IdPManagementUIUtil {
 
         roleConfiguration.setIdpRoles(idpRoles.toArray(new String[idpRoles.size()]));
 
-        Set<RoleMapping> roleMappingList = new HashSet<RoleMapping>();
+        Set<RoleMapping> roleMappingList = new HashSet<>();
         String idpProvisioningRole = paramMap.get("idpProvisioningRole");
         fedIdp.setProvisioningRole(idpProvisioningRole);
 

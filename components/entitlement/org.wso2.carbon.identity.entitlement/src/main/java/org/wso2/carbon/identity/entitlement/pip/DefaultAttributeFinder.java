@@ -42,7 +42,7 @@ import java.util.StringTokenizer;
 public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
 
     private static Log log = LogFactory.getLog(DefaultAttributeFinder.class);
-    private Set<String> supportedAttrs = new HashSet<String>();
+    private Set<String> supportedAttrs = new HashSet<>();
 
     /**
      * Loads all the claims defined under http://wso2.org/claims dialect.
@@ -69,7 +69,7 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
 	 */
     public Set<String> getAttributeValues(String subjectId, String resourceId, String actionId,
                                           String environmentId, String attributeId, String issuer) throws Exception {
-        Set<String> values = new HashSet<String>();
+        Set<String> values = new HashSet<>();
 
         subjectId = MultitenantUtils.getTenantAwareUsername(subjectId);
         if (UserCoreConstants.ClaimTypeURIs.ROLE.equals(attributeId)) {

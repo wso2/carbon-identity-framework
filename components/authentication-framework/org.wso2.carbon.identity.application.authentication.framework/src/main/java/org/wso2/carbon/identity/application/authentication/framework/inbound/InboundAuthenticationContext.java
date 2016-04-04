@@ -11,7 +11,7 @@ public class InboundAuthenticationContext implements Serializable {
 	private InboundAuthenticationRequest inboundAuthenticationRequest;
     private InboundAuthenticationResponse inboundAuthenticationResponse;
 	private String tenantDomain;
-	private Map<String, Object> properties = new HashMap<String, Object>();
+	private Map<String, Object> properties = new HashMap<>();
 
 	public InboundAuthenticationRequest getInboundAuthenticationRequest() {
 		return inboundAuthenticationRequest;

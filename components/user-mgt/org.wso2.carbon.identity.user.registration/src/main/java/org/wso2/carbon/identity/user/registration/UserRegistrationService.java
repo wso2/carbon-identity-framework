@@ -83,7 +83,7 @@ public class UserRegistrationService {
     public PasswordRegExDTO[] getPasswordRegularExpressions() throws IdentityException {
         UserRealm realm = null;
         realm = IdentityTenantUtil.getRealm(null, null);
-        List<PasswordRegExDTO> passwordRegExList = new ArrayList<PasswordRegExDTO>();
+        List<PasswordRegExDTO> passwordRegExList = new ArrayList<>();
         PasswordRegExDTO passwordRegEx;
 
         try {
@@ -128,7 +128,7 @@ public class UserRegistrationService {
             return new UserFieldDTO[0];
         }
 
-        claimList = new ArrayList<UserFieldDTO>();
+        claimList = new ArrayList<>();
 
         for (Claim claim : claims) {
             if (claim.getDisplayTag() != null
@@ -150,7 +150,7 @@ public class UserRegistrationService {
         Map<String, String> userClaims = null;
 
         userFieldDTOs = user.getUserFields();
-        userClaims = new HashMap<String, String>();
+        userClaims = new HashMap<>();
 
         if (userFieldDTOs != null) {
             for (UserFieldDTO userFieldDTO : userFieldDTOs) {
@@ -309,7 +309,7 @@ public class UserRegistrationService {
     private List<String> getRoleName(String userName, TenantRegistrationConfig tenantConfig) {
         // check for tenant config, if available return roles specified in tenant config
         if (tenantConfig != null) {
-            List<String> roleNamesArr = new ArrayList<String>();
+            List<String> roleNamesArr = new ArrayList<>();
             Map<String, Boolean> roles = tenantConfig.getRoles();
             for (Map.Entry<String, Boolean> entry : roles.entrySet()) {
                 String roleName;
@@ -343,7 +343,7 @@ public class UserRegistrationService {
         if (domainName != null && domainName.trim().length() > 0) {
             roleName = domainName.toUpperCase() + CarbonConstants.DOMAIN_SEPARATOR + roleName;
         }
-        return new ArrayList<String>(Arrays.asList(roleName));
+        return new ArrayList<>(Arrays.asList(roleName));
     }
 
     private TenantRegistrationConfig getTenantSignUpConfig(int tenantId) throws IdentityException {

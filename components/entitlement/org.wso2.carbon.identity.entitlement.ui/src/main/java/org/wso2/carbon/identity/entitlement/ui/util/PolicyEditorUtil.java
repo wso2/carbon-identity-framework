@@ -82,7 +82,7 @@ public class PolicyEditorUtil {
     /**
      * map of apply element w.r.t identifier
      */
-    private static Map<String, ApplyElementDTO> applyElementMap = new HashMap<String, ApplyElementDTO>();
+    private static Map<String, ApplyElementDTO> applyElementMap = new HashMap<>();
 
     /**
      * Create XACML policy with the simplest input attributes
@@ -95,7 +95,7 @@ public class PolicyEditorUtil {
 
         BasicPolicyDTO basicPolicyDTO = new BasicPolicyDTO();
         BasicTargetDTO basicTargetDTO = null;
-        List<BasicRuleDTO> ruleElementDTOs = new ArrayList<BasicRuleDTO>();
+        List<BasicRuleDTO> ruleElementDTOs = new ArrayList<>();
 
         PolicyEditorDataHolder holder = PolicyEditorEngine.getInstance().
                 getPolicyEditorData(EntitlementConstants.PolicyEditor.RBAC);
@@ -662,7 +662,7 @@ public class PolicyEditorUtil {
         List<ObligationDTO> obligationDTOs = ruleDTO.getObligationDTOs();
 
         if (dynamicAttributeDTOs != null && dynamicAttributeDTOs.size() > 0) {
-            Map<String, ExtendAttributeDTO> dtoMap = new HashMap<String, ExtendAttributeDTO>();
+            Map<String, ExtendAttributeDTO> dtoMap = new HashMap<>();
             //1st creating map of dynamic attribute elements
             for (ExtendAttributeDTO dto : dynamicAttributeDTOs) {
                 dtoMap.put("${" + dto.getId().trim() + "}", dto);
@@ -713,8 +713,8 @@ public class PolicyEditorUtil {
     public static List<ObligationElementDTO> createObligation(List<ObligationDTO> obligationDTOs)
             throws PolicyEditorException {
 
-        List<ObligationElementDTO> obligationElementDTOs = new ArrayList<ObligationElementDTO>();
-        List<Element> returnList = new ArrayList<Element>();
+        List<ObligationElementDTO> obligationElementDTOs = new ArrayList<>();
+        List<Element> returnList = new ArrayList<>();
 
         if (obligationDTOs != null) {
             for (ObligationDTO obligationDTO : obligationDTOs) {
@@ -867,8 +867,8 @@ public class PolicyEditorUtil {
 
         ConditionElementDT0 rootApplyDTO = new ConditionElementDT0();
 
-        ArrayList<RowDTO> temp = new ArrayList<RowDTO>();
-        Set<ArrayList<RowDTO>> listSet = new HashSet<ArrayList<RowDTO>>();
+        ArrayList<RowDTO> temp = new ArrayList<>();
+        Set<ArrayList<RowDTO>> listSet = new HashSet<>();
 
         for (int i = 0; i < rowDTOs.size(); i++) {
 
@@ -885,7 +885,7 @@ public class PolicyEditorUtil {
 
             if (PolicyEditorConstants.COMBINE_FUNCTION_OR.equals(combineFunction)) {
                 listSet.add(temp);
-                temp = new ArrayList<RowDTO>();
+                temp = new ArrayList<>();
                 temp.add(rowDTOs.get(i));
             }
         }
@@ -998,7 +998,7 @@ public class PolicyEditorUtil {
         TargetElementDTO targetElementDTO = new TargetElementDTO();
 
         List<RowDTO> rowDTOs = targetDTO.getRowDTOList();
-        ArrayList<RowDTO> tempRowDTOs = new ArrayList<RowDTO>();
+        ArrayList<RowDTO> tempRowDTOs = new ArrayList<>();
 
         // pre function processing
         for (RowDTO rowDTO : rowDTOs) {
@@ -1588,9 +1588,9 @@ public class PolicyEditorUtil {
         PolicyEditorDataHolder holder = PolicyEditorEngine.getInstance().
                 getPolicyEditorData(EntitlementConstants.PolicyEditor.SET);
 
-        List<String> policyMetaDataList = new ArrayList<String>();
+        List<String> policyMetaDataList = new ArrayList<>();
 
-        List<PolicyRefIdDTO> arrangedRefIdDTOs = new ArrayList<PolicyRefIdDTO>();
+        List<PolicyRefIdDTO> arrangedRefIdDTOs = new ArrayList<>();
 
         if (policyOrder != null && policyOrder.trim().length() > 0) {
             String[] ruleIds = policyOrder.
@@ -1613,7 +1613,7 @@ public class PolicyEditorUtil {
         }
 
         if (targetDTO != null && targetDTO.getRowDTOList() != null) {
-            List<RowDTO> newRowDTOs = new ArrayList<RowDTO>();
+            List<RowDTO> newRowDTOs = new ArrayList<>();
             for (RowDTO rowDTO : targetDTO.getRowDTOList()) {
                 createMetaDataFromRowDTO("target", rowDTO, policyMetaDataList);
                 String category = rowDTO.getCategory();
@@ -1701,9 +1701,9 @@ public class PolicyEditorUtil {
         PolicyEditorDataHolder holder = PolicyEditorEngine.getInstance().
                 getPolicyEditorData(EntitlementConstants.PolicyEditor.STANDARD);
 
-        List<String> policyMetaDataList = new ArrayList<String>();
+        List<String> policyMetaDataList = new ArrayList<>();
 
-        List<RuleDTO> arrangedRules = new ArrayList<RuleDTO>();
+        List<RuleDTO> arrangedRules = new ArrayList<>();
 
         if (ruleElementOrder != null && ruleElementOrder.trim().length() > 0) {
             String[] ruleIds = ruleElementOrder.
@@ -1726,7 +1726,7 @@ public class PolicyEditorUtil {
         }
 
         if (targetDTO != null && targetDTO.getRowDTOList() != null) {
-            List<RowDTO> newRowDTOs = new ArrayList<RowDTO>();
+            List<RowDTO> newRowDTOs = new ArrayList<>();
             for (RowDTO rowDTO : targetDTO.getRowDTOList()) {
                 createMetaDataFromRowDTO("target", rowDTO, policyMetaDataList);
                 String category = rowDTO.getCategory();
@@ -1773,7 +1773,7 @@ public class PolicyEditorUtil {
         if (ruleDTOs != null) {
             for (RuleDTO ruleDTO : ruleDTOs) {
                 createMetaDataFromRule("rule", ruleDTO, policyMetaDataList);
-                List<RowDTO> newRowDTOs = new ArrayList<RowDTO>();
+                List<RowDTO> newRowDTOs = new ArrayList<>();
                 for (RowDTO rowDTO : ruleDTO.getRowDTOList()) {
                     createMetaDataFromRowDTO("ruleRow" + ruleDTO.getRuleId(), rowDTO, policyMetaDataList);
                     String category = rowDTO.getCategory();
@@ -1822,7 +1822,7 @@ public class PolicyEditorUtil {
                     continue;
                 }
 
-                List<RowDTO> newTargetRowDTOs = new ArrayList<RowDTO>();
+                List<RowDTO> newTargetRowDTOs = new ArrayList<>();
 
                 for (RowDTO rowDTO : ruleTargetDTO.getRowDTOList()) {
                     createMetaDataFromRowDTO("ruleTarget" + ruleDTO.getRuleId(), rowDTO, policyMetaDataList);
@@ -2079,7 +2079,7 @@ public class PolicyEditorUtil {
 
     public static String[] createBasicPolicyData(SimplePolicyEditorDTO policyEditorDTO) {
 
-        List<String> metaDataList = new ArrayList<String>();
+        List<String> metaDataList = new ArrayList<>();
 
         metaDataList.add("policyId|" + policyEditorDTO.getPolicyId());
         metaDataList.add("category|" + policyEditorDTO.getAppliedCategory());
@@ -2164,8 +2164,8 @@ public class PolicyEditorUtil {
 
     public static SimplePolicyEditorDTO createSimplePolicyEditorDTO(String[] policyEditorData) {
 
-        Map<String, String> metaDataMap = new HashMap<String, String>();
-        List<SimplePolicyEditorElementDTO> SimplePolicyEditorElementDTOs = new ArrayList<SimplePolicyEditorElementDTO>();
+        Map<String, String> metaDataMap = new HashMap<>();
+        List<SimplePolicyEditorElementDTO> SimplePolicyEditorElementDTOs = new ArrayList<>();
 
         int i = 0;
 
@@ -2315,7 +2315,7 @@ public class PolicyEditorUtil {
     public static List<RuleElementDTO> createRuleElementDTOs(String policy)
             throws EntitlementPolicyCreationException {
 
-        List<RuleElementDTO> ruleElementDTOs = new ArrayList<RuleElementDTO>();
+        List<RuleElementDTO> ruleElementDTOs = new ArrayList<>();
         OMElement omElement;
         try {
             omElement = AXIOMUtil.stringToOM(policy);
@@ -2362,9 +2362,9 @@ public class PolicyEditorUtil {
     public static void processRuleRowPolicyEditorData(List<RuleDTO> rules, String[] policyEditorData) {
 
         for (RuleDTO ruleDTO : rules) {
-            List<String> ruleList = new ArrayList<String>();
-            List<String> ruleTargetList = new ArrayList<String>();
-            List<String> obligationList = new ArrayList<String>();
+            List<String> ruleList = new ArrayList<>();
+            List<String> ruleTargetList = new ArrayList<>();
+            List<String> obligationList = new ArrayList<>();
 
             for (String data : policyEditorData) {
                 if (data.contains("|")) {
@@ -2397,7 +2397,7 @@ public class PolicyEditorUtil {
 
     public static void processTargetPolicyEditorData(TargetDTO targetDTO, String[] policyEditorData) {
 
-        List<String> targetList = new ArrayList<String>();
+        List<String> targetList = new ArrayList<>();
 
         if (policyEditorData != null) {
             for (String data : policyEditorData) {
@@ -2415,7 +2415,7 @@ public class PolicyEditorUtil {
 
     public static void processPolicyEditorData(PolicyElementDTO policyElementDTO, String[] policyEditorData) {
 
-        List<String> targetList = new ArrayList<String>();
+        List<String> targetList = new ArrayList<>();
 
         if (policyEditorData != null) {
             for (String data : policyEditorData) {
@@ -2439,7 +2439,7 @@ public class PolicyEditorUtil {
     public static void processObligationPolicyEditorData(List<ObligationDTO> obligationDTOs,
                                                          String[] policyEditorData) {
 
-        List<String> targetList = new ArrayList<String>();
+        List<String> targetList = new ArrayList<>();
 
         if (policyEditorData != null) {
             for (String data : policyEditorData) {
@@ -2457,7 +2457,7 @@ public class PolicyEditorUtil {
 
     public static void processRulePolicyEditorData(List<RuleDTO> ruleDTOs,
                                                    String[] policyEditorData) {
-        List<String> targetList = new ArrayList<String>();
+        List<String> targetList = new ArrayList<>();
         if (policyEditorData != null) {
             for (String data : policyEditorData) {
                 if (data.contains("|")) {
@@ -2477,7 +2477,7 @@ public class PolicyEditorUtil {
     public static void processReferencePolicyEditorData(List<PolicyRefIdDTO> policyRefIdDTOs,
                                                         String[] policyEditorData) {
 
-        List<String> targetList = new ArrayList<String>();
+        List<String> targetList = new ArrayList<>();
         if (policyEditorData != null) {
             for (String data : policyEditorData) {
                 if (data.contains("|")) {
@@ -2493,7 +2493,7 @@ public class PolicyEditorUtil {
     }
 
     private static List<RowDTO> createRowDTO(List<String> list) {
-        List<RowDTO> rowDTOs = new ArrayList<RowDTO>();
+        List<RowDTO> rowDTOs = new ArrayList<>();
         for (int i = 0; i < list.size(); i = i + 7) {
             List<String> newList = list.subList(i, i + 7);
             if (newList != null) {
@@ -2512,7 +2512,7 @@ public class PolicyEditorUtil {
     }
 
     private static List<ObligationDTO> createObligationDTO(List<String> list) {
-        List<ObligationDTO> rowDTOs = new ArrayList<ObligationDTO>();
+        List<ObligationDTO> rowDTOs = new ArrayList<>();
         for (int i = 0; i < list.size(); i = i + 6) {
             List<String> newList = list.subList(i, i + 6);
             if (newList != null) {
@@ -2530,7 +2530,7 @@ public class PolicyEditorUtil {
     }
 
     private static List<RuleDTO> createRuleDTO(List<String> list) {
-        List<RuleDTO> rowDTOs = new ArrayList<RuleDTO>();
+        List<RuleDTO> rowDTOs = new ArrayList<>();
         for (int i = 0; i < list.size(); i = i + 3) {
             List<String> newList = list.subList(i, i + 3);
             if (newList != null) {
@@ -2545,7 +2545,7 @@ public class PolicyEditorUtil {
     }
 
     private static List<PolicyRefIdDTO> createReferenceDTO(List<String> list) {
-        List<PolicyRefIdDTO> rowDTOs = new ArrayList<PolicyRefIdDTO>();
+        List<PolicyRefIdDTO> rowDTOs = new ArrayList<>();
         for (int i = 0; i < list.size(); i = i + 3) {
             List<String> newList = list.subList(i, i + 3);
             if (newList != null) {
@@ -2576,7 +2576,7 @@ public class PolicyEditorUtil {
 
         PolicyEditorDataHolder holder = PolicyEditorEngine.getInstance().
                 getPolicyEditorData(EntitlementConstants.PolicyEditor.BASIC);
-        List<BasicRuleDTO> arrangedRules = new ArrayList<BasicRuleDTO>();
+        List<BasicRuleDTO> arrangedRules = new ArrayList<>();
 
         if (ruleElementOrder != null && ruleElementOrder.trim().length() > 0) {
             String[] ruleIds = ruleElementOrder.
@@ -2678,7 +2678,7 @@ public class PolicyEditorUtil {
         if (holder.isAddLastRule()) {
 
             if (basicRuleDTOs == null) {
-                basicRuleDTOs = new ArrayList<BasicRuleDTO>();
+                basicRuleDTOs = new ArrayList<>();
             }
 
             BasicRuleDTO basicRuleDTO = new BasicRuleDTO();
@@ -2868,7 +2868,7 @@ public class PolicyEditorUtil {
 
     public static List<BasicRuleDTO> createBasicRuleDTOs(String[] policyEditorData, int nextIndex) {
 
-        List<BasicRuleDTO> basicRuleDTOs = new ArrayList<BasicRuleDTO>();
+        List<BasicRuleDTO> basicRuleDTOs = new ArrayList<>();
         if (policyEditorData != null) {
             while (true) {
                 if (policyEditorData.length == nextIndex) {

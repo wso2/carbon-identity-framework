@@ -26,9 +26,9 @@ public class InboundAuthenticationRequest implements Serializable {
 
     private static final long serialVersionUID = 2657271459288945966L;
 
-    private Map<String, String> headers = new HashMap<String, String>();
-    private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
-    private Map<String, String[]> parameters = new HashMap<String, String[]>();
+    private Map<String, String> headers = new HashMap<>();
+    private Map<String, Cookie> cookies = new HashMap<>();
+    private Map<String, String[]> parameters = new HashMap<>();
 
     public Map<String, String> getHeaders() {
         return headers;

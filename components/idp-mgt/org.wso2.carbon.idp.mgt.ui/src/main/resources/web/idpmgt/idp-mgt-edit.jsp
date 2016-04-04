@@ -218,7 +218,7 @@
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute("idpUniqueIdMap");
 
     if (idpUniqueIdMap == null) {
-        idpUniqueIdMap = new HashMap<String, UUID>();
+        idpUniqueIdMap = new HashMap<>();
     }
 
     IdentityProvider identityProvider = null;
@@ -230,7 +230,7 @@
     List<IdentityProvider> identityProvidersList =
             (List<IdentityProvider>) session.getAttribute("identityProviderList");
 
-    Map<String, FederatedAuthenticatorConfig> allFedAuthConfigs = new HashMap<String, FederatedAuthenticatorConfig>();
+    Map<String, FederatedAuthenticatorConfig> allFedAuthConfigs = new HashMap<>();
 
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
     String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);

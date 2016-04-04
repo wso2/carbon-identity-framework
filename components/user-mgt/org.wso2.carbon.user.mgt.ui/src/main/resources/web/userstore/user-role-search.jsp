@@ -217,7 +217,7 @@
                 } else {
                     datas = client.listAllUsers(modifiedFilter, -1);
                 }
-                List<FlaggedName> dataList = new ArrayList<FlaggedName>(Arrays.asList(datas));
+                List<FlaggedName> dataList = new ArrayList<>(Arrays.asList(datas));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED, exceededDomains);
                 if (dataList == null || dataList.size() == 0) {
@@ -226,7 +226,7 @@
                 }
 
                 if (dataList != null) {
-                    flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
+                    flaggedNameMap = new HashMap<>();
                     int max = pageNumber + cachePages;
                     for (int i = (pageNumber - cachePages); i < max; i++) {
                         if (i < 0) {
@@ -263,7 +263,7 @@
     if (userRealmInfo != null) {
         domainNames = userRealmInfo.getDomainNames();
         if (domainNames != null) {
-            List<String> list = new ArrayList<String>(Arrays.asList(domainNames));
+            List<String> list = new ArrayList<>(Arrays.asList(domainNames));
             list.add(UserAdminUIConstants.ALL_DOMAINS);
             domainNames = list.toArray(new String[list.size()]);
         }

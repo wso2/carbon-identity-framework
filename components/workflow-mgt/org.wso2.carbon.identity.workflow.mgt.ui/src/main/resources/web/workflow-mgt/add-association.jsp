@@ -81,7 +81,7 @@
 
 
     WorkflowEvent[] workflowEvents = null;
-    Map<String, List<WorkflowEvent>> events = new HashMap<String, List<WorkflowEvent>>();
+    Map<String, List<WorkflowEvent>> events = new HashMap<>();
 
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);

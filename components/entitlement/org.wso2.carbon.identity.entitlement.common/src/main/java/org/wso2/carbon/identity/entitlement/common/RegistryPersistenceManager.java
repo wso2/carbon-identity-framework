@@ -65,7 +65,7 @@ public class RegistryPersistenceManager extends InMemoryPersistenceManager {
     public Map<String, String> getConfig() {
         Map<String, String> config = super.getConfig();
         if (config == null || config.size() == 0) {
-            config = new HashMap<String, String>();
+            config = new HashMap<>();
             Registry registry = CarbonContext.getThreadLocalCarbonContext().getRegistry(RegistryType.SYSTEM_GOVERNANCE);
             String configString = null;
             try {

@@ -114,7 +114,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             if (isEnable()) {
                 UserStoreManager userStoreMng = IdentityMgtServiceComponent.getRealmService()
                         .getBootstrapRealm().getUserStoreManager();
-                Map<String, String> claimMap = new HashMap<String, String>();
+                Map<String, String> claimMap = new HashMap<>();
                 claimMap.put(UserIdentityDataStore.ACCOUNT_LOCK, Boolean.toString(false));
                 claimMap.put(UserIdentityDataStore.ACCOUNT_DISABLED, Boolean.toString(false));
                 // Directly "do" method of this listener is called because at the time of this execution,
@@ -512,7 +512,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
 
         // Filtering security question URIs from claims and add them to the thread local dto
-        Map<String, String> userDataMap = new HashMap<String, String>();
+        Map<String, String> userDataMap = new HashMap<>();
 
         // TODO why challenge Q
         Iterator<Entry<String, String>> it = claims.entrySet().iterator();
@@ -952,7 +952,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
 
         if (claimMap == null) {
-            claimMap = new HashMap<String, String>();
+            claimMap = new HashMap<>();
         }
         UserIdentityDataStore identityDataStore =
                 IdentityMgtConfig.getInstance()

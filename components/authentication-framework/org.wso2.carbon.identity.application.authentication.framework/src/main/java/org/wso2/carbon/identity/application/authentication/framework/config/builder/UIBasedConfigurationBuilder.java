@@ -128,7 +128,7 @@ public class UIBasedConfigurationBuilder {
         if (serviceProvider.getRequestPathAuthenticatorConfigs() != null
             && serviceProvider.getRequestPathAuthenticatorConfigs().length > 0) {
 
-            List<AuthenticatorConfig> requestPathAuthenticators = new ArrayList<AuthenticatorConfig>();
+            List<AuthenticatorConfig> requestPathAuthenticators = new ArrayList<>();
             RequestPathAuthenticatorConfig[] reqAuths = serviceProvider
                     .getRequestPathAuthenticatorConfigs();
 

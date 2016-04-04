@@ -219,7 +219,7 @@ public class ApplicationManagementServiceClient {
      */
     public String[] getUserStoreDomains() throws AxisFault {
         try {
-            List<String> readWriteDomainNames = new ArrayList<String>();
+            List<String> readWriteDomainNames = new ArrayList<>();
             UserStoreInfo[] storesInfo = userAdminStub.getUserRealmInfo().getUserStoresInfo();
             for (UserStoreInfo storeInfo : storesInfo) {
                 if (!storeInfo.getReadOnly()) {

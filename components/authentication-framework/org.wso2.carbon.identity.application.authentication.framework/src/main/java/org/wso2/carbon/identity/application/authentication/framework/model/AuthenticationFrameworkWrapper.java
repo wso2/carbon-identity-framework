@@ -60,9 +60,9 @@ public class AuthenticationFrameworkWrapper extends HttpServletRequestWrapper {
                                           final Map<String, String[]> additionalParams,
                                           final Map<String, String> additionalHeaders) {
         super(request);
-        modifiableParameters = new TreeMap<String, String[]>();
+        modifiableParameters = new TreeMap<>();
         modifiableParameters.putAll(additionalParams);
-        modifiableHeaders = new TreeMap<String, String>();
+        modifiableHeaders = new TreeMap<>();
         modifiableHeaders.putAll(additionalHeaders);
     }
 
@@ -87,7 +87,7 @@ public class AuthenticationFrameworkWrapper extends HttpServletRequestWrapper {
      */
     @Override
     public Enumeration<String> getHeaderNames() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         for (Enumeration<String> headerNames = super.getHeaderNames(); headerNames.
                 hasMoreElements(); ) {
             list.add(headerNames.nextElement());
@@ -105,7 +105,7 @@ public class AuthenticationFrameworkWrapper extends HttpServletRequestWrapper {
     @Override
     public Map<String, String[]> getParameterMap() {
         if (allParameters == null) {
-            allParameters = new TreeMap<String, String[]>();
+            allParameters = new TreeMap<>();
             allParameters.putAll(super.getParameterMap());
             allParameters.putAll(modifiableParameters);
         }

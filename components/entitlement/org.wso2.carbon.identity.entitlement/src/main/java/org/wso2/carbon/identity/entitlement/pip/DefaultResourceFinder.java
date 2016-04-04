@@ -50,7 +50,7 @@ public class DefaultResourceFinder implements PIPResourceFinder {
 
     @Override
     public Set<String> findDescendantResources(String parentResourceId, EvaluationCtx context) throws Exception {
-        Set<String> resourceSet = new HashSet<String>();
+        Set<String> resourceSet = new HashSet<>();
         registry = EntitlementServiceComponent.getRegistryService().getSystemRegistry(CarbonContext.
                 getThreadLocalCarbonContext().getTenantId());
         if (registry.resourceExists(parentResourceId)) {

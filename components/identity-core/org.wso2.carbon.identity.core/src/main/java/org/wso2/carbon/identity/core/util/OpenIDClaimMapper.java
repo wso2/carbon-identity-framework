@@ -39,8 +39,8 @@ public class OpenIDClaimMapper {
     // If you want to add a new mapping - need to edit this file
     private final static String OPENID_CLAIM_MAPPER_FILE_PATH = "/openid-claim-mapper.xml";
 
-    private static HashMap<String, String> axMapping = new HashMap<String, String>();
-    private static HashMap<String, String> sregMapping = new HashMap<String, String>();
+    private static HashMap<String, String> axMapping = new HashMap<>();
+    private static HashMap<String, String> sregMapping = new HashMap<>();
 
     private static OpenIDClaimMapper instance;
 

@@ -72,8 +72,8 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
             PolicyStoreDTO[] policyDTOs = EntitlementAdminEngine.getInstance().
                     getPolicyStoreManager().getAllPolicyData();
             Arrays.sort(policyDTOs, new PolicyOrderComparator());
-            List<String> list = new ArrayList<String>();
-            List<String> finalList = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
+            List<String> finalList = new ArrayList<>();
             // 1st put non -order items
             list.addAll(Arrays.asList(policyIdentifiers));
             for (PolicyStoreDTO dto : policyDTOs) {
@@ -90,7 +90,7 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
     @Override
     public String[] getActivePolicies() {
         log.debug("Start retrieving active policies at : " + new Date());
-        List<String> policies = new ArrayList<String>();
+        List<String> policies = new ArrayList<>();
         String[] policyIdentifiers = getOrderedPolicyIdentifiers();
         if (policyIdentifiers != null) {
             for (String identifier : policyIdentifiers) {

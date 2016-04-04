@@ -73,7 +73,7 @@ public class RecoveryProcessor {
      */
     private final String REG_DELIMITER = "___";
     private Map<String, NotificationSendingModule> modules =
-            new HashMap<String, NotificationSendingModule>();
+            new HashMap<>();
     private NotificationSendingModule defaultModule;
     private UserRecoveryDataStore dataStore;
     private NotificationSender notificationSender;

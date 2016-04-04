@@ -45,7 +45,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
     /**
      * Used to skip the workflow execution on the successive call after workflow completion.
      */
-    private static ThreadLocal<Boolean> workFlowCompleted = new ThreadLocal<Boolean>();
+    private static ThreadLocal<Boolean> workFlowCompleted = new ThreadLocal<>();
 
     private static Log log = LogFactory.getLog(AbstractWorkflowRequestHandler.class);
     public static void unsetWorkFlowCompleted() {
@@ -95,7 +95,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
         }
 
         WorkflowRequest workFlowRequest = new WorkflowRequest();
-        List<RequestParameter> parameters = new ArrayList<RequestParameter>(wfParams.size() + nonWfParams.size() + 1);
+        List<RequestParameter> parameters = new ArrayList<>(wfParams.size() + nonWfParams.size() + 1);
         for (Map.Entry<String, Object> paramEntry : wfParams.entrySet()) {
             parameters.add(getParameter(paramEntry.getKey(), paramEntry.getValue(), true));
         }
@@ -189,7 +189,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
             responseParams) throws WorkflowException {
 
         try {
-            Map<String, Object> requestParams = new HashMap<String, Object>();
+            Map<String, Object> requestParams = new HashMap<>();
             for (RequestParameter parameter : originalRequest.getRequestParameters()) {
                 requestParams.put(parameter.getName(), parameter.getValue());
             }

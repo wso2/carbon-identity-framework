@@ -57,8 +57,8 @@ public class CacheBackedIdPMgtDAO {
         idPCacheByName = IdPCacheByName.getInstance();
         idPCacheByHRI = IdPCacheByHRI.getInstance();
         idPCacheByAuthProperty = IdPCacheByAuthProperty.getInstance();
-        primaryIdPs = new ConcurrentHashMap<String, IdentityProvider>();
-        residentIdPs = new ConcurrentHashMap<String, IdentityProvider>();
+        primaryIdPs = new ConcurrentHashMap<>();
+        residentIdPs = new ConcurrentHashMap<>();
     }
 
     /**

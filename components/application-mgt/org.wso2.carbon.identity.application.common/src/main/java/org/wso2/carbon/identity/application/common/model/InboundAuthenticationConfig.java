@@ -58,7 +58,7 @@ public class InboundAuthenticationConfig implements Serializable {
                 Iterator<?> inboundAuthenticationRequestConfigsIter = element.getChildElements();
 
                 List<InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigsArrList;
-                inboundAuthenticationRequestConfigsArrList = new ArrayList<InboundAuthenticationRequestConfig>();
+                inboundAuthenticationRequestConfigsArrList = new ArrayList<>();
 
                 if (inboundAuthenticationRequestConfigsIter != null) {
 

@@ -41,7 +41,7 @@
 <%
     IdentityManagementAdminClient client;
     String forwardTo = null;
-    List<UserChallengesDTO> userChallengesDTOs = new ArrayList<UserChallengesDTO>();
+    List<UserChallengesDTO> userChallengesDTOs = new ArrayList<>();
     int challengeNumber = 1;
 
     while(true){

@@ -46,7 +46,7 @@
         IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
         List<IdentityProvider> identityProviders = client.getIdPs();
 
-        Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
+        Map<String, UUID> idpUniqueIdMap = new HashMap<>();
 
         for(IdentityProvider provider : identityProviders) {
             idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());

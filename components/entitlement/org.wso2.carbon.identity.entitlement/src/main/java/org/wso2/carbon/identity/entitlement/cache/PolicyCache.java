@@ -37,8 +37,8 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     private static Log log = LogFactory.getLog(PolicyCache.class);
     private static final Object lock = new Object();
     private int myHashCode;
-    private static Map<Integer,Integer> cacheInvalidationState = new HashMap<Integer, Integer>();
-    private static Map<Integer,Map<String,PolicyStatus>> localPolicyCacheMap = new HashMap<Integer,Map<String,PolicyStatus>>();
+    private static Map<Integer,Integer> cacheInvalidationState = new HashMap<>();
+    private static Map<Integer,Map<String,PolicyStatus>> localPolicyCacheMap = new HashMap<>();
 
     /**
      *
@@ -85,7 +85,7 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
                             }
                         }
                     } else {
-                        Map<String,PolicyStatus> map = new HashMap<String,PolicyStatus>();
+                        Map<String,PolicyStatus> map = new HashMap<>();
 
                         map.put(policyStatus.getPolicyId(),policyStatus);
                         localPolicyCacheMap.put(identityCacheKey.getTenantId(), map);
@@ -185,7 +185,7 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
                     status.setPolicyAction(getPriorityAction(status.getPolicyAction(),action));
                 }
             }else{
-                Map<String,PolicyStatus> map = new HashMap<String,PolicyStatus>();
+                Map<String,PolicyStatus> map = new HashMap<>();
 
                 map.put(policyId,policyStatus);
                 localPolicyCacheMap.put(cacheKey.getTenantId(),map);

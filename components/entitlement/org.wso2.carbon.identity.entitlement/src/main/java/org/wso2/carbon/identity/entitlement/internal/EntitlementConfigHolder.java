@@ -49,87 +49,87 @@ public class EntitlementConfigHolder {
      * PIPExtensions will be fired for each and every XACML request - which will give a handle to
      * the incoming request.
      */
-    private Map<PIPExtension, Properties> extensions = new HashMap<PIPExtension, Properties>();
+    private Map<PIPExtension, Properties> extensions = new HashMap<>();
 
     /**
      * This will be fired by CarbonAttributeFinder whenever it finds an attribute supported by this
      * module and missing in the XACML request.
      */
-    private Map<PIPAttributeFinder, Properties> designators = new HashMap<PIPAttributeFinder, Properties>();
+    private Map<PIPAttributeFinder, Properties> designators = new HashMap<>();
 
     /**
      * This will be fired by CarbonResourceFinder whenever it wants to find a descendant or child resource
      * of a given resource
      */
-    private Map<PIPResourceFinder, Properties> resourceFinders = new HashMap<PIPResourceFinder, Properties>();
+    private Map<PIPResourceFinder, Properties> resourceFinders = new HashMap<>();
 
     /**
      * This will be fired by EntitlementDataFinder, whenever it wants to retrieve an attribute values to build the
      * XACML policy
      */
     private Map<EntitlementDataFinderModule, Properties> policyEntitlementDataFinders =
-            new HashMap<EntitlementDataFinderModule, Properties>();
+            new HashMap<>();
 
     /**
      * Will be fired by PolicyPublisher, whenever it wants to publish a policy
      */
     private Map<PolicyPublisherModule, Properties> policyPublisherModules =
-            new HashMap<PolicyPublisherModule, Properties>();
+            new HashMap<>();
 
     /**
      * Will be fired by PolicyPublisher, after a policy is published
      */
     private Map<PostPublisherModule, Properties> policyPostPublisherModules =
-            new HashMap<PostPublisherModule, Properties>();
+            new HashMap<>();
 
     /**
      * Will be fired by PolicyPublisher, before a policy is published
      */
     private Map<PublisherVerificationModule, Properties> publisherVerificationModule =
-            new HashMap<PublisherVerificationModule, Properties>();
+            new HashMap<>();
 
     /**
      * Will be fired by CarbonPolicyFinder, whenever it wants to find policies
      */
     private Map<PolicyFinderModule, Properties> policyFinderModules =
-            new HashMap<PolicyFinderModule, Properties>();
+            new HashMap<>();
 
     /**
      * This holds all the policies of entitlement engine
      */
     private Map<PolicyCollection, Properties> policyCollections =
-            new HashMap<PolicyCollection, Properties>();
+            new HashMap<>();
 
     /**
      * Will be fired by admin services, whenever it wants send notifications
      */
     private Map<PAPStatusDataHandler, Properties> papStatusDataHandlers =
-            new HashMap<PAPStatusDataHandler, Properties>();
+            new HashMap<>();
 
     /**
      * This holds all the policy storing logic of entitlement engine
      */
     private Map<PolicyStoreManageModule, Properties> policyStore =
-            new HashMap<PolicyStoreManageModule, Properties>();
+            new HashMap<>();
 
     /**
      * This holds all the policy versioning of PAP
      */
     private Map<PolicyDataStore, Properties> policyDataStore =
-            new HashMap<PolicyDataStore, Properties>();
+            new HashMap<>();
 
 
     /**
      * This holds all the policy storing logic of entitlement engine
      */
     private Map<PolicyVersionManager, Properties> policyVersionModule =
-            new HashMap<PolicyVersionManager, Properties>();
+            new HashMap<>();
 
 
     /**
      * This holds the policy schema against its version
      */
-    private Map<String, Schema> policySchemaMap = new HashMap<String, Schema>();
+    private Map<String, Schema> policySchemaMap = new HashMap<>();
 
     /**
      * Holds all caching related configurations
@@ -140,7 +140,7 @@ public class EntitlementConfigHolder {
      * Holds the properties of all modules.
      */
     private Map<String, List<PublisherDataHolder>> modulePropertyHolderMap =
-            new HashMap<String, List<PublisherDataHolder>>();
+            new HashMap<>();
 
     public Map<PIPExtension, Properties> getExtensions() {
         return extensions;
@@ -206,7 +206,7 @@ public class EntitlementConfigHolder {
 
     public void addModulePropertyHolder(String type, PublisherDataHolder holder) {
         if (this.modulePropertyHolderMap.get(type) == null) {
-            List<PublisherDataHolder> holders = new ArrayList<PublisherDataHolder>();
+            List<PublisherDataHolder> holders = new ArrayList<>();
             holders.add(holder);
             this.modulePropertyHolderMap.put(type, holders);
         } else {

@@ -46,7 +46,7 @@ import java.util.Set;
 public class InMemoryPersistenceManager implements DataPersistenceManager {
 
     private static Log log = LogFactory.getLog(InMemoryPersistenceManager.class);
-    private Map<String, String> xmlConfig = new HashMap<String, String>();
+    private Map<String, String> xmlConfig = new HashMap<>();
     private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
             Constants.SECURITY_MANAGER_PROPERTY;
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -55,7 +55,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
     @Override
     public Map<String, PolicyEditorDataHolder> buildDataHolder() throws PolicyEditorException {
         xmlConfig = this.getConfig();
-        Map<String, PolicyEditorDataHolder> holders = new HashMap<String, PolicyEditorDataHolder>();
+        Map<String, PolicyEditorDataHolder> holders = new HashMap<>();
         for (String type : EntitlementConstants.PolicyEditor.EDITOR_TYPES) {
             PolicyEditorDataHolder holder = buildDataHolder(type, xmlConfig.get(type));
             if (holder != null) {
@@ -185,7 +185,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                     } else if ("uri".equals(child.getNodeName())) {
                         uri = child.getTextContent();
                     } else if ("supportedAttributeIds".equals(child.getNodeName())) {
-                        attributeIds = new HashSet<String>();
+                        attributeIds = new HashSet<>();
                         NodeList list = child.getChildNodes();
                         for (int k = 0; k < list.getLength(); k++) {
                             Node nextChild = list.item(k);
@@ -198,7 +198,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                             }
                         }
                     } else if ("supportedDataTypes".equals(child.getNodeName())) {
-                        dataTypes = new HashSet<String>();
+                        dataTypes = new HashSet<>();
                         NodeList list = child.getChildNodes();
                         for (int k = 0; k < list.getLength(); k++) {
                             Node nextChild = list.item(k);

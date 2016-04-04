@@ -23,7 +23,7 @@ import java.util.List;
 
 public class PolicyRegistry {
 
-    private List<PolicyEnforcer> policyCollection = new ArrayList<PolicyEnforcer>();
+    private List<PolicyEnforcer> policyCollection = new ArrayList<>();
 
     public PolicyRegistry() {
 

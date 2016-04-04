@@ -74,7 +74,7 @@ public class IdentityApplicationManagementUtil {
     }
 
     private static final Log log = LogFactory.getLog(IdentityApplicationManagementUtil.class);
-    private static ThreadLocal<ThreadLocalProvisioningServiceProvider> threadLocalProvisioningServiceProvider = new ThreadLocal<ThreadLocalProvisioningServiceProvider>();
+    private static ThreadLocal<ThreadLocalProvisioningServiceProvider> threadLocalProvisioningServiceProvider = new ThreadLocal<>();
     
     private static final Map<String, String> xmlSignatureAlgorithms;
     private static final Map<String, String> xmlDigestAlgorithms;
@@ -83,7 +83,7 @@ public class IdentityApplicationManagementUtil {
     
     static {
         //initialize xmlSignatureAlgorithms
-        Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<String, String>();
+        Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<>();
         xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.DSA_SHA1,
                 IdentityApplicationConstants.XML.SignatureAlgorithmURI.DSA_SHA1);
         xmlSignatureAlgorithmMap.put(
@@ -117,7 +117,7 @@ public class IdentityApplicationManagementUtil {
         xmlSignatureAlgorithms = Collections.unmodifiableMap(xmlSignatureAlgorithmMap);
         
         //initialize xmlDigestAlgorithms
-        Map<String, String> xmlDigestAlgorithmMap = new LinkedHashMap<String, String>();
+        Map<String, String> xmlDigestAlgorithmMap = new LinkedHashMap<>();
         xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.MD5,
                 IdentityApplicationConstants.XML.DigestAlgorithmURI.MD5);
         xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.RIPEMD160,
@@ -133,7 +133,7 @@ public class IdentityApplicationManagementUtil {
         xmlDigestAlgorithms = Collections.unmodifiableMap(xmlDigestAlgorithmMap);
         
         //initialize samlAuthnContextClasses
-        Map<String, String> samlAuthnContextClassMap = new LinkedHashMap<String, String>();
+        Map<String, String> samlAuthnContextClassMap = new LinkedHashMap<>();
         samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.IP,
                 IdentityApplicationConstants.SAML2.AuthnContextClassURI.IP);
         samlAuthnContextClassMap.put(
@@ -208,7 +208,7 @@ public class IdentityApplicationManagementUtil {
         samlAuthnContextClasses = Collections.unmodifiableMap(samlAuthnContextClassMap);
         
         ////initialize samlAuthnContextComparisonLevels map
-        List<String> samlAuthnContextComparisonLevelList = new ArrayList<String>();
+        List<String> samlAuthnContextComparisonLevelList = new ArrayList<>();
         samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT);
         samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MINIMUM);
         samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MAXIMUM);
@@ -303,7 +303,7 @@ public class IdentityApplicationManagementUtil {
      */
     public static Property[] concatArrays(Property[] o1, Property[] o2) {
 
-        Set<Property> properties = new HashSet<Property>(Arrays.asList(o1));
+        Set<Property> properties = new HashSet<>(Arrays.asList(o1));
         properties.addAll(Arrays.asList(o2));
         return properties.toArray(new Property[properties.size()]);
     }
@@ -736,7 +736,7 @@ public class IdentityApplicationManagementUtil {
      */
     public static List<String> getPropertyValuesForNameStartsWith(FederatedAuthenticatorConfig[] authnConfigs, String
             authenticatorName, String propNameStartsWith) {
-        List<String> propValueSet = new ArrayList<String>();
+        List<String> propValueSet = new ArrayList<>();
         for (FederatedAuthenticatorConfig config : authnConfigs) {
             if (authenticatorName.equals(config.getName())) {
                 for (Property prop : config.getProperties()) {

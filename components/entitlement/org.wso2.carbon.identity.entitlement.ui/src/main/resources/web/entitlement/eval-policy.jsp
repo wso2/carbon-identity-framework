@@ -47,7 +47,7 @@
         responseString = "";
     }
     if(!showResponse){
-        List<RowDTO> rowDTOs = new ArrayList<RowDTO>();
+        List<RowDTO> rowDTOs = new ArrayList<>();
         String multipleRequest = request.getParameter("multipleRequest");
         String returnPolicyList = request.getParameter("returnPolicyList");
         String resourceNames = request.getParameter("resourceNames");

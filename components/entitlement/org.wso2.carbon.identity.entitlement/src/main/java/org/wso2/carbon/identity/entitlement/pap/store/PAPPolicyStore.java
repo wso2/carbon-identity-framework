@@ -69,7 +69,7 @@ public class PAPPolicyStore {
     public String[] getAllPolicyIds() throws EntitlementException {
         String path = null;
         Collection collection = null;
-        List<String> resources = new ArrayList<String>();
+        List<String> resources = new ArrayList<>();
         String[] children = null;
 
         if (log.isDebugEnabled()) {

@@ -83,7 +83,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
             FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
             defaultAuthenticator.setName(getDefaultAuthenticator(idp.getIdentityProviderName()));
 
-            List<FederatedAuthenticatorConfig> federatedAuthenticators = new ArrayList<FederatedAuthenticatorConfig>();
+            List<FederatedAuthenticatorConfig> federatedAuthenticators = new ArrayList<>();
 
             FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = idp
                     .getFederatedAuthenticatorConfigs();
@@ -100,7 +100,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
                         .toArray(new FederatedAuthenticatorConfig[federatedAuthenticators.size()]));
             }
 
-            List<ProvisioningConnectorConfig> provisioningConnectors = new ArrayList<ProvisioningConnectorConfig>();
+            List<ProvisioningConnectorConfig> provisioningConnectors = new ArrayList<>();
 
             ProvisioningConnectorConfig[] provisioningConnectorConfigs = idp.getProvisioningConnectorConfigs();
             if (provisioningConnectorConfigs != null && provisioningConnectorConfigs.length > 0) {
@@ -143,7 +143,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain() +" tenant domain.", e);
         }
 
-        List<IdentityProvider> federatedIdentityProviders = new ArrayList<IdentityProvider>();
+        List<IdentityProvider> federatedIdentityProviders = new ArrayList<>();
 
         if (idps != null && !idps.isEmpty()) {
             for (IdentityProvider idp : idps) {

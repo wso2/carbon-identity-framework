@@ -121,7 +121,7 @@ public class AuthenticationEndpointFilter implements Filter {
                 return;
             }
 
-            Map<String, String> idpAuthenticatorMapping = new HashMap<String, String>();
+            Map<String, String> idpAuthenticatorMapping = new HashMap<>();
             String authenticators = servletRequest.getParameter(REQUEST_PARAM_AUTHENTICATORS);
             if (authenticators != null) {
                 String[] authenticatorIdPMappings = authenticators.split(";");

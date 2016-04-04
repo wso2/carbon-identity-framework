@@ -56,7 +56,7 @@
         } else {
 
             String policyPath = request.getParameter("policyPath");
-            List<String> userGroupsList = new ArrayList<String>();
+            List<String> userGroupsList = new ArrayList<>();
 
             Map<String, Boolean> checkBoxMap = (Map<String, Boolean>) session.getAttribute("checkedRolesMap");
 

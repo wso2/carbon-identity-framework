@@ -38,7 +38,7 @@
 	String BUNDLE = "org.wso2.carbon.identity.entitlement.ui.i18n.Resources";
 	ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
-    List<RowDTO> rowDTOs = new ArrayList<RowDTO>();
+    List<RowDTO> rowDTOs = new ArrayList<>();
     String resourceNames = request.getParameter("resourceNames");
     String subjectNames = request.getParameter("subjectNames");
     String actionNames = request.getParameter("actionNames");

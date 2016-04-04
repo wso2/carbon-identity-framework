@@ -63,7 +63,7 @@
 
         String[] shownUsers = request.getParameterValues("shownUsers");
 	    String[] selectedUsers = request.getParameterValues("selectedUsers");
-        ArrayList<String> deletedList = new ArrayList<String>();
+        ArrayList<String> deletedList = new ArrayList<>();
         if(selectedUsers != null){
             Arrays.sort(selectedUsers);
         }
@@ -134,9 +134,9 @@
 
 <%!
     private String[] addSelectedUserLists(String[] selectedUsers, Map<String,Boolean> sessionUsersMap){
-        List<String> selectedUsersList = new ArrayList<String>();
+        List<String> selectedUsersList = new ArrayList<>();
         if(selectedUsers != null && selectedUsers.length > 0){
-            selectedUsersList = new ArrayList<String>(Arrays.asList(selectedUsers));
+            selectedUsersList = new ArrayList<>(Arrays.asList(selectedUsers));
         }
         if(sessionUsersMap != null){
             Set<String> keys = sessionUsersMap.keySet();

@@ -44,7 +44,7 @@
     <%
         UserRealmInfo userRealmInfo = null;
         UserStoreInfo userStoreInfo = null;
-        List<String> bulkImportSupportedUserStoreDomains = new ArrayList<String>();
+        List<String> bulkImportSupportedUserStoreDomains = new ArrayList<>();
         try {
 
             userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);

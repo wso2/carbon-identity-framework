@@ -53,7 +53,7 @@ public class DBThriftSessionDAO implements ThriftSessionDAO {
 
             rSet = prepStmt.executeQuery();
 
-            thriftSessions = new ArrayList<ThriftSession>();
+            thriftSessions = new ArrayList<>();
             while (rSet.next()) {
                 if (rSet.getString(1) != null && rSet.getString(1).length() > 0) {
                     ThriftSession thriftSession = new ThriftSession();

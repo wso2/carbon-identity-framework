@@ -34,11 +34,11 @@ public class RuleDTO {
 
     private TargetDTO targetDTO = new TargetDTO();
 
-    private List<RowDTO> rowDTOList = new ArrayList<RowDTO>();
+    private List<RowDTO> rowDTOList = new ArrayList<>();
 
-    private List<ExtendAttributeDTO> attributeDTOs = new ArrayList<ExtendAttributeDTO>();
+    private List<ExtendAttributeDTO> attributeDTOs = new ArrayList<>();
 
-    private List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
+    private List<ObligationDTO> obligationDTOs = new ArrayList<>();
 
     private boolean completedRule;
 

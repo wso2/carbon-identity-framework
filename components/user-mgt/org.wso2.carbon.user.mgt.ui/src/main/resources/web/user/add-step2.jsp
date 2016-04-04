@@ -123,11 +123,11 @@
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
             if (filter.length() > 0) {
                 FlaggedName[] data = client.getRolesOfUser(userName, filter, -1);
-                dataList = new ArrayList<FlaggedName>(Arrays.asList(data));
+                dataList = new ArrayList<>(Arrays.asList(data));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.USER_LIST_ADD_USER_ROLE_CACHE_EXCEEDED, exceededDomains);
                 if (dataList != null && dataList.size() > 0) {
-                    flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
+                    flaggedNameMap = new HashMap<>();
                     int max = pageNumber + cachePages;
                     for (int i = (pageNumber - cachePages); i < max; i++) {
                         if (i < 0) {

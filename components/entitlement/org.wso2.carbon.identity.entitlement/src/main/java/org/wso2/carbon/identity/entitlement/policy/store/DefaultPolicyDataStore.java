@@ -187,7 +187,7 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
 
         Registry registry = EntitlementServiceComponent.
                 getGovernanceRegistry(CarbonContext.getThreadLocalCarbonContext().getTenantId());
-        List<PolicyStoreDTO> policyStoreDTOs = new ArrayList<PolicyStoreDTO>();
+        List<PolicyStoreDTO> policyStoreDTOs = new ArrayList<>();
         try {
             if (registry.resourceExists(policyDataCollection)) {
                 Collection collection = (Collection) registry.get(policyDataCollection);

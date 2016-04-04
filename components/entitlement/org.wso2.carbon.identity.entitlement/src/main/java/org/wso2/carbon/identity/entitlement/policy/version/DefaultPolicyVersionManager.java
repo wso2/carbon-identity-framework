@@ -171,7 +171,7 @@ public class DefaultPolicyVersionManager implements PolicyVersionManager {
     @Override
     public String[] getVersions(String policyId) throws EntitlementException {
 
-        List<String> versions = new ArrayList<String>();
+        List<String> versions = new ArrayList<>();
         Registry registry = EntitlementServiceComponent.
                 getGovernanceRegistry(CarbonContext.getThreadLocalCarbonContext().getTenantId());
         Collection collection = null;

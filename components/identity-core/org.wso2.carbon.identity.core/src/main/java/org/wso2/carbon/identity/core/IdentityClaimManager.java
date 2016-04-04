@@ -98,7 +98,7 @@ public class IdentityClaimManager {
         try {
 
             claimAdmin = realm.getClaimManager();
-            requiredClaims = new ArrayList<Claim>();
+            requiredClaims = new ArrayList<>();
 
             ClaimMapping[] mappings = claimAdmin.getAllClaimMappings(dialectUri);
             ;

@@ -701,7 +701,7 @@ public class DefaultInboundUserProvisioningListener extends AbstractIdentityUser
     public boolean doPostUpdateCredential(String userName, Object credential, UserStoreManager userStoreManager)
             throws UserStoreException {
 
-        Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<ClaimMapping, List<String>>();
+        Map<ClaimMapping, List<String>> outboundAttributes = new HashMap<>();
 
         if (credential != null) {
             outboundAttributes.put(ClaimMapping.build(

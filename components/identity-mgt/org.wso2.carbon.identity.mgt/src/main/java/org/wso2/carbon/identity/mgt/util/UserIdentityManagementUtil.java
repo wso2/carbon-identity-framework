@@ -283,7 +283,7 @@ public class UserIdentityManagementUtil {
         if (metadata.length < 1) {
             return new String[0];
         }
-        List<String> validSecurityQuestions = new ArrayList<String>();
+        List<String> validSecurityQuestions = new ArrayList<>();
         String[] questionsList = new String[validSecurityQuestions.size()];
         return validSecurityQuestions.toArray(questionsList);
     }
@@ -498,7 +498,7 @@ public class UserIdentityManagementUtil {
                             .getUserStoreManager();
             // read all claims and convert them to UserIdentityClaimDTO
             Claim[] claims = userStoreManager.getUserClaimValues(userName, null);
-            List<UserIdentityClaimDTO> allDefaultClaims = new ArrayList<UserIdentityClaimDTO>();
+            List<UserIdentityClaimDTO> allDefaultClaims = new ArrayList<>();
             for (Claim claim : claims) {
                 if (claim.getClaimUri().contains(UserCoreConstants.DEFAULT_CARBON_DIALECT)) {
                     UserIdentityClaimDTO claimDTO = new UserIdentityClaimDTO();
@@ -820,7 +820,7 @@ public class UserIdentityManagementUtil {
      */
     public static void loadDefaultChallenges() {
 
-        List<ChallengeQuestionDTO> questionSetDTOs = new ArrayList<ChallengeQuestionDTO>();
+        List<ChallengeQuestionDTO> questionSetDTOs = new ArrayList<>();
 
         for (String challenge : IdentityMgtConstants.getSecretQuestionsSet01()) {
             ChallengeQuestionDTO dto = new ChallengeQuestionDTO();

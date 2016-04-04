@@ -48,7 +48,7 @@ public class PublisherDataHolder {
     }
 
     public PublisherDataHolder(Resource resource, boolean returnSecrets) {
-        List<PublisherPropertyDTO> propertyDTOs = new ArrayList<PublisherPropertyDTO>();
+        List<PublisherPropertyDTO> propertyDTOs = new ArrayList<>();
         if (resource != null && resource.getProperties() != null) {
             Properties properties = resource.getProperties();
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {

@@ -173,7 +173,7 @@ public class PolicyStoreManager {
 
     public PolicyDTO[] getLightPolicies() {
 
-        List<PolicyDTO> policyDTOs = new ArrayList<PolicyDTO>();
+        List<PolicyDTO> policyDTOs = new ArrayList<>();
         String[] policies = policyStoreStore.getOrderedPolicyIdentifiers();
         if (policies != null) {
             for (String policy : policies) {

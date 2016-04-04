@@ -198,7 +198,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             String claimDialect = LOCAL_DEFAULT_CLAIM_DIALECT;
             ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext()
                     .getUserRealm().getClaimManager().getAllClaimMappings(claimDialect);
-            List<String> claimUris = new ArrayList<String>();
+            List<String> claimUris = new ArrayList<>();
             for (ClaimMapping claimMap : claimMappings) {
                 claimUris.add(claimMap.getClaim().getClaimUri());
             }

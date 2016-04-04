@@ -47,7 +47,7 @@ public class SimplePolicyEditorDTO {
     private String environmentId;
 
     private List<SimplePolicyEditorElementDTO> SimplePolicyEditorElementDTOs =
-            new ArrayList<SimplePolicyEditorElementDTO>();
+            new ArrayList<>();
 
     public String getPolicyId() {
         return policyId;

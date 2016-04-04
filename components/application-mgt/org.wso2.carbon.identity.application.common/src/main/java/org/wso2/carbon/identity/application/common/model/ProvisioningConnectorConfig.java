@@ -55,7 +55,7 @@ public class ProvisioningConnectorConfig implements Serializable {
 
             if ("ProvisioningProperties".equals(elementName)) {
                 Iterator<?> propertiesIter = element.getChildElements();
-                List<Property> propertiesArrList = new ArrayList<Property>();
+                List<Property> propertiesArrList = new ArrayList<>();
 
                 if (propertiesIter != null) {
                     while (propertiesIter.hasNext()) {

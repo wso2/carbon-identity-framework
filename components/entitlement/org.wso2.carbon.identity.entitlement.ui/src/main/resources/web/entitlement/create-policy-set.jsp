@@ -934,7 +934,7 @@
             </thead>
             <%
                 if (policyIds != null && policyIds.size() > 0) {
-                    List<PolicyRefIdDTO> orderedPolicyDTOs = new ArrayList<PolicyRefIdDTO>();
+                    List<PolicyRefIdDTO> orderedPolicyDTOs = new ArrayList<>();
                     String policyReferenceOrder = entitlementPolicyBean.getPolicyReferenceOrder();
                     if (policyReferenceOrder != null) {
                         String[] orderedRuleIds = policyReferenceOrder.split(EntitlementPolicyConstants.ATTRIBUTE_SEPARATOR);

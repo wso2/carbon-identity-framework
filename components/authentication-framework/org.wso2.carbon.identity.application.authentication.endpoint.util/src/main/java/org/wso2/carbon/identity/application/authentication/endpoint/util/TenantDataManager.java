@@ -59,7 +59,7 @@ public class TenantDataManager {
     private static String carbonLogin = "";
     private static String serviceURL;
     private static String usernameHeaderName = "";
-    private static List<String> tenantDomainList = new ArrayList<String>();
+    private static List<String> tenantDomainList = new ArrayList<>();
     private static boolean initialized = false;
     private static boolean initAttempted = false;
 
@@ -194,7 +194,7 @@ public class TenantDataManager {
      */
     private static String getServiceResponse(String url) {
         String serviceResponse = null;
-        Map<String, String> headerParams = new HashMap<String, String>();
+        Map<String, String> headerParams = new HashMap<>();
         // Set the username in HTTP header for mutual ssl authentication
         headerParams.put(usernameHeaderName, carbonLogin);
         serviceResponse = TenantMgtAdminServiceClient.sendPostRequest(url, null, headerParams);

@@ -56,7 +56,7 @@ public abstract class AbstractDAO<T> {
         }
 
         try {
-            list = new ArrayList<T>();
+            list = new ArrayList<>();
 
             if (!registry.resourceExists(path)) {
                 if (log.isErrorEnabled()) {
@@ -102,7 +102,7 @@ public abstract class AbstractDAO<T> {
         }
 
         try {
-            retList = new ArrayList<T>();
+            retList = new ArrayList<>();
 
             if (registry.resourceExists(CUSTOM_QUERY_GET_ALL_BY_PROP)) {
                 //query = registry.get(CUSTOM_QUERY_GET_ALL_BY_PROP);
@@ -115,7 +115,7 @@ public abstract class AbstractDAO<T> {
                 registry.put(CUSTOM_QUERY_GET_ALL_BY_PROP, query);
             }
 
-            params = new HashMap<String, String>();
+            params = new HashMap<>();
             params.put("1", propName);
             params.put("2", value);
             result = registry.executeQuery(CUSTOM_QUERY_GET_ALL_BY_PROP, params);
@@ -152,7 +152,7 @@ public abstract class AbstractDAO<T> {
                 log.debug("Retreving first object from the registry path with property value "
                         + path);
             }
-            params = new HashMap<String, String>();
+            params = new HashMap<>();
             params.put("1", propName);
             params.put("2", value);
             result = registry.executeQuery(getCustomQuery(), params);

@@ -42,7 +42,7 @@ public class EntitlementNotificationExtension implements PAPStatusDataHandler {
     private final String eventName = "policyUpdate";
     private boolean pdpUpdate = true;
     private boolean papUpdate = false;
-    private List<String> pdpActions = new ArrayList<String>();
+    private List<String> pdpActions = new ArrayList<>();
 
     /**
      * At the initialization a property map which carries relevant properties to this extension

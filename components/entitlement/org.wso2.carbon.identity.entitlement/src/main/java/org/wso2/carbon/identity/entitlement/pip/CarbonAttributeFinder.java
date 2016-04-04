@@ -56,7 +56,7 @@ import java.util.Set;
  */
 public class CarbonAttributeFinder extends AttributeFinderModule {
 
-    private Map<String, List<PIPAttributeFinder>> attrFinders = new HashMap<String, List<PIPAttributeFinder>>();
+    private Map<String, List<PIPAttributeFinder>> attrFinders = new HashMap<>();
     private static Log log = LogFactory.getLog(CarbonAttributeFinder.class);
     private PIPAttributeCache attributeFinderCache = null;
     protected int tenantId;
@@ -107,7 +107,7 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
                                 }
                             }
                         } else {
-                            List<PIPAttributeFinder> finders = new ArrayList<PIPAttributeFinder>();
+                            List<PIPAttributeFinder> finders = new ArrayList<>();
                             finders.add(pipAttributeFinder);
                             attrFinders.put(attr, finders);
                             if (log.isDebugEnabled()) {
@@ -132,7 +132,7 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
     public EvaluationResult findAttribute(URI attributeType, URI attributeId, String issuer,
                                           URI category, EvaluationCtx context) {
 
-        List<AttributeValue> attrBag = new ArrayList<AttributeValue>();
+        List<AttributeValue> attrBag = new ArrayList<>();
         // Get the list of attribute finders who are registered with this particular attribute.
         List<PIPAttributeFinder> finders = attrFinders.get(attributeId.toString());
 
@@ -196,7 +196,7 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
             }
         } catch (ParsingException e) {
             log.error("Error while parsing attribute values from EvaluationCtx : " + e);
-            ArrayList<String> code = new ArrayList<String>();
+            ArrayList<String> code = new ArrayList<>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code,
                                        "Error while parsing attribute values from EvaluationCtx : " + e.getMessage());
@@ -204,21 +204,21 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
         } catch (ParseException e) {
             e.printStackTrace();
             log.error("Error while parsing attribute values from EvaluationCtx : " + e);
-            ArrayList<String> code = new ArrayList<String>();
+            ArrayList<String> code = new ArrayList<>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code,
                                        "Error while parsing attribute values from EvaluationCtx : " + e.getMessage());
             return new EvaluationResult(status);
         } catch (URISyntaxException e) {
             log.error("Error while parsing attribute values from EvaluationCtx : " + e);
-            ArrayList<String> code = new ArrayList<String>();
+            ArrayList<String> code = new ArrayList<>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code,
                                        "Error while parsing attribute values from EvaluationCtx :" + e.getMessage());
             return new EvaluationResult(status);
         } catch (Exception e) {
             log.error("Error while retrieving attribute values from PIP  attribute finder : " + e);
-            ArrayList<String> code = new ArrayList<String>();
+            ArrayList<String> code = new ArrayList<>();
             code.add(Status.STATUS_MISSING_ATTRIBUTE);
             Status status = new Status(code, "Error while retrieving attribute values from PIP"
                                              + " attribute finder : " + e.getMessage());

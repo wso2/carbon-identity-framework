@@ -66,7 +66,7 @@
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
-        ArrayList<String> deletedList = new ArrayList<String>();
+        ArrayList<String> deletedList = new ArrayList<>();
         if (selectedRoles != null) {
             Arrays.sort(selectedRoles);
         }
@@ -156,9 +156,9 @@
 
 <%!
     private String[] addSelectedRoleLists(String[] selectedRoles, Map<String, Boolean> sessionRolesMap) {
-        List<String> selectedRolesList = new ArrayList<String>();
+        List<String> selectedRolesList = new ArrayList<>();
         if (selectedRoles != null && selectedRoles.length > 0) {
-            selectedRolesList = new ArrayList<String>(Arrays.asList(selectedRoles));
+            selectedRolesList = new ArrayList<>(Arrays.asList(selectedRoles));
         }
         if (sessionRolesMap != null) {
             Set<String> keys = sessionRolesMap.keySet();

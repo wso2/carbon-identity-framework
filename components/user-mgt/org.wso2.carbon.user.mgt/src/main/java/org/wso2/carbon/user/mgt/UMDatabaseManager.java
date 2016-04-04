@@ -69,7 +69,7 @@ public class UMDatabaseManager {
 
     public Map<String, String> getExternalStoreProperties() throws SQLException {
         Connection dbConnection = null;
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         ResultSet rs = null;
         PreparedStatement stmt = null;
 

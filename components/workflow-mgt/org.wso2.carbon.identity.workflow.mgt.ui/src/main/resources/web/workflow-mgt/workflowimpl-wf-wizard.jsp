@@ -71,7 +71,7 @@
     WorkflowWizard workflowWizard = null ;
     WorkflowImpl workflowImpl = null ;
     WorkflowImpl[] workflowImplList = null;
-    Map<String,Map<String,Parameter>> parameterValues = new HashMap<String,Map<String,Parameter>>();
+    Map<String,Map<String,Parameter>> parameterValues = new HashMap<>();
 
     try {
 
@@ -119,7 +119,7 @@
             for (Parameter parameter: wfParameters){
                 Map<String, Parameter> stringParameterMap = parameterValues.get(parameter.getParamName());
                 if(stringParameterMap == null){
-                    stringParameterMap = new HashMap<String, Parameter>();
+                    stringParameterMap = new HashMap<>();
                     parameterValues.put(parameter.getParamName(),stringParameterMap);
                 }
                 stringParameterMap.put(parameter.getQName(),parameter);
@@ -416,14 +416,14 @@
 
 
                                             <%
-                                            Map<String,Map<String,String>> stepMap = new HashMap<String,Map<String,String>>();
+                                            Map<String,Map<String,String>> stepMap = new HashMap<>();
                                             if(stringParameterMap !=null ) {
                                                 Set<String> keys = stringParameterMap.keySet();
                                                 for (String key : keys) {
                                                     String[] split = key.split("-");
                                                     Map<String, String> stringStringMap = stepMap.get(split[2]);
                                                     if (stringStringMap == null) {
-                                                        stringStringMap = new HashMap<String, String>();
+                                                        stringStringMap = new HashMap<>();
                                                         stepMap.put(split[2], stringStringMap);
                                                     }
                                                     stringStringMap

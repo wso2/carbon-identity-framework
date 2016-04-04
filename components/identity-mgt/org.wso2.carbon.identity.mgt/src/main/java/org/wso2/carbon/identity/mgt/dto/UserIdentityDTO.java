@@ -39,9 +39,9 @@ public class UserIdentityDTO {
     private boolean temporaryLock;
     private boolean passwordChangeRequired;
     private boolean oneTimeLogin;
-    private Map<String, String> userDataMap = new HashMap<String, String>();
+    private Map<String, String> userDataMap = new HashMap<>();
     private int tenantId;
-    private Map<String, String> securityQuestions = new HashMap<String, String>();
+    private Map<String, String> securityQuestions = new HashMap<>();
 
 
     public UserIdentityDTO(String userName) {

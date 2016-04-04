@@ -56,7 +56,7 @@ public class ApplicationAuthenticationService {
 
     public List<ApplicationAuthenticator> getLocalAuthenticators() throws ApplicationAuthenticationException {
 
-        List<ApplicationAuthenticator> localAuthenticators = new ArrayList<ApplicationAuthenticator>();
+        List<ApplicationAuthenticator> localAuthenticators = new ArrayList<>();
 
         for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
 
@@ -70,7 +70,7 @@ public class ApplicationAuthenticationService {
 
     public List<ApplicationAuthenticator> getFederatedAuthenticators() throws ApplicationAuthenticationException {
 
-        List<ApplicationAuthenticator> federatedAuthenticators = new ArrayList<ApplicationAuthenticator>();
+        List<ApplicationAuthenticator> federatedAuthenticators = new ArrayList<>();
 
         for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
 
@@ -84,7 +84,7 @@ public class ApplicationAuthenticationService {
 
     public List<ApplicationAuthenticator> getRequestPathAuthenticators() throws ApplicationAuthenticationException {
 
-        List<ApplicationAuthenticator> reqPathAuthenticators = new ArrayList<ApplicationAuthenticator>();
+        List<ApplicationAuthenticator> reqPathAuthenticators = new ArrayList<>();
 
         for (ApplicationAuthenticator authenticator : FrameworkServiceComponent.getAuthenticators()) {
 

@@ -159,7 +159,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     @Override
     public List<Property> getConfigurationProperties() {
-        return new ArrayList<Property>();
+        return new ArrayList<>();
     }
 
     protected String getUserStoreAppendedName(String userName) {

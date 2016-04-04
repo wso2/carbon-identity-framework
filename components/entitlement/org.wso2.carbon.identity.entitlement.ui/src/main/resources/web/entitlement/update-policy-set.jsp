@@ -147,7 +147,7 @@
     // set target element to entitlement bean
     entitlementPolicyBean.setTargetDTO(targetDTO);
 
-    List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
+    List<ObligationDTO> obligationDTOs = new ArrayList<>();
     for(rowNumber = 0; rowNumber < maxObligationRows + 1; rowNumber ++){
 
         ObligationDTO dto = new ObligationDTO();

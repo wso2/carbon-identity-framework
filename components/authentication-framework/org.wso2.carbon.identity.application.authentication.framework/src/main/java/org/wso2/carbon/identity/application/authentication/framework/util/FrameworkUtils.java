@@ -162,7 +162,7 @@ public class FrameworkUtils {
                                                                 AuthenticationRequestCacheEntry cacheEntry) {
 
         // add this functionality as a constructor
-        Map<String, String[]> modifiableParameters = new TreeMap<String, String[]>();
+        Map<String, String[]> modifiableParameters = new TreeMap<>();
         if (cacheEntry != null) {
             AuthenticationRequest authenticationRequest = cacheEntry.getAuthenticationRequest();
 
@@ -656,7 +656,7 @@ public class FrameworkUtils {
     public static Map<String, String> getAuthenticatorPropertyMapFromIdP(
             ExternalIdPConfig externalIdPConfig, String name) {
 
-        Map<String, String> propertyMap = new HashMap<String, String>();
+        Map<String, String> propertyMap = new HashMap<>();
 
         if (externalIdPConfig != null) {
             FederatedAuthenticatorConfig[] authenticatorConfigs = externalIdPConfig
@@ -683,7 +683,7 @@ public class FrameworkUtils {
      */
     public static Map<ClaimMapping, String> buildClaimMappings(Map<String, String> attributeValue) {
 
-        Map<ClaimMapping, String> claimMap = new HashMap<ClaimMapping, String>();
+        Map<ClaimMapping, String> claimMap = new HashMap<>();
 
         for (Iterator<Entry<String, String>> iterator = attributeValue.entrySet().iterator(); iterator
                 .hasNext(); ) {
@@ -705,7 +705,7 @@ public class FrameworkUtils {
      */
     public static Set<String> getKeySet(Map<ClaimMapping, String> attributeValues) {
 
-        Set<String> claimList = new HashSet<String>();
+        Set<String> claimList = new HashSet<>();
 
         for (Iterator<Entry<ClaimMapping, String>> iterator = attributeValues.entrySet().iterator(); iterator
                 .hasNext(); ) {
@@ -725,7 +725,7 @@ public class FrameworkUtils {
     public static Map<String, String> getClaimMappings(ClaimMapping[] claimMappings,
                                                        boolean useLocalDialectAsKey) {
 
-        Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
+        Map<String, String> remoteToLocalClaimMap = new HashMap<>();
 
         for (ClaimMapping claimMapping : claimMappings) {
             if (useLocalDialectAsKey) {
@@ -747,7 +747,7 @@ public class FrameworkUtils {
     public static Map<String, String> getClaimMappings(Map<ClaimMapping, String> claimMappings,
                                                        boolean useLocalDialectAsKey) {
 
-        Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
+        Map<String, String> remoteToLocalClaimMap = new HashMap<>();
 
         for (Entry<ClaimMapping, String> entry : claimMappings.entrySet()) {
             ClaimMapping claimMapping = entry.getKey();
@@ -766,7 +766,7 @@ public class FrameworkUtils {
      */
     public static Map<String, String> getLocalToSPClaimMappings(Map<String, String> claimMappings) {
 
-        Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
+        Map<String, String> remoteToLocalClaimMap = new HashMap<>();
 
         for (Entry<String, String> entry : claimMappings.entrySet()) {
             remoteToLocalClaimMap.put(entry.getValue(), entry.getKey());
@@ -790,7 +790,7 @@ public class FrameworkUtils {
 
     public static List<String> getStepIdPs(StepConfig stepConfig) {
 
-        List<String> stepIdps = new ArrayList<String>();
+        List<String> stepIdps = new ArrayList<>();
         List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
 
         for (AuthenticatorConfig authenticatorConfig : authenticatorConfigs) {
@@ -807,7 +807,7 @@ public class FrameworkUtils {
     public static List<String> getAuthenticatedStepIdPs(List<String> stepIdPs,
                                                         List<String> authenticatedIdPs) {
 
-        List<String> idps = new ArrayList<String>();
+        List<String> idps = new ArrayList<>();
 
         if (stepIdPs != null && authenticatedIdPs != null) {
             for (String stepIdP : stepIdPs) {
@@ -828,7 +828,7 @@ public class FrameworkUtils {
             log.debug("Finding already authenticated IdPs of the Step");
         }
 
-        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<String, AuthenticatorConfig>();
+        Map<String, AuthenticatorConfig> idpAuthenticatorMap = new HashMap<>();
         List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
 
         if (authenticatedIdPs != null && !authenticatedIdPs.isEmpty()) {

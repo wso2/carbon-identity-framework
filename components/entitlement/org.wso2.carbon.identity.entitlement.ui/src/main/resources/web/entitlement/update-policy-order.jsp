@@ -62,7 +62,7 @@
                                                                     policySearchString, pageNumberInt);
                 PolicyDTO[] policyDTOs = paginatedPolicySetDTO.getPolicySet();
                 if(policyDTOs != null){
-                    List<PolicyDTO>  orderedArray = new ArrayList<PolicyDTO>();
+                    List<PolicyDTO>  orderedArray = new ArrayList<>();
                     for(PolicyDTO dto : policyDTOs){
                         if (!dto.getPolicyEditable()) {
                             authorize = false;

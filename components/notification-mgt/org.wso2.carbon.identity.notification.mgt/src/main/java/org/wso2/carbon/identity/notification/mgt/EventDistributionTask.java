@@ -58,7 +58,7 @@ public class EventDistributionTask implements Runnable {
      */
     public EventDistributionTask(List<NotificationSendingModule> notificationSendingModules, int threadPoolSize) {
         this.notificationSendingModules = notificationSendingModules;
-        this.eventQueue = new LinkedBlockingDeque<PublisherEvent>();
+        this.eventQueue = new LinkedBlockingDeque<>();
         NotificationManagementServiceDataHolder.getInstance().setThreadPool(Executors.newFixedThreadPool(threadPoolSize));
     }
 

@@ -54,7 +54,7 @@ public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
-    private static final List<String> paths = new ArrayList<String>();
+    private static final List<String> paths = new ArrayList<>();
     private static String applicationNode;
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
@@ -395,7 +395,7 @@ public class ApplicationMgtUtil {
 
 
             paths.clear();             //clear current paths
-            List<ApplicationPermission> permissions = new ArrayList<ApplicationPermission>();
+            List<ApplicationPermission> permissions = new ArrayList<>();
 
 
             permissionPath(tenantGovReg, applicationNode);      //get permission paths recursively
@@ -501,7 +501,7 @@ public class ApplicationMgtUtil {
                     "No service provider exists in the provided tenant, with the given issuer id " + spIssuer);
         }
 
-        Map<String, String> propKeyValueMap = new HashMap<String, String>();
+        Map<String, String> propKeyValueMap = new HashMap<>();
 
         InboundAuthenticationRequestConfig[] inboundAuthReqConfigs = serviceProvider.getInboundAuthenticationConfig()
                 .getInboundAuthenticationRequestConfigs();

@@ -29,7 +29,7 @@ public class ApplicationManagementServiceComponentHolder {
 
     private static ApplicationManagementServiceComponentHolder instance=new
             ApplicationManagementServiceComponentHolder();
-    private static Map<String, AbstractInboundAuthenticatorConfig> inboundAuthenticatorConfigs = new HashMap<String, AbstractInboundAuthenticatorConfig>();
+    private static Map<String, AbstractInboundAuthenticatorConfig> inboundAuthenticatorConfigs = new HashMap<>();
 
     private RegistryService registryService;
 

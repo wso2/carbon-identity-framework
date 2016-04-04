@@ -208,7 +208,7 @@ public class ClaimAdminService {
 
     private ClaimMappingDTO[] convertClaimMappingArrayToClaimMappingDTOArray(
             ClaimMapping[] claimMappings) {
-        List<ClaimMappingDTO> claimMappingDTOList = new ArrayList<ClaimMappingDTO>();
+        List<ClaimMappingDTO> claimMappingDTOList = new ArrayList<>();
         for (ClaimMapping claimMapping : claimMappings) {
             ClaimMappingDTO claimMappingDTO = convertClaimMappingToClaimMappingDTO(claimMapping);
             claimMappingDTOList.add(claimMappingDTO);
@@ -218,7 +218,7 @@ public class ClaimAdminService {
 
     private ClaimMapping[] convertClaimMappingDTOArrayToClaimMappingArray(
             ClaimMappingDTO[] claimMappingDTOs) {
-        List<ClaimMapping> claimMappings = new ArrayList<ClaimMapping>();
+        List<ClaimMapping> claimMappings = new ArrayList<>();
         for (ClaimMappingDTO claimMappingDTO : claimMappingDTOs) {
             ClaimMapping claimMapping = convertClaimMappingDTOToClaimMapping(claimMappingDTO);
             claimMappings.add(claimMapping);

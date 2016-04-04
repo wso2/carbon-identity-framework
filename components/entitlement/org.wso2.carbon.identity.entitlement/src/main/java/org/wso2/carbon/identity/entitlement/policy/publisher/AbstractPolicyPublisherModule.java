@@ -53,7 +53,7 @@ public abstract class AbstractPolicyPublisherModule implements PolicyPublisherMo
 
     public void init(Properties properties) {
 
-        List<PublisherPropertyDTO> propertyDTOs = new ArrayList<PublisherPropertyDTO>();
+        List<PublisherPropertyDTO> propertyDTOs = new ArrayList<>();
 
         if (properties == null || properties.size() == 0) {
             properties = loadProperties();

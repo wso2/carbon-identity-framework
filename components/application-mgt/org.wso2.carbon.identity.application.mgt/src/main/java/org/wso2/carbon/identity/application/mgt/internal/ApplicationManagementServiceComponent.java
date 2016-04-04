@@ -68,7 +68,7 @@ import java.util.Map;
 public class ApplicationManagementServiceComponent {
     private static Log log = LogFactory.getLog(ApplicationManagementServiceComponent.class);
     private static BundleContext bundleContext;
-    private static Map<String, ServiceProvider> fileBasedSPs = new HashMap<String, ServiceProvider>();
+    private static Map<String, ServiceProvider> fileBasedSPs = new HashMap<>();
 
     public static Map<String, ServiceProvider> getFileBasedSPs() {
         return fileBasedSPs;

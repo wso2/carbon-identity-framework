@@ -178,13 +178,13 @@ location.href = "list-service-providers.jsp";
 		}
 	}
 	
-	Map<String, String> idpAuthenticators = new HashMap<String, String>();
+	Map<String, String> idpAuthenticators = new HashMap<>();
 	IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
-	Map<String, String> proIdpConnector = new HashMap<String, String>();
-	Map<String, String> enabledProIdpConnector = new HashMap<String, String>();
-	Map<String, String> selectedProIdpConnectors = new HashMap<String, String>();
-	Map<String, Boolean> idpStatus = new HashMap<String, Boolean>();
-	Map<String, Boolean> IdpProConnectorsStatus = new HashMap<String, Boolean>();
+	Map<String, String> proIdpConnector = new HashMap<>();
+	Map<String, String> enabledProIdpConnector = new HashMap<>();
+	Map<String, String> selectedProIdpConnectors = new HashMap<>();
+	Map<String, Boolean> idpStatus = new HashMap<>();
+	Map<String, Boolean> IdpProConnectorsStatus = new HashMap<>();
 
 	StringBuffer idpType = null;
 	StringBuffer connType = null;
@@ -1335,8 +1335,8 @@ var roleMappinRowID = -1;
 				   </div>
 
                         <%
-                            List<String> standardInboundAuthTypes = new ArrayList<String>();
-                            standardInboundAuthTypes = new ArrayList<String>();
+                            List<String> standardInboundAuthTypes = new ArrayList<>();
+                            standardInboundAuthTypes = new ArrayList<>();
                             standardInboundAuthTypes.add("oauth2");
                             standardInboundAuthTypes.add("wstrust");
                             standardInboundAuthTypes.add("samlsso");

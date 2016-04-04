@@ -45,7 +45,7 @@ public class ThriftAuthenticationConfigParser {
 
     public static final String IDENTITY_DEFAULT_NAMESPACE = "http://wso2.org/projects/carbon/carbon.xml";
     private static final String THRIFT_AUTHENTICATION_XML = "thrift-authentication.xml";
-    private static Map<String, Object> configuration = new HashMap<String, Object>();
+    private static Map<String, Object> configuration = new HashMap<>();
     private static ThriftAuthenticationConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -113,7 +113,7 @@ public class ThriftAuthenticationConfigParser {
 
             builder = new StAXOMBuilder(inStream);
             rootElement = builder.getDocumentElement();
-            Stack<String> nameStack = new Stack<String>();
+            Stack<String> nameStack = new Stack<>();
             secretResolver = SecretResolverFactory.create(rootElement, true);
             readChildElements(rootElement, nameStack);
 

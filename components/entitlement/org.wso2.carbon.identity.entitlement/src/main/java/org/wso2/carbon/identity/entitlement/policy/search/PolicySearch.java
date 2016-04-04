@@ -65,7 +65,7 @@ public class PolicySearch {
                 getEntitlementConfig().getPolicyFinderModules();
 
         if (finderModules != null) {
-            this.finderModules = new ArrayList<PolicyFinderModule>(finderModules.keySet());
+            this.finderModules = new ArrayList<>(finderModules.keySet());
         }
 
         this.cachingEnable = cachingEnable;
@@ -112,7 +112,7 @@ public class PolicySearch {
         AttributeDTO subjectAttributeDTO;
         boolean hierarchicalResource = false;
         EntitledResultSetDTO resultSetDTO = new EntitledResultSetDTO();
-        Set<EntitledAttributesDTO> resultSet = new HashSet<EntitledAttributesDTO>();
+        Set<EntitledAttributesDTO> resultSet = new HashSet<>();
 
         if (subjectName != null && subjectName.trim().length() > 0) {
             subjectAttributeDTO = new AttributeDTO();
@@ -142,14 +142,14 @@ public class PolicySearch {
                 PolicyFinderModule.COMBINATIONS_BY_CATEGORY_AND_PARAMETER ==
                 module.getSupportedSearchAttributesScheme()) {
                 Map<String, Set<AttributeDTO>> requestMap = module.
-                        getSearchAttributes(null, new HashSet<AttributeDTO>(Arrays.asList(subjectAttributeDTO)));
+                        getSearchAttributes(null, new HashSet<>(Arrays.asList(subjectAttributeDTO)));
 
                 for (Map.Entry<String, Set<AttributeDTO>> entry : requestMap.entrySet()) {
                     Set<AttributeDTO> attributeDTOs = entry.getValue();
                     if (attributeDTOs != null) {
-                        Set<AttributeDTO> actions = new HashSet<AttributeDTO>();
-                        Set<AttributeDTO> resources = new HashSet<AttributeDTO>();
-                        Set<AttributeDTO> requestAttributes = new HashSet<AttributeDTO>();
+                        Set<AttributeDTO> actions = new HashSet<>();
+                        Set<AttributeDTO> resources = new HashSet<>();
+                        Set<AttributeDTO> requestAttributes = new HashSet<>();
                         if (resourceName != null && resourceName.trim().length() > 0) {
                             AttributeDTO resourceAttribute = new AttributeDTO();
                             resourceAttribute.setAttributeValue(resourceName);
@@ -190,10 +190,10 @@ public class PolicySearch {
                         }
 
                         if (resultSetDTO.getMessage() == null) {
-                            List<String> entitledActions = new ArrayList<String>();
+                            List<String> entitledActions = new ArrayList<>();
                             for (AttributeDTO actionDTO : actions) {
                                 List<AttributeDTO> currentRequestAttributes =
-                                        new ArrayList<AttributeDTO>();
+                                        new ArrayList<>();
                                 currentRequestAttributes.add(subjectAttributeDTO);
                                 currentRequestAttributes.add(actionDTO);
                                 if (getResponse(currentRequestAttributes)) {
@@ -218,7 +218,7 @@ public class PolicySearch {
 
                                     while (noOfRequests < 2) {
                                         List<AttributeDTO> currentRequestAttributes =
-                                                new ArrayList<AttributeDTO>();
+                                                new ArrayList<>();
                                         for (AttributeDTO dto : requestAttributes) {
                                             currentRequestAttributes.add(dto);
                                         }
@@ -254,7 +254,7 @@ public class PolicySearch {
                                         }
                                         while (noOfRequests < 2) {
                                             List<AttributeDTO> currentRequestAttributes =
-                                                    new ArrayList<AttributeDTO>();
+                                                    new ArrayList<>();
                                             for (AttributeDTO dto : requestAttributes) {
                                                 currentRequestAttributes.add(dto);
                                             }
@@ -338,8 +338,8 @@ public class PolicySearch {
         }
 
         EntitledResultSetDTO result = new EntitledResultSetDTO();
-        Set<EntitledAttributesDTO> resultAttributes = new HashSet<EntitledAttributesDTO>();
-        Set<AttributeDTO> attributeDTOs = new HashSet<AttributeDTO>(Arrays.asList(givenAttributes));
+        Set<EntitledAttributesDTO> resultAttributes = new HashSet<>();
+        Set<AttributeDTO> attributeDTOs = new HashSet<>(Arrays.asList(givenAttributes));
 
         for (PolicyFinderModule finderModule : finderModules) {
             Map<String, Set<AttributeDTO>> attributesMap = finderModule.
@@ -399,7 +399,7 @@ public class PolicySearch {
 
         } else if (PolicyFinderModule.COMBINATIONS_BY_PARAMETER == supportedSearchScheme) {
 
-            Set<List<AttributeDTO>> requestSet = new HashSet<List<AttributeDTO>>();
+            Set<List<AttributeDTO>> requestSet = new HashSet<>();
             for (Map.Entry<String, Set<AttributeDTO>> entry : attributesMap.entrySet()) {
                 requestSet.addAll(getAllCombinations(entry.getValue()));
             }
@@ -407,12 +407,12 @@ public class PolicySearch {
 
         } else if (PolicyFinderModule.COMBINATIONS_BY_CATEGORY_AND_PARAMETER == supportedSearchScheme) {
 
-            Set<List<AttributeDTO>> requestSet = new HashSet<List<AttributeDTO>>();
+            Set<List<AttributeDTO>> requestSet = new HashSet<>();
             for (Map.Entry<String, Set<AttributeDTO>> entry : attributesMap.entrySet()) {
-                Map<String, Set<AttributeDTO>> map = new HashMap<String, Set<AttributeDTO>>();
+                Map<String, Set<AttributeDTO>> map = new HashMap<>();
                 for (AttributeDTO dto : entry.getValue()) {
                     if (!map.containsKey(dto.getCategory())) {
-                        Set<AttributeDTO> attributeDTOSet = new HashSet<AttributeDTO>();
+                        Set<AttributeDTO> attributeDTOSet = new HashSet<>();
                         attributeDTOSet.add(dto);
                         map.put(dto.getCategory(), attributeDTOSet);
                     }
@@ -422,9 +422,9 @@ public class PolicySearch {
             }
             return requestSet;
         } else if (PolicyFinderModule.NO_COMBINATIONS == supportedSearchScheme) {
-            Set<List<AttributeDTO>> requestSet = new HashSet<List<AttributeDTO>>();
+            Set<List<AttributeDTO>> requestSet = new HashSet<>();
             for (Map.Entry<String, Set<AttributeDTO>> entry : attributesMap.entrySet()) {
-                requestSet.add(new ArrayList<AttributeDTO>(entry.getValue()));
+                requestSet.add(new ArrayList<>(entry.getValue()));
             }
             return requestSet;
         }
@@ -440,20 +440,20 @@ public class PolicySearch {
      */
     private Set<List<AttributeDTO>> getAllCombinations(Set<AttributeDTO> allAttributes) {
 
-        Set<List<AttributeDTO>> requestSet = new HashSet<List<AttributeDTO>>();
+        Set<List<AttributeDTO>> requestSet = new HashSet<>();
 
         if (allAttributes.isEmpty()) {
             requestSet.add(new ArrayList<AttributeDTO>());
             return requestSet;
         }
 
-        List<AttributeDTO> list = new ArrayList<AttributeDTO>(allAttributes);
+        List<AttributeDTO> list = new ArrayList<>(allAttributes);
 
         AttributeDTO head = list.get(0);
-        Set<AttributeDTO> rest = new HashSet<AttributeDTO>(list.subList(1, list.size()));
+        Set<AttributeDTO> rest = new HashSet<>(list.subList(1, list.size()));
 
         for (List<AttributeDTO> set : getAllCombinations(rest)) {
-            List<AttributeDTO> newSet = new ArrayList<AttributeDTO>();
+            List<AttributeDTO> newSet = new ArrayList<>();
             newSet.add(head);
             newSet.addAll(set);
             requestSet.add(newSet);
@@ -471,8 +471,8 @@ public class PolicySearch {
      */
     private Set<List<AttributeDTO>> getAllCombinationsWithCategory(Map<String, Set<AttributeDTO>> attributesMap) {
 
-        Set<List<AttributeDTO>> requestSet = new HashSet<List<AttributeDTO>>();
-        List<String> categories = new ArrayList<String>(attributesMap.keySet());
+        Set<List<AttributeDTO>> requestSet = new HashSet<>();
+        List<String> categories = new ArrayList<>(attributesMap.keySet());
 
         if (!categories.isEmpty()) {
             String category = categories.get(0);
@@ -480,7 +480,7 @@ public class PolicySearch {
 
             List<AttributeDTO> dtoList;
             for (AttributeDTO dto : attributeDTOs) {
-                dtoList = new ArrayList<AttributeDTO>();
+                dtoList = new ArrayList<>();
                 dtoList.add(dto);
                 if (categories.get(1) != null) {
                     processCombinations(1, categories, attributesMap, dtoList, requestSet);
@@ -507,13 +507,13 @@ public class PolicySearch {
             String category = categories.get(i);
             i++;
             if (category != null) {
-                List<AttributeDTO> currentList = new ArrayList<AttributeDTO>(dtoList);
+                List<AttributeDTO> currentList = new ArrayList<>(dtoList);
                 Set<AttributeDTO> attributeDTOs = attributesMap.get(category);
                 for (AttributeDTO dto : attributeDTOs) {
                     dtoList.add(dto);
                     processCombinations(i, categories, attributesMap, dtoList, requestSet);
                     requestSet.add(dtoList);
-                    dtoList = new ArrayList<AttributeDTO>(currentList);
+                    dtoList = new ArrayList<>(currentList);
                 }
             }
         }

@@ -160,7 +160,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
                 throw new EntitlementException("errorGettingCert");
             }
             response.setSignature(signature);
-            List<Signature> signatureList = new ArrayList<Signature>();
+            List<Signature> signatureList = new ArrayList<>();
             signatureList.add(signature);
             //Marshall and Sign
             MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();

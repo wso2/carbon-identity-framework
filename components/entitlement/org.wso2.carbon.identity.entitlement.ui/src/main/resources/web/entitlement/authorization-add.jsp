@@ -59,7 +59,7 @@
             if(data != null){
                 i = (data.length -11)/11;
             }
-            List<SimplePolicyEditorElementDTO> elementDTOs = new  ArrayList<SimplePolicyEditorElementDTO>();
+            List<SimplePolicyEditorElementDTO> elementDTOs = new ArrayList<>();
             SimplePolicyEditorElementDTO elementDTO = new SimplePolicyEditorElementDTO();
             if("permit".equals(action)){
                 elementDTO.setOperationType(PolicyEditorConstants.PreFunctions.CAN_DO);
@@ -75,7 +75,7 @@
             EntitlementPolicyCreator creator = new EntitlementPolicyCreator();
             String policy = creator.addNewRules(dto.getPolicy(),elementDTOs);
             if(PolicyEditorConstants.SOA_POLICY_EDITOR.equals(dto.getPolicyEditor())){
-                List<String> metaDataList = new ArrayList<String>();
+                List<String> metaDataList = new ArrayList<>();
                 metaDataList.add("resourceValue" + i + "|" + "*");
                 metaDataList.add("actionValue" + i + "|" + "*");
                 metaDataList.add("userAttributeValue" + i + "|" + value);

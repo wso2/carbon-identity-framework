@@ -38,8 +38,8 @@
     try {
         if(EntitlementConstants.PolicyEditor.SET.equals(policyDTO.getPolicyEditor())){
             TargetDTO targetDTO = new TargetDTO();
-            List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
-            List<PolicyRefIdDTO> policyRefIdDTOs = new ArrayList<PolicyRefIdDTO>();
+            List<ObligationDTO> obligationDTOs = new ArrayList<>();
+            List<PolicyRefIdDTO> policyRefIdDTOs = new ArrayList<>();
             PolicyElementDTO elementDTO = new PolicyElementDTO();
 
             PolicyEditorUtil.processPolicyEditorData(elementDTO, policyEditorData);
@@ -72,8 +72,8 @@
             } else if(EntitlementConstants.PolicyEditor.STANDARD.equals(policyDTO.getPolicyEditor())){
 
                 TargetDTO targetDTO = new TargetDTO();
-                List<RuleDTO> ruleDTOs = new ArrayList<RuleDTO>();
-                List<ObligationDTO> obligationDTOs = new ArrayList<ObligationDTO>();
+                List<RuleDTO> ruleDTOs = new ArrayList<>();
+                List<ObligationDTO> obligationDTOs = new ArrayList<>();
                 PolicyElementDTO elementDTO = new PolicyElementDTO();
 
                 PolicyEditorUtil.processPolicyEditorData(elementDTO, policyEditorData);

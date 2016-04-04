@@ -50,7 +50,7 @@ public class ThriftAuthenticatorServiceImpl implements ThriftAuthenticatorServic
     private static long thriftSessionTimeOut;
     private RealmService realmService;
     private Map<String, ThriftSession> authenticatedSessions =
-            new ConcurrentHashMap<String, ThriftSession>();
+            new ConcurrentHashMap<>();
     private ThriftSessionDAO thriftSessionDAO;
 
     public ThriftAuthenticatorServiceImpl(RealmService realmService, ThriftSessionDAO thriftSessionDAO, long thriftSessionTimeOut) {

@@ -54,7 +54,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
         Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent
                 .getFileBasedSPs();
 
-        List<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
+        List<ApplicationBasicInfo> appInfo = new ArrayList<>();
 
         for (Iterator<Entry<String, ServiceProvider>> iterator = spMap.entrySet().iterator(); iterator
                 .hasNext(); ) {
@@ -136,7 +136,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
 
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
-        Map<String, String> claimMap = new HashMap<String, String>();
+        Map<String, String> claimMap = new HashMap<>();
 
         if (serviceProvider == null || serviceProvider.getClaimConfig() == null) {
             return claimMap;
@@ -166,7 +166,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
                                                                         String tenantDomain) throws IdentityApplicationManagementException {
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
-        Map<String, String> claimMap = new HashMap<String, String>();
+        Map<String, String> claimMap = new HashMap<>();
 
         if (serviceProvider == null || serviceProvider.getClaimConfig() == null) {
             return claimMap;
@@ -196,7 +196,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
 
-        List<String> requestedClaimList = new ArrayList<String>();
+        List<String> requestedClaimList = new ArrayList<>();
 
         if (serviceProvider == null || serviceProvider.getClaimConfig() == null) {
             return requestedClaimList;

@@ -68,7 +68,7 @@ public class CarbonEntitlementDataFinder implements EntitlementDataFinderModule 
 
     @Override
     public Set<String> getSupportedCategories() {
-        Set<String> set = new HashSet<String>();
+        Set<String> set = new HashSet<>();
         set.add(SUBJECT_CATEGORY);
         set.add(ACTION_CATEGORY);
         set.add(RESOURCE_CATEGORY);

@@ -63,21 +63,21 @@
     String[] claimUris = null;
     FlaggedName[] users = null;
     String[] domainNames = null;
-    Map<String, String> userCount = new HashMap<String, String>();
+    Map<String, String> userCount = new HashMap<>();
     int pageNumber = 0;
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
     int numberOfPages = 0;
     Map<Integer, PaginatedNamesBean> flaggedNameMap = null;
-    Set<FlaggedName> workFlowAddPendingUsers = new LinkedHashSet<FlaggedName>();
-    Set<String> workFlowAddPendingUsersList = new LinkedHashSet<String>();
-    Set<String> workFlowDeletePendingUsers = new LinkedHashSet<String>();
+    Set<FlaggedName> workFlowAddPendingUsers = new LinkedHashSet<>();
+    Set<String> workFlowAddPendingUsersList = new LinkedHashSet<>();
+    Set<String> workFlowDeletePendingUsers = new LinkedHashSet<>();
     Set<FlaggedName> activeUserList;
-    Set<FlaggedName> showDeletePendingUsers = new LinkedHashSet<FlaggedName>();
-    Set<String> showDeletePendingUsersList = new LinkedHashSet<String>();
-    Set<FlaggedName> aggregateUserList = new LinkedHashSet<FlaggedName>();
-    Set<FlaggedName> removeUserElement = new LinkedHashSet<FlaggedName>();
-    Set<String> countableUserStores = new LinkedHashSet<String>();
+    Set<FlaggedName> showDeletePendingUsers = new LinkedHashSet<>();
+    Set<String> showDeletePendingUsersList = new LinkedHashSet<>();
+    Set<FlaggedName> aggregateUserList = new LinkedHashSet<>();
+    Set<FlaggedName> removeUserElement = new LinkedHashSet<>();
+    Set<String> countableUserStores = new LinkedHashSet<>();
 
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -266,15 +266,15 @@
                     datas = client.listAllUsers(modifiedFilter, -1);
                 }
                 if (CarbonUIUtil.isContextRegistered(config, "/usermgt-workflow/")) {
-                    List<FlaggedName> preactiveUserList = new ArrayList<FlaggedName>(Arrays.asList(datas));
+                    List<FlaggedName> preactiveUserList = new ArrayList<>(Arrays.asList(datas));
                     FlaggedName excessiveDomainElement = preactiveUserList.remove(datas.length - 1);
                     removeUserElement.add(excessiveDomainElement);
 
-                    activeUserList = new LinkedHashSet<FlaggedName>(preactiveUserList);
+                    activeUserList = new LinkedHashSet<>(preactiveUserList);
 
                     String[] AddPendingUsersList = UserMgtClient.
                             listAllEntityNames("ADD_USER", "PENDING", "USER", modifiedFilter);
-                    workFlowAddPendingUsersList = new LinkedHashSet<String>(Arrays.asList(AddPendingUsersList));
+                    workFlowAddPendingUsersList = new LinkedHashSet<>(Arrays.asList(AddPendingUsersList));
 
                     for (String s : AddPendingUsersList) {
                         FlaggedName flaggedName = new FlaggedName();
@@ -284,7 +284,7 @@
                     }
                     String[] DeletePendingUsersList = UserMgtClient.
                             listAllEntityNames("DELETE_USER", "PENDING", "USER", modifiedFilter);
-                    workFlowDeletePendingUsers = new LinkedHashSet<String>(Arrays.asList(DeletePendingUsersList));
+                    workFlowDeletePendingUsers = new LinkedHashSet<>(Arrays.asList(DeletePendingUsersList));
 
                     for (Iterator<FlaggedName> iterator = activeUserList.iterator(); iterator.hasNext(); ) {
                         FlaggedName flaggedName = iterator.next();
@@ -305,7 +305,7 @@
                     datas = aggregateUserList.toArray(new FlaggedName[aggregateUserList.size()]);
                 }
 
-                List<FlaggedName> dataList = new ArrayList<FlaggedName>(Arrays.asList(datas));
+                List<FlaggedName> dataList = new ArrayList<>(Arrays.asList(datas));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED, exceededDomains);
                 if (dataList == null || dataList.size() == 0) {
@@ -314,7 +314,7 @@
                 }
 
                 if (dataList != null) {
-                    flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
+                    flaggedNameMap = new HashMap<>();
                     int max = pageNumber + cachePages;
                     for (int i = (pageNumber - cachePages); i < max; i++) {
                         if (i < 0) {
@@ -350,7 +350,7 @@
     if (userRealmInfo != null) {
         domainNames = userRealmInfo.getDomainNames();
         if (domainNames != null) {
-            List<String> list = new ArrayList<String>(Arrays.asList(domainNames));
+            List<String> list = new ArrayList<>(Arrays.asList(domainNames));
             list.add(UserAdminUIConstants.ALL_DOMAINS);
             domainNames = list.toArray(new String[list.size()]);
         }

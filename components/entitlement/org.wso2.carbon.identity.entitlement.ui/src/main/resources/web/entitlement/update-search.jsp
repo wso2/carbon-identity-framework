@@ -72,7 +72,7 @@
      environmentId = (String)session.getAttribute("environmentId");
      environmentDataType = (String)session.getAttribute("environmentDataType");
 
-     List<AttributeDTO> attributeValueDTOs = new ArrayList<AttributeDTO>();
+     List<AttributeDTO> attributeValueDTOs = new ArrayList<>();
 
      if(resourceNames != null && !"".equals(resourceNames)){
          AttributeDTO attributeValueDTO = new AttributeDTO();

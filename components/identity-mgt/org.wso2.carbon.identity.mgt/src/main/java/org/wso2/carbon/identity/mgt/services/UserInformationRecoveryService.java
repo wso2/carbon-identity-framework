@@ -676,7 +676,7 @@ public class UserInformationRecoveryService {
             return new UserIdentityClaimDTO[0];
         }
 
-        List<UserIdentityClaimDTO> claimList = new ArrayList<UserIdentityClaimDTO>();
+        List<UserIdentityClaimDTO> claimList = new ArrayList<>();
 
         for (int i = 0; i < claims.length; i++) {
             if (claims[i].getDisplayTag() != null
@@ -836,7 +836,7 @@ public class UserInformationRecoveryService {
                 return vBean;
             }
 
-            Map<String, String> claimsMap = new HashMap<String, String>();
+            Map<String, String> claimsMap = new HashMap<>();
             for (UserIdentityClaimDTO userIdentityClaimDTO : claims) {
                 claimsMap.put(userIdentityClaimDTO.getClaimUri(),
                         userIdentityClaimDTO.getClaimValue());

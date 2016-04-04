@@ -91,7 +91,7 @@ public class TCPThriftAuthenticationService {
 
 
         AuthenticatorService.Processor<AuthenticatorServiceImpl> processor =
-                new AuthenticatorService.Processor<AuthenticatorServiceImpl>(
+                new AuthenticatorService.Processor<>(
                         new AuthenticatorServiceImpl(thriftAuthenticatorService));
         authenticationServer = new TThreadPoolServer(
                 new TThreadPoolServer.Args(serverTransport).processor(processor));

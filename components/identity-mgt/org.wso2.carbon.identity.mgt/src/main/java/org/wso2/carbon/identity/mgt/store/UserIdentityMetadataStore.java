@@ -211,7 +211,7 @@ public class UserIdentityMetadataStore {
             prepStmt.setInt(2, IdentityTenantUtil.getTenantIdOfUser(userName));
 
             results = prepStmt.executeQuery();
-            List<IdentityMetadataDO> metada = new ArrayList<IdentityMetadataDO>();
+            List<IdentityMetadataDO> metada = new ArrayList<>();
             while (results.next()) {
                 metada.add(new IdentityMetadataDO(results.getString(1), results.getInt(2),
                         results.getString(3), results.getString(4),
@@ -248,7 +248,7 @@ public class UserIdentityMetadataStore {
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, metadataType);
             results = prepStmt.executeQuery();
-            List<IdentityMetadataDO> metada = new ArrayList<IdentityMetadataDO>();
+            List<IdentityMetadataDO> metada = new ArrayList<>();
             while (results.next()) {
                 metada.add(new IdentityMetadataDO(results.getString(1), results.getInt(2),
                         results.getString(3), results.getString(4),

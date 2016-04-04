@@ -288,7 +288,7 @@
 
                 <%
                     if(entitledAttributes != null && entitledAttributes.length > 0) {
-                        Set<String> resourceSet = new HashSet <String>();
+                        Set<String> resourceSet = new HashSet<>();
                         for(EntitledAttributesDTO result : entitledAttributes){
                             if(result.getAllResources()){
                                 resourceSet.add("ANY");            
@@ -303,7 +303,7 @@
                         <%
 
                             if(action == null || action.trim().length() < 1){
-                                Set<String> actionSet = new HashSet<String>();
+                                Set<String> actionSet = new HashSet<>();
                                 String actionNames = "";
                                 for(EntitledAttributesDTO result : entitledAttributes){
                                     if(result.getAllResources()){

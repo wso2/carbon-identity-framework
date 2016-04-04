@@ -85,9 +85,9 @@ public class IdPManagementServiceComponent {
 
     private static ConfigurationContextService configurationContextService = null;
 
-    private static Map<String, IdentityProvider> fileBasedIdPs = new HashMap<String, IdentityProvider>();
+    private static Map<String, IdentityProvider> fileBasedIdPs = new HashMap<>();
 
-    private static Set<String> sharedIdps = new HashSet<String>();
+    private static Set<String> sharedIdps = new HashSet<>();
 
     private static volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
 

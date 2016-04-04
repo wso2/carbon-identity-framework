@@ -36,7 +36,7 @@ public abstract class AbstractEmailSendingModule extends NotificationSendingModu
 
     private static final Log log = LogFactory.getLog(AbstractEmailSendingModule.class);
     protected String NOTIFICATION_TYPE = "EMAIL";
-    private Map<String, EmailConfig> emailConfigs = new HashMap<String, EmailConfig>();
+    private Map<String, EmailConfig> emailConfigs = new HashMap<>();
 
     @Override
     public String getNotificationType() {

@@ -55,7 +55,7 @@ public class UserMgtInitializer {
 
         try {
             UserRegistry registry = registryService.getGovernanceSystemRegistry();
-            Map<String, String> map = new HashMap<String, String>();
+            Map<String, String> map = new HashMap<>();
             map.put(CarbonConstants.UI_PERMISSION_COLLECTION, "All Permissions");
             map.put(CarbonConstants.UI_ADMIN_PERMISSION_COLLECTION, "Admin Permissions");
             map.put(UserMgtConstants.UI_PROTECTED_PERMISSION_ROOT, "Super Admin Permissions");

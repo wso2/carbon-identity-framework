@@ -73,7 +73,7 @@ public class NotificationMgtConfigBuilder {
         notificationMgtConfigProperties = loadProperties(bundleContext);
         setThreadPoolSize();
         resolveSecrets();
-        moduleConfiguration = new HashMap<String, ModuleConfiguration>();
+        moduleConfiguration = new HashMap<>();
         build();
     }
 
@@ -190,7 +190,7 @@ public class NotificationMgtConfigBuilder {
         Properties subscriptions = NotificationManagementUtils.getSubProperties(moduleName + "." +
                 NotificationMgtConstants.Configs.SUBSCRIPTION, moduleProperties);
 
-        List<Subscription> subscriptionList = new ArrayList<Subscription>();
+        List<Subscription> subscriptionList = new ArrayList<>();
         Enumeration propertyNames = subscriptions.propertyNames();
         // Iterate through events and build event objects
         while (propertyNames.hasMoreElements()) {

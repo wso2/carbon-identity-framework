@@ -161,7 +161,7 @@ public class ProvisioningUtil {
             }
 
             // {in-bound-claim-uri / out-bound-claim-uri
-            claimMap = new HashMap<String, String>();
+            claimMap = new HashMap<>();
 
             for (ClaimMapping inboundClaimMapping : inboundClaimMappings) {
                 // there can be a claim mapping without a mapped local claim.
@@ -270,7 +270,7 @@ public class ProvisioningUtil {
                                 tenantDomain, true);
 
                 // in-bound dialect / out-bound dialect.
-                claimMap = new HashMap<String, String>();
+                claimMap = new HashMap<>();
 
                 for (Iterator<Map.Entry<String, String>> iterator = inboundToCarbonClaimMaping
                         .entrySet().iterator(); iterator.hasNext(); ) {
@@ -326,7 +326,7 @@ public class ProvisioningUtil {
             // we have in-bound claim mapping and out-bound claim mapping.
 
             if (outboundClaimValueMappings == null) {
-                outboundClaimValueMappings = new HashMap<ClaimMapping, List<String>>();
+                outboundClaimValueMappings = new HashMap<>();
             }
 
             if (MapUtils.isEmpty(inboundClaimValueMap)) {
@@ -354,10 +354,10 @@ public class ProvisioningUtil {
 
             // out-bound is not in wso2 carbon dialect. we need to find how it maps to wso2
             // carbon dialect.
-            Map<String, String> inboundToCarbonClaimMaping = new HashMap<String, String>();
-            Map<String, String> outBoundToCarbonClaimMappping = new HashMap<String, String>();
+            Map<String, String> inboundToCarbonClaimMaping = new HashMap<>();
+            Map<String, String> outBoundToCarbonClaimMappping = new HashMap<>();
 
-            Map<String, String> outboundClaimDefaultValues = new HashMap<String, String>();
+            Map<String, String> outboundClaimDefaultValues = new HashMap<>();
 
             for (ClaimMapping inboundClaimMapping : inboundClaimMappings) {
                 // populate map with in-bound claims.
@@ -384,7 +384,7 @@ public class ProvisioningUtil {
                         outboundClaimMapping.getDefaultValue());
             }
 
-            claimMap = new HashMap<String, String>();
+            claimMap = new HashMap<>();
 
             // we need to have everything in the out-bound claim dialect in the claimMap.
             for (Iterator<Map.Entry<String, String>> iterator = outBoundToCarbonClaimMappping
@@ -474,9 +474,9 @@ public class ProvisioningUtil {
                     .getMappingsMapFromOtherDialectToCarbon(inboundClaimMappingDialect,
                             inboundClaimValueMap.keySet(), tenantDomain, true);
 
-            claimMap = new HashMap<String, String>();
+            claimMap = new HashMap<>();
 
-            Map<String, String> outboundClaimDefaultValues = new HashMap<String, String>();
+            Map<String, String> outboundClaimDefaultValues = new HashMap<>();
 
             for (ClaimMapping outboundClaimMapping : outboundClaimMappings) {
 

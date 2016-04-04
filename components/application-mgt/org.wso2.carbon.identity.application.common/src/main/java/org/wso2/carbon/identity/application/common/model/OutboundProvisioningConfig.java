@@ -52,7 +52,7 @@ public class OutboundProvisioningConfig implements Serializable {
             if ("ProvisioningIdentityProviders".equals(elementName)) {
 
                 Iterator<?> provisioningIdentityProvidersIter = element.getChildElements();
-                List<IdentityProvider> provisioningIdentityProvidersArrList = new ArrayList<IdentityProvider>();
+                List<IdentityProvider> provisioningIdentityProvidersArrList = new ArrayList<>();
 
                 if (provisioningIdentityProvidersIter != null) {
                     while (provisioningIdentityProvidersIter.hasNext()) {
@@ -75,7 +75,7 @@ public class OutboundProvisioningConfig implements Serializable {
             } else if ("ProvisionByRoleList".equals(elementName)) {
 
                 Iterator<?> provisionByRoleListIter = element.getChildElements();
-                List<String> provisionByRoleListArrList = new ArrayList<String>();
+                List<String> provisionByRoleListArrList = new ArrayList<>();
 
                 if (provisionByRoleListIter != null) {
                     while (provisionByRoleListIter.hasNext()) {
@@ -112,7 +112,7 @@ public class OutboundProvisioningConfig implements Serializable {
         if (provisioningIdentityProviders == null) {
             return;
         }
-        Set<IdentityProvider> propertySet = new HashSet<IdentityProvider>(Arrays.asList(provisioningIdentityProviders));
+        Set<IdentityProvider> propertySet = new HashSet<>(Arrays.asList(provisioningIdentityProviders));
         this.provisioningIdentityProviders = propertySet.toArray(new IdentityProvider[propertySet.size()]);
     }
 

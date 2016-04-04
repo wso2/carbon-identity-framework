@@ -1395,7 +1395,7 @@
             </thead>
             <%
                 if (basicRuleDTOs != null && basicRuleDTOs.size() > 0) {
-                    List<BasicRuleDTO> orderedBasicRuleDTOs = new ArrayList<BasicRuleDTO>();
+                    List<BasicRuleDTO> orderedBasicRuleDTOs = new ArrayList<>();
                     String ruleElementOrder = entitlementPolicyBean.getRuleElementOrder();
                     if(ruleElementOrder != null){
                         String[] orderedRuleIds = ruleElementOrder.split(EntitlementPolicyConstants.ATTRIBUTE_SEPARATOR);

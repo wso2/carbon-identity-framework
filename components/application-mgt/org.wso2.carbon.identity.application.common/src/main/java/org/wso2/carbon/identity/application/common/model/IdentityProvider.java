@@ -126,7 +126,7 @@ public class IdentityProvider implements Serializable {
                 }
 
                 List<FederatedAuthenticatorConfig> federatedAuthenticatorConfigsArrList;
-                federatedAuthenticatorConfigsArrList = new ArrayList<FederatedAuthenticatorConfig>();
+                federatedAuthenticatorConfigsArrList = new ArrayList<>();
 
                 while (federatedAuthenticatorConfigsIter.hasNext()) {
                     OMElement federatedAuthenticatorConfigsElement = (OMElement) (federatedAuthenticatorConfigsIter
@@ -157,7 +157,7 @@ public class IdentityProvider implements Serializable {
                 }
 
                 List<ProvisioningConnectorConfig> provisioningConnectorConfigsArrList;
-                provisioningConnectorConfigsArrList = new ArrayList<ProvisioningConnectorConfig>();
+                provisioningConnectorConfigsArrList = new ArrayList<>();
 
                 while (provisioningConnectorConfigsIter.hasNext()) {
                     OMElement provisioningConnectorConfigsElement = (OMElement) (provisioningConnectorConfigsIter
@@ -253,7 +253,7 @@ public class IdentityProvider implements Serializable {
             return;
         }
         Set<FederatedAuthenticatorConfig> propertySet =
-                new HashSet<FederatedAuthenticatorConfig>(Arrays.asList(federatedAuthenticatorConfigs));
+                new HashSet<>(Arrays.asList(federatedAuthenticatorConfigs));
         this.federatedAuthenticatorConfigs = propertySet.toArray(new FederatedAuthenticatorConfig[propertySet.size()]);
     }
 
@@ -331,7 +331,7 @@ public class IdentityProvider implements Serializable {
             return;
         }
         Set<ProvisioningConnectorConfig> propertySet =
-                new HashSet<ProvisioningConnectorConfig>(Arrays.asList(provisioningConnectorConfigs));
+                new HashSet<>(Arrays.asList(provisioningConnectorConfigs));
         this.provisioningConnectorConfigs = propertySet.toArray(new ProvisioningConnectorConfig[propertySet.size()]);
     }
 

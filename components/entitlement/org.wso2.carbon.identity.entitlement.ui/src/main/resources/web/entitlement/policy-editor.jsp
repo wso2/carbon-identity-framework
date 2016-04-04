@@ -1664,7 +1664,7 @@ function preSubmit(){
         </thead>
         <%
             if (ruleDTOs != null && ruleDTOs.size() > 0) {
-                List<RuleDTO> orderedRuleDTOs = new ArrayList<RuleDTO>();
+                List<RuleDTO> orderedRuleDTOs = new ArrayList<>();
                 String ruleElementOrder = entitlementPolicyBean.getRuleElementOrder();
                 if (ruleElementOrder != null) {
                     String[] orderedRuleIds = ruleElementOrder.split(EntitlementPolicyConstants.ATTRIBUTE_SEPARATOR);

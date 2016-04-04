@@ -215,7 +215,7 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
 
         log.debug("Retrieving of Active policies are started. " + new Date());
 
-        List<String> policies = new ArrayList<String>();
+        List<String> policies = new ArrayList<>();
 
         try {
             PolicyDTO[] policyDTOs = getPolicyReader().readAllPolicies(true, true);
@@ -239,7 +239,7 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
 
         log.debug("Retrieving of Order Policy Ids are started. " + new Date());
 
-        List<String> policies = new ArrayList<String>();
+        List<String> policies = new ArrayList<>();
 
         try {
             PolicyDTO[] policyDTOs = getPolicyReader().readAllPolicies(false, true);
@@ -298,10 +298,10 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
         }
 
         if (policyDTOs != null) {
-            attributeMap = new HashMap<String, Set<AttributeDTO>>();
+            attributeMap = new HashMap<>();
             for (PolicyDTO policyDTO : policyDTOs) {
                 Set<AttributeDTO> attributeDTOs =
-                        new HashSet<AttributeDTO>(Arrays.asList(policyDTO.getAttributeDTOs()));
+                        new HashSet<>(Arrays.asList(policyDTO.getAttributeDTOs()));
                 String[] policyIdRef = policyDTO.getPolicyIdReferences();
                 String[] policySetIdRef = policyDTO.getPolicySetIdReferences();
 

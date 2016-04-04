@@ -211,7 +211,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
         Map<String, AbstractTemplate> templateMap = WorkflowServiceDataHolder.getInstance().getTemplates();
         List<AbstractTemplate> templateList = new ArrayList<>(templateMap.values());
-        List<Template> templates = new ArrayList<Template>();
+        List<Template> templates = new ArrayList<>();
         if (templateList != null) {
             for (AbstractTemplate abstractTemplate : templateList) {
                 Template template = new Template();

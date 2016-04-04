@@ -59,7 +59,7 @@ public class FileBasedConfigurationBuilder {
     private static volatile FileBasedConfigurationBuilder instance;
     private static String configFilePath;
     private static OMElement rootElement;
-    private static Map<String, Object> configuration = new HashMap<String, Object>();
+    private static Map<String, Object> configuration = new HashMap<>();
 
     private String authenticationEndpointURL;
     private String authenticationEndpointRetryURL;
@@ -67,7 +67,7 @@ public class FileBasedConfigurationBuilder {
     /**
      * List of URLs that receive the tenant list
      */
-    private List<String> tenantDataEndpointURLs = new ArrayList<String>();
+    private List<String> tenantDataEndpointURLs = new ArrayList<>();
 
     /**
      * Tenant list dropdown enabled or disabled value
@@ -145,7 +145,7 @@ public class FileBasedConfigurationBuilder {
             }
             StAXOMBuilder builder = new StAXOMBuilder(inStream);
             rootElement = builder.getDocumentElement();
-            Stack<String> nameStack = new Stack<String>();
+            Stack<String> nameStack = new Stack<>();
             readChildElements(rootElement, nameStack);
 
             //########### Read Authentication Endpoint URL ###########

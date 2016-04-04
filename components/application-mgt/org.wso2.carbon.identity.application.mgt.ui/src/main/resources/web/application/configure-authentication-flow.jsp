@@ -65,10 +65,10 @@ var authMap = {};
 
 	StringBuffer idpType = new StringBuffer();
 	StringBuffer enabledIdpType = new StringBuffer();
-	Map<String, String> idpAuthenticators = new HashMap<String, String>();
-	Map<String, String> enabledIdpAuthenticators = new HashMap<String, String>();
-	Map<String, Boolean> idpEnableStatus = new HashMap<String, Boolean>();
-	Map<String, Boolean> idpAuthenticatorsStatus = new HashMap<String, Boolean>();
+	Map<String, String> idpAuthenticators = new HashMap<>();
+	Map<String, String> enabledIdpAuthenticators = new HashMap<>();
+	Map<String, Boolean> idpEnableStatus = new HashMap<>();
+	Map<String, Boolean> idpAuthenticatorsStatus = new HashMap<>();
 
 	if (federatedIdPs!=null && federatedIdPs.length>0) {
 		for(IdentityProvider idp : federatedIdPs) {
@@ -110,7 +110,7 @@ var authMap = {};
 	
 	
 	AuthenticationStep[] steps = appBean.getServiceProvider().getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
-	Map<String,String> stepIdpAuthenticators = new HashMap<String,String>();
+	Map<String,String> stepIdpAuthenticators = new HashMap<>();
 	
 	if (steps!=null && steps.length>0){
 		for (AuthenticationStep step : steps) {

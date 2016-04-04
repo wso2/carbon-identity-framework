@@ -90,7 +90,7 @@
 
         if (attribute != null) {
             String[] attributes = attribute.split(";");
-            List<ClaimAttributeDTO> attrList = new ArrayList<ClaimAttributeDTO>();
+            List<ClaimAttributeDTO> attrList = new ArrayList<>();
 
             for (int i = 0; i < attributes.length; i++) {
                 int index = 0;

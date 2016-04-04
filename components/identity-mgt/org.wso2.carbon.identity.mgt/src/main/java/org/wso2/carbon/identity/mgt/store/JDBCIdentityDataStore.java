@@ -199,7 +199,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, userName);
             results = prepStmt.executeQuery();
-            Map<String, String> data = new HashMap<String, String>();
+            Map<String, String> data = new HashMap<>();
             while (results.next()) {
                 data.put(results.getString(1), results.getString(2));
             }

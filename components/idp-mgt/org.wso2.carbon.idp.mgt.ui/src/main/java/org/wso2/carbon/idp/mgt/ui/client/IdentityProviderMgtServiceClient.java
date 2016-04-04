@@ -120,7 +120,7 @@ public class IdentityProviderMgtServiceClient {
             if (identityProviders != null && identityProviders.length > 0) {
                 return Arrays.asList(identityProviders);
             } else {
-                return new ArrayList<IdentityProvider>();
+                return new ArrayList<>();
             }
         } catch (Exception e) {
             log.error("Error in retrieving the list of Identity Providers for a given tenant", e);
@@ -141,7 +141,7 @@ public class IdentityProviderMgtServiceClient {
             if (identityProviders != null && identityProviders.length > 0) {
                 return Arrays.asList(identityProviders);
             } else {
-                return new ArrayList<IdentityProvider>();
+                return new ArrayList<>();
             }
         } catch (Exception e) {
             log.error("Error in retrieving the list of enabled registered Identity Providers for a given tenant", e);
@@ -221,7 +221,7 @@ public class IdentityProviderMgtServiceClient {
     public Map<String, FederatedAuthenticatorConfig> getAllFederatedAuthenticators()
             throws Exception {
 
-        Map<String, FederatedAuthenticatorConfig> configMap = new HashMap<String, FederatedAuthenticatorConfig>();
+        Map<String, FederatedAuthenticatorConfig> configMap = new HashMap<>();
 
         try {
             FederatedAuthenticatorConfig[] fedAuthConfigs = idPMgtStub
@@ -246,7 +246,7 @@ public class IdentityProviderMgtServiceClient {
      * @throws Exception
      */
     public Map<String, ProvisioningConnectorConfig> getCustomProvisioningConnectors() throws Exception {
-        Map<String, ProvisioningConnectorConfig> provisioningConnectors = new HashMap<String, ProvisioningConnectorConfig>();
+        Map<String, ProvisioningConnectorConfig> provisioningConnectors = new HashMap<>();
         try {
             ProvisioningConnectorConfig[] provisioningConnectorConfigs = idPMgtStub
                     .getAllProvisioningConnectors();
@@ -288,7 +288,7 @@ public class IdentityProviderMgtServiceClient {
     public String[] getUserStoreDomains() throws Exception {
 
         try {
-            List<String> readWriteDomainNames = new ArrayList<String>();
+            List<String> readWriteDomainNames = new ArrayList<>();
             UserStoreInfo[] storesInfo = userAdminStub.getUserRealmInfo().getUserStoresInfo();
             for (UserStoreInfo storeInfo : storesInfo) {
                 if (!storeInfo.getReadOnly()) {

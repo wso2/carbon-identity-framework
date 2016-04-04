@@ -49,8 +49,8 @@
     ChallengeQuestionDTO[] challenges;
     UserChallengesDTO[] userChallenges = null;
     UserChallengesDTO currentUserChallenge;
-    Map<String, HashSet<ChallengeQuestionDTO>> challengesMap = new HashMap<String, HashSet<ChallengeQuestionDTO>>();
-    Map<String, UserChallengesDTO> userChallengesMap = new HashMap<String, UserChallengesDTO>();
+    Map<String, HashSet<ChallengeQuestionDTO>> challengesMap = new HashMap<>();
+    Map<String, UserChallengesDTO> userChallengesMap = new HashMap<>();
 
     if (username == null) {
         username = (String) request.getSession().getAttribute("logged-user");
@@ -82,7 +82,7 @@
 				HashSet<ChallengeQuestionDTO> questionDTOs = challengesMap.get(challenge
 						.getQuestionSetId());
 				if (questionDTOs == null) {
-					questionDTOs = new HashSet<ChallengeQuestionDTO>();
+					questionDTOs = new HashSet<>();
 					questionDTOs.add(challenge);
 					challengesMap.put(challenge.getQuestionSetId(), questionDTOs);
 				}

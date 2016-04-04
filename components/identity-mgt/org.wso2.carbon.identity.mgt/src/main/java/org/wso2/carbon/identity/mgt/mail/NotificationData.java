@@ -29,7 +29,7 @@ public class NotificationData {
     private Map<String, String> tagData;
 
     public NotificationData() {
-        this.tagData = new HashMap<String, String>();
+        this.tagData = new HashMap<>();
     }
 
     public String getSendTo() {

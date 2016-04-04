@@ -43,7 +43,7 @@ public class EntitlementAdminEngine {
 
     private static final Object lock = new Object();
     private static ConcurrentHashMap<String, EntitlementAdminEngine> entitlementAdminEngines =
-            new ConcurrentHashMap<String, EntitlementAdminEngine>();
+            new ConcurrentHashMap<>();
     private static Log log = LogFactory.getLog(EntitlementAdminEngine.class);
     private PolicyPublisher policyPublisher;
     private PolicyVersionManager versionManager;

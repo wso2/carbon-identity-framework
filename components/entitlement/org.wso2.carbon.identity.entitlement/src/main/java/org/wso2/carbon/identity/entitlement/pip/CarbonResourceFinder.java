@@ -58,7 +58,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
     private static Log log = LogFactory.getLog(CarbonResourceFinder.class);
     boolean isResourceCachingEnabled = false;
     private int tenantId;
-    private Set<PIPResourceFinder> resourceFinders = new HashSet<PIPResourceFinder>();
+    private Set<PIPResourceFinder> resourceFinders = new HashSet<>();
     //private Cache<IdentityCacheKey,IdentityCacheEntry> resourceCache = null;
     private EntitlementBaseCache<IdentityCacheKey, IdentityCacheEntry> resourceCache = null;
 
@@ -113,7 +113,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
                     IdentityCacheEntry cacheEntry = (IdentityCacheEntry) resourceCache.getValueFromCache(cacheKey);
                     if (cacheEntry != null) {
                         String[] values = cacheEntry.getCacheEntryArray();
-                        resourceNames = new HashSet<String>(Arrays.asList(values));
+                        resourceNames = new HashSet<>(Arrays.asList(values));
                         if (log.isDebugEnabled()) {
                             log.debug("Carbon Resource Cache Hit");
                         }
@@ -132,7 +132,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
                 }
 
                 if (resourceNames != null && !resourceNames.isEmpty()) {
-                    resources = new HashSet<AttributeValue>();
+                    resources = new HashSet<>();
                     for (String resourceName : resourceNames) {
                         resources.add(EntitlementUtil.getAttributeValue(resourceName, dataType));
                     }
@@ -176,7 +176,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
                         String[] attributes = cacheEntryString.split(PDPConstants.ATTRIBUTE_SEPARATOR);
                         if (attributes != null && attributes.length > 0) {
                             List<String> list = Arrays.asList(attributes);
-                            resourceNames = new HashSet<String>(list);
+                            resourceNames = new HashSet<>(list);
                         }
                         if (log.isDebugEnabled()) {
                             log.debug("Carbon Resource Cache Hit");
@@ -204,7 +204,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
                 }
 
                 if (resourceNames != null && !resourceNames.isEmpty()) {
-                    resources = new HashSet<AttributeValue>();
+                    resources = new HashSet<>();
                     for (String resourceName : resourceNames) {
                         resources.add(EntitlementUtil.getAttributeValue(resourceName, dataType));
                     }

@@ -100,7 +100,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     private List<String> standardInboundAuthTypes;
 
     public ApplicationDAOImpl() {
-        standardInboundAuthTypes = new ArrayList<String>();
+        standardInboundAuthTypes = new ArrayList<>();
         standardInboundAuthTypes.add("oauth2");
         standardInboundAuthTypes.add("wstrust");
         standardInboundAuthTypes.add("samlsso");
@@ -124,7 +124,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         String sqlStmt = ApplicationMgtDBQueries.GET_SP_METADATA_BY_SP_ID;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        List<ServiceProviderProperty> idpProperties = new ArrayList<ServiceProviderProperty>();
+        List<ServiceProviderProperty> idpProperties = new ArrayList<>();
         try {
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, SpId);
@@ -679,7 +679,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         PreparedStatement outboundProConfigPrepStmt = null;
         OutboundProvisioningConfig outBoundProvisioningConfig = new OutboundProvisioningConfig();
         ResultSet resultSet = null;
-        List<IdentityProvider> idpProConnectors = new ArrayList<IdentityProvider>();
+        List<IdentityProvider> idpProConnectors = new ArrayList<>();
 
         try {
 
@@ -1531,7 +1531,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     private InboundAuthenticationConfig getInboundAuthenticationConfig(int applicationId,
                                                                        Connection connection, int tenantID) throws SQLException {
 
-        Map<String, InboundAuthenticationRequestConfig> authRequestMap = new HashMap<String, InboundAuthenticationRequestConfig>();
+        Map<String, InboundAuthenticationRequestConfig> authRequestMap = new HashMap<>();
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Clients of Application " + applicationId);
@@ -1539,7 +1539,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         PreparedStatement getClientInfo = null;
         ResultSet resultSet = null;
-        Map<String, List<String>> customAuthenticatorsAlreadyIn = new HashMap<String, List<String>>();
+        Map<String, List<String>> customAuthenticatorsAlreadyIn = new HashMap<>();
 
         try {
 
@@ -1675,9 +1675,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             getStepInfoPrepStmt.setInt(1, applicationId);
             stepInfoResultSet = getStepInfoPrepStmt.executeQuery();
 
-            Map<String, AuthenticationStep> authSteps = new HashMap<String, AuthenticationStep>();
-            Map<String, Map<String, List<FederatedAuthenticatorConfig>>> stepFedIdPAuthenticators = new HashMap<String, Map<String, List<FederatedAuthenticatorConfig>>>();
-            Map<String, List<LocalAuthenticatorConfig>> stepLocalAuth = new HashMap<String, List<LocalAuthenticatorConfig>>();
+            Map<String, AuthenticationStep> authSteps = new HashMap<>();
+            Map<String, Map<String, List<FederatedAuthenticatorConfig>>> stepFedIdPAuthenticators = new HashMap<>();
+            Map<String, List<LocalAuthenticatorConfig>> stepLocalAuth = new HashMap<>();
 
             while (stepInfoResultSet.next()) {
 
@@ -1858,7 +1858,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             throws IdentityApplicationManagementException {
 
         ClaimConfig claimConfig = new ClaimConfig();
-        ArrayList<ClaimMapping> claimMappingList = new ArrayList<ClaimMapping>();
+        ArrayList<ClaimMapping> claimMappingList = new ArrayList<>();
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Claim Mappings of Application " + applicationId);
@@ -1959,7 +1959,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         PreparedStatement loadReqPathAuthenticators = null;
         ResultSet authResultSet = null;
-        List<RequestPathAuthenticatorConfig> authenticators = new ArrayList<RequestPathAuthenticatorConfig>();
+        List<RequestPathAuthenticatorConfig> authenticators = new ArrayList<>();
 
         try {
             loadReqPathAuthenticators = connection
@@ -2056,7 +2056,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     private List<RoleMapping> getRoleMappingOfApplication(int applicationId, Connection connection,
                                                           int tenantID) throws IdentityApplicationManagementException {
 
-        ArrayList<RoleMapping> roleMappingList = new ArrayList<RoleMapping>();
+        ArrayList<RoleMapping> roleMappingList = new ArrayList<>();
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Role Mapping of Application " + applicationId);
@@ -2115,7 +2115,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         PreparedStatement getAppNamesStmt = null;
         ResultSet appNameResultSet = null;
 
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
+        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
 
         try {
             getAppNamesStmt = connection
@@ -2412,9 +2412,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         List<ApplicationPermission> removedPermissions = null;
         if (!CollectionUtils.isEmpty(loadPermissions)) {
             if (ArrayUtils.isEmpty(permissions)) {
-                removedPermissions = new ArrayList<ApplicationPermission>(loadPermissions);
+                removedPermissions = new ArrayList<>(loadPermissions);
             } else {
-                removedPermissions = new ArrayList<ApplicationPermission>();
+                removedPermissions = new ArrayList<>();
                 for (ApplicationPermission storedPermission : loadPermissions) {
                     boolean isStored = false;
                     for (ApplicationPermission applicationPermission : permissions) {
@@ -2514,7 +2514,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 throw new IdentityApplicationManagementException("Error while reading application");
             }
         }
-        Map<String, String> claimMapping = new HashMap<String, String>();
+        Map<String, String> claimMapping = new HashMap<>();
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Claim Mappings of Application " + serviceProviderName);
@@ -2584,7 +2584,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 throw new IdentityApplicationManagementException("Error while reading application");
             }
         }
-        List<String> reqClaimUris = new ArrayList<String>();
+        List<String> reqClaimUris = new ArrayList<>();
 
         if (log.isDebugEnabled()) {
             log.debug("Reading Claim Mappings of Application " + serviceProviderName);
@@ -2667,7 +2667,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         String sqlStmt = ApplicationMgtDBQueries.LOAD_IDP_AND_AUTHENTICATOR_NAMES;
-        Map<String, String> returnData = new HashMap<String, String>();
+        Map<String, String> returnData = new HashMap<>();
         try {
             prepStmt = conn.prepareStatement(sqlStmt);
             prepStmt.setInt(1, authenticatorId);

@@ -71,7 +71,7 @@ public class PolicyAttributeBuilder {
      */
     public Properties getPolicyMetaDataFromPolicy() throws EntitlementException {
 
-        List<AttributeDTO> attributeDTOs = new ArrayList<AttributeDTO>();
+        List<AttributeDTO> attributeDTOs = new ArrayList<>();
         try {
             attributeDTOs = createPolicyMetaData(policy, attributeDTOs);
         } catch (EntitlementException e) {
@@ -102,7 +102,7 @@ public class PolicyAttributeBuilder {
      */
     public AttributeDTO[] getPolicyMetaDataFromRegistryProperties(Properties properties) {
 
-        List<AttributeDTO> attributeDTOs = new ArrayList<AttributeDTO>();
+        List<AttributeDTO> attributeDTOs = new ArrayList<>();
         if (properties != null && !properties.isEmpty()) {
             for (int attributeElementNo = 0; attributeElementNo < properties.size(); ) {
                 List attributeList = (ArrayList) properties.get(PDPConstants.POLICY_META_DATA +
@@ -357,7 +357,7 @@ public class PolicyAttributeBuilder {
     public List<AttributeDTO> createMetaDataFromMatchElement(OMElement omElement,
                                                              String subElementName) {
 
-        List<AttributeDTO> attributeDTOs = new ArrayList<AttributeDTO>();
+        List<AttributeDTO> attributeDTOs = new ArrayList<>();
         String attributeId = null;
         String dataType = null;
 
@@ -413,7 +413,7 @@ public class PolicyAttributeBuilder {
      */
     public List<AttributeDTO> createMetaDataFromXACML3MatchElement(OMElement omElement) {
 
-        List<AttributeDTO> attributeDTOs = new ArrayList<AttributeDTO>();
+        List<AttributeDTO> attributeDTOs = new ArrayList<>();
         String attributeId = null;
         String category = null;
 

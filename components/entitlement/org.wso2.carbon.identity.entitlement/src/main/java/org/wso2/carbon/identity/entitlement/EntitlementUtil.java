@@ -129,7 +129,7 @@ public class EntitlementUtil {
 //		    PrivilegedCarbonContext.endTenantFlow();
 //		}
 
-        return new EntitlementBaseCache<IdentityCacheKey, IdentityCacheEntry>(name);
+        return new EntitlementBaseCache<>(name);
     }
 
     /**
@@ -197,7 +197,7 @@ public class EntitlementUtil {
      */
     public static AbstractRequestCtx createRequestContext(List<AttributeDTO> attributeDTOs) {
 
-        Set<Attributes> attributesSet = new HashSet<Attributes>();
+        Set<Attributes> attributesSet = new HashSet<>();
 
         for (AttributeDTO DTO : attributeDTOs) {
             Attributes attributes = getAttributes(DTO);
@@ -293,7 +293,7 @@ public class EntitlementUtil {
                             attributeDataDTO.getAttributeValue());
             Attribute attribute = new Attribute(new URI(attributeDataDTO.getAttributeId()),
                     null, null, value, XACMLConstants.XACML_VERSION_3_0);
-            Set<Attribute> set = new HashSet<Attribute>();
+            Set<Attribute> set = new HashSet<>();
             set.add(attribute);
             String category = attributeDataDTO.getCategory();
             // We are only creating XACML 3.0 requests Therefore covert order XACML categories to new uris

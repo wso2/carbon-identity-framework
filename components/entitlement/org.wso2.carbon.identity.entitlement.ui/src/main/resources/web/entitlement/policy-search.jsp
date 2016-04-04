@@ -38,7 +38,7 @@
     String attributeId = "";
     String attributeDataType = "";
     String[] results = null;
-    List<PolicyDTO> policies = new ArrayList<PolicyDTO>(); 
+    List<PolicyDTO> policies = new ArrayList<>(); 
     String[] attributeTypes = new String[] {EntitlementPolicyConstants.RESOURCE_ELEMENT,
                                             EntitlementPolicyConstants.SUBJECT_ELEMENT,
                                             EntitlementPolicyConstants.ACTION_ELEMENT,
@@ -58,7 +58,7 @@
     attributeId = (String)request.getParameter("attributeId");
     attributeDataType = (String)request.getParameter("attributeDataType");
     
-    List<AttributeDTO> attributeValueDTOs = new ArrayList<AttributeDTO>();
+    List<AttributeDTO> attributeValueDTOs = new ArrayList<>();
 
     if(attributeValue != null && !"".equals(attributeValue)){
         AttributeDTO attributeValueDTO = new AttributeDTO();

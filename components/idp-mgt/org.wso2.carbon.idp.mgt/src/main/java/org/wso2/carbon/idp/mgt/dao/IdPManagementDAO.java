@@ -81,7 +81,7 @@ public class IdPManagementDAO {
         boolean dbConnInitialized = true;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        List<IdentityProvider> idps = new ArrayList<IdentityProvider>();
+        List<IdentityProvider> idps = new ArrayList<>();
         if (dbConnection == null) {
             dbConnection = IdentityDatabaseUtil.getDBConnection();
         } else {
@@ -164,7 +164,7 @@ public class IdPManagementDAO {
         String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_METADATA_BY_IDP_ID;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        List<IdentityProviderProperty> idpProperties = new ArrayList<IdentityProviderProperty>();
+        List<IdentityProviderProperty> idpProperties = new ArrayList<>();
         try {
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setInt(1, idpId);
@@ -273,7 +273,7 @@ public class IdPManagementDAO {
         }
 
         String sqlStmt = IdPManagementConstants.SQLQueries.GET_ALL_IDP_AUTH_SQL;
-        Set<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new HashSet<FederatedAuthenticatorConfig>();
+        Set<FederatedAuthenticatorConfig> federatedAuthenticatorConfigs = new HashSet<>();
         try {
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
             prepStmt1.setInt(1, idPId);
@@ -300,7 +300,7 @@ public class IdPManagementDAO {
                 prepStmt2 = dbConnection.prepareStatement(sqlStmt);
                 prepStmt2.setInt(1, authnId);
                 proprs = prepStmt2.executeQuery();
-                Set<Property> properties = new HashSet<Property>();
+                Set<Property> properties = new HashSet<>();
                 while (proprs.next()) {
                     Property property = new Property();
                     property.setName(proprs.getString("PROPERTY_KEY"));
@@ -337,7 +337,7 @@ public class IdPManagementDAO {
             Connection dbConnection, int idpId, int tenantId)
             throws IdentityProviderManagementException, SQLException {
 
-        Map<String, FederatedAuthenticatorConfig> oldFedAuthnConfigMap = new HashMap<String, FederatedAuthenticatorConfig>();
+        Map<String, FederatedAuthenticatorConfig> oldFedAuthnConfigMap = new HashMap<>();
         if (oldFederatedAuthenticatorConfigs != null && oldFederatedAuthenticatorConfigs.length > 0) {
             for (FederatedAuthenticatorConfig fedAuthnConfig : oldFederatedAuthenticatorConfigs) {
                 oldFedAuthnConfigMap.put(fedAuthnConfig.getName(), fedAuthnConfig);
@@ -595,7 +595,7 @@ public class IdPManagementDAO {
             prepStmt.setInt(1, idpId);
             prepStmt.setInt(2, tenantId);
 
-            List<ClaimMapping> claimMappings = new ArrayList<ClaimMapping>();
+            List<ClaimMapping> claimMappings = new ArrayList<>();
 
             rs = prepStmt.executeQuery();
 
@@ -650,7 +650,7 @@ public class IdPManagementDAO {
 
         try {
 
-            List<Claim> claimList = new ArrayList<Claim>();
+            List<Claim> claimList = new ArrayList<>();
             // SP_IDP_CLAIM_ID, SP_IDP_CLAIM
             String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_CLAIMS_SQL;
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
@@ -672,7 +672,7 @@ public class IdPManagementDAO {
             claimConfig.setUserClaimURI(userClaimUri);
             claimConfig.setRoleClaimURI(roleClaimUri);
 
-            List<ClaimMapping> claimMappings = new ArrayList<ClaimMapping>();
+            List<ClaimMapping> claimMappings = new ArrayList<>();
 
             // SP_IDP_CLAIMS.SP_IDP_CLAIM SP_IDP_CLAIM_MAPPINGS.SP_LOCAL_CLAIM
             sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_CLAIM_MAPPINGS_SQL;
@@ -732,7 +732,7 @@ public class IdPManagementDAO {
 
         try {
 
-            List<String> idpRoleList = new ArrayList<String>();
+            List<String> idpRoleList = new ArrayList<>();
             // SP_IDP_ROLE
             String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_ROLES_SQL;
             prepStmt1 = dbConnection.prepareStatement(sqlStmt);
@@ -745,7 +745,7 @@ public class IdPManagementDAO {
             permissionRoleConfiguration.setIdpRoles(idpRoleList.toArray(new String[idpRoleList
                     .size()]));
 
-            List<RoleMapping> roleMappings = new ArrayList<RoleMapping>();
+            List<RoleMapping> roleMappings = new ArrayList<>();
             // SP_IDP_ROLE_MAPPINGS.SP_USER_STORE_ID, SP_IDP_ROLE_MAPPINGS.SP_LOCAL_ROLE,
             // SP_IDP_ROLES.SP_IDP_ROLE
 
@@ -950,7 +950,7 @@ public class IdPManagementDAO {
             prepBaseStmt.setInt(1, idPId);
             rs1 = prepBaseStmt.executeQuery();
 
-            Map<String, ProvisioningConnectorConfig> provisioningConnectorMap = new HashMap<String, ProvisioningConnectorConfig>();
+            Map<String, ProvisioningConnectorConfig> provisioningConnectorMap = new HashMap<>();
 
             while (rs1.next()) {
 
@@ -986,7 +986,7 @@ public class IdPManagementDAO {
 
                         rs2 = prepStmt.executeQuery();
 
-                        List<Property> provisioningProperties = new ArrayList<Property>();
+                        List<Property> provisioningProperties = new ArrayList<>();
                         while (rs2.next()) {
                             Property Property = new Property();
                             String name = rs2.getString("PROPERTY_KEY");
@@ -2096,7 +2096,7 @@ public class IdPManagementDAO {
                                      ClaimMapping[] claimMappings) throws SQLException,
             IdentityProviderManagementException {
 
-        Map<String, Integer> claimIdMap = new HashMap<String, Integer>();
+        Map<String, Integer> claimIdMap = new HashMap<>();
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
 
@@ -2205,7 +2205,7 @@ public class IdPManagementDAO {
                                     RoleMapping[] roleMappings) throws SQLException,
             IdentityProviderManagementException {
 
-        Map<String, Integer> roleIdMap = new HashMap<String, Integer>();
+        Map<String, Integer> roleIdMap = new HashMap<>();
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
 

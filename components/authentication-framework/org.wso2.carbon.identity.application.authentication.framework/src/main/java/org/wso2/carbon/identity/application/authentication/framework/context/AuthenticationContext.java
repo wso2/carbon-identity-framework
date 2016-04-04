@@ -50,11 +50,11 @@ public class AuthenticationContext implements Serializable {
     private SequenceConfig sequenceConfig;
     private HttpServletRequest currentRequest;
     private ExternalIdPConfig externalIdP;
-    private Map<String, Object> properties = new HashMap<String, Object>();
+    private Map<String, Object> properties = new HashMap<>();
     private boolean rememberMe;
     private String tenantDomain;
     private int retryCount;
-    private Map<String, String> authenticatorProperties = new HashMap<String, String>();
+    private Map<String, String> authenticatorProperties = new HashMap<>();
     private String serviceProviderName;
     private String contextIdIncludedQueryParams;
     private String currentAuthenticator;
@@ -64,8 +64,8 @@ public class AuthenticationContext implements Serializable {
     private boolean passiveAuthenticate;
     private AuthenticationRequest authenticationRequest;
 
-    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
-    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
+    private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<>();
+    private Map<String, AuthenticatedIdPData> currentAuthenticatedIdPs = new HashMap<>();
 
     //flow controller flags
     private boolean requestAuthenticated = true;

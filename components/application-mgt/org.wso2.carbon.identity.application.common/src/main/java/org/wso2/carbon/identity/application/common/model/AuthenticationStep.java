@@ -66,7 +66,7 @@ public class AuthenticationStep implements Serializable {
             } else if ("FederatedIdentityProviders".equals(member.getLocalName())) {
 
                 Iterator<?> federatedIdentityProvidersIter = member.getChildElements();
-                List<IdentityProvider> federatedIdentityProvidersArrList = new ArrayList<IdentityProvider>();
+                List<IdentityProvider> federatedIdentityProvidersArrList = new ArrayList<>();
 
                 if (federatedIdentityProvidersIter != null) {
                     while (federatedIdentityProvidersIter.hasNext()) {
@@ -89,7 +89,7 @@ public class AuthenticationStep implements Serializable {
             } else if ("LocalAuthenticatorConfigs".equals(member.getLocalName())) {
 
                 Iterator<?> localAuthenticatorConfigsIter = member.getChildElements();
-                List<LocalAuthenticatorConfig> localAuthenticatorConfigsArrList = new ArrayList<LocalAuthenticatorConfig>();
+                List<LocalAuthenticatorConfig> localAuthenticatorConfigsArrList = new ArrayList<>();
 
                 if (localAuthenticatorConfigsIter != null) {
                     while (localAuthenticatorConfigsIter.hasNext()) {
@@ -142,7 +142,7 @@ public class AuthenticationStep implements Serializable {
             return;
         }
         Set<LocalAuthenticatorConfig> propertySet =
-                new HashSet<LocalAuthenticatorConfig>(Arrays.asList(localAuthenticatorConfigs));
+                new HashSet<>(Arrays.asList(localAuthenticatorConfigs));
         this.localAuthenticatorConfigs = propertySet.toArray(new LocalAuthenticatorConfig[propertySet.size()]);
     }
 

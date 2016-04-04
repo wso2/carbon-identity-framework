@@ -52,7 +52,7 @@ public class RequestPathAuthenticatorConfig extends LocalAuthenticatorConfig {
                 requestPathAuthenticatorConfig.setEnabled(Boolean.parseBoolean(member.getText()));
             } else if ("Properties".equals(member.getLocalName())) {
                 Iterator<?> propertiesIter = member.getChildElements();
-                List<Property> propertiesArrList = new ArrayList<Property>();
+                List<Property> propertiesArrList = new ArrayList<>();
 
                 if (propertiesIter != null) {
                     while (propertiesIter.hasNext()) {

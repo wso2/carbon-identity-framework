@@ -42,9 +42,9 @@ public class ApplicationConfig implements Serializable {
     private boolean mappedSubjectIDSelected = false;
     private String subjectClaimUri;
     private String[] permissions = new String[0];
-    private Map<String, String> claimMappings = new HashMap<String, String>();
-    private Map<String, String> roleMappings = new HashMap<String, String>();
-    private Map<String, String> requestedClaims = new HashMap<String, String>();
+    private Map<String, String> claimMappings = new HashMap<>();
+    private Map<String, String> roleMappings = new HashMap<>();
+    private Map<String, String> requestedClaims = new HashMap<>();
     private boolean isSaaSApp;
     private boolean useTenantDomainInLocalSubjectIdentifier = true;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = true;
@@ -71,10 +71,10 @@ public class ApplicationConfig implements Serializable {
 
             ClaimMapping[] claimMapping = claimConfig.getClaimMappings();
 
-            requestedClaims = new HashMap<String, String>();
+            requestedClaims = new HashMap<>();
 
             if (claimMapping != null && claimMapping.length > 0) {
-                claimMappings = new HashMap<String, String>();
+                claimMappings = new HashMap<>();
                 for (ClaimMapping claim : claimMapping) {
                     if (claim.getRemoteClaim() != null
                         && claim.getRemoteClaim().getClaimUri() != null) {
@@ -118,7 +118,7 @@ public class ApplicationConfig implements Serializable {
             RoleMapping[] tempRoleMappings = permissionRoleConfiguration.getRoleMappings();
 
             if (tempRoleMappings != null && tempRoleMappings.length > 0) {
-                this.roleMappings = new HashMap<String, String>();
+                this.roleMappings = new HashMap<>();
                 for (RoleMapping roleMapping : tempRoleMappings) {
                     this.roleMappings.put(roleMapping.getLocalRole().getLocalRoleName(),
                                           roleMapping.getRemoteRole());

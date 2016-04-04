@@ -69,7 +69,7 @@ public class ApplicationBean {
     private RequestPathAuthenticatorConfig[] requestPathAuthenticators;
     private Map<String, String> roleMap;
     private Map<String, String> claimMap;
-    private Map<String, String> requestedClaims = new HashMap<String, String>();
+    private Map<String, String> requestedClaims = new HashMap<>();
     private String samlIssuer;
     private String kerberosServiceName;
     private String oauthAppName;
@@ -84,7 +84,7 @@ public class ApplicationBean {
     private List<String> standardInboundAuthTypes;
 
     public ApplicationBean() {
-        standardInboundAuthTypes = new ArrayList<String>();
+        standardInboundAuthTypes = new ArrayList<>();
         standardInboundAuthTypes.add("oauth2");
         standardInboundAuthTypes.add("wstrust");
         standardInboundAuthTypes.add("samlsso");
@@ -100,7 +100,7 @@ public class ApplicationBean {
         requestPathAuthenticators = null;
         roleMap = null;
         claimMap = null;
-        requestedClaims = new HashMap<String, String>();
+        requestedClaims = new HashMap<>();
         samlIssuer = null;
         kerberosServiceName = null;
         oauthAppName = null;
@@ -215,7 +215,7 @@ public class ApplicationBean {
             return enabledFederatedIdentityProviders;
         }
         if (federatedIdentityProviders != null && federatedIdentityProviders.length > 0) {
-            enabledFederatedIdentityProviders = new ArrayList<IdentityProvider>();
+            enabledFederatedIdentityProviders = new ArrayList<>();
             for (IdentityProvider idp : federatedIdentityProviders) {
                 if (idp.getEnable()) {
                     FederatedAuthenticatorConfig[] fedAuthConfigs = idp.getFederatedAuthenticatorConfigs();
@@ -267,7 +267,7 @@ public class ApplicationBean {
      */
     public List<String> getPermissions() {
 
-        List<String> permList = new ArrayList<String>();
+        List<String> permList = new ArrayList<>();
 
         if (serviceProvider != null && serviceProvider.getPermissionAndRoleConfig() != null) {
             PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider
@@ -360,7 +360,7 @@ public class ApplicationBean {
     public Map<String, String> getRoleMapping() {
 
         if (serviceProvider.getPermissionAndRoleConfig() == null) {
-            return new HashMap<String, String>();
+            return new HashMap<>();
         }
 
         RoleMapping[] roleMapping = serviceProvider.getPermissionAndRoleConfig().getRoleMappings();
@@ -369,7 +369,7 @@ public class ApplicationBean {
             return roleMap;
         }
 
-        roleMap = new HashMap<String, String>();
+        roleMap = new HashMap<>();
 
         if (roleMapping != null) {
             for (int i = 0; i < roleMapping.length; i++) {
@@ -395,7 +395,7 @@ public class ApplicationBean {
     public Map<String, String> getClaimMapping() {
 
         if (serviceProvider.getClaimConfig() == null) {
-            return new HashMap<String, String>();
+            return new HashMap<>();
         }
 
         ClaimMapping[] claimMapping = serviceProvider.getClaimConfig().getClaimMappings();
@@ -404,7 +404,7 @@ public class ApplicationBean {
             return claimMap;
         }
 
-        claimMap = new HashMap<String, String>();
+        claimMap = new HashMap<>();
 
         if (claimMapping != null) {
             for (int i = 0; i < claimMapping.length; i++) {
@@ -590,7 +590,7 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("samlsso".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -625,7 +625,7 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("oauth2".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -652,7 +652,7 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("kerberos".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -679,7 +679,7 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("wstrust".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -853,7 +853,7 @@ public class ApplicationBean {
             return inboundAuthenticationRequestConfigs;
         }
 
-        inboundAuthenticationRequestConfigs = new ArrayList<InboundAuthenticationRequestConfig>();
+        inboundAuthenticationRequestConfigs = new ArrayList<>();
 
         InboundAuthenticationRequestConfig[] authRequests = serviceProvider
                 .getInboundAuthenticationConfig()
@@ -878,7 +878,7 @@ public class ApplicationBean {
         String[] authSteps = request.getParameterValues("auth_step");
 
         if (authSteps != null && authSteps.length > 0) {
-            List<AuthenticationStep> authStepList = new ArrayList<AuthenticationStep>();
+            List<AuthenticationStep> authStepList = new ArrayList<>();
 
             for (String authstep : authSteps) {
                 AuthenticationStep authStep = new AuthenticationStep();
@@ -898,7 +898,7 @@ public class ApplicationBean {
                         + "_local_auth");
 
                 if (localAuthenticatorNames != null && localAuthenticatorNames.length > 0) {
-                    List<LocalAuthenticatorConfig> localAuthList = new ArrayList<LocalAuthenticatorConfig>();
+                    List<LocalAuthenticatorConfig> localAuthList = new ArrayList<>();
                     for (String name : localAuthenticatorNames) {
                         if (name != null) {
                             LocalAuthenticatorConfig localAuth = new LocalAuthenticatorConfig();
@@ -1016,7 +1016,7 @@ public class ApplicationBean {
 
         if (provisioningProviders != null && provisioningProviders.length > 0) {
 
-            List<IdentityProvider> provisioningIdps = new ArrayList<IdentityProvider>();
+            List<IdentityProvider> provisioningIdps = new ArrayList<>();
 
             for (String proProvider : provisioningProviders) {
                 String connector = request.getParameter("provisioning_con_idp_" + proProvider);
@@ -1060,7 +1060,7 @@ public class ApplicationBean {
         String[] requestPathAuthenticators = request.getParameterValues("req_path_auth");
 
         if (requestPathAuthenticators != null && requestPathAuthenticators.length > 0) {
-            List<RequestPathAuthenticatorConfig> reqAuthList = new ArrayList<RequestPathAuthenticatorConfig>();
+            List<RequestPathAuthenticatorConfig> reqAuthList = new ArrayList<>();
             for (String name : requestPathAuthenticators) {
                 if (name != null) {
                     RequestPathAuthenticatorConfig reqAuth = new RequestPathAuthenticatorConfig();
@@ -1080,7 +1080,7 @@ public class ApplicationBean {
             serviceProvider.setRequestPathAuthenticatorConfigs(null);
         }
 
-        List<InboundAuthenticationRequestConfig> authRequestList = new ArrayList<InboundAuthenticationRequestConfig>();
+        List<InboundAuthenticationRequestConfig> authRequestList = new ArrayList<>();
 
         // update in-bound authentication configuration.
 
@@ -1236,7 +1236,7 @@ public class ApplicationBean {
         // update application permissions.
         PermissionsAndRoleConfig permAndRoleConfig = new PermissionsAndRoleConfig();
         String[] permissions = request.getParameterValues("app_permission");
-        List<ApplicationPermission> appPermList = new ArrayList<ApplicationPermission>();
+        List<ApplicationPermission> appPermList = new ArrayList<>();
 
         if (permissions != null && permissions.length > 0) {
             for (String permission : permissions) {
@@ -1255,7 +1255,7 @@ public class ApplicationBean {
 
         // update role mapping.
         int roleMappingCount = Integer.parseInt(request.getParameter("number_of_rolemappings"));
-        List<RoleMapping> roleMappingList = new ArrayList<RoleMapping>();
+        List<RoleMapping> roleMappingList = new ArrayList<>();
 
         for (int i = 0; i < roleMappingCount; i++) {
             RoleMapping mapping = new RoleMapping();
@@ -1285,7 +1285,7 @@ public class ApplicationBean {
 
         // update claim configuration.
         int claimCount = Integer.parseInt(request.getParameter("number_of_claimmappings"));
-        List<ClaimMapping> claimMappingList = new ArrayList<ClaimMapping>();
+        List<ClaimMapping> claimMappingList = new ArrayList<>();
 
         for (int i = 0; i < claimCount; i++) {
             ClaimMapping mapping = new ClaimMapping();
@@ -1380,7 +1380,7 @@ public class ApplicationBean {
         serviceProvider.setInboundProvisioningConfig(inBoundProConfig);
 
         String[] provisioningProviders = request.getParameterValues("provisioning_idp");
-        List<IdentityProvider> provisioningIdps = new ArrayList<IdentityProvider>();
+        List<IdentityProvider> provisioningIdps = new ArrayList<>();
 
         if (serviceProvider.getOutboundProvisioningConfig() == null
                 || provisioningProviders == null || provisioningProviders.length == 0) {

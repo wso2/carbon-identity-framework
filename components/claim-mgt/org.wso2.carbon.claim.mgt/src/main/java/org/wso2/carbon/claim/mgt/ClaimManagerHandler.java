@@ -457,7 +457,7 @@ public enum ClaimManagerHandler {
             String otherDialectURI, Set<String> otherClaimURIs, String tenantDomain)
             throws ClaimManagementException {
 
-        Set<org.wso2.carbon.claim.mgt.ClaimMapping> returnSet = new HashSet<org.wso2.carbon.claim.mgt.ClaimMapping>();
+        Set<org.wso2.carbon.claim.mgt.ClaimMapping> returnSet = new HashSet<>();
 
         if (otherDialectURI == null) {
             String message = "Invalid argument: \'otherDialectURI\' is \'NULL\'";
@@ -602,7 +602,7 @@ public enum ClaimManagerHandler {
         if (attributeKeys != null && !attributeKeys.isEmpty()) {
             String claimURI = (String) new ArrayList(attributeKeys).get(0);
             if (!claimURI.startsWith(UserCoreConstants.DEFAULT_CARBON_DIALECT)) {
-                return new HashSet<String>();
+                return new HashSet<>();
             }
         }
         return attributeKeys;

@@ -29,9 +29,9 @@ public class ApplicationAuthenticatorService {
 
     private static volatile ApplicationAuthenticatorService instance;
 
-    private List<LocalAuthenticatorConfig> localAuthenticators = new ArrayList<LocalAuthenticatorConfig>();
-    private List<FederatedAuthenticatorConfig> federatedAuthenticators = new ArrayList<FederatedAuthenticatorConfig>();
-    private List<RequestPathAuthenticatorConfig> requestPathAuthenticators = new ArrayList<RequestPathAuthenticatorConfig>();
+    private List<LocalAuthenticatorConfig> localAuthenticators = new ArrayList<>();
+    private List<FederatedAuthenticatorConfig> federatedAuthenticators = new ArrayList<>();
+    private List<RequestPathAuthenticatorConfig> requestPathAuthenticators = new ArrayList<>();
 
     public static ApplicationAuthenticatorService getInstance() {
         if (instance == null) {

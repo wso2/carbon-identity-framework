@@ -78,7 +78,7 @@
     int pageNumberInt = 0;
     int numberOfPages = 0;
     WorkflowEvent[] workflowEvents;
-    Map<String, List<WorkflowEvent>> events = new HashMap<String, List<WorkflowEvent>>();
+    Map<String, List<WorkflowEvent>> events = new HashMap<>();
 
     if (pageNumber != null) {
         try {

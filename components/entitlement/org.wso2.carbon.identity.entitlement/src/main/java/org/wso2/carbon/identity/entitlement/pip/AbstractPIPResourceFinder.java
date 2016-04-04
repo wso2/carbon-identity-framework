@@ -102,7 +102,7 @@ public abstract class AbstractPIPResourceFinder implements PIPResourceFinder {
             IdentityCacheEntry cacheEntry = (IdentityCacheEntry) abstractResourceCache.getValueFromCache(cacheKey);
             if (cacheEntry != null) {
                 String[] values = cacheEntry.getCacheEntryArray();
-                resourceNames = new HashSet<String>(Arrays.asList(values));
+                resourceNames = new HashSet<>(Arrays.asList(values));
                 if (log.isDebugEnabled()) {
                     log.debug("Carbon Resource Cache Hit");
                 }

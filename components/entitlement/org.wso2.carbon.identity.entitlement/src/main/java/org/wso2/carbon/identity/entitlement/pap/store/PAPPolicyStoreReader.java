@@ -84,7 +84,7 @@ public class PAPPolicyStoreReader {
             return new PolicyDTO[0];
         }
 
-        List<PolicyDTO> policyDTOList = new ArrayList<PolicyDTO>();
+        List<PolicyDTO> policyDTOList = new ArrayList<>();
 
         for (String resource : resources) {
             PolicyDTO policyDTO = readLightPolicyDTO(resource);

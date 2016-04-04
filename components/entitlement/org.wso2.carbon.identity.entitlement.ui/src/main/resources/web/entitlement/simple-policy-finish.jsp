@@ -103,7 +103,7 @@
         editorDTO.setPolicyId(policyId);
         editorDTO.setDescription(policyDescription);
 
-        List<SimplePolicyEditorElementDTO>  elementDTOs = new ArrayList<SimplePolicyEditorElementDTO>();
+        List<SimplePolicyEditorElementDTO>  elementDTOs = new ArrayList<>();
 
         if(PolicyEditorConstants.SOA_CATEGORY_RESOURCE.equals(dynamicCategory)){
             String resourceValue = request.getParameter("resourceValue");

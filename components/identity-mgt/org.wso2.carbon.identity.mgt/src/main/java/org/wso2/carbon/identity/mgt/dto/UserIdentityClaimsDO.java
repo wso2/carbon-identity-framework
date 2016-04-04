@@ -48,7 +48,7 @@ public class UserIdentityClaimsDO implements Serializable {
     private boolean isAccountDisabled;
     private boolean passwordChangeRequired;
     private boolean oneTimeLogin;
-    private Map<String, String> userIdentityDataMap = new HashMap<String, String>();
+    private Map<String, String> userIdentityDataMap = new HashMap<>();
     private char[] temporaryPassword = null;
     private String confirmationCode = null;
 
@@ -299,7 +299,7 @@ public class UserIdentityClaimsDO implements Serializable {
      * @return
      */
     public UserIdentityClaimDTO[] getUserSequeiryQuestions() {
-        Map<String, String> tempMap = new HashMap<String, String>();
+        Map<String, String> tempMap = new HashMap<>();
         // reading them to a temporary map
         for (Map.Entry<String, String> entry : userIdentityDataMap.entrySet()) {
             // only if a security question uri
@@ -346,7 +346,7 @@ public class UserIdentityClaimsDO implements Serializable {
      * @return
      */
     public UserIdentityClaimDTO[] getUserIdentityRecoveryData() {
-        Map<String, String> tempMap = new HashMap<String, String>();
+        Map<String, String> tempMap = new HashMap<>();
         // reading them to a temporary map
         for (Map.Entry<String, String> entry : userIdentityDataMap.entrySet()) {
             // only if not a security question uri or an identity claim uri

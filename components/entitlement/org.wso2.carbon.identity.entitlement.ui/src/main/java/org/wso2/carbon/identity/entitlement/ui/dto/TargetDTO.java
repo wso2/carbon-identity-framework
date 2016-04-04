@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class TargetDTO {
 
-    private List<RowDTO> rowDTOList = new ArrayList<RowDTO>();
+    private List<RowDTO> rowDTOList = new ArrayList<>();
 
     public List<RowDTO> getRowDTOList() {
         return rowDTOList;

@@ -48,7 +48,7 @@ public class SimplePolicyCollection implements PolicyCollection {
      * to maintain the order of the policies, <code>LinkedHashMap</code> has been used.
      * Map with  policy identifier policy as <code>AbstractPolicy</code> object
      */
-    private LinkedHashMap<URI, AbstractPolicy> policyCollection = new LinkedHashMap<URI, AbstractPolicy>();
+    private LinkedHashMap<URI, AbstractPolicy> policyCollection = new LinkedHashMap<>();
     /**
      * the optional combining algorithm used when wrapping multiple policies
      * if no algorithm is defined, only one applicable algorithm is used
@@ -76,7 +76,7 @@ public class SimplePolicyCollection implements PolicyCollection {
     public AbstractPolicy getEffectivePolicy(EvaluationCtx context) throws EntitlementException {
 
         // setup a list of matching policies
-        ArrayList<AbstractPolicy> list = new ArrayList<AbstractPolicy>();
+        ArrayList<AbstractPolicy> list = new ArrayList<>();
 
         for (Map.Entry<URI, AbstractPolicy> entry : policyCollection.entrySet()) {
 

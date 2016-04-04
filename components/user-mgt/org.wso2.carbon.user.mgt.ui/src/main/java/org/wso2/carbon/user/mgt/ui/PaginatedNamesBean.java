@@ -38,7 +38,7 @@ public class PaginatedNamesBean implements Pageable {
     }
 
     public String[] getNamesAsString() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
 
         for (FlaggedName name : names) {
 

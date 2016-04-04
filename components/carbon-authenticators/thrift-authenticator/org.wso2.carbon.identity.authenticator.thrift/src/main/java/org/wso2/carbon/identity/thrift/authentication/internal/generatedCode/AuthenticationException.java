@@ -30,7 +30,7 @@ import java.util.Map;
 public class AuthenticationException extends Exception implements org.apache.thrift.TBase<AuthenticationException, AuthenticationException._Fields>, java.io.Serializable, Cloneable {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
-        Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+        Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<>(_Fields.class);
         tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED,
                 new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -272,7 +272,7 @@ public class AuthenticationException extends Exception implements org.apache.thr
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
         MESSAGE((short) 1, "message");
 
-        private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+        private static final Map<String, _Fields> byName = new HashMap<>();
 
         static {
             for (_Fields field : EnumSet.allOf(_Fields.class)) {

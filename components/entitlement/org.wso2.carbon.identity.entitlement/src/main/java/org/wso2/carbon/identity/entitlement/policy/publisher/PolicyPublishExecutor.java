@@ -99,7 +99,7 @@ public class PolicyPublishExecutor implements Runnable {
         }
 
         String newVerificationCode = null;
-        ArrayList<String> notPublishedSubscribers = new ArrayList<String>();
+        ArrayList<String> notPublishedSubscribers = new ArrayList<>();
 
 
         PolicyPublisherModule policyPublisherModule = null;
@@ -114,8 +114,8 @@ public class PolicyPublishExecutor implements Runnable {
         for (String subscriberId : subscriberIds) {
 
             // there is only one known subscriber, if policies are publishing to PDP
-            List<StatusHolder> subscriberHolders = new ArrayList<StatusHolder>();
-            List<StatusHolder> policyHolders = new ArrayList<StatusHolder>();
+            List<StatusHolder> subscriberHolders = new ArrayList<>();
+            List<StatusHolder> policyHolders = new ArrayList<>();
             if (toPDP) {
                 policyPublisherModule = new CarbonPDPPublisher();
                 holder = new PublisherDataHolder(policyPublisherModule.getModuleName());
@@ -212,7 +212,7 @@ public class PolicyPublishExecutor implements Runnable {
                 for (PAPStatusDataHandler module : papStatusDataHandler) {
                     try {
                         module.handle(EntitlementConstants.Status.ABOUT_POLICY, policyId, policyHolders);
-                        policyHolders = new ArrayList<StatusHolder>();
+                        policyHolders = new ArrayList<>();
                     } catch (EntitlementException e) {
                         // ignore
                         log.error("Error while calling post publishers", e);
@@ -223,7 +223,7 @@ public class PolicyPublishExecutor implements Runnable {
             for (PAPStatusDataHandler module : papStatusDataHandler) {
                 try {
                     module.handle(EntitlementConstants.Status.ABOUT_SUBSCRIBER, subscriberId, subscriberHolders);
-                    subscriberHolders = new ArrayList<StatusHolder>();
+                    subscriberHolders = new ArrayList<>();
                 } catch (EntitlementException e) {
                     // ignore
                     log.error("Error while calling post publishers", e);

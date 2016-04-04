@@ -161,7 +161,7 @@ public class PAPPolicyFinder extends PolicyFinderModule {
         // clear all current policies
         policies.getPolicies().clear();
 
-        ArrayList<AbstractPolicy> list = new ArrayList<AbstractPolicy>();
+        ArrayList<AbstractPolicy> list = new ArrayList<>();
 
         try {
             for (String policyId : policyIds) {
@@ -208,7 +208,7 @@ public class PAPPolicyFinder extends PolicyFinderModule {
                 return new PolicyFinderResult(policy);
             }
         } catch (EntitlementException e) {
-            ArrayList<String> code = new ArrayList<String>();
+            ArrayList<String> code = new ArrayList<>();
             code.add(Status.STATUS_PROCESSING_ERROR);
             Status status = new Status(code, e.getMessage());
             return new PolicyFinderResult(status);
@@ -226,7 +226,7 @@ public class PAPPolicyFinder extends PolicyFinderModule {
     }
 
     public void initPolicyIds() throws EntitlementException {
-        this.policyIds = new ArrayList<String>();
+        this.policyIds = new ArrayList<>();
         PolicyDTO[] policyDTOs = policyReader.readAllLightPolicyDTOs();
         for (PolicyDTO dto : policyDTOs) {
             if (dto.isActive()) {

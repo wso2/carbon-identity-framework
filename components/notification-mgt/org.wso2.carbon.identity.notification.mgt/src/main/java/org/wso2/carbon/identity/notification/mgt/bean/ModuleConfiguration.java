@@ -54,7 +54,7 @@ public class ModuleConfiguration {
      */
     public ModuleConfiguration() {
         moduleProperties = new Properties();
-        subscriptions = new ArrayList<Subscription>();
+        subscriptions = new ArrayList<>();
     }
 
     public Properties getModuleProperties() {
@@ -67,6 +67,6 @@ public class ModuleConfiguration {
      * @return A set of subscriptions.
      */
     public List<Subscription> getSubscriptions() {
-        return new ArrayList<Subscription>(subscriptions);
+        return new ArrayList<>(subscriptions);
     }
 }

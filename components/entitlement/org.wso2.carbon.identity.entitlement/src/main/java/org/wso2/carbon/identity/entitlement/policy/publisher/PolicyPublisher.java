@@ -60,12 +60,12 @@ public class PolicyPublisher {
     /**
      * set of publisher modules
      */
-    Set<PolicyPublisherModule> publisherModules = new HashSet<PolicyPublisherModule>();
+    Set<PolicyPublisherModule> publisherModules = new HashSet<>();
 
     /**
      * set of post publisher modules
      */
-    Set<PAPStatusDataHandler> papStatusDataHandlers = new HashSet<PAPStatusDataHandler>();
+    Set<PAPStatusDataHandler> papStatusDataHandlers = new HashSet<>();
 
     /**
      * Verification publisher modules
@@ -256,7 +256,7 @@ public class PolicyPublisher {
                 Resource resource = registry.get(PDPConstants.ENTITLEMENT_POLICY_PUBLISHER +
                         RegistryConstants.PATH_SEPARATOR);
                 Collection collection = (Collection) resource;
-                List<String> list = new ArrayList<String>();
+                List<String> list = new ArrayList<>();
                 if (collection.getChildCount() > 0) {
                     searchString = searchString.replace("*", ".*");
                     Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
@@ -289,7 +289,7 @@ public class PolicyPublisher {
         PublisherPropertyDTO[] propertyDTOs = holder.getPropertyDTOs();
         for (PublisherPropertyDTO dto : propertyDTOs) {
             if (dto.getId() != null && dto.getValue() != null && dto.getValue().trim().length() > 0) {
-                ArrayList<String> list = new ArrayList<String>();
+                ArrayList<String> list = new ArrayList<>();
                 if (dto.isSecret()) {
                     PublisherPropertyDTO propertyDTO = null;
                     if (oldHolder != null) {

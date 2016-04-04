@@ -74,7 +74,7 @@
     }
 
     private static Map<String, String> convertArrayToMap(PropertyDTO[] properties) {
-        Map<String, String> propertyMap = new HashMap<String, String>();
+        Map<String, String> propertyMap = new HashMap<>();
         for (PropertyDTO propertyDTO : properties) {
             if (propertyDTO.getValue() != null) {
                 propertyMap.put(propertyDTO.getName(), propertyDTO.getValue());
@@ -120,7 +120,7 @@
     UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);
     classApplies = userStoreConfigAdminServiceClient.getAvailableUserStoreClasses();
     UserStoreDTO[] userStoreDTOs;
-    Map<String, Map<String, String>> userStoreManagers = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> userStoreManagers = new HashMap<>();
     userStoreDTOs = userStoreConfigAdminServiceClient.getActiveDomains();
     if (userStoreDTOs != null) {
         for (UserStoreDTO userStoreDTO : userStoreDTOs) {

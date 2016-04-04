@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class TenantRegistrationConfig {
     private String signUpDomain;
-    private Map roles = new HashMap<String, Boolean>(); // role name - external (true/false) mapping
+    private Map roles = new HashMap<>(); // role name - external (true/false) mapping
 
     public String getSignUpDomain() {
         return signUpDomain;

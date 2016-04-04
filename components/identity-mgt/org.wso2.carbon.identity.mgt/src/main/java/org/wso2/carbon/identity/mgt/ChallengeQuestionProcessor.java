@@ -56,7 +56,7 @@ public class ChallengeQuestionProcessor {
      */
     public List<ChallengeQuestionDTO> getAllChallengeQuestions() throws IdentityException {
 
-        List<ChallengeQuestionDTO> questionDTOs = new ArrayList<ChallengeQuestionDTO>();
+        List<ChallengeQuestionDTO> questionDTOs = new ArrayList<>();
         try {
             int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
             Registry registry = IdentityMgtServiceComponent.getRegistryService().
@@ -142,7 +142,7 @@ public class ChallengeQuestionProcessor {
     public UserChallengesDTO[] getChallengeQuestionsOfUser(String userName, int tenantId,
                                                            boolean adminService) {
 
-        List<UserChallengesDTO> challengesDTOs = new ArrayList<UserChallengesDTO>();
+        List<UserChallengesDTO> challengesDTOs = new ArrayList<>();
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Retrieving Challenge question from the user profile.");
@@ -190,7 +190,7 @@ public class ChallengeQuestionProcessor {
 
         UserChallengesDTO dto = null;
 
-        List<UserChallengesDTO> challengesDTOs = new ArrayList<UserChallengesDTO>();
+        List<UserChallengesDTO> challengesDTOs = new ArrayList<>();
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Retrieving Challenge question from the user profile.");
@@ -311,7 +311,7 @@ public class ChallengeQuestionProcessor {
             log.debug("Challenge Question from the user profile.");
         }
 
-        List<String> challenges = new ArrayList<String>();
+        List<String> challenges = new ArrayList<>();
         String claimValue = null;
         String[] challengesUris;
 
@@ -362,7 +362,7 @@ public class ChallengeQuestionProcessor {
             if (log.isDebugEnabled()) {
                 log.debug("Challenge Question from the user profile.");
             }
-            List<String> challengesUris = new ArrayList<String>();
+            List<String> challengesUris = new ArrayList<>();
             String challengesUrisValue = "";
             String separator = IdentityMgtConfig.getInstance().getChallengeQuestionSeparator();
 
@@ -554,7 +554,7 @@ public class ChallengeQuestionProcessor {
             }
 
             String[] challenges = claimValue.split(IdentityMgtConfig.getInstance().getChallengeQuestionSeparator());
-            Map<String, String> challengeMap = new HashMap<String, String>();
+            Map<String, String> challengeMap = new HashMap<>();
             for (int i = 0; i < challenges.length; i = i + 2) {
                 challengeMap.put(challenges[i], challenges[i + 1]);
             }

@@ -128,7 +128,7 @@ public class IdentityMgtServiceComponent {
 
     protected void activate(ComponentContext context) {
 
-        Dictionary<String, String> props = new Hashtable<String, String>();
+        Dictionary<String, String> props = new Hashtable<>();
         props.put(CarbonConstants.AXIS2_CONFIG_SERVICE, AxisObserver.class.getName());
         context.getBundleContext().registerService(AxisObserver.class.getName(),
                 new IdentityMgtDeploymentInterceptor(), props);

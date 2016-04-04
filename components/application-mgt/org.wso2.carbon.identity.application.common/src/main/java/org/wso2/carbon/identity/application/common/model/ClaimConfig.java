@@ -65,7 +65,7 @@ public class ClaimConfig implements Serializable {
                 }
             } else if ("IdpClaims".equals(elementName)) {
                 Iterator<?> idpClaimsIter = element.getChildElements();
-                List<Claim> idpClaimsArrList = new ArrayList<Claim>();
+                List<Claim> idpClaimsArrList = new ArrayList<>();
 
                 if (idpClaimsIter != null) {
                     while (idpClaimsIter.hasNext()) {
@@ -83,7 +83,7 @@ public class ClaimConfig implements Serializable {
             } else if ("ClaimMappings".equals(elementName)) {
 
                 Iterator<?> claimMappingsIter = element.getChildElements();
-                List<ClaimMapping> claimMappingsArrList = new ArrayList<ClaimMapping>();
+                List<ClaimMapping> claimMappingsArrList = new ArrayList<>();
 
                 if (claimMappingsIter != null) {
                     while (claimMappingsIter.hasNext()) {

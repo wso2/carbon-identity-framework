@@ -71,7 +71,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
             if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {
 
                 Iterator<?> authenticationStepsIter = member.getChildElements();
-                List<AuthenticationStep> authenticationStepsArrList = new ArrayList<AuthenticationStep>();
+                List<AuthenticationStep> authenticationStepsArrList = new ArrayList<>();
 
                 if (authenticationStepsIter != null) {
                     while (authenticationStepsIter.hasNext()) {

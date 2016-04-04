@@ -150,7 +150,7 @@ public class CSVUserBulkImport {
         String roleString = null;
         String[] roles = null;
         String password = line[1];
-        Map<String, String> claims = new HashMap<String, String>();
+        Map<String, String> claims = new HashMap<>();
         for (int i = 2; i < line.length; i++) {
             if (line[i] != null && !line[i].isEmpty()) {
                 String[] claimStrings = line[i].split("=");

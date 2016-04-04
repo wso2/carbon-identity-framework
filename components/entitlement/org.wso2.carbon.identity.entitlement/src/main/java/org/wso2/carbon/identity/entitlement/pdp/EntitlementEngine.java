@@ -79,8 +79,8 @@ public class EntitlementEngine {
     private int tenantId;
     private static final Object lock = new Object();
     private boolean pdpDecisionCacheEnable;
-    private List<AttributeFinderModule> attributeModules = new ArrayList<AttributeFinderModule>();
-    private List<ResourceFinderModule> resourceModules = new ArrayList<ResourceFinderModule>();
+    private List<AttributeFinderModule> attributeModules = new ArrayList<>();
+    private List<ResourceFinderModule> resourceModules = new ArrayList<>();
     private static EntitlementEngineCache entitlementEngines = EntitlementEngineCache.getInstance();
     private static EntitlementEngine entitlementEngine;
 
@@ -208,7 +208,7 @@ public class EntitlementEngine {
         if (isPAP) {
             // Test PDP with all finders but policy finder is different
             PolicyFinder policyFinder = new PolicyFinder();
-            Set<PolicyFinderModule> policyModules = new HashSet<PolicyFinderModule>();
+            Set<PolicyFinderModule> policyModules = new HashSet<>();
             PAPPolicyFinder papPolicyFinder = new PAPPolicyFinder(new PAPPolicyStoreReader(new PAPPolicyStore()));
             policyModules.add(papPolicyFinder);
             policyFinder.setModules(policyModules);
@@ -525,7 +525,7 @@ public class EntitlementEngine {
     private void setUPPolicyFinder() {
 
         carbonPolicyFinder = new PolicyFinder();
-        Set<PolicyFinderModule> policyModules = new HashSet<PolicyFinderModule>();
+        Set<PolicyFinderModule> policyModules = new HashSet<>();
         CarbonPolicyFinder tmpCarbonPolicyFinder = new CarbonPolicyFinder();
         policyModules.add(tmpCarbonPolicyFinder);
         carbonPolicyFinder.setModules(policyModules);

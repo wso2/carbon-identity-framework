@@ -28,37 +28,37 @@ import java.util.Set;
  */
 public class PolicyEditorDataHolder {
 
-    private Map<String, String> categoryMap = new HashMap<String, String>();
+    private Map<String, String> categoryMap = new HashMap<>();
 
-    private Map<String, String> attributeIdMap = new HashMap<String, String>();
+    private Map<String, String> attributeIdMap = new HashMap<>();
 
-    private Map<String, String> dataTypeMap = new HashMap<String, String>();
+    private Map<String, String> dataTypeMap = new HashMap<>();
 
-    private Map<String, String> functionMap = new HashMap<String, String>();
+    private Map<String, String> functionMap = new HashMap<>();
 
-    private Map<String, String> preFunctionMap = new HashMap<String, String>();
+    private Map<String, String> preFunctionMap = new HashMap<>();
 
-    private Map<String, String> ruleEffectMap = new HashMap<String, String>();
+    private Map<String, String> ruleEffectMap = new HashMap<>();
 
-    private Map<String, Set<String>> categoryAttributeIdMap = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> categoryAttributeIdMap = new HashMap<>();
 
-    private Map<String, String> categoryDefaultAttributeIdMap = new HashMap<String, String>();
+    private Map<String, String> categoryDefaultAttributeIdMap = new HashMap<>();
 
-    private Map<String, Set<String>> categoryDataTypeMap = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> categoryDataTypeMap = new HashMap<>();
 
-    private Map<String, Set<String>> categoryFunctionMap = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> categoryFunctionMap = new HashMap<>();
 
-    private Map<String, String> attributeIdDataTypeMap = new HashMap<String, String>();
+    private Map<String, String> attributeIdDataTypeMap = new HashMap<>();
 
-    private Set<String> ruleFunctions = new HashSet<String>();
+    private Set<String> ruleFunctions = new HashSet<>();
 
-    private Set<String> targetFunctions = new HashSet<String>();
+    private Set<String> targetFunctions = new HashSet<>();
 
-    private Set<String> preFunctions = new HashSet<String>();
+    private Set<String> preFunctions = new HashSet<>();
 
-    private Map<String, String> ruleCombiningAlgorithms = new HashMap<String, String>();
+    private Map<String, String> ruleCombiningAlgorithms = new HashMap<>();
 
-    private Map<String, String> policyCombiningAlgorithms = new HashMap<String, String>();
+    private Map<String, String> policyCombiningAlgorithms = new HashMap<>();
 
     private String defaultDataType;
 

@@ -405,7 +405,7 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                     if (filter.length() > 0) {
                         FlaggedName[] datas = client.getAllPermittedRoleNames(modifiedFilter,
                                 PERMISSION_VIEWTASKS, -1);
-                        datasList = new ArrayList<FlaggedName>(Arrays.asList(datas));
+                        datasList = new ArrayList<>(Arrays.asList(datas));
                         exceededDomains = datasList.remove(datasList.size() - 1);
                         session.setAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED, exceededDomains);
                         datas = datasList.toArray(new FlaggedName[datasList.size()]);
@@ -420,7 +420,7 @@ public class UserAndRoleManagementServlet extends HttpServlet {
                     }
 
                     if(datasList != null){
-                        flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
+                        flaggedNameMap = new HashMap<>();
                         int max = pageNumber + cachePages;
                         for(int i = (pageNumber - cachePages); i < max ; i++){
                             if(i < 0){

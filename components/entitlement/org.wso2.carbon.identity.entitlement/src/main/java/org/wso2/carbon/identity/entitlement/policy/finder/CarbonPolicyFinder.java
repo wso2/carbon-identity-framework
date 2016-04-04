@@ -69,7 +69,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
     private List<PolicyFinderModule> finderModules = null;
     private PolicyCollection policyCollection;
 
-    private List<PolicyDTO> policyCollectionOrder = new ArrayList<PolicyDTO>();
+    private List<PolicyDTO> policyCollectionOrder = new ArrayList<>();
 
     private PolicyFinder finder;
     /**
@@ -123,7 +123,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
                 getEntitlementConfig().getPolicyFinderModules();
 
         if (finderModules != null) {
-            this.finderModules = new ArrayList<PolicyFinderModule>(finderModules.keySet());
+            this.finderModules = new ArrayList<>(finderModules.keySet());
         }
 
         PolicyCollection tempPolicyCollection = null;
@@ -202,7 +202,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
     private void orderPolicyCache() {
         LinkedHashMap<URI, AbstractPolicy> policyMap = policyCollection.getPolicyMap();
         Collections.sort(policyCollectionOrder, new PolicyOrderComparator());
-        LinkedHashMap<URI, AbstractPolicy> newPolicyMap = new LinkedHashMap<URI, AbstractPolicy>();
+        LinkedHashMap<URI, AbstractPolicy> newPolicyMap = new LinkedHashMap<>();
         Iterator<PolicyDTO> policyDTOIterator = policyCollectionOrder.iterator();
         while (policyDTOIterator.hasNext()) {
             try {
@@ -286,7 +286,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
                 return new PolicyFinderResult(policy);
             }
         } catch (EntitlementException e) {
-            ArrayList<String> code = new ArrayList<String>();
+            ArrayList<String> code = new ArrayList<>();
             code.add(Status.STATUS_PROCESSING_ERROR);
             Status status = new Status(code, e.getMessage());
             return new PolicyFinderResult(status);
