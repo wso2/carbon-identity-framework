@@ -33,6 +33,9 @@ public class IdentityValidationUtil {
             "contains illegal characters matching one of the black list patterns [ %s ]";
     private static final String msgSection4 = " or ";
 
+    private IdentityValidationUtil() {
+    }
+
     /**
      * Defines a predefined set of pattern list
      */

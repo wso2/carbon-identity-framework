@@ -24,6 +24,9 @@ import java.util.List;
 public class WorkflowManagementUtil {
     private static Log log = LogFactory.getLog(WorkflowManagementUtil.class);
 
+    private WorkflowManagementUtil() {
+    }
+
     /**
      * Create a internal role in workflow domain with same name as workflow.
      *
