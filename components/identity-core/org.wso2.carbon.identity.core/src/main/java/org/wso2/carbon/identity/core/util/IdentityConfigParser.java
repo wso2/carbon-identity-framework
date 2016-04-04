@@ -347,6 +347,7 @@ public class IdentityConfigParser {
                     ArrayList list = (ArrayList) currentObject;
                     if (!list.contains(value)) {
                         list.add(value);
+                        configuration.put(key, list);
                     }
                 } else {
                     if (!value.equals(currentObject)) {
