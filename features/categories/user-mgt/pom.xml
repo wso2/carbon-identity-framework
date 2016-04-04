@@ -55,19 +55,19 @@
                             </adviceFile>
                             <importFeatures>
                                 <importFeatureDef>
-                                    org.wso2.carbon.user.mgt
+                                    org.wso2.carbon.user.mgt:compatible:${identity.framework.version}
                                 </importFeatureDef>
                                 <importFeatureDef>
-                                    org.wso2.carbon.user.mgt.workflow
+                                    org.wso2.carbon.user.mgt.workflow:compatible:${identity.framework.version}
                                 </importFeatureDef>
                                 <importFeatureDef>
-                                    org.wso2.carbon.claim.mgt
+                                    org.wso2.carbon.claim.mgt:compatible:${identity.framework.version}
                                 </importFeatureDef>
                                 <importFeatureDef>
-                                    org.wso2.carbon.identity.mgt
+                                    org.wso2.carbon.identity.mgt:compatible:${identity.framework.version}
                                 </importFeatureDef>
                                 <importFeatureDef>
-                                    org.wso2.carbon.identity.user.profile
+                                    org.wso2.carbon.identity.user.profile:compatible:${identity.framework.version}
                                 </importFeatureDef>
                             </importFeatures>
                         </configuration>
