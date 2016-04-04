@@ -41,7 +41,7 @@ public class UserRegistrationAdminServiceClient {
     public UserRegistrationAdminServiceClient() throws AxisFault {
 
         StringBuilder builder = new StringBuilder();
-        String serviceURL = null;
+        String serviceURL;
 
         serviceURL = builder.append(TenantDataManager.getPropertyValue(Constants.SERVICES_URL)).append
                 (Constants.UserRegistrationConstants.USER_REGISTRATION_SERVICE).toString().replaceAll("(?<!(http:|https:))//", "/");

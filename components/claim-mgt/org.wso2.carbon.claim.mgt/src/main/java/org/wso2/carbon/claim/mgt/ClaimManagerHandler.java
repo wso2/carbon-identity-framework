@@ -221,9 +221,9 @@ public enum ClaimManagerHandler {
      */
     public Claim[] getAllSupportedClaims(String dialectUri) throws ClaimManagementException {
         Claim[] claims = new Claim[0];
-        List<Claim> reqClaims = null;
-        ClaimManager claimManager = null;
-        ClaimMapping[] mappings = null;
+        List<Claim> reqClaims;
+        ClaimManager claimManager;
+        ClaimMapping[] mappings;
 
         try {
             UserRealm realm = getRealm();
@@ -254,7 +254,7 @@ public enum ClaimManagerHandler {
      * @throws ClaimManagementException
      */
     public void updateClaimMapping(ClaimMapping mapping) throws ClaimManagementException {
-        ClaimManager claimManager = null;
+        ClaimManager claimManager;
         try {
             UserRealm realm = getRealm();
 
@@ -290,7 +290,7 @@ public enum ClaimManagerHandler {
      * @throws ClaimManagementException
      */
     public void addNewClaimMapping(ClaimMapping mapping) throws ClaimManagementException {
-        ClaimManager claimManager = null;
+        ClaimManager claimManager;
         try {
             UserRealm realm = getRealm();
             claimManager = realm.getClaimManager();
@@ -311,9 +311,9 @@ public enum ClaimManagerHandler {
      * @throws ClaimManagementException
      */
     public void removeClaimMapping(String dialectUri, String claimUri) throws ClaimManagementException {
-        ClaimMapping mapping = null;
-        Claim claim = null;
-        ClaimManager claimManager = null;
+        ClaimMapping mapping;
+        Claim claim;
+        ClaimManager claimManager;
         try {
             UserRealm realm = getRealm();
             claimManager = realm.getClaimManager();

@@ -170,7 +170,7 @@ public class IdentityException extends Exception {
         if(errorInfo == null || StringUtils.isBlank(errorInfo.errorDescription)){
             throw new IllegalArgumentException("ErrorInfo object is null or Error Description is blank");
         }
-        IdentityException identityException = null;
+        IdentityException identityException;
         if(errorInfo.getCause() != null) {
             identityException = new IdentityException(errorInfo.getErrorDescription(), errorInfo.getCause());
         } else {

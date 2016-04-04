@@ -96,10 +96,10 @@ public class OpenIDClaimMapper {
 
         Iterator claims = initialClaims.getChildrenWithName(new QName(LN_CLAIM));
 
-        OMElement claimElement = null;
-        OMElement sreg = null;
-        OMElement axSchema = null;
-        OMElement openidSchema = null;
+        OMElement claimElement;
+        OMElement sreg;
+        OMElement axSchema;
+        OMElement openidSchema;
 
         while (claims.hasNext()) {
             claimElement = (OMElement) claims.next();

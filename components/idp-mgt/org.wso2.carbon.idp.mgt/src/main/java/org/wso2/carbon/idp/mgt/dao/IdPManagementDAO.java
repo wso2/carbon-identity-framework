@@ -1094,7 +1094,7 @@ public class IdPManagementDAO {
             prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
             prepStmt.setString(3, idPName);
             rs = prepStmt.executeQuery();
-            int idpId = -1;
+            int idpId;
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
@@ -1245,8 +1245,8 @@ public class IdPManagementDAO {
             prepStmt.setString(2, value);
             prepStmt.setInt(3, tenantId);
             rs = prepStmt.executeQuery();
-            int idpId = -1;
-            String idPName = "";
+            int idpId;
+            String idPName;
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
@@ -2322,7 +2322,7 @@ public class IdPManagementDAO {
         PreparedStatement prepStmt1 = null;
         PreparedStatement prepStmt2 = null;
         PreparedStatement prepStmt3 = null;
-        String sqlStmt = null;
+        String sqlStmt;
 
         try {
 
@@ -2508,7 +2508,7 @@ public class IdPManagementDAO {
     private int getIdentityProviderIdentifier(Connection dbConnection, String idPName, int tenantId)
             throws SQLException, IdentityProviderManagementException {
 
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {
@@ -2559,7 +2559,7 @@ public class IdPManagementDAO {
     private int getAuthenticatorIdentifier(Connection dbConnection, int idPId, String authnType)
             throws SQLException, IdentityProviderManagementException {
 
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {

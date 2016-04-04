@@ -414,7 +414,7 @@ public class EntitlementUtil {
      * @throws EntitlementException
      */
     public static boolean isPolicyExists(String policyId, Registry registry) throws EntitlementException {
-        PAPPolicyStoreReader policyReader = null;
+        PAPPolicyStoreReader policyReader;
         policyReader = new PAPPolicyStoreReader(new PAPPolicyStore(registry));
         return policyReader.isExistPolicy(policyId);
     }
@@ -529,7 +529,7 @@ public class EntitlementUtil {
      * @throws org.wso2.carbon.identity.entitlement.EntitlementException
      */
     public static PolicyDTO getPolicy(String policyId, Registry registry) throws EntitlementException {
-        PAPPolicyStoreReader policyReader = null;
+        PAPPolicyStoreReader policyReader;
         policyReader = new PAPPolicyStoreReader(new PAPPolicyStore(registry));
         return policyReader.readPolicyDTO(policyId);
     }

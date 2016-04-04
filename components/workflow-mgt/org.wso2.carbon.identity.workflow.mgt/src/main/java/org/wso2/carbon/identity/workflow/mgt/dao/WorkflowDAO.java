@@ -81,7 +81,7 @@ public class WorkflowDAO {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet rs;
         String query = SQLConstants.GET_WORKFLOW;
 
         Workflow workflow = null ;
@@ -175,7 +175,7 @@ public class WorkflowDAO {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet rs;
         List<Workflow> workflowList = new ArrayList<>();
         String query = SQLConstants.LIST_WORKFLOWS_QUERY;
         try {
@@ -274,7 +274,7 @@ public class WorkflowDAO {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet rs;
         List<Parameter> parameterList = new ArrayList<>();
         String query = SQLConstants.GET_WORKFLOW_PARAMS;
         try {

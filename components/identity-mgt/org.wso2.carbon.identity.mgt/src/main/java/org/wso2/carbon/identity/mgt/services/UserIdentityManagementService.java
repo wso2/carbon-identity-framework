@@ -305,7 +305,7 @@ public class UserIdentityManagementService {
     public boolean processPasswordRecovery(String userId, String confirmationCode,
                                            String notificationType) throws IdentityMgtServiceException {
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         try {
             userDTO = Utils.processUserId(userId);
         } catch (IdentityException e) {
@@ -324,7 +324,7 @@ public class UserIdentityManagementService {
         UserRecoveryDTO dto = new UserRecoveryDTO(userDTO);
         dto.setNotification(IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY);
         dto.setNotificationType(notificationType);
-        NotificationDataDTO dataDTO = null;
+        NotificationDataDTO dataDTO;
         try {
             dataDTO = processor.recoverWithNotification(dto);
         } catch (IdentityException e) {
@@ -343,7 +343,7 @@ public class UserIdentityManagementService {
     public UserChallengesDTO[] getChallengeQuestionsForUser(String userName, String confirmation)
             throws IdentityMgtServiceException {
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         try {
             userDTO = Utils.processUserId(userName);
         } catch (IdentityException e) {
@@ -387,7 +387,7 @@ public class UserIdentityManagementService {
             return bean;
         }
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         try {
             userDTO = Utils.processUserId(userName);
         } catch (IdentityException e) {

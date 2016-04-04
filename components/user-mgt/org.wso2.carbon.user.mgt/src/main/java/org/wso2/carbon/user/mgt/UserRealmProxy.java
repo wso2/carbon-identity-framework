@@ -167,7 +167,7 @@ public class UserRealmProxy {
     }
 
     public FlaggedName[] listAllUsers(String filter, int maxLimit) throws UserAdminException {
-        FlaggedName[] flaggedNames = null;
+        FlaggedName[] flaggedNames;
         Map<String, Integer> userCount = new HashMap<String, Integer>();
         try {
             UserStoreManager userStoreManager = realm.getUserStoreManager();
@@ -576,7 +576,7 @@ public class UserRealmProxy {
 
             List<UserStoreInfo> storeInfoList = new ArrayList<UserStoreInfo>();
             List<String> domainNames = new ArrayList<String>();
-            RealmConfiguration secondaryConfig = realmConfig;
+            RealmConfiguration secondaryConfig;
             UserStoreManager secondaryManager = realm.getUserStoreManager();
 
             while (true) {
@@ -897,7 +897,7 @@ public class UserRealmProxy {
             }
 
             UserStoreManager usAdmin = realm.getUserStoreManager();
-            UserStoreManager secManager = null;
+            UserStoreManager secManager;
 
             if (roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
                 secManager = usAdmin.getSecondaryUserStoreManager(roleName.substring(0, roleName.indexOf
@@ -1976,7 +1976,7 @@ public class UserRealmProxy {
                     parent.setChildren(new String[]{regRoot.getPath(), appRoot.getPath()});
                 }
 
-                String displayName = null;
+                String displayName;
 
                 if (parent != null) {
                     displayName = parent.getProperty(UserMgtConstants.DISPLAY_NAME);
@@ -2031,7 +2031,7 @@ public class UserRealmProxy {
                     parent.setChildren(new String[]{regRoot.getPath(), appRoot.getPath()});
                 }
 
-                String displayName = null;
+                String displayName;
 
                 if (parent != null) {
                     displayName = parent.getProperty(UserMgtConstants.DISPLAY_NAME);
@@ -2191,7 +2191,7 @@ public class UserRealmProxy {
         UIPermissionNode[] childNodes = new UIPermissionNode[children.length];
         for (int i = 0; i < children.length; i++) {
             String child = children[i];
-            Resource resource = null;
+            Resource resource;
 
             if (registry.resourceExists(child)) {
                 resource = registry.get(child);
@@ -2220,7 +2220,7 @@ public class UserRealmProxy {
 
         for (int i = 0; i < children.length; i++) {
             String child = children[i];
-            Resource resource = null;
+            Resource resource;
 
             if (tenantRegistry != null && child.startsWith("/permission/applications")) {
                 resource = tenantRegistry.get(child);

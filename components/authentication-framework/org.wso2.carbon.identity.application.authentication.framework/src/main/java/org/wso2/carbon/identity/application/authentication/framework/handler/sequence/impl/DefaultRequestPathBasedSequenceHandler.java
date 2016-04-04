@@ -193,7 +193,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
             Map<String, String> unfilteredClaimValues = (Map<String, String>) context
                     .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
 
-            String subjectValue = null;
+            String subjectValue;
 
             if (unfilteredClaimValues != null) {
                 subjectValue = unfilteredClaimValues.get(context.getSequenceConfig()
@@ -289,7 +289,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
     protected Map<String, String> handleClaimMappings(AuthenticationContext context)
             throws FrameworkException {
 
-        Map<String, String> mappedAttrs = null;
+        Map<String, String> mappedAttrs;
 
         try {
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(null, context, null,

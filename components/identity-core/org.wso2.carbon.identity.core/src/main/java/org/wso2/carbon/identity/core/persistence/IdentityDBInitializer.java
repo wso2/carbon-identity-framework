@@ -210,7 +210,7 @@ public class IdentityDBInitializer {
 
     private void executeSQLScript() {
 
-        String databaseType = null;
+        String databaseType;
         try {
             databaseType = IdentityDBInitializer.getDatabaseType(dataSource.getConnection());
         } catch (Exception e) {

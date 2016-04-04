@@ -171,7 +171,7 @@ public class EntitlementException extends Exception implements org.apache.thrift
             return getClass().getName().compareTo(other.getClass().getName());
         }
 
-        int lastComparison = 0;
+        int lastComparison;
         EntitlementException typedOther = (EntitlementException) other;
 
         lastComparison = Boolean.valueOf(isSetMessage()).compareTo(typedOther.isSetMessage());

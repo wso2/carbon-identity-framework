@@ -41,7 +41,7 @@ public class OpenIDRememberMeDAO extends AbstractDAO<OpenIDRememberMeDO> {
      * @throws IdentityException
      */
     public void updateToken(OpenIDRememberMeDO rememberMe) throws IdentityException {
-        Collection userResource = null;
+        Collection userResource;
         boolean transactionStarted = Transaction.isStarted();
 
         try {
@@ -87,8 +87,8 @@ public class OpenIDRememberMeDAO extends AbstractDAO<OpenIDRememberMeDO> {
      * @throws IdentityException
      */
     public String getToken(OpenIDRememberMeDO rememberMe) throws IdentityException {
-        Collection userResource = null;
-        String value = null;
+        Collection userResource;
+        String value;
 
         try {
             if (!registry.resourceExists(RegistryConstants.PROFILES_PATH + rememberMe.getUserName())) {

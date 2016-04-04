@@ -247,7 +247,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
      * @throws WorkflowException
      */
     public boolean isAssociated() throws WorkflowException{
-        boolean eventEngaged = false ;
+        boolean eventEngaged;
         try {
             eventEngaged = WorkflowServiceDataHolder.getInstance().getWorkflowService().isEventAssociated(getEventId());
         } catch (InternalWorkflowException e) {

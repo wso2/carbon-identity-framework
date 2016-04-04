@@ -86,8 +86,8 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
                                 String xmppUserCode, boolean enabled, boolean pinEnabled) throws IdentityException {
 
         String path = null;
-        Resource resource = null;
-        Collection userResource = null;
+        Resource resource;
+        Collection userResource;
         String xmppEnabled = "false";
         String isPINEnabled = "false";
 
@@ -170,7 +170,7 @@ public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
     public void updateXmppSettings(String userId, String xmppServer, String xmppUserName,
                                    String xmppUserCode, boolean enabled, boolean pinEnabled) throws IdentityException {
         String path = null;
-        Resource resource = null;
+        Resource resource;
 
         String xmppEnabled = "false";
         String isPINEnabled = "false";

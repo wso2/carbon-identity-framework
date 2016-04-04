@@ -663,7 +663,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String getServiceProviderNameByClientId(String clientId, String clientType,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
 
-        String name = null;
+        String name;
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();

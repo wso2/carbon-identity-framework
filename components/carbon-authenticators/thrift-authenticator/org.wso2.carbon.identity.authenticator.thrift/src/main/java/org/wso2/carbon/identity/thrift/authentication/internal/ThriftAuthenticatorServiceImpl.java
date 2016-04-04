@@ -135,8 +135,8 @@ public class ThriftAuthenticatorServiceImpl implements ThriftAuthenticatorServic
         if (isSuccessful) {
 
             //if not, create a new session
-            String sessionId = null;
-            ThriftSession session = null;
+            String sessionId;
+            ThriftSession session;
             try {
                 sessionId = UUID.randomUUID().toString();
                 //populate thrift session

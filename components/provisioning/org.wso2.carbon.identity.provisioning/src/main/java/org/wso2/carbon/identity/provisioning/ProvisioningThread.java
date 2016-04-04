@@ -64,7 +64,7 @@ public class ProvisioningThread implements Callable<Boolean> {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomainName);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(getTenantIdFromDomain(tenantDomainName));
 
-            ProvisionedIdentifier provisionedIdentifier = null;
+            ProvisionedIdentifier provisionedIdentifier;
             // real provisioning happens now.
             provisionedIdentifier = connector.provision(provisioningEntity);
 

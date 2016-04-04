@@ -489,7 +489,7 @@ public class UserIdentityManagementUtil {
      */
     public static UserIdentityClaimDTO[] getAllUserIdentityClaims(String userName)
             throws IdentityMgtServiceException {
-        int tenantId = 0;
+        int tenantId;
         try {
             tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
             UserStoreManager userStoreManager =

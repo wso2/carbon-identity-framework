@@ -101,7 +101,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public UserStoreDTO[] getSecondaryRealmConfigurations() throws IdentityUserStoreMgtException {
         ArrayList<UserStoreDTO> domains = new ArrayList<UserStoreDTO>();
 
-        RealmConfiguration secondaryRealmConfiguration = null;
+        RealmConfiguration secondaryRealmConfiguration;
         try {
             secondaryRealmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
                     getRealmConfiguration().getSecondaryRealmConfig();
@@ -290,7 +290,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void editUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
         String domainName = userStoreDTO.getDomainId();
-        boolean isValidDomain = false;
+        boolean isValidDomain;
 
         try {
             isValidDomain = xmlProcessorUtils.isValidDomain(domainName, false);
@@ -342,8 +342,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             log.debug("Changing user store " + previousDomainName + " to " + domainName);
         }
 
-        File userStoreConfigFile = null;
-        File previousUserStoreConfigFile = null;
+        File userStoreConfigFile;
+        File previousUserStoreConfigFile;
 
         String fileName = domainName.replace(".", "_");
         String previousFileName = previousDomainName.replace(".", "_");
@@ -655,7 +655,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
 
         DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = null;
+        DocumentBuilder documentBuilder;
         try {
             documentFactory.setFeature(UserStoreConfigurationConstant.EXTERNAL_GENERAL_ENTITIES_URI, false);
             documentBuilder = documentFactory.newDocumentBuilder();

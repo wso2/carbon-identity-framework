@@ -39,9 +39,9 @@ public class ClientUtil {
      */
     public static String getStatus(String xmlstring) throws Exception {
 
-        OMElement response = null;
-        OMElement result = null;
-        OMElement decision = null;
+        OMElement response;
+        OMElement result;
+        OMElement decision;
         response = AXIOMUtil.stringToOM(xmlstring);
 
         OMNamespace nameSpace = response.getNamespace();

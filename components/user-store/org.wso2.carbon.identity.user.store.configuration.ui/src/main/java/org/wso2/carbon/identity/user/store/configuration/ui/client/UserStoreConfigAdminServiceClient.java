@@ -165,7 +165,7 @@ public class UserStoreConfigAdminServiceClient {
 
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                        String connectionPassword, String messageID) throws Exception {
-        boolean result = false;
+        boolean result;
 
         try {
             result =  stub.testRDBMSConnection(domainName, driverName, connectionURL, username, connectionPassword,

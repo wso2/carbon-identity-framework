@@ -185,7 +185,7 @@ public class EntitlementPolicyAdminService {
                                                 int pageNumber, boolean isPDPPolicy) throws EntitlementException {
 
         List<PolicyDTO> policyDTOList = new ArrayList<PolicyDTO>();
-        PolicyDTO[] policyDTOs = null;
+        PolicyDTO[] policyDTOs;
 
         if (isPDPPolicy) {
             policyDTOs = EntitlementAdminEngine.
@@ -253,7 +253,7 @@ public class EntitlementPolicyAdminService {
      */
     public PolicyDTO getPolicy(String policyId, boolean isPDPPolicy) throws EntitlementException {
 
-        PolicyDTO policyDTO = null;
+        PolicyDTO policyDTO;
 
         if (isPDPPolicy) {
             policyDTO = EntitlementAdminEngine.getInstance().
@@ -284,7 +284,7 @@ public class EntitlementPolicyAdminService {
      */
     public PolicyDTO getPolicyByVersion(String policyId, String version) throws EntitlementException {
 
-        PolicyDTO policyDTO = null;
+        PolicyDTO policyDTO;
 
         try {
             PolicyVersionManager versionManager = EntitlementAdminEngine.getInstance().getVersionManager();
@@ -691,8 +691,8 @@ public class EntitlementPolicyAdminService {
         PolicyVersionManager versionManager = EntitlementAdminEngine.getInstance().getVersionManager();
 
         AbstractPolicy policyObj;
-        String policyId = null;
-        String policy = null;
+        String policyId;
+        String policy;
         String operation = EntitlementConstants.StatusTypes.UPDATE_POLICY;
         if (isAdd) {
             operation = EntitlementConstants.StatusTypes.ADD_POLICY;

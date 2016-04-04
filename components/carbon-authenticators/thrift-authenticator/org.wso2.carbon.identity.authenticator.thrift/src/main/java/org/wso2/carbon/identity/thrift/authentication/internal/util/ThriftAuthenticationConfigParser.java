@@ -86,7 +86,7 @@ public class ThriftAuthenticationConfigParser {
      */
     private void buildConfiguration() {
         InputStream inStream = null;
-        StAXOMBuilder builder = null;
+        StAXOMBuilder builder;
 
         String warningMessage = "";
         try {

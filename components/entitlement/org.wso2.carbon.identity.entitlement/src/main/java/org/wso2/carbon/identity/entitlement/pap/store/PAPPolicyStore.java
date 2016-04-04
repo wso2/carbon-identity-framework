@@ -67,10 +67,10 @@ public class PAPPolicyStore {
      * @throws EntitlementException throws if fails
      */
     public String[] getAllPolicyIds() throws EntitlementException {
-        String path = null;
-        Collection collection = null;
+        String path;
+        Collection collection;
         List<String> resources = new ArrayList<String>();
-        String[] children = null;
+        String[] children;
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all entitlement policies");
@@ -113,7 +113,7 @@ public class PAPPolicyStore {
      * @throws EntitlementException throws, if fails
      */
     public Resource getPolicy(String policyId, String collection) throws EntitlementException {
-        String path = null;
+        String path;
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving entitlement policy");
@@ -148,8 +148,8 @@ public class PAPPolicyStore {
     public void addOrUpdatePolicy(PolicyDTO policy, String policyId, String policyPath)
             throws EntitlementException {
 
-        String path = null;
-        Resource resource = null;
+        String path;
+        Resource resource;
         boolean newPolicy = false;
         OMElement omElement = null;
 
@@ -325,7 +325,7 @@ public class PAPPolicyStore {
      * @throws EntitlementException
      */
     public void removePolicy(String policyId) throws EntitlementException {
-        String path = null;
+        String path;
 
         if (log.isDebugEnabled()) {
             log.debug("Removing entitlement policy");

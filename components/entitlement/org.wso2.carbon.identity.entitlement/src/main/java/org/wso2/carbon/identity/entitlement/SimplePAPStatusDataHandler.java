@@ -149,7 +149,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
 
     private synchronized void deletedPersistedData(String path) throws EntitlementException {
 
-        Registry registry = null;
+        Registry registry;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
             registry = EntitlementServiceComponent.getRegistryService().
@@ -166,8 +166,8 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
     private synchronized void persistStatus(String path, List<StatusHolder> statusHolders, boolean isNew)
             throws EntitlementException {
 
-        Resource resource = null;
-        Registry registry = null;
+        Resource resource;
+        Registry registry;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try {
@@ -212,7 +212,7 @@ public class SimplePAPStatusDataHandler implements PAPStatusDataHandler {
     private synchronized List<StatusHolder> readStatus(String path, String about) throws EntitlementException {
 
         Resource resource = null;
-        Registry registry = null;
+        Registry registry;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
             registry = EntitlementServiceComponent.getRegistryService().

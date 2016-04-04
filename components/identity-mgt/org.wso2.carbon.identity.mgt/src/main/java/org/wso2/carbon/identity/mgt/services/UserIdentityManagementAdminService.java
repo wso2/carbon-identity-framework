@@ -277,7 +277,7 @@ public class UserIdentityManagementAdminService {
         String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
         if(userName != null && !userName.equals(loggedInName)){
-            AuthorizationManager authzManager = null;
+            AuthorizationManager authzManager;
             try {
                 authzManager = IdentityMgtServiceComponent.getRealmService().getTenantUserRealm(tenantId).
                         getAuthorizationManager();
@@ -285,7 +285,7 @@ public class UserIdentityManagementAdminService {
                 throw new IdentityMgtServiceException("Error occurred while retrieving AuthorizationManager for tenant " +
                         tenantDomain, e);
             }
-            boolean isAuthorized = false;
+            boolean isAuthorized;
             try {
                 isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/configure/security",
                         CarbonConstants.UI_PERMISSION_ACTION);
@@ -318,7 +318,7 @@ public class UserIdentityManagementAdminService {
         ChallengeQuestionProcessor processor = IdentityMgtServiceComponent.
                 getRecoveryProcessor().getQuestionProcessor();
         List<UserChallengesSetDTO> challengeQuestionSetDTOs = new ArrayList<UserChallengesSetDTO>();
-        List<ChallengeQuestionDTO> questionDTOs = null;
+        List<ChallengeQuestionDTO> questionDTOs;
         try {
             questionDTOs = processor.getAllChallengeQuestions();
         } catch (IdentityException e) {
@@ -363,7 +363,7 @@ public class UserIdentityManagementAdminService {
 
         ChallengeQuestionProcessor processor = IdentityMgtServiceComponent.
                 getRecoveryProcessor().getQuestionProcessor();
-        List<ChallengeQuestionDTO> questionDTOs = null;
+        List<ChallengeQuestionDTO> questionDTOs;
         try {
             questionDTOs = processor.getAllChallengeQuestions();
         } catch (IdentityException e) {
@@ -412,7 +412,7 @@ public class UserIdentityManagementAdminService {
         String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
 
         if(userName != null && !userName.equals(loggedInName)){
-            AuthorizationManager authzManager = null;
+            AuthorizationManager authzManager;
             try {
                 authzManager = IdentityMgtServiceComponent.getRealmService().getTenantUserRealm(tenantId).
                         getAuthorizationManager();
@@ -420,7 +420,7 @@ public class UserIdentityManagementAdminService {
                 throw new IdentityMgtServiceException("Error occurred while retrieving AuthorizationManager for tenant " +
                         tenantDomain, e);
             }
-            boolean isAuthorized = false;
+            boolean isAuthorized;
             try {
                 isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/configure/security",
                         CarbonConstants.UI_PERMISSION_ACTION);
@@ -547,7 +547,7 @@ public class UserIdentityManagementAdminService {
     public boolean isReadOnlyUserStore(String userName, String tenantDomain)
             throws IdentityMgtServiceException {
 
-        boolean isReadOnly = false;
+        boolean isReadOnly;
 
         org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
 

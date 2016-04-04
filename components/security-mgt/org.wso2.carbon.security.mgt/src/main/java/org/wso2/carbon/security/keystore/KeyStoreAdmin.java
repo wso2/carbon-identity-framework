@@ -364,7 +364,7 @@ public class KeyStoreAdmin {
 
     public String importCertToStore(String certData, String keyStoreName)
             throws SecurityConfigException {
-        String alias = null;
+        String alias;
 
         try {
             if (keyStoreName == null) {
@@ -556,8 +556,8 @@ public class KeyStoreAdmin {
 
     public Key getPrivateKey(String alias, boolean isSuperTenant) throws SecurityConfigException {
         KeyStoreData[] keystores = getKeyStores(isSuperTenant);
-        KeyStore keyStore = null;
-        String privateKeyPassowrd = null;
+        KeyStore keyStore;
+        String privateKeyPassowrd;
 
         try {
 
@@ -581,7 +581,7 @@ public class KeyStoreAdmin {
 
     private CertData fillCertData(X509Certificate cert, String alise, Format formatter)
             throws CertificateEncodingException {
-        CertData certData = null;
+        CertData certData;
 
         if (includeCert) {
             certData = new CertDataDetail();
@@ -610,7 +610,7 @@ public class KeyStoreAdmin {
         long length;
         byte[] bytes;
         int offset = 0;
-        int numRead = 0;
+        int numRead;
 
         try {
             inputStream = new FileInputStream(file);

@@ -160,7 +160,7 @@ public abstract class AbstractWorkflow {
     }
 
     public WorkFlowExecutor getWorkFlowExecutor() {
-        WorkFlowExecutor workFlowExecutor = null ;
+        WorkFlowExecutor workFlowExecutor;
         try {
             workFlowExecutor = workFlowExecutorClass.newInstance();
         } catch (InstantiationException e) {
@@ -178,7 +178,7 @@ public abstract class AbstractWorkflow {
 
 
     public TemplateInitializer getTemplateInitializer() throws WorkflowRuntimeException{
-        TemplateInitializer templateInitializer = null ;
+        TemplateInitializer templateInitializer;
         try {
             templateInitializer = templateInitializerClass.newInstance();
         } catch (InstantiationException e) {

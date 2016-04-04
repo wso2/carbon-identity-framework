@@ -320,7 +320,7 @@ public class SecurityConfigAdmin {
         if (log.isDebugEnabled()) {
             log.debug("Clearing Authorization roles");
         }
-        AuthorizationManager acAdmin = null;
+        AuthorizationManager acAdmin;
         try {
             acAdmin = realm.getAuthorizationManager();
             String resourceName = serviceGroupId + "/" + serviceName;
@@ -747,7 +747,7 @@ public class SecurityConfigAdmin {
         OMElement carbonSecElement = factory.createOMElement(SecurityConstants.CARBON_SEC_CONFIG, secElement);
         OMElement kerberosElement = factory.createOMElement(SecurityConstants.KERBEROS, secElement);
         OMElement policyPathElement = factory.createOMElement(POLICY_PATH, secElement);
-        OMElement trustElement = null;
+        OMElement trustElement;
 
         if ((trustedStores != null || privateStore != null) && isTrusEnabled) {
             if(log.isDebugEnabled()){
@@ -780,7 +780,7 @@ public class SecurityConfigAdmin {
                 trustElement.addChild(privateStorePropertyElement);
 
                 ServerConfiguration serverConfig = ServerConfiguration.getInstance();
-                String keyAlias = null;
+                String keyAlias;
                 keyAlias = serverConfig.getFirstProperty("Security.KeyStore.KeyAlias");
 
                 OMElement aliasPropertyElement = factory.createOMElement(SecurityConstants.PROPERTY_LABEL, secElement);
@@ -832,7 +832,7 @@ public class SecurityConfigAdmin {
                         "true");
                 principalPasswordPropertyElement.addAttribute(propertyNameAttribute);
                 principalPasswordPropertyElement.addAttribute(propertyEncryptedAttribute);
-                OMText principalPasswordValue = null;
+                OMText principalPasswordValue;
                 principalPasswordValue = factory.createOMText(principalPasswordPropertyElement,
                         getEncryptedPassword(kerberosConfigData.getServicePrinciplePassword()));
                 principalPasswordPropertyElement.addChild(principalPasswordValue);
@@ -879,10 +879,10 @@ public class SecurityConfigAdmin {
                     registryToLoad = govRegistry;
                 }
             }
-            Resource resource = null;
+            Resource resource;
             resource = registryToLoad.get(resourceUri);
             InputStream in = resource.getContentStream();
-            XMLStreamReader parser = null;
+            XMLStreamReader parser;
             XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
             parser = xmlInputFactory.createXMLStreamReader(in);
@@ -1257,7 +1257,7 @@ public class SecurityConfigAdmin {
     }
 
     public SecurityScenario readCurrentScenario(String serviceName) throws SecurityConfigException {
-        SecurityScenario scenario = null;
+        SecurityScenario scenario;
         scenario = null;
         AxisService service = axisConfig.getServiceForActivation(serviceName);
         String serviceGroupId = null;
@@ -1325,7 +1325,7 @@ public class SecurityConfigAdmin {
                 java.util.Collection policies = service.getPolicySubject()
                         .getAttachedPolicyComponents();
                 Iterator policyComponents = policies.iterator();
-                String policyId = null;
+                String policyId;
                 while (policyComponents.hasNext()) {
                     PolicyComponent currentPolicyComponent = (PolicyComponent) policyComponents
                             .next();

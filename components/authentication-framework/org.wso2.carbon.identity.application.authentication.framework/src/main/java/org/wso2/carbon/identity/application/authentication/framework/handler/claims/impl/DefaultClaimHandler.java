@@ -86,7 +86,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
         String spStandardDialect = getStandardDialect(context.getRequestType(), appConfig);
-        Map<String, String> returningClaims = null;
+        Map<String, String> returningClaims;
         if (isFederatedClaims) {
 
             returningClaims = handleFederatedClaims(remoteClaims, spStandardDialect, stepConfig, context);
@@ -127,7 +127,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             spClaimMappings = new HashMap<>();
         }
 
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
+        Map<String, String> carbonToStandardClaimMapping;
         Map<String, String> spRequestedClaimMappings = context.getSequenceConfig().getApplicationConfig().
                 getRequestedClaimMappings();
         if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect, ApplicationConstants
@@ -154,7 +154,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         // claim mapping from local IDP to remote IDP : local-claim-uri / idp-claim-uri
 
-        Map<String, String> localToIdPClaimMap = null;
+        Map<String, String> localToIdPClaimMap;
         Map<String, String> defaultValuesForClaims = new HashMap<>();
 
         loadDefaultValuesForClaims(idPClaimMappings, defaultValuesForClaims);
@@ -231,7 +231,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                                  AuthenticationContext context,
                                                                  Map<String, String> spClaimMappings)
             throws FrameworkException {
-        Map<String, String> localToSPClaimMappings = null;
+        Map<String, String> localToSPClaimMappings;
 
         if (spStandardDialect != null) {
             // passing null for keySet argument to get all claim mappings,
@@ -332,7 +332,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             spToLocalClaimMappings = new HashMap<>();
         }
 
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
+        Map<String, String> carbonToStandardClaimMapping;
         Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
         if (requestedClaimMappings == null) {
             requestedClaimMappings = new HashMap<>();
@@ -539,7 +539,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
     private UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain) throws
             FrameworkException {
-        UserStoreManager userStore = null;
+        UserStoreManager userStore;
         try {
             userStore = realm.getUserStoreManager();
             if (StringUtils.isNotBlank(userDomain)) {
@@ -559,7 +559,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     private ClaimManager getClaimManager(String tenantDomain, UserRealm realm) throws FrameworkException {
-        ClaimManager claimManager = null;
+        ClaimManager claimManager;
         try {
             claimManager = realm.getClaimManager();
         } catch (UserStoreException e) {
@@ -722,7 +722,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                  String tenantDomain, boolean useLocalDialectAsKey)
             throws FrameworkException {
 
-        Map<String, String> claimMapping = null;
+        Map<String, String> claimMapping;
         try {
             claimMapping = ClaimManagerHandler.getInstance()
                     .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet, tenantDomain,

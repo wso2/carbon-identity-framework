@@ -75,7 +75,7 @@ public class RegistryPolicyReader {
      */
     public PolicyDTO readPolicy(String policyId) throws EntitlementException {
 
-        Resource resource = null;
+        Resource resource;
 
         resource = getPolicyResource(policyId);
 
@@ -96,7 +96,7 @@ public class RegistryPolicyReader {
      */
     public PolicyDTO[] readAllPolicies(boolean active, boolean order) throws EntitlementException {
 
-        Resource[] resources = null;
+        Resource[] resources;
         resources = getAllPolicyResource();
 
         if (resources == null) {
@@ -132,9 +132,9 @@ public class RegistryPolicyReader {
      */
     public String[] getAllPolicyIds() throws EntitlementException {
 
-        String path = null;
-        Collection collection = null;
-        String[] children = null;
+        String path;
+        Collection collection;
+        String[] children;
         List<String> resources = new ArrayList<String>();
 
         if (log.isDebugEnabled()) {
@@ -174,9 +174,9 @@ public class RegistryPolicyReader {
      */
     private PolicyDTO readPolicy(Resource resource) throws EntitlementException {
 
-        String policy = null;
-        AbstractPolicy absPolicy = null;
-        PolicyDTO dto = null;
+        String policy;
+        AbstractPolicy absPolicy;
+        PolicyDTO dto;
 
         try {
             if (resource.getContent() == null) {
@@ -237,7 +237,7 @@ public class RegistryPolicyReader {
      * @throws EntitlementException throws, if fails
      */
     private Resource getPolicyResource(String policyId) throws EntitlementException {
-        String path = null;
+        String path;
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving entitlement policy");
@@ -267,10 +267,10 @@ public class RegistryPolicyReader {
      */
     private Resource[] getAllPolicyResource() throws EntitlementException {
 
-        String path = null;
-        Collection collection = null;
+        String path;
+        Collection collection;
         List<Resource> resources = new ArrayList<Resource>();
-        String[] children = null;
+        String[] children;
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all entitlement policies");

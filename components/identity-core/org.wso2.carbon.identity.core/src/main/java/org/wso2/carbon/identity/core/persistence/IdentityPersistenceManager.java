@@ -61,7 +61,7 @@ public class IdentityPersistenceManager {
             throw IdentityException.error("Invalid inputs");
         }
 
-        ParameterDO param = null;
+        ParameterDO param;
         param = new ParameterDO();
         paramName = paramName.trim();
         param.setName(paramName);
@@ -82,7 +82,7 @@ public class IdentityPersistenceManager {
      */
     public String getParameterValue(Registry registry, String paramName) throws IdentityException {
         String value = null;
-        ParameterDO param = null;
+        ParameterDO param;
 
         param = getParameter(registry, paramName);
         if (param != null) {

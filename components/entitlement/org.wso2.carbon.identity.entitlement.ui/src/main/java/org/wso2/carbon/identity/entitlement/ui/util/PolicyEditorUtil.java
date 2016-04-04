@@ -113,7 +113,7 @@ public class PolicyEditorUtil {
                             equals(policyEditorDTO.getUserAttributeValue().trim())) {
 
                 basicTargetDTO = new BasicTargetDTO();
-                String selectedDataType = null;
+                String selectedDataType;
 
                 if (policyEditorDTO.getUserAttributeId() == null) {
                     basicTargetDTO.setSubjectId(PolicyEditorConstants.SUBJECT_ID_DEFAULT);
@@ -283,7 +283,7 @@ public class PolicyEditorUtil {
 
                 basicTargetDTO = new BasicTargetDTO();
 
-                String selectedDataType = null;
+                String selectedDataType;
 
                 if (policyEditorDTO.getEnvironmentId() == null) {
                     basicTargetDTO.setEnvironmentId(PolicyEditorConstants.ENVIRONMENT_ID_DEFAULT);
@@ -385,7 +385,7 @@ public class PolicyEditorUtil {
     private static void addSubjectElement(BasicRuleDTO ruleElementDTO,
                                           SimplePolicyEditorElementDTO editorElementDTO) {
 
-        String selectedDataType = null;
+        String selectedDataType;
         PolicyEditorDataHolder holder = PolicyEditorEngine.getInstance().
                 getPolicyEditorData(EntitlementConstants.PolicyEditor.RBAC);
 
@@ -436,7 +436,7 @@ public class PolicyEditorUtil {
     private static void addEnvironmentElement(BasicRuleDTO ruleElementDTO,
                                               SimplePolicyEditorElementDTO editorElementDTO) {
 
-        String selectedDataType = null;
+        String selectedDataType;
         PolicyEditorDataHolder holder = PolicyEditorEngine.getInstance().
                 getPolicyEditorData(EntitlementConstants.PolicyEditor.RBAC);
         if (editorElementDTO.getEnvironmentId() == null) {
@@ -956,7 +956,7 @@ public class PolicyEditorUtil {
                     "Missing required attribute value");
         }
 
-        ApplyElementDTO applyElementDTO = null;
+        ApplyElementDTO applyElementDTO;
 
         AttributeDesignatorDTO designatorDTO = new AttributeDesignatorDTO();
         designatorDTO.setCategory(rowDTO.getCategory());

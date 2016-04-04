@@ -225,7 +225,7 @@ public class ServicePasswordCallbackHandler implements CallbackHandler {
 
     public boolean authenticateUser(String user, String password) throws Exception {
 
-        boolean isAuthenticated = false;
+        boolean isAuthenticated;
         boolean isAuthorized = false;
 
         // verify whether user is in same tenant that service has been deployed.

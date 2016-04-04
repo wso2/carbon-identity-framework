@@ -411,7 +411,7 @@ public class EntitlementServiceComponent {
      * multiple servers at a time.
      */
     private int readThriftReceivePort() {
-        int port = -1;
+        int port;
         String portValue = IdentityUtil.getProperty(ThriftConfigConstants.PARAM_RECEIVE_PORT);
         //if the port contains a template string that refers to carbon.xml
         if ((portValue.contains("${")) && (portValue.contains("}"))) {

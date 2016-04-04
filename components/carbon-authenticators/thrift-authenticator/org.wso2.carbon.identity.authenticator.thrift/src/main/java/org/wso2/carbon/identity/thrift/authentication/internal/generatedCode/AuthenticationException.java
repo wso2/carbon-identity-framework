@@ -167,7 +167,7 @@ public class AuthenticationException extends Exception implements org.apache.thr
             return getClass().getName().compareTo(other.getClass().getName());
         }
 
-        int lastComparison = 0;
+        int lastComparison;
         AuthenticationException typedOther = (AuthenticationException) other;
 
         lastComparison = Boolean.valueOf(isSetMessage()).compareTo(typedOther.isSetMessage());

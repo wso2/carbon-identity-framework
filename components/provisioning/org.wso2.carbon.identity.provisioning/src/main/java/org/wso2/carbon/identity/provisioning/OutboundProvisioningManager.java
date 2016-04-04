@@ -129,7 +129,7 @@ public class OutboundProvisioningManager {
         String tenantDomain = null;
         int tenantId = -1234;
         ServiceProviderProvisioningConnectorCacheKey key = null;
-        ServiceProviderProvisioningConnectorCacheEntry entry = null;
+        ServiceProviderProvisioningConnectorCacheEntry entry;
 
         if (CarbonContext.getThreadLocalCarbonContext() != null) {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -684,7 +684,7 @@ public class OutboundProvisioningManager {
 
         for (Iterator<String> iterator = userGroups.iterator(); iterator.hasNext(); ) {
             String userGroup = iterator.next();
-            String mappedGroup = null;
+            String mappedGroup;
             if ((mappedGroup = mappedRoles.get(userGroup)) != null) {
                 mappedUserGroups.add(mappedGroup);
             }
@@ -844,7 +844,7 @@ public class OutboundProvisioningManager {
         UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
                 realmService, tenantDomain);
 
-        UserStoreManager userstore = null;
+        UserStoreManager userstore;
         userstore = realm.getUserStoreManager();
         String[] newRoles = userstore.getRoleListOfUser(userName);
         return Arrays.asList(newRoles);
@@ -868,7 +868,7 @@ public class OutboundProvisioningManager {
         UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
                 realmService, tenantDomain);
 
-        UserStoreManager userstore = null;
+        UserStoreManager userstore;
         userstore = realm.getUserStoreManager();
         Claim[] claimArray = null;
         try {

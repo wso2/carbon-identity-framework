@@ -476,7 +476,7 @@ public class EntitlementService {
                 return getClass().getName().compareTo(other.getClass().getName());
             }
 
-            int lastComparison = 0;
+            int lastComparison;
             getDecision_args typedOther = (getDecision_args) other;
 
             lastComparison = Boolean.valueOf(isSetRequest()).compareTo(typedOther.isSetRequest());
@@ -561,7 +561,7 @@ public class EntitlementService {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("getDecision_args(");
-            boolean first = true;
+            boolean first;
 
             sb.append("request:");
             if (this.request == null) {
@@ -870,7 +870,7 @@ public class EntitlementService {
                 return getClass().getName().compareTo(other.getClass().getName());
             }
 
-            int lastComparison = 0;
+            int lastComparison;
             getDecision_result typedOther = (getDecision_result) other;
 
             lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
@@ -954,7 +954,7 @@ public class EntitlementService {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("getDecision_result(");
-            boolean first = true;
+            boolean first;
 
             sb.append("success:");
             if (this.success == null) {
@@ -1451,7 +1451,7 @@ public class EntitlementService {
                 return getClass().getName().compareTo(other.getClass().getName());
             }
 
-            int lastComparison = 0;
+            int lastComparison;
             getDecisionByAttributes_args typedOther = (getDecisionByAttributes_args) other;
 
             lastComparison = Boolean.valueOf(isSetSubject()).compareTo(typedOther.isSetSubject());
@@ -1617,7 +1617,7 @@ public class EntitlementService {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("getDecisionByAttributes_args(");
-            boolean first = true;
+            boolean first;
 
             sb.append("subject:");
             if (this.subject == null) {
@@ -1959,7 +1959,7 @@ public class EntitlementService {
                 return getClass().getName().compareTo(other.getClass().getName());
             }
 
-            int lastComparison = 0;
+            int lastComparison;
             getDecisionByAttributes_result typedOther = (getDecisionByAttributes_result) other;
 
             lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
@@ -2043,7 +2043,7 @@ public class EntitlementService {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("getDecisionByAttributes_result(");
-            boolean first = true;
+            boolean first;
 
             sb.append("success:");
             if (this.success == null) {

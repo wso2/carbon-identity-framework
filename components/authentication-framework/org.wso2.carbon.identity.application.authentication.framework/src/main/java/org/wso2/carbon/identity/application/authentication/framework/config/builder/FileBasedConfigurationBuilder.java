@@ -127,7 +127,7 @@ public class FileBasedConfigurationBuilder {
     private void buildConfiguration() {
 
         InputStream inStream = null;
-        File configFile = null;
+        File configFile;
         try {
             if (configFilePath != null) {
                 configFile = new File(configFilePath);

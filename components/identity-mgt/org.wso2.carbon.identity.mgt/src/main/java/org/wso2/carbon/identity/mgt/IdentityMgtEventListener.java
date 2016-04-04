@@ -309,9 +309,9 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         }
 
                         NotificationData emailNotificationData = new NotificationData();
-                        String emailTemplate = null;
+                        String emailTemplate;
                         int tenantId = userStoreManager.getTenantId();
-                        String firstName = null;
+                        String firstName;
                         try {
                             firstName =
                                     Utils.getClaimFromUserStoreManager(userName, tenantId,
@@ -325,7 +325,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                         emailNotificationData.setSendTo(email);
 
-                        Config emailConfig = null;
+                        Config emailConfig;
                         ConfigBuilder configBuilder = ConfigBuilder.getInstance();
                         try {
                             emailConfig =
@@ -340,7 +340,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                         emailTemplate = emailConfig.getProperty("otp");
 
-                        Notification emailNotification = null;
+                        Notification emailNotification;
                         try {
                             emailNotification =
                                     NotificationBuilder.createNotification(EMAIL_NOTIFICATION_TYPE, emailTemplate,
@@ -504,7 +504,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             // setting the thread-local to check in doPostAddUser
             IdentityUtil.threadLocalProperties.get().put(EMPTY_PASSWORD_USED, true);
             // temporary passwords will be used
-            char[] temporaryPassword = null;
+            char[] temporaryPassword;
             temporaryPassword = UserIdentityManagementUtil.generateTemporaryPassword();
 
             // setting the password value
@@ -613,7 +613,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     recoveryDto.setTenantId(userStoreManager.getTenantId());
                     recoveryDto.setConfirmationCode(verificationBean.getKey());
 
-                    NotificationDataDTO notificationDto = null;
+                    NotificationDataDTO notificationDto;
 
                     try {
                         notificationDto = processor.recoverWithNotification(recoveryDto);
@@ -832,7 +832,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
                 Boolean wasAccountDisabled = identityDTO.getIsAccountDisabled();
                 String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
-                boolean isAccountDisabled = false;
+                boolean isAccountDisabled;
                 if (StringUtils.isNotEmpty(accountDisabled)) {
                     isAccountDisabled = Boolean.parseBoolean(accountDisabled);
                 } else {
@@ -920,7 +920,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     + " from identity data store", e);
         }
         // deleting registry meta-data
-        UserRegistry registry = null;
+        UserRegistry registry;
         try {
             registry = IdentityMgtServiceComponent.getRegistryService().getConfigSystemRegistry(
                     userStoreManager.getTenantId());

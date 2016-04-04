@@ -243,7 +243,7 @@ public class SessionDataStore {
         if (!enablePersist) {
             return null;
         }
-        Connection connection = null;
+        Connection connection;
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
         } catch (IdentityRuntimeException e) {
@@ -321,7 +321,7 @@ public class SessionDataStore {
     }
 
     public void removeExpiredSessionData(Timestamp timestamp) {
-        Connection connection = null;
+        Connection connection;
         PreparedStatement statement = null;
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
@@ -353,7 +353,7 @@ public class SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        Connection connection = null;
+        Connection connection;
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
         } catch (IdentityRuntimeException e) {
@@ -393,7 +393,7 @@ public class SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        Connection connection = null;
+        Connection connection;
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
         } catch (IdentityRuntimeException e) {
@@ -459,7 +459,7 @@ public class SessionDataStore {
     }
 
     private void deleteSTOREOperationsTask(Timestamp timestamp) {
-        Connection connection = null;
+        Connection connection;
         PreparedStatement statement = null;
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
@@ -492,7 +492,7 @@ public class SessionDataStore {
     }
 
     private void deleteDELETEOperationsTask(Timestamp timestamp) {
-        Connection connection = null;
+        Connection connection;
         PreparedStatement statement = null;
         try {
             connection = IdentityDatabaseUtil.getDBConnection();

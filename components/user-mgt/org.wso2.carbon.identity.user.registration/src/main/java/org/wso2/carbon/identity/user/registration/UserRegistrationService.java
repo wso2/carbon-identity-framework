@@ -81,7 +81,7 @@ public class UserRegistrationService {
      * @throws IdentityException
      */
     public PasswordRegExDTO[] getPasswordRegularExpressions() throws IdentityException {
-        UserRealm realm = null;
+        UserRealm realm;
         realm = IdentityTenantUtil.getRealm(null, null);
         List<PasswordRegExDTO> passwordRegExList = new ArrayList<PasswordRegExDTO>();
         PasswordRegExDTO passwordRegEx;
@@ -115,10 +115,10 @@ public class UserRegistrationService {
     public UserFieldDTO[] readUserFieldsForUserRegistration(String dialect)
             throws IdentityException {
 
-        IdentityClaimManager claimManager = null;
-        Claim[] claims = null;
-        List<UserFieldDTO> claimList = null;
-        UserRealm realm = null;
+        IdentityClaimManager claimManager;
+        Claim[] claims;
+        List<UserFieldDTO> claimList;
+        UserRealm realm;
 
         claimManager = IdentityClaimManager.getInstance();
         realm = IdentityTenantUtil.getRealm(null, null);
@@ -146,8 +146,8 @@ public class UserRegistrationService {
     }
 
     public void addUser(UserDTO user) throws Exception {
-        UserFieldDTO[] userFieldDTOs = null;
-        Map<String, String> userClaims = null;
+        UserFieldDTO[] userFieldDTOs;
+        Map<String, String> userClaims;
 
         userFieldDTOs = user.getUserFields();
         userClaims = new HashMap<String, String>();
@@ -158,7 +158,7 @@ public class UserRegistrationService {
             }
         }
 
-        UserRealm realm = null;
+        UserRealm realm;
         String tenantAwareUserName = MultitenantUtils.getTenantAwareUsername(user.getUserName());
         String tenantName = MultitenantUtils.getTenantDomain(user.getUserName());
         realm = IdentityTenantUtil.getRealm(tenantName, null);
@@ -206,7 +206,7 @@ public class UserRegistrationService {
     private UserFieldDTO getUserFieldDTO(String claimUri, String displayName, boolean isRequired,
                                          int displayOrder, String regex, boolean isSupportedByDefault) {
 
-        UserFieldDTO fieldDTO = null;
+        UserFieldDTO fieldDTO;
         fieldDTO = new UserFieldDTO();
         fieldDTO.setClaimUri(claimUri);
         fieldDTO.setFieldName(displayName);
@@ -219,7 +219,7 @@ public class UserRegistrationService {
 
     private void addUser(String userName, String password, Map<String, String> claimList,
                          String profileName, UserRealm realm) throws IdentityException {
-        UserStoreManager admin = null;
+        UserStoreManager admin;
         Permission permission = null;
         try {
             // get config from tenant registry

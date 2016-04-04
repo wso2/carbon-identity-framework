@@ -234,7 +234,7 @@ public class EntitlementExtensionBuilder {
     private void populateAttributeFinders(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
         int i = 1;
-        PIPAttributeFinder designator = null;
+        PIPAttributeFinder designator;
 
         while (properties.getProperty("PIP.AttributeDesignators.Designator." + i) != null) {
             String className = properties.getProperty("PIP.AttributeDesignators.Designator." + i++);
@@ -262,7 +262,7 @@ public class EntitlementExtensionBuilder {
             throws Exception {
 
         int i = 1;
-        PIPResourceFinder resource = null;
+        PIPResourceFinder resource;
 
         while (properties.getProperty("PIP.ResourceFinders.Finder." + i) != null) {
             String className = properties.getProperty("PIP.ResourceFinders.Finder." + i++);
@@ -290,7 +290,7 @@ public class EntitlementExtensionBuilder {
             throws Exception {
 
         int i = 1;
-        PIPExtension extension = null;
+        PIPExtension extension;
 
         while (properties.getProperty("PDP.Extensions.Extension." + i) != null) {
             String className = properties.getProperty("PDP.Extensions.Extension." + i++);
@@ -318,7 +318,7 @@ public class EntitlementExtensionBuilder {
             throws Exception {
 
         int i = 1;
-        PolicyFinderModule finderModule = null;
+        PolicyFinderModule finderModule;
 
         while (properties.getProperty("PDP.Policy.Finder." + i) != null) {
             String className = properties.getProperty("PDP.Policy.Finder." + i++);
@@ -348,7 +348,7 @@ public class EntitlementExtensionBuilder {
     private void populatePolicyCollection(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
 
-        PolicyCollection collection = null;
+        PolicyCollection collection;
 
         //only one policy collection can be there
         if (properties.getProperty("PDP.Policy.Collection") != null) {
@@ -376,7 +376,7 @@ public class EntitlementExtensionBuilder {
     private void populatePolicyStoreModule(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
 
-        PolicyStoreManageModule policyStoreStore = null;
+        PolicyStoreManageModule policyStoreStore;
 
         if (properties.getProperty("PDP.Policy.Store.Module") != null) {
             String className = properties.getProperty("PDP.Policy.Store.Module");
@@ -403,7 +403,7 @@ public class EntitlementExtensionBuilder {
     private void populatePolicyDataStore(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
 
-        PolicyDataStore policyDataStore = null;
+        PolicyDataStore policyDataStore;
 
         if (properties.getProperty("PDP.Policy.Data.Store.Module") != null) {
             String className = properties.getProperty("PDP.Policy.Data.Store.Module");
@@ -430,7 +430,7 @@ public class EntitlementExtensionBuilder {
     private void populateEntitlementDataFinders(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
         int i = 1;
-        EntitlementDataFinderModule metadata = null;
+        EntitlementDataFinderModule metadata;
 
         while (properties.getProperty("PAP.Entitlement.Data.Finder." + i) != null) {
             String className = properties.getProperty("PAP.Entitlement.Data.Finder." + i++);
@@ -460,7 +460,7 @@ public class EntitlementExtensionBuilder {
             throws Exception {
 
         int i = 1;
-        PolicyPublisherModule publisher = null;
+        PolicyPublisherModule publisher;
 
         while (properties.getProperty("PAP.Policy.Publisher.Module." + i) != null) {
             String className = properties.getProperty("PAP.Policy.Publisher.Module." + i++);
@@ -487,7 +487,7 @@ public class EntitlementExtensionBuilder {
     private void populatePolicyVersionModule(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
 
-        PolicyVersionManager versionManager = null;
+        PolicyVersionManager versionManager;
 
         if (properties.getProperty("PAP.Policy.Version.Module") != null) {
             String className = properties.getProperty("PAP.Policy.Version.Module");
@@ -516,7 +516,7 @@ public class EntitlementExtensionBuilder {
             throws Exception {
 
         int i = 1;
-        PostPublisherModule postPublisherModule = null;
+        PostPublisherModule postPublisherModule;
 
         while (properties.getProperty("PAP.Policy.Post.Publisher.Module." + i) != null) {
             String className = properties.getProperty("PAP.Policy.Post.Publisher.Module." + i++);
@@ -543,7 +543,7 @@ public class EntitlementExtensionBuilder {
     private void populatePublisherVerificationHandler(Properties properties, EntitlementConfigHolder holder)
             throws Exception {
 
-        PublisherVerificationModule verificationModule = null;
+        PublisherVerificationModule verificationModule;
 
         if (properties.getProperty("PAP.Policy.Publisher.Verification.Handler") != null) {
             String className = properties.getProperty("PAP.Policy.Publisher.Verification.Handler");
@@ -571,7 +571,7 @@ public class EntitlementExtensionBuilder {
             throws Exception {
 
         int i = 1;
-        PAPStatusDataHandler handler = null;
+        PAPStatusDataHandler handler;
 
         while (properties.getProperty("PAP.Status.Data.Handler." + i) != null) {
             String className = properties.getProperty("PAP.Status.Data.Handler." + i++);
