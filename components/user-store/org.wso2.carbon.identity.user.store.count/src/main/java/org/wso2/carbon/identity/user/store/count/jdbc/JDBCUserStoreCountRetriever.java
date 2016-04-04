@@ -191,7 +191,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
                 prepStmt.setString(i, "%" + pair.getValue() + "%");
 
                 i = i++;
-                prepStmt.setInt(i, (Integer) pair.getValue());
+                prepStmt.setInt(i, tenantId);
             }
 
             prepStmt.setQueryTimeout(searchTime);
