@@ -441,9 +441,9 @@ public class SecurityConfigAdmin {
             for (Iterator iter = it.iterator(); iter.hasNext(); ) {
                 Assertion assertion = (Assertion) iter.next();
                 if (assertion instanceof XmlPrimtiveAssertion) {
-                    OMElement xmlPrimitiveAssertion = (((XmlPrimtiveAssertion) assertion).getValue());
+                    OMElement xmlPrimitiveAssertion = ((XmlPrimtiveAssertion) assertion).getValue();
                     if (SecurityConstants.CARBON_SEC_CONFIG.equals(xmlPrimitiveAssertion.getLocalName())) {
-                        OMElement carbonSecConfigElement = (((XmlPrimtiveAssertion) assertion).getValue());
+                        OMElement carbonSecConfigElement = ((XmlPrimtiveAssertion) assertion).getValue();
                         if (log.isDebugEnabled()) {
                             log.debug("carbonSecConfig : " + carbonSecConfigElement.toString());
                         }

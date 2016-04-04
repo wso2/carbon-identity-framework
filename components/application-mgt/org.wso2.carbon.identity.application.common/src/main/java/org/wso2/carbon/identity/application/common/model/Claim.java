@@ -44,7 +44,7 @@ public class Claim implements Serializable {
         Iterator<?> iter = claimOM.getChildElements();
 
         while (iter.hasNext()) {
-            OMElement element = (OMElement) (iter.next());
+            OMElement element = (OMElement) iter.next();
             String elementName = element.getLocalName();
 
             if ("ClaimUri".equals(elementName)) {

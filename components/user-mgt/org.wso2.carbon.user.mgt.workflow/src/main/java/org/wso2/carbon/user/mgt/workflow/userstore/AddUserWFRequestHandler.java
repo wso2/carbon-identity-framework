@@ -111,7 +111,7 @@ public class AddUserWFRequestHandler extends AbstractWorkflowRequestHandler {
             }
             CryptoUtil cryptoUtil = CryptoUtil.getDefaultCryptoUtil();
             encryptedCredentials = cryptoUtil.
-                    encryptAndBase64Encode((credential.toString()).getBytes(Charset.forName("UTF-8")));
+                    encryptAndBase64Encode(credential.toString().getBytes(Charset.forName("UTF-8")));
         } catch (CryptoException e) {
             throw new WorkflowException("Error while encrypting the Credential for User Name" + " " + userName, e);
         }
@@ -219,7 +219,7 @@ public class AddUserWFRequestHandler extends AbstractWorkflowRequestHandler {
             throw new WorkflowException("Error while decrypting the Credential for user " + userName, e);
         }
 
-        List<String> roleList = ((List<String>) requestParams.get(ROLE_LIST));
+        List<String> roleList = (List<String>) requestParams.get(ROLE_LIST);
         String[] roles;
         if (roleList != null) {
             roles = new String[roleList.size()];

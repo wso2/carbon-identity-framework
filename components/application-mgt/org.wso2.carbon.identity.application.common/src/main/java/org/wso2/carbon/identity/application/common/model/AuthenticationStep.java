@@ -93,8 +93,8 @@ public class AuthenticationStep implements Serializable {
 
                 if (localAuthenticatorConfigsIter != null) {
                     while (localAuthenticatorConfigsIter.hasNext()) {
-                        OMElement localAuthenticatorConfigsElement = (OMElement) (localAuthenticatorConfigsIter
-                                .next());
+                        OMElement localAuthenticatorConfigsElement = (OMElement) localAuthenticatorConfigsIter
+                                .next();
                         LocalAuthenticatorConfig localAuthConfig = LocalAuthenticatorConfig
                                 .build(localAuthenticatorConfigsElement);
                         if (localAuthConfig != null) {
