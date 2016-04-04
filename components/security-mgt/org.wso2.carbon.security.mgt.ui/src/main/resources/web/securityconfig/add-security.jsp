@@ -70,7 +70,7 @@
                 }
             }
 
-            if(groupsInPage != null && groupsInPage.size() != 0) {
+            if(groupsInPage != null && !groupsInPage.isEmpty()) {
                 for (Map.Entry<String, Boolean> entry : groupsInPage.entrySet()) {
                     checkBoxMap.put(entry.getKey(), entry.getValue());
                 }

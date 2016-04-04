@@ -199,7 +199,7 @@
 
 
             Map<String, Boolean> checkBoxMap = (Map<String, Boolean>) session.getAttribute("checkedRolesMap");
-            if (checkBoxMap.size() == 0) {
+            if (checkBoxMap.isEmpty()) {
                 for (String curr_role : curr_ugs) {
                     checkBoxMap.put(curr_role.toLowerCase(), true);
                 }

@@ -74,7 +74,7 @@
         EntitlementPolicyAdminServiceClient client = new EntitlementPolicyAdminServiceClient(cookie,
                     serverURL, configContext);
         policyIds = client.getAllPolicyIds();
-        if(attributeValueDTOs.size() > 0){
+        if(!attributeValueDTOs.isEmpty()){
             results = client.getAdvanceSearchResult(attributeValueDTOs.toArray(new AttributeDTO[attributeValueDTOs.size()]));
         }
 

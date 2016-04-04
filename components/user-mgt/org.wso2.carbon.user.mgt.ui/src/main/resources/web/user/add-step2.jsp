@@ -126,7 +126,7 @@
                 dataList = new ArrayList<FlaggedName>(Arrays.asList(data));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.USER_LIST_ADD_USER_ROLE_CACHE_EXCEEDED, exceededDomains);
-                if (dataList != null && dataList.size() > 0) {
+                if (dataList != null && !dataList.isEmpty()) {
                     flaggedNameMap = new HashMap<Integer, PaginatedNamesBean>();
                     int max = pageNumber + cachePages;
                     for (int i = (pageNumber - cachePages); i < max; i++) {

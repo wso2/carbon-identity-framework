@@ -297,7 +297,7 @@
 <%
     if(targetDTO != null){
         List<RowDTO> rowDTOs = targetDTO.getRowDTOList();
-        if(rowDTOs != null  && rowDTOs.size() > 0){
+        if(rowDTOs != null  && !rowDTOs.isEmpty()){
             RowDTO rowDTO = rowDTOs.get(0);
             currentCategory = rowDTO.getCategory();
             currentPreFunction = rowDTO.getPreFunction();
@@ -327,7 +327,7 @@
         ruleId = ruleDTO.getRuleId();
         ruleEffect = ruleDTO.getRuleEffect();
         List<RowDTO> rowDTOs = ruleDTO.getRowDTOList();
-        if(rowDTOs != null  && rowDTOs.size() > 0){
+        if(rowDTOs != null  && !rowDTOs.isEmpty()){
             RowDTO rowDTO = rowDTOs.get(0);
             currentRuleCategory = rowDTO.getCategory();
             currentRulePreFunction = rowDTO.getPreFunction();
@@ -355,7 +355,7 @@
         TargetDTO targetRuleDTO = ruleDTO.getTargetDTO();
         
         if(targetRuleDTO != null  && targetRuleDTO.getRowDTOList() != null &&
-                                                targetRuleDTO.getRowDTOList().size() > 0){            
+                !targetRuleDTO.getRowDTOList().isEmpty()){            
             RowDTO rowDTO = targetRuleDTO.getRowDTOList().get(0);
             currentRuleTargetCategory = rowDTO.getCategory();
             currentRuleTargetPreFunction = rowDTO.getPreFunction();
@@ -382,7 +382,7 @@
 
         List<ObligationDTO> obligationRuleDTOs = ruleDTO.getObligationDTOs();
 
-        if(obligationRuleDTOs != null && obligationRuleDTOs.size() > 0){
+        if(obligationRuleDTOs != null && !obligationRuleDTOs.isEmpty()){
             ObligationDTO dto = obligationRuleDTOs.get(0);
             currentRuleObligationType = dto.getType();
             currentRuleObligationId = dto.getObligationId();
@@ -391,7 +391,7 @@
         }
     }
 
-    if(obligationDTOs != null && obligationDTOs.size() > 0){
+    if(obligationDTOs != null && !obligationDTOs.isEmpty()){
         ObligationDTO dto = obligationDTOs.get(0);
         currentObligationType = dto.getType();
         currentObligationId = dto.getObligationId();
@@ -402,7 +402,7 @@
         obligationDTOs = null;
     }
 
-    if(extendAttributeDTOs != null && extendAttributeDTOs.size() > 0){
+    if(extendAttributeDTOs != null && !extendAttributeDTOs.isEmpty()){
         ExtendAttributeDTO dto = extendAttributeDTOs.get(0);
         currentDynamicId = dto.getId();
         currentDynamicSelector = dto.getSelector();
@@ -662,7 +662,7 @@ function preSubmit(){
     <td>
         <select id="algorithmName" name="algorithmName" class="text-box-big">
             <%
-                if (ruleCombingAlgorithm != null && ruleCombingAlgorithm.size() > 0) {
+                if (ruleCombingAlgorithm != null && !ruleCombingAlgorithm.isEmpty()) {
                     for (String algorithmName : ruleCombingAlgorithm) {
                         if (algorithmName.equals(entitlementPolicyBean.getAlgorithmName())) {
             %>
@@ -1130,7 +1130,7 @@ function preSubmit(){
 
     if(ruleDTO != null){
         TargetDTO ruleTargetDTO = ruleDTO.getTargetDTO();
-        if(ruleTargetDTO != null && ruleTargetDTO.getRowDTOList() != null && ruleTargetDTO.getRowDTOList().size() > 0){
+        if(ruleTargetDTO != null && ruleTargetDTO.getRowDTOList() != null && !ruleTargetDTO.getRowDTOList().isEmpty()){
             List<RowDTO> rowDTOs = ruleTargetDTO.getRowDTOList();
             //rowDTOs.remove(0);
             for(int i = 1; i< rowDTOs.size(); i++){
@@ -1618,7 +1618,7 @@ function preSubmit(){
                 </td>
             </tr>
 <%
-        if(obligationDTOs != null && obligationDTOs.size() > 0){
+        if(obligationDTOs != null && !obligationDTOs.isEmpty()){
             //obligationDTOs.remove(0);
             for(int i = 1; i < obligationDTOs.size(); i++){
                 ObligationDTO dto = obligationDTOs.get(i);
@@ -1663,7 +1663,7 @@ function preSubmit(){
         </tr>
         </thead>
         <%
-            if (ruleDTOs != null && ruleDTOs.size() > 0) {
+            if (ruleDTOs != null && !ruleDTOs.isEmpty()) {
                 List<RuleDTO> orderedRuleDTOs = new ArrayList<RuleDTO>();
                 String ruleElementOrder = entitlementPolicyBean.getRuleElementOrder();
                 if (ruleElementOrder != null) {

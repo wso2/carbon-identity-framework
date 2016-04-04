@@ -119,7 +119,7 @@
                 </thead>
                 <tbody>
 
-                <% if (questionSetNames.size() > 0) {
+                <% if (!questionSetNames.isEmpty()) {
                     for (String questionSetName : questionSetNames) {
                 %>
                 <tr>

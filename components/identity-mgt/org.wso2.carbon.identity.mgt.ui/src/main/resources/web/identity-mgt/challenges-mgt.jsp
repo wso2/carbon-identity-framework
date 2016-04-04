@@ -232,7 +232,7 @@
                             <tbody>
 
                             <%
-                                if(challenges.size() > 0){
+                                if(!challenges.isEmpty()){
                                     for(int i = 0; i < challenges.size(); i++){
                                         if(setName != null &&  setName.equals(challenges.get(i).getQuestionSetId())){
                              %>

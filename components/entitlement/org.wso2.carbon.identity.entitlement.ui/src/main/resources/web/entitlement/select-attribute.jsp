@@ -343,7 +343,7 @@
                                 </td>
                             </tr>
             <%
-                if(holders != null && holders.size() > 0){
+                if(holders != null && !holders.isEmpty()){
             %>
                             <tr>
                                 <td class="leftCel-med">

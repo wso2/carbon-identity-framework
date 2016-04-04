@@ -82,7 +82,7 @@
             }
         }
 
-        if (domainNames.size() > 0) {
+        if (!domainNames.isEmpty()) {
             if (primaryDomainName == null) {
                 primaryDomainName = UserAdminUIConstants.PRIMARY_DOMAIN_NAME_NOT_DEFINED;
                 domainNames.add(primaryDomainName);
@@ -342,7 +342,7 @@
                         <td class="formRaw">
                             <table class="normal" id="mainTable">
                                 <%
-                                    if (domainNames != null && domainNames.size() > 0) {
+                                    if (domainNames != null && !domainNames.isEmpty()) {
                                 %>
                                 <tr>
                                     <td><fmt:message key="select.domain"/></td>
