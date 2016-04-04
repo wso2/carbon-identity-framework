@@ -231,7 +231,7 @@
 
             countableUserStores = countClient.getCountableUserStores();
 
-            if (countClaimUri.equalsIgnoreCase(UserAdminUIConstants.SELECT)) {    //this is user name based search
+            if (UserAdminUIConstants.SELECT.equalsIgnoreCase(countClaimUri)) {    //this is user name based search
                 if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
                     userCount = countClient.countUsers(countFilter);
                 } else {
