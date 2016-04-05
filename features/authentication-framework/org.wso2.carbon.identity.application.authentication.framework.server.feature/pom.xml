@@ -128,13 +128,13 @@
                                 </bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:${carbon.kernel.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.tenant.mgt.common.server:${carbon.commons.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core.server:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.claim.mgt.server:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.application.mgt.server:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.user.profile.server:${identity.framework.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.idp.mgt.server:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.tenant.mgt.common.server:compatible:${carbon.commons.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.identity.core.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.claim.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.application.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.user.profile.server:compatible:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.idp.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>
