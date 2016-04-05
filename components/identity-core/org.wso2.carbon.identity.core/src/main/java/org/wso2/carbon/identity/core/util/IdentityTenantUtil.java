@@ -54,6 +54,9 @@ public class IdentityTenantUtil {
     private static TenantRegistryLoader tenantRegistryLoader;
     private static BundleContext bundleContext;
 
+    private IdentityTenantUtil() {
+    }
+
     public static TenantRegistryLoader getTenantRegistryLoader() {
         return tenantRegistryLoader;
     }

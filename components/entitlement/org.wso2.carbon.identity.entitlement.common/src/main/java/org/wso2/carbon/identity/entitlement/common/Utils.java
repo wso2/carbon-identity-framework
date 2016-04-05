@@ -27,6 +27,9 @@ import java.util.Arrays;
  */
 public class Utils {
 
+    private Utils() {
+    }
+
     public static boolean isValidRuleAlgorithm(String algorithmUri, boolean isPolicy) {
 
         if (isPolicy) {

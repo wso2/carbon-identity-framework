@@ -57,6 +57,9 @@ public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
 
+    private IdPManagementUIUtil() {
+    }
+
     /**
      * Validates an URI.
      *

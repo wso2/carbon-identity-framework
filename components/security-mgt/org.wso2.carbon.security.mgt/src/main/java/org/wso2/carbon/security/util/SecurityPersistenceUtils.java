@@ -39,6 +39,9 @@ public class SecurityPersistenceUtils {
 
     private static Log log = LogFactory.getLog(SecurityPersistenceUtils.class);
 
+    private SecurityPersistenceUtils() {
+    }
+
     /**
      * @param serviceGroupId      serviceGroupId
      * @param serviceId           serviceId

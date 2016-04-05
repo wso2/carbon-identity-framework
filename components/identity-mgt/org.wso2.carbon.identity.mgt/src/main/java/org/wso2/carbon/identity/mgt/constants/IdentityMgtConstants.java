@@ -232,5 +232,7 @@ public class IdentityMgtConstants {
 
         public static final String USER_ACCOUNT = " No user account found for user ";
 
+        private ErrorHandling() {
+        }
     }
 }

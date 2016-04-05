@@ -108,6 +108,9 @@ public class EntitlementUtil {
     private static final int ENTITY_EXPANSION_LIMIT = 0;
     public static final String EXTERNAL_GENERAL_ENTITIES_URI = "http://xml.org/sax/features/external-general-entities";
 
+    private EntitlementUtil() {
+    }
+
 
     /**
      * Return an instance of a named cache that is common to all tenants.
