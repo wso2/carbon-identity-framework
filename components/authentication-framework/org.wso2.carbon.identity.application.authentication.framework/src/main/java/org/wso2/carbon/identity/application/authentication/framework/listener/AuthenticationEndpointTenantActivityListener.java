@@ -21,10 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
-import org.wso2.carbon.stratos.common.exception.StratosException;
-import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +34,7 @@ import java.util.List;
 /**
  * Class for listening to modifications of tenants and sending the tenant list to receiving endpoints.
  */
-public class AuthenticationEndpointTenantActivityListener implements TenantMgtListener {
+public class AuthenticationEndpointTenantActivityListener extends AbstractIdentityTenantMgtListener {
 
     /**
      * Logger for the class
@@ -147,56 +145,6 @@ public class AuthenticationEndpointTenantActivityListener implements TenantMgtLi
                 }
             }
         }
-    }
-
-    @Override
-    public void onTenantInitialActivation(int tenantId) throws StratosException {
-        sendTenantList();
-    }
-
-    @Override
-    public void onTenantActivation(int tenantId) throws StratosException {
-        sendTenantList();
-    }
-
-    @Override
-    public void onTenantDeactivation(int tenantId) throws StratosException {
-        sendTenantList();
-    }
-
-    @Override
-    public void onTenantCreate(TenantInfoBean tenantInfoBean) throws StratosException {
-        /* Method not implemented */
-    }
-
-    @Override
-    public void onTenantUpdate(TenantInfoBean tenantInfoBean) throws StratosException {
-        /* Method not implemented */
-    }
-
-    @Override
-    public void onPreDelete(int tenantId) throws StratosException {
-        /* Method not implemented */
-    }
-
-    @Override
-    public void onTenantDelete(int tenantId) {
-        /* Method not implemented */
-    }
-
-    @Override
-    public void onTenantRename(int tenantId, String oldDomainName, String newDomainName) throws StratosException {
-        /* Method not implemented */
-    }
-
-    @Override
-    public void onSubscriptionPlanChange(int tenentId, String oldPlan, String newPlan) throws StratosException {
-        /* Method not implemented */
-    }
-
-    @Override
-    public int getListenerOrder() {
-        return 0;
     }
 
 }

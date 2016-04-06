@@ -34,22 +34,22 @@ public abstract class AbstractUserStoreCountRetriever implements UserStoreCountR
 
     @Override
     public Long countUsers(String filter) throws UserStoreCounterException {
-        return Long.valueOf(0);
+        return Long.valueOf(-1);
     }
 
     @Override
     public Long countRoles(String filter) throws UserStoreCounterException {
-        return null;
+        return Long.valueOf(-1);
     }
 
     @Override
     public Long countClaim(String claimURI, String valueFilter) throws UserStoreCounterException {
-        return null;
+        return Long.valueOf(-1);
     }
 
     @Override
     public Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException {
-        return null;
+        return Long.valueOf(-1);
     }
 
 }

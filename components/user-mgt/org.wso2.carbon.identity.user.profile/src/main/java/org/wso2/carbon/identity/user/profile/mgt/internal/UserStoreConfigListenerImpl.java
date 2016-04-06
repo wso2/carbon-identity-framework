@@ -19,10 +19,10 @@ package org.wso2.carbon.identity.user.profile.mgt.internal;
 
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
-import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.identity.user.store.configuration.listener.AbstractUserStoreConfigListener;
 import org.wso2.carbon.user.api.UserStoreException;
 
-public class UserStoreConfigListenerImpl implements UserStoreConfigListener {
+public class UserStoreConfigListenerImpl extends AbstractUserStoreConfigListener {
 
     @Override
     public void onUserStoreNamePreUpdate(int tenantId, String currentUserStoreName,
@@ -38,11 +38,6 @@ public class UserStoreConfigListenerImpl implements UserStoreConfigListener {
     }
 
     @Override
-    public void onUserStoreNamePostUpdate(int i, String s, String s2) throws UserStoreException {
-
-    }
-
-    @Override
     public void onUserStorePreDelete(int tenantId, String userStoreName) throws UserStoreException {
 
         try {
@@ -51,10 +46,5 @@ public class UserStoreConfigListenerImpl implements UserStoreConfigListener {
             throw new UserStoreException(String.format("Error occurred while deleting associated ids with " +
                                                        "domain '%s'", userStoreName), e);
         }
-    }
-
-    @Override
-    public void onUserStorePostDelete(int i, String s) throws UserStoreException {
-
     }
 }
