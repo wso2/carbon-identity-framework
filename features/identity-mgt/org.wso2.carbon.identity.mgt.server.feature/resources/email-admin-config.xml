@@ -145,7 +145,7 @@
         <body>
             Hi {first-name},
 
-            Please note that the account registered with us with the user name : {user-name} has been unlocked by Admin.
+            Please note that the account registered with us with the user name : {user-name} has been unlocked.
         </body>
         <footer>
             Best Regards,
@@ -160,7 +160,7 @@
         <body>
             Hi {first-name},
 
-            Please note that the account registered with us with the user name : {user-name} has been enabled by Admin.
+            Please note that the account registered with us with the user name : {user-name} has been enabled.
         </body>
         <footer>
             Best Regards,
@@ -175,7 +175,7 @@
         <body>
             Hi {first-name},
 
-            Please note that the account registered with us with the user name : {user-name} has been disabled by Admin.
+            Please note that the account registered with us with the user name : {user-name} has been disabled.
         </body>
         <footer>
             Best Regards,
