@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Stack;
 
 public class IdentityConfigParser {
@@ -186,13 +187,24 @@ public class IdentityConfigParser {
                             IdentityConstants.EVENT_LISTENER_ORDER)));
                     String enable = eventListenerElement.getAttributeValue(new QName(
                             IdentityConstants.EVENT_LISTENER_ENABLE));
+                    Iterator<OMElement> propertyElements = eventListenerElement.getChildrenWithName(new QName
+                            (IdentityConstants.EVENT_LISTENER_PROPERTY));
+                    Properties properties = new Properties();
+                    while (propertyElements.hasNext()){
+                        OMElement propertyElem = propertyElements.next();
+                        String propertyName = propertyElem.getAttributeValue(new QName(
+                                IdentityConstants.EVENT_LISTENER_PROPERTY_NAME));
+                        String propertyValue = propertyElem.getText();
+                        properties.setProperty(propertyName, propertyValue);
+                    }
 
                     if (StringUtils.isBlank(eventListenerType) || StringUtils.isBlank(eventListenerName)) {
                         throw IdentityRuntimeException.error("eventListenerType or eventListenerName is not defined " +
                                 "correctly");
                     }
                     IdentityEventListenerConfigKey configKey = new IdentityEventListenerConfigKey(eventListenerType, eventListenerName);
-                    IdentityEventListenerConfig identityEventListenerConfig = new IdentityEventListenerConfig(enable, order, configKey);
+                    IdentityEventListenerConfig identityEventListenerConfig = new IdentityEventListenerConfig(enable,
+                            order, configKey, properties);
                     eventListenerConfiguration.put(configKey, identityEventListenerConfig);
 
                 }
