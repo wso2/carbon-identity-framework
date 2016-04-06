@@ -33,7 +33,7 @@ public class IdentityException extends Exception {
 
     private static final long serialVersionUID = 725992116511551241L;
 
-    private List<ErrorInfo> errorInfoList = new ArrayList<>();
+    protected List<ErrorInfo> errorInfoList = new ArrayList<>();
 
     public static class ErrorInfo {
 
