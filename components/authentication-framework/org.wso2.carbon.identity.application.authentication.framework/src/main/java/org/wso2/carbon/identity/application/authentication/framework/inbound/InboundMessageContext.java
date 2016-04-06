@@ -29,15 +29,15 @@ public class InboundMessageContext<T1 extends Serializable, T2 extends Serializa
 
     private static final long serialVersionUID = 1146964596245780217L;
 
-	protected InboundRequest request;
-    protected Map<T1,T2> parameters = new HashMap<>();
+    protected InboundRequest request;
+    protected Map<T1, T2> parameters = new HashMap<>();
 
-    public InboundMessageContext(InboundRequest request, Map<T1, T2> parameters){
+    public InboundMessageContext(InboundRequest request, Map<T1, T2> parameters) {
         super(parameters);
         this.request = request;
     }
 
-	public InboundRequest getRequest() {
-		return request;
-	}
+    public InboundRequest getRequest() {
+        return request;
+    }
 }
