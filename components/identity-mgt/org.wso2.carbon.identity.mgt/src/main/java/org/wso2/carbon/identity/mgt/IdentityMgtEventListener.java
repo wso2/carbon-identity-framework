@@ -855,7 +855,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                 //account is already disabled and trying to update the claims without enabling it
                 if (wasAccountDisabled && isAccountDisabled) {
-                    claims.clear();
+                    claims.clear();ne
                     log.warn("Trying to update claims of a disabled user account. This is not permitted.");
                     throw new UserStoreException("User account is disabled, can't update claims without enabling.");
                 }
