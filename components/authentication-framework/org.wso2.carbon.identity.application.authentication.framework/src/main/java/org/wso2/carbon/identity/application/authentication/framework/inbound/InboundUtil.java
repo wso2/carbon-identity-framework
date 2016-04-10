@@ -18,17 +18,28 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-public class AuthenticationFrameworkRuntimeException extends RuntimeException {
+public class InboundUtil {
 
-    public AuthenticationFrameworkRuntimeException() {
-        super();
+    /**
+     * Add to InboundContextCache
+     *
+     * @param key Key
+     * @param context InboundMessageContext
+     */
+    public static void addContextToCache(String key, InboundMessageContext context) {
+
+        InboundContextCache.getInstance().addToCache(key, context);
     }
 
-    public AuthenticationFrameworkRuntimeException(String message) {
-        super(message);
-    }
+    /**
+     * Get from InboundContextCache
+     *
+     * @param key cache key
+     * @return InboundMessageContext
+     */
+    public static InboundMessageContext getContextFromCache(String key) {
 
-    public AuthenticationFrameworkRuntimeException(String message, Throwable cause) {
-        super(message, cause);
+        InboundMessageContext context = InboundContextCache.getInstance().getValueFromCache(key);
+        return context;
     }
 }
