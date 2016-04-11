@@ -43,8 +43,8 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private AuthenticationStep authenticationStepForAttributes;
     private boolean alwaysSendBackAuthenticatedListOfIdPs;
     private String subjectClaimUri;
-    private boolean useTenantDomainInLocalSubjectIdentifier = true;
-    private boolean useUserstoreDomainInLocalSubjectIdentifier = true;
+    private boolean useTenantDomainInLocalSubjectIdentifier = false;
+    private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -111,12 +111,12 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                     localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs(true);
                 }
             } else if (USE_USERSTORE_DOMAIN_IN_USERNAME.equals(member.getLocalName())) {
-                if (member.getText() != null && "false".equals(member.getText())) {
-                    localAndOutboundAuthenticationConfig.setUseUserstoreDomainInLocalSubjectIdentifier(false);
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setUseUserstoreDomainInLocalSubjectIdentifier(true);
                 }
             } else if (USE_TENANT_DOMAIN_IN_USERNAME.equals(member.getLocalName())) {
-                if (member.getText() != null && "false".equals(member.getText())) {
-                    localAndOutboundAuthenticationConfig.setUseTenantDomainInLocalSubjectIdentifier(false);
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setUseTenantDomainInLocalSubjectIdentifier(true);
                 }
             } else if (SUBJECT_CLAIM_URI.equals(member.getLocalName())) {
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(member.getText());
@@ -134,7 +134,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     }
 
     /**
-     * @param authSteps
+     * @param authenticationSteps
      */
     public void setAuthenticationSteps(AuthenticationStep[] authenticationSteps) {
         this.authenticationSteps = authenticationSteps;
