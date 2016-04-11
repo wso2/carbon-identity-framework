@@ -251,9 +251,17 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
-        if(!userStoreManager.isReadOnly() && authenticated){
-            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_LOGIN_TIME, Long.toString(System
-                    .currentTimeMillis()), null);
+        if (!userStoreManager.isReadOnly() && authenticated) {
+            String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            String usernameWithDomain = UserCoreUtil.addDomainToName(userName, domainName);
+            boolean isUserExistInCurrentDomain = userStoreManager.isExistingUser(usernameWithDomain);
+            if (isUserExistInCurrentDomain) {
+                Map<String, String> userClaims = new HashMap<>();
+                userClaims.put(IdentityMgtConstants.LAST_LOGIN_TIME, Long.toString(System
+                        .currentTimeMillis()));
+                userStoreManager.setUserClaimValues(userName, userClaims, null);
+            }
+
         }
         // Top level try and finally blocks are used to unset thread local variables
         try {
@@ -703,8 +711,16 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             return true;
         }
         if (!userStoreManager.isReadOnly()) {
-            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
-                    .toString(System.currentTimeMillis()), null);
+            String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            String usernameWithDomain = UserCoreUtil.addDomainToName(userName, domainName);
+            boolean isUserExistInCurrentDomain = userStoreManager.isExistingUser(usernameWithDomain);
+            if (isUserExistInCurrentDomain) {
+                Map<String, String> userClaims = new HashMap<>();
+                userClaims.put(IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
+                        .toString(System.currentTimeMillis()));
+                userStoreManager.setUserClaimValues(userName, userClaims, null);
+            }
+
         }
         return true;
 
@@ -855,7 +871,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                 //account is already disabled and trying to update the claims without enabling it
                 if (wasAccountDisabled && isAccountDisabled) {
-                    claims.clear();ne
+                    claims.clear();
                     log.warn("Trying to update claims of a disabled user account. This is not permitted.");
                     throw new UserStoreException("User account is disabled, can't update claims without enabling.");
                 }
@@ -1003,10 +1019,18 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             return true;
         }
         if (!userStoreManager.isReadOnly()) {
-            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
-                    .toString(System.currentTimeMillis()), null);
+            String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            String usernameWithDomain = UserCoreUtil.addDomainToName(userName, domainName);
+            boolean isUserExistInCurrentDomain = userStoreManager.isExistingUser(usernameWithDomain);
+            if (isUserExistInCurrentDomain) {
+                Map<String, String> userClaims = new HashMap<>();
+                userClaims.put(IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
+                        .toString(System.currentTimeMillis()));
+                userStoreManager.setUserClaimValues(userName, userClaims, null);
+            }
+
         }
-       return true;
+        return true;
 
     }
 
