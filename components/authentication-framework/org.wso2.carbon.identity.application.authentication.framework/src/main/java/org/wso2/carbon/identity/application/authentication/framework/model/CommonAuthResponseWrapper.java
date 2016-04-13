@@ -33,12 +33,10 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
     private HttpServletRequest request;
     private boolean isRedirect = false;
     private String redirectURL;
-    private CommonAuthServletPrintWriter printWriter;
 
     public CommonAuthResponseWrapper(HttpServletResponse response) {
         super(response);
         extraParameters = new HashMap();
-        printWriter = new CommonAuthServletPrintWriter(new ByteArrayOutputStream());
     }
 
     public CommonAuthResponseWrapper(HttpServletResponse response, HttpServletRequest request) {
@@ -55,15 +53,6 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
         isRedirect = true;
     }
 
-    @Override
-    public PrintWriter getWriter() throws IOException {
-        return this.printWriter;
-    }
-
-    public String getResponseBody() {
-        return this.printWriter.getBufferedString();
-    }
-
     public boolean isRedirect() {
         return isRedirect;
     }
@@ -72,25 +61,4 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
         return redirectURL;
     }
 
-    private final class CommonAuthServletPrintWriter extends PrintWriter {
-        StringBuffer buffer = new StringBuffer();
-
-        public CommonAuthServletPrintWriter(OutputStream stream) {
-            super(stream);
-        }
-
-        @Override
-        public void print(String s) {
-            buffer.append(s);
-        }
-
-        @Override
-        public void println(String s) {
-            buffer.append(s + "\n");
-        }
-
-        public String getBufferedString() {
-            return this.buffer.toString();
-        }
-    }
 }
