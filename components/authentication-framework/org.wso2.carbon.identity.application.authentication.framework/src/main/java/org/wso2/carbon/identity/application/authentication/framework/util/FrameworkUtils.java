@@ -74,6 +74,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -1046,7 +1047,7 @@ public class FrameworkUtils {
                 ((org.wso2.carbon.identity.claim.mgt.ClaimManager) FrameworkServiceDataHolder.getInstance()
                         .getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(context.getTenantDomain())))
                         .getMappingsMapFromOtherDialectToCarbon(otherDialect,extAttributesValueMap.keySet(), true);
-            } catch (UserStoreException e) {
+            } catch (UserStoreException | ClaimManagementException e) {
                 throw new FrameworkException("Error while loading claim mappings.", e);
             }
 

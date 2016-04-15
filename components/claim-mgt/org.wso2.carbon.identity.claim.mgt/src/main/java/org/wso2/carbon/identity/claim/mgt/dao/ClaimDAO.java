@@ -17,11 +17,11 @@ public interface ClaimDAO {
     String LOCAL_NAME_CHECKED_ATTR = "CheckedAttribute";
     String LOCAL_CLAIM_URI = "http://wso2.org/claims";
 
-    void addClaimMapping(ClaimMapping claim, int tenantId) throws UserStoreException;
+    void addClaimMapping(org.wso2.carbon.user.api.ClaimMapping claim, int tenantId) throws UserStoreException;
 
-    void updateClaim(ClaimMapping claim, int tenantId) throws UserStoreException;
+    void updateClaim(org.wso2.carbon.user.api.ClaimMapping claim, int tenantId) throws UserStoreException;
 
-    void deleteClaimMapping(ClaimMapping claimMapping, int tenantId) throws UserStoreException;
+    void deleteClaimMapping(org.wso2.carbon.user.api.ClaimMapping claimMapping, int tenantId) throws UserStoreException;
 
     void deleteDialect(String dialectUri, int tenantId) throws UserStoreException;
 

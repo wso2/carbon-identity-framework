@@ -24,9 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.mgt.builder.ClaimBuilder;
 import org.wso2.carbon.identity.claim.mgt.dao.CacheBackedClaimDAO;
 import org.wso2.carbon.identity.claim.mgt.dao.ClaimDAO;
-import org.wso2.carbon.identity.claim.mgt.dao.ClaimDAOImpl;
 import org.wso2.carbon.identity.claim.mgt.model.ClaimMapping;
-import org.wso2.carbon.identity.claim.mgt.model.ClaimToClaimMapping;
 import org.wso2.carbon.identity.claim.mgt.model.Claim;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -35,77 +33,45 @@ import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 public class IdentityMgtClaimManager extends InMemoryClaimManager implements ClaimManager {
 
-    private static ClaimInvalidationCache claimCache;
     private ClaimBuilder claimBuilder;
-    private Map<String, ClaimMapping> claimMapping = null;
-    private Map<String, ClaimMapping> localClaims = null;
-    private Map<String, ClaimMapping> additionalClaims = null;
-    private static ClaimToClaimMapping claimToClaimMapping;
     private static Log log = LogFactory.getLog(DatabaseUtil.class);
     private ClaimDAO claimDAO = new CacheBackedClaimDAO();
     private int tenantId;
 
     public IdentityMgtClaimManager(int tenantId) throws UserStoreException {
         this.tenantId = tenantId;
-        this.claimDAO = new ClaimDAOImpl();
-        this.claimCache = ClaimInvalidationCache.getInstance();
-
-        claimMapping = new HashMap<>();
-        localClaims = new HashMap<>();
-        additionalClaims = new HashMap<>();
+        Map<String, ClaimMapping> claimMapping;
+        Map<String, ClaimMapping> localClaims = new HashMap<>();
+        Map<String, ClaimMapping> additionalClaims = new HashMap<>();
 
         int dialectCount = claimDAO.getDialectCount(tenantId);
-        if (dialectCount > 0) {
-            try {
-                List<ClaimMapping> lst = claimDAO.loadClaimMappings(tenantId);
-                for (ClaimMapping cm : lst) {
-                    String uri = cm.getClaim().getClaimUri();
-                    claimMapping.put(uri, cm);
-                }
-                if (claimMapping.size() > 0) {
-                    doClaimCategorize();
-                }
-            } catch (UserStoreException e) {
-                log.error("Error reading claims from database", e);
-            }
-        } else {
+        if (dialectCount <= 0) {
             try {
                 this.claimBuilder = new ClaimBuilder(claimConfig.getPropertyHolder(), tenantId);
                 claimMapping = claimBuilder.getClaimMapping();
                 if (claimMapping.size() > 0) {
-                    doClaimCategorize();
-                }
-                if (dialectCount <= 0 && localClaims.size() != 0) {
-                    if (claimDAO.addClaimMappings(localClaims.values().toArray(new ClaimMapping[localClaims.size()]), tenantId)) {
-                        claimDAO.addClaimMappings(additionalClaims.values().toArray(new ClaimMapping[additionalClaims
-                                .size()]), tenantId);
+                    for (Map.Entry<String, ClaimMapping> entry : claimMapping.entrySet()) {
+                        if (UserCoreConstants.DEFAULT_CARBON_DIALECT.equals(entry.getValue().getClaim().getDialectURI())) {
+                            localClaims.put(entry.getKey(), entry.getValue());
+                        } else {
+                            additionalClaims.put(entry.getKey(), entry.getValue());
+                        }
                     }
+                }
+                if (localClaims.size() > 0) {
+                    claimDAO.addClaimMappings(localClaims.values().toArray(new ClaimMapping[localClaims.size()]),
+                            tenantId);
+                    claimDAO.addClaimMappings(additionalClaims.values().toArray(new ClaimMapping[additionalClaims.size()]), tenantId);
                 }
             } catch (Exception e) {
                  log.error("Error while populating the claim configurations", e);
-            }
-
-        }
-    }
-
-    /**
-     * Categorize the local claims and additional claims
-     */
-    private void doClaimCategorize() {
-        for (Map.Entry<String, ClaimMapping> entry : claimMapping.entrySet()) {
-            if (entry.getValue().getClaim().getIsLocalClaim()) {
-                localClaims.put(entry.getKey(), entry.getValue());
-            } else {
-                additionalClaims.put(entry.getKey(), entry.getValue());
             }
         }
     }
@@ -117,6 +83,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return
      * @throws UserStoreException
      */
+    @Override
     public String getAttributeName(String claimURI) throws UserStoreException {
         return claimDAO.getMappedAttribute(claimURI, tenantId);
     }
@@ -129,6 +96,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return attribute name specific to the domain
      * @throws UserStoreException
      */
+    @Override
     public String getAttributeName(String domainName, String claimURI) throws UserStoreException {
         return claimDAO.getMappedAttribute(claimURI, tenantId, claimURI);
     }
@@ -140,6 +108,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return claim
      * @throws UserStoreException
      */
+    @Override
     public Claim getClaim(String claimURI) throws UserStoreException {
         return claimDAO.getClaim(claimURI, tenantId);
     }
@@ -151,6 +120,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return claim mapping
      * @throws UserStoreException
      */
+    @Override
     public ClaimMapping getClaimMapping(String claimURI) throws UserStoreException {
         return claimDAO.getClaimMapping(claimURI, tenantId);
     }
@@ -161,6 +131,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return supported claim mapping array.
      * @throws UserStoreException
      */
+    @Override
     public ClaimMapping[] getAllSupportClaimMappingsByDefault() throws UserStoreException {
         //TODO: need to check if these claim mappings can be directly loaded from the database
         List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId);
@@ -179,6 +150,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return an array of claim mappings
      * @throws UserStoreException
      */
+    @Override
     public ClaimMapping[] getAllClaimMappings() throws UserStoreException {
         List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId);
         return claimMappingList.toArray(new ClaimMapping[claimMappingList.size()]);
@@ -191,52 +163,20 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return array of claim mappings
      * @throws UserStoreException
      */
-    public ClaimMapping[] getAllClaimMappings(String dialectUri)
-            throws UserStoreException {
-
-        if (claimCache.isInvalid()) {
-            this.claimMapping = getClaimMapFromDB();
-        }
-        List<ClaimMapping> claimList = null;
-        claimList = new ArrayList<ClaimMapping>();
-        Iterator<Map.Entry<String, ClaimMapping>> iterator = claimMapping.entrySet().iterator();
-
-        for (; iterator.hasNext(); ) {
-            ClaimMapping claimMapping = iterator.next().getValue();
-            if (claimMapping.getClaim().getDialectURI().equals(dialectUri)) {
-                claimList.add(claimMapping);
-            }
-        }
-        return claimList.toArray(new ClaimMapping[claimList.size()]);
-    }
-
-    /**
-     * Get all the claims with relations. This contains the additional claim and the
-     * related mapped attribute(which is an local claim).
-     *
-     * @return an array of claimToClaimMappings
-     * @throws UserStoreException
-     */
-    public ClaimToClaimMapping[] getAllClaimToClaimMappings() throws UserStoreException {
-        if (claimCache.isInvalid()) {
-            this.claimMapping = getClaimMapFromDB();
-        }
-        List<ClaimToClaimMapping> claimList = null;
-        claimList = new ArrayList<ClaimToClaimMapping>();
-        for (Map.Entry<String, ClaimMapping> localClaimEntry : localClaims.entrySet()) {
-            for (Map.Entry<String, ClaimMapping> addtionalClaimEntry : localClaims.entrySet()) {
-                if (localClaimEntry.getValue().equals(addtionalClaimEntry.getValue().getMappedAttribute())) {
-                    claimToClaimMapping = new ClaimToClaimMapping(localClaimEntry.getValue().getClaim(),
-                            addtionalClaimEntry.getValue().getClaim());
-                    claimList.add(claimToClaimMapping);
-                }
-            }
-        }
-        return claimList.toArray(new ClaimToClaimMapping[claimList.size()]);
+    @Override
+    public ClaimMapping[] getAllClaimMappings(String dialectUri) throws UserStoreException {
+        List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId, dialectUri);
+        return claimMappingList.toArray(new ClaimMapping[claimMappingList.size()]);
     }
 
     public Map<String, String> getMappingsMapFromOtherDialectToCarbon(String otherDialectURI, Set<String>
-            otherClaimURIs, boolean useCarbonDialectAsKey) throws UserStoreException {
+            otherClaimURIs, boolean useCarbonDialectAsKey) throws UserStoreException, ClaimManagementException {
+
+        if (otherDialectURI == null) {
+            String message = "Invalid argument: \'otherDialectURI\' is \'NULL\'";
+            log.error(message);
+            throw new ClaimManagementException(message);
+        }
 
         Map<String, String> returnMap = new HashMap<>();
         if (UserCoreConstants.DEFAULT_CARBON_DIALECT.equals(otherDialectURI)) {
@@ -278,6 +218,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return an array of required claim mappings.
      * @throws UserStoreException
      */
+    @Override
     public ClaimMapping[] getAllRequiredClaimMappings() throws UserStoreException {
         //TODO: need to check if these claim mappings can be directly loaded from the database
         List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId);
@@ -296,6 +237,7 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
      * @return an array of claim uris.
      * @throws UserStoreException
      */
+    @Override
     public String[] getAllClaimUris() throws UserStoreException {
         List<ClaimMapping> claimMappingList = claimDAO.loadClaimMappings(tenantId);
         String[] claimUris = new String[claimMappingList.size()];
@@ -303,6 +245,26 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
             claimUris[i] = claimMappingList.get(i).getClaim().getClaimUri();
         }
         return claimUris;
+    }
+
+    @Override
+    public void addNewClaimMapping(org.wso2.carbon.user.api.ClaimMapping claimMapping) throws UserStoreException {
+        if (claimMapping != null) {
+            ClaimMapping claimMappingFromDB = claimDAO.getClaimMapping(claimMapping.getClaim().getClaimUri(), tenantId);
+            if (claimMappingFromDB == null) {
+                claimDAO.addClaimMapping(claimMapping, tenantId);
+            }
+        }
+    }
+
+    @Override
+    public void deleteClaimMapping(org.wso2.carbon.user.api.ClaimMapping claimMapping) throws UserStoreException {
+        claimDAO.deleteClaimMapping(claimMapping, tenantId);
+    }
+
+    @Override
+    public void updateClaimMapping(org.wso2.carbon.user.api.ClaimMapping claimMapping) throws UserStoreException {
+        claimDAO.updateClaim(claimMapping, tenantId);
     }
 
     /**
@@ -316,21 +278,6 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
         mapping = mappings.getClaimMapping();
         for (ClaimMapping aMapping : mapping) {
             this.addNewClaimMapping(aMapping);
-        }
-    }
-
-    /**
-     * Adds a new claim mapping
-     *
-     * @param mapping The claim mapping to be added
-     * @throws UserStoreException
-     */
-    public void addNewClaimMapping(ClaimMapping mapping) throws UserStoreException {
-        if (mapping != null) {
-            ClaimMapping claimMappingFromDB = claimDAO.getClaimMapping(mapping.getClaim().getClaimUri(), tenantId);
-            if (claimMappingFromDB == null) {
-                claimDAO.addClaimMapping(mapping, tenantId);
-            }
         }
     }
 
@@ -349,108 +296,5 @@ public class IdentityMgtClaimManager extends InMemoryClaimManager implements Cla
             }
         }
 
-    }
-
-    /**
-     * Deletes a claim mapping
-     *
-     * @param mapping The claim mapping to be deleted
-     * @throws UserStoreException
-     */
-    public void deleteClaimMapping(ClaimMapping mapping) throws UserStoreException {
-
-        if (mapping != null && mapping.getClaim() != null) {
-
-            if (claimCache.isInvalid()) {
-                this.claimMapping = getClaimMapFromDB();
-            }
-            if (claimMapping.containsKey(mapping.getClaim().getClaimUri())) {
-                claimMapping.remove(mapping.getClaim().getClaimUri());
-                claimDAO.deleteClaimMapping(getClaimMapping(mapping), tenantId);
-                this.claimCache.invalidateCache();
-            }
-        }
-    }
-
-    /**
-     * Updates a claim mapping
-     *
-     * @param mapping The claim mapping to be updated
-     * @throws UserStoreException
-     */
-    public void updateClaimMapping(ClaimMapping mapping) throws UserStoreException {
-
-        if (mapping != null && mapping.getClaim() != null) {
-
-            if (claimCache.isInvalid()) {
-                this.claimMapping = getClaimMapFromDB();
-            }
-            if (claimMapping.containsKey(mapping.getClaim().getClaimUri())) {
-                claimMapping.put(mapping.getClaim().getClaimUri(), getClaimMapping(mapping));
-                claimDAO.updateClaim(getClaimMapping(mapping), tenantId);
-                this.claimCache.invalidateCache();
-            }
-        }
-    }
-
-    /**
-     * Gets the claim mapping.
-     *
-     * @param claimMapping The claim mapping
-     * @return
-     * @throws UserStoreException
-     */
-    private ClaimMapping getClaimMapping(ClaimMapping claimMapping) {
-        ClaimMapping claimMap = null;
-        if (claimMapping != null) {
-            claimMap = new ClaimMapping(getClaim(claimMapping.getClaim()), claimMapping.getMappedAttribute());
-            claimMap.setMappedAttributes(claimMapping.getMappedAttributes());
-        } else {
-            return new ClaimMapping();
-        }
-        return claimMap;
-    }
-
-    /**
-     * The Claim object of the claim URI
-     *
-     * @param claim The claim
-     * @return
-     * @throws UserStoreException
-     */
-    private Claim getClaim(Claim claim) {
-
-        Claim clm = new Claim();
-        if (claim != null) {
-            clm.setCheckedAttribute(claim.isCheckedAttribute());
-            clm.setClaimUri(claim.getClaimUri());
-            clm.setDescription(claim.getDescription());
-            clm.setDialectURI(claim.getDialectURI());
-            clm.setDisplayOrder(claim.getDisplayOrder());
-            clm.setDisplayTag(claim.getDisplayTag());
-            clm.setReadOnly(claim.isReadOnly());
-            clm.setRegEx(claim.getRegEx());
-            clm.setRequired(claim.isRequired());
-            clm.setSupportedByDefault(claim.isSupportedByDefault());
-            clm.setValue(claim.getValue());
-        }
-        return clm;
-    }
-
-    /**
-     * Get all the claims from database.
-     *
-     * @return claim map
-     * @throws UserStoreException
-     */
-    private Map<String, ClaimMapping> getClaimMapFromDB() throws UserStoreException {
-        Map<String, ClaimMapping> claimMap = new ConcurrentHashMap<>();
-        try {
-            Map<String, ClaimMapping> dbClaimMap = this.claimBuilder.buildClaimMappingsFromDatabase(null);
-            claimMap.putAll(dbClaimMap);
-        } catch (Exception e) {
-            throw new UserStoreException(e.getMessage(), e);
-        }
-        return claimMap;
     }
 }

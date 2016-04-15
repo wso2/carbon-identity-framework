@@ -37,7 +37,7 @@ public class ClaimMapping extends org.wso2.carbon.user.core.claim.ClaimMapping {
     /**
      * Mapped attributes of the other user stores
      */
-    protected Map<String, String> mappedAttributes = new HashMap<String, String>();
+    protected Map<String, String> mappedAttributes = new HashMap<>();
 
     public ClaimMapping() {
 

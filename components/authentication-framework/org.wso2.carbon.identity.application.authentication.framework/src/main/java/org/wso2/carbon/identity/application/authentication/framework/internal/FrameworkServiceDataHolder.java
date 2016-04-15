@@ -40,6 +40,7 @@ public class FrameworkServiceDataHolder {
     private long unixTimeReference = 0;
     private List<InboundProcessor> inboundProcessors = new ArrayList<InboundProcessor>();
     private List<InboundRequestFactory> inboundRequestFactories = new ArrayList<InboundRequestFactory>();
+    private ClaimManagerFactory claimManagerFactory;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());

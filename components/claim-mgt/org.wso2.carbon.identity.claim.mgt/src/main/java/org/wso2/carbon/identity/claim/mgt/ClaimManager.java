@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.claim.mgt;
 
 import org.wso2.carbon.identity.claim.mgt.model.ClaimMapping;
-import org.wso2.carbon.identity.claim.mgt.model.ClaimToClaimMapping;
 import org.wso2.carbon.user.core.UserStoreException;
 
 import java.util.Map;
@@ -36,23 +35,7 @@ public interface ClaimManager extends org.wso2.carbon.user.core.claim.ClaimManag
      */
     ClaimMapping[] getAllSupportClaimMappingsByDefault() throws UserStoreException;
 
-    /**
-     * Gets all mandatory claims
-     *
-     * @return An array of required claim objects
-     * @throws UserStoreException
-     */
-    ClaimMapping[] getAllRequiredClaimMappings() throws UserStoreException;
-
-    /**
-     * Gets all claims with the relation between local claims and additional claims
-     *
-     * @return An array of claimToClaimMappin objects
-     * @throws UserStoreException
-     */
-    ClaimToClaimMapping[] getAllClaimToClaimMappings() throws UserStoreException;
-
     Map<String, String> getMappingsMapFromOtherDialectToCarbon(String otherDialectURI, Set<String>
-            otherClaimURIs, boolean useCarbonDialectAsKey) throws UserStoreException;
+            otherClaimURIs, boolean useCarbonDialectAsKey) throws UserStoreException, ClaimManagementException;
 
 }

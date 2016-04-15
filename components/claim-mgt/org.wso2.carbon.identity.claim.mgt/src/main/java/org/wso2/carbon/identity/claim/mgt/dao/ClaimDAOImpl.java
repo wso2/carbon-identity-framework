@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.claim.mgt.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.mgt.model.Claim;
@@ -26,7 +27,6 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.identity.claim.mgt.model.ClaimMapping;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,14 +34,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 
 public class ClaimDAOImpl implements ClaimDAO {
     private static Log log = LogFactory.getLog(ClaimDAOImpl.class);
-
 
     /**
      * initializing data source and the tenant
@@ -58,7 +56,7 @@ public class ClaimDAOImpl implements ClaimDAO {
      * @throws UserStoreException
      */
     @Override
-    public void addClaimMapping(ClaimMapping claim, int tenantId) throws UserStoreException {
+    public void addClaimMapping(org.wso2.carbon.user.api.ClaimMapping claim, int tenantId) throws UserStoreException {
         Connection dbConnection = null;
         try {
             dbConnection = IdentityDatabaseUtil.getDBConnection();
@@ -79,7 +77,7 @@ public class ClaimDAOImpl implements ClaimDAO {
      * @throws UserStoreException
      */
     @Override
-    public void updateClaim(ClaimMapping claim, int tenantId) throws UserStoreException {
+    public void updateClaim(org.wso2.carbon.user.api.ClaimMapping claim, int tenantId) throws UserStoreException {
         Connection dbConnection = null;
         try {
             dbConnection = IdentityDatabaseUtil.getDBConnection();
@@ -100,13 +98,14 @@ public class ClaimDAOImpl implements ClaimDAO {
      * @throws UserStoreException
      */
     @Override
-    public void deleteClaimMapping(ClaimMapping claimMapping, int tenantId) throws UserStoreException {
+    public void deleteClaimMapping(org.wso2.carbon.user.api.ClaimMapping claimMapping, int tenantId) throws
+            UserStoreException {
         Connection dbConnection = null;
         try {
             dbConnection = IdentityDatabaseUtil.getDBConnection();
             dbConnection.setAutoCommit(false);
-            deleteClaimMapping(dbConnection, claimMapping.getClaim().getClaimUri(), claimMapping.getClaim()
-                    .getDialectURI(), tenantId);
+            this.deleteClaimMapping(dbConnection, claimMapping.getClaim().getClaimUri(),
+                    claimMapping.getClaim().getDialectURI(), tenantId);
             dbConnection.commit();
         } catch (SQLException e) {
             throw new UserStoreException("Database Error when deleting claim  - " + claimMapping.getClaim()
@@ -129,22 +128,7 @@ public class ClaimDAOImpl implements ClaimDAO {
         try {
             dbConnection = IdentityDatabaseUtil.getDBConnection();
             dbConnection.setAutoCommit(false);
-            prepStmt = dbConnection.prepareStatement(ClaimDBConstants
-                    .GET_CLAIMS_FOR_DIALECTT_SQL);
-            prepStmt.setString(1, dialectUri);
-            prepStmt.setInt(2, tenantId);
-            prepStmt.setInt(3, tenantId);
-            ResultSet rs = prepStmt.executeQuery();
-            List<String> lst = new ArrayList<String>();
-            while (rs.next()) {
-                lst.add(rs.getString(1));
-            }
-            prepStmt.close();
-            for (Iterator<String> ite = lst.iterator(); ite.hasNext(); ) {
-                String claimUri = ite.next();
-                this.deleteClaimMapping(dbConnection, claimUri, dialectUri, tenantId);
-            }
-
+            //deleting dialect will delete all the data mapped to it with on delete cascade.
             prepStmt = dbConnection.prepareStatement(ClaimDBConstants.DELETE_DIALECT);
             prepStmt.setString(1, dialectUri);
             prepStmt.executeUpdate();
@@ -222,42 +206,39 @@ public class ClaimDAOImpl implements ClaimDAO {
      * @param claimMapping claim mapping
      * @throws UserStoreException
      */
-    protected void addClaimMapping(Connection dbConnection, ClaimMapping claimMapping, int tenantId)
+    protected void addClaimMapping(Connection dbConnection, org.wso2.carbon.user.api.ClaimMapping claimMapping, int
+            tenantId)
             throws UserStoreException {
         PreparedStatement prepStmt = null;
+        if (log.isDebugEnabled()){
+            log.debug("Adding claim configuration for claim URI: " + claimMapping.getClaim().getClaimUri());
+        }
         try {
-            Claim claim = claimMapping.getClaim();
-            int dialectId = getDialectId(dbConnection, claim.getDialectURI(), tenantId);
+            org.wso2.carbon.user.api.Claim claim = claimMapping.getClaim();
+            int dialectId = getDialectId(dbConnection, claimMapping.getClaim().getDialectURI(), tenantId);
             if (dialectId == -1) {
-                dialectId = addDialect(dbConnection, claim.getDialectURI(), tenantId);
+                dialectId = addDialect(dbConnection, claimMapping.getClaim().getDialectURI(), tenantId);
             }
 
             int claimId = getClaimId(dbConnection, claim.getClaimUri(), tenantId);
             if (claimId == -1) {
                 claimId = addClaim(dbConnection, dialectId, claim.getClaimUri(), tenantId);
             }
-            if (claim.getIsLocalClaim() == null && claim.getDialectURI().toLowerCase().contains(LOCAL_CLAIM_URI)) {
-                claim.setIsLocalClaim(true);
-            } else if (claim.getIsLocalClaim() == null) {
-                claim.setIsLocalClaim(false);
-            }
 
             Map<String, String> attributes = claimMapping.getMappedAttributes();
-            if (claim.getIsLocalClaim()) {
+            if (claim.getDialectURI().toLowerCase().contains(UserCoreConstants.DEFAULT_CARBON_DIALECT)) {
                 if (claimMapping.getMappedAttribute() != null) {
                     addMappedAttribute(dbConnection, claimId, null, claimMapping.getMappedAttribute(), tenantId);
                 }
 
                 if (attributes.size() > 0) {
                     for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                        addMappedAttribute(dbConnection, claimId, entry.getValue(), entry.getKey(), tenantId);
+                        addMappedAttribute(dbConnection, claimId, entry.getKey(), entry.getValue(), tenantId);
                     }
                 }
             } else {
                 if (claimMapping.getMappedAttribute() != null) {
                     int localClaimId = getClaimId(dbConnection, claimMapping.getMappedAttribute(), tenantId);
-                    log.info("dialect=" + claim.getDialectURI() + " Attribute=" + claimMapping.getMappedAttribute() +
-                            " Url=" + claim.getClaimUri());
                     addClaimRelation(dbConnection, localClaimId, claimId, tenantId);
                 }
             }
@@ -284,9 +265,12 @@ public class ClaimDAOImpl implements ClaimDAO {
                 isReadOnly = 1;
             }
 
-            if (claim.getCustomMetaData() != null) {
-                for (Map.Entry<String, String> entry : claim.getCustomMetaData().entrySet()) {
-                    metaData.put(entry.getKey(), entry.getValue());
+            if (claim instanceof org.wso2.carbon.identity.claim.mgt.model.Claim) {
+                Claim identityClaim = (Claim)claim;
+                if (identityClaim.getCustomMetaData() != null) {
+                    for (Map.Entry<String, String> entry : identityClaim.getCustomMetaData().entrySet()) {
+                        metaData.put(entry.getKey(), entry.getValue());
+                    }
                 }
             }
 
@@ -361,7 +345,6 @@ public class ClaimDAOImpl implements ClaimDAO {
                 Claim claim = new Claim();
 
                 String dialectUri = claimResultSetLocal.getString("IDN_DIALECT_URI");
-                claim.setIsLocalClaim(true);
                 claim.setDialectURI(dialectUri);
                 claim.setClaimUri(claimResultSetLocal.getString("IDN_CLAIM_URI"));
                 String attributeName = claimResultSetLocal.getString("IDN_MAPPED_ATTRIBUTE");
@@ -388,7 +371,6 @@ public class ClaimDAOImpl implements ClaimDAO {
                 Claim claim = new Claim();
 
                 String dialectUri = claimResultSetAdditional.getString("IDN_DIALECT_URI");
-                claim.setIsLocalClaim(false);
                 claim.setDialectURI(dialectUri);
                 claim.setClaimUri(claimResultSetAdditional.getString("IDN_CLAIM_URI"));
                 String attributeName = claimResultSetAdditional.getString("IDN_MAPPED_ATTRIBUTE");
@@ -397,7 +379,7 @@ public class ClaimDAOImpl implements ClaimDAO {
                 populateClaimObject(beans, claim, claimId);
 
                 cm.setClaim(claim);
-                cm.setMappedAttribute(attributeName);
+                cm.setMappedAttribute(null, attributeName);
 
                 //cannot have mapped attributes in different domains
                 dialectMap.put(claim.getDialectURI() + claim.getClaimUri(), cm);
@@ -431,6 +413,7 @@ public class ClaimDAOImpl implements ClaimDAO {
         Map<String, ClaimMapping> dialectMap = new HashMap<>();
 
         try {
+            dbConnection = IdentityDatabaseUtil.getDBConnection();
             prepStmt = dbConnection.prepareStatement(ClaimDBConstants.GET_ALL_CLAIM_META_DATA_SQL);
             prepStmt.setInt(1, tenantId);
             metaDataResultSet = prepStmt.executeQuery();
@@ -456,7 +439,6 @@ public class ClaimDAOImpl implements ClaimDAO {
                     Claim claim = new Claim();
 
                     String dialectUri = claimResultSetLocal.getString("IDN_DIALECT_URI");
-                    claim.setIsLocalClaim(false);
                     claim.setDialectURI(dialectUri);
                     claim.setClaimUri(claimResultSetLocal.getString("IDN_CLAIM_URI"));
                     String attributeName = claimResultSetLocal.getString("IDN_MAPPED_ATTRIBUTE");
@@ -477,26 +459,25 @@ public class ClaimDAOImpl implements ClaimDAO {
                         dialectMap.put(claim.getDialectURI() + claim.getClaimUri(), mapping);
                     }
                 }
-            }else {
-                prepStmtAdditional = dbConnection.prepareStatement(ClaimDBConstants.GET_ADDITIONAL_CLAIMS);
+            } else {
+                prepStmtAdditional = dbConnection.prepareStatement(ClaimDBConstants.GET_ADDITIONAL_CLAIMS_DIALECT);
                 prepStmtAdditional.setInt(1, tenantId);
                 prepStmtAdditional.setInt(2, tenantId);
+                prepStmtAdditional.setString(3, dialectURI);
                 claimResultSetAdditional = prepStmtAdditional.executeQuery();
                 while (claimResultSetAdditional.next()) {
                     ClaimMapping cm = new ClaimMapping();
                     Claim claim = new Claim();
 
-                    String dialectUri = claimResultSetLocal.getString("IDN_DIALECT_URI");
-                    claim.setIsLocalClaim(false);
-                    claim.setDialectURI(dialectUri);
-                    claim.setClaimUri(claimResultSetLocal.getString("IDN_CLAIM_URI"));
-                    String attributeName = claimResultSetLocal.getString("IDN_MAPPED_ATTRIBUTE");
+                    claim.setDialectURI(dialectURI);
+                    claim.setClaimUri(claimResultSetAdditional.getString("IDN_CLAIM_URI"));
+                    String attributeName = claimResultSetAdditional.getString("IDN_MAPPED_ATTRIBUTE");
 
-                    int claimId = claimResultSetLocal.getInt("IDN_CLAIM_ID");
+                    int claimId = claimResultSetAdditional.getInt("IDN_CLAIM_ID");
                     populateClaimObject(beans, claim, claimId);
 
                     cm.setClaim(claim);
-                    cm.setMappedAttribute(attributeName);
+                    cm.setMappedAttribute(null, attributeName);
 
                     //cannot have mapped attributes in different domains
                     dialectMap.put(claim.getDialectURI() + claim.getClaimUri(), cm);
@@ -566,11 +547,11 @@ public class ClaimDAOImpl implements ClaimDAO {
      * @param claimMapping claim mapping
      * @throws UserStoreException
      */
-    protected void updateClaimMapping(Connection dbConnection, ClaimMapping claimMapping, int tenantId)
+    protected void updateClaimMapping(Connection dbConnection, org.wso2.carbon.user.api.ClaimMapping claimMapping, int tenantId)
             throws UserStoreException {
         //application mgt
-        Claim claim = claimMapping.getClaim();
-        this.deleteClaimMapping(dbConnection, claim.getClaimUri(), claim.getDialectURI(), tenantId);
+        this.deleteClaimMapping(dbConnection, claimMapping.getClaim().getClaimUri(),
+                claimMapping.getClaim().getDialectURI(), tenantId);
         this.addClaimMapping(dbConnection, claimMapping, tenantId);
     }
 
@@ -589,7 +570,7 @@ public class ClaimDAOImpl implements ClaimDAO {
         try {
             if (dialectUri.equals(UserCoreConstants.DEFAULT_CARBON_DIALECT)) {
                 prepStmt = dbConnection
-                        .prepareStatement(ClaimDBConstants.GET_CLAIMS_FOR_DIALECTT_SQL,
+                        .prepareStatement(ClaimDBConstants.GET_CLAIMS_FOR_DIALECT_SQL,
                                 ResultSet.TYPE_SCROLL_INSENSITIVE,
                                 ResultSet.CONCUR_READ_ONLY);
                 prepStmt.setString(1, dialectUri);
@@ -613,10 +594,9 @@ public class ClaimDAOImpl implements ClaimDAO {
             prepStmt.setInt(3, tenantId);
             prepStmt.setInt(4, tenantId);
             prepStmt.executeUpdate();
-            prepStmt.close();//do not need
 
         } catch (SQLException e) {
-            throw new UserStoreException("Database Error when deleting claim mapping " + claimUri + "Dialect- " +
+            throw new UserStoreException("Database Error when deleting claim mapping: " + claimUri + "Dialect: " +
                     dialectUri, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -643,7 +623,7 @@ public class ClaimDAOImpl implements ClaimDAO {
                 dialectId = rs.getInt(1);
             }
         } catch (SQLException e) {
-            throw new UserStoreException("Database Error when getting dialect Id from dialect " + uri, e);
+            throw new UserStoreException("Database Error when getting dialect Id from dialect: " + uri, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
@@ -670,7 +650,7 @@ public class ClaimDAOImpl implements ClaimDAO {
             prepStmt.close();
             dialectId = getDialectId(dbConnection, uri, tenantId);
         } catch (SQLException e) {
-            throw new UserStoreException("Database Error when adding dialect - " + uri, e);
+            throw new UserStoreException("Database Error when adding dialect: " + uri, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }
@@ -698,37 +678,11 @@ public class ClaimDAOImpl implements ClaimDAO {
                 claimId = rs.getInt(1);
             }
         } catch (SQLException e) {
-            throw new UserStoreException("Database Error when getting claim Id from claim- " + uri, e);
+            throw new UserStoreException("Database Error when getting claim Id from claim: " + uri, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
         return claimId;
-    }
-
-    /**
-     * Wrapper method for the getClaimId which will check the claim exist or not.
-     *
-     * @param dbConnection database connection
-     * @param uri          uri of the claim
-     * @return boolean value for claim exist or no
-     * @throws UserStoreException
-     */
-    protected boolean isClaimExists(Connection dbConnection, String uri, int tenantId) throws UserStoreException {
-        int claimId = getClaimId(dbConnection, uri, tenantId);
-        return claimId != -1;
-    }
-
-    /**
-     * Wrapper method for the getDialectId which will check the dialect exist or not.
-     *
-     * @param dbConnection database connection
-     * @param uri          uri of the dialect
-     * @return boolean value for claim exist or no
-     * @throws UserStoreException
-     */
-    private boolean isDialectExists(Connection dbConnection, String uri, int tenantId) throws UserStoreException {
-        int dialectId = getDialectId(dbConnection, uri, tenantId);
-        return dialectId != -1;
     }
 
     /**
@@ -740,7 +694,8 @@ public class ClaimDAOImpl implements ClaimDAO {
      * @return claim identifier
      * @throws UserStoreException
      */
-    protected int addClaim(Connection dbConnection, int dialectId, String claimUri, int tenantId) throws UserStoreException {
+    protected int addClaim(Connection dbConnection, int dialectId, String claimUri, int tenantId) throws
+            UserStoreException {
         int claimId = -1;
         PreparedStatement prepStmt = null;
         try {
@@ -752,7 +707,7 @@ public class ClaimDAOImpl implements ClaimDAO {
             prepStmt.close();
             claimId = getClaimId(dbConnection, claimUri, tenantId);
         } catch (SQLException e) {
-            throw new UserStoreException("Database Error when adding claim - " + claimUri + "tenant: " + tenantId, e);
+            throw new UserStoreException("Database Error when adding claim: " + claimUri + "tenant: " + tenantId, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
         }
@@ -800,7 +755,6 @@ public class ClaimDAOImpl implements ClaimDAO {
      */
     protected void addClaimRelation(Connection dbConnection, int localClaimId, int additionalClaimId, int tenantId)
             throws UserStoreException {
-        log.info("localClaimId=" + localClaimId + " additionalClaimId=" + additionalClaimId);
         PreparedStatement prepStmt = null;
         try {
             prepStmt = dbConnection.prepareStatement(ClaimDBConstants.ADD_CLAIM_RELATION_SQL);
@@ -845,86 +799,6 @@ public class ClaimDAOImpl implements ClaimDAO {
             throw new UserStoreException("Database Error when adding meta data, key: "+ key + ", value: " + value , e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, null, prepStmt);
-        }
-    }
-
-    /**
-     * Remove the relationship between local claim and the additional claim
-     *
-     * @param claimId claim identifier for the local claim or additional claim
-     * @throws UserStoreException
-     */
-    protected void deleteClaimRelation(int claimId, int tenantId) throws UserStoreException {
-        Connection dbConnection = null;
-        PreparedStatement prepStmt = null;
-        try {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
-            dbConnection.setAutoCommit(false);
-            prepStmt = dbConnection.prepareStatement(ClaimDBConstants.DELETE_CLAIM_RELATION_SQL);
-            prepStmt.setInt(1, claimId);
-            prepStmt.setInt(2, claimId);
-            prepStmt.setInt(3, tenantId);
-            prepStmt.executeUpdate();
-            prepStmt.close();
-
-            dbConnection.commit();
-        } catch (SQLException e) {
-            throw new UserStoreException("Database Error when deleting claim relation- ", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
-        }
-    }
-
-    /**
-     * Delete meta data for a specific claim
-     *
-     * @param claimId claim identifier for the meta data
-     * @throws UserStoreException
-     */
-
-    protected void deleteMetaData(int claimId, int tenantId) throws UserStoreException {
-        Connection dbConnection = null;
-        PreparedStatement prepStmt = null;
-        try {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
-            dbConnection.setAutoCommit(false);
-            prepStmt = dbConnection.prepareStatement(ClaimDBConstants.DELETE_CLAIM_META_DATA_SQL);
-            prepStmt.setInt(1, claimId);
-            prepStmt.setInt(2, tenantId);
-            prepStmt.executeUpdate();
-            prepStmt.close();
-
-            dbConnection.commit();
-        } catch (SQLException e) {
-            throw new UserStoreException("Database Error when deleting claim meta data.", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
-        }
-    }
-
-    /**
-     * Delete mapped attributes for a specific local claim.
-     *
-     * @param claimId claim identifier for the mapped attributes
-     * @throws UserStoreException
-     */
-    protected void deleteMappedAttribute(int claimId, int tenantId) throws UserStoreException {
-        Connection dbConnection = null;
-        PreparedStatement prepStmt = null;
-        try {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
-            dbConnection.setAutoCommit(false);
-            prepStmt = dbConnection.prepareStatement(ClaimDBConstants.DELETE_MAPPED_ATTRIBUTE_SQL);
-            prepStmt.setInt(1, claimId);
-            prepStmt.setInt(2, tenantId);
-            prepStmt.executeUpdate();
-            prepStmt.close();
-
-            dbConnection.commit();
-        } catch (SQLException e) {
-            throw new UserStoreException("Database Error when deleting mapped attribute. ", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(dbConnection, null, prepStmt);
         }
     }
 
@@ -1010,7 +884,7 @@ public class ClaimDAOImpl implements ClaimDAO {
         try {
             dbConnection = IdentityDatabaseUtil.getDBConnection();
             dbConnection.setAutoCommit(false);
-            prepStmt = dbConnection.prepareStatement(ClaimDBConstants.GET_CLAIM);
+            prepStmt = dbConnection.prepareStatement(ClaimDBConstants.GET_CLAIM_METADATA);
             prepStmt.setString(1, claimURI);
             prepStmt.setInt(2, tenantId);
             resultSet = prepStmt.executeQuery();
@@ -1083,8 +957,12 @@ public class ClaimDAOImpl implements ClaimDAO {
                 claimMapping.setMappedAttribute(mappedAttributeDomain, mappedAttribute);
             }
 
-            claimMapping.setClaim(getClaim(claimURI, tenantId));
-            claimMapping.getClaim().setDialectURI(dialectURI);
+            if (StringUtils.isNotBlank(dialectURI)) {
+                claimMapping.setClaim(getClaim(claimURI, tenantId));
+                claimMapping.getClaim().setDialectURI(dialectURI);
+            } else {
+                return null;
+            }
 
         } catch (SQLException e) {
             throw new UserStoreException("Database Error when retrieving claim mapping. ", e);

@@ -23,8 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -39,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -729,7 +728,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             claimMapping = ((org.wso2.carbon.identity.claim.mgt.ClaimManager)FrameworkServiceDataHolder.getInstance()
                     .getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(tenantDomain)))
                     .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet, useLocalDialectAsKey);
-        } catch (UserStoreException e) {
+        } catch (UserStoreException | ClaimManagementException e) {
             throw new FrameworkException("Error while loading mappings.", e);
         }
 

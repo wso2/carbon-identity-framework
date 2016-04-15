@@ -21,18 +21,10 @@ import java.util.Map;
 
 public class Claim extends org.wso2.carbon.user.core.claim.Claim{
 
-
-    /**
-     * This is to indicate whether this is a local claim or
-     * an additional claim
-     */
-
-    private Boolean isLocalClaim;
     /**
      * This is to store keep the custom defined Meta data, which is separated
      * from the default Meta data attributes
      */
-
     private Map<String,String> customMetaData;
 
     /**
@@ -176,12 +168,5 @@ public class Claim extends org.wso2.carbon.user.core.claim.Claim{
 
     public void setCustomMetaData(Map<String, String> customMetaData) {
         this.customMetaData = customMetaData;
-    }
-    public Boolean getIsLocalClaim() {
-        return isLocalClaim;
-    }
-
-    public void setIsLocalClaim(Boolean isLocalClaim) {
-        this.isLocalClaim = isLocalClaim;
     }
 }

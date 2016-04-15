@@ -89,14 +89,8 @@ public class ClaimBuilder {
                     claim.setDialectURI(childPair.getValue().toString());
                 }
                 else if (LOCAL_NAME_CLAIM_URI.equals(childPair.getKey())) {
-                    claimUri=childPair.getValue().toString();
-                    if (claimUri.toLowerCase().contains(LOCAL_DIALECT_URI)) {
-                        claim.setIsLocalClaim(true);
-                    }
-                    else{
-                        claim.setIsLocalClaim(false);
-                    }
-                    claim.setClaimUri(childPair.getValue().toString());
+                    claimUri = childPair.getValue().toString();
+                    claim.setClaimUri(claimUri);
                 }
                 else if (LOCAL_NAME_DISPLAY_NAME.equals(childPair.getKey())) {
                     claim.setDisplayTag(childPair.getValue().toString());
@@ -130,7 +124,7 @@ public class ClaimBuilder {
                     claim.setCustomMetaData(customMetaData);
                 }
             }
-            log.info(claim.getClaimUri() + " " + attributeId);
+            log.info(claimUri + " " + attributeId);
             claimMapping = new ClaimMapping(claim, attributeId);
             ClaimBuilder.claimMapping.put(claimUri, claimMapping);
         }

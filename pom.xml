@@ -40,6 +40,7 @@
 
     <modules>
         <module>service-stubs/identity</module>
+        <module>components/claim-mgt</module>
         <module>components/authentication-framework</module>
         <module>components/entitlement</module>
         <module>components/identity-core</module>
@@ -50,7 +51,6 @@
         <module>components/provisioning</module>
         <module>components/user-store</module>
         <module>components/idp-mgt</module>
-        <module>components/claim-mgt</module>
         <module>components/directory-server-manager</module>
         <module>components/security-mgt</module>
         <module>components/workflow-mgt</module>

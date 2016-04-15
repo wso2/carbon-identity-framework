@@ -270,7 +270,7 @@ public enum ClaimManagerHandler {
                 if (attr == null) {
                     throw new ClaimManagementException("Attribute name cannot be null for the primary domain");
                 }
-                mapping.setMappedAttribute(attr);
+                mapping.setMappedAttribute(null, attr);
             }
 
             claimManager = realm.getClaimManager();

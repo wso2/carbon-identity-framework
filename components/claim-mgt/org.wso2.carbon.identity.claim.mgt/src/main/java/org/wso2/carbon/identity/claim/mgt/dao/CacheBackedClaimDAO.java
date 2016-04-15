@@ -14,17 +14,18 @@ public class CacheBackedClaimDAO implements ClaimDAO {
     ClaimDAO claimDAO = new ClaimDAOImpl();
 
     @Override
-    public void addClaimMapping(ClaimMapping claim, int tenantId) throws UserStoreException {
+    public void addClaimMapping(org.wso2.carbon.user.api.ClaimMapping claim, int tenantId) throws UserStoreException {
         claimDAO.addClaimMapping(claim, tenantId);
     }
 
     @Override
-    public void updateClaim(ClaimMapping claim, int tenantId) throws UserStoreException {
+    public void updateClaim(org.wso2.carbon.user.api.ClaimMapping claim, int tenantId) throws UserStoreException {
         claimDAO.updateClaim(claim, tenantId);
     }
 
     @Override
-    public void deleteClaimMapping(ClaimMapping claimMapping, int tenantId) throws UserStoreException {
+    public void deleteClaimMapping(org.wso2.carbon.user.api.ClaimMapping claimMapping, int tenantId) throws
+            UserStoreException {
         claimDAO.deleteClaimMapping(claimMapping, tenantId);
     }
 
@@ -84,6 +85,7 @@ public class CacheBackedClaimDAO implements ClaimDAO {
     }
 
     public List<ClaimMapping> loadClaimMappings(int tenantId, String dialectURI) throws UserStoreException {
+        //TODO: need to add cache implementation
         return claimDAO.loadClaimMappings(tenantId, dialectURI);
     }
 }
