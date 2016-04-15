@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundRequestFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class FrameworkServiceDataHolder {
     private long unixTimeReference = 0;
     private List<InboundProcessor> inboundProcessors = new ArrayList<InboundProcessor>();
     private List<InboundRequestFactory> inboundRequestFactories = new ArrayList<InboundRequestFactory>();
+    private ClaimManagerFactory claimManagerFactory;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -99,5 +101,13 @@ public class FrameworkServiceDataHolder {
 
     public List<InboundProcessor> getInboundProcessors() {
         return inboundProcessors;
+    }
+
+    public ClaimManagerFactory getClaimManagerFactory() {
+        return claimManagerFactory;
+    }
+
+    public void setClaimManagerFactory(ClaimManagerFactory claimManagerFactory) {
+        this.claimManagerFactory = claimManagerFactory;
     }
 }

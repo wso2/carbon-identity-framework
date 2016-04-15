@@ -70,7 +70,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.claim.mgt</artifactId>
+            <artifactId>org.wso2.carbon.identity.claim.mgt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
@@ -125,7 +125,7 @@
 
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
 
-                            org.wso2.carbon.claim.mgt; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.claim.mgt; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",

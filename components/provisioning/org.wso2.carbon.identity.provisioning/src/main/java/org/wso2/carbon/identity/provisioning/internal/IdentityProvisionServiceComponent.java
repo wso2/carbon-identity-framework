@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgt
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningIdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -51,6 +52,10 @@ import java.util.Map;
  * interface="org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory"
  * cardinality="1..n" policy="dynamic" bind="setProvisioningConnectorFactory"
  * unbind="unsetProvisioningConnectorFactory"
+ * @scr.reference name="claim.mgt.component"
+ * interface="org.wso2.carbon.user.core.claim.ClaimManagerFactory" cardinality="0..1"
+ * policy="dynamic"  bind="setClaimManagerFactory"
+ * unbind="unsetClaimManagerFactory"
  */
 public class IdentityProvisionServiceComponent {
 
@@ -181,5 +186,13 @@ public class IdentityProvisionServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Removed provisioning connector : " + connectorFactory.getConnectorType());
         }
+    }
+
+    protected void setClaimManagerFactory(ClaimManagerFactory claimManagerFactory) {
+        ProvisioningServiceDataHolder.getInstance().setClaimManagerFactory(claimManagerFactory);
+    }
+
+    protected void unsetClaimManagerFactory(ClaimManagerFactory claimManagerFactory){
+        ProvisioningServiceDataHolder.getInstance().setClaimManagerFactory(null);
     }
 }

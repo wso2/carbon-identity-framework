@@ -30,7 +30,7 @@
         <menu>
             <id>userstores_mgt_menu_add</id>
             <i18n-key>add</i18n-key>
-            <i18n-bundle>org.wso2.carbon.claim.mgt.ui.i18n.Resources</i18n-bundle>
+            <i18n-bundle>org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources</i18n-bundle>
             <parent-menu>userstores_mgt_menu</parent-menu>
             <link>../userstore_config/userstore-config.jsp</link>
             <region>region1</region>
@@ -43,7 +43,7 @@
         <menu>
             <id>userstores_mgt_menu_list</id>
             <i18n-key>list</i18n-key>
-            <i18n-bundle>org.wso2.carbon.claim.mgt.ui.i18n.Resources</i18n-bundle>
+            <i18n-bundle>org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources</i18n-bundle>
             <parent-menu>userstores_mgt_menu</parent-menu>
             <link>../userstore_config/index.jsp</link>
             <region>region1</region>

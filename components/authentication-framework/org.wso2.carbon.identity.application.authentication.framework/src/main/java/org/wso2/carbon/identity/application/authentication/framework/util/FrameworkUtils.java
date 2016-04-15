@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -66,6 +64,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
@@ -75,7 +74,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.claim.mgt.ClaimManagementException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -1044,9 +1044,10 @@ public class FrameworkUtils {
             Map<String, String> extAttributesValueMap = FrameworkUtils.getClaimMappings(claimMappings, false);
             Map<String, String> mappedAttrs = null;
             try {
-                mappedAttrs = ClaimManagerHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
-                                                                                                       extAttributesValueMap.keySet(), context.getTenantDomain(), true);
-            } catch (ClaimManagementException e) {
+                ((org.wso2.carbon.identity.claim.mgt.ClaimManager) FrameworkServiceDataHolder.getInstance()
+                        .getClaimManagerFactory().getClaimManager(IdentityTenantUtil.getTenantId(context.getTenantDomain())))
+                        .getMappingsMapFromOtherDialectToCarbon(otherDialect,extAttributesValueMap.keySet(), true);
+            } catch (UserStoreException | ClaimManagementException e) {
                 throw new FrameworkException("Error while loading claim mappings.", e);
             }
 

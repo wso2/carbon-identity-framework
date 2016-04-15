@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
+import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import javax.servlet.Servlet;
@@ -82,6 +83,10 @@ import java.util.List;
  * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.InboundRequestFactory"
  * cardinality="0..n" policy="dynamic" bind="addInboundRequestFactory"
  * unbind="removeInboundRequestFactory"
+ * @scr.reference name="claim.mgt.component"
+ * interface="org.wso2.carbon.user.core.claim.ClaimManagerFactory" cardinality="0..1"
+ * policy="dynamic"  bind="setClaimManagerFactory"
+ * unbind="unsetClaimManagerFactory"
  */
 
 
@@ -359,4 +364,12 @@ public class FrameworkServiceComponent {
                     }
                 }
             };
+
+    protected void setClaimManagerFactory(ClaimManagerFactory claimManagerFactory) {
+        FrameworkServiceDataHolder.getInstance().setClaimManagerFactory(claimManagerFactory);
+    }
+
+    protected void unsetClaimManagerFactory(ClaimManagerFactory claimManagerFactory){
+        FrameworkServiceDataHolder.getInstance().setClaimManagerFactory(null);
+    }
 }

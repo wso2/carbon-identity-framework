@@ -61,7 +61,7 @@
                                     org.wso2.carbon.user.mgt.workflow:compatible:${identity.framework.version}
                                 </importFeatureDef>
                                 <importFeatureDef>
-                                    org.wso2.carbon.claim.mgt:compatible:${identity.framework.version}
+                                    org.wso2.carbon.identity.claim.mgt:compatible:${identity.framework.version}
                                 </importFeatureDef>
                                 <importFeatureDef>
                                     org.wso2.carbon.identity.mgt:compatible:${identity.framework.version}

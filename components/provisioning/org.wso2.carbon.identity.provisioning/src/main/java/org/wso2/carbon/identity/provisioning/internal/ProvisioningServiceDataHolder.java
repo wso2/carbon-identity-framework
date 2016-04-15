@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.provisioning.internal;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.HashMap;
@@ -33,6 +34,7 @@ public class ProvisioningServiceDataHolder {
     private RegistryService registryService;
     private BundleContext bundleContext;
     private Map<String, AbstractProvisioningConnectorFactory> connectorFactories = new HashMap<String, AbstractProvisioningConnectorFactory>();
+    private ClaimManagerFactory claimManagerFactory = null;
 
     private ProvisioningServiceDataHolder() {
     }
@@ -71,6 +73,14 @@ public class ProvisioningServiceDataHolder {
 
     public Map<String, AbstractProvisioningConnectorFactory> getConnectorFactories() {
         return connectorFactories;
+    }
+
+    public ClaimManagerFactory getClaimManagerFactory() {
+        return claimManagerFactory;
+    }
+
+    public void setClaimManagerFactory(ClaimManagerFactory claimManagerFactory) {
+        this.claimManagerFactory = claimManagerFactory;
     }
 }
 
