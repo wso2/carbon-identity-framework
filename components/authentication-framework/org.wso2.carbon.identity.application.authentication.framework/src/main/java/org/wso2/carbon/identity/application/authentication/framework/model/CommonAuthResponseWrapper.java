@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -33,10 +34,12 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
     private HttpServletRequest request;
     private boolean isRedirect = false;
     private String redirectURL;
+    private CommonAuthServletPrintWriter printWriter;
 
     public CommonAuthResponseWrapper(HttpServletResponse response) {
         super(response);
         extraParameters = new HashMap();
+        printWriter = new CommonAuthServletPrintWriter(new ByteArrayOutputStream());
     }
 
     public CommonAuthResponseWrapper(HttpServletResponse response, HttpServletRequest request) {
@@ -44,6 +47,7 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
         super(response);
         this.request = request;
         extraParameters = new HashMap();
+        printWriter = new CommonAuthServletPrintWriter(new ByteArrayOutputStream());
     }
 
     @Override
@@ -61,4 +65,48 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
         return redirectURL;
     }
 
+    @Override
+    public PrintWriter getWriter() throws IOException {
+        return this.printWriter;
+    }
+
+    public byte[] getContent() throws IOException {
+        return printWriter.getBufferedString().getBytes();
+    }
+
+    public void write() throws IOException {
+        writeContent();
+    }
+
+    private void writeContent() throws IOException {
+        byte[] content = getContent();
+        ServletResponse response = getResponse();
+        OutputStream os = response.getOutputStream();
+
+        response.setContentLength(content.length);
+        os.write(content);
+        os.close();
+    }
+
+    private final class CommonAuthServletPrintWriter extends PrintWriter {
+        StringBuffer buffer = new StringBuffer();
+
+        public CommonAuthServletPrintWriter(OutputStream stream) {
+            super(stream);
+        }
+
+        @Override
+        public void print(String s) {
+            buffer.append(s);
+        }
+
+        @Override
+        public void println(String s) {
+            buffer.append(s + "\n");
+        }
+
+        public String getBufferedString() {
+            return this.buffer.toString();
+        }
+    }
 }
