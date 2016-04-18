@@ -260,6 +260,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             // by default authentication type would be default.
             // default authenticator is defined system-wide - in the configuration file.
             storeAppPrepStmt.setString(6, ApplicationConstants.AUTH_TYPE_DEFAULT);
+            storeAppPrepStmt.setString(7, "0");
+            storeAppPrepStmt.setString(8, "0");
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();

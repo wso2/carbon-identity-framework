@@ -96,6 +96,9 @@ public class IdentityConstants {
     public final static String EVENT_LISTENER_ENABLE = "enable";
     public final static String EVENT_LISTENERS = "EventListeners";
     public final static String EVENT_LISTENER = "EventListener";
+    public final static String EVENT_LISTENER_PROPERTY = "Property";
+    public final static String EVENT_LISTENER_PROPERTY_NAME = "name";
+
 
     // Cache Config constants
     public final static String CACHE_CONFIG = "CacheConfig";

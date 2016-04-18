@@ -140,7 +140,7 @@ public class UserStoreCountUtils {
             userStoreCountRetriever.init(realmConfiguration);
             return userStoreCountRetriever;
         } else {
-            throw new UserStoreCounterException("Realm Configuration is not ready for count the domain: " + domain);
+            return null;
         }
     }
 

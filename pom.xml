@@ -250,7 +250,7 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.neethi.wso2</groupId>
+                <groupId>org.wso2.orbit.org.apache.neethi</groupId>
                 <artifactId>neethi</artifactId>
                 <version>${neethi.osgi.version}</version>
             </dependency>
@@ -1369,7 +1369,7 @@
         <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
         <orbit.version.wsdl4j>1.6.2.wso2v4</orbit.version.wsdl4j>
-        <orbit.version.neethi>2.0.4.wso2v4</orbit.version.neethi>
+        <orbit.version.neethi>2.0.4.wso2v5</orbit.version.neethi>
         <axis2-transports.version>1.1.0-wso2v13</axis2-transports.version>
         <axis2-transports.version.range>[1.1.0-wso2v13,2.0.0)</axis2-transports.version.range>
         <org.apache.axis2.transport.mail.version.range>[0.0.0,1.0.0)</org.apache.axis2.transport.mail.version.range>
@@ -1448,7 +1448,7 @@
         <orbit.version.maven-scm>1.7.0.wso2v1</orbit.version.maven-scm>
 
         <!-- Rampart -->
-        <rampart.wso2.version>1.6.1.wso2v19</rampart.wso2.version>
+        <rampart.wso2.version>1.6.1.wso2v20-SNAPSHOT</rampart.wso2.version>
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
         <rampart.mar.version>1.6.1.wso2v19</rampart.mar.version>
 
@@ -1476,14 +1476,15 @@
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
         <commons-collections.wso2.osgi.version.range>[3.2.0,4.0.0)</commons-collections.wso2.osgi.version.range>
 
-        <neethi.osgi.version>2.0.4.wso2v4</neethi.osgi.version>
+        <neethi.osgi.version>2.0.4.wso2v5</neethi.osgi.version>
         <neethi.osgi.version.range>[2.0.4.wso2v4,3.0.0)</neethi.osgi.version.range>
         <libthrift.wso2.version>0.8.0.wso2v1</libthrift.wso2.version>
-        <libthrift.wso2.osgi.version.range>[0.8.0.wso2v1,1.0.0)</libthrift.wso2.osgi.version.range>
+        <!--Change major version to minor version which is 0.9.0 due to 0.8.x and 0.9.x incompatibility-->
+        <libthrift.wso2.osgi.version.range>[0.8.0.wso2v1,0.9.0)</libthrift.wso2.osgi.version.range>
         <log4j.version>1.2.13</log4j.version>
         <orbit.version.commons.fileuploader>1.2.0.wso2v1</orbit.version.commons.fileuploader>
         <opensaml.version>2.6.4</opensaml.version>
-        <opensaml2.wso2.version>2.6.4.wso2v1</opensaml2.wso2.version>
+        <opensaml2.wso2.version>2.6.4.wso2v2</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
         <commons-codec.version>1.4.0.wso2v1</commons-codec.version>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
@@ -1502,7 +1503,7 @@
         <google.step2.wso2.version>1.0.wso2v2</google.step2.wso2.version>
         <google.guice.wso2.version>3.0.wso2v1</google.guice.wso2.version>
         <google.guice.imp.pkg.version.range>[1.3.0,2.0.0)</google.guice.imp.pkg.version.range>
-        <charon.wso2.version.identity>2.0.4</charon.wso2.version.identity>
+        <charon.wso2.version.identity>2.0.5-SNAPSHOT</charon.wso2.version.identity>
         <charon.core.imp.pkg.version.range>[2.0.1,3.0.0)</charon.core.imp.pkg.version.range>
         <openid4java.version>1.0.0</openid4java.version>
         <openid4java.wso2.version>1.0.0.wso2v2</openid4java.wso2.version>
