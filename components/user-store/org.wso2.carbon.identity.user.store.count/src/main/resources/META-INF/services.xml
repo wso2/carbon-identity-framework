@@ -25,7 +25,7 @@
         <parameter name="ServiceClass">
             org.wso2.carbon.identity.user.store.count.UserStoreCountService
         </parameter>
-        <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt</parameter>
+        <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/</parameter>
     </service>
 
     <parameter name="adminService" locked="false">true</parameter>
