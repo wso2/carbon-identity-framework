@@ -133,7 +133,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         String mappedAttribute = null;
 
         try {
-            String domainName = realmConfiguration.getUserStoreProperty("domainName");
+            String domainName = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
             if (StringUtils.isEmpty(domainName)) {
                 domainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
             }
