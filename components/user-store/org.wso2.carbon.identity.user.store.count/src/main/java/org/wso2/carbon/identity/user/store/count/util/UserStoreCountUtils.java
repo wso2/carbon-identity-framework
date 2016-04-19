@@ -196,8 +196,4 @@ public class UserStoreCountUtils {
     public static Long getApplicationRoleCount(String filter) throws UserStoreCounterException {
         return getInternalCounterInstance().countRoles(InternalStoreCountConstants.APPLICATION_DOMAIN+"%" +filter + "%");
     }
-
-    public static Long getWorkflowRoleCount(String filter) throws UserStoreCounterException {
-        return getInternalCounterInstance().countRoles(InternalStoreCountConstants.WORKFLOW_DOMAIN+"%" +filter + "%");
-    }
 }

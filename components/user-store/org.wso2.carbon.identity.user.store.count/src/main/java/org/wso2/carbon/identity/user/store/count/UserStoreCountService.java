@@ -64,8 +64,8 @@ public class UserStoreCountService {
      */
     public PairDTO[] countRoles(String filter) throws UserStoreCounterException {
         Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
-        //add 3 more for the counts of Internal, Application and Workflow domains
-        PairDTO[] roleCounts = new PairDTO[userStoreDomains.size() + 3];
+        //add 3 more for the counts of Internal, Application domains
+        PairDTO[] roleCounts = new PairDTO[userStoreDomains.size() + 2];
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
@@ -85,8 +85,6 @@ public class UserStoreCountService {
                 UserStoreCountUtils.getInternalRoleCount(filter)));
         roleCounts[++i] =  new PairDTO(InternalStoreCountConstants.APPLICATION_DOMAIN, String.valueOf(
                 UserStoreCountUtils.getApplicationRoleCount(filter)));
-        roleCounts[++i] =  new PairDTO(InternalStoreCountConstants.WORKFLOW_DOMAIN, String.valueOf(
-                UserStoreCountUtils.getWorkflowRoleCount(filter)));
 
         return roleCounts;
     }
@@ -171,8 +169,6 @@ public class UserStoreCountService {
             return UserStoreCountUtils.getInternalRoleCount(filter);
         } else if (InternalStoreCountConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
             return UserStoreCountUtils.getApplicationRoleCount(filter);
-        } else if (InternalStoreCountConstants.WORKFLOW_DOMAIN.equalsIgnoreCase(domain)) {
-            return UserStoreCountUtils.getWorkflowRoleCount(filter);
         } else {              //Not an internal domain
             UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
             if (counter != null) {
