@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.user.store.count.jdbc;
 import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
@@ -42,7 +44,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
     private static Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
     private RealmConfiguration realmConfiguration = null;
-    private int tenantId = -1234;
+    private int tenantId = MultitenantConstants.SUPER_TENANT_ID;
 
     public JDBCUserStoreCountRetriever() {
 
@@ -50,7 +52,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
     public void init(RealmConfiguration realmConfiguration) {
         this.realmConfiguration = realmConfiguration;
-        this.tenantId = realmConfiguration.getTenantId();
+        this.tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     }
 
 
