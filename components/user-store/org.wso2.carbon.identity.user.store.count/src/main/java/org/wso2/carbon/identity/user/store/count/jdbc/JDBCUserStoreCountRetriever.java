@@ -23,9 +23,12 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.api.UserRealm;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
@@ -127,12 +130,24 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
+        String mappedAttribute = null;
 
         try {
+            String domainName = realmConfiguration.getUserStoreProperty("domainName");
+            if (StringUtils.isEmpty(domainName)) {
+                domainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+            }
+
+            UserRealm userRealm = UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId);
+
+            if (StringUtils.isNotEmpty(claimURI)) {
+                mappedAttribute = userRealm.getClaimManager().getAttributeName(domainName, claimURI);
+            }
+
             dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_CLAIM_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            prepStmt.setString(1, claimURI);
+            prepStmt.setString(1, mappedAttribute);
             prepStmt.setInt(2, tenantId);
             prepStmt.setString(3, "%" + valueFilter + "%");
             prepStmt.setQueryTimeout(searchTime);
