@@ -93,7 +93,7 @@ public class UserStoreCountUtils {
             realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
 
             while (realmConfiguration != null) {
-                if (realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
+                if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
                     userStoreList.add(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
                 }
                 realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
