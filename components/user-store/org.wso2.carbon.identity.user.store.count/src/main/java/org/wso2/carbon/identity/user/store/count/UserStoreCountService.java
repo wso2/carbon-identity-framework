@@ -97,7 +97,7 @@ public class UserStoreCountService {
      * @return the number of users matching the given claim and filter by each domain
      */
     public PairDTO[] countClaim(String claimURI, String valueFilter) throws UserStoreCounterException {
-        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
         PairDTO[] claimCounts = new PairDTO[userStoreDomains.size()];
         int i = 0;
 
