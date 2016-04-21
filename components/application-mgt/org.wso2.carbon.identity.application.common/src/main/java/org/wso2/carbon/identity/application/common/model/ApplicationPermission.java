@@ -38,7 +38,7 @@ public class ApplicationPermission implements Serializable {
         Iterator<?> iter = applicationPermissionOM.getChildElements();
 
         while (iter.hasNext()) {
-            OMElement element = (OMElement) (iter.next());
+            OMElement element = (OMElement) iter.next();
             String elementName = element.getLocalName();
 
             if ("value".equals(elementName)) {

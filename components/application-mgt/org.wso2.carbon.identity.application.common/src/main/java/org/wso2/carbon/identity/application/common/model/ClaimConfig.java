@@ -48,7 +48,7 @@ public class ClaimConfig implements Serializable {
 
         while (iter.hasNext()) {
 
-            OMElement element = (OMElement) (iter.next());
+            OMElement element = (OMElement) iter.next();
             String elementName = element.getLocalName();
 
             if ("RoleClaimURI".equals(elementName)) {
@@ -69,7 +69,7 @@ public class ClaimConfig implements Serializable {
 
                 if (idpClaimsIter != null) {
                     while (idpClaimsIter.hasNext()) {
-                        OMElement idpClaimsElement = (OMElement) (idpClaimsIter.next());
+                        OMElement idpClaimsElement = (OMElement) idpClaimsIter.next();
                         Claim claim = Claim.build(idpClaimsElement);
                         if (claim != null) {
                         }
@@ -87,7 +87,7 @@ public class ClaimConfig implements Serializable {
 
                 if (claimMappingsIter != null) {
                     while (claimMappingsIter.hasNext()) {
-                        OMElement claimMappingsElement = (OMElement) (claimMappingsIter.next());
+                        OMElement claimMappingsElement = (OMElement) claimMappingsIter.next();
                         ClaimMapping claimMapping = ClaimMapping.build(claimMappingsElement);
                         if (claimMapping != null) {
                             claimMappingsArrList.add(claimMapping);

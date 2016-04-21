@@ -365,7 +365,7 @@ public class ApplicationBean {
 
         RoleMapping[] roleMapping = serviceProvider.getPermissionAndRoleConfig().getRoleMappings();
 
-        if (roleMap != null && roleMapping != null && (roleMapping.length == roleMap.size())) {
+        if (roleMap != null && roleMapping != null && roleMapping.length == roleMap.size()) {
             return roleMap;
         }
 
@@ -400,7 +400,7 @@ public class ApplicationBean {
 
         ClaimMapping[] claimMapping = serviceProvider.getClaimConfig().getClaimMappings();
 
-        if (claimMap != null && claimMapping != null && (claimMapping.length == claimMap.size())) {
+        if (claimMap != null && claimMapping != null && claimMapping.length == claimMap.size()) {
             return claimMap;
         }
 

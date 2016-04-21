@@ -56,7 +56,7 @@ public class RequestPathAuthenticatorConfig extends LocalAuthenticatorConfig {
 
                 if (propertiesIter != null) {
                     while (propertiesIter.hasNext()) {
-                        OMElement propertiesElement = (OMElement) (propertiesIter.next());
+                        OMElement propertiesElement = (OMElement) propertiesIter.next();
                         Property prop = Property.build(propertiesElement);
                         propertiesArrList.add(prop);
                     }

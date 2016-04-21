@@ -67,7 +67,7 @@ public class ClaimMapping implements Serializable {
         Iterator<?> iter = claimMappingOM.getChildElements();
 
         while (iter.hasNext()) {
-            OMElement element = (OMElement) (iter.next());
+            OMElement element = (OMElement) iter.next();
             String elementName = element.getLocalName();
 
             if ("LocalClaim".equals(elementName)) {

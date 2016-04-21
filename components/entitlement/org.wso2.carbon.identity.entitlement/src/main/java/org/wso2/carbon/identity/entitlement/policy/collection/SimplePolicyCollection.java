@@ -101,7 +101,7 @@ public class SimplePolicyCollection implements PolicyCollection {
                     log.debug("Matching XACML policy found " + policy.getId().toString());
                 }
 
-                if ((combiningAlg == null) && (list.size() > 0)) {
+                if (combiningAlg == null && list.size() > 0) {
                     log.error("Too many applicable top-level policies");
                     throw new EntitlementException("Too many applicable top-level policies");
                 }
@@ -119,7 +119,7 @@ public class SimplePolicyCollection implements PolicyCollection {
                 }
                 return null;
             case 1:
-                return ((AbstractPolicy) (list.get(0)));
+                return (AbstractPolicy) list.get(0);
             default:
                 return new PolicySet(parentId, combiningAlg, null, list);
         }

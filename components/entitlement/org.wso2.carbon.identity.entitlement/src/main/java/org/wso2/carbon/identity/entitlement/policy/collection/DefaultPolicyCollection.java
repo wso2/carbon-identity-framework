@@ -195,7 +195,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
                     log.debug("Matching XACML policy found " + policy.getId().toString());
                 }
 
-                if ((combiningAlg == null) && (list.size() > 0)) {
+                if (combiningAlg == null && list.size() > 0) {
                     ArrayList<String> code = new ArrayList<String>();
                     code.add(Status.STATUS_PROCESSING_ERROR);
                     Status status = new Status(code, "too many applicable top-level policies");
@@ -215,7 +215,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
                 }
                 return null;
             case 1:
-                return ((AbstractPolicy) (list.get(0)));
+                return (AbstractPolicy) list.get(0);
             default:
                 return new PolicySet(parentId, combiningAlg, null, list);
         }
@@ -265,7 +265,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
      */
     public AbstractPolicy getEffectivePolicy(ArrayList<AbstractPolicy> policies) throws EntitlementException {
 
-        if ((combiningAlg == null) && (policies.size() > 0)) {
+        if (combiningAlg == null && policies.size() > 0) {
             log.error("Too many applicable top-level policies");
             throw new EntitlementException("Too many applicable top-level policies");
         }
@@ -277,7 +277,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
                 }
                 return null;
             case 1:
-                return ((AbstractPolicy) (policies.get(0)));
+                return (AbstractPolicy) policies.get(0);
             default:
                 return new PolicySet(parentId, combiningAlg, target, policies);
         }
@@ -306,7 +306,7 @@ public class DefaultPolicyCollection implements PolicyCollection {
         // for a match until we exhaust all known versions
         Iterator<AbstractPolicy> it = set.iterator();
         while (it.hasNext()) {
-            AbstractPolicy policy = (AbstractPolicy) (it.next());
+            AbstractPolicy policy = (AbstractPolicy) it.next();
             if (constraints.meetsConstraint(policy.getVersion())) {
                 // we found a valid version, so see if it's the right kind,
                 // and if it is then we return it

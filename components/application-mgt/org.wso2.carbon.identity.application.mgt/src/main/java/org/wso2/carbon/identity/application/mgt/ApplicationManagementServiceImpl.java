@@ -521,7 +521,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             for (ClaimMapping claimMap : claimMappings) {
                 claimUris.add(claimMap.getClaim().getClaimUri());
             }
-            String[] allLocalClaimUris = (claimUris.toArray(new String[claimUris.size()]));
+            String[] allLocalClaimUris = claimUris.toArray(new String[claimUris.size()]);
             if (ArrayUtils.isNotEmpty(allLocalClaimUris)) {
                 Arrays.sort(allLocalClaimUris);
             }

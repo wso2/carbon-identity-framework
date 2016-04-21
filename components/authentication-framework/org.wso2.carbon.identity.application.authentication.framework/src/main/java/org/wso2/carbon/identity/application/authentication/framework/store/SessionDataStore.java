@@ -277,7 +277,7 @@ public class SessionDataStore {
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
-                if ((OPERATION_STORE.equals(operation))) {
+                if (OPERATION_STORE.equals(operation)) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), new Timestamp
                             (resultSet.getLong(3)));
                 }
