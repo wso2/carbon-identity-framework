@@ -277,9 +277,10 @@ public class SessionDataStore {
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
+                long timestamp = resultSet.getLong(3)/1000000;
                 if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), new Timestamp
-                            (resultSet.getLong(3)));
+                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)),
+                            new Timestamp(timestamp));
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException |
@@ -331,7 +332,14 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
-            statement.setLong(1, timestamp.getTime()*1000000);
+
+            // create a nano time stamp relative to Unix Epoch
+            long currentStandardNano = timestamp.getTime() * 1000000;
+            long currentSystemNano = System.nanoTime();
+            currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                    .getNanoTimeReference());
+
+            statement.setLong(1, currentStandardNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -476,7 +484,14 @@ public class SessionDataStore {
                 }
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
-            statement.setLong(1, timestamp.getTime());
+
+            // create a nano time stamp relative to Unix Epoch
+            long currentStandardNano = timestamp.getTime() * 1000000;
+            long currentSystemNano = System.nanoTime();
+            currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                    .getNanoTimeReference());
+
+            statement.setLong(1, currentStandardNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -502,7 +517,14 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
-            statement.setLong(1, timestamp.getTime());
+
+            // create a nano time stamp relative to Unix Epoch
+            long currentStandardNano = timestamp.getTime() * 1000000;
+            long currentSystemNano = System.nanoTime();
+            currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                    .getNanoTimeReference());
+
+            statement.setLong(1, currentStandardNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
