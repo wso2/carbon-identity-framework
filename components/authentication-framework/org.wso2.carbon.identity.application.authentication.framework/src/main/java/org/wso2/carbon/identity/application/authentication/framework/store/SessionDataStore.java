@@ -277,9 +277,10 @@ public class SessionDataStore {
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
+                long timestamp = resultSet.getLong(3)/1000000;
                 if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), new Timestamp
-                            (resultSet.getLong(3)));
+                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)),
+                            new Timestamp(timestamp));
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException |
@@ -331,7 +332,8 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
-            statement.setLong(1, timestamp.getTime()*1000000);
+            long currentStandardNano = getCurrentStandardNano(timestamp);
+            statement.setLong(1, currentStandardNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -362,14 +364,7 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-
-        // create a nano time stamp relative to Unix Epoch
-        long currentStandardNano = timestamp.getTime() * 1000000;
-        long currentSystemNano = System.nanoTime();
-
-        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
-                .getNanoTimeReference());
-
+        long currentStandardNano = getCurrentStandardNano(timestamp);
         try {
             preparedStatement = connection.prepareStatement(sqlInsertSTORE);
             preparedStatement.setString(1, key);
@@ -401,11 +396,7 @@ public class SessionDataStore {
             return;
         }
         PreparedStatement preparedStatement = null;
-        // create a nano time stamp relative to Unix Epoch
-        long currentStandardNano = timestamp.getTime() * 1000000;
-        long currentSystemNano = System.nanoTime();
-        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
-                .getNanoTimeReference());
+        long currentStandardNano = getCurrentStandardNano(timestamp);
         try {
             preparedStatement = connection.prepareStatement(sqlInsertDELETE);
             preparedStatement.setString(1, key);
@@ -476,7 +467,8 @@ public class SessionDataStore {
                 }
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
-            statement.setLong(1, timestamp.getTime());
+            long currentStandardNano = getCurrentStandardNano(timestamp);
+            statement.setLong(1, currentStandardNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -502,7 +494,8 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
-            statement.setLong(1, timestamp.getTime());
+            long currentStandardNano = getCurrentStandardNano(timestamp);
+            statement.setLong(1, currentStandardNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -514,5 +507,15 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
         }
+    }
+
+    private long getCurrentStandardNano(Timestamp timestamp) {
+
+        // create a nano time stamp relative to Unix Epoch
+        long currentStandardNano = timestamp.getTime() * 1000000;
+        long currentSystemNano = System.nanoTime();
+        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                .getNanoTimeReference());
+        return currentStandardNano;
     }
 }
