@@ -886,13 +886,19 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 try {
                     identityDataStore.store(identityDTO, userStoreManager);
                     int tenantId = userStoreManager.getTenantId();
+
+                    String domainName = ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getRealmConfiguration().
+                            getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+
+                    String usernameWithDomain = IdentityUtil.addDomainToName(userName, domainName);
+
                     //case of enabling a disabled user account
                     if (wasAccountDisabled && !isAccountDisabled) {
-                        sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
+                        sendEmail(usernameWithDomain, tenantId, IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
 
                         //case of disabling an enabled account
                     } else if (!wasAccountDisabled && isAccountDisabled) {
-                        sendEmail(userName, tenantId, IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
+                        sendEmail(usernameWithDomain, tenantId, IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
                     }
 
                 } catch (IdentityException e) {
