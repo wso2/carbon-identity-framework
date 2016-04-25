@@ -305,7 +305,8 @@
                                                 <nobr>
                                                     <fmt:message key="enter.subscriber.search"/>
                                                     <input type="text" name="subscriberSearchString"
-                                                           value="<%= subscriberSearchString != null? subscriberSearchString :""%>"/>&nbsp;
+                                                           value="<%=subscriberSearchString != null ?
+                                                           Encode.forHtmlAttribute(subscriberSearchString) : "" %>"/>&nbsp;
                                                 </nobr>
                                             </td>
                                             <td style="border:0; !important">
