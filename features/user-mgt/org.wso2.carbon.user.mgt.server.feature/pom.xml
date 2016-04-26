@@ -50,6 +50,10 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.user.store.configuration.deployer</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity</groupId>
+            <artifactId>org.wso2.carbon.identity.user.store.count</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -87,10 +91,12 @@
                                 <bundleDef>
                                     org.wso2.carbon.identity:org.wso2.carbon.identity.user.store.configuration.deployer
                                 </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity:org.wso2.carbon.identity.user.store.count</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>
-                                    org.wso2.carbon.core.server:${carbon.kernel.version}
+                                    org.wso2.carbon.core.server:compatible:${carbon.kernel.version}
                                 </importFeatureDef>
                             </importFeatures>
                         </configuration>

@@ -22,13 +22,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 import org.wso2.carbon.stratos.common.exception.StratosException;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 
-public class TenantManagementListener implements TenantMgtListener {
+public class TenantManagementListener extends AbstractIdentityTenantMgtListener {
 
     private static final int EXEC_ORDER = 21;
     private static final Log log = LogFactory.getLog(TenantManagementListener.class);
@@ -56,49 +57,13 @@ public class TenantManagementListener implements TenantMgtListener {
     }
 
     @Override
-    public void onTenantUpdate(TenantInfoBean tenantInfo) throws StratosException {
-        // It is not required to implement this method for IdP mgt.
-    }
-
-    @Override
-    public void onPreDelete(int tenantId) throws StratosException {
-
-    }
-
-    @Override
     public void onTenantDelete(int i) {
         //todo: IDENTITY-2639
     }
 
     @Override
-    public void onTenantRename(int tenantId, String oldDomainName,
-                               String newDomainName) throws StratosException {
-        // It is not required to implement this method for IdP mgt.
-    }
-
-    @Override
     public int getListenerOrder() {
         return EXEC_ORDER;
-    }
-
-    @Override
-    public void onTenantInitialActivation(int tenantId) throws StratosException {
-        // It is not required to implement this method for IdP mgt.
-    }
-
-    @Override
-    public void onTenantActivation(int tenantId) throws StratosException {
-        // It is not required to implement this method for IdP mgt.
-    }
-
-    @Override
-    public void onTenantDeactivation(int tenantId) throws StratosException {
-        // It is not required to implement this method for IdP mgt.
-    }
-
-    @Override
-    public void onSubscriptionPlanChange(int tenentId, String oldPlan, String newPlan) throws StratosException {
-        // It is not required to implement this method for IdP mgt.
     }
 
 }

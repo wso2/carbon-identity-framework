@@ -20,7 +20,7 @@
 
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
-        <artifactId>carbon-identity</artifactId>
+        <artifactId>identity-framework</artifactId>
         <version>5.0.9-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
@@ -37,7 +37,7 @@
         <module>org.wso2.carbon.identity.application.mgt.stub</module>
         <module>org.wso2.carbon.identity.entitlement.stub</module>
         <!--<module>org.wso2.carbon.identity.mgt.stub</module>-->
-        <module>org.wso2.carbon.identity.event.mgt.stub</module>
+        <module>org.wso2.carbon.identity.event.stub</module>
         <module>org.wso2.carbon.identity.provider.stub</module>
         <module>org.wso2.carbon.identity.user.profile.stub</module>
         <module>org.wso2.carbon.identity.user.registration.stub</module>
@@ -47,6 +47,7 @@
         <module>org.wso2.carbon.user.mgt.stub</module>
         <module>org.wso2.carbon.user.mgt.workflow.stub</module>
         <module>org.wso2.carbon.identity.workflow.mgt.stub</module>
+        <module>org.wso2.carbon.identity.user.store.count.stub</module>
     </modules>
 
     <build>

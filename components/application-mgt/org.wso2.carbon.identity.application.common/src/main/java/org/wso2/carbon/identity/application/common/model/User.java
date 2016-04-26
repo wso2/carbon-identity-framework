@@ -20,6 +20,8 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.Serializable;
@@ -122,6 +124,37 @@ public class User implements Serializable {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+
+        User user = (User) o;
+
+        if (!tenantDomain.equals(user.tenantDomain)) return false;
+
+        boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreCaseSensitive(userStoreDomain,
+                IdentityTenantUtil.getTenantId(tenantDomain));
+
+        if(isUsernameCaseSensitive) {
+            if (!userName.equals(user.userName)) return false;
+        } else {
+            if (!userName.equalsIgnoreCase(user.userName)) return false;
+        }
+
+        if (!userStoreDomain.equals(user.userStoreDomain)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = tenantDomain.hashCode();
+        result = 31 * result + userStoreDomain.hashCode();
+        result = 31 * result + userName.hashCode();
+        return result;
+    }
+
 
     @Override
     public String toString() {

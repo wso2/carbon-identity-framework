@@ -20,7 +20,7 @@
 
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
-        <artifactId>identity-mgt-feature</artifactId>
+        <artifactId>identity-event-feature</artifactId>
         <version>5.0.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -70,7 +70,7 @@
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.event.stub</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

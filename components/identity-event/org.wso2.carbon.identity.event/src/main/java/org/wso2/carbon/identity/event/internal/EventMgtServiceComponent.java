@@ -74,8 +74,6 @@ public class EventMgtServiceComponent {
 
     protected void activate(ComponentContext context) {
 
-//        context.getBundleContext().registerService(EventHandler.class.getName(),
-//                new AccountLockEventHandler(), null);
         context.getBundleContext().registerService(TenantMgtListener.class.getName(),
                 new TenantCreationEventListener(), null);
         try {
@@ -137,7 +135,6 @@ public class EventMgtServiceComponent {
         try {
             EventMgtService identityMgtService = EventMgtServiceDataHolder.getInstance().getEventMgtService();
             Properties properties = identityMgtService.addConfiguration(MultitenantConstants.SUPER_TENANT_ID);
-//            IdentityMgtConfigGlobal.getInstance().setGlobalConfiguration(properties);
         } catch (EventMgtException ex) {
             log.error("Error when storing super tenant configurations.");
         }

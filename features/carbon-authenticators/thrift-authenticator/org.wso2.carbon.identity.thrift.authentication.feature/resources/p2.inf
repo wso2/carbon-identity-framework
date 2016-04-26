@@ -1,0 +1,7 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/conf); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/conf/identity); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../resources/security/identity); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../conf/); \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.thrift.authentication_${feature.version}/thrift-authentication.xml,target:${installFolder}/../../conf/identity/thrift-authentication.xml,overwrite:true);\

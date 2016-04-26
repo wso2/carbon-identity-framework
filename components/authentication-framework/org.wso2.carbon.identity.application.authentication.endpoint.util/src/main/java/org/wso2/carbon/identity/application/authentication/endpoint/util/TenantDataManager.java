@@ -62,7 +62,6 @@ public class TenantDataManager {
     private static List<String> tenantDomainList = new ArrayList<String>();
     private static boolean initialized = false;
     private static boolean initAttempted = false;
-    private static boolean identityAvailable;
 
     private TenantDataManager() {
     }
@@ -82,20 +81,17 @@ public class TenantDataManager {
                 File configFile = new File(configFilePath);
 
                 if (configFile.exists()) {
-                    identityAvailable = true;
                     log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " + Constants
                             .TenantConstants.CONFIG_RELATIVE_PATH);
                     inputStream = new FileInputStream(configFile);
 
                     prop.load(inputStream);
-
                     if (isSecuredPropertyAvailable(prop)) {
                         // Resolve encrypted properties with secure vault
                         resolveSecrets(prop);
                     }
 
                 } else {
-                    identityAvailable = false;
                     log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from authentication endpoint " +
                             "webapp");
 
@@ -103,7 +99,6 @@ public class TenantDataManager {
                             .TenantConstants.CONFIG_FILE_NAME);
                     prop.load(inputStream);
                 }
-
                 usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
 
                 carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
@@ -184,11 +179,11 @@ public class TenantDataManager {
      * @return Property value
      */
     protected static String getPropertyValue(String key) {
-        if (key == Constants.SERVICES_URL && identityAvailable) {
-            return IdentityUtil.getServerURL(prop.getProperty(key),true, true);
-        } else {
-            return prop.getProperty(key);
+        if ((Constants.SERVICES_URL.equals(key)) && !prop.containsKey(Constants.SERVICES_URL)) {
+            String serviceUrl = IdentityUtil.getServicePath();
+            return IdentityUtil.getServerURL(serviceUrl, true, true);
         }
+        return prop.getProperty(key);
     }
 
     /**

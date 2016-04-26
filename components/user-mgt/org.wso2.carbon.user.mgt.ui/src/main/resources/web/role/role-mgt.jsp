@@ -18,6 +18,7 @@
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
@@ -31,8 +32,10 @@
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementWorkflowServiceClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserStoreCountClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Arrays" %>
@@ -60,7 +63,7 @@
     List<FlaggedName> datasList= null;
     FlaggedName[] roles = null;
     FlaggedName exceededDomains = null;
-    String[] domainNames = null;    
+    String[] domainNames = null;
     int pageNumber = 0;
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
@@ -75,6 +78,8 @@
     Set<String> showDeletePendingRolesList = new LinkedHashSet<String>();
     Set<FlaggedName> aggregateRoleList = new LinkedHashSet<FlaggedName>();
     Set<FlaggedName> removeRoleElement = new LinkedHashSet<FlaggedName>();
+    Set<String> countableUserStores = new LinkedHashSet<String>();
+    Map<String, String> roleCount = new HashMap<String, String>();
 
     // clear session data
     session.removeAttribute("roleBean");
@@ -101,7 +106,20 @@
         newFilter = true;
     }
 
+
+    //  search filter for count
+    String selectedCountDomain = request.getParameter("countDomain");
+    if (StringUtils.isBlank(selectedCountDomain)) {
+        selectedCountDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER);
+        if (StringUtils.isBlank(selectedCountDomain)) {
+            selectedCountDomain = UserAdminUIConstants.ALL_DOMAINS;
+        }
+    } else {
+        newFilter = true;
+    }
+
     session.setAttribute(UserAdminUIConstants.ROLE_LIST_DOMAIN_FILTER, selectedDomain.trim());
+    session.setAttribute(UserAdminUIConstants.ROLE_LIST_COUNT_DOMAIN_FILTER, selectedCountDomain.trim());
 
     String filter = request.getParameter(UserAdminUIConstants.ROLE_LIST_FILTER);
     if (StringUtils.isBlank(filter)) {
@@ -118,6 +136,20 @@
     }
 
 
+    String countFilter = request.getParameter(UserAdminUIConstants.ROLE_COUNT_FILTER);
+    if (StringUtils.isBlank(countFilter)) {
+        countFilter = (java.lang.String) session.getAttribute(UserAdminUIConstants.ROLE_COUNT_FILTER);
+        if (StringUtils.isBlank(countFilter)) {
+            countFilter = "%";
+        }
+    } else {
+        if (countFilter.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)) {
+            selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
+            session.removeAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
+        }
+        newFilter = true;
+    }
+
     String modifiedFilter = filter.trim();
     if (!UserAdminUIConstants.ALL_DOMAINS.equalsIgnoreCase(selectedDomain)) {
         modifiedFilter = selectedDomain + UserAdminUIConstants.DOMAIN_SEPARATOR + filter;
@@ -125,6 +157,7 @@
     }
 
     session.setAttribute(UserAdminUIConstants.ROLE_LIST_FILTER, filter.trim());
+    session.setAttribute(UserAdminUIConstants.ROLE_COUNT_FILTER, countFilter.trim());
 
     String currentUser = (String) session.getAttribute("logged-user");
     userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
@@ -169,8 +202,20 @@
             ConfigurationContext configContext =
                     (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
+            UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
+            countableUserStores = countClient.getCountableUserStores();
+
+            countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
+            countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
+            countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
+
+            if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                roleCount = countClient.countRoles(countFilter);
+            } else {
+                roleCount.put(selectedCountDomain, String.valueOf(countClient.countRolesInDomain(countFilter, selectedCountDomain)));
+            }
 
             boolean sharedRoleEnabled = client.isSharedRolesEnabled();
             session.setAttribute(UserAdminUIConstants.SHARED_ROLE_ENABLED, sharedRoleEnabled);
@@ -374,6 +419,89 @@
 
                     </tr>
                     </tbody>
+                </table>
+            </form>
+
+            <form name="countForm" method="post" action="role-mgt.jsp">
+                <table class="styledLeft">
+                    <%
+                        if (countableUserStores != null && !countableUserStores.isEmpty()) {
+                    %>
+                    <thead>
+                    <tr>
+                        <th colspan="2"><fmt:message key="role.count"/></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="select.domain.search"/></td>
+                        <td><select id="countDomain" name="countDomain">
+                            <%
+                                for (String domainName : countableUserStores) {
+                                    if (selectedDomain.equals(domainName)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                                    }
+                                }
+                            %>
+                        </select>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="role.count"/></td>
+                        <td>
+                            <input type="text" name="<%=UserAdminUIConstants.ROLE_COUNT_FILTER%>"
+                                   value="<%=Encode.forHtmlAttribute(countFilter)%>" label="<fmt:message key="count.roles"/>"
+                                   black-list-patterns="xml-meta-exists"/>
+
+                            <input class="button" type="submit"
+                                   value="<fmt:message key="role.count"/>"/>
+                        </td>
+                    </tr>
+
+                    <%
+                        Iterator it = roleCount.entrySet().iterator();
+                        String key = null;
+                        String value = null;
+                        while (it.hasNext()) {
+                            Map.Entry pair = (Map.Entry)it.next();
+                            key = (String) pair.getKey();
+                            value = (String) pair.getValue();
+                    %>
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><%=key%></td>
+                        <td>
+                            <input type="text" readonly=true name="<%=UserAdminUIConstants.ROLE_COUNT%>"
+                                   value="<%=Encode.forHtmlAttribute(value)%>" />
+
+                        </td>
+                    </tr>
+
+                    <%        it.remove();
+                        }
+                    %>
+
+
+                    </tbody>
+                    <%
+                        }
+                    %>
                 </table>
             </form>
             <p>&nbsp;</p>

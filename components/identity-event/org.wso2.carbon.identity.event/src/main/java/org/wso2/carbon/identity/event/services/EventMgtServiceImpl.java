@@ -66,7 +66,6 @@ public class EventMgtServiceImpl implements EventMgtService {
     @Override
     public Properties addConfiguration(int tenantId) throws EventMgtException {
 
-
         Properties properties = new Properties();
         Map<String, ModuleConfiguration> moduleConfiguration = EventMgtConfigBuilder.getInstance()
                 .getModuleConfiguration();

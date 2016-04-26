@@ -61,6 +61,10 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.user.store.configuration.stub</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity</groupId>
+            <artifactId>org.wso2.carbon.identity.user.store.count.stub</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -103,10 +107,13 @@
                                 <bundleDef>
                                     org.wso2.carbon.identity:org.wso2.carbon.identity.user.store.configuration
                                 </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity:org.wso2.carbon.identity.user.store.count.stub
+                                </bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core.ui:${carbon.kernel.version} </importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core.ui:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core.ui:compatible:${carbon.kernel.version} </importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.core.ui:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>
