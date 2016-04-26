@@ -184,8 +184,10 @@ public class UserStoreCountClient {
      */
     private Map<String, String> convertArrayToMap(PairDTO[] pairDTOs) {
         Map<String, String> map = new HashMap<>();
-        for (PairDTO pairDTO : pairDTOs) {
-            map.put(pairDTO.getKey(), pairDTO.getValue());
+        if (pairDTOs != null) {
+            for (PairDTO pairDTO : pairDTOs) {
+                map.put(pairDTO.getKey(), pairDTO.getValue());
+            }
         }
         return map;
     }

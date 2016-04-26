@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDataHolder;
+import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetriever;
+import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -91,7 +93,7 @@ public class UserStoreCountUtils {
             realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
 
             while (realmConfiguration != null) {
-                if (realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
+                if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
                     userStoreList.add(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
                 }
                 realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
@@ -128,13 +130,30 @@ public class UserStoreCountUtils {
 
         RealmConfiguration realmConfiguration = getUserStoreList().get(domain);
         if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
+            String retriever = realmConfiguration.getUserStoreProperty(countRetrieverClass);
             UserStoreCountRetriever userStoreCountRetriever = UserStoreCountDataHolder.getInstance().
-                    getUserStoreCountRetrievers().get(realmConfiguration.getUserStoreProperty(countRetrieverClass));
+                    getUserStoreCountRetrievers().get(retriever);
+            if (userStoreCountRetriever == null) {
+                throw new UserStoreCounterException("Could not create an instance of class: " + retriever + " for " +
+                        "the domain: " + domain);
+            }
             userStoreCountRetriever.init(realmConfiguration);
             return userStoreCountRetriever;
         } else {
             return null;
         }
+    }
+
+    /**
+     * Create an instance of the given count retriever for internal domain
+     *
+     * @return
+     * @throws UserStoreCounterException
+     */
+    public static UserStoreCountRetriever getInternalCounterInstance() throws UserStoreCounterException {
+        return UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().get(
+                InternalCountRetriever.class.getName());
+
     }
 
     /**
@@ -168,5 +187,13 @@ public class UserStoreCountUtils {
         }
 
         return pairs;
+    }
+
+    public static Long getInternalRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(UserCoreConstants.INTERNAL_DOMAIN+"%"+filter);
+    }
+
+    public static Long getApplicationRoleCount(String filter) throws UserStoreCounterException {
+        return getInternalCounterInstance().countRoles(InternalStoreCountConstants.APPLICATION_DOMAIN+"%" +filter + "%");
     }
 }

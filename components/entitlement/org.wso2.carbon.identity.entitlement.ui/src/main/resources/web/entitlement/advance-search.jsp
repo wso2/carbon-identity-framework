@@ -211,7 +211,7 @@
             <td class="leftCol-small"><fmt:message key='subject.id'/><span class="required">*</span></td>
             <td colspan="2">
             <input type="text" name="subjectId" id="subjectId"
-                       value="<%=subjectId%>" class="text-box-big"/>
+                       value="<%=Encode.forHtmlAttribute(subjectId)%>" class="text-box-big"/>
             </td>
         </tr>
 

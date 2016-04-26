@@ -54,7 +54,7 @@
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input id="password" name="password" type="password" class="form-control"
-               placeholder="Password">
+               placeholder="Password" autocomplete="off">
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute

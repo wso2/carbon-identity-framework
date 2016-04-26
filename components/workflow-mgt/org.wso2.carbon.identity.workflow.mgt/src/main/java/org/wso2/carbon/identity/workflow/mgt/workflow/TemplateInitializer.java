@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.workflow.mgt.exception.WorkflowException;
 import java.util.List;
 
 /**
- * This interface serves as theentension point for external workflow templates..
+ * This interface serves as the extension point for external workflow templates.
  */
 public interface TemplateInitializer {
 

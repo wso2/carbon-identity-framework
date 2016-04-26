@@ -70,8 +70,8 @@
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.claim.mgt.stub</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:${carbon.kernel.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core.ui:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.core.ui:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

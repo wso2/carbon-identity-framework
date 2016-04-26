@@ -61,6 +61,7 @@ public class UserAdminUIConstants {
     public static final String USER_LIST_DOMAIN_VIEW_ROLE_FILTER = "org.wso2.carbon.user.domain.view.role.filter";
     public static final String USER_LIST_DOMAIN_ASSIGN_ROLE_FILTER = "org.wso2.carbon.user.domain.assign.filter";
     public static final String USER_CLAIM_FILTER = "org.wso2.carbon.user.claim.filter";
+    public static final String USER_CLAIM_COUNT_FILTER = "org.wso2.carbon.user.claim.count.filter";
 
     public static final String ROLE_LIST_FILTER = "org.wso2.carbon.role.filter";
     public static final String ROLE_LIST_UNASSIGNED_USER_FILTER = "org.wso2.carbon.role.unassigned.user.filter";
@@ -102,6 +103,7 @@ public class UserAdminUIConstants {
     public static final String ROLE_LIST_ADD_ROLE_USER_CACHE_EXCEEDED = "role.list.add.role.cache.exceeded.domains";
     
     public static final String SHARED_ROLE_ENABLED = "shared.role.enabled";
+    public static final String SELECT = "Select";
 
     private UserAdminUIConstants(){
 

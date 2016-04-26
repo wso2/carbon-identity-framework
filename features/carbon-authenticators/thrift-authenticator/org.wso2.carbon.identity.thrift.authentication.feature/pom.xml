@@ -96,8 +96,8 @@
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.authenticator.thrift</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:${carbon.kernel.version}</importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.core:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

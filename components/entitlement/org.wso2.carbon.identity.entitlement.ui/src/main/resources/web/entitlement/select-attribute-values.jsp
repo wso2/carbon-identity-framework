@@ -358,7 +358,7 @@
                         </td>
                         <td>
                             <input type="hidden" name="selectedDataLevel"
-                                   id="selectedDataLevel" value="<%=Encode.forHtmlAttribute(i)%>" />
+                                   id="selectedDataLevel" value="<%=i%>" />
                         </td>
                     </tr>
                 <%
@@ -434,7 +434,7 @@
                                 </div>
                             </td>
                             <td style="width:50px;vertical-align: middle;border-bottom:solid 1px #ccc">
-                                <input class="button" value=">>" onclick="pickNames(<%=Encode.forJavaScriptAttribute(finderDataHolder.getFullPathSupported())%>)" style="width:30px;margin:10px;" />
+                                <input class="button" value=">>" onclick="pickNames(<%=finderDataHolder.getFullPathSupported()%>)" style="width:30px;margin:10px;" />
                             </td>
                             <td style="border:solid 1px #ccc"><div style="overflow: auto;height:300px" id="listView"></div>
                             </td>
@@ -453,7 +453,7 @@
                          <%
                         if(selectedTree != null){
                         %>
-                            <input type="button" onclick="submitForm(<%=Encode.forJavaScriptAttribute(finderDataHolder.getFullPathSupported())%>)" value="<fmt:message key="add"/>"  class="button"/>
+                            <input type="button" onclick="submitForm(<%=finderDataHolder.getFullPathSupported()%>)" value="<fmt:message key="add"/>"  class="button"/>
                         <%
                             }
                         %>

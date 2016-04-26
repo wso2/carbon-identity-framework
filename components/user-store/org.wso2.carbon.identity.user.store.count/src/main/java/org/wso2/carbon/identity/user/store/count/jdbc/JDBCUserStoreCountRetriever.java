@@ -20,12 +20,17 @@ package org.wso2.carbon.identity.user.store.count.jdbc;
 import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.api.UserRealm;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
@@ -39,7 +44,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
     private static Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
     private RealmConfiguration realmConfiguration = null;
-    private int tenantId = -1234;
+    private int tenantId = MultitenantConstants.SUPER_TENANT_ID;
 
     public JDBCUserStoreCountRetriever() {
 
@@ -47,7 +52,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
     public void init(RealmConfiguration realmConfiguration) {
         this.realmConfiguration = realmConfiguration;
-        this.tenantId = realmConfiguration.getTenantId();
+        this.tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     }
 
 
@@ -127,12 +132,24 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
+        String mappedAttribute = null;
 
         try {
+            String domainName = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            if (StringUtils.isEmpty(domainName)) {
+                domainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+            }
+
+            UserRealm userRealm = UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId);
+
+            if (StringUtils.isNotEmpty(claimURI)) {
+                mappedAttribute = userRealm.getClaimManager().getAttributeName(domainName, claimURI);
+            }
+
             dbConnection = getDBConnection(realmConfiguration);
             sqlStmt = JDBCUserStoreMetricsConstants.COUNT_CLAIM_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            prepStmt.setString(1, claimURI);
+            prepStmt.setString(1, mappedAttribute);
             prepStmt.setInt(2, tenantId);
             prepStmt.setString(3, "%" + valueFilter + "%");
             prepStmt.setQueryTimeout(searchTime);
@@ -191,7 +208,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
                 prepStmt.setString(i, "%" + pair.getValue() + "%");
 
                 i = i++;
-                prepStmt.setInt(i, (Integer) pair.getValue());
+                prepStmt.setInt(i, tenantId);
             }
 
             prepStmt.setQueryTimeout(searchTime);
@@ -221,14 +238,14 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         Connection dbConnection = null;
         DataSource dataSource = DatabaseUtil.createUserStoreDataSource(realmConfiguration);
 
-        if(dataSource != null) {
-             dbConnection = DatabaseUtil.getDBConnection(dataSource);
+        if (dataSource != null) {
+            dbConnection = DatabaseUtil.getDBConnection(dataSource);
         }
 
         //if primary user store, DB connection can be same as realm data source.
-        if(dbConnection == null && realmConfiguration.isPrimary()){
+        if (dbConnection == null && realmConfiguration.isPrimary()) {
             dbConnection = IdentityDatabaseUtil.getUserDBConnection();
-        } else if (dbConnection == null){
+        } else if (dbConnection == null) {
             throw new UserStoreException("Could not create a database connection to " +
                     realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
         } else {
@@ -237,6 +254,6 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         dbConnection.setAutoCommit(false);
         dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         return dbConnection;
-        }
+    }
 
 }

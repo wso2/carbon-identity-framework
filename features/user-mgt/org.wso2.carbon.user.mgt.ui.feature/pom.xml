@@ -112,8 +112,8 @@
                                 </bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core.ui:${carbon.kernel.version} </importFeatureDef>
-                                <importFeatureDef>org.wso2.carbon.identity.core.ui:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core.ui:compatible:${carbon.kernel.version} </importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.core.ui:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

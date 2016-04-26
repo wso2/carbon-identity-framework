@@ -55,7 +55,8 @@ public abstract class AbstractWorkflow {
      * @param metaDataXML Parameter Metadata XML string
      * @throws WorkflowRuntimeException
      */
-    public AbstractWorkflow(Class<? extends TemplateInitializer> templateInitializerClass, Class<? extends WorkFlowExecutor> workFlowExecutorClass, String metaDataXML) throws WorkflowRuntimeException {
+    public AbstractWorkflow(Class<? extends TemplateInitializer> templateInitializerClass, Class<? extends
+            WorkFlowExecutor> workFlowExecutorClass, String metaDataXML) throws WorkflowRuntimeException {
         try {
 
             this.templateInitializerClass = templateInitializerClass ;
