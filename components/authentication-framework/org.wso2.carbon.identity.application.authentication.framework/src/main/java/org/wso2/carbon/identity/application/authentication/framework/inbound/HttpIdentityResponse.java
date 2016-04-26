@@ -14,19 +14,17 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import javax.servlet.http.Cookie;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InboundResponse implements Serializable {
-
-    private static final long serialVersionUID = 263727280546827577L;
+public class HttpIdentityResponse {
 
     private Map<String, String> headers = new HashMap<String, String>();
     private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
@@ -76,7 +74,7 @@ public class InboundResponse implements Serializable {
         return body;
     }
 
-    protected InboundResponse(InboundResponseBuilder builder) {
+    protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
         this.contentType = builder.contentType;
@@ -86,7 +84,7 @@ public class InboundResponse implements Serializable {
         this.body = builder.body;
     }
 
-    public static class InboundResponseBuilder {
+    public static class HttpIdentityResponseBuilder {
 
         private Map<String, String> headers = new HashMap<String, String>();
         private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
@@ -96,20 +94,12 @@ public class InboundResponse implements Serializable {
         private String redirectURL;
         private String body;
 
-        public String getName(){
-            return "InboundResponseBuilder";
-        }
-
-        public int getPriority() {
-            return 0;
-        }
-
-        public InboundResponseBuilder setHeaders(Map<String, String> headers) {
+        public HttpIdentityResponseBuilder setHeaders(Map<String, String> headers) {
             this.headers = headers;
             return this;
         }
 
-        public InboundResponseBuilder addHeader(String name, String value) {
+        public HttpIdentityResponseBuilder addHeader(String name, String value) {
             String newValue = value;
             if(this.headers.containsKey(name)) {
                 String existingValue = headers.get(name);
@@ -119,7 +109,7 @@ public class InboundResponse implements Serializable {
             return this;
         }
 
-        public InboundResponseBuilder addHeaders(Map<String, String> headers) {
+        public HttpIdentityResponseBuilder addHeaders(Map<String, String> headers) {
             for(Map.Entry<String,String> header:headers.entrySet()) {
                 if(this.headers.containsKey(header.getKey())) {
                     throw FrameworkRuntimeException.error("Headers map trying to override existing " +
@@ -130,12 +120,12 @@ public class InboundResponse implements Serializable {
             return this;
         }
 
-        public InboundResponseBuilder setCookies(Map<String, Cookie> cookies) {
+        public HttpIdentityResponseBuilder setCookies(Map<String, Cookie> cookies) {
             this.cookies = cookies;
             return this;
         }
 
-        public InboundResponseBuilder addCookie(Cookie cookie) {
+        public HttpIdentityResponseBuilder addCookie(Cookie cookie) {
             if(this.cookies.containsKey(cookie.getName())) {
                 throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
                         "cookie " + cookie.getName());
@@ -144,7 +134,7 @@ public class InboundResponse implements Serializable {
             return this;
         }
 
-        public InboundResponseBuilder addCookies(Map<String,Cookie> cookies) {
+        public HttpIdentityResponseBuilder addCookies(Map<String,Cookie> cookies) {
             for(Map.Entry<String,Cookie> cookie:cookies.entrySet()) {
                 if(this.cookies.containsKey(cookie.getKey())) {
                     throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
@@ -155,17 +145,17 @@ public class InboundResponse implements Serializable {
             return this;
         }
 
-        public InboundResponseBuilder setContentType(String contentType) {
+        public HttpIdentityResponseBuilder setContentType(String contentType) {
             this.contentType = contentType;
             return this;
         }
 
-        public InboundResponseBuilder setParameters(Map<String,String[]> parameters) {
+        public HttpIdentityResponseBuilder setParameters(Map<String,String[]> parameters) {
             this.parameters = parameters;
             return this;
         }
 
-        public InboundResponseBuilder addParameter(String name, String value) {
+        public HttpIdentityResponseBuilder addParameter(String name, String value) {
             if(this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                         "key " + name);
@@ -174,7 +164,7 @@ public class InboundResponse implements Serializable {
             return this;
         }
 
-        public InboundResponseBuilder addParameter(String name, String[] values) {
+        public HttpIdentityResponseBuilder addParameter(String name, String[] values) {
             if(this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                         "key " + name);
@@ -183,7 +173,7 @@ public class InboundResponse implements Serializable {
             return this;
         }
 
-        public InboundResponseBuilder addParameters(Map<String,String[]> parameters) {
+        public HttpIdentityResponseBuilder addParameters(Map<String,String[]> parameters) {
             for(Map.Entry<String,String[]> parameter:parameters.entrySet()) {
                 if(this.parameters.containsKey(parameter.getKey())) {
                     throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
@@ -194,23 +184,23 @@ public class InboundResponse implements Serializable {
             return this;
         }
 
-        public InboundResponseBuilder setStatusCode(int statusCode) {
+        public HttpIdentityResponseBuilder setStatusCode(int statusCode) {
             this.statusCode = statusCode;
             return this;
         }
 
-        public InboundResponseBuilder setRedirectURL(String redirectURL) {
+        public HttpIdentityResponseBuilder setRedirectURL(String redirectURL) {
             this.redirectURL = redirectURL;
             return this;
         }
 
-        public InboundResponseBuilder setBody(String body) {
+        public HttpIdentityResponseBuilder setBody(String body) {
             this.body = body;
             return this;
         }
 
-        public InboundResponse build() {
-            return new InboundResponse(this);
+        public HttpIdentityResponse build() {
+            return new HttpIdentityResponse(this);
         }
 
     }

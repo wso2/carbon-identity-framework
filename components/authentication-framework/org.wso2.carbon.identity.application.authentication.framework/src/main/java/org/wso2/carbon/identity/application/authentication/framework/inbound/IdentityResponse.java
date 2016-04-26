@@ -18,26 +18,31 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import org.wso2.carbon.identity.core.bean.context.MessageContext;
-
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
-public class InboundMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext
-        implements Serializable {
+/*
+ * Abstract type that represents any return value from an IdentityProcessor
+ */
+public class IdentityResponse implements Serializable {
 
-    private static final long serialVersionUID = 1146964596245780217L;
+    private static final long serialVersionUID = 1348704275109461974L;
 
-	protected InboundRequest request;
-    protected Map<T1,T2> parameters = new HashMap<>();
+    protected IdentityMessageContext context;
 
-    public InboundMessageContext(InboundRequest request, Map<T1, T2> parameters){
-        super(parameters);
-        this.request = request;
+    protected IdentityResponse(IdentityResponseBuilder builder) {
+        this.context = builder.context;
     }
 
-	public InboundRequest getRequest() {
-		return request;
-	}
+    public static class IdentityResponseBuilder {
+
+        protected IdentityMessageContext context;
+
+        public IdentityResponseBuilder(IdentityMessageContext context) {
+            this.context = context;
+        }
+
+        public IdentityResponse build() {
+            return new IdentityResponse(this);
+        }
+    }
 }

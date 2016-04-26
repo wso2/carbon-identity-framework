@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.lang3.StringUtils;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -34,53 +35,90 @@ import java.util.Map;
 
 public class IdentityServlet extends HttpServlet {
 
-    private InboundRequestManager manager = new InboundRequestManager();
+    private IdentityProcessCoordinator manager = new IdentityProcessCoordinator();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        doPost(request, response);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
             IOException {
 
-        process(request, response);
+        HttpIdentityResponse httpIdentityResponse = process(request, response);
+        processHttpResponse(httpIdentityResponse, request, response);
     }
 
-    private void process(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * Process request/response
+     *
+     * @param request   HttpServletRequest
+     * @param response  HttpServletResponse
+     */
+    private HttpIdentityResponse process(HttpServletRequest request, HttpServletResponse response) {
 
-        InboundRequestFactory factory = getInboundRequestFactory(request, response);
-        if (factory == null) {
-            throw new FrameworkRuntimeException("No inbound request factory found to create the request");
+        HttpIdentityRequestFactory factory = getIdentityRequestFactory(request, response);
+
+        IdentityRequest identityRequest = null;
+        HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder = null;
+
+        try {
+            identityRequest = factory.create(request, response).build();
+            if(identityRequest == null){
+                throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!");
+            }
+        } catch (FrameworkClientException e) {
+            responseBuilder = factory.handleException(e, request, response);
+            if(responseBuilder == null){
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+            }
+            return responseBuilder.build();
         }
 
-        InboundRequest inboundRequest = factory.create(request, response);
+        IdentityResponse identityResponse = null;
+        HttpIdentityResponseFactory responseFactory = null;
 
-        InboundResponse inboundResponse = manager.process(inboundRequest);
+        try {
+            identityResponse = manager.process(identityRequest);
+            if(identityResponse == null){
+                throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!");
+            }
+            responseFactory = getIdentityResponseFactory(identityResponse);
+            responseBuilder = responseFactory.create(identityResponse);
+            if(responseBuilder == null){
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+            }
+            return responseBuilder.build();
+        } catch (FrameworkException e) {
+            responseFactory = getIdentityResponseFactory(e);
+            responseBuilder = responseFactory.handleException(e);
+            if(responseBuilder == null){
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+            }
+            return responseBuilder.build();
+        }
+    }
 
-        for(Map.Entry<String,String> entry:inboundResponse.getHeaders().entrySet()) {
+    private void processHttpResponse(HttpIdentityResponse httpIdentityResponse, HttpServletRequest request,
+                                     HttpServletResponse response) {
+
+        for(Map.Entry<String,String> entry: httpIdentityResponse.getHeaders().entrySet()) {
             response.addHeader(entry.getKey(), entry.getValue());
         }
-        for(Map.Entry<String,Cookie> entry:inboundResponse.getCookies().entrySet()) {
+        for(Map.Entry<String,Cookie> entry: httpIdentityResponse.getCookies().entrySet()) {
             response.addCookie(entry.getValue());
         }
-        if(StringUtils.isNotBlank(inboundResponse.getContentType())) {
-            response.setContentType(inboundResponse.getContentType());
+        if(StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
+            response.setContentType(httpIdentityResponse.getContentType());
         }
-        if (inboundResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
+        if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
             try {
-                sendRedirect(response, inboundResponse);
+                sendRedirect(response, httpIdentityResponse);
             } catch (IOException ex) {
                 throw new FrameworkRuntimeException("Error occurred while redirecting response", ex);
             }
         } else {
-            response.setStatus(inboundResponse.getStatusCode());
+            response.setStatus(httpIdentityResponse.getStatusCode());
             try {
                 PrintWriter out = response.getWriter();
-                if(StringUtils.isNotBlank(inboundResponse.getBody())) {
-                    out.print(inboundResponse.getBody());
+                if(StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
+                    out.print(httpIdentityResponse.getBody());
                 }
             } catch (IOException e) {
                 throw FrameworkRuntimeException.error("Error occurred while getting Response writer object", e);
@@ -88,22 +126,66 @@ public class IdentityServlet extends HttpServlet {
         }
     }
 
-    private InboundRequestFactory getInboundRequestFactory(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * Get the HttpIdentityRequestFactory
+     *
+     * @param request HttpServletRequest
+     * @param response HttpServletResponse
+     * @return HttpIdentityRequestFactory
+     */
+    private HttpIdentityRequestFactory getIdentityRequestFactory(HttpServletRequest request, HttpServletResponse response) {
 
-        List<InboundRequestFactory> factories = FrameworkServiceDataHolder.getInstance().getInboundRequestFactories();
+        List<HttpIdentityRequestFactory> factories = FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
 
-        for (InboundRequestFactory requestBuilder : factories) {
+        for (HttpIdentityRequestFactory requestBuilder : factories) {
             if (requestBuilder.canHandle(request, response)) {
                 return requestBuilder;
             }
         }
-        return null;
+        throw new FrameworkRuntimeException("No HttpIdentityRequestFactory found to create the request");
     }
 
-    private void sendRedirect(HttpServletResponse response, InboundResponse inboundResponse) throws IOException {
+    /**
+     * Get the HttpIdentityResponseFactory
+     *
+     * @param identityResponse IdentityResponse
+     * @return HttpIdentityResponseFactory
+     */
+    private HttpIdentityResponseFactory getIdentityResponseFactory(IdentityResponse identityResponse) {
 
-        String queryParams = IdentityUtil.buildQueryString(inboundResponse.getParameters());
-        response.sendRedirect(inboundResponse.getRedirectURL() + queryParams);
+        List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
+                .getHttpIdentityResponseFactories();
+
+        for (HttpIdentityResponseFactory responseFactory : factories) {
+            if (responseFactory.canHandle(identityResponse)) {
+                return responseFactory;
+            }
+        }
+        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
     }
 
+    /**
+     * Get the HttpIdentityResponseFactory
+     *
+     * @param exception FrameworkException
+     * @return HttpIdentityResponseFactory
+     */
+    private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkException exception) {
+
+        List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
+                .getHttpIdentityResponseFactories();
+
+        for (HttpIdentityResponseFactory responseFactory : factories) {
+            if (responseFactory.canHandle(exception)) {
+                return responseFactory;
+            }
+        }
+        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
+    }
+
+    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse HttpIdentityResponse) throws IOException {
+
+        String queryParams = IdentityUtil.buildQueryString(HttpIdentityResponse.getParameters());
+        response.sendRedirect(HttpIdentityResponse.getRedirectURL() + queryParams);
+    }
 }

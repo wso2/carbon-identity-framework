@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -33,14 +34,14 @@ import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class InboundProcessor {
+public abstract class IdentityProcessor {
 
     protected Properties properties = new Properties();
 
     /**
-     * Initialize InboundRequestProcessor
+     * Initialize IdentityProcessor
      *
-     * @param properties InboundRequestProcessor properties
+     * @param properties IdentityProcessor properties
      */
     public void init(Properties properties) {
         if(properties != null){
@@ -49,15 +50,18 @@ public abstract class InboundProcessor {
     }
 
     /**
-     * Process inbound authentication request
+     * Process IdentityRequest
      *
-     * @param inboundRequest InboundRequest
-     * @return InboundResponse
+     * @param identityRequest IdentityRequest
+     * @throws org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException Error occurred while processing IdentityRequest
+     * @return IdentityResponseBuilder
      */
-    public abstract InboundResponse process(InboundRequest inboundRequest);
+    public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
+            throws FrameworkException;
 
     /**
-     * Returns the unique name of the request InboundRequestProcessor
+     * Returns the unique name of the request IdentityProcessor
+     *
      * @return name
      */
     public abstract String getName();
@@ -65,51 +69,55 @@ public abstract class InboundProcessor {
     /**
      * Get callback path
      *
-     * @param context InboundMessageContext
+     * @param context IdentityMessageContext
      * @return Callback path
      */
-    public abstract String getCallbackPath(InboundMessageContext context);
+    public abstract String getCallbackPath(IdentityMessageContext context);
 
     /**
      * Get relying party unique ID
+     *
      * @return Relying party unique ID
      */
     public abstract String getRelyingPartyId();
 
     /**
-     * Get execution order priority
+     * Get priority
+     *
      * @return priority
      */
     public abstract int getPriority();
 
     /**
-     * Can handle
-     * @param inboundRequest InboundRequest
+     * Tells if this processor can handle this IdentityRequest
+     *
+     * @param identityRequest IdentityRequest
      * @return can/not handle
      */
-    public abstract boolean canHandle(InboundRequest inboundRequest);
+    public abstract boolean canHandle(IdentityRequest identityRequest);
 
     /**
-     * Get InboundResponseBuilder for framework login
+     * Get IdentityResponseBuilder for framework login
      *
-     * @param context InboundMessageContext
-     * @return InboundResponseBuilder
+     * @param context IdentityMessageContext
+     * @return IdentityResponseBuilder
      */
-    protected InboundResponse.InboundResponseBuilder buildResponseForFrameworkLogin(InboundMessageContext context) {
+    protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogin(
+            IdentityMessageContext context) {
 
         String sessionDataKey = UUIDGenerator.generateUUID();
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        InboundRequest inboundRequest = context.getRequest();
+        IdentityRequest identityRequest = context.getRequest();
 
-        Map<String, String[]> parameterMap = inboundRequest.getParameterMap();
+        Map<String, String[]> parameterMap = identityRequest.getParameterMap();
 
         parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
         parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
 
         authenticationRequest.appendRequestQueryParams(parameterMap);
 
-        for (Object entry : inboundRequest.getHeaderMap().keySet()) {
+        for (Object entry : identityRequest.getHeaderMap().keySet()) {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
@@ -130,45 +138,40 @@ public abstract class InboundProcessor {
 
         InboundUtil.addContextToCache(sessionDataKey, context);
 
-        InboundResponse.InboundResponseBuilder responseBuilder =
-                new InboundResponse.InboundResponseBuilder();
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
-                new String[]{getName()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.SESSION_DATA_KEY,
-                new String[]{sessionDataKey});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.CALL_BACK_PATH,
-                new String[]{getCallbackPath(context)});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.RELYING_PARTY,
-                new String[]{getRelyingPartyId()});
+        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
+                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
+        responseBuilder.setAuthName(getName());
+        responseBuilder.setContextKey(sessionDataKey);
+        responseBuilder.setCallbackPath(getCallbackPath(context));
+        responseBuilder.setRelyingParty(getRelyingPartyId());
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE,
-                new String[]{getName()});
+        responseBuilder.setAuthType(getName());
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
     }
 
     /**
-     * Get InboundResponseBuilder for framework logout
+     * Get IdentityResponseBuilder for framework logout
      *
-     * @param context InboundContext
-     * @return InboundResponseBuilder
+     * @param context IdentityMessageContext
+     * @return IdentityResponseBuilder
      */
-    protected InboundResponse.InboundResponseBuilder buildResponseForFrameworkLogout(InboundMessageContext context) {
+    protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogout(IdentityMessageContext context) {
 
         String sessionDataKey = UUIDGenerator.generateUUID();
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        InboundRequest inboundRequest = context.getRequest();
+        IdentityRequest identityRequest = context.getRequest();
 
-        Map<String, String[]> parameterMap = inboundRequest.getParameterMap();
+        Map<String, String[]> parameterMap = identityRequest.getParameterMap();
 
         parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
         parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
 
         authenticationRequest.appendRequestQueryParams(parameterMap);
 
-        for (Object entry : inboundRequest.getHeaderMap().keySet()) {
+        for (Object entry : identityRequest.getHeaderMap().keySet()) {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
@@ -189,31 +192,28 @@ public abstract class InboundProcessor {
 
         InboundUtil.addContextToCache(sessionDataKey, context);
 
-        InboundResponse.InboundResponseBuilder responseBuilder =
-                new InboundResponse.InboundResponseBuilder();
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME, new String[]{getName()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.SESSION_DATA_KEY, new String[]{sessionDataKey});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.CALL_BACK_PATH,
-                new String[]{getCallbackPath(context)});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.RELYING_PARTY,
-                new String[]{getRelyingPartyId()});
+        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
+                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
+        responseBuilder.setAuthName(getName());
+        responseBuilder.setContextKey(sessionDataKey);
+        responseBuilder.setCallbackPath(getCallbackPath(context));
+        responseBuilder.setRelyingParty(getRelyingPartyId());
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE, new String[]{getName()});
+        responseBuilder.setAuthType(getName());
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
     }
 
     /**
-     * Checks if previous InboundMessageContext exists for given InboundRequest using {@code sessionDataKey} parameter
+     * Checks if previous IdentityMessageContext exists for given IdentityRequest using {@code sessionDataKey} parameter
      *
-     * @param request InboundRequest
-     * @return InboundResponseBuilder
+     * @param request IdentityRequest
      */
-    protected boolean isContextAvailable(InboundRequest request) {
-        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.SESSION_DATA_KEY);
+    protected boolean isContextAvailable(IdentityRequest request) {
+        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         if(StringUtils.isNotBlank(sessionDataKey)){
-            InboundMessageContext context = InboundContextCache.getInstance().getValueFromCache(sessionDataKey);
+            IdentityMessageContext context = InboundUtil.getContextFromCache(sessionDataKey);
             if(context != null){
                 return true;
             }
@@ -222,31 +222,31 @@ public abstract class InboundProcessor {
     }
 
     /**
-     * Returns InboundMessageContext if one previously existed for given InboundRequest using {@code sessionDataKey}
+     * Returns IdentityMessageContext if one previously existed for given IdentityRequest using {@code sessionDataKey}
      * parameter
      *
-     * @param request InboundRequest
-     * @return InboundResponseBuilder
+     * @param request IdentityRequest
+     * @return IdentityMessageContext
      */
-    protected InboundMessageContext getContextIfAvailable(InboundRequest request) {
-        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.SESSION_DATA_KEY);
-        InboundMessageContext context = null;
+    protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
+        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        IdentityMessageContext context = null;
         if(StringUtils.isNotBlank(sessionDataKey)){
-            context = InboundContextCache.getInstance().getValueFromCache(sessionDataKey);
+            context = InboundUtil.getContextFromCache(sessionDataKey);
         }
         return context;
     }
 
     /**
-     * Processes the InboundMessageContext and retrieved the using {@code sessionDataKey} parameter and sets the
+     * Processes the IdentityMessageContext and retrieved the using {@code sessionDataKey} parameter and sets the
      * AuthenticationResult to message context if found in AuthenticationResultCache
      *
-     * @param context InboundMessageContext
-     * @return InboundResponseBuilder
+     * @param context IdentityMessageContext
+     * @return AuthenticationResult
      */
-    protected AuthenticationResult processResponseFromFrameworkLogin(InboundMessageContext context) {
+    protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context) {
 
-        String sessionDataKey = context.getRequest().getParameter(InboundConstants.RequestProcessor.SESSION_DATA_KEY);
+        String sessionDataKey = context.getRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
         if(entry != null) {

@@ -18,28 +18,26 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-public class InboundUtil {
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
-    /**
-     * Add to IdentityMessageContext
-     *
-     * @param key Key
-     * @param context IdentityMessageContext
-     */
-    public static void addContextToCache(String key, IdentityMessageContext context) {
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
-        IdentityContextCache.getInstance().addToCache(key, context);
+public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext
+        implements Serializable {
+
+    private static final long serialVersionUID = 104614801932285909L;
+
+	protected IdentityRequest request;
+    protected Map<T1,T2> parameters = new HashMap<>();
+
+    public IdentityMessageContext(IdentityRequest request, Map<T1, T2> parameters){
+        super(parameters);
+        this.request = request;
     }
 
-    /**
-     * Get from IdentityMessageContext
-     *
-     * @param key cache key
-     * @return IdentityMessageContext
-     */
-    public static IdentityMessageContext getContextFromCache(String key) {
-
-        IdentityMessageContext context = IdentityContextCache.getInstance().getValueFromCache(key);
-        return context;
-    }
+	public IdentityRequest getRequest() {
+		return request;
+	}
 }
