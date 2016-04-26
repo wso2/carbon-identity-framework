@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
+import org.wso2.carbon.idp.mgt.IdpManagerService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;

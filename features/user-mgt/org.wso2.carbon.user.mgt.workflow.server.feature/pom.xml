@@ -67,7 +67,7 @@
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.user.mgt.workflow</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.identity.workflow.mgt.server:${identity.framework.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.workflow.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>

@@ -89,8 +89,8 @@
             <artifactId>libthrift</artifactId>
         </dependency>
         <dependency>
-            <groupId>opensaml.wso2</groupId>
-            <artifactId>opensaml2</artifactId>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.axis2.wso2</groupId>

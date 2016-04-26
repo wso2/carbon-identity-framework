@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -46,6 +47,7 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
         super(response);
         this.request = request;
         extraParameters = new HashMap();
+        printWriter = new CommonAuthServletPrintWriter(new ByteArrayOutputStream());
     }
 
     @Override
@@ -55,21 +57,35 @@ public class CommonAuthResponseWrapper extends HttpServletResponseWrapper {
         isRedirect = true;
     }
 
-    @Override
-    public PrintWriter getWriter() throws IOException {
-        return this.printWriter;
-    }
-
-    public String getResponseBody() {
-        return this.printWriter.getBufferedString();
-    }
-
     public boolean isRedirect() {
         return isRedirect;
     }
 
     public String getRedirectURL() {
         return redirectURL;
+    }
+
+    @Override
+    public PrintWriter getWriter() throws IOException {
+        return this.printWriter;
+    }
+
+    public byte[] getContent() throws IOException {
+        return printWriter.getBufferedString().getBytes();
+    }
+
+    public void write() throws IOException {
+        writeContent();
+    }
+
+    private void writeContent() throws IOException {
+        byte[] content = getContent();
+        ServletResponse response = getResponse();
+        OutputStream os = response.getOutputStream();
+
+        response.setContentLength(content.length);
+        os.write(content);
+        os.close();
     }
 
     private final class CommonAuthServletPrintWriter extends PrintWriter {

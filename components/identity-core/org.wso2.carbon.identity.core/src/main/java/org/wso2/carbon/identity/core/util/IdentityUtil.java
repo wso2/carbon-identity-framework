@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
@@ -68,7 +69,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -101,6 +104,7 @@ public class IdentityUtil {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
             HashMap<>();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap<>();
+    private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
@@ -167,10 +171,19 @@ public class IdentityUtil {
         return identityCacheConfig;
     }
 
+    public static IdentityCookieConfig getIdentityCookieConfig(String cookieName)   {
+        return identityCookiesConfigurationHolder.get(cookieName);
+    }
+
+    public static Map<String, IdentityCookieConfig> getIdentityCookiesConfigurationHolder() {
+        return identityCookiesConfigurationHolder;
+    }
+
     public static void populateProperties() {
         configuration = IdentityConfigParser.getInstance().getConfiguration();
         eventListenerConfiguration = IdentityConfigParser.getInstance().getEventListenerConfiguration();
         identityCacheConfigurationHolder = IdentityConfigParser.getInstance().getIdentityCacheConfigurationHolder();
+        identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
@@ -363,6 +376,15 @@ public class IdentityUtil {
             serverUrl.deleteCharAt(serverUrl.length() - 1);
         }
         return serverUrl.toString();
+    }
+
+    /**
+     * Get the axis service path
+     *
+     * @return String
+     */
+    public static String getServicePath() {
+        return IdentityCoreServiceComponent.getConfigurationContextService().getServerConfigContext().getServicePath();
     }
 
     /**
@@ -716,5 +738,27 @@ public class IdentityUtil {
     public static String getHostName() {
 
         return ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+    }
+
+    public static String buildQueryString(Map<String,String[]> parameterMap) throws UnsupportedEncodingException {
+
+        StringBuilder queryString = new StringBuilder("?");
+        boolean isFirst = true;
+        for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+            for(String paramValue:entry.getValue()) {
+                if (isFirst) {
+                    queryString.append(entry.getKey());
+                    queryString.append("=");
+                    queryString.append(paramValue);
+                    isFirst = false;
+                }
+                queryString.append("&");
+                queryString.append(entry.getKey());
+                queryString.append("=");
+                queryString.append(paramValue);
+
+            }
+        }
+        return URLEncoder.encode(queryString.toString(), "UTF-8");
     }
 }

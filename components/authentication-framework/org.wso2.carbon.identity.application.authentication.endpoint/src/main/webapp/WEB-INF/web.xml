@@ -103,6 +103,16 @@
     </servlet>
 
     <servlet>
+        <servlet-name>oauth2_logout_consent.do</servlet-name>
+        <jsp-file>/oauth2_logout_consent.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>oauth2_logout.do</servlet-name>
+        <jsp-file>/logout.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_error.do</servlet-name>
         <jsp-file>/oauth2_error.jsp</jsp-file>
     </servlet>
@@ -170,6 +180,16 @@
     <servlet-mapping>
         <servlet-name>oauth2_consent.do</servlet-name>
         <url-pattern>/oauth2_consent.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>oauth2_logout_consent.do</servlet-name>
+        <url-pattern>/oauth2_logout_consent.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>oauth2_logout.do</servlet-name>
+        <url-pattern>/oauth2_logout.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

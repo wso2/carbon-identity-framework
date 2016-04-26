@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.utils.ServerConstants;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Stack;
 
 public class IdentityConfigParser {
@@ -50,6 +52,7 @@ public class IdentityConfigParser {
     private static Map<String, Object> configuration = new HashMap<String, Object>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
+    private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -89,6 +92,10 @@ public class IdentityConfigParser {
 
     public static Map<IdentityCacheConfigKey, IdentityCacheConfig> getIdentityCacheConfigurationHolder() {
         return identityCacheConfigurationHolder;
+    }
+
+    public static Map<String, IdentityCookieConfig> getIdentityCookieConfigurationHolder() {
+        return identityCookieConfigurationHolder;
     }
 
     /**
@@ -155,6 +162,7 @@ public class IdentityConfigParser {
             readChildElements(rootElement, nameStack);
             buildEventListenerData();
             buildCacheConfig();
+            buildCookieConfig();
 
         } catch (IOException|XMLStreamException e) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -186,13 +194,24 @@ public class IdentityConfigParser {
                             IdentityConstants.EVENT_LISTENER_ORDER)));
                     String enable = eventListenerElement.getAttributeValue(new QName(
                             IdentityConstants.EVENT_LISTENER_ENABLE));
+                    Iterator<OMElement> propertyElements = eventListenerElement.getChildrenWithName(new QName
+                            (IdentityConstants.EVENT_LISTENER_PROPERTY));
+                    Properties properties = new Properties();
+                    while (propertyElements.hasNext()){
+                        OMElement propertyElem = propertyElements.next();
+                        String propertyName = propertyElem.getAttributeValue(new QName(
+                                IdentityConstants.EVENT_LISTENER_PROPERTY_NAME));
+                        String propertyValue = propertyElem.getText();
+                        properties.setProperty(propertyName, propertyValue);
+                    }
 
                     if (StringUtils.isBlank(eventListenerType) || StringUtils.isBlank(eventListenerName)) {
                         throw IdentityRuntimeException.error("eventListenerType or eventListenerName is not defined " +
                                 "correctly");
                     }
                     IdentityEventListenerConfigKey configKey = new IdentityEventListenerConfigKey(eventListenerType, eventListenerName);
-                    IdentityEventListenerConfig identityEventListenerConfig = new IdentityEventListenerConfig(enable, order, configKey);
+                    IdentityEventListenerConfig identityEventListenerConfig = new IdentityEventListenerConfig(enable,
+                            order, configKey, properties);
                     eventListenerConfiguration.put(configKey, identityEventListenerConfig);
 
                 }
@@ -260,6 +279,68 @@ public class IdentityConfigParser {
         }
     }
 
+    private void buildCookieConfig()    {
+        OMElement cookiesConfig = this.getConfigElement(IdentityConstants.COOKIES_CONFIG);
+        if (cookiesConfig != null) {
+
+            Iterator<OMElement> cookies = cookiesConfig.getChildrenWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.COOKIE));
+
+            if (cookies != null) {
+                while (cookies.hasNext()) {
+                    OMElement cookie = cookies.next();
+
+                    String cookieName = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_NAME));
+
+                    if (StringUtils.isBlank(cookieName)) {
+                        throw IdentityRuntimeException.error("Cookie name not defined correctly");
+                    }
+
+                    IdentityCookieConfig cookieConfig = new IdentityCookieConfig(cookieName);
+
+                    String domain = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_DOMAIN));
+                    if (StringUtils.isNotBlank(domain)) {
+                        cookieConfig.setDomain(domain);
+                    }
+
+                    String path = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_PATH));
+                    if (StringUtils.isNotBlank(path)) {
+                        cookieConfig.setPath(path);
+                    }
+
+                    String comment = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_COMMENT));
+                    if (StringUtils.isNotBlank(comment)) {
+                        cookieConfig.setComment(comment);
+                    }
+
+                    String version = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_VERSION));
+                    if (StringUtils.isNotBlank(version)) {
+                        cookieConfig.setVersion(Integer.valueOf(version));
+                    }
+
+                    String magAge = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_MAX_AGE));
+                    if (StringUtils.isNotBlank(magAge)) {
+                        cookieConfig.setMaxAge(Integer.valueOf(magAge));
+                    }
+
+                    String secure = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_SECURE));
+                    if (StringUtils.isNotBlank(secure)) {
+                        cookieConfig.setSecure(Boolean.valueOf(secure));
+                    }
+
+                    String httpOnly = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_HTTP_ONLY));
+                    if (StringUtils.isNotBlank(httpOnly)) {
+                        cookieConfig.setSecure(Boolean.valueOf(httpOnly));
+                    }
+
+                    // Add the config to container
+                    identityCookieConfigurationHolder.put(cookieName, cookieConfig);
+                }
+            }
+
+        }
+    }
+
     private void readChildElements(OMElement serverConfig, Stack<String> nameStack) {
         for (Iterator childElements = serverConfig.getChildElements(); childElements.hasNext(); ) {
             OMElement element = (OMElement) childElements.next();
@@ -278,6 +359,7 @@ public class IdentityConfigParser {
                     ArrayList list = (ArrayList) currentObject;
                     if (!list.contains(value)) {
                         list.add(value);
+                        configuration.put(key, list);
                     }
                 } else {
                     if (!value.equals(currentObject)) {

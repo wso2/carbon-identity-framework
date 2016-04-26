@@ -30,8 +30,10 @@
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserManagementWorkflowServiceClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserStoreCountClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Arrays" %>
@@ -61,6 +63,7 @@
     String[] claimUris = null;
     FlaggedName[] users = null;
     String[] domainNames = null;
+    Map<String, String> userCount = new HashMap<String, String>();
     int pageNumber = 0;
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
@@ -74,6 +77,7 @@
     Set<String> showDeletePendingUsersList = new LinkedHashSet<String>();
     Set<FlaggedName> aggregateUserList = new LinkedHashSet<FlaggedName>();
     Set<FlaggedName> removeUserElement = new LinkedHashSet<FlaggedName>();
+    Set<String> countableUserStores = new LinkedHashSet<String>();
 
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -101,26 +105,45 @@
     if (StringUtils.isBlank(claimUri)) {
         claimUri = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_CLAIM_FILTER);
     }
+
+    String countClaimUri = request.getParameter("countClaimUri");
+    if (StringUtils.isBlank(countClaimUri)) {
+        countClaimUri = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_CLAIM_COUNT_FILTER);
+    }
+
     session.setAttribute(UserAdminUIConstants.USER_CLAIM_FILTER, claimUri);
+    session.setAttribute(UserAdminUIConstants.USER_CLAIM_COUNT_FILTER, countClaimUri);
     exceededDomains = (FlaggedName) session.getAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED);
 
     //  search filter
     String selectedDomain = request.getParameter("domain");
-    if (selectedDomain == null || selectedDomain.trim().length() == 0) {
+    if (StringUtils.isBlank(selectedDomain)) {
         selectedDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
-        if (selectedDomain == null || selectedDomain.trim().length() == 0) {
+        if (StringUtils.isBlank(selectedDomain)) {
             selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
         }
     } else {
         newFilter = true;
     }
 
+    //  search filter
+    String selectedCountDomain = request.getParameter("countDomain");
+    if (StringUtils.isBlank(selectedCountDomain)) {
+        selectedCountDomain = (String) session.getAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER);
+        if (StringUtils.isBlank(selectedCountDomain)) {
+            selectedCountDomain = UserAdminUIConstants.ALL_DOMAINS;
+        }
+    } else {
+        newFilter = true;
+    }
+
     session.setAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER, selectedDomain.trim());
+    session.setAttribute(UserAdminUIConstants.USER_LIST_COUNT_DOMAIN_FILTER, selectedCountDomain.trim());
 
     String filter = request.getParameter(UserAdminUIConstants.USER_LIST_FILTER);
-    if (filter == null || filter.trim().length() == 0) {
+    if (StringUtils.isBlank(filter)) {
         filter = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_LIST_FILTER);
-        if (filter == null || filter.trim().length() == 0) {
+        if (StringUtils.isBlank(filter)) {
             filter = "*";
         }
     } else {
@@ -130,6 +153,22 @@
         }
         newFilter = true;
     }
+
+    String countFilter = request.getParameter(UserAdminUIConstants.USER_COUNT_FILTER);
+    if (StringUtils.isBlank(countFilter)) {
+        countFilter = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_COUNT_FILTER);
+        if (StringUtils.isBlank(countFilter)) {
+            countFilter = "%";
+        }
+    } else {
+        if (countFilter.contains(UserAdminUIConstants.DOMAIN_SEPARATOR)) {
+            selectedDomain = UserAdminUIConstants.ALL_DOMAINS;
+            session.removeAttribute(UserAdminUIConstants.USER_LIST_DOMAIN_FILTER);
+        }
+        newFilter = true;
+    }
+
+
     String userDomainSelector;
     String modifiedFilter = filter.trim();
     if (!UserAdminUIConstants.ALL_DOMAINS.equalsIgnoreCase(selectedDomain)) {
@@ -141,6 +180,7 @@
     }
 
     session.setAttribute(UserAdminUIConstants.USER_LIST_FILTER, filter.trim());
+    session.setAttribute(UserAdminUIConstants.USER_COUNT_FILTER, countFilter.trim());
 
     // check page number
     String pageNumberStr = request.getParameter("pageNumber");
@@ -185,8 +225,28 @@
                     .getServletContext()
                     .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
+            UserStoreCountClient countClient = new UserStoreCountClient(cookie, backendServerURL, configContext);
             UserManagementWorkflowServiceClient UserMgtClient = new
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
+
+            countableUserStores = countClient.getCountableUserStores();
+
+            if (UserAdminUIConstants.SELECT.equalsIgnoreCase(countClaimUri)) {    //this is user name based search
+                if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                    userCount = countClient.countUsers(countFilter);
+                } else {
+                    userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter, selectedCountDomain)));
+                }
+            } else {                //this is a claim based search
+                if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                    userCount = countClient.countByClaim(countClaimUri, countFilter);
+                } else {
+                    userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain(countClaimUri,
+                            countFilter, selectedCountDomain)));
+                }
+            }
+
+
             if (userRealmInfo == null) {
                 userRealmInfo = client.getUserRealmInfo();
                 session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
@@ -384,7 +444,7 @@
                     <tr>
                         <td><fmt:message key="claim.uri"/></td>
                         <td><select id="claimUri" name="claimUri">
-                            <option value="Select" selected="selected">Select</option>
+                            <option value="Select" selected="selected"><%=UserAdminUIConstants.SELECT%></option>
                             <%
                                 if (claimUris != null) {
 
@@ -409,6 +469,121 @@
                         </td>
                     </tr>
                     </tbody>
+                </table>
+            </form>
+            <p>&nbsp;</p>
+
+            <form name="countForm" method="post" action="user-mgt.jsp">
+                <table class="styledLeft">
+                    <%
+                        if (countableUserStores != null && !countableUserStores.isEmpty()) {
+                            if (countableUserStores.size() > 1) {
+                                countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
+                            }
+                    %>
+                    <thead>
+                    <tr>
+                        <th colspan="2"><fmt:message key="user.count"/></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="select.domain.search"/></td>
+                        <td><select id="countDomain" name="countDomain">
+                            <%
+                                for (String domainName : countableUserStores) {
+                                    if (selectedDomain.equals(domainName)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtml(domainName)%>
+                            </option>
+                            <%
+                                    }
+                                }
+                            %>
+                        </select>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+                                key="count.users"/></td>
+                        <td>
+                            <input type="text" name="<%=UserAdminUIConstants.USER_COUNT_FILTER%>"
+                                   value="<%=Encode.forHtmlAttribute(countFilter)%>" label="<fmt:message key="count.users"/>"
+                                   black-list-patterns="xml-meta-exists"/>
+
+                            <input class="button" type="submit"
+                                   value="<fmt:message key="user.count"/>"/>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><fmt:message key="claim.uri"/></td>
+                        <td><select id="countClaimUri" name="countClaimUri">
+                            <option value="Select" selected="selected"><%=UserAdminUIConstants.SELECT%></option>
+                            <%
+                                if (claimUris != null) {
+
+                                    for (String claim : claimUris) {
+                                        if (claimUri != null && claim.equals(claimUri)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(claim)%>">
+                                <%=Encode.forHtmlContent(claim)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(claim)%>">
+                                <%=Encode.forHtmlContent(claim)%>
+                            </option>
+                            <%
+                                        }
+                                    }
+                                }
+                            %>
+                        </select>
+                        </td>
+                    </tr>
+
+                    <%
+                        Iterator it = userCount.entrySet().iterator();
+                        String key = null;
+                        String value = null;
+                        while (it.hasNext()) {
+                            Map.Entry pair = (Map.Entry) it.next();
+                            key = (String) pair.getKey();
+                            value = (String) pair.getValue();
+                    %>
+
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><%=key%>
+                        </td>
+                        <td>
+                            <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
+                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
+
+                        </td>
+                    </tr>
+
+                    <% it.remove();
+                    }
+                    %>
+
+                    </tbody>
+                    <%
+                        }
+                    %>
                 </table>
             </form>
             <p>&nbsp;</p>
