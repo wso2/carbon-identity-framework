@@ -44,7 +44,7 @@ public abstract class IdentityProcessor {
      * @param properties IdentityProcessor properties
      */
     public void init(Properties properties) {
-        if(properties != null){
+        if(properties != null) {
             this.properties = properties;
         }
     }
@@ -212,9 +212,9 @@ public abstract class IdentityProcessor {
      */
     protected boolean isContextAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
-        if(StringUtils.isNotBlank(sessionDataKey)){
+        if(StringUtils.isNotBlank(sessionDataKey)) {
             IdentityMessageContext context = InboundUtil.getContextFromCache(sessionDataKey);
-            if(context != null){
+            if(context != null) {
                 return true;
             }
         }
@@ -231,7 +231,7 @@ public abstract class IdentityProcessor {
     protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         IdentityMessageContext context = null;
-        if(StringUtils.isNotBlank(sessionDataKey)){
+        if(StringUtils.isNotBlank(sessionDataKey)) {
             context = InboundUtil.getContextFromCache(sessionDataKey);
         }
         return context;

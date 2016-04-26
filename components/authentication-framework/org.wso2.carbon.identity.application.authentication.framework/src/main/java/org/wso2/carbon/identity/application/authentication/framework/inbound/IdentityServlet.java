@@ -46,7 +46,7 @@ public class IdentityServlet extends HttpServlet {
     }
 
     /**
-     * Process request/response
+     * Process request/response.
      *
      * @param request   HttpServletRequest
      * @param response  HttpServletResponse
@@ -60,12 +60,12 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityRequest = factory.create(request, response).build();
-            if(identityRequest == null){
+            if(identityRequest == null) {
                 throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!");
             }
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e, request, response);
-            if(responseBuilder == null){
+            if(responseBuilder == null) {
                 throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
@@ -76,19 +76,19 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityResponse = manager.process(identityRequest);
-            if(identityResponse == null){
+            if(identityResponse == null) {
                 throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!");
             }
             responseFactory = getIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
-            if(responseBuilder == null){
+            if(responseBuilder == null) {
                 throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         } catch (FrameworkException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
-            if(responseBuilder == null){
+            if(responseBuilder == null) {
                 throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
@@ -127,7 +127,7 @@ public class IdentityServlet extends HttpServlet {
     }
 
     /**
-     * Get the HttpIdentityRequestFactory
+     * Get the HttpIdentityRequestFactory.
      *
      * @param request HttpServletRequest
      * @param response HttpServletResponse
@@ -146,7 +146,7 @@ public class IdentityServlet extends HttpServlet {
     }
 
     /**
-     * Get the HttpIdentityResponseFactory
+     * Get the HttpIdentityResponseFactory.
      *
      * @param identityResponse IdentityResponse
      * @return HttpIdentityResponseFactory
@@ -165,7 +165,7 @@ public class IdentityServlet extends HttpServlet {
     }
 
     /**
-     * Get the HttpIdentityResponseFactory
+     * Get the HttpIdentityResponseFactory.
      *
      * @param exception FrameworkException
      * @return HttpIdentityResponseFactory

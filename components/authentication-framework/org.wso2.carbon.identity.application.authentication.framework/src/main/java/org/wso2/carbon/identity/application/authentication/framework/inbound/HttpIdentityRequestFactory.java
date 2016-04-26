@@ -55,7 +55,7 @@ public class HttpIdentityRequestFactory {
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies){
+        for(Cookie cookie:cookies) {
             builder.addCookie(cookie.getName(), cookie);
         }
         return builder;

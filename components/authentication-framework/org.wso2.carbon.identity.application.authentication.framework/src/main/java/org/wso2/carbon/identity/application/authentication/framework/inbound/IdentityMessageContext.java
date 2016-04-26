@@ -32,7 +32,7 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
 	protected IdentityRequest request;
     protected Map<T1,T2> parameters = new HashMap<>();
 
-    public IdentityMessageContext(IdentityRequest request, Map<T1, T2> parameters){
+    public IdentityMessageContext(IdentityRequest request, Map<T1, T2> parameters) {
         super(parameters);
         this.request = request;
     }
