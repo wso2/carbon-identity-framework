@@ -22,8 +22,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 
-import java.util.concurrent.TimeUnit;
-
 public class SessionContextCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 42165605438157753L;
@@ -40,7 +38,7 @@ public class SessionContextCacheEntry extends CacheEntry {
         SessionContextCacheEntry entry = (SessionContextCacheEntry) sessionContextDO.getEntry();
         this.context = entry.getContext();
         this.loggedInUser = entry.getLoggedInUser();
-        this.setAccessedTime(sessionContextDO.getTimestamp().getTime());
+        this.setAccessedTime(sessionContextDO.getNanoTime()/10^6);
     }
 
     public String getLoggedInUser() {

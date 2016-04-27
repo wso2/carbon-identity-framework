@@ -278,10 +278,9 @@ public class SessionDataStore {
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
-                long timestamp = resultSet.getLong(3)/1000000;
+                long naonTime = resultSet.getLong(3);
                 if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)),
-                            new Timestamp(timestamp));
+                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), naonTime);
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException |
@@ -302,11 +301,11 @@ public class SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        Timestamp timestamp = new Timestamp(new Date().getTime());
+        long nanoTime = FrameworkUtils.getCurrentStandardNano();
         if (maxPoolSize > 0) {
-            sessionContextQueue.push(new SessionContextDO(key, type, entry, timestamp));
+            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime));
         } else {
-            persistSessionData(key, type, entry, timestamp, tenantId);
+            persistSessionData(key, type, entry, nanoTime, tenantId);
         }
     }
 
@@ -314,11 +313,11 @@ public class SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        Timestamp timestamp = new Timestamp(new Date().getTime());
+        long nanoTime = FrameworkUtils.getCurrentStandardNano();
         if (maxPoolSize > 0) {
-            sessionContextQueue.push(new SessionContextDO(key, type, null, timestamp));
+            sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
         } else {
-            removeSessionData(key, type, timestamp);
+            removeSessionData(key, type, nanoTime);
         }
     }
 
@@ -352,7 +351,7 @@ public class SessionDataStore {
         deleteDELETEOperationsTask();
     }
 
-    public void persistSessionData(String key, String type, Object entry, Timestamp timestamp, int tenantId) {
+    public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
         if (!enablePersist) {
             return;
         }
@@ -371,7 +370,7 @@ public class SessionDataStore {
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_STORE);
             setBlobObject(preparedStatement, entry, 4);
-            preparedStatement.setLong(5, timestamp.getTime() * 10^6);
+            preparedStatement.setLong(5, nanoTime);
             preparedStatement.setInt(6, tenantId);
             preparedStatement.executeUpdate();
             if (!connection.getAutoCommit()) {
@@ -384,7 +383,7 @@ public class SessionDataStore {
         }
     }
 
-    public void removeSessionData(String key, String type, Timestamp timestamp) {
+    public void removeSessionData(String key, String type, long nanoTime) {
         if (!enablePersist) {
             return;
         }
@@ -401,7 +400,7 @@ public class SessionDataStore {
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_DELETE);
-            preparedStatement.setLong(4, timestamp.getTime() * 10 ^ 6);
+            preparedStatement.setLong(4, nanoTime);
             preparedStatement.executeUpdate();
             if (!connection.getAutoCommit()) {
                 connection.commit();

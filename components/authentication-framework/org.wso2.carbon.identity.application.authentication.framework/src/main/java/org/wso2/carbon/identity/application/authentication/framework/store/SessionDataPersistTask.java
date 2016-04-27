@@ -48,12 +48,12 @@ public class SessionDataPersistTask implements Runnable {
                     if (sessionContextDO.getEntry() == null) {
                         log.debug("Session Data removing Task is started to run");
                         SessionDataStore.getInstance().removeSessionData(
-                                sessionContextDO.getKey(), sessionContextDO.getType(), sessionContextDO.getTimestamp());
+                                sessionContextDO.getKey(), sessionContextDO.getType(), sessionContextDO.getNanoTime());
                     } else {
                         log.debug("Session Data persisting Task is started to run");
                         SessionDataStore.getInstance().persistSessionData(
                                 sessionContextDO.getKey(),sessionContextDO.getType(),
-                                sessionContextDO.getEntry(), sessionContextDO.getTimestamp(),
+                                sessionContextDO.getEntry(), sessionContextDO.getNanoTime(),
                                 sessionContextDO.getTenantId());
                     }
                 }
