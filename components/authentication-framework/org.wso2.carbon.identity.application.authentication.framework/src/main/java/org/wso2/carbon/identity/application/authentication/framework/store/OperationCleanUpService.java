@@ -20,8 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import java.sql.Timestamp;
-import java.util.Date;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,9 +36,6 @@ public final class OperationCleanUpService {
     private final ScheduledExecutorService scheduler;
     private final long initialDelay;
     private final long delayBetweenRuns;
-
-    // Time skew in minute
-    private static final int defaultTimeSkew = 60;
 
     /**
      * @param initialDelay

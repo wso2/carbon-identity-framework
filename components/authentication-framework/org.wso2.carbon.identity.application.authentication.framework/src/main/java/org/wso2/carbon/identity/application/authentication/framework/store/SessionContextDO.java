@@ -35,12 +35,6 @@ public class SessionContextDO {
 
     private int tenantId;
 
-    public SessionContextDO(String key, String type, Object entry) {
-        this.type = type;
-        this.key = key;
-        this.entry = entry;
-    }
-
     public SessionContextDO(String key, String type, Object entry, Timestamp timestamp) {
         this.type = type;
         this.key = key;

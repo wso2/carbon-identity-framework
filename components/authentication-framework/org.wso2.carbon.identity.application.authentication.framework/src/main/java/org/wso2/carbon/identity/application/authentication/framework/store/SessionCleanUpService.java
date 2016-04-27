@@ -21,10 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
