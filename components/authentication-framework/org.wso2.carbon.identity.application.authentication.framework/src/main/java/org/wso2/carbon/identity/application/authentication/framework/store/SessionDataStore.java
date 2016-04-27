@@ -46,6 +46,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Data will be persisted or stored date will be removed from the store. These two events are considered as STORE operation
@@ -278,9 +279,9 @@ public class SessionDataStore {
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
-                long naonTime = resultSet.getLong(3);
+                long nanoTime = resultSet.getLong(3);
                 if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), naonTime);
+                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException |
@@ -330,16 +331,17 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
+        long cleanupLimit = TimeUnit.MINUTES.toNanos(FrameworkUtils.getCurrentStandardNano() - IdentityUtil
+                .getCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
-            long cleanupLimit = FrameworkUtils.getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
         } catch (SQLException e) {
-            log.error("Error while removing session data from the database", e);
+            log.error("Error while removing session data from the database for nano time " + cleanupLimit, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
@@ -456,6 +458,8 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
+        long cleanupLimit = TimeUnit.MINUTES.toNanos(FrameworkUtils.getCurrentStandardNano() - IdentityUtil
+                .getCleanUpTimeout());
         try {
             if (StringUtils.isBlank(sqlDeleteSTORETask)) {
                 if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)) {
@@ -465,7 +469,6 @@ public class SessionDataStore {
                 }
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
-            long cleanupLimit = FrameworkUtils.getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
@@ -473,7 +476,7 @@ public class SessionDataStore {
             }
             return;
         } catch (SQLException e) {
-            log.error("Error while removing STORE operation data from the database", e);
+            log.error("Error while removing STORE operation data from the database for nano time " + cleanupLimit, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
@@ -490,9 +493,10 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
+        long cleanupLimit = TimeUnit.MINUTES.toNanos(FrameworkUtils.getCurrentStandardNano() - IdentityUtil
+                .getCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
-            long cleanupLimit = FrameworkUtils.getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
@@ -500,7 +504,7 @@ public class SessionDataStore {
             }
             return;
         } catch (SQLException e) {
-            log.error("Error while removing DELETE operation data from the database", e);
+            log.error("Error while removing DELETE operation data from the database for nano time " + cleanupLimit, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
