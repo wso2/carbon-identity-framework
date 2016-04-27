@@ -52,7 +52,7 @@ public class SessionDataPersistTask implements Runnable {
                     } else {
                         log.debug("Session Data persisting Task is started to run");
                         SessionDataStore.getInstance().persistSessionData(
-                                sessionContextDO.getKey(), sessionContextDO.getType(),
+                                sessionContextDO.getKey(),sessionContextDO.getType(),
                                 sessionContextDO.getEntry(), sessionContextDO.getTimestamp(),
                                 sessionContextDO.getTenantId());
                     }
