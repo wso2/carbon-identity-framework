@@ -25,14 +25,16 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.event.EventDistributionTask;
 import org.wso2.carbon.identity.event.EventMgtConstants;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
+import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.event.Event;
-import org.wso2.carbon.identity.event.handler.EventHandler;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.internal.EventMgtServiceComponent;
 import org.wso2.carbon.identity.event.internal.EventMgtServiceDataHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -52,7 +54,7 @@ public class EventMgtServiceImpl implements EventMgtService {
     private static final Log log = LogFactory.getLog(EventMgtServiceImpl.class);
     private EventDistributionTask eventDistributionTask;
 
-    public EventMgtServiceImpl (List<EventHandler> handlerList, int threadPoolSize) {
+    public EventMgtServiceImpl (List<AbstractEventHandler> handlerList, int threadPoolSize) {
         this.eventDistributionTask = new EventDistributionTask(handlerList, threadPoolSize);
         if (log.isDebugEnabled()) {
             log.debug("Starting event distribution task from Notification Management component");
@@ -233,15 +235,22 @@ public class EventMgtServiceImpl implements EventMgtService {
     @Override
     public boolean handleEvent(Event event) throws EventMgtException {
 
-        List<EventHandler> eventHandlerList = EventMgtServiceComponent.eventHandlerList;
+        List<AbstractEventHandler> eventHandlerList = EventMgtServiceComponent.eventHandlerList;
+        Map<String, Event> eventMap = new HashMap<>();
+        eventMap.put("Event", event);
+        IdentityEventMessageContext eventContext = new IdentityEventMessageContext(eventMap);
         boolean returnValue = true;
-        for (final EventHandler handler : eventHandlerList) {
-            if (handler.isRegistered(event)) {
-                if (handler.isAssociationAsync(event.getEventName())) {
-                    eventDistributionTask.addEventToQueue(event);
-                } else {
-                    returnValue = handler.handleEvent(event);
+        for (final AbstractEventHandler handler : eventHandlerList) {
+            try {
+                if (handler.isEnabled(eventContext)) {
+                    if (handler.isAssociationAsync(event.getEventName())) {
+                        eventDistributionTask.addEventToQueue(event);
+                    } else {
+                        returnValue = handler.handleEvent(event);
+                    }
                 }
+            } catch (IdentityException e) {
+                throw new EventMgtException("Error while checking if handler is enabled.", e);
             }
         }
         return returnValue;

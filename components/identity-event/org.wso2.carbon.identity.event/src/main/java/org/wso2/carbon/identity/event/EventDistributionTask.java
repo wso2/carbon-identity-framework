@@ -20,11 +20,15 @@ package org.wso2.carbon.identity.event;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.event.Event;
-import org.wso2.carbon.identity.event.handler.EventHandler;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.internal.EventMgtServiceDataHolder;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -44,7 +48,7 @@ public class EventDistributionTask implements Runnable {
     /**
      * Registered message sending modules.
      */
-    private List<EventHandler> notificationSendingModules;
+    private List<AbstractEventHandler> notificationSendingModules;
     /**
      * Condition to break event distribution task
      */
@@ -56,7 +60,7 @@ public class EventDistributionTask implements Runnable {
      * @param notificationSendingModules List of notification sending modules registered
      * @param threadPoolSize             Size of thread pool for notification sending components
      */
-    public EventDistributionTask(List<EventHandler> notificationSendingModules, int threadPoolSize) {
+    public EventDistributionTask(List<AbstractEventHandler> notificationSendingModules, int threadPoolSize) {
         this.notificationSendingModules = notificationSendingModules;
         this.eventQueue = new LinkedBlockingDeque<Event>();
         EventMgtServiceDataHolder.getInstance().setThreadPool(Executors.newFixedThreadPool(threadPoolSize));
@@ -73,31 +77,36 @@ public class EventDistributionTask implements Runnable {
         while (running) {
             try {
                 final Event event = eventQueue.take();
-                for (final EventHandler module : notificationSendingModules) {
+                Map<String, Event> eventMap = new HashMap<>();
+                eventMap.put("Event", event);
+                IdentityEventMessageContext eventContext = new IdentityEventMessageContext(eventMap);
+                for (final AbstractEventHandler module : notificationSendingModules) {
                     // If the module is subscribed to the event, module will be executed.
                     try {
-                        if (module.isRegistered(event)) {
+                        if (module.isEnabled(eventContext)) {
                             // Create a runnable and submit to the thread pool for sending message.
                             Runnable msgSender = new Runnable() {
                                 @Override
                                 public void run() {
                                     if (log.isDebugEnabled()) {
-                                        log.debug("Executing " + module.getModuleName() + " on event" + event.
+                                        log.debug("Executing " + module.getName() + " on event" + event.
                                                 getEventName());
                                     }
                                     try {
                                         module.handleEvent(event);
                                     } catch (EventMgtException e) {
                                         log.error("Error while invoking notification sending module " + module.
-                                                getModuleName(), e);
+                                                getName(), e);
                                     }
                                 }
                             };
                             EventMgtServiceDataHolder.getInstance().getThreadPool().submit(msgSender);
                         }
-                    } catch (EventMgtException e) {
-                        log.error("Error while getting subscription status from notification module " + module.
-                                getModuleName(), e);
+//                    } catch (EventMgtException e) {
+//                        log.error("Error while getting subscription status from notification module " + module.
+//                                getName(), e);
+                    } catch (IdentityException e) {
+                        log.error("Error while handling the event.", e);
                     }
                 }
             } catch (InterruptedException e) {

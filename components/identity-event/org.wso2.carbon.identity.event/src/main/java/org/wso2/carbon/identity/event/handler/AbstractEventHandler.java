@@ -20,8 +20,13 @@ package org.wso2.carbon.identity.event.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
+import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
 import org.wso2.carbon.identity.event.event.Event;
@@ -30,7 +35,7 @@ import org.wso2.carbon.identity.event.internal.EventMgtServiceDataHolder;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractEventHandler implements EventHandler {
+public abstract class AbstractEventHandler extends AbstractIdentityHandler {
 
     private static final Log log = LogFactory.getLog(AbstractEventHandler.class);
 
@@ -38,17 +43,21 @@ public abstract class AbstractEventHandler implements EventHandler {
     protected List<String> registeredEventList;
     private String moduleName;
 
-    @Override
-    public String getModuleName() {
+    public String getName() {
         return this.getClass().getSimpleName();
     }
 
-    @Override
-    public boolean isRegistered(Event event) throws EventMgtException {
+    public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
 
+        Event event = ((IdentityEventMessageContext)messageContext).getEvent();
         String eventName = event.getEventName();
-        String moduleName = this.getModuleName();
-        EventMgtConfigBuilder notificationMgtConfigBuilder = EventMgtConfigBuilder.getInstance();
+        String moduleName = this.getName();
+        EventMgtConfigBuilder notificationMgtConfigBuilder = null;
+        try {
+            notificationMgtConfigBuilder = EventMgtConfigBuilder.getInstance();
+        } catch (EventMgtException e) {
+            log.error("Error while retrieving event mgt config builder", e);
+        }
         List<Subscription> subscriptionList = notificationMgtConfigBuilder.getModuleConfigurations(moduleName)
                 .getSubscriptions();
         for (Subscription subscription : subscriptionList) {
@@ -59,18 +68,17 @@ public abstract class AbstractEventHandler implements EventHandler {
         return false;
     }
 
-    @Override
     public boolean isAssociationAsync(String eventName) throws EventMgtException {
         Map<String, ModuleConfiguration> moduleConfigurationList = EventMgtConfigBuilder.getInstance()
                 .getModuleConfiguration();
-        ModuleConfiguration moduleConfiguration = moduleConfigurationList.get(this.getModuleName());
+        ModuleConfiguration moduleConfiguration = moduleConfigurationList.get(this.getName());
         List<Subscription> subscriptions = moduleConfiguration.getSubscriptions();
         for (Subscription sub : subscriptions) {
             if (sub.getSubscriptionName().equals(eventName)) {
                 continue;
             }
             if (Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
-                    .getModuleName() + ".subscription." + eventName + "" +
+                    .getName() + ".subscription." + eventName + "" +
                     ".operationAsync"))) {
                 return true;
             } else {
@@ -80,9 +88,10 @@ public abstract class AbstractEventHandler implements EventHandler {
         return false;
     }
 
-    @Override
     public Map<String, String> getTenantConfigurations (int tenantId) throws EventMgtException {
         return EventMgtServiceDataHolder.getInstance().getEventMgtService().getConfiguration(tenantId);
     }
+
+    public abstract boolean handleEvent(Event event) throws EventMgtException;
 
 }
