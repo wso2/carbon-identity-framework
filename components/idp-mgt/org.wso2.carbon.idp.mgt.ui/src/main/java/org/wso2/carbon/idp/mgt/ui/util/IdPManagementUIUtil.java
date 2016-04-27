@@ -1526,10 +1526,13 @@ public class IdPManagementUIUtil {
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM_POST));
         properties[18] = property;
 
+        String authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
+        if(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)){
+            authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
+        }
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
-        property.setValue(paramMap
-                .get(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS));
+        property.setValue(authenticationContextClass);
         properties[19] = property;
         
         property = new Property();

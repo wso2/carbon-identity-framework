@@ -18,28 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-public class InboundUtil {
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 
-    /**
-     * Add to IdentityMessageContext
-     *
-     * @param key Key
-     * @param context IdentityMessageContext
-     */
-    public static void addContextToCache(String key, IdentityMessageContext context) {
+public class FrameworkClientException extends FrameworkException {
 
-        IdentityContextCache.getInstance().addToCache(key, context);
+    protected FrameworkClientException(String errorDescription) {
+        super(errorDescription);
     }
 
-    /**
-     * Get from IdentityMessageContext
-     *
-     * @param key cache key
-     * @return IdentityMessageContext
-     */
-    public static IdentityMessageContext getContextFromCache(String key) {
+    protected FrameworkClientException(String errorDescription, Throwable cause) {
+        super(errorDescription, cause);
+    }
 
-        IdentityMessageContext context = IdentityContextCache.getInstance().getValueFromCache(key);
-        return context;
+    public static FrameworkClientException error(String message) {
+        return new FrameworkClientException(message);
+    }
+
+    public static FrameworkClientException error(String errorDescription, Throwable cause) {
+        return new FrameworkClientException(errorDescription, cause);
     }
 }

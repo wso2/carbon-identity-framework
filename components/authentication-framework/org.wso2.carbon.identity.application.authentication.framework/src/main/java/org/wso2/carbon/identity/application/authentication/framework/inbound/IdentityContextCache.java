@@ -24,13 +24,13 @@ import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-public class InboundContextCache extends BaseCache<String, InboundMessageContext> {
+public class IdentityContextCache extends BaseCache<String, IdentityMessageContext> {
 
     private static final String INBOUND_CONTEXT_CACHE_NAME = "InboundContextCache";
-    private static volatile InboundContextCache instance;
+    private static volatile IdentityContextCache instance;
     private boolean enableRequestScopeCache = false;
 
-    private InboundContextCache(String cacheName) {
+    private IdentityContextCache(String cacheName) {
         super(cacheName);
         if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             enableRequestScopeCache = Boolean.parseBoolean(IdentityUtil.getProperty(
@@ -38,18 +38,18 @@ public class InboundContextCache extends BaseCache<String, InboundMessageContext
         }
     }
 
-    public static InboundContextCache getInstance() {
+    public static IdentityContextCache getInstance() {
         if (instance == null) {
-            synchronized (InboundContextCache.class) {
+            synchronized (IdentityContextCache.class) {
                 if (instance == null) {
-                    instance = new InboundContextCache(INBOUND_CONTEXT_CACHE_NAME);
+                    instance = new IdentityContextCache(INBOUND_CONTEXT_CACHE_NAME);
                 }
             }
         }
         return instance;
     }
 
-    public void addToCache(String key, InboundMessageContext context) {
+    public void addToCache(String key, IdentityMessageContext context) {
         super.addToCache(key, context);
         if (enableRequestScopeCache) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
@@ -61,10 +61,10 @@ public class InboundContextCache extends BaseCache<String, InboundMessageContext
         }
     }
 
-    public InboundMessageContext getValueFromCache(String key) {
-        InboundMessageContext context = super.getValueFromCache(key);
+    public IdentityMessageContext getValueFromCache(String key) {
+        IdentityMessageContext context = super.getValueFromCache(key);
         if (context == null && enableRequestScopeCache) {
-            context = (InboundMessageContext) SessionDataStore.getInstance().getSessionData(key,
+            context = (IdentityMessageContext) SessionDataStore.getInstance().getSessionData(key,
                     INBOUND_CONTEXT_CACHE_NAME);
         }
         return context;
