@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.util.Properties;
 
-public class InboundRequestFactory {
+public class HttpIdentityRequestFactory {
 
     protected Properties properties;
 
@@ -33,21 +33,21 @@ public class InboundRequestFactory {
     }
 
     public String getName() {
-        return "InboundRequestFactory";
+        return "HttpIdentityRequestFactory";
     }
 
     public int getPriority() {
         return 0;
     }
 
-    public boolean canHandle(HttpServletRequest request, HttpServletResponse response)
-            throws FrameworkRuntimeException {
-        return true;
+    public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {
+        return false;
     }
 
-    public InboundRequest create(HttpServletRequest request, HttpServletResponse response) {
+    public IdentityRequest.IdentityRequestBuilder create(HttpServletRequest request, HttpServletResponse response)
+            throws FrameworkClientException {
 
-        InboundRequest.InboundRequestBuilder builder = new InboundRequest.InboundRequestBuilder(request, response);
+        IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request, response);
         Enumeration<String> headerNames = request.getHeaderNames();
         while(headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
@@ -55,10 +55,19 @@ public class InboundRequestFactory {
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies){
+        for(Cookie cookie:cookies) {
             builder.addCookie(cookie.getName(), cookie);
         }
-        return builder.build();
+        return builder;
     }
 
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception,
+                                                                            HttpServletRequest request,
+                                                                            HttpServletResponse response) {
+
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        builder.setStatusCode(400);
+        builder.setBody(exception.getMessage());
+        return builder;
+    }
 }
