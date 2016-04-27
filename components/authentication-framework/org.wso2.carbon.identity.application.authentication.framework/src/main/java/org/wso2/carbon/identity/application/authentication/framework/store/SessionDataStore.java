@@ -466,7 +466,7 @@ public class SessionDataStore {
                 }
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
-            long cleanupLimit = getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^6;
+            long cleanupLimit = getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
@@ -493,7 +493,7 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
-            long cleanupLimit = getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^6;
+            long cleanupLimit = getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
