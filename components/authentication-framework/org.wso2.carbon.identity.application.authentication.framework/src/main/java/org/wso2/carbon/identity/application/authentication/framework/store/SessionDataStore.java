@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -333,7 +333,7 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
-            long cleanupLimit = getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
+            long cleanupLimit = FrameworkUtils.getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
@@ -466,7 +466,7 @@ public class SessionDataStore {
                 }
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
-            long cleanupLimit = getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
+            long cleanupLimit = FrameworkUtils.getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
@@ -493,7 +493,7 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
-            long cleanupLimit = getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
+            long cleanupLimit = FrameworkUtils.getCurrentStandardNano() - IdentityUtil.getCleanUpTimeout() * 60 * 10^9;
             statement.setLong(1, cleanupLimit);
             statement.execute();
             if (!connection.getAutoCommit()) {
@@ -506,15 +506,5 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
         }
-    }
-
-    private long getCurrentStandardNano() {
-
-        // create a nano time stamp relative to Unix Epoch
-        long epochTimeReference = FrameworkServiceDataHolder.getInstance().getUnixTimeReference() * 10^6;
-        long currentSystemNano = System.nanoTime();
-        long currentStandardNano = epochTimeReference + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
-                .getNanoTimeReference());
-        return currentStandardNano;
     }
 }
