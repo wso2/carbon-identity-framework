@@ -67,21 +67,6 @@ public abstract class IdentityProcessor {
     public abstract String getName();
 
     /**
-     * Get callback path
-     *
-     * @param context IdentityMessageContext
-     * @return Callback path
-     */
-    public abstract String getCallbackPath(IdentityMessageContext context);
-
-    /**
-     * Get relying party unique ID
-     *
-     * @return Relying party unique ID
-     */
-    public abstract String getRelyingPartyId();
-
-    /**
      * Get priority
      *
      * @return priority
@@ -104,7 +89,7 @@ public abstract class IdentityProcessor {
      */
     protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogin(
             IdentityMessageContext context) {
-
+/*
         String sessionDataKey = UUIDGenerator.generateUUID();
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
@@ -144,11 +129,10 @@ public abstract class IdentityProcessor {
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId());
-        //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getName());
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        responseBuilder.setRedirectURL(commonAuthURL);
-        return responseBuilder;
+        responseBuilder.setRedirectURL(commonAuthURL);*/
+        return null;
     }
 
     /**
@@ -158,7 +142,7 @@ public abstract class IdentityProcessor {
      * @return IdentityResponseBuilder
      */
     protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogout(IdentityMessageContext context) {
-
+/*
         String sessionDataKey = UUIDGenerator.generateUUID();
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
@@ -201,8 +185,8 @@ public abstract class IdentityProcessor {
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getName());
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        responseBuilder.setRedirectURL(commonAuthURL);
-        return responseBuilder;
+        responseBuilder.setRedirectURL(commonAuthURL);*/
+        return null;
     }
 
     /**

@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext
@@ -29,15 +32,26 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
 
     private static final long serialVersionUID = 104614801932285909L;
 
+    protected List<IdentityRequest> identityRequestHistory = new ArrayList<>();
+    protected Map<String, MessageContext<T1, T2>> identityMessageContextMap = new HashMap<String, MessageContext<T1, T2>>();
 	protected IdentityRequest request;
     protected Map<T1,T2> parameters = new HashMap<>();
 
     public IdentityMessageContext(IdentityRequest request, Map<T1, T2> parameters) {
         super(parameters);
         this.request = request;
+        this.identityRequestHistory.add(request);
     }
 
 	public IdentityRequest getRequest() {
 		return request;
 	}
+
+    public List<IdentityRequest> getIdentityRequestHistory() {
+        return identityRequestHistory;
+    }
+
+    public Map<String, MessageContext<T1, T2>> getIdentityMessageContextMap() {
+        return identityMessageContextMap;
+    }
 }

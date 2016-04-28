@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
+        .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -87,6 +89,10 @@ import java.util.List;
  * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
  * unbind="removeHttpIdentityResponseFactory"
+ * @scr.reference name="identity.handlers.authentication"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.AuthenticationHandler"
+ * cardinality="0..n" policy="dynamic" bind="addAuthenticationHandler"
+ * unbind="removeAuthenticationHandler"
  */
 
 
@@ -169,6 +175,10 @@ public class FrameworkServiceComponent {
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
+
+        //Default HttpIdentityRequestFactory is registered.
+        HttpIdentityRequestFactory httpIdentityRequestFactory = new HttpIdentityRequestFactory();
+        addHttpIdentityRequestFactory(httpIdentityRequestFactory);
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
@@ -335,6 +345,27 @@ public class FrameworkServiceComponent {
             log.debug("Removed HttpIdentityResponseFactory : " + factory.getName());
         }
     }
+
+
+
+    protected void addAuthenticationHandler(AuthenticationHandler authenticationHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers().add(authenticationHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AuthenticationHandler : " + authenticationHandler.getName());
+        }
+    }
+
+    protected void removeAuthenticationHandler(AuthenticationHandler authenticationHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers().remove(authenticationHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AuthenticationHandler : " + authenticationHandler.getName());
+        }
+    }
+
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
