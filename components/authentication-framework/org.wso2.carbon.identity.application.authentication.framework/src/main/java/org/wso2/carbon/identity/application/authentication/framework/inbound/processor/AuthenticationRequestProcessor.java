@@ -2,7 +2,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityFrameworkHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerStatus;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
@@ -13,6 +13,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.pro
         .AuthenticationException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
+import org.wso2.carbon.identity.base.IdentityException;
 
 public class AuthenticationRequestProcessor extends IdentityProcessor {
 
@@ -21,26 +22,26 @@ public class AuthenticationRequestProcessor extends IdentityProcessor {
 
         IdentityMessageContext identityMessageContext = null ; //read from cache, otherwise throw exception.
 
-        IdentityResponse.IdentityResponseBuilder identityResponseBuilder = doAuthenticate(identityMessageContext);
-        if(identityResponseBuilder != null){
-            return identityResponseBuilder ;
-        }
+        try {
+            FrameworkHandlerStatus identityFrameworkHandlerStatus = doAuthenticate(identityMessageContext);
 
+        } catch (AuthenticationException e) {
+            handleException(e, identityMessageContext);
+        }
 
         return null;
     }
 
-    protected IdentityResponse.IdentityResponseBuilder doAuthenticate(IdentityMessageContext identityMessageContext){
+    protected FrameworkHandlerStatus doAuthenticate(IdentityMessageContext identityMessageContext)
+            throws AuthenticationException {
         AuthenticationHandler authenticationHandler =
                 IdentityFrameworkHandlerManager.getInstance().getAuthenticationHandler(identityMessageContext);
-        try {
-            authenticationHandler.authenticate(identityMessageContext);
-        } catch (AuthenticationException e) {
-            e.printStackTrace();
-        }
+        return authenticationHandler.authenticate(identityMessageContext);
     }
 
+    protected void handleException(IdentityException e, IdentityMessageContext identityMessageContext){
 
+    }
 
     @Override
     public String getName() {
