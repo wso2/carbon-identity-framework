@@ -47,9 +47,9 @@ public abstract class AbstractDAO<T> {
      * @return
      */
     public List<T> getAllObjects(String path) throws IdentityException {
-        List<T> list = null;
-        Collection collection = null;
-        String[] children = null;
+        List<T> list;
+        Collection collection;
+        String[] children;
 
         if (log.isErrorEnabled()) {
             log.debug("Retreving all objects from the registry path " + path);
@@ -68,7 +68,7 @@ public abstract class AbstractDAO<T> {
             children = collection.getChildren();
 
             for (String child : children) {
-                Resource resource = null;
+                Resource resource;
                 resource = registry.get(child);
                 T obj = resourceToObject(resource);
                 list.add(obj);
@@ -90,12 +90,12 @@ public abstract class AbstractDAO<T> {
      */
     public List<T> getAllObjectsWithPropertyValue(String path, String propName, String value)
             throws IdentityException {
-        Resource query = null;
-        List<T> retList = null;
-        Map<String, String> params = null;
-        Resource result = null;
-        String[] paths = null;
-        Resource resource = null;
+        Resource query;
+        List<T> retList;
+        Map<String, String> params;
+        Resource result;
+        String[] paths;
+        Resource resource;
 
         if (log.isErrorEnabled()) {
             log.debug("Retreving all objects from the registry path with property values " + path);
@@ -142,9 +142,9 @@ public abstract class AbstractDAO<T> {
     public T getFirstObjectWithPropertyValue(String path, String propName, String value)
             throws IdentityException {
         Resource resource = null;
-        Map<String, String> params = null;
-        Resource result = null;
-        String[] paths = null;
+        Map<String, String> params;
+        Resource result;
+        String[] paths;
 
         try {
 

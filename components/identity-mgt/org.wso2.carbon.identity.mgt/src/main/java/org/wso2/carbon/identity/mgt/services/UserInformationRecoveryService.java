@@ -155,7 +155,7 @@ public class UserInformationRecoveryService {
     public VerificationBean sendRecoveryNotification(String username, String key, String notificationType)
             throws IdentityMgtServiceException {
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         VerificationBean bean = null;
 
         if (log.isDebugEnabled()) {
@@ -203,7 +203,7 @@ public class UserInformationRecoveryService {
         dto.setNotification(IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY);
         dto.setNotificationType(notificationType);
 
-        NotificationDataDTO dataDTO = null;
+        NotificationDataDTO dataDTO;
         try {
             if (log.isDebugEnabled()) {
                 log.debug("Initiating the notification sending process");
@@ -348,7 +348,7 @@ public class UserInformationRecoveryService {
              }
 
             TenantManager tenantManager = IdentityMgtServiceComponent.getRealmService().getTenantManager();
-            int tenantId = 0;
+            int tenantId;
             try {
                 tenantId = tenantManager.getTenantId(userDTO.getTenantDomain());
             } catch (UserStoreException e) {
@@ -395,7 +395,7 @@ public class UserInformationRecoveryService {
     public ChallengeQuestionIdsDTO getUserChallengeQuestionIds(String username, String confirmation)
             throws IdentityMgtServiceException {
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         ChallengeQuestionIdsDTO idsDTO = new ChallengeQuestionIdsDTO();
 
         if (log.isDebugEnabled()) {
@@ -417,7 +417,7 @@ public class UserInformationRecoveryService {
                 carbonContext.setTenantDomain(userDTO.getTenantDomain());
             }
             RecoveryProcessor processor = IdentityMgtServiceComponent.getRecoveryProcessor();
-            VerificationBean bean = null;
+            VerificationBean bean;
             try {
                 bean = processor.verifyConfirmationCode(1, userDTO.getUserId(), confirmation);
                 if (bean.isVerified()) {
@@ -474,7 +474,7 @@ public class UserInformationRecoveryService {
     public UserChallengesDTO getUserChallengeQuestion(String userName, String confirmation,
                                                       String questionId) throws IdentityMgtServiceException {
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
 
         if (log.isDebugEnabled()) {
@@ -570,7 +570,7 @@ public class UserInformationRecoveryService {
             return bean;
         }
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         try {
             userDTO = Utils.processUserId(userName);
         } catch (IdentityException e) {
@@ -643,7 +643,7 @@ public class UserInformationRecoveryService {
 
         ChallengeQuestionProcessor processor = IdentityMgtServiceComponent.
                 getRecoveryProcessor().getQuestionProcessor();
-        List<ChallengeQuestionDTO> questionDTOs = null;
+        List<ChallengeQuestionDTO> questionDTOs;
         try {
             questionDTOs = processor.getAllChallengeQuestions();
         } catch (IdentityException e) {
@@ -663,9 +663,9 @@ public class UserInformationRecoveryService {
      */
     public UserIdentityClaimDTO[] getUserIdentitySupportedClaims(String dialect)
             throws IdentityException {
-        IdentityClaimManager claimManager = null;
-        Claim[] claims = null;
-        UserRealm realm = null;
+        IdentityClaimManager claimManager;
+        Claim[] claims;
+        UserRealm realm;
 
         claimManager = IdentityClaimManager.getInstance();
         realm = IdentityTenantUtil.getRealm(null, null);
@@ -788,7 +788,7 @@ public class UserInformationRecoveryService {
         VerificationBean vBean = new VerificationBean();
 
         org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
-        Permission permission = null;
+        Permission permission;
 
         if (!IdentityMgtConfig.getInstance().isSaasEnabled()) {
             String loggedInTenant = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -1063,7 +1063,7 @@ public class UserInformationRecoveryService {
             }
         }
 
-        UserDTO userDTO = null;
+        UserDTO userDTO;
         try {
             userDTO = Utils.processUserId(username + "@" + tenantDomain);
 

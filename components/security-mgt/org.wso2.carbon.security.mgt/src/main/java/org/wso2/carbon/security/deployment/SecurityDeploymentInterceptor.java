@@ -182,7 +182,7 @@ public class SecurityDeploymentInterceptor implements AxisObserver {
     public void serviceUpdate(AxisEvent axisEvent, AxisService axisService) {
         if (axisEvent.getEventType() == AxisEvent.SERVICE_DEPLOY) {
 
-            Policy policy = null;
+            Policy policy;
             if (axisEvent.getEventType() == AxisEvent.SERVICE_DEPLOY
                     && ServerConstants.STS_NAME.equals(axisService.getName())) {
                 try {

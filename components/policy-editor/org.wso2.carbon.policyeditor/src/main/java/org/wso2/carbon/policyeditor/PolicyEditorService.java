@@ -63,7 +63,7 @@ public class PolicyEditorService {
      * @throws AxisFault
      */
     public String getPolicyDoc(String policyURL) throws AxisFault {
-        String policy = "";
+        String policy;
 
         // Open a stream to the policy file using the URL.
         try {
@@ -74,7 +74,7 @@ public class PolicyEditorService {
                     new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
             StringBuilder fBuf = new StringBuilder();
 
-            String line = "";
+            String line;
             while ((line = dis.readLine()) != null) {
                 fBuf.append(line).append("\n");
             }
@@ -98,9 +98,9 @@ public class PolicyEditorService {
      * @throws AxisFault
      */
     public String getSchema(String fileName) throws AxisFault {
-        String schema = "";
+        String schema;
 
-        StringBuilder fBuf = null;
+        StringBuilder fBuf;
         try {
             InputStream in = PolicyEditorService.class.getResourceAsStream(
                     ORG_WSO2_CARBON_POLICYEDITOR_XSD + fileName);
@@ -109,7 +109,7 @@ public class PolicyEditorService {
                     new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
             fBuf = new StringBuilder();
 
-            String line = "";
+            String line;
             while ((line = dis.readLine()) != null) {
                 fBuf.append(line).append("\n");
             }
@@ -133,7 +133,7 @@ public class PolicyEditorService {
     public String getAvailableSchemas() throws AxisFault {
         String fileList = "";
 
-        StringBuilder fBuf = null;
+        StringBuilder fBuf;
         BufferedReader dis = null;
         try {
             InputStream in = PolicyEditorService.class.getResourceAsStream(
@@ -142,7 +142,7 @@ public class PolicyEditorService {
             dis = new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
             fBuf = new StringBuilder();
 
-            String line = "";
+            String line;
             while ((line = dis.readLine()) != null) {
                 fBuf.append(line).append("\n");
             }

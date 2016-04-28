@@ -42,8 +42,8 @@ public class ParameterDAO extends AbstractDAO<ParameterDO> {
      * @throws IdentityException
      */
     public void createOrUpdateParameter(ParameterDO parameterDO) throws IdentityException {
-        String path = null;
-        Resource resource = null;
+        String path;
+        Resource resource;
 
         if (log.isDebugEnabled()) {
             log.debug("Creating or updating parameter");
@@ -75,9 +75,9 @@ public class ParameterDAO extends AbstractDAO<ParameterDO> {
      * @throws IdentityException
      */
     public ParameterDO getParameter(String paramName) throws IdentityException {
-        ParameterDO param = null;
-        String path = null;
-        Resource resource = null;
+        ParameterDO param;
+        String path;
+        Resource resource;
 
         if (log.isDebugEnabled()) {
             log.debug("Retrieving parameter " + paramName);
@@ -105,8 +105,8 @@ public class ParameterDAO extends AbstractDAO<ParameterDO> {
      * @throws IdentityException
      */
     public void removeParameter(ParameterDO parameterDO) throws IdentityException {
-        String path = null;
-        Resource resource = null;
+        String path;
+        Resource resource;
 
         if (log.isDebugEnabled()) {
             log.debug("Removing parameter");

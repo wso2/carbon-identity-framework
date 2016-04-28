@@ -46,7 +46,7 @@ public class OAuthConsumerDAO extends AbstractDAO<OAuthConsumerDO> {
      */
     public void registerOAuthConsumer(OAuthConsumerDO consumer) throws IdentityException {
 
-        Collection userResource = null;
+        Collection userResource;
 
         if (log.isDebugEnabled()) {
             log.debug("Creating or updating OAuth consumer value");
@@ -102,8 +102,8 @@ public class OAuthConsumerDAO extends AbstractDAO<OAuthConsumerDO> {
      * @throws IdentityException
      */
     public String getOAuthConsumerSecret(String consumerKey) throws IdentityException {
-        String path = null;
-        Resource resource = null;
+        String path;
+        Resource resource;
 
         if (log.isDebugEnabled()) {
             log.debug("Retreiving user for OAuth consumer key  " + consumerKey);

@@ -78,7 +78,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     public void setUserProfile(String username, UserProfileDTO profile) throws UserProfileException {
-        UserRealm realm = null;
+        UserRealm realm;
         try {
 
             if (!this.isAuthorized(username)) {
@@ -139,7 +139,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     public void deleteUserProfile(String username, String profileName) throws UserProfileException {
-        UserRealm realm = null;
+        UserRealm realm;
         try {
             if (!this.isAuthorized(username)) {
                 throw new UserProfileException(authorizationFailureMessage);
@@ -170,7 +170,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             throws UserProfileException {
         UserProfileDTO[] profiles;
         String[] availableProfileConfigurations = new String[0];
-        String profileConfig = null;
+        String profileConfig;
         try {
             if (!this.isAuthorized(username)) {
                 throw new UserProfileException(authorizationFailureMessage);
@@ -207,7 +207,7 @@ public class UserProfileAdmin extends AbstractAdmin {
                 availableProfileConfigurations = getAvailableProfileConfiguration(profileAdmin);
             }
 
-            String[] profileNames = null;
+            String[] profileNames;
 
             if (secUserStoreManager != null) {
                 profileNames = secUserStoreManager.getProfileNames(username);
@@ -322,7 +322,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             throws UserProfileException {
         UserProfileDTO profile = new UserProfileDTO();
         String[] availableProfileConfigurations = new String[0];
-        String profileConfig = null;
+        String profileConfig;
 
         try {
 
@@ -377,7 +377,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             ProfileConfigurationManager profileAdmin = realm
                     .getProfileConfigurationManager();
 
-            String[] profileNames = null;
+            String[] profileNames;
 
             if (secUserStoreManager != null) {
                 profileNames = secUserStoreManager.getProfileNames(username);
@@ -458,7 +458,7 @@ public class UserProfileAdmin extends AbstractAdmin {
 
     public boolean isAddProfileEnabled() throws UserProfileException {
         UserRealm realm = getUserRealm();
-        UserStoreManager userStoreManager = null;
+        UserStoreManager userStoreManager;
         try {
             userStoreManager = realm.getUserStoreManager();
         } catch (UserStoreException e) {
@@ -472,7 +472,7 @@ public class UserProfileAdmin extends AbstractAdmin {
 
     public boolean isAddProfileEnabledForDomain(String domain) throws UserProfileException {
 
-        org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
+        org.wso2.carbon.user.core.UserStoreManager userStoreManager;
         org.wso2.carbon.user.core.UserRealm realm = getUserRealm();
         boolean isAddProfileEnabled = false;
 
@@ -526,8 +526,8 @@ public class UserProfileAdmin extends AbstractAdmin {
      */
     private Claim[] getAllSupportedClaims(UserRealm realm, String dialectUri)
             throws org.wso2.carbon.user.api.UserStoreException {
-        ClaimMapping[] claims = null;
-        List<Claim> reqClaims = null;
+        ClaimMapping[] claims;
+        List<Claim> reqClaims;
 
         claims = realm.getClaimManager().getAllSupportClaimMappingsByDefault();
         reqClaims = new ArrayList<Claim>();
@@ -566,7 +566,7 @@ public class UserProfileAdmin extends AbstractAdmin {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
-        String sql = null;
+        String sql;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
                                                                           .getUsername());
@@ -602,8 +602,8 @@ public class UserProfileAdmin extends AbstractAdmin {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
-        String sql = null;
-        String username = "";
+        String sql;
+        String username;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         try {
@@ -641,7 +641,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
-        String sql = null;
+        String sql;
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
                                                                           .getUsername());
         String domainName = getDomainName(tenantAwareUsername);
@@ -679,7 +679,7 @@ public class UserProfileAdmin extends AbstractAdmin {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
-        String sql = null;
+        String sql;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
                                                                           .getUsername());

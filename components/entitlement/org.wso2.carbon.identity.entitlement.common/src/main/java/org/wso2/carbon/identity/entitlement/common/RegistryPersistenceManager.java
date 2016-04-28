@@ -42,7 +42,7 @@ public class RegistryPersistenceManager extends InMemoryPersistenceManager {
         try {
             Resource resource = registry.newResource();
             resource.setContent(xmlConfig);
-            String path = null;
+            String path;
             if (EntitlementConstants.PolicyEditor.BASIC.equals(policyEditorType)) {
                 path = EntitlementConstants.ENTITLEMENT_POLICY_BASIC_EDITOR_CONFIG_FILE_REGISTRY_PATH;
             } else if (EntitlementConstants.PolicyEditor.STANDARD.equals(policyEditorType)) {

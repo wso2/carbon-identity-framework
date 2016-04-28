@@ -76,8 +76,8 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             boolean multipleUserStores = false;
             String forwardTo = "user-mgt.jsp";
 
-            FlaggedName[] datas = null;
-            FlaggedName exceededDomains = null;
+            FlaggedName[] datas;
+            FlaggedName exceededDomains;
             String[] claimUris = null;
             FlaggedName[] users = null;
             String[] domainNames = null;
@@ -85,7 +85,7 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             int cachePages = 3;
             int noOfPageLinksToDisplay = 5;
             int numberOfPages = 0;
-            Map<Integer, PaginatedNamesBean> flaggedNameMap = null;
+            Map<Integer, PaginatedNamesBean> flaggedNameMap;
 
             String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
             ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -294,14 +294,14 @@ public class UserAndRoleManagementServlet extends HttpServlet {
             boolean multipleUserStores = false;
             List<FlaggedName> datasList= null;
             FlaggedName[] roles = null;
-            FlaggedName exceededDomains = null;
+            FlaggedName exceededDomains;
             String[] domainNames = null;
             int pageNumber = 0;
             int cachePages = 3;
             int noOfPageLinksToDisplay = 5;
             int numberOfPages = 0;
-            Map<Integer, PaginatedNamesBean> flaggedNameMap = null;
-            UserRealmInfo userRealmInfo = null;
+            Map<Integer, PaginatedNamesBean> flaggedNameMap;
+            UserRealmInfo userRealmInfo;
 
             // clear session data
             session.removeAttribute("roleBean");

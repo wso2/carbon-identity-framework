@@ -96,7 +96,7 @@ public class ChallengeQuestionProcessor {
      * @throws IdentityException
      */
     public void setChallengeQuestions(ChallengeQuestionDTO[] questionDTOs) throws IdentityException {
-        Registry registry = null;
+        Registry registry;
         try {
             int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
             registry = IdentityMgtServiceComponent.getRegistryService().getConfigSystemRegistry(tenantId);
@@ -312,7 +312,7 @@ public class ChallengeQuestionProcessor {
         }
 
         List<String> challenges = new ArrayList<String>();
-        String claimValue = null;
+        String claimValue;
         String[] challengesUris;
 
         try {

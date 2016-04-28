@@ -94,7 +94,7 @@ public class AddUserWFRequestHandler extends AbstractWorkflowRequestHandler {
 
         Map<String, Object> wfParams = new HashMap<>();
         Map<String, Object> nonWfParams = new HashMap<>();
-        String encryptedCredentials = null;
+        String encryptedCredentials;
 
         if (roleList == null) {
             roleList = new String[0];

@@ -77,7 +77,7 @@ public class PAPPolicyStoreReader {
      */
     public PolicyDTO[] readAllLightPolicyDTOs() throws EntitlementException {
 
-        String[] resources = null;
+        String[] resources;
         resources = store.getAllPolicyIds();
 
         if (resources == null) {
@@ -102,8 +102,8 @@ public class PAPPolicyStoreReader {
      * @throws EntitlementException throws, if fails
      */
     public PolicyDTO readPolicyDTO(String policyId) throws EntitlementException {
-        Resource resource = null;
-        PolicyDTO dto = null;
+        Resource resource;
+        PolicyDTO dto;
         try {
             resource = store.getPolicy(policyId, PDPConstants.ENTITLEMENT_POLICY_PAP);
             if (resource == null) {
@@ -174,7 +174,7 @@ public class PAPPolicyStoreReader {
      * @return true of false
      */
     public boolean isExistPolicy(String policyId) {
-        Resource resource = null;
+        Resource resource;
         try {
             resource = store.getPolicy(policyId, PDPConstants.ENTITLEMENT_POLICY_PAP);
             if (resource != null) {
@@ -196,8 +196,8 @@ public class PAPPolicyStoreReader {
      */
     public PolicyDTO readLightPolicyDTO(String policyId) throws EntitlementException {
 
-        Resource resource = null;
-        PolicyDTO dto = null;
+        Resource resource;
+        PolicyDTO dto;
         resource = store.getPolicy(policyId, PDPConstants.ENTITLEMENT_POLICY_PAP);
         if (resource == null) {
             return null;
@@ -249,8 +249,8 @@ public class PAPPolicyStoreReader {
      * @throws EntitlementException throws, if fails
      */
     public PolicyDTO readMetaDataPolicyDTO(String policyId) throws EntitlementException {
-        Resource resource = null;
-        PolicyDTO dto = null;
+        Resource resource;
+        PolicyDTO dto;
 
         resource = store.getPolicy(policyId, PDPConstants.ENTITLEMENT_POLICY_PAP);
         if (resource == null) {
@@ -317,10 +317,10 @@ public class PAPPolicyStoreReader {
      * @throws EntitlementException throws, if fails
      */
     public PolicyDTO readPolicyDTO(Resource resource) throws EntitlementException {
-        String policy = null;
+        String policy;
         String policyId = null;
-        AbstractPolicy absPolicy = null;
-        PolicyDTO dto = null;
+        AbstractPolicy absPolicy;
+        PolicyDTO dto;
         try {
             policy = new String((byte[]) resource.getContent(), Charset.forName("UTF-8"));
             absPolicy = PAPPolicyReader.getInstance(null).getPolicy(policy);

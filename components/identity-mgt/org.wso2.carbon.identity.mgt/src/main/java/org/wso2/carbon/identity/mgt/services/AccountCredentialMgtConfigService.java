@@ -76,7 +76,7 @@ public class AccountCredentialMgtConfigService {
 
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getTenantId();
-        Config emailConfig = null;
+        Config emailConfig;
         EmailTemplateDTO[] templates = null;
         ConfigBuilder configBuilder = ConfigBuilder.getInstance();
         try {

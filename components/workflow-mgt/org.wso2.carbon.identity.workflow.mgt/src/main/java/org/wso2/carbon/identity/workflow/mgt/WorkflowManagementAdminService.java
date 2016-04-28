@@ -296,7 +296,7 @@ public class WorkflowManagementAdminService {
     public WorkflowWizard[] listWorkflows() throws WorkflowException {
 
         List<WorkflowWizard> workflowWizards = new ArrayList<>();
-        List<Workflow> workflowBeans = null;
+        List<Workflow> workflowBeans;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         try {
             workflowBeans = WorkflowServiceDataHolder.getInstance().getWorkflowService().listWorkflows(tenantId);

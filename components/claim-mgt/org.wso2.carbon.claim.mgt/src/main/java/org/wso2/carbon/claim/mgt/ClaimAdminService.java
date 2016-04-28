@@ -39,11 +39,11 @@ public class ClaimAdminService {
      */
     public ClaimDialectDTO[] getClaimMappings() throws ClaimManagementException {
 
-        ClaimMapping[] claimMappings = null;
-        List<ClaimMapping> mappingList = null;
-        Map<String, List<ClaimMapping>> claimMap = null;
-        List<ClaimDialect> claims = null;
-        ClaimDialect dto = null;
+        ClaimMapping[] claimMappings;
+        List<ClaimMapping> mappingList;
+        Map<String, List<ClaimMapping>> claimMap;
+        List<ClaimDialect> claims;
+        ClaimDialect dto;
 
         claimMappings = ClaimManagerHandler.getInstance().getAllClaimMappings();
 

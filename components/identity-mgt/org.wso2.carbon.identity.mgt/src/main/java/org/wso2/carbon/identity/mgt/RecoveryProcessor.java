@@ -170,7 +170,7 @@ public class RecoveryProcessor {
                     " User name: " + userId + " Send To: " + notificationAddress);
         }
 
-        Config config = null;
+        Config config;
         ConfigBuilder configBuilder = ConfigBuilder.getInstance();
         try {
             config = configBuilder.loadConfiguration(ConfigType.EMAIL, StorageType.REGISTRY, tenantId);
@@ -242,7 +242,7 @@ public class RecoveryProcessor {
             }
         }
 
-        Notification emailNotification = null;
+        Notification emailNotification;
         try {
             emailNotification = NotificationBuilder.createNotification("EMAIL", emailTemplate, emailNotificationData);
         } catch (Exception e) {
@@ -284,7 +284,7 @@ public class RecoveryProcessor {
      */
     public VerificationBean verifyConfirmationKey(String confirmationKey) {
 
-        UserRecoveryDataDO dataDO = null;
+        UserRecoveryDataDO dataDO;
 
         try {
             dataDO = dataStore.load(confirmationKey);
@@ -321,7 +321,7 @@ public class RecoveryProcessor {
      */
     public VerificationBean verifyConfirmationCode(int sequence, String username, String code) throws IdentityException {
 
-        UserRecoveryDataDO dataDO = null;
+        UserRecoveryDataDO dataDO;
         String internalCode = getUserInternalCodeStr(sequence, username, code);
 
         try {
@@ -362,7 +362,7 @@ public class RecoveryProcessor {
             dataStore.invalidate(username, tenantId);
         }
         dataStore.store(recoveryDataDO);
-        String externalCode = null;
+        String externalCode;
         try {
             externalCode = getUserExternalCodeStr(confirmationKey);
         } catch (Exception e) {
@@ -469,7 +469,7 @@ public class RecoveryProcessor {
 
         String notificationAddress;
 
-        String confirmationKey = null;
+        String confirmationKey;
         NotificationSendingModule module = null;
 
         String userId = notificationBean.getUserId();
@@ -513,7 +513,7 @@ public class RecoveryProcessor {
         emailNotificationData.setTagData(TENANT_DOMAIN, domainName);
         emailNotificationData.setSendTo(notificationAddress);
 
-        Config config = null;
+        Config config;
         ConfigBuilder configBuilder = ConfigBuilder.getInstance();
         try {
             config = configBuilder.loadConfiguration(ConfigType.EMAIL,
@@ -562,7 +562,7 @@ public class RecoveryProcessor {
             }
         }
 
-        Notification emailNotification = null;
+        Notification emailNotification;
         try {
             emailNotification = NotificationBuilder.createNotification("EMAIL", emailTemplate, emailNotificationData);
         } catch (Exception e) {
@@ -650,7 +650,7 @@ public class RecoveryProcessor {
      */
     private String getUserExternalCodeStr(String internalCode) throws IdentityMgtServiceException {
 
-        String userCode = null;
+        String userCode;
 
         if (internalCode != null) {
             String[] codeParts = internalCode.split("_{3}", 3);

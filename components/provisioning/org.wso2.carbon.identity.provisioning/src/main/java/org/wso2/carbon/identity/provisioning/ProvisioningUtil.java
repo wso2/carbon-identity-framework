@@ -138,11 +138,11 @@ public class ProvisioningUtil {
                 return outboundClaimValueMappings;
             }
 
-            Map<String, String> claimMap = null;
+            Map<String, String> claimMap;
 
             // out-bound is not in wso2 carbon dialect. we need to find how it maps to wso2
             // carbon dialect.
-            Map<String, String> outBoundToCarbonClaimMapppings = null;
+            Map<String, String> outBoundToCarbonClaimMapppings;
 
             // we only know the dialect - it is a standard claim dialect.
             // this returns back a map - having carbon claim dialect as the key.
@@ -237,7 +237,7 @@ public class ProvisioningUtil {
                 return outboundClaimValueMappings;
             }
 
-            Map<String, String> claimMap = null;
+            Map<String, String> claimMap;
 
             if (IdentityApplicationConstants.WSO2CARBON_CLAIM_DIALECT
                     .equals(inboundClaimMappingDialect)) {
@@ -250,8 +250,8 @@ public class ProvisioningUtil {
             } else {
                 // out-bound is not in wso2 carbon dialect. we need to find how it maps to wso2
                 // carbon dialect.
-                Map<String, String> inboundToCarbonClaimMaping = null;
-                Map<String, String> outBoundToCarbonClaimMappping = null;
+                Map<String, String> inboundToCarbonClaimMaping;
+                Map<String, String> outBoundToCarbonClaimMappping;
 
                 // this will return back the mapped carbon dialect for the in-bound claims in the
                 // in-bound provisioning request.
@@ -350,7 +350,7 @@ public class ProvisioningUtil {
                 return outboundClaimValueMappings;
             }
 
-            Map<String, String> claimMap = null;
+            Map<String, String> claimMap;
 
             // out-bound is not in wso2 carbon dialect. we need to find how it maps to wso2
             // carbon dialect.
@@ -461,11 +461,11 @@ public class ProvisioningUtil {
                 return outboundClaimValueMappings;
             }
 
-            Map<String, String> claimMap = null;
+            Map<String, String> claimMap;
 
             // out-bound is not in wso2 carbon dialect. we need to find how it maps to wso2
             // carbon dialect.
-            Map<String, String> carbonToInboundClaimMapping = null;
+            Map<String, String> carbonToInboundClaimMapping;
 
             // we only know the dialect - it is standard claim dialect.
             // returns the carbon claim mapping corresponding to claims in the the in-bound

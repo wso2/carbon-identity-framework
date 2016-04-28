@@ -79,7 +79,7 @@ public class AccountCredentialMgtConfigClient {
     }
 
     public EmailConfigDTO loadEmailConfig() throws AxisFault {
-        EmailTemplateDTO[] emailTemplates = null;
+        EmailTemplateDTO[] emailTemplates;
         EmailConfigDTO emailConfig = new EmailConfigDTO();
         try {
             emailTemplates = stub.getEmailConfig();

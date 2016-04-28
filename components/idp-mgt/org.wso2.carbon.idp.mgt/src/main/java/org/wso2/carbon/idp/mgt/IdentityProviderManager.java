@@ -102,20 +102,20 @@ public class IdentityProviderManager implements IdpManagerService {
             tenantContext = MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
         }
 
-        String openIdUrl = null;
-        String samlSSOUrl = null;
-        String samlLogoutUrl = null;
-        String oauth1RequestTokenUrl = null;
-        String oauth1AuthorizeUrl = null;
-        String oauth1AccessTokenUrl = null;
-        String oauth2AuthzEPUrl = null;
-        String oauth2TokenEPUrl = null;
-        String oauth2RevokeEPUrl = null;
-        String oauth2UserInfoEPUrl = null;
-        String passiveStsUrl = null;
-        String stsUrl = null;
-        String scimUserEndpoint = null;
-        String scimGroupsEndpoint = null;
+        String openIdUrl;
+        String samlSSOUrl;
+        String samlLogoutUrl;
+        String oauth1RequestTokenUrl;
+        String oauth1AuthorizeUrl;
+        String oauth1AccessTokenUrl;
+        String oauth2AuthzEPUrl;
+        String oauth2TokenEPUrl;
+        String oauth2RevokeEPUrl;
+        String oauth2UserInfoEPUrl;
+        String passiveStsUrl;
+        String stsUrl;
+        String scimUserEndpoint;
+        String scimGroupsEndpoint;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
         samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
@@ -201,7 +201,7 @@ public class IdentityProviderManager implements IdpManagerService {
             throw new IdentityProviderManagementException(message);
         }
 
-        int tenantId = -1;
+        int tenantId;
         try {
             tenantId = IdPManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
         } catch (UserStoreException e) {
@@ -244,7 +244,7 @@ public class IdentityProviderManager implements IdpManagerService {
         }
 
         List<FederatedAuthenticatorConfig> fedAuthnCofigs = new ArrayList<FederatedAuthenticatorConfig>();
-        List<Property> propertiesList = null;
+        List<Property> propertiesList;
 
         FederatedAuthenticatorConfig openIdFedAuthn = IdentityApplicationManagementUtil
                 .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
@@ -1190,7 +1190,7 @@ public class IdentityProviderManager implements IdpManagerService {
 
         if (roleConfiguration != null && roleConfiguration.getRoleMappings() != null) {
             for (RoleMapping mapping : roleConfiguration.getRoleMappings()) {
-                UserStoreManager usm = null;
+                UserStoreManager usm;
                 try {
                     usm = IdPManagementServiceComponent.getRealmService()
                             .getTenantUserRealm(tenantId).getUserStoreManager();
@@ -1306,11 +1306,11 @@ public class IdentityProviderManager implements IdpManagerService {
                 && newIdentityProvider.getPermissionAndRoleConfig().getRoleMappings() != null) {
             for (RoleMapping mapping : newIdentityProvider.getPermissionAndRoleConfig()
                     .getRoleMappings()) {
-                UserStoreManager usm = null;
+                UserStoreManager usm;
                 try {
                     usm = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
                             .getUserStoreManager();
-                    String role = null;
+                    String role;
                     if (mapping.getLocalRole().getUserStoreId() != null) {
                         role = mapping.getLocalRole().getUserStoreId()
                                 + CarbonConstants.DOMAIN_SEPARATOR

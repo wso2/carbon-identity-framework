@@ -42,8 +42,8 @@ public class OpenIDAdminDAO extends AbstractDAO<OpenIDAdminDO> {
      * @throws IdentityException
      */
     public void createOrUpdate(OpenIDAdminDO opAdmin) throws IdentityException {
-        String path = null;
-        Resource resource = null;
+        String path;
+        Resource resource;
 
         try {
             path = IdentityRegistryResources.OPEN_ID_ADMIN_SETTINGS;
@@ -77,7 +77,7 @@ public class OpenIDAdminDAO extends AbstractDAO<OpenIDAdminDO> {
      */
     public OpenIDAdminDO getOpenIDAdminDO() throws IdentityException {
         OpenIDAdminDO opdo = null;
-        Resource resource = null;
+        Resource resource;
 
         if (log.isDebugEnabled()) {
             log.debug("Retreiving OpenID admin for tenant");

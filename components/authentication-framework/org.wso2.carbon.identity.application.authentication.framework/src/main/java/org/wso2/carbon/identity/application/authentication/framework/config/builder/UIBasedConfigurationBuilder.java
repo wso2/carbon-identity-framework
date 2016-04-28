@@ -57,7 +57,7 @@ public class UIBasedConfigurationBuilder {
     public SequenceConfig getSequence(String reqType, String clientId, String tenantDomain)
             throws FrameworkException {
 
-        SequenceConfig sequenceConfig = null;
+        SequenceConfig sequenceConfig;
         ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
 
         // special case for OpenID Connect, these clients are stored as OAuth2 clients

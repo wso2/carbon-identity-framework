@@ -244,7 +244,7 @@ public class POXSecurityHandler implements Handler {
 
 
             //If no soap header found in the request create new soap header
-            Document doc = null;
+            Document doc;
             SOAPEnvelope soapEnvelop = msgCtx.getEnvelope();
             if (msgCtx.getEnvelope().getHeader() == null) {
                 SOAPFactory omFac = (SOAPFactory) soapEnvelop.getOMFactory();

@@ -369,7 +369,7 @@ public class AuthenticatorService {
                 return getClass().getName().compareTo(other.getClass().getName());
             }
 
-            int lastComparison = 0;
+            int lastComparison;
             authenticate_args typedOther = (authenticate_args) other;
 
             lastComparison = Boolean.valueOf(isSetUserName()).compareTo(typedOther.isSetUserName());
@@ -454,7 +454,7 @@ public class AuthenticatorService {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("authenticate_args(");
-            boolean first = true;
+            boolean first;
 
             sb.append("userName:");
             if (this.userName == null) {
@@ -763,7 +763,7 @@ public class AuthenticatorService {
                 return getClass().getName().compareTo(other.getClass().getName());
             }
 
-            int lastComparison = 0;
+            int lastComparison;
             authenticate_result typedOther = (authenticate_result) other;
 
             lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
@@ -847,7 +847,7 @@ public class AuthenticatorService {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder("authenticate_result(");
-            boolean first = true;
+            boolean first;
 
             sb.append("success:");
             if (this.success == null) {

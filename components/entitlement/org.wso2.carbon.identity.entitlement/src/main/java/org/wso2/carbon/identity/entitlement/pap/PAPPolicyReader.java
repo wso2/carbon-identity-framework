@@ -113,7 +113,7 @@ public class PAPPolicyReader implements ErrorHandler {
      * @return
      */
     public boolean isValidPolicy(String policy) {
-        InputStream stream = null;
+        InputStream stream;
         try {
             stream = new ByteArrayInputStream(policy.getBytes("UTF-8"));
             handleDocument(builder.parse(stream));
@@ -128,7 +128,7 @@ public class PAPPolicyReader implements ErrorHandler {
      * @return
      */
     public synchronized AbstractPolicy getPolicy(String policy) {
-        InputStream stream = null;
+        InputStream stream;
         try {
             stream = new ByteArrayInputStream(policy.getBytes("UTF-8"));
             return handleDocument(builder.parse(stream));
@@ -145,7 +145,7 @@ public class PAPPolicyReader implements ErrorHandler {
      * @return target as PolicyTarget object
      */
     public PolicyTarget getTarget(String policy) {
-        InputStream stream = null;
+        InputStream stream;
         PolicyTarget policyTarget = new PolicyTarget();
         try {
             stream = new ByteArrayInputStream(policy.getBytes("UTF-8"));
@@ -184,7 +184,7 @@ public class PAPPolicyReader implements ErrorHandler {
      */
     public void warning(SAXParseException exception) throws SAXException {
         if (log.isWarnEnabled()) {
-            String message = null;
+            String message;
             message = "Warning on line " + exception.getLineNumber() + ": "
                     + exception.getMessage();
             log.warn(message);

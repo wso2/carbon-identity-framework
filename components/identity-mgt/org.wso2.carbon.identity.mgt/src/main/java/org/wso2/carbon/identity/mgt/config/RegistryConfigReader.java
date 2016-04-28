@@ -39,8 +39,8 @@ public class RegistryConfigReader implements ConfigReader {
     @Override
     public Properties read(int tenantId, String resourcePath) throws IdentityMgtConfigException{
 
-        Resource resource = null;
-        Properties readerProps = null;
+        Resource resource;
+        Properties readerProps;
         RegistryService registry = IdentityMgtServiceComponent
                 .getRegistryService();
 

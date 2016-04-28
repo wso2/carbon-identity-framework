@@ -267,7 +267,7 @@ public class FrameworkUtils {
 
     public static RequestCoordinator getRequestCoordinator() {
 
-        RequestCoordinator requestCoordinator = null;
+        RequestCoordinator requestCoordinator;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_REQ_COORDINATOR);
 
@@ -285,7 +285,7 @@ public class FrameworkUtils {
      */
     public static AuthenticationRequestHandler getAuthenticationRequestHandler() {
 
-        AuthenticationRequestHandler authenticationRequestHandler = null;
+        AuthenticationRequestHandler authenticationRequestHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_AUTH_REQ_HANDLER);
 
@@ -303,7 +303,7 @@ public class FrameworkUtils {
      */
     public static LogoutRequestHandler getLogoutRequestHandler() {
 
-        LogoutRequestHandler logoutRequestHandler = null;
+        LogoutRequestHandler logoutRequestHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_LOGOUT_REQ_HANDLER);
 
@@ -321,7 +321,7 @@ public class FrameworkUtils {
      */
     public static StepBasedSequenceHandler getStepBasedSequenceHandler() {
 
-        StepBasedSequenceHandler stepBasedSequenceHandler = null;
+        StepBasedSequenceHandler stepBasedSequenceHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_BASED_SEQ_HANDLER);
 
@@ -339,7 +339,7 @@ public class FrameworkUtils {
      */
     public static RequestPathBasedSequenceHandler getRequestPathBasedSequenceHandler() {
 
-        RequestPathBasedSequenceHandler reqPathBasedSeqHandler = null;
+        RequestPathBasedSequenceHandler reqPathBasedSeqHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_REQ_PATH_BASED_SEQ_HANDLER);
 
@@ -357,7 +357,7 @@ public class FrameworkUtils {
      */
     public static StepHandler getStepHandler() {
 
-        StepHandler stepHandler = null;
+        StepHandler stepHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_STEP_HANDLER);
 
@@ -375,7 +375,7 @@ public class FrameworkUtils {
      */
     public static HomeRealmDiscoverer getHomeRealmDiscoverer() {
 
-        HomeRealmDiscoverer homeRealmDiscoverer = null;
+        HomeRealmDiscoverer homeRealmDiscoverer;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_HRD);
 
@@ -393,7 +393,7 @@ public class FrameworkUtils {
      */
     public static ClaimHandler getClaimHandler() {
 
-        ClaimHandler claimHandler = null;
+        ClaimHandler claimHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_CLAIM_HANDLER);
 
@@ -411,7 +411,7 @@ public class FrameworkUtils {
      */
     public static ProvisioningHandler getProvisioningHandler() {
 
-        ProvisioningHandler provisioningHandler = null;
+        ProvisioningHandler provisioningHandler;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
                 .get(FrameworkConstants.Config.QNAME_EXT_PROVISIONING_HANDLER);
 
@@ -1071,7 +1071,7 @@ public class FrameworkUtils {
 
         if (useLocalClaimDialect) {
             Map<String, String> extAttributesValueMap = FrameworkUtils.getClaimMappings(claimMappings, false);
-            Map<String, String> mappedAttrs = null;
+            Map<String, String> mappedAttrs;
             try {
                 mappedAttrs = ClaimManagerHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
                                                                                                        extAttributesValueMap.keySet(), context.getTenantDomain(), true);

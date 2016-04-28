@@ -193,7 +193,7 @@ public class TenantDataManager {
      * @return Response from service
      */
     private static String getServiceResponse(String url) {
-        String serviceResponse = null;
+        String serviceResponse;
         Map<String, String> headerParams = new HashMap<String, String>();
         // Set the username in HTTP header for mutual ssl authentication
         headerParams.put(usernameHeaderName, carbonLogin);
@@ -258,7 +258,7 @@ public class TenantDataManager {
                         Constants.TenantConstants.RETURN + "']";
 
                 XPathExpression expr = xpath.compile(xPathExpression);
-                NodeList nodeList = null;
+                NodeList nodeList;
                 nodeList = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
 
                 // Reset existing tenant domains list

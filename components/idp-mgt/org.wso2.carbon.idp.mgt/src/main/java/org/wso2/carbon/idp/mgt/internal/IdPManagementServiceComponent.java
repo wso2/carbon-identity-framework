@@ -188,7 +188,7 @@ public class IdPManagementServiceComponent {
                 + File.separator + "identity-providers";
         FileInputStream fileInputStream = null;
         File spConfigDir = new File(spConfigDirPath);
-        OMElement documentElement = null;
+        OMElement documentElement;
 
         if (spConfigDir.exists()) {
 

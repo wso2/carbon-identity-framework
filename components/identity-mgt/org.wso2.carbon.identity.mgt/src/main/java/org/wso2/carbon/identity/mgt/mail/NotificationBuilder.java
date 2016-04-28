@@ -32,9 +32,9 @@ public class NotificationBuilder {
     public static Notification createNotification(String notificationType, String template, NotificationData data)
             throws IdentityMgtServiceException {
 
-        String subject = null;
-        String body = null;
-        String footer = null;
+        String subject;
+        String body;
+        String footer;
         Notification notificatoin = null;
 
         if ("EMAIL".equals(notificationType)) {

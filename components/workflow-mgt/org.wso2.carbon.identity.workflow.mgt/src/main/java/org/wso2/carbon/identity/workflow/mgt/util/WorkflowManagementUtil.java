@@ -132,10 +132,10 @@ public class WorkflowManagementUtil {
      * @throws IOException
      */
     public static String readFileFromResource(InputStream resourceAsStream) throws URISyntaxException, IOException {
-        String content = null;
+        String content;
         try {
             BufferedInputStream bufferedInputStream = new BufferedInputStream(resourceAsStream);
-            int c = -1;
+            int c;
             StringBuilder resourceFile = new StringBuilder();
             while ((c = bufferedInputStream.read()) != -1) {
                 char val = (char) c;

@@ -332,7 +332,7 @@ public class IdentityApplicationManagementUtil {
     public static String extractKeyStoreFileName(String filePath) {
 
         if (filePath != null) {
-            String name = null;
+            String name;
             int index = filePath.lastIndexOf('/');
             if (index != -1) {
                 name = filePath.substring(index + 1);
@@ -362,7 +362,7 @@ public class IdentityApplicationManagementUtil {
     public static String generateThumbPrint(String encodedCert) throws NoSuchAlgorithmException {
 
         if (encodedCert != null) {
-            MessageDigest digestValue = null;
+            MessageDigest digestValue;
             digestValue = MessageDigest.getInstance("SHA-1");
             byte[] der = Base64.decode(encodedCert);
             digestValue.update(der);

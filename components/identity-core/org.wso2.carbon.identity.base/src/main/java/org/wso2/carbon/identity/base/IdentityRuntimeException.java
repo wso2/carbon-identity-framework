@@ -170,7 +170,7 @@ public class IdentityRuntimeException extends RuntimeException {
         if(errorInfo == null || StringUtils.isBlank(errorInfo.errorDescription)){
             throw new IllegalArgumentException("ErrorInfo object is null or Error Description is blank");
         }
-        IdentityRuntimeException identityRuntimeException = null;
+        IdentityRuntimeException identityRuntimeException;
         if(errorInfo.getCause() != null) {
             identityRuntimeException = new IdentityRuntimeException(errorInfo.getErrorDescription(),
                     errorInfo.getCause());

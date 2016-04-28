@@ -227,7 +227,7 @@ public class IdentityTenantUtil {
 
     public static int getTenantId(String tenantDomain) throws IdentityRuntimeException {
 
-        int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+        int tenantId;
         try {
             tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
         } catch (UserStoreException e) {
@@ -248,7 +248,7 @@ public class IdentityTenantUtil {
 
     public static String getTenantDomain(int tenantId) throws IdentityRuntimeException {
 
-        String tenantDomain = null;
+        String tenantDomain;
         try {
             tenantDomain = realmService.getTenantManager().getDomain(tenantId);
         } catch (UserStoreException e) {

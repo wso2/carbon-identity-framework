@@ -104,7 +104,7 @@ public class WorkflowRequestDAO {
     public WorkflowRequest retrieveWorkflow(String uuid) throws InternalWorkflowException {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet rs;
 
         String query = SQLConstants.GET_WORKFLOW_REQUEST_QUERY;
         try {

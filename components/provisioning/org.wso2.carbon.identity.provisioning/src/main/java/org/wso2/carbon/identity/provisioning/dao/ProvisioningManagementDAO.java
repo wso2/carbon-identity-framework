@@ -62,7 +62,7 @@ public class ProvisioningManagementDAO {
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
 
-            PreparedStatement prepStmt = null;
+            PreparedStatement prepStmt;
 
             // id of the identity provider
             int idpId = getIdentityProviderIdentifier(dbConnection, identityProviderName, tenantId);
@@ -111,7 +111,7 @@ public class ProvisioningManagementDAO {
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
 
-            PreparedStatement prepStmt = null;
+            PreparedStatement prepStmt;
 
             // id of the identity provider
             int idpId = getIdentityProviderIdentifier(dbConnection, identityProviderName, tenantId);
@@ -156,7 +156,7 @@ public class ProvisioningManagementDAO {
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
 
-            PreparedStatement prepStmt = null;
+            PreparedStatement prepStmt;
 
             // id of the identity provider
             int idpId = getIdentityProviderIdentifier(dbConnection, identityProviderName, tenantId);
@@ -224,7 +224,7 @@ public class ProvisioningManagementDAO {
                 throw new IdentityApplicationManagementException(msg);
             }
 
-            PreparedStatement prepStmt = null;
+            PreparedStatement prepStmt;
 
             // SP_IDP_NAME=?, SP_IDP_PRIMARY=?,SP_IDP_HOME_REALM_ID=?,
             // SP_IDP_THUMBPRINT=?,
@@ -388,7 +388,7 @@ public class ProvisioningManagementDAO {
             throws SQLException,
             IdentityApplicationManagementException {
 
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {
@@ -421,7 +421,7 @@ public class ProvisioningManagementDAO {
                                                        String connectorType) throws SQLException,
             IdentityApplicationManagementException {
 
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {
@@ -503,7 +503,7 @@ public class ProvisioningManagementDAO {
      */
     public String getProvisionedEntityNameByLocalId(String localId) throws IdentityApplicationManagementException {
         Connection dbConnection = null;
-        String sqlStmt = null;
+        String sqlStmt;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         try {

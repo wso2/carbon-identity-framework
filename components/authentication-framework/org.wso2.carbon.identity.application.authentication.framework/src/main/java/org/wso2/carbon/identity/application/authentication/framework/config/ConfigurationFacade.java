@@ -71,7 +71,7 @@ public class ConfigurationFacade {
             throws IdentityProviderManagementException {
 
         ExternalIdPConfig externalIdPConfig = null;
-        IdentityProvider idpDO = null;
+        IdentityProvider idpDO;
 
         if (log.isDebugEnabled()) {
             log.debug("Trying to find the IdP for name: " + idpName);
@@ -104,7 +104,7 @@ public class ConfigurationFacade {
             throws IdentityProviderManagementException {
 
         ExternalIdPConfig externalIdPConfig = null;
-        IdentityProvider idpDO = null;
+        IdentityProvider idpDO;
 
         if (log.isDebugEnabled()) {
             log.debug("Trying to find the IdP for realm: " + realm);

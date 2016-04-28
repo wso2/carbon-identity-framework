@@ -406,7 +406,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         String description = serviceProvider.getDescription();
         boolean isSaasApp = serviceProvider.isSaasApp();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String storedAppName = null;
+        String storedAppName;
 
         if (applicationName == null) {
             // check for required attributes.
@@ -647,7 +647,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         PreparedStatement inboundProConfigPrepStmt = null;
         InboundProvisioningConfig inBoundProvisioningConfig = new InboundProvisioningConfig();
-        ResultSet resultSet = null;
+        ResultSet resultSet;
 
         try {
 
@@ -680,7 +680,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         PreparedStatement outboundProConfigPrepStmt = null;
         OutboundProvisioningConfig outBoundProvisioningConfig = new OutboundProvisioningConfig();
-        ResultSet resultSet = null;
+        ResultSet resultSet;
         List<IdentityProvider> idpProConnectors = new ArrayList<IdentityProvider>();
 
         try {
@@ -693,8 +693,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             resultSet = outboundProConfigPrepStmt.executeQuery();
 
             while (resultSet.next()) {
-                ProvisioningConnectorConfig proConnector = null;
-                IdentityProvider fedIdp = null;
+                ProvisioningConnectorConfig proConnector;
+                IdentityProvider fedIdp;
 
                 fedIdp = new IdentityProvider();
                 fedIdp.setIdentityProviderName(resultSet.getString(1));
@@ -832,7 +832,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
         if (authSteps != null && authSteps.length > 0) {
             // we have authentications steps defined.
-            PreparedStatement storeStepIDPAuthnPrepStmt = null;
+            PreparedStatement storeStepIDPAuthnPrepStmt;
             storeStepIDPAuthnPrepStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.STORE_STEP_IDP_AUTH);
             try {
@@ -1381,7 +1381,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             log.debug("Loading Application Data of Client " + clientId);
         }
 
-        int tenantID = -123;
+        int tenantID;
 
         try {
             tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
@@ -1555,7 +1555,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             while (resultSet.next()) {
 
-                InboundAuthenticationRequestConfig inbountAuthRequest = null;
+                InboundAuthenticationRequestConfig inbountAuthRequest;
                 String authKey = resultSet.getString(1);
                 //this is done to handle empty string added to oracle database as null.
                 if (authKey == null){
@@ -2638,7 +2638,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         int authId = -1;
 
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet rs;
         String sqlStmt = ApplicationMgtDBQueries.LOAD_IDP_AUTHENTICATOR_ID;
         try {
             prepStmt = conn.prepareStatement(sqlStmt);
@@ -2667,7 +2667,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     private Map<String, String> getAuthenticatorInfo(Connection conn, int tenantId,
                                                      int authenticatorId) throws SQLException {
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet rs;
         String sqlStmt = ApplicationMgtDBQueries.LOAD_IDP_AND_AUTHENTICATOR_NAMES;
         Map<String, String> returnData = new HashMap<String, String>();
         try {
@@ -2703,7 +2703,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                                  String authenticatorName, String authenticatorDispalyName) throws SQLException {
         int authenticatorId = -1;
         PreparedStatement prepStmt = null;
-        ResultSet rs = null;
+        ResultSet rs;
         // TENANT_ID, IDP_ID, NAME,IS_ENABLED, DISPLAY_NAME
         String sqlStmt = ApplicationMgtDBQueries.STORE_LOCAL_AUTHENTICATOR;
         try {

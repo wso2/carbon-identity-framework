@@ -117,7 +117,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
 
         };
 
-        PolicyCombiningAlgorithm policyCombiningAlgorithm = null;
+        PolicyCombiningAlgorithm policyCombiningAlgorithm;
         // get registered finder modules
         Map<PolicyFinderModule, Properties> finderModules = EntitlementServiceComponent.
                 getEntitlementConfig().getPolicyFinderModules();
@@ -126,7 +126,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
             this.finderModules = new ArrayList<PolicyFinderModule>(finderModules.keySet());
         }
 
-        PolicyCollection tempPolicyCollection = null;
+        PolicyCollection tempPolicyCollection;
 
         // get policy collection
         Map<PolicyCollection, Properties> policyCollections = EntitlementServiceComponent.

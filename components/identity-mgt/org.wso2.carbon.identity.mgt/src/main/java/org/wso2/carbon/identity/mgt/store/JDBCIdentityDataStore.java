@@ -76,7 +76,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
         for (Map.Entry<String, String> entry : data.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            boolean isUserExists = false;
+            boolean isUserExists;
             try {
                 isUserExists = isExistingUserDataValue(userName, tenantId, key);
             } catch (SQLException e) {

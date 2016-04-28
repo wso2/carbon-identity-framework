@@ -98,7 +98,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
     public ResourceFinderResult findDescendantResources(AttributeValue parentResourceId,
                                                         EvaluationCtx context) {
 
-        ResourceFinderResult resourceFinderResult = null;
+        ResourceFinderResult resourceFinderResult;
         Set<AttributeValue> resources = null;
         String dataType = parentResourceId.getType().toString();
 
@@ -106,7 +106,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
             try {
                 Set<String> resourceNames = null;
                 if (isResourceCachingEnabled && !finder.overrideDefaultCache()) {
-                    IdentityCacheKey cacheKey = null;
+                    IdentityCacheKey cacheKey;
                     String key = PDPConstants.RESOURCE_DESCENDANTS + parentResourceId.encode() +
                             domToString(context.getRequestRoot());
                     cacheKey = new IdentityCacheKey(tenantId, key);
@@ -158,7 +158,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
     @Override
     public ResourceFinderResult findChildResources(AttributeValue parentResourceId,
                                                    EvaluationCtx context) {
-        ResourceFinderResult resourceFinderResult = null;
+        ResourceFinderResult resourceFinderResult;
         Set<AttributeValue> resources = null;
         String dataType = parentResourceId.getType().toString();
 
@@ -166,7 +166,7 @@ public class CarbonResourceFinder extends ResourceFinderModule {
             try {
                 Set<String> resourceNames = null;
                 if (isResourceCachingEnabled && !finder.overrideDefaultCache()) {
-                    IdentityCacheKey cacheKey = null;
+                    IdentityCacheKey cacheKey;
                     String key = PDPConstants.RESOURCE_CHILDREN + parentResourceId.encode() +
                             domToString(context.getRequestRoot());
                     cacheKey = new IdentityCacheKey(tenantId, key);

@@ -49,9 +49,9 @@ public class OpenIDUserDAO extends AbstractDAO<OpenIDUserDO> {
     }
 
     public boolean addAssociation(OpenIDUserDO openIDuserDO) {
-        String path = null;
-        Resource resource = null;
-        Collection userResource = null;
+        String path;
+        Resource resource;
+        Collection userResource;
 
         try {
             if (openIDuserDO == null) {
@@ -174,7 +174,7 @@ public class OpenIDUserDAO extends AbstractDAO<OpenIDUserDO> {
      */
     public String[] getOpenIDsForUser(String username) {
         String[] openIDSet = new String[0];
-        Resource openIDResource = null;
+        Resource openIDResource;
 
         try {
             if (registry.resourceExists(RegistryConstants.PROFILES_PATH + username)) {

@@ -93,7 +93,7 @@ public class IdentityClaimManager {
             throws IdentityException {
         Claim[] claims = new Claim[0];
         ClaimManager claimAdmin;
-        ArrayList<Claim> requiredClaims = null;
+        ArrayList<Claim> requiredClaims;
 
         try {
 
