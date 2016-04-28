@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
@@ -93,6 +94,10 @@ import java.util.List;
  * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.AuthenticationHandler"
  * cardinality="0..n" policy="dynamic" bind="addAuthenticationHandler"
  * unbind="removeAuthenticationHandler"
+ * @scr.reference name="identity.handlers.response.builder"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler"
+ * cardinality="0..n" policy="dynamic" bind="addResponseBuilderHandler"
+ * unbind="removeResponseBuilderHandler"
  */
 
 
@@ -363,6 +368,24 @@ public class FrameworkServiceComponent {
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AuthenticationHandler : " + authenticationHandler.getName());
+        }
+    }
+
+    protected void addResponseBuilderHandler(ResponseBuilderHandler responseBuilderHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList().add(responseBuilderHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added ResponseBuilderHandler : " + responseBuilderHandler.getName());
+        }
+    }
+
+    protected void removeResponseBuilderHandler(ResponseBuilderHandler responseBuilderHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList().remove(responseBuilderHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed ResponseBuilderHandler : " + responseBuilderHandler.getName());
         }
     }
 

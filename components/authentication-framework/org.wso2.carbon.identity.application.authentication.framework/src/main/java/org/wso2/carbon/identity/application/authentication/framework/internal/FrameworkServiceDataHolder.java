@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -44,6 +45,7 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
+    private List<ResponseBuilderHandler> responseBuilderHandlerList = new ArrayList<>();
 
 
 
@@ -115,5 +117,9 @@ public class FrameworkServiceDataHolder {
 
     public List<AuthenticationHandler> getAuthenticationHandlers() {
         return authenticationHandlers;
+    }
+
+    public List<ResponseBuilderHandler> getResponseBuilderHandlerList() {
+        return responseBuilderHandlerList;
     }
 }

@@ -9,14 +9,14 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 
 import java.util.List;
 
-public class IdentityFrameworkHandlerManager {
-    private static volatile IdentityFrameworkHandlerManager instance = new IdentityFrameworkHandlerManager();
+public class HandlerManager {
+    private static volatile HandlerManager instance = new HandlerManager();
 
-    private IdentityFrameworkHandlerManager() {
+    private HandlerManager() {
 
     }
 
-    public static IdentityFrameworkHandlerManager getInstance() {
+    public static HandlerManager getInstance() {
         return instance;
     }
 
@@ -29,5 +29,16 @@ public class IdentityFrameworkHandlerManager {
             }
         }
         throw FrameworkRuntimeException.error("Cannot find AuthenticationHandler to handle this request");
+    }
+
+    public ResponseBuilderHandler getResponseBuilderHandler(IdentityMessageContext messageContext){
+        List<ResponseBuilderHandler> responseBuilderHandlers  =
+                FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList();
+        for (ResponseBuilderHandler responseBuilderHandler: responseBuilderHandlers){
+            if(responseBuilderHandler.canHandle(messageContext)){
+                return responseBuilderHandler ;
+            }
+        }
+        throw FrameworkRuntimeException.error("Cannot find ResponseBuilderHandler to handle this request");
     }
 }

@@ -7,8 +7,8 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
-        .IdentityFrameworkHandlerManager;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.HandlerManager;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -23,25 +23,43 @@ public class AuthenticationRequestProcessor extends IdentityProcessor {
         IdentityMessageContext identityMessageContext = null ; //read from cache, otherwise throw exception.
 
         try {
-            FrameworkHandlerStatus identityFrameworkHandlerStatus = doAuthenticate(identityMessageContext);
-
+            FrameworkHandlerStatus identityFrameworkHandlerStatus = authenticate(identityMessageContext);
+            if(identityFrameworkHandlerStatus.equals(FrameworkHandlerStatus.REDIRECT)){
+                return buildRedirectResponse(identityMessageContext);
+            }
+            return buildResponse(identityMessageContext);
         } catch (AuthenticationException e) {
-            handleException(e, identityMessageContext);
+            return buildErrorResponse(e, identityMessageContext);
         }
-
-        return null;
     }
 
-    protected FrameworkHandlerStatus doAuthenticate(IdentityMessageContext identityMessageContext)
+    protected FrameworkHandlerStatus authenticate(IdentityMessageContext identityMessageContext)
             throws AuthenticationException {
         AuthenticationHandler authenticationHandler =
-                IdentityFrameworkHandlerManager.getInstance().getAuthenticationHandler(identityMessageContext);
+                HandlerManager.getInstance().getAuthenticationHandler(identityMessageContext);
         return authenticationHandler.authenticate(identityMessageContext);
     }
 
-    protected void handleException(IdentityException e, IdentityMessageContext identityMessageContext){
-
+    protected IdentityResponse.IdentityResponseBuilder buildErrorResponse(IdentityException e, IdentityMessageContext identityMessageContext){
+        ResponseBuilderHandler responseBuilderHandler =
+                HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
+        return responseBuilderHandler.buildErrorResponse(identityMessageContext);
     }
+
+    protected IdentityResponse.IdentityResponseBuilder buildRedirectResponse(IdentityMessageContext identityMessageContext){
+        ResponseBuilderHandler responseBuilderHandler =
+                HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
+        return responseBuilderHandler.buildRedirectResponse(identityMessageContext);
+    }
+
+    protected IdentityResponse.IdentityResponseBuilder buildResponse(IdentityMessageContext identityMessageContext){
+        ResponseBuilderHandler responseBuilderHandler =
+                HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
+        return responseBuilderHandler.buildResponse(identityMessageContext);
+    }
+
+
+
 
     @Override
     public String getName() {

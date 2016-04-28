@@ -1,4 +1,4 @@
-package org.wso2.carbon.identity.application.authentication.framework.inbound.processor;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler;
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerStatus;
