@@ -31,6 +31,8 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
@@ -171,6 +173,11 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
+                FrameworkLoginResponseFactory());
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
+                FrameworkLogoutResponseFactory());
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
