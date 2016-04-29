@@ -20,8 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import java.sql.Timestamp;
-import java.util.Date;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,9 +36,6 @@ public final class OperationCleanUpService {
     private final ScheduledExecutorService scheduler;
     private final long initialDelay;
     private final long delayBetweenRuns;
-
-    // Time skew in minute
-    private static final int defaultTimeSkew = 60;
 
     /**
      * @param initialDelay
@@ -63,11 +59,7 @@ public final class OperationCleanUpService {
         public void run() {
 
             log.debug("Start running the Session Operation Data cleanup task.");
-
-            Date date = new Date();
-            // Convert defaultTimeSkew (minutes) to milliseconds
-            Timestamp timestamp = new Timestamp((date.getTime() - (defaultTimeSkew * 60 * 1000)));
-            SessionDataStore.getInstance().removeExpiredOperationData(timestamp);
+            SessionDataStore.getInstance().removeExpiredOperationData();
             log.debug("Stop running the Operation Data cleanup task.");
             log.info("Session Operation Data cleanup task is running successfully for removing expired Operation Data");
         }

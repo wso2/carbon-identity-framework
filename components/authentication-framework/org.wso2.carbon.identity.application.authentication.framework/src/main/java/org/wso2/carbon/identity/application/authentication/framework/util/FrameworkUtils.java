@@ -66,6 +66,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
@@ -98,6 +99,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 public class FrameworkUtils {
 
@@ -1123,5 +1125,18 @@ public class FrameworkUtils {
      */
     public static void endTenantFlow() {
         PrivilegedCarbonContext.endTenantFlow();
+    }
+
+    /**
+     * create a nano time stamp relative to Unix Epoch
+     */
+    public static long getCurrentStandardNano() {
+
+        long epochTimeReference = TimeUnit.MILLISECONDS.toNanos(
+                FrameworkServiceDataHolder.getInstance().getUnixTimeReference());
+        long currentSystemNano = System.nanoTime();
+        long currentStandardNano = epochTimeReference + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                .getNanoTimeReference());
+        return currentStandardNano;
     }
 }
