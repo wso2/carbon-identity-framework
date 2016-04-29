@@ -514,7 +514,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             temporaryPassword = UserIdentityManagementUtil.generateTemporaryPassword();
 
             // setting the password value
-            ((StringBuffer) credential).replace(0, temporaryPassword.length, new String(temporaryPassword));
+            if (credential != null)
+                ((StringBuffer) credential).replace(0, temporaryPassword.length, new String(temporaryPassword));
         }
 
         // Filtering security question URIs from claims and add them to the thread local dto
@@ -761,8 +762,9 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             // temporary passwords will be used
             char[] temporaryPassword = UserIdentityManagementUtil.generateTemporaryPassword();
             // setting the password value
-            ((StringBuffer) newCredential).replace(0, temporaryPassword.length, new String(
-                    temporaryPassword));
+            if (newCredential != null)
+                ((StringBuffer) newCredential).replace(0, temporaryPassword.length, new String(
+                        temporaryPassword));
 
             UserIdentityMgtBean bean = new UserIdentityMgtBean();
             bean.setUserId(userName);

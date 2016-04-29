@@ -1594,7 +1594,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                                 }
                             }
                         }
-                        inbountAuthRequest.setFriendlyName(customAuthenticator.getFriendlyName());
+                        inbountAuthRequest.setFriendlyName(customAuthenticator != null? customAuthenticator.getFriendlyName() : "");
 
                         if (!customAuthenticatorsAlreadyIn.containsKey(authType)) {
                             customAuthenticatorsAlreadyIn.put(authType, new ArrayList<String>());

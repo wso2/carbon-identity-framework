@@ -154,7 +154,7 @@ public abstract class AbstractPIPAttributeFinder implements PIPAttributeFinder {
                 log.debug("Carbon Attribute Cache Miss");
             }
             attributeValues = getAttributeValues(subjectId, resourceId, actionId, environmentId,
-                                                 attributeId.toString(), issuer);
+                    attributeId != null? attributeId.toString() : "", issuer);
             if (isAbstractAttributeCachingEnabled && key != null) {
                 if (attributeValues != null && !attributeValues.isEmpty()) {
                     abstractAttributeFinderCache.addToCache(tenantId, key, attributeValues);
