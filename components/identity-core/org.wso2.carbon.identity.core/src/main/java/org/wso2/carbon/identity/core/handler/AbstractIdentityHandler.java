@@ -18,26 +18,45 @@
 
 package org.wso2.carbon.identity.core.handler;
 
-import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.util.Map;
 import java.util.Properties;
 
 public abstract class AbstractIdentityHandler implements IdentityHandler {
 
-    protected Properties properties = new Properties();
+    private static Log log = LogFactory.getLog(AbstractIdentityHandler.class);
 
-    public void init(Properties properties) throws IdentityRuntimeException {
-        if(properties != null){
-            this.properties = properties;
+    protected final Properties properties = new Properties();
+
+    public void init() {
+
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                (AbstractIdentityHandler.class.getName(), this.getClass().getName());
+
+        if (identityEventListenerConfig == null) {
+            return;
+        }
+
+        if(identityEventListenerConfig.getProperties() != null) {
+            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
+                String key = (String)property.getKey();
+                String value = (String)property.getValue();
+                if(!properties.containsKey(key)) {
+                    properties.setProperty(key, value);
+                } else {
+                    log.warn("Property key " + key + " already exists. Cannot add property!!");
+                }
+            }
         }
     }
 
-    public boolean isEnabled(MessageContext messageContext) throws IdentityException {
+    public boolean isEnabled(MessageContext messageContext) {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (AbstractIdentityHandler.class.getName(), this.getClass().getName());
@@ -49,7 +68,7 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
         return Boolean.parseBoolean(identityEventListenerConfig.getEnable());
     }
 
-    public int getPriority(MessageContext messageContext) throws IdentityRuntimeException {
+    public int getPriority(MessageContext messageContext) {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (AbstractIdentityHandler.class.getName(), this.getClass().getName());
@@ -59,7 +78,7 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
         return identityEventListenerConfig.getOrder();
     }
 
-    public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
+    public boolean canHandle(MessageContext messageContext) {
         return false;
     }
 
