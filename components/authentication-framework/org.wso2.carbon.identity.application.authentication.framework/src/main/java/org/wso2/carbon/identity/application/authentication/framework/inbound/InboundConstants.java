@@ -26,7 +26,8 @@ public class InboundConstants {
         public static final String CALL_BACK_PATH = "CallbackURI";
         public static final String AUTH_NAME = "Name";
         public static final String AUTH_TYPE = "type";
-        public static final String SESSION_DATA_KEY = "sessionDataKey";
+        // Rename constant value to "contextkey"
+        public static final String CONTEXT_KEY = "sessionDataKey";
         public static final String AUTHENTICATION_RESULT = "AuthenticationResult";
 
         private RequestProcessor() {

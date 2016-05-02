@@ -20,44 +20,33 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 
 import java.util.List;
 
-public class InboundRequestManager {
+public class IdentityProcessCoordinator {
 
-    private static final Log log = LogFactory.getLog(InboundRequestManager.class);
+    private static final Log log = LogFactory.getLog(IdentityProcessCoordinator.class);
 
-    /**
-     * Process the InboundRequest
-     *
-     * @param inboundRequest InboundRequest
-     * @return InboundResponse
-     */
-    public InboundResponse process(InboundRequest inboundRequest) {
+    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
 
-        InboundProcessor processor = getInboundProcessor(inboundRequest);
+        IdentityProcessor processor = getIdentityProcessor(identityRequest);
         if (processor != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Starting to process inbound request : " + processor.getName());
+                log.debug("Starting to process IdentityProcessor : " + processor.getName());
             }
-            return processor.process(inboundRequest);
+            return processor.process(identityRequest).build();
         } else {
-            throw FrameworkRuntimeException.error("No inbound processor found to process the request");
+            throw FrameworkRuntimeException.error("No IdentityProcessor found to process the request");
         }
     }
 
-    /**
-     * Gets the InboundProcessor that can process this request
-     *
-     * @param inboundRequest InboundRequest
-     * @return InboundProcessor
-     */
-    private InboundProcessor getInboundProcessor(InboundRequest inboundRequest) {
-        List<InboundProcessor> processors = FrameworkServiceDataHolder.getInstance().getInboundProcessors();
+    private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
+        List<IdentityProcessor> processors = FrameworkServiceDataHolder.getInstance().getIdentityProcessors();
 
-        for (InboundProcessor requestProcessor : processors) {
-            if (requestProcessor.canHandle(inboundRequest)) {
+        for (IdentityProcessor requestProcessor : processors) {
+            if (requestProcessor.canHandle(identityRequest)) {
                 return requestProcessor;
             }
         }
