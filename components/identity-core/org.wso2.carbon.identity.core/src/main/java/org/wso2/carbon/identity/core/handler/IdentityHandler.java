@@ -29,7 +29,7 @@ public interface IdentityHandler {
      * Initializes the handler
      *
      */
-    public void init();
+    public void init(InitConfig initConfig);
 
     /**
      * Name of the handler.
