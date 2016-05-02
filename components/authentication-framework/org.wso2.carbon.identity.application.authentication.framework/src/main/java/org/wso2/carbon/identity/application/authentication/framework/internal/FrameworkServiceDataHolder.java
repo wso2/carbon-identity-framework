@@ -23,7 +23,9 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
+        .AbstractProtocolRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -45,8 +47,8 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
-    private List<ResponseBuilderHandler> responseBuilderHandlerList = new ArrayList<>();
-
+    private List<ResponseHandler> responseBuilderHandlerList = new ArrayList<>();
+    private List<AbstractProtocolRequestHandler> protocolRequestHandlersList = new ArrayList<>();
 
 
 
@@ -119,7 +121,11 @@ public class FrameworkServiceDataHolder {
         return authenticationHandlers;
     }
 
-    public List<ResponseBuilderHandler> getResponseBuilderHandlerList() {
+    public List<ResponseHandler> getResponseBuilderHandlerList() {
         return responseBuilderHandlerList;
+    }
+
+    public List<AbstractProtocolRequestHandler> getProtocolRequestHandlersList() {
+        return protocolRequestHandlersList;
     }
 }

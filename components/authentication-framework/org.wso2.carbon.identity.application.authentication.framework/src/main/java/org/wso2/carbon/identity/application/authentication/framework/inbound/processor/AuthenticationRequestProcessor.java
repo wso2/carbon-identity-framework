@@ -8,7 +8,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.HandlerManager;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -21,16 +21,18 @@ public class AuthenticationRequestProcessor extends IdentityProcessor {
     public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
 
         IdentityMessageContext identityMessageContext = null ; //read from cache, otherwise throw exception.
-
+        IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null ;
         try {
             FrameworkHandlerStatus identityFrameworkHandlerStatus = authenticate(identityMessageContext);
             if(identityFrameworkHandlerStatus.equals(FrameworkHandlerStatus.REDIRECT)){
-                return buildRedirectResponse(identityMessageContext);
+                identityResponseBuilder = identityFrameworkHandlerStatus.getIdentityResponseBuilder();
+            }else if(identityFrameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)){
+                identityResponseBuilder = buildResponse(identityMessageContext);
             }
-            return buildResponse(identityMessageContext);
         } catch (AuthenticationException e) {
-            return buildErrorResponse(e, identityMessageContext);
+            identityResponseBuilder = buildErrorResponse(e, identityMessageContext);
         }
+        return identityResponseBuilder;
     }
 
     protected FrameworkHandlerStatus authenticate(IdentityMessageContext identityMessageContext)
@@ -41,19 +43,13 @@ public class AuthenticationRequestProcessor extends IdentityProcessor {
     }
 
     protected IdentityResponse.IdentityResponseBuilder buildErrorResponse(IdentityException e, IdentityMessageContext identityMessageContext){
-        ResponseBuilderHandler responseBuilderHandler =
+        ResponseHandler responseBuilderHandler =
                 HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
         return responseBuilderHandler.buildErrorResponse(identityMessageContext);
     }
 
-    protected IdentityResponse.IdentityResponseBuilder buildRedirectResponse(IdentityMessageContext identityMessageContext){
-        ResponseBuilderHandler responseBuilderHandler =
-                HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
-        return responseBuilderHandler.buildRedirectResponse(identityMessageContext);
-    }
-
     protected IdentityResponse.IdentityResponseBuilder buildResponse(IdentityMessageContext identityMessageContext){
-        ResponseBuilderHandler responseBuilderHandler =
+        ResponseHandler responseBuilderHandler =
                 HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
         return responseBuilderHandler.buildResponse(identityMessageContext);
     }

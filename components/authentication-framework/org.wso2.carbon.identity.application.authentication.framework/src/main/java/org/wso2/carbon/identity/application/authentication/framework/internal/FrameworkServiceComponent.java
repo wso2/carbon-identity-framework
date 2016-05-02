@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
@@ -371,7 +371,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void addResponseBuilderHandler(ResponseBuilderHandler responseBuilderHandler) {
+    protected void addResponseBuilderHandler(ResponseHandler responseBuilderHandler) {
 
         FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList().add(responseBuilderHandler);
 
@@ -380,7 +380,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeResponseBuilderHandler(ResponseBuilderHandler responseBuilderHandler) {
+    protected void removeResponseBuilderHandler(ResponseHandler responseBuilderHandler) {
 
         FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList().remove(responseBuilderHandler);
 

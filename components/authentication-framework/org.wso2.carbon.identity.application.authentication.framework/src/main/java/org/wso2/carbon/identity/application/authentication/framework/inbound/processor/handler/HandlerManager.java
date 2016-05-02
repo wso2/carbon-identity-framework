@@ -31,14 +31,26 @@ public class HandlerManager {
         throw FrameworkRuntimeException.error("Cannot find AuthenticationHandler to handle this request");
     }
 
-    public ResponseBuilderHandler getResponseBuilderHandler(IdentityMessageContext messageContext){
-        List<ResponseBuilderHandler> responseBuilderHandlers  =
+    public ResponseHandler getResponseBuilderHandler(IdentityMessageContext messageContext){
+        List<ResponseHandler> responseBuilderHandlers  =
                 FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList();
-        for (ResponseBuilderHandler responseBuilderHandler: responseBuilderHandlers){
+        for (ResponseHandler responseBuilderHandler: responseBuilderHandlers){
             if(responseBuilderHandler.canHandle(messageContext)){
                 return responseBuilderHandler ;
             }
         }
         throw FrameworkRuntimeException.error("Cannot find ResponseBuilderHandler to handle this request");
+    }
+
+
+    public AbstractProtocolRequestHandler getProtocolRequestHandler(IdentityMessageContext messageContext){
+        List<AbstractProtocolRequestHandler> protocolRequestHandlers =
+                FrameworkServiceDataHolder.getInstance().getProtocolRequestHandlersList();
+        for (AbstractProtocolRequestHandler protocolRequestHandler: protocolRequestHandlers){
+            if(protocolRequestHandler.canHandle(messageContext)){
+                return protocolRequestHandler ;
+            }
+        }
+        throw FrameworkRuntimeException.error("Cannot find AbstractProtocolRequestHandler to handle this request");
     }
 }
