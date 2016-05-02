@@ -34,7 +34,7 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
 
     protected final Properties properties = new Properties();
 
-    public void init() {
+    public void init(InitConfig initConfig) {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (AbstractIdentityHandler.class.getName(), this.getClass().getName());
