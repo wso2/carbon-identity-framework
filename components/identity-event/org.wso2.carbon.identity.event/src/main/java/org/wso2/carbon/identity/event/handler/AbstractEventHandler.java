@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.event.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
@@ -88,9 +87,9 @@ public abstract class AbstractEventHandler extends AbstractIdentityHandler {
         return false;
     }
 
-    public Map<String, String> getTenantConfigurations (int tenantId) throws EventMgtException {
-        return EventMgtServiceDataHolder.getInstance().getEventMgtService().getConfiguration(tenantId);
-    }
+//    public Map<String, String> getTenantConfigurations (int tenantId) throws EventMgtException {
+//        return EventMgtServiceDataHolder.getInstance().getEventMgtService().getConfiguration(tenantId);
+//    }
 
     public abstract boolean handleEvent(Event event) throws EventMgtException;
 

@@ -27,12 +27,6 @@ import java.util.Properties;
 
 public interface EventMgtService {
 
-    Properties addConfiguration(int tenantId) throws EventMgtException;
-
-    void updateConfiguration(int tenantId, Map<String, String> configurationDetails) throws EventMgtException;
-
-    Map<String, String> getConfiguration(int tenantId) throws EventMgtException;
-
     boolean handleEvent(Event event) throws UserStoreException, EventMgtException;
 
 
