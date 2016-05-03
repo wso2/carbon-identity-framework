@@ -18,11 +18,7 @@
 
 package org.wso2.carbon.identity.core.handler;
 
-import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
-
-import java.util.Properties;
 
 /**
  * This interface needs to be implemented by any identity handler.
@@ -30,11 +26,10 @@ import java.util.Properties;
 public interface IdentityHandler {
 
     /**
-     * Initializes the Extension Handler
+     * Initializes the handler
      *
-     * @throws org.wso2.carbon.identity.base.IdentityRuntimeException
      */
-    public void init(Properties properties) throws IdentityRuntimeException;
+    public void init(InitConfig initConfig);
 
     /**
      * Name of the handler.
@@ -48,25 +43,22 @@ public interface IdentityHandler {
      * called.
      *
      * @param messageContext The runtime message context
-     * @throws org.wso2.carbon.identity.base.IdentityRuntimeException
      */
-    public boolean isEnabled(MessageContext messageContext) throws IdentityException;
+    public boolean isEnabled(MessageContext messageContext);
 
     /**
      * Used to sort the set of handlers
      *
      * @param messageContext The runtime message context
      * @return The priority value of the handler
-     * @throws org.wso2.carbon.identity.base.IdentityRuntimeException
      */
-    public int getPriority(MessageContext messageContext) throws IdentityRuntimeException;
+    public int getPriority(MessageContext messageContext);
 
     /**
      * Tells if this request can be handled by this handler
      *
      * @param messageContext The runtime message context
      * @return {@code true} if the message can be handled by this handler
-     * @throws org.wso2.carbon.identity.base.IdentityRuntimeException
      */
-    public abstract boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException;
+    public abstract boolean canHandle(MessageContext messageContext);
 }

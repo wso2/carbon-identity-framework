@@ -21,10 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -71,10 +68,7 @@ public final class SessionCleanUpService {
         public void run() {
 
             log.debug("Start running the Session Data cleanup task.");
-            Date date = new Date();
-            int sessionTimeout = IdentityUtil.getCleanUpTimeout();
-            Timestamp timestamp = new Timestamp((date.getTime() - (sessionTimeout * 60 * 1000)));
-            SessionDataStore.getInstance().removeExpiredSessionData(timestamp);
+            SessionDataStore.getInstance().removeExpiredSessionData();
             log.debug("Stop running the Session Data cleanup task.");
             log.info("Session Data cleanup task is running successfully for removing expired Data");
         }

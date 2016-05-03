@@ -123,6 +123,8 @@ public class IdentityApplicationConstants {
             public static final String INCLUDE_PROTOCOL_BINDING = "IncludeProtocolBinding";
             public static final String FORCE_AUTHENTICATION = "ForceAuthentication";
             public static final String AUTHENTICATION_CONTEXT_CLASS = "AuthnContextClassRef";
+            public static final String ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS = "CustomAuthnContextClassRef";
+            public static final String CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION = "Custom Authentication Context Class";
             public static final String AUTHENTICATION_CONTEXT_COMPARISON_LEVEL = "AuthnContextComparisonLevel";
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";

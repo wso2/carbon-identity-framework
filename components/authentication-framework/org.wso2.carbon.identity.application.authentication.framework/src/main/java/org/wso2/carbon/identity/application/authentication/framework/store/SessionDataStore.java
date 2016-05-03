@@ -23,11 +23,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,6 +46,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Data will be persisted or stored date will be removed from the store. These two events are considered as STORE operation
@@ -277,10 +279,9 @@ public class SessionDataStore {
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
-                long timestamp = resultSet.getLong(3)/1000000;
+                long nanoTime = resultSet.getLong(3);
                 if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)),
-                            new Timestamp(timestamp));
+                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException |
@@ -301,11 +302,11 @@ public class SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        Timestamp timestamp = new Timestamp(new Date().getTime());
+        long nanoTime = FrameworkUtils.getCurrentStandardNano();
         if (maxPoolSize > 0) {
-            sessionContextQueue.push(new SessionContextDO(key, type, entry, timestamp));
+            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime));
         } else {
-            persistSessionData(key, type, entry, timestamp, tenantId);
+            persistSessionData(key, type, entry, nanoTime, tenantId);
         }
     }
 
@@ -313,15 +314,15 @@ public class SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        Timestamp timestamp = new Timestamp(new Date().getTime());
+        long nanoTime = FrameworkUtils.getCurrentStandardNano();
         if (maxPoolSize > 0) {
-            sessionContextQueue.push(new SessionContextDO(key, type, null, timestamp));
+            sessionContextQueue.push(new SessionContextDO(key, type, null, nanoTime));
         } else {
-            removeSessionData(key, type, timestamp);
+            removeSessionData(key, type, nanoTime);
         }
     }
 
-    public void removeExpiredSessionData(Timestamp timestamp) {
+    public void removeExpiredSessionData() {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
@@ -330,28 +331,29 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
+        long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
+                TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
-            long currentStandardNano = getCurrentStandardNano(timestamp);
-            statement.setLong(1, currentStandardNano);
+            statement.setLong(1, cleanupLimitNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
         } catch (SQLException e) {
-            log.error("Error while removing session data from the database for the timestamp " + timestamp.toString(), e);
+            log.error("Error while removing session data from the database for nano time " + cleanupLimitNano, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
         }
     }
 
-    public void removeExpiredOperationData(Timestamp timestamp) {
-        deleteSTOREOperationsTask(timestamp);
-        deleteDELETEOperationsTask(timestamp);
+    public void removeExpiredOperationData() {
+        deleteSTOREOperationsTask();
+        deleteDELETEOperationsTask();
     }
 
-    public void persistSessionData(String key, String type, Object entry, Timestamp timestamp, int tenantId) {
+    public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
         if (!enablePersist) {
             return;
         }
@@ -364,14 +366,13 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        long currentStandardNano = getCurrentStandardNano(timestamp);
         try {
             preparedStatement = connection.prepareStatement(sqlInsertSTORE);
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_STORE);
             setBlobObject(preparedStatement, entry, 4);
-            preparedStatement.setLong(5, currentStandardNano);
+            preparedStatement.setLong(5, nanoTime);
             preparedStatement.setInt(6, tenantId);
             preparedStatement.executeUpdate();
             if (!connection.getAutoCommit()) {
@@ -384,7 +385,7 @@ public class SessionDataStore {
         }
     }
 
-    public void removeSessionData(String key, String type, Timestamp timestamp) {
+    public void removeSessionData(String key, String type, long nanoTime) {
         if (!enablePersist) {
             return;
         }
@@ -396,13 +397,12 @@ public class SessionDataStore {
             return;
         }
         PreparedStatement preparedStatement = null;
-        long currentStandardNano = getCurrentStandardNano(timestamp);
         try {
             preparedStatement = connection.prepareStatement(sqlInsertDELETE);
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_DELETE);
-            preparedStatement.setLong(4, currentStandardNano);
+            preparedStatement.setLong(4, nanoTime);
             preparedStatement.executeUpdate();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -449,7 +449,7 @@ public class SessionDataStore {
         return null;
     }
 
-    private void deleteSTOREOperationsTask(Timestamp timestamp) {
+    private void deleteSTOREOperationsTask() {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
@@ -458,6 +458,8 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
+        long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
+                TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         try {
             if (StringUtils.isBlank(sqlDeleteSTORETask)) {
                 if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)) {
@@ -467,15 +469,14 @@ public class SessionDataStore {
                 }
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
-            long currentStandardNano = getCurrentStandardNano(timestamp);
-            statement.setLong(1, currentStandardNano);
+            statement.setLong(1, cleanupLimitNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
             return;
         } catch (SQLException e) {
-            log.error("Error while removing STORE operation data from the database for the timestamp " + timestamp.toString(), e);
+            log.error("Error while removing STORE operation data from the database for nano time " + cleanupLimitNano, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
@@ -483,7 +484,7 @@ public class SessionDataStore {
 
     }
 
-    private void deleteDELETEOperationsTask(Timestamp timestamp) {
+    private void deleteDELETEOperationsTask() {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
@@ -492,30 +493,21 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
+        long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
+                TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
-            long currentStandardNano = getCurrentStandardNano(timestamp);
-            statement.setLong(1, currentStandardNano);
+            statement.setLong(1, cleanupLimitNano);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
             return;
         } catch (SQLException e) {
-            log.error("Error while removing DELETE operation data from the database for the timestamp " + timestamp.toString(), e);
+            log.error("Error while removing DELETE operation data from the database for nano time " + cleanupLimitNano, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
         }
-    }
-
-    private long getCurrentStandardNano(Timestamp timestamp) {
-
-        // create a nano time stamp relative to Unix Epoch
-        long currentStandardNano = timestamp.getTime() * 1000000;
-        long currentSystemNano = System.nanoTime();
-        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
-                .getNanoTimeReference());
-        return currentStandardNano;
     }
 }
