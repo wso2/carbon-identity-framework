@@ -41,16 +41,10 @@ public class AuthenticationRequestProcessor extends AbstractRequestProcessor {
             throws FrameworkHandlerException {
         FrameworkHandlerStatus frameworkHandlerStatus = null;
 
-        frameworkHandlerStatus = doPostHandle(ExtensionHandlerPoints.RESPONSE_HANDLER, identityMessageContext);
+        frameworkHandlerStatus = doPreHandle(ExtensionHandlerPoints.RESPONSE_HANDLER, identityMessageContext);
         if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
 
             frameworkHandlerStatus = buildResponse(identityMessageContext);
-            if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
-
-                frameworkHandlerStatus = doPostHandle(ExtensionHandlerPoints
-                                                              .RESPONSE_HANDLER, identityMessageContext);
-
-            }
         }
         return frameworkHandlerStatus;
 
