@@ -4,15 +4,15 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.base.IdentityException;
 
-public class AuthenticationException extends FrameworkException {
+public class AuthenticationHandlerException extends FrameworkException {
 
     private static final long serialVersionUID = -8680134348172156343L;
 
-    public AuthenticationException(String message) {
+    public AuthenticationHandlerException(String message) {
         super(message);
     }
 
-    public AuthenticationException(String message, Throwable cause) {
+    public AuthenticationHandlerException(String message, Throwable cause) {
         super(message, cause);
     }
 }

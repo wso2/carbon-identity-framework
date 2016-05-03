@@ -8,11 +8,11 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.HandlerManager;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
-        .AuthenticationException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response
+        .AbstractResponseHandler;
 import org.wso2.carbon.identity.base.IdentityException;
 
 public class AuthenticationRequestProcessor extends IdentityProcessor {
@@ -20,41 +20,70 @@ public class AuthenticationRequestProcessor extends IdentityProcessor {
     @Override
     public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
 
-        IdentityMessageContext identityMessageContext = null ; //read from cache, otherwise throw exception.
-        IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null ;
+        IdentityMessageContext identityMessageContext = null; //read from cache, otherwise throw exception.
+
+        FrameworkHandlerStatus frameworkHandlerStatus = null;
         try {
-            FrameworkHandlerStatus identityFrameworkHandlerStatus = authenticate(identityMessageContext);
-            if(identityFrameworkHandlerStatus.equals(FrameworkHandlerStatus.REDIRECT)){
-                identityResponseBuilder = identityFrameworkHandlerStatus.getIdentityResponseBuilder();
-            }else if(identityFrameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)){
-                identityResponseBuilder = buildResponse(identityMessageContext);
+            frameworkHandlerStatus = doPreAuthenticate(identityMessageContext);
+            if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
+
+                frameworkHandlerStatus = doAuthenticate(identityMessageContext);
+                if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
+
+                    frameworkHandlerStatus = doPostAuthenticate(identityMessageContext);
+                    if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
+
+                        frameworkHandlerStatus = doPreBuildResponse(identityMessageContext);
+                        if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
+
+                            frameworkHandlerStatus = doBuildResponse(identityMessageContext);
+                        }
+
+                    }
+                }
             }
-        } catch (AuthenticationException e) {
-            identityResponseBuilder = buildErrorResponse(e, identityMessageContext);
+
+        } catch (AuthenticationHandlerException e) {
+            frameworkHandlerStatus = doBuildErrorResponse(e, identityMessageContext);
         }
-        return identityResponseBuilder;
+        return frameworkHandlerStatus.getIdentityResponseBuilder();
     }
 
-    protected FrameworkHandlerStatus authenticate(IdentityMessageContext identityMessageContext)
-            throws AuthenticationException {
+    private FrameworkHandlerStatus doPreBuildResponse(IdentityMessageContext identityMessageContext)
+            throws AuthenticationHandlerException {
+        return HandlerManager.getInstance().doPreBuildResponse(identityMessageContext);
+    }
+
+    protected FrameworkHandlerStatus doBuildResponse(IdentityMessageContext identityMessageContext) {
+        AbstractResponseHandler responseBuilderHandler =
+                HandlerManager.getInstance().getResponseHandler(identityMessageContext);
+        return responseBuilderHandler.doBuildResponse(identityMessageContext);
+    }
+
+    private FrameworkHandlerStatus doPreAuthenticate(IdentityMessageContext identityMessageContext)
+            throws AuthenticationHandlerException {
+        return HandlerManager.getInstance().doPreAuthenticate(identityMessageContext);
+    }
+
+    protected FrameworkHandlerStatus doAuthenticate(IdentityMessageContext identityMessageContext)
+            throws AuthenticationHandlerException {
         AuthenticationHandler authenticationHandler =
                 HandlerManager.getInstance().getAuthenticationHandler(identityMessageContext);
-        return authenticationHandler.authenticate(identityMessageContext);
+        return authenticationHandler.doAuthenticate(identityMessageContext);
     }
 
-    protected IdentityResponse.IdentityResponseBuilder buildErrorResponse(IdentityException e, IdentityMessageContext identityMessageContext){
-        ResponseHandler responseBuilderHandler =
-                HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
-        return responseBuilderHandler.buildErrorResponse(identityMessageContext);
+    private FrameworkHandlerStatus doPostAuthenticate(IdentityMessageContext identityMessageContext)
+            throws AuthenticationHandlerException {
+        return HandlerManager.getInstance().doPostAuthenticate(identityMessageContext);
     }
 
-    protected IdentityResponse.IdentityResponseBuilder buildResponse(IdentityMessageContext identityMessageContext){
-        ResponseHandler responseBuilderHandler =
-                HandlerManager.getInstance().getResponseBuilderHandler(identityMessageContext);
-        return responseBuilderHandler.buildResponse(identityMessageContext);
+    protected FrameworkHandlerStatus doBuildErrorResponse(IdentityException e,
+                                                          IdentityMessageContext
+                                                                  identityMessageContext) {
+        AbstractResponseHandler responseBuilderHandler =
+                HandlerManager.getInstance().getResponseHandler(identityMessageContext);
+        return responseBuilderHandler.doBuildErrorResponse(identityMessageContext);
     }
-
-
 
 
     @Override

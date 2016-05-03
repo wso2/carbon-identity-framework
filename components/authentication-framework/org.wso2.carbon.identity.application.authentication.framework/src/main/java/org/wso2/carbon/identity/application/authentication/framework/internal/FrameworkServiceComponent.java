@@ -35,7 +35,9 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
@@ -94,10 +96,26 @@ import java.util.List;
  * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.AuthenticationHandler"
  * cardinality="0..n" policy="dynamic" bind="addAuthenticationHandler"
  * unbind="removeAuthenticationHandler"
- * @scr.reference name="identity.handlers.response.builder"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseBuilderHandler"
- * cardinality="0..n" policy="dynamic" bind="addResponseBuilderHandler"
- * unbind="removeResponseBuilderHandler"
+ * @scr.reference name="identity.handlers.authorization"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authorization.AbstractAuthorizationHandler"
+ * cardinality="0..n" policy="dynamic" bind="addAuthorizationHandler"
+ * unbind="removeAuthorizationHandler"
+ * @scr.reference name="identity.handlers.jit"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler"
+ * cardinality="0..n" policy="dynamic" bind="addJITHandler"
+ * unbind="removeJITHandler"
+ * @scr.reference name="identity.handlers.claim"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler"
+ * cardinality="0..n" policy="dynamic" bind="addClaimHandler"
+ * unbind="removeClaimHandler"
+ * @scr.reference name="identity.handlers.response"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response.AbstractResponseHandler"
+ * cardinality="0..n" policy="dynamic" bind="addResponseHandler"
+ * unbind="removeResponseHandler"
+ * @scr.reference name="identity.handlers.extension"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractExtensionHandler"
+ * cardinality="0..n" policy="dynamic" bind="addExtensionHandler"
+ * unbind="removeExtensionHandler"
  */
 
 
@@ -371,21 +389,57 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void addResponseBuilderHandler(ResponseHandler responseBuilderHandler) {
+    protected void addJITHandler(JITHandler jitHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList().add(responseBuilderHandler);
+        FrameworkServiceDataHolder.getInstance().getJitHandlers().add(jitHandler);
 
         if (log.isDebugEnabled()) {
-            log.debug("Added ResponseBuilderHandler : " + responseBuilderHandler.getName());
+            log.debug("Added JITHandler : " + jitHandler.getName());
         }
     }
 
-    protected void removeResponseBuilderHandler(ResponseHandler responseBuilderHandler) {
+    protected void removeJITHandler(JITHandler jitHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getResponseBuilderHandlerList().remove(responseBuilderHandler);
+        FrameworkServiceDataHolder.getInstance().getJitHandlers().remove(jitHandler);
 
         if (log.isDebugEnabled()) {
-            log.debug("Removed ResponseBuilderHandler : " + responseBuilderHandler.getName());
+            log.debug("Removed JITHandler : " + jitHandler.getName());
+        }
+    }
+
+    protected void addClaimHandler(ClaimHandler claimHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getClaimHandlers().add(claimHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added ClaimHandler : " + claimHandler.getName());
+        }
+    }
+
+    protected void removeClaimHandler(ClaimHandler claimHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getClaimHandlers().remove(claimHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed ClaimHandler : " + claimHandler.getName());
+        }
+    }
+
+    protected void addResponseHandler(AbstractResponseHandler responseHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getResponseHandlers().add(responseHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AbstractResponseHandler : " + responseHandler.getName());
+        }
+    }
+
+    protected void removeResponseHandler(AbstractResponseHandler responseHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getResponseHandlers().remove(responseHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AbstractResponseHandler : " + responseHandler.getName());
         }
     }
 

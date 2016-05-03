@@ -23,16 +23,23 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
-        .AbstractProtocolRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.ResponseHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
+        .AbstractExtensionHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.request
+        .AbstractRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response
+        .AbstractResponseHandler;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
@@ -46,9 +53,15 @@ public class FrameworkServiceDataHolder {
     private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
+
+    private List<AbstractRequestHandler> requestHandlers = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
-    private List<ResponseHandler> responseBuilderHandlerList = new ArrayList<>();
-    private List<AbstractProtocolRequestHandler> protocolRequestHandlersList = new ArrayList<>();
+    private List<JITHandler> jitHandlers = new ArrayList<>();
+    private List<ClaimHandler> claimHandlers = new ArrayList<>();
+    private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
+
+    private Map<String, List<AbstractExtensionHandler>> extensionHandlerMap = new HashMap<>();
+
 
 
 
@@ -121,11 +134,23 @@ public class FrameworkServiceDataHolder {
         return authenticationHandlers;
     }
 
-    public List<ResponseHandler> getResponseBuilderHandlerList() {
-        return responseBuilderHandlerList;
+    public List<AbstractRequestHandler> getRequestHandlers() {
+        return requestHandlers;
     }
 
-    public List<AbstractProtocolRequestHandler> getProtocolRequestHandlersList() {
-        return protocolRequestHandlersList;
+    public List<JITHandler> getJitHandlers() {
+        return jitHandlers;
+    }
+
+    public List<ClaimHandler> getClaimHandlers() {
+        return claimHandlers;
+    }
+
+    public List<AbstractResponseHandler> getResponseHandlers() {
+        return responseHandlers;
+    }
+
+    public Map<String, List<AbstractExtensionHandler>> getExtensionHandlerMap() {
+        return extensionHandlerMap;
     }
 }
