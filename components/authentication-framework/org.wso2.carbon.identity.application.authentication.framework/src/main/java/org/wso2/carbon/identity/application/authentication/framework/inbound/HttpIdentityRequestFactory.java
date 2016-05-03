@@ -49,13 +49,13 @@ public class HttpIdentityRequestFactory {
 
         IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request, response);
         Enumeration<String> headerNames = request.getHeaderNames();
-        while(headerNames.hasMoreElements()) {
+        while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
             builder.addHeader(headerName, request.getHeader(headerName));
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies) {
+        for (Cookie cookie : cookies) {
             builder.addCookie(cookie.getName(), cookie);
         }
         return builder;
@@ -65,7 +65,8 @@ public class HttpIdentityRequestFactory {
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
+                new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(400);
         builder.setBody(exception.getMessage());
         return builder;

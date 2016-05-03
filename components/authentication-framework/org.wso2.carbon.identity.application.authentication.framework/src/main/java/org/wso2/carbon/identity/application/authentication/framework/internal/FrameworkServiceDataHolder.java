@@ -27,7 +27,12 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.pro
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
-        .AbstractExtensionHandler;
+        .AbstractPostHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractPreHandler;
+
+
+
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.request
         .AbstractRequestHandler;
@@ -60,7 +65,8 @@ public class FrameworkServiceDataHolder {
     private List<ClaimHandler> claimHandlers = new ArrayList<>();
     private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
 
-    private Map<String, List<AbstractExtensionHandler>> extensionHandlerMap = new HashMap<>();
+    private Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandler = new HashMap<>();
+    private Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandler = new HashMap<>();
 
 
 
@@ -150,7 +156,11 @@ public class FrameworkServiceDataHolder {
         return responseHandlers;
     }
 
-    public Map<String, List<AbstractExtensionHandler>> getExtensionHandlerMap() {
-        return extensionHandlerMap;
+    public Map<ExtensionHandlerPoints, List<AbstractPreHandler>> getPreHandler() {
+        return preHandler;
+    }
+
+    public Map<ExtensionHandlerPoints, List<AbstractPostHandler>> getPostHandler() {
+        return postHandler;
     }
 }

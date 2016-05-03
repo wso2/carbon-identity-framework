@@ -34,6 +34,16 @@ public class HttpIdentityResponse {
     private int statusCode;
     private String redirectURL;
 
+    protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
+        this.headers = builder.headers;
+        this.cookies = builder.cookies;
+        this.contentType = builder.contentType;
+        this.parameters = builder.parameters;
+        this.statusCode = builder.statusCode;
+        this.redirectURL = builder.redirectURL;
+        this.body = builder.body;
+    }
+
     public Map<String, String> getHeaders() {
         return Collections.unmodifiableMap(headers);
     }
@@ -56,7 +66,7 @@ public class HttpIdentityResponse {
 
     public String getParameterValue(String paramName) {
         String[] values = parameters.get(paramName);
-        if(values.length > 0) {
+        if (values.length > 0) {
             return values[0];
         }
         return null;
@@ -72,16 +82,6 @@ public class HttpIdentityResponse {
 
     public String getBody() {
         return body;
-    }
-
-    protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
-        this.headers = builder.headers;
-        this.cookies = builder.cookies;
-        this.contentType = builder.contentType;
-        this.parameters = builder.parameters;
-        this.statusCode = builder.statusCode;
-        this.redirectURL = builder.redirectURL;
-        this.body = builder.body;
     }
 
     public static class HttpIdentityResponseBuilder {
@@ -101,19 +101,19 @@ public class HttpIdentityResponse {
 
         public HttpIdentityResponseBuilder addHeader(String name, String value) {
             String newValue = value;
-            if(this.headers.containsKey(name)) {
+            if (this.headers.containsKey(name)) {
                 String existingValue = headers.get(name);
-                newValue =  existingValue +"," + value;
+                newValue = existingValue + "," + value;
             }
             this.headers.put(name, newValue);
             return this;
         }
 
         public HttpIdentityResponseBuilder addHeaders(Map<String, String> headers) {
-            for(Map.Entry<String,String> header:headers.entrySet()) {
-                if(this.headers.containsKey(header.getKey())) {
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                if (this.headers.containsKey(header.getKey())) {
                     throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                            "header " + header.getKey());
+                                                          "header " + header.getKey());
                 }
                 this.headers.put(header.getKey(), header.getValue());
             }
@@ -126,19 +126,19 @@ public class HttpIdentityResponse {
         }
 
         public HttpIdentityResponseBuilder addCookie(Cookie cookie) {
-            if(this.cookies.containsKey(cookie.getName())) {
+            if (this.cookies.containsKey(cookie.getName())) {
                 throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                        "cookie " + cookie.getName());
+                                                      "cookie " + cookie.getName());
             }
             this.cookies.put(cookie.getName(), cookie);
             return this;
         }
 
-        public HttpIdentityResponseBuilder addCookies(Map<String,Cookie> cookies) {
-            for(Map.Entry<String,Cookie> cookie:cookies.entrySet()) {
-                if(this.cookies.containsKey(cookie.getKey())) {
+        public HttpIdentityResponseBuilder addCookies(Map<String, Cookie> cookies) {
+            for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
+                if (this.cookies.containsKey(cookie.getKey())) {
                     throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                            "cookie " + cookie.getKey());
+                                                          "cookie " + cookie.getKey());
                 }
                 this.cookies.put(cookie.getKey(), cookie.getValue());
             }
@@ -150,34 +150,34 @@ public class HttpIdentityResponse {
             return this;
         }
 
-        public HttpIdentityResponseBuilder setParameters(Map<String,String[]> parameters) {
+        public HttpIdentityResponseBuilder setParameters(Map<String, String[]> parameters) {
             this.parameters = parameters;
             return this;
         }
 
         public HttpIdentityResponseBuilder addParameter(String name, String value) {
-            if(this.parameters.containsKey(name)) {
+            if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                        "key " + name);
+                                                      "key " + name);
             }
             this.parameters.put(name, new String[]{value});
             return this;
         }
 
         public HttpIdentityResponseBuilder addParameter(String name, String[] values) {
-            if(this.parameters.containsKey(name)) {
+            if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                        "key " + name);
+                                                      "key " + name);
             }
             this.parameters.put(name, values);
             return this;
         }
 
-        public HttpIdentityResponseBuilder addParameters(Map<String,String[]> parameters) {
-            for(Map.Entry<String,String[]> parameter:parameters.entrySet()) {
-                if(this.parameters.containsKey(parameter.getKey())) {
+        public HttpIdentityResponseBuilder addParameters(Map<String, String[]> parameters) {
+            for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
+                if (this.parameters.containsKey(parameter.getKey())) {
                     throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                            "key " + parameter.getKey());
+                                                          "key " + parameter.getKey());
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
             }

@@ -48,7 +48,8 @@ public abstract class HttpIdentityResponseFactory {
 
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkException exception) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
+                new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         builder.setBody(exception.getMessage());
         return builder;

@@ -6,7 +6,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 
 import java.util.Map;
 
-public class AuthenticationMessageContext extends IdentityMessageContext{
+public class AuthenticationMessageContext extends IdentityMessageContext {
     public AuthenticationMessageContext(
             IdentityRequest request,
             Map parameters) {

@@ -39,7 +39,7 @@ public class IdentityServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+                                                                                            IOException {
 
         HttpIdentityResponse httpIdentityResponse = process(request, response);
         processHttpResponse(httpIdentityResponse, request, response);
@@ -48,8 +48,8 @@ public class IdentityServlet extends HttpServlet {
     /**
      * Process request/response.
      *
-     * @param request   HttpServletRequest
-     * @param response  HttpServletResponse
+     * @param request  HttpServletRequest
+     * @param response HttpServletResponse
      */
     private HttpIdentityResponse process(HttpServletRequest request, HttpServletResponse response) {
 
@@ -60,12 +60,12 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityRequest = factory.create(request, response).build();
-            if(identityRequest == null) {
+            if (identityRequest == null) {
                 throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!");
             }
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e, request, response);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
@@ -76,19 +76,19 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityResponse = manager.process(identityRequest);
-            if(identityResponse == null) {
+            if (identityResponse == null) {
                 throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!");
             }
             responseFactory = getIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         } catch (FrameworkException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
@@ -98,13 +98,13 @@ public class IdentityServlet extends HttpServlet {
     private void processHttpResponse(HttpIdentityResponse httpIdentityResponse, HttpServletRequest request,
                                      HttpServletResponse response) {
 
-        for(Map.Entry<String,String> entry: httpIdentityResponse.getHeaders().entrySet()) {
+        for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
             response.addHeader(entry.getKey(), entry.getValue());
         }
-        for(Map.Entry<String,Cookie> entry: httpIdentityResponse.getCookies().entrySet()) {
+        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
             response.addCookie(entry.getValue());
         }
-        if(StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
+        if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
             response.setContentType(httpIdentityResponse.getContentType());
         }
         if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
@@ -117,7 +117,7 @@ public class IdentityServlet extends HttpServlet {
             response.setStatus(httpIdentityResponse.getStatusCode());
             try {
                 PrintWriter out = response.getWriter();
-                if(StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
+                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
                     out.print(httpIdentityResponse.getBody());
                 }
             } catch (IOException e) {
@@ -129,13 +129,15 @@ public class IdentityServlet extends HttpServlet {
     /**
      * Get the HttpIdentityRequestFactory.
      *
-     * @param request HttpServletRequest
+     * @param request  HttpServletRequest
      * @param response HttpServletResponse
      * @return HttpIdentityRequestFactory
      */
-    private HttpIdentityRequestFactory getIdentityRequestFactory(HttpServletRequest request, HttpServletResponse response) {
+    private HttpIdentityRequestFactory getIdentityRequestFactory(HttpServletRequest request,
+                                                                 HttpServletResponse response) {
 
-        List<HttpIdentityRequestFactory> factories = FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
+        List<HttpIdentityRequestFactory> factories =
+                FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
 
         for (HttpIdentityRequestFactory requestBuilder : factories) {
             if (requestBuilder.canHandle(request, response)) {
@@ -183,7 +185,8 @@ public class IdentityServlet extends HttpServlet {
         throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
     }
 
-    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse HttpIdentityResponse) throws IOException {
+    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse HttpIdentityResponse)
+            throws IOException {
 
         String queryParams = IdentityUtil.buildQueryString(HttpIdentityResponse.getParameters());
         response.sendRedirect(HttpIdentityResponse.getRedirectURL() + queryParams);

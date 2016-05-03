@@ -27,6 +27,16 @@ public class FrameworkLoginResponse extends IdentityResponse {
     private String callbackPath;
     private String redirectUrl;
 
+    protected FrameworkLoginResponse(FrameworkLoginResponseBuilder builder) {
+        super(builder);
+        this.authName = builder.authName;
+        this.authType = builder.authType;
+        this.contextKey = builder.contextKey;
+        this.relyingParty = builder.relyingParty;
+        this.callbackPath = builder.callbackPath;
+        this.redirectUrl = builder.redirectUrl;
+    }
+
     public String getAuthName() {
         return authName;
     }
@@ -49,16 +59,6 @@ public class FrameworkLoginResponse extends IdentityResponse {
 
     public String getRedirectUrl() {
         return redirectUrl;
-    }
-
-    protected FrameworkLoginResponse(FrameworkLoginResponseBuilder builder) {
-        super(builder);
-        this.authName = builder.authName;
-        this.authType = builder.authType;
-        this.contextKey = builder.contextKey;
-        this.relyingParty = builder.relyingParty;
-        this.callbackPath = builder.callbackPath;
-        this.redirectUrl = builder.redirectUrl;
     }
 
     public static class FrameworkLoginResponseBuilder extends IdentityResponseBuilder {

@@ -20,6 +20,10 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 public class InboundConstants {
 
+    public static final String LOGGED_IN_IDPS = "LoggedInIDPs";
+    public static final String PassiveAuth = "passiveAuth";
+    public static final String ForceAuth = "forceAuth";
+
     public static class RequestProcessor {
 
         public static final String RELYING_PARTY = "RelyingPartyId";
@@ -33,8 +37,4 @@ public class InboundConstants {
         private RequestProcessor() {
         }
     }
-
-    public static final String LOGGED_IN_IDPS = "LoggedInIDPs";
-    public static final String PassiveAuth = "passiveAuth";
-    public static final String ForceAuth = "forceAuth";
 }

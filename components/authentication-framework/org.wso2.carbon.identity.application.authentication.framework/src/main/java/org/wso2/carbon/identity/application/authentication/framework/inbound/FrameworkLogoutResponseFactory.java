@@ -28,7 +28,7 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
 
     @Override
     public boolean canHandle(IdentityResponse identityResponse) {
-        if(identityResponse instanceof FrameworkLogoutResponse) {
+        if (identityResponse instanceof FrameworkLogoutResponse) {
             return true;
         }
         return false;
@@ -38,20 +38,20 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
     public HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse) {
 
 
-        FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
+        FrameworkLogoutResponse response = (FrameworkLogoutResponse) identityResponse;
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
         responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
-                new String[]{response.getAuthName()});
+                                     new String[]{response.getAuthName()});
         responseBuilder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
-                new String[]{response.getContextKey()});
+                                     new String[]{response.getContextKey()});
         responseBuilder.addParameter(InboundConstants.RequestProcessor.CALL_BACK_PATH,
-                new String[]{response.getCallbackPath()});
+                                     new String[]{response.getCallbackPath()});
         responseBuilder.addParameter(InboundConstants.RequestProcessor.RELYING_PARTY,
-                new String[]{response.getRelyingParty()});
+                                     new String[]{response.getRelyingParty()});
         responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE,
-                new String[]{response.getAuthType()});
+                                     new String[]{response.getAuthType()});
         responseBuilder.setRedirectURL(response.getRedirectUrl());
 
         return responseBuilder;

@@ -47,6 +47,22 @@ public class IdentityRequest implements Serializable {
     protected String servletPath;
     protected String contentType;
 
+    protected IdentityRequest(IdentityRequestBuilder builder) {
+        this.headers = builder.headers;
+        this.cookies = builder.cookies;
+        this.parameters = builder.parameters;
+        this.tenantDomain = builder.tenantDomain;
+        this.contextPath = builder.contextPath;
+        this.method = builder.method;
+        this.pathInfo = builder.pathInfo;
+        this.pathTranslated = builder.pathTranslated;
+        this.queryString = builder.queryString;
+        this.requestURI = builder.requestURI;
+        this.requestURL = builder.requestURL;
+        this.servletPath = builder.servletPath;
+        this.contentType = builder.contentType;
+    }
+
     public Map<String, String> getHeaderMap() {
         return Collections.unmodifiableMap(headers);
     }
@@ -92,7 +108,7 @@ public class IdentityRequest implements Serializable {
 
     public String getParameter(String paramName) {
         String[] values = parameters.get(paramName);
-        if(values.length > 0) {
+        if (values.length > 0) {
             return values[0];
         }
         return null;
@@ -134,22 +150,6 @@ public class IdentityRequest implements Serializable {
         return contentType;
     }
 
-    protected IdentityRequest(IdentityRequestBuilder builder) {
-        this.headers = builder.headers;
-        this.cookies = builder.cookies;
-        this.parameters = builder.parameters;
-        this.tenantDomain = builder.tenantDomain;
-        this.contextPath = builder.contextPath;
-        this.method = builder.method;
-        this.pathInfo = builder.pathInfo;
-        this.pathTranslated = builder.pathTranslated;
-        this.queryString = builder.queryString;
-        this.requestURI = builder.requestURI;
-        this.requestURL = builder.requestURL;
-        this.servletPath = builder.servletPath;
-        this.contentType = builder.contentType;
-    }
-
     public static class IdentityRequestBuilder {
 
         private HttpServletRequest request;
@@ -187,7 +187,7 @@ public class IdentityRequest implements Serializable {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
                     throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                            "header " + header.getKey());
+                                                          "header " + header.getKey());
                 }
                 this.headers.put(header.getKey(), header.getValue());
             }
@@ -197,7 +197,7 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addHeader(String name, String value) {
             if (this.headers.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                        "header " + name);
+                                                      "header " + name);
             }
             this.headers.put(name, value);
             return this;
@@ -211,7 +211,7 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addCookie(String name, Cookie value) {
             if (this.cookies.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                        "cookie " + name);
+                                                      "cookie " + name);
             }
             this.cookies.put(name, value);
             return this;
@@ -221,7 +221,7 @@ public class IdentityRequest implements Serializable {
             for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
                 if (this.cookies.containsKey(cookie.getKey())) {
                     throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                            "cookie " + cookie.getKey());
+                                                          "cookie " + cookie.getKey());
                 }
                 this.cookies.put(cookie.getKey(), cookie.getValue());
             }
@@ -236,7 +236,7 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addParameter(String name, String[] values) {
             if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                        "key " + name);
+                                                      "key " + name);
             }
             this.parameters.put(name, values);
             return this;
@@ -245,7 +245,7 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addParameter(String name, String value) {
             if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                        "key " + name);
+                                                      "key " + name);
             }
             this.parameters.put(name, new String[]{value});
             return this;
@@ -255,7 +255,7 @@ public class IdentityRequest implements Serializable {
             for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
                     throw FrameworkRuntimeException.error("Parameters map trying to override existing key " +
-                            parameter.getKey());
+                                                          parameter.getKey());
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
             }

@@ -65,7 +65,7 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
         IdentityMessageContext context = super.getValueFromCache(key);
         if (context == null && enableRequestScopeCache) {
             context = (IdentityMessageContext) SessionDataStore.getInstance().getSessionData(key,
-                    INBOUND_CONTEXT_CACHE_NAME);
+                                                                                             INBOUND_CONTEXT_CACHE_NAME);
         }
         return context;
     }

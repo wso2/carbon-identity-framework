@@ -1,8 +1,9 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit;
 
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
+        .FrameworkHandlerException;
 
-public class JITHandlerException extends FrameworkException {
+public class JITHandlerException extends FrameworkHandlerException {
     public JITHandlerException(String message) {
         super(message);
     }

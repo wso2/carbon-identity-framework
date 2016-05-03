@@ -36,6 +36,11 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
+        .AbstractPostHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
+        .AbstractPreHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -54,9 +59,11 @@ import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import javax.servlet.Servlet;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @scr.component name="identity.application.authentication.framework.component"
@@ -113,9 +120,13 @@ import java.util.List;
  * cardinality="0..n" policy="dynamic" bind="addResponseHandler"
  * unbind="removeResponseHandler"
  * @scr.reference name="identity.handlers.extension"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractExtensionHandler"
- * cardinality="0..n" policy="dynamic" bind="addExtensionHandler"
- * unbind="removeExtensionHandler"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractPreHandler"
+ * cardinality="0..n" policy="dynamic" bind="addPreHandler"
+ * unbind="removePreHandler"
+ * @scr.reference name="identity.handlers.extension"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractPostHandler"
+ * cardinality="0..n" policy="dynamic" bind="addPostHandler"
+ * unbind="removePostHandler"
  */
 
 
@@ -442,6 +453,69 @@ public class FrameworkServiceComponent {
             log.debug("Removed AbstractResponseHandler : " + responseHandler.getName());
         }
     }
+
+
+    protected void addPreHandler(AbstractPreHandler preHandler) {
+
+        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap = FrameworkServiceDataHolder.getInstance().getPreHandler();
+
+        List<AbstractPreHandler> abstractPreHandlers = preHandlerMap.get(preHandler.getExtensionHandlerPoints());
+        if(abstractPreHandlers == null){
+            abstractPreHandlers = new ArrayList<>();
+            preHandlerMap.put(preHandler.getExtensionHandlerPoints(),abstractPreHandlers);
+        }
+        abstractPreHandlers.add(preHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AbstractPreHandler : " + preHandler.getName());
+        }
+    }
+
+    protected void removePreHandler(AbstractPreHandler preHandler) {
+
+        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap = FrameworkServiceDataHolder.getInstance().getPreHandler();
+
+        List<AbstractPreHandler> abstractPreHandlers = preHandlerMap.get(preHandler.getExtensionHandlerPoints());
+        if(abstractPreHandlers != null) {
+            abstractPreHandlers.remove(preHandler);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AbstractPreHandler : " + preHandler.getName());
+        }
+    }
+
+
+
+    protected void addPostHandler(AbstractPostHandler postHandler) {
+
+        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap  = FrameworkServiceDataHolder.getInstance().getPostHandler();
+
+        List<AbstractPostHandler> abstractPostHandlers = postHandlerMap.get(postHandler.getExtensionHandlerPoints());
+        if(abstractPostHandlers == null){
+            abstractPostHandlers = new ArrayList<>();
+            postHandlerMap.put(postHandler.getExtensionHandlerPoints(),abstractPostHandlers);
+        }
+        abstractPostHandlers.add(postHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AbstractPostHandler : " + postHandler.getName());
+        }
+    }
+
+    protected void removePostHandler(AbstractPostHandler postHandler) {
+
+        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap  = FrameworkServiceDataHolder.getInstance().getPostHandler();
+
+        List<AbstractPostHandler> abstractPostHandlers = postHandlerMap.get(postHandler.getExtensionHandlerPoints());
+        if(abstractPostHandlers != null) {
+            abstractPostHandlers.remove(postHandler);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AbstractPostHandler : " + postHandler.getName());
+        }
+    }
+
+
 
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {

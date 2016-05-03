@@ -1,10 +1,10 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication;
 
 
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
+        .FrameworkHandlerException;
 
-public class AuthenticationHandlerException extends FrameworkException {
+public class AuthenticationHandlerException extends FrameworkHandlerException {
 
     private static final long serialVersionUID = -8680134348172156343L;
 

@@ -4,19 +4,21 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Fra
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 
 public class AuthenticationResponseHandler extends AbstractResponseHandler {
-    @Override
-    public FrameworkHandlerStatus doBuildErrorResponse(
-            IdentityMessageContext identityMessageContext) {
-        return null;
-    }
-
-    @Override
-    public FrameworkHandlerStatus doBuildResponse(IdentityMessageContext identityMessageContext) {
-        return null;
-    }
 
     @Override
     public String getName() {
+        return null;
+    }
+
+    @Override
+    public FrameworkHandlerStatus buildErrorResponse(IdentityMessageContext identityMessageContext)
+            throws ResponseException {
+        return null;
+    }
+
+    @Override
+    public FrameworkHandlerStatus buildResponse(IdentityMessageContext identityMessageContext)
+            throws ResponseException {
         return null;
     }
 }

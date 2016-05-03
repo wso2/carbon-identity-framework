@@ -19,19 +19,11 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.lang3.StringUtils;
-import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Map;
 import java.util.Properties;
 
 public abstract class IdentityProcessor {
@@ -44,7 +36,7 @@ public abstract class IdentityProcessor {
      * @param properties IdentityProcessor properties
      */
     public void init(Properties properties) {
-        if(properties != null) {
+        if (properties != null) {
             this.properties = properties;
         }
     }
@@ -53,8 +45,9 @@ public abstract class IdentityProcessor {
      * Process IdentityRequest
      *
      * @param identityRequest IdentityRequest
-     * @throws org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException Error occurred while processing IdentityRequest
      * @return IdentityResponseBuilder
+     * @throws org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException Error
+     * occurred while processing IdentityRequest
      */
     public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
             throws FrameworkException;
@@ -196,9 +189,9 @@ public abstract class IdentityProcessor {
      */
     protected boolean isContextAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
-        if(StringUtils.isNotBlank(sessionDataKey)) {
+        if (StringUtils.isNotBlank(sessionDataKey)) {
             IdentityMessageContext context = InboundUtil.getContextFromCache(sessionDataKey);
-            if(context != null) {
+            if (context != null) {
                 return true;
             }
         }
@@ -215,7 +208,7 @@ public abstract class IdentityProcessor {
     protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         IdentityMessageContext context = null;
-        if(StringUtils.isNotBlank(sessionDataKey)) {
+        if (StringUtils.isNotBlank(sessionDataKey)) {
             context = InboundUtil.getContextFromCache(sessionDataKey);
         }
         return context;
@@ -233,7 +226,7 @@ public abstract class IdentityProcessor {
         String sessionDataKey = context.getRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
-        if(entry != null) {
+        if (entry != null) {
             authnResult = entry.getResult();
         } else {
             throw FrameworkRuntimeException.error("Cannot find AuthenticationResult from the cache");
