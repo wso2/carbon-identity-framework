@@ -27,8 +27,6 @@ import java.util.Properties;
 
 public interface EventMgtService {
 
-    boolean handleEvent(Event event) throws UserStoreException, EventMgtException;
-
-
+    boolean handleEvent(Event event) throws EventMgtException;
 
 }
