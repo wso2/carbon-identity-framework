@@ -50,6 +50,7 @@ public class EventMgtConstants {
 
         public static final String PRE_AUTHENTICATION = "PRE_AUTHENTICATION";
         public static final String POST_AUTHENTICATION = "POST_AUTHENTICATION";
+        public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
 
     }
 
