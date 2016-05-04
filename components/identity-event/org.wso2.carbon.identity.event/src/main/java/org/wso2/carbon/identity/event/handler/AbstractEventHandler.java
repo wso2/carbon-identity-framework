@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
+import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
@@ -33,6 +34,7 @@ import org.wso2.carbon.identity.event.internal.EventMgtServiceDataHolder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractEventHandler extends AbstractIdentityHandler {
 
@@ -92,5 +94,21 @@ public abstract class AbstractEventHandler extends AbstractIdentityHandler {
 //    }
 
     public abstract boolean handleEvent(Event event) throws EventMgtException;
+
+    @Override
+    public void init(InitConfig configuration) throws IdentityRuntimeException {
+        ModuleConfiguration moduleConfig = (ModuleConfiguration)configuration;
+        Set<String> modulePropertyNames = moduleConfig.getModuleProperties().stringPropertyNames();
+        for (String modulePropertyName : modulePropertyNames) {
+            properties.put(modulePropertyName, moduleConfig.getModuleProperties().getProperty(modulePropertyName));
+        }
+        List<Subscription> subscriptions = moduleConfig.getSubscriptions();
+        for (Subscription subscription : subscriptions) {
+            modulePropertyNames = subscription.getSubscriptionProperties().stringPropertyNames();
+            for (String modulePropertyName : modulePropertyNames) {
+                properties.put(modulePropertyName, subscription.getSubscriptionProperties().getProperty(modulePropertyName));
+            }
+        }
+    }
 
 }

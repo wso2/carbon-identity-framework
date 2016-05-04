@@ -62,6 +62,7 @@ public class EventMgtConstants {
         public static final String USER_STORE_MANAGER = "userStoreManager";
         public static final String IDENTITY_MGT_CONFIG = "identityMgtConfig";
         public static final String TENANT_ID = "tenantId";
+        public static final String TENANT_DOMAIN = "tenantDomain";
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
 
 

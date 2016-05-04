@@ -82,32 +82,26 @@ public class EventDistributionTask implements Runnable {
                 IdentityEventMessageContext eventContext = new IdentityEventMessageContext(eventMap);
                 for (final AbstractEventHandler module : notificationSendingModules) {
                     // If the module is subscribed to the event, module will be executed.
-                    try {
-                        if (module.isEnabled(eventContext)) {
-                            // Create a runnable and submit to the thread pool for sending message.
-                            Runnable msgSender = new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("Executing " + module.getName() + " on event" + event.
-                                                getEventName());
-                                    }
-                                    try {
-                                        module.handleEvent(event);
-                                    } catch (EventMgtException e) {
-                                        log.error("Error while invoking notification sending module " + module.
-                                                getName(), e);
-                                    }
+                    if (module.isEnabled(eventContext)) {
+                        // Create a runnable and submit to the thread pool for sending message.
+                        Runnable msgSender = new Runnable() {
+                            @Override
+                            public void run() {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Executing " + module.getName() + " on event" + event.
+                                            getEventName());
                                 }
-                            };
-                            EventMgtServiceDataHolder.getInstance().getThreadPool().submit(msgSender);
-                        }
-//                    } catch (EventMgtException e) {
-//                        log.error("Error while getting subscription status from notification module " + module.
-//                                getName(), e);
-                    } catch (IdentityException e) {
-                        log.error("Error while handling the event.", e);
+                                try {
+                                    module.handleEvent(event);
+                                } catch (EventMgtException e) {
+                                    log.error("Error while invoking notification sending module " + module.
+                                            getName(), e);
+                                }
+                            }
+                        };
+                        EventMgtServiceDataHolder.getInstance().getThreadPool().submit(msgSender);
                     }
+//
                 }
             } catch (InterruptedException e) {
                 log.error("Error while picking up event from event queue", e);

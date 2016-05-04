@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.event.bean;
 
+import org.wso2.carbon.identity.core.handler.InitConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -27,7 +29,7 @@ import java.util.Properties;
  * includes all configuration information which are specific to a certain notification sending component.
  */
 @SuppressWarnings("unused")
-public class ModuleConfiguration {
+public class ModuleConfiguration extends InitConfig {
     /**
      * Module level properties. eg moduleName.propertyName
      */

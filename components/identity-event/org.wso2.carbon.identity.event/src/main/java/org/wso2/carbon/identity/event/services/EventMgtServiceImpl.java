@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.event.services;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.event.EventDistributionTask;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
@@ -54,16 +53,13 @@ public class EventMgtServiceImpl implements EventMgtService {
         IdentityEventMessageContext eventContext = new IdentityEventMessageContext(eventMap);
         boolean returnValue = true;
         for (final AbstractEventHandler handler : eventHandlerList) {
-            try {
-                if (handler.isEnabled(eventContext)) {
-                    if (handler.isAssociationAsync(event.getEventName())) {
-                        eventDistributionTask.addEventToQueue(event);
-                    } else {
-                        returnValue = handler.handleEvent(event);
-                    }
+
+            if (handler.isEnabled(eventContext)) {
+                if (handler.isAssociationAsync(event.getEventName())) {
+                    eventDistributionTask.addEventToQueue(event);
+                } else {
+                    returnValue = handler.handleEvent(event);
                 }
-            } catch (IdentityException e) {
-                throw new EventMgtException("Error while checking if handler is enabled.", e);
             }
         }
         return returnValue;

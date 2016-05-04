@@ -94,7 +94,7 @@ public class EventMgtServiceComponent {
 
     protected void registerEventHandler(AbstractEventHandler eventHandler) throws EventMgtException {
         String handlerName = eventHandler.getName();
-        eventHandler.init(EventMgtConfigBuilder.getInstance().getModuleConfigurations(handlerName).getModuleProperties());
+        eventHandler.init(EventMgtConfigBuilder.getInstance().getModuleConfigurations(handlerName));
         eventHandlerList.add(eventHandler);
     }
 
