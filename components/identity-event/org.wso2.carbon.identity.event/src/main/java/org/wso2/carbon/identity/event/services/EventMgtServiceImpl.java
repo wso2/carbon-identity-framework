@@ -54,7 +54,7 @@ public class EventMgtServiceImpl implements EventMgtService {
         boolean returnValue = true;
         for (final AbstractEventHandler handler : eventHandlerList) {
 
-            if (handler.isEnabled(eventContext)) {
+            if (handler.canHandle(eventContext)) {
                 if (handler.isAssociationAsync(event.getEventName())) {
                     eventDistributionTask.addEventToQueue(event);
                 } else {
