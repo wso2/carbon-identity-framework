@@ -29,9 +29,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InboundRequest implements Serializable {
+public class IdentityRequest implements Serializable {
 
-    private static final long serialVersionUID = 4713412141939795015L;
+    private static final long serialVersionUID = 5418537216546873566L;
 
     protected Map<String, String> headers = new HashMap<>();
     protected Map<String, Cookie> cookies = new HashMap<>();
@@ -86,13 +86,13 @@ public class InboundRequest implements Serializable {
         return parameters.get(paramName);
     }
 
-    public String getTenantDomain(){
+    public String getTenantDomain() {
         return this.tenantDomain;
     }
 
     public String getParameter(String paramName) {
         String[] values = parameters.get(paramName);
-        if(values.length > 0){
+        if(values.length > 0) {
             return values[0];
         }
         return null;
@@ -134,7 +134,7 @@ public class InboundRequest implements Serializable {
         return contentType;
     }
 
-    protected InboundRequest(InboundRequestBuilder builder) {
+    protected IdentityRequest(IdentityRequestBuilder builder) {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
         this.parameters = builder.parameters;
@@ -150,7 +150,7 @@ public class InboundRequest implements Serializable {
         this.contentType = builder.contentType;
     }
 
-    public static class InboundRequestBuilder {
+    public static class IdentityRequestBuilder {
 
         private HttpServletRequest request;
         private HttpServletResponse response;
@@ -169,21 +169,21 @@ public class InboundRequest implements Serializable {
         private String contentType;
 
 
-        public InboundRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
+        public IdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             this.request = request;
             this.response = response;
         }
 
-        public InboundRequestBuilder() {
+        public IdentityRequestBuilder() {
 
         }
 
-        public InboundRequestBuilder setHeaders(Map<String, String> responseHeaders) {
+        public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {
             this.headers = responseHeaders;
             return this;
         }
 
-        public InboundRequestBuilder addHeaders(Map<String, String> headers) {
+        public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
                     throw FrameworkRuntimeException.error("Headers map trying to override existing " +
@@ -194,7 +194,7 @@ public class InboundRequest implements Serializable {
             return this;
         }
 
-        public InboundRequestBuilder addHeader(String name, String value) {
+        public IdentityRequestBuilder addHeader(String name, String value) {
             if (this.headers.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Headers map trying to override existing " +
                         "header " + name);
@@ -203,12 +203,12 @@ public class InboundRequest implements Serializable {
             return this;
         }
 
-        public InboundRequestBuilder setCookies(Map<String, Cookie> cookies) {
+        public IdentityRequestBuilder setCookies(Map<String, Cookie> cookies) {
             this.cookies = cookies;
             return this;
         }
 
-        public InboundRequestBuilder addCookie(String name, Cookie value) {
+        public IdentityRequestBuilder addCookie(String name, Cookie value) {
             if (this.cookies.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
                         "cookie " + name);
@@ -217,7 +217,7 @@ public class InboundRequest implements Serializable {
             return this;
         }
 
-        public InboundRequestBuilder addCookies(Map<String, Cookie> cookies) {
+        public IdentityRequestBuilder addCookies(Map<String, Cookie> cookies) {
             for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
                 if (this.cookies.containsKey(cookie.getKey())) {
                     throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
@@ -228,12 +228,12 @@ public class InboundRequest implements Serializable {
             return this;
         }
 
-        public InboundRequestBuilder setParameters(Map<String, String[]> parameters) {
+        public IdentityRequestBuilder setParameters(Map<String, String[]> parameters) {
             this.parameters = parameters;
             return this;
         }
 
-        public InboundRequestBuilder addParameter(String name, String[] values) {
+        public IdentityRequestBuilder addParameter(String name, String[] values) {
             if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                         "key " + name);
@@ -242,7 +242,7 @@ public class InboundRequest implements Serializable {
             return this;
         }
 
-        public InboundRequestBuilder addParameter(String name, String value) {
+        public IdentityRequestBuilder addParameter(String name, String value) {
             if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                         "key " + name);
@@ -251,7 +251,7 @@ public class InboundRequest implements Serializable {
             return this;
         }
 
-        public InboundRequestBuilder addParameters(Map<String, String[]> parameters) {
+        public IdentityRequestBuilder addParameters(Map<String, String[]> parameters) {
             for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
                     throw FrameworkRuntimeException.error("Parameters map trying to override existing key " +
@@ -262,58 +262,58 @@ public class InboundRequest implements Serializable {
             return this;
         }
 
-        public InboundRequestBuilder setTenantDomain(String tenantDomain) {
+        public IdentityRequestBuilder setTenantDomain(String tenantDomain) {
             this.tenantDomain = tenantDomain;
             return this;
         }
 
-        public InboundRequestBuilder setContextPath(String contextPath) {
+        public IdentityRequestBuilder setContextPath(String contextPath) {
             this.contextPath = contextPath;
             return this;
         }
 
-        public InboundRequestBuilder setMethod(String method) {
+        public IdentityRequestBuilder setMethod(String method) {
             this.method = method;
             return this;
         }
 
-        public InboundRequestBuilder setPathInfo(String pathInfo) {
+        public IdentityRequestBuilder setPathInfo(String pathInfo) {
             this.pathInfo = pathInfo;
             return this;
         }
 
-        public InboundRequestBuilder setPathTranslated(String pathTranslated) {
+        public IdentityRequestBuilder setPathTranslated(String pathTranslated) {
             this.pathTranslated = pathTranslated;
             return this;
         }
 
-        public InboundRequestBuilder setQueryString(String queryString) {
+        public IdentityRequestBuilder setQueryString(String queryString) {
             this.queryString = queryString;
             return this;
         }
 
-        public InboundRequestBuilder setRequestURI(String requestURI) {
+        public IdentityRequestBuilder setRequestURI(String requestURI) {
             this.requestURI = requestURI;
             return this;
         }
 
-        public InboundRequestBuilder setRequestURL(String requestURL) {
+        public IdentityRequestBuilder setRequestURL(String requestURL) {
             this.requestURL = requestURL;
             return this;
         }
 
-        public InboundRequestBuilder setServletPath(String servletPath) {
+        public IdentityRequestBuilder setServletPath(String servletPath) {
             this.servletPath = servletPath;
             return this;
         }
 
-        public InboundRequestBuilder setContentType(String contentType) {
+        public IdentityRequestBuilder setContentType(String contentType) {
             this.contentType = contentType;
             return this;
         }
 
-        public InboundRequest build() throws FrameworkRuntimeException {
-            return new InboundRequest(this);
+        public IdentityRequest build() throws FrameworkRuntimeException {
+            return new IdentityRequest(this);
         }
 
 

@@ -31,9 +31,12 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.InboundRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
@@ -74,14 +77,18 @@ import java.util.List;
  * @scr.reference name="identityCoreInitializedEventService"
  * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
  * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="identity.inbound.processor"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.InboundProcessor"
- * cardinality="0..n" policy="dynamic" bind="addInboundProcessor"
- * unbind="removeInboundProcessor"
- * @scr.reference name="identity.inbound.request.factory"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.InboundRequestFactory"
- * cardinality="0..n" policy="dynamic" bind="addInboundRequestFactory"
- * unbind="removeInboundRequestFactory"
+ * @scr.reference name="identity.processor"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor"
+ * cardinality="0..n" policy="dynamic" bind="addIdentityProcessor"
+ * unbind="removeIdentityProcessor"
+ * @scr.reference name="identity.request.factory"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory"
+ * cardinality="0..n" policy="dynamic" bind="addHttpIdentityRequestFactory"
+ * unbind="removeHttpIdentityRequestFactory"
+ * @scr.reference name="identity.response.factory"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory"
+ * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
+ * unbind="removeHttpIdentityResponseFactory"
  */
 
 
@@ -166,6 +173,11 @@ public class FrameworkServiceComponent {
         }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
+                FrameworkLoginResponseFactory());
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
+                FrameworkLogoutResponseFactory());
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
@@ -275,45 +287,60 @@ public class FrameworkServiceComponent {
 
     }
 
-    protected void addInboundProcessor(InboundProcessor requestProcessor) {
+    protected void addIdentityProcessor(IdentityProcessor requestProcessor) {
 
-        FrameworkServiceDataHolder.getInstance().getInboundProcessors().add(requestProcessor);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getInboundProcessors(),
-                inboundRequestProcessor);
+        FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
+        Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
+                identityProcessor);
 
         if (log.isDebugEnabled()) {
-            log.debug("Added application inbound processor : " + requestProcessor.getName());
+            log.debug("Added IdentityProcessor : " + requestProcessor.getName());
         }
     }
 
-    protected void removeInboundProcessor(InboundProcessor requestProcessor) {
+    protected void removeIdentityProcessor(IdentityProcessor requestProcessor) {
 
-        FrameworkServiceDataHolder.getInstance().getInboundProcessors().remove(requestProcessor);
-
+        FrameworkServiceDataHolder.getInstance().getIdentityProcessors().remove(requestProcessor);
 
         if (log.isDebugEnabled()) {
-            log.debug("Removed application inbound processor : " + requestProcessor.getName());
+            log.debug("Removed IdentityProcessor : " + requestProcessor.getName());
         }
     }
 
-    protected void addInboundRequestFactory(InboundRequestFactory factory) {
+    protected void addHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
-        FrameworkServiceDataHolder.getInstance().getInboundRequestFactories().add(factory);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getInboundRequestFactories(), inboundRequestFactory);
-
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
+        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
+                httpIdentityRequestFactory);
         if (log.isDebugEnabled()) {
-            log.debug("Added application inbound request builder : " + factory.getName());
+            log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
         }
     }
 
-    protected void removeInboundRequestFactory(InboundRequestFactory factory) {
+    protected void removeHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
-        FrameworkServiceDataHolder.getInstance().getInboundRequestFactories().remove(factory);
-
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().remove(factory);
         if (log.isDebugEnabled()) {
-            log.debug("Removed application inbound request builder : " + factory.getName());
+            log.debug("Removed HttpIdentityRequestFactory : " + factory.getName());
         }
+    }
 
+    protected void addHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
+
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
+        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
+                httpIdentityResponseFactory);
+        if (log.isDebugEnabled()) {
+            log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
+        }
+    }
+
+    protected void removeHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
+
+        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
+        if (log.isDebugEnabled()) {
+            log.debug("Removed HttpIdentityResponseFactory : " + factory.getName());
+        }
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
@@ -326,16 +353,16 @@ public class FrameworkServiceComponent {
          is started */
     }
 
-    private static Comparator<InboundProcessor> inboundRequestProcessor =
-            new Comparator<InboundProcessor>() {
+    private static Comparator<IdentityProcessor> identityProcessor =
+            new Comparator<IdentityProcessor>() {
 
                 @Override
-                public int compare(InboundProcessor inboundRequestProcessor1,
-                                   InboundProcessor inboundRequestProcessor2) {
+                public int compare(IdentityProcessor identityProcessor1,
+                                   IdentityProcessor identityProcessor2) {
 
-                    if (inboundRequestProcessor1.getPriority() > inboundRequestProcessor2.getPriority()) {
+                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
                         return 1;
-                    } else if (inboundRequestProcessor1.getPriority() < inboundRequestProcessor2.getPriority()) {
+                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
                         return -1;
                     } else {
                         return 0;
@@ -343,16 +370,33 @@ public class FrameworkServiceComponent {
                 }
             };
 
-    private static Comparator<InboundRequestFactory> inboundRequestFactory =
-            new Comparator<InboundRequestFactory>() {
+    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
+            new Comparator<HttpIdentityRequestFactory>() {
 
                 @Override
-                public int compare(InboundRequestFactory inboundRequestBuilder1,
-                                   InboundRequestFactory inboundRequestBuilder2) {
+                public int compare(HttpIdentityRequestFactory factory1,
+                                   HttpIdentityRequestFactory factory2) {
 
-                    if (inboundRequestBuilder1.getPriority() > inboundRequestBuilder2.getPriority()) {
+                    if (factory1.getPriority() > factory2.getPriority()) {
                         return 1;
-                    } else if (inboundRequestBuilder1.getPriority() < inboundRequestBuilder2.getPriority()) {
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
+
+    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
+            new Comparator<HttpIdentityResponseFactory>() {
+
+                @Override
+                public int compare(HttpIdentityResponseFactory factory1,
+                                   HttpIdentityResponseFactory factory2) {
+
+                    if (factory1.getPriority() > factory2.getPriority()) {
+                        return 1;
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
                         return -1;
                     } else {
                         return 0;

@@ -25,18 +25,15 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
-import org.wso2.carbon.identity.event.handler.EventHandler;
-import org.wso2.carbon.identity.event.listener.TenantCreationEventListener;
+import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.identity.event.services.EventMgtService;
 import org.wso2.carbon.identity.event.services.EventMgtServiceImpl;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * @scr.component name="org.wso2.carbon.identity.event.internal.EventMgtServiceComponent"
@@ -45,7 +42,7 @@ import java.util.Properties;
  * interface="org.wso2.carbon.user.core.service.RealmService"cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
  * @scr.reference name="event.handler"
- * interface="org.wso2.carbon.identity.event.handler.EventHandler"
+ * interface="org.wso2.carbon.identity.event.handler.AbstractEventHandler"
  * cardinality="0..n" policy="dynamic"
  * bind="registerEventHandler"
  * unbind="unRegisterEventHandler"
@@ -70,12 +67,10 @@ public class EventMgtServiceComponent {
     private ServiceRegistration serviceRegistration = null;
 
     // list of all registered event handlers
-    public static List<EventHandler> eventHandlerList = new ArrayList<>();
+    public static List<AbstractEventHandler> eventHandlerList = new ArrayList<>();
 
     protected void activate(ComponentContext context) {
 
-        context.getBundleContext().registerService(TenantMgtListener.class.getName(),
-                new TenantCreationEventListener(), null);
         try {
             EventMgtServiceDataHolder.getInstance().setEventMgtService(new EventMgtServiceImpl(eventHandlerList,
                     Integer.parseInt(EventMgtConfigBuilder.getInstance().getThreadPoolSize())));
@@ -85,7 +80,6 @@ public class EventMgtServiceComponent {
         } catch (EventMgtException e) {
             log.error("Error while initiating IdentityMgtService.");
         }
-        init();
         if (log.isDebugEnabled()) {
             log.debug("Identity Management Listener is enabled");
         }
@@ -98,13 +92,13 @@ public class EventMgtServiceComponent {
         }
     }
 
-    protected void registerEventHandler(EventHandler eventHandler) throws EventMgtException {
-        eventHandler.init();
+    protected void registerEventHandler(AbstractEventHandler eventHandler) throws EventMgtException {
+        String handlerName = eventHandler.getName();
+        eventHandler.init(EventMgtConfigBuilder.getInstance().getModuleConfigurations(handlerName));
         eventHandlerList.add(eventHandler);
     }
 
-    protected void unRegisterEventHandler(EventHandler eventHandler) {
-
+    protected void unRegisterEventHandler(AbstractEventHandler eventHandler) {
     }
 
     protected void registerTenantMgtListener(TenantMgtListener tenantMgtListener) {
@@ -129,15 +123,6 @@ public class EventMgtServiceComponent {
 
     public static RealmService getRealmService() {
         return realmService;
-    }
-
-    private void init() {
-        try {
-            EventMgtService identityMgtService = EventMgtServiceDataHolder.getInstance().getEventMgtService();
-            Properties properties = identityMgtService.addConfiguration(MultitenantConstants.SUPER_TENANT_ID);
-        } catch (EventMgtException ex) {
-            log.error("Error when storing super tenant configurations.");
-        }
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {

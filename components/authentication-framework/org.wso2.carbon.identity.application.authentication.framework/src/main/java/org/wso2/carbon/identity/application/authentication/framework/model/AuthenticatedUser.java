@@ -67,7 +67,9 @@ public class AuthenticatedUser extends User {
         this.tenantDomain = authenticatedUser.getTenantDomain();
         this.userName = authenticatedUser.getUserName();
         this.userStoreDomain = authenticatedUser.getUserStoreDomain();
-        this.userAttributes.putAll(authenticatedUser.getUserAttributes());
+        if (authenticatedUser.getUserAttributes() != null) {
+            this.userAttributes.putAll(authenticatedUser.getUserAttributes());
+        }
         this.isFederatedUser = authenticatedUser.isFederatedUser();
     }
 

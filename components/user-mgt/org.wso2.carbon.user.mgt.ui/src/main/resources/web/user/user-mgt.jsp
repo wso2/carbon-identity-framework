@@ -109,6 +109,9 @@
     String countClaimUri = request.getParameter("countClaimUri");
     if (StringUtils.isBlank(countClaimUri)) {
         countClaimUri = (java.lang.String) session.getAttribute(UserAdminUIConstants.USER_CLAIM_COUNT_FILTER);
+        if (StringUtils.isBlank(countClaimUri)) {
+            countClaimUri = UserAdminUIConstants.SELECT;
+        }
     }
 
     session.setAttribute(UserAdminUIConstants.USER_CLAIM_FILTER, claimUri);
@@ -536,7 +539,7 @@
                                 if (claimUris != null) {
 
                                     for (String claim : claimUris) {
-                                        if (claimUri != null && claim.equals(claimUri)) {
+                                        if (countClaimUri != null && claim.equals(countClaimUri)) {
                             %>
                             <option selected="selected" value="<%=Encode.forHtmlAttribute(claim)%>">
                                 <%=Encode.forHtmlContent(claim)%>

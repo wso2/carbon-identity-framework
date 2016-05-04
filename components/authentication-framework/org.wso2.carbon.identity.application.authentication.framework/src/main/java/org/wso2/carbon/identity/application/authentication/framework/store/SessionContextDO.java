@@ -31,22 +31,22 @@ public class SessionContextDO {
 
     private Object entry;
 
-    private Timestamp timestamp;
+    private long nanoTime;
 
     private int tenantId;
 
-    public SessionContextDO(String key, String type, Object entry, Timestamp timestamp) {
+    public SessionContextDO(String key, String type, Object entry, long nanoTime) {
         this.type = type;
         this.key = key;
         this.entry = entry;
-        this.timestamp = timestamp;
+        this.nanoTime = nanoTime;
     }
 
-    public SessionContextDO(String key, String type, Object entry, Timestamp timestamp, int tenantId) {
+    public SessionContextDO(String key, String type, Object entry, long nanoTime, int tenantId) {
         this.type = type;
         this.key = key;
         this.entry = entry;
-        this.timestamp = timestamp;
+        this.nanoTime = nanoTime;
         this.tenantId = tenantId;
     }
 
@@ -74,12 +74,12 @@ public class SessionContextDO {
         this.entry = entry;
     }
 
-    public Timestamp getTimestamp() {
-        return timestamp;
+    public long getNanoTime() {
+        return nanoTime;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+    public void setNanoTime(long nanoTime) {
+        this.nanoTime = nanoTime;
     }
 
     public int getTenantId() {

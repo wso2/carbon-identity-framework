@@ -63,7 +63,7 @@ public class UserStoreCountService {
      * @return the number of roles matching the filter by each domain
      */
     public PairDTO[] countRoles(String filter) throws UserStoreCounterException {
-        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
         //add 3 more for the counts of Internal, Application domains
         PairDTO[] roleCounts = new PairDTO[userStoreDomains.size() + 2];
         int i = 0;
