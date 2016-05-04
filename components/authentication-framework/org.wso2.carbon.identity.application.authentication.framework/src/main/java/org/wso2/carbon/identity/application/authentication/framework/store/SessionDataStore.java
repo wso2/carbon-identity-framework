@@ -331,8 +331,8 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
-        long cleanupLimitNano = TimeUnit.MINUTES.toNanos(FrameworkUtils.getCurrentStandardNano() - IdentityUtil
-                .getCleanUpTimeout());
+        long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
+                TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
             statement.setLong(1, cleanupLimitNano);
@@ -458,8 +458,8 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
-        long cleanupLimitNano = TimeUnit.MINUTES.toNanos(FrameworkUtils.getCurrentStandardNano() - IdentityUtil
-                .getCleanUpTimeout());
+        long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
+                TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         try {
             if (StringUtils.isBlank(sqlDeleteSTORETask)) {
                 if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)) {
@@ -493,8 +493,8 @@ public class SessionDataStore {
             log.error(e.getMessage(), e);
             return;
         }
-        long cleanupLimitNano = TimeUnit.MINUTES.toNanos(FrameworkUtils.getCurrentStandardNano() - IdentityUtil
-                .getCleanUpTimeout());
+        long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
+                TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
             statement.setLong(1, cleanupLimitNano);
