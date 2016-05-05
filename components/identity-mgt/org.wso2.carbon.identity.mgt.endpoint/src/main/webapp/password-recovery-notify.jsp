@@ -15,45 +15,31 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO" %>
-<%@ page import="java.util.List" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.UserRegistrationAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
 
 <%
-    String forwardTo;
-    String username = request.getParameter("reg_username");
+    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
 
-    try {
-        UserRegistrationAdminServiceClient registrationClient = new UserRegistrationAdminServiceClient();
-        boolean isExistingUser = registrationClient.isUserExist(username);
+    String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
+    String confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
 
-        if (StringUtils.equals(request.getParameter("is_validation"), "true")) {
-            if (isExistingUser) {
-                out.write("User Exist");
-            } else {
-                out.write("Ok");
-            }
+    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(confirmationKey)) {
+        VerificationBean verificationBean =
+                userInformationRecoveryClient.sendRecoveryNotification(username, confirmationKey);
+        if (verificationBean == null || !verificationBean.getVerified()) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg",
+                                 IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification.",
+                                                                                  "Cannot verify the user with given username or captcha answer.",
+                                                                                  verificationBean));
+            request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
-
-        if (isExistingUser) {
-            throw new Exception("User exist");
-        }
-        List<UserFieldDTO> fields = (List<UserFieldDTO>) session.getAttribute("fields");
-
-        for(UserFieldDTO userFieldDTO : fields) {
-            userFieldDTO.setFieldValue(request.getParameter(userFieldDTO.getFieldName()));
-        }
-        char [] password = request.getParameter("reg_password").toCharArray();
-        registrationClient.addUser(username, password, fields);
-        forwardTo = "../dashboard/index.jag";
-    } catch (Exception e) {
-        String error = "An internal error occurred.";
-        response.sendRedirect("create-account.jsp?sessionDataKey=" + request.getParameter("sessionDataKey") +
-                "&failedPrevious=true&errorCode=" + error);
-        return;
     }
 %>
 <html>
@@ -72,7 +58,9 @@
                     <h4 class="modal-title">Information</h4>
                 </div>
                 <div class="modal-body">
-                    <p>User details successfully submitted</p>
+                    <p>Password recovery information has been sent to the email registered
+                        with the account <%=username%>
+                    </p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -83,12 +71,12 @@
 </div>
 <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
 <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
-<script type="application/javascript" >
+<script type="application/javascript">
     $(document).ready(function () {
         var infoModel = $("#infoModel");
         infoModel.modal("show");
-        infoModel.on('hidden.bs.modal', function() {
-            location.href = "<%= Encode.forJavaScriptBlock(forwardTo) %>";
+        infoModel.on('hidden.bs.modal', function () {
+            location.href = "../dashboard/index.jag";
         })
     });
 </script>

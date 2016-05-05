@@ -17,9 +17,9 @@
   --%>
 
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="java.net.HttpURLConnection" %>
 <%@ page import="java.net.URL" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 
 <%
     String type = request.getParameter("type");
@@ -79,19 +79,48 @@
             </button>
         </div>
     </div>
-
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <%
             if (request.getParameter("relyingParty").equals("wso2.my.dashboard")) {
-                URL u = new URL(IdentityUtil.getServerURL("/accountmanagementendpoint/createaccount.do", true, true));
-                HttpURLConnection huc = (HttpURLConnection) u.openConnection();
-                huc.setRequestMethod("HEAD");
-                huc.connect();
-                if (huc.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                String identityMgtEndpointContext =
+                        application.getInitParameter("IdentityManagementEndpointContextURL");
+                if (StringUtils.isBlank(identityMgtEndpointContext)) {
+                    identityMgtEndpointContext = IdentityUtil.getServerURL("/accountrecoveryendpoint", true, true);
+                }
+
+                URL url = null;
+                HttpURLConnection httpURLConnection = null;
+
+                url = new URL(identityMgtEndpointContext + "/recoverpassword.do");
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setRequestMethod("HEAD");
+                httpURLConnection.connect();
+                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
         %>
-        <a id="registerLink" href="/accountmanagementendpoint/createaccount.do?sessionDataKey=<%=Encode.forHtmlAttribute
-            (request.getParameter("sessionDataKey"))%>" class="font-large">Create an
-            account</a>
+        <a id="passwordRecoverLink" href="<%=url%>">Forgot Password </a>
+        <br/><br/>
+    <%
+        }
+
+        url = new URL(identityMgtEndpointContext + "/recoverusername.do");
+        httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setRequestMethod("HEAD");
+        httpURLConnection.connect();
+        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+    %>
+        <a id="usernameRecoverLink" href="<%=url%>">Forgot Username </a>
+        <br/><br/>
+    <%
+        }
+
+        url = new URL(identityMgtEndpointContext + "/register.do");
+        httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setRequestMethod("HEAD");
+        httpURLConnection.connect();
+        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        %>
+        Don't have an account?
+        <a id="registerLink" href="<%=url%>">Register Now</a>
         <%
                 }
             }

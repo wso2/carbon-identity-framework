@@ -21,37 +21,129 @@
 
 <web-app>
     <context-param>
-        <param-name>accessUsername</param-name>
+        <param-name>ServiceAccessUsername</param-name>
         <param-value>admin</param-value>
     </context-param>
     <context-param>
-        <param-name>accessPassword</param-name>
+        <param-name>ServiceAccessPassword</param-name>
         <param-value>admin</param-value>
     </context-param>
-
+    <context-param>
+        <param-name>EnableEmailNotification</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <param-name>ProcessAllSecurityQuestions</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    
+    <listener>
+        <listener-class>org.wso2.carbon.identity.mgt.endpoint.listener.IdentityManagementEndpointContextListener</listener-class>
+    </listener>
+    
     <servlet>
-        <servlet-name>createaccount.do</servlet-name>
-        <jsp-file>/create-account.jsp</jsp-file>
+        <servlet-name>recoverusername.do</servlet-name>
+        <jsp-file>/username-recovery.jsp</jsp-file>
     </servlet>
 
     <servlet>
-        <servlet-name>registration.do</servlet-name>
-        <jsp-file>/registration.jsp</jsp-file>
+        <servlet-name>recoverpassword.do</servlet-name>
+        <jsp-file>/password-recovery.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>processsecurityquestions.do</servlet-name>
+        <jsp-file>/challenge-question-process.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>confirmrecovery.do</servlet-name>
+        <jsp-file>/password-recovery-confirm.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>completepasswordreset.do</servlet-name>
+        <jsp-file>/password-reset-complete.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>register.do</servlet-name>
+        <jsp-file>/self-registration.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>processregistration.do</servlet-name>
+        <jsp-file>/self-registration-process.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>confirmregistration.do</servlet-name>
+        <jsp-file>/self-registration-with-verification-confirm.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>completeregistration.do</servlet-name>
+        <jsp-file>/self-registration-complete.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>verify.do</servlet-name>
+        <jsp-file>/captcha-verify.jsp</jsp-file>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>createaccount.do</servlet-name>
-        <url-pattern>/createaccount.do</url-pattern>
+        <servlet-name>recoverusername.do</servlet-name>
+        <url-pattern>/recoverusername.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>registration.do</servlet-name>
-        <url-pattern>/registration.do</url-pattern>
+        <servlet-name>recoverpassword.do</servlet-name>
+        <url-pattern>/recoverpassword.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>processsecurityquestions.do</servlet-name>
+        <url-pattern>/processsecurityquestions.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>confirmrecovery.do</servlet-name>
+        <url-pattern>/confirmrecovery.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>completepasswordreset.do</servlet-name>
+        <url-pattern>/completepasswordreset.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>register.do</servlet-name>
+        <url-pattern>/register.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>processregistration.do</servlet-name>
+        <url-pattern>/processregistration.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>confirmregistration.do</servlet-name>
+        <url-pattern>/confirmregistration.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>completeregistration.do</servlet-name>
+        <url-pattern>/completeregistration.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>verify.do</servlet-name>
+        <url-pattern>/verify.do</url-pattern>
     </servlet-mapping>
 
     <error-page>
         <exception-type>java.lang.Throwable</exception-type>
-        <location>/generic-exception-response.jsp</location>
+        <location>/error.jsp</location>
     </error-page>
 
     <session-config>

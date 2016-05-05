@@ -689,6 +689,8 @@ public class UserInformationRecoveryService {
                     UserIdentityClaimDTO claimDto = new UserIdentityClaimDTO();
                     claimDto.setClaimUri(claims[i].getClaimUri());
                     claimDto.setClaimValue(claims[i].getValue());
+                    claimDto.setRequired(claims[i].isRequired());
+                    claimDto.setDisplayName(claims[i].getDisplayTag());
                     claimList.add(claimDto);
                 }
             }

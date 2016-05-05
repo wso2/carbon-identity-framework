@@ -21,7 +21,6 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 
@@ -29,26 +28,37 @@
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
 
-    boolean isEmailNotificationEnabled = false;
-    boolean isPasswordRecoveryEmailConfirmation = false;
+    CaptchaInfoBean captchaInfoBean = null;
+    String captchaImagePath = null;
+    String captchaImageUrl = null;
+    String captchaKey = null;
 
-    String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    String confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
+    String username = request.getParameter("username");
+    String userStoreDomain = request.getParameter("userstoredomain");
+    String tenantDomain = request.getParameter("tenantdomain");
+    String confirmationKey = request.getParameter("confirmation");
 
-    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(confirmationKey)) {
-        isPasswordRecoveryEmailConfirmation = true;
-    } else {
-        isEmailNotificationEnabled = Boolean.parseBoolean(application.getInitParameter(
-                IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION));
+    if (StringUtils.isBlank(username) || StringUtils.isBlank(confirmationKey)) {
+        username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
+        confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
     }
 
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+    String fulQualifiedUsername = IdentityManagementEndpointUtil.getFullQualifiedUsername(username, tenantDomain,
+                                                                                          userStoreDomain);
+    if (StringUtils.isNotBlank(fulQualifiedUsername) && StringUtils.isNotBlank(confirmationKey)) {
+        UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
 
-    CaptchaInfoBean captchaInfoBean = userInformationRecoveryClient.generateCaptcha();
-
-    String captchaImagePath = captchaInfoBean.getImagePath();
-    String captchaImageUrl = IdentityUtil.getServerURL(null, false, false) + "/" + captchaImagePath;
-    String captchaKey = captchaInfoBean.getSecretKey();
+        captchaInfoBean = userInformationRecoveryClient.generateCaptcha();
+        captchaImagePath = captchaInfoBean.getImagePath();
+        captchaImageUrl = IdentityUtil.getServerURL(null, false, false) + "/" + captchaImagePath;
+        captchaKey = captchaInfoBean.getSecretKey();
+    } else {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg",
+                             "Cannot process the email notification confirmation. Either the username or confirmation code is missing.");
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
@@ -90,8 +100,8 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Recover
-                    Password
+                <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
+                    Confirm Account
                 </h2>
 
                 <div class="clearfix"></div>
@@ -104,27 +114,9 @@
                     <% } %>
                     <div class="alert alert-danger" id="error-msg" hidden="hidden"></div>
 
-                    <div class="padding-double font-large">Enter below details to recover your password</div>
+                    <div class="padding-double font-large">Enter below details to confirm your account</div>
                     <div class="padding-double">
-                        <form method="post" action="verify.do" id="recoverDetailsForm">
-                            <%
-                                if (isPasswordRecoveryEmailConfirmation) {
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <input id="hidden-username" name="username" type="hidden" class="form-control"
-                                       value="<%=Encode.forHtmlAttribute(username)%>">
-                            </div>
-                            <%
-
-                            } else {
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <input id="username" name="username" type="text" class="form-control" tabindex="0"
-                                       placeholder="Username" required>
-                            </div>
-                            <%
-                                }
-                            %>
+                        <form method="post" action="verify.do" id="registrationConfirmationForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <img src="<%=captchaImageUrl%>"
                                      alt='If you can not see the captcha image please refresh the page or click the link again.'/>
@@ -135,49 +127,31 @@
                                        required>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <input id="hidden-username" name="username" type="hidden" class="form-control"
+                                       value="<%=Encode.forHtmlAttribute(username)%>">
                                 <input id="confirmationKey" type="hidden" name="confirmationKey"
                                        value="<%=confirmationKey%>"/>
                                 <input id="captchaImagePath" type="hidden" name="captchaImagePath"
                                        value="<%=captchaImagePath%>"/>
                                 <input id="captchaKey" type="hidden" name="captchaKey" value="<%=captchaKey%>"/>
-                                <input id="isPasswordRecoveryEmailConfirmation" type="hidden"
-                                       name="isPasswordRecoveryEmailConfirmation"
-                                       value="<%=isPasswordRecoveryEmailConfirmation%>"/>
+                                <input id="isUserRegistrationEmailConfirmation" type="hidden"
+                                       name="isUserRegistrationEmailConfirmation"
+                                       value="true"/>
                             </div>
-                            <%
-                                if (isEmailNotificationEnabled) {
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input type="radio" name="recoveryOption" value="EMAIL" checked/>
-                                Recover with Email
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input type="radio" name="recoveryOption" value="SECURITY_QUESTIONS"/>
-                                Recover with Security Questions
-                            </div>
-                            <%
-                            } else {
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input type="hidden" name="recoveryOption" value="SECURITY_QUESTIONS"/>
-                            </div>
-                            <%
-                                }
-                            %>
 
                             <div class="form-actions">
                                 <table width="100%" class="styledLeft">
                                     <tbody>
                                     <tr class="buttonRow">
                                         <td>
-                                            <button id="recoverySubmit"
+                                            <button id="confirmationSubmit"
                                                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
                                                     type="submit">Submit
                                             </button>
                                         </td>
                                         <td>&nbsp;&nbsp;</td>
                                         <td>
-                                            <button id="recoveryCancel"
+                                            <button id="confirmationCancel"
                                                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
                                                     onclick="location.href='../dashboard/index.jag';">Cancel
                                             </button>
@@ -211,3 +185,4 @@
     </body>
     </html>
 </fmt:bundle>
+

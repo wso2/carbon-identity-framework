@@ -48,7 +48,9 @@
     <!-- *************** End of Global configurations ********************** -->
     <filter>
         <filter-name>AuthenticationEndpointFilter</filter-name>
-        <filter-class>org.wso2.carbon.identity.application.authentication.endpoint.util.filter.AuthenticationEndpointFilter</filter-class>
+        <filter-class>
+            org.wso2.carbon.identity.application.authentication.endpoint.util.filter.AuthenticationEndpointFilter
+        </filter-class>
     </filter>
 
     <filter-mapping>

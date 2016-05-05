@@ -27,6 +27,10 @@ public class UserIdentityClaimDTO {
 
     private String claimValue;
 
+    private String displayName;
+
+    private boolean required;
+
     public String getClaimUri() {
         return claimUri;
     }
@@ -41,5 +45,21 @@ public class UserIdentityClaimDTO {
 
     public void setClaimValue(String claimValue) {
         this.claimValue = claimValue;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 }

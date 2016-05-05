@@ -16,12 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.mgt.endpoint;
+package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
@@ -33,8 +34,10 @@ import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * This class invokes the client operations of UserRegistrationAdminClient.
+ */
 public class UserRegistrationAdminServiceClient {
-
 
     private UserRegistrationAdminServiceStub stub;
     private Properties prop;
@@ -44,14 +47,11 @@ public class UserRegistrationAdminServiceClient {
         StringBuilder builder = new StringBuilder();
         String serviceURL = null;
 
-        String serviceUrl = IdentityUtil.getServicePath();
-        IdentityUtil.getServerURL(serviceUrl, true, true);
-
-        serviceURL = builder.append(IdentityUtil.getServerURL(serviceUrl, true, true)).append
-                (Constants.UserRegistrationConstants.USER_REGISTRATION_SERVICE).toString().replaceAll("(?<!(http:|https:))//", "/");
+        serviceURL = builder.append(IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true))
+                            .append(IdentityManagementEndpointConstants.ServiceEndpoints.USER_REGISTRATION_SERVICE)
+                            .toString().replaceAll("(?<!(http:|https:))//", "/");
 
         stub = new UserRegistrationAdminServiceStub(serviceURL);
-
         ServiceClient client = stub._getServiceClient();
         Options option = client.getOptions();
         option.setManageSession(true);
@@ -59,14 +59,15 @@ public class UserRegistrationAdminServiceClient {
 
     /**
      * Add new user.
-     * @param username Username of the user.
-     * @param password Password of the user.
+     *
+     * @param username   Username of the user.
+     * @param password   Password of the user.
      * @param userFields User fields to be updated.
      * @throws java.rmi.RemoteException
      * @throws UserRegistrationAdminServiceException
      */
     public void addUser(String username, char[] password, List<UserFieldDTO> userFields) throws RemoteException,
-            UserRegistrationAdminServiceException {
+                                                                                                UserRegistrationAdminServiceException {
 
         UserDTO userDTO = new UserDTO();
         userDTO.setUserName(username);
@@ -78,6 +79,7 @@ public class UserRegistrationAdminServiceClient {
 
     /**
      * Get the user fields for given dialect.
+     *
      * @param dialect Dialect to use.
      * @return User fields.
      * @throws UserRegistrationAdminServiceIdentityException
@@ -91,13 +93,14 @@ public class UserRegistrationAdminServiceClient {
 
     /**
      * Check whether the user exists.
+     *
      * @param username Username of the user.
      * @return True if user exists.
      * @throws java.rmi.RemoteException
      * @throws UserRegistrationAdminServiceException
      */
     public boolean isUserExist(String username) throws RemoteException,
-            UserRegistrationAdminServiceUserRegistrationException {
+                                                       UserRegistrationAdminServiceUserRegistrationException {
 
         return stub.isUserExist(username);
     }

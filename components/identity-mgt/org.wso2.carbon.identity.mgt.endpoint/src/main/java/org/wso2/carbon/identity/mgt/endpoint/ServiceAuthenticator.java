@@ -23,51 +23,37 @@ import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HttpTransportProperties;
 
 /**
- * Setting the trasnport authenticator for carbon.
- *
- * @author chamath
+ * This class is is used to authenticate for admin services.
  */
 public class ServiceAuthenticator {
 
-    private static ServiceAuthenticator instance = null;
-    private String accessUsername = null;
-    private String accessPassword = null;
+    private static ServiceAuthenticator instance = new ServiceAuthenticator();
+
+    private String serviceAccessUsername = null;
+    private String serviceAccessPassword = null;
 
     private ServiceAuthenticator() {
     }
 
     public static ServiceAuthenticator getInstance() {
-
-        if (instance != null) {
-            return instance;
-        } else {
-            instance = new ServiceAuthenticator();
-            return instance;
-        }
+        return instance;
     }
 
-    public void authenticate(ServiceClient client) throws AuthenticationException {
-
-        if (accessUsername != null && accessPassword != null) {
-            Options option = client.getOptions();
-            HttpTransportProperties.Authenticator auth = new HttpTransportProperties.Authenticator();
-            auth.setUsername(accessUsername);
-            auth.setPassword(accessPassword);
-            auth.setPreemptiveAuthentication(true);
-            option.setProperty(org.apache.axis2.transport.http.HTTPConstants.AUTHENTICATE, auth);
-            option.setManageSession(true);
-
-        } else {
-            throw new AuthenticationException("Authentication username or password not set");
-        }
+    public void authenticate(ServiceClient client) {
+        Options option = client.getOptions();
+        HttpTransportProperties.Authenticator auth = new HttpTransportProperties.Authenticator();
+        auth.setUsername(serviceAccessUsername);
+        auth.setPassword(serviceAccessPassword);
+        auth.setPreemptiveAuthentication(true);
+        option.setProperty(org.apache.axis2.transport.http.HTTPConstants.AUTHENTICATE, auth);
+        option.setManageSession(true);
     }
 
-    public void setAccessUsername(String accessUsername) {
-        this.accessUsername = accessUsername;
+    public void setServiceAccessUsername(String serviceAccessUsername) {
+        this.serviceAccessUsername = serviceAccessUsername;
     }
 
-    public void setAccessPassword(String accessPassword) {
-        this.accessPassword = accessPassword;
+    public void setServiceAccessPassword(String serviceAccessPassword) {
+        this.serviceAccessPassword = serviceAccessPassword;
     }
-
 }
