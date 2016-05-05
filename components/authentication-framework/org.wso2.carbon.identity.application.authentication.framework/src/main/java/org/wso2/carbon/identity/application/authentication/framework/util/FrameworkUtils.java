@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -1144,15 +1145,26 @@ public class FrameworkUtils {
      * Append a query param to the URL (URL may already contain query params)
      */
     public static String appendQueryParamsStringToUrl(String url, String queryParamString) {
-        // check whether the URL already contains query params
-        String appender = url.contains("?") ? "&" : "?";
+        String queryAppendedUrl = url;
+        // check whether param string to append is blank
+        if (StringUtils.isNotEmpty(queryParamString)) {
+            // check whether the URL already contains query params
+            String appender;
+            if (url.contains("?")) {
+                appender = "&";
+            } else{
+                appender = "?";
+            }
 
-        // remove leading anchor or question mark in query params
-        if (queryParamString.startsWith("?") || queryParamString.startsWith("&")) {
-            queryParamString = queryParamString.substring(1);
+            // remove leading anchor or question mark in query params
+            if (queryParamString.startsWith("?") || queryParamString.startsWith("&")) {
+                queryParamString = queryParamString.substring(1);
+            }
+
+            queryAppendedUrl += appender + queryParamString;
         }
 
-        return url + appender + queryParamString;
+        return queryAppendedUrl;
     }
 }
 

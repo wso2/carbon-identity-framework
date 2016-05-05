@@ -401,7 +401,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
                     URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
 
-            String queryParamsString = sessionDataKeyParam + "&" + rememberMeParam;
+            String queryParamsString = sessionDataKeyParam;
+            if (StringUtils.isNotEmpty(rememberMeParam)) {
+                queryParamsString += "&" + rememberMeParam;
+            }
             redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(commonauthCallerPath, queryParamsString);
 
             response.sendRedirect(redirectURL);
