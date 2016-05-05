@@ -1139,4 +1139,20 @@ public class FrameworkUtils {
                 .getNanoTimeReference());
         return currentStandardNano;
     }
+
+    /**
+     * Append a query param to the URL (URL may already contain query params)
+     */
+    public static String appendQueryParamsStringToUrl(String url, String queryParamString) {
+        // check whether the URL already contains query params
+        String appender = url.contains("?") ? "&" : "?";
+
+        // remove leading anchor or question mark in query params
+        if (queryParamString.startsWith("?") || queryParamString.startsWith("&")) {
+            queryParamString = queryParamString.substring(1);
+        }
+
+        return url + appender + queryParamString;
+    }
 }
+

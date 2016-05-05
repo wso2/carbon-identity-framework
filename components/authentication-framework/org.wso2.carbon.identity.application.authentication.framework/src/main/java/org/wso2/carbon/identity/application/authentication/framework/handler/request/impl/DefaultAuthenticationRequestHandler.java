@@ -42,6 +42,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -389,13 +390,20 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String rememberMeParam = "";
 
         if (context.isRequestAuthenticated() && context.isRememberMe()) {
-            rememberMeParam = rememberMeParam + "&chkRemember=on";
+            rememberMeParam = rememberMeParam + "chkRemember=on";
         }
 
         // redirect to the caller
-        String redirectURL = context.getCallerPath() + "?sessionDataKey="
-                + context.getCallerSessionKey() + rememberMeParam;
+        String redirectURL;
+        String commonauthCallerPath = context.getCallerPath();
+
         try {
+            String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
+                    URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+
+            String queryParamsString = sessionDataKeyParam + "&" + rememberMeParam;
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(commonauthCallerPath, queryParamsString);
+
             response.sendRedirect(redirectURL);
         } catch (IOException e) {
             throw new FrameworkException(e.getMessage(), e);

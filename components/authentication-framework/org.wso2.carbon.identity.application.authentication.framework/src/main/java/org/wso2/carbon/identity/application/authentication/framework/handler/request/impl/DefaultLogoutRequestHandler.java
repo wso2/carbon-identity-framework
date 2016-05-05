@@ -198,7 +198,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 FrameworkUtils.addAuthenticationResultToCache(context.getCallerSessionKey(), authenticationResult);
             }
 
-            redirectURL = context.getCallerPath() + "?sessionDataKey=" + context.getCallerSessionKey();
+            String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" + context.getCallerSessionKey();
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(context.getCallerPath(), sessionDataKeyParam);
         } else {
             redirectURL = context.getCallerPath();
         }
