@@ -43,6 +43,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
@@ -198,7 +199,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 FrameworkUtils.addAuthenticationResultToCache(context.getCallerSessionKey(), authenticationResult);
             }
 
-            redirectURL = context.getCallerPath() + "?sessionDataKey=" + context.getCallerSessionKey();
+            String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
+                    URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(context.getCallerPath(), sessionDataKeyParam);
         } else {
             redirectURL = context.getCallerPath();
         }
