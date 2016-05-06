@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
-import org.wso2.carbon.identity.base.IdentityException;
-
-public class AuthenticationException extends IdentityException {
+public class AuthenticationException extends Exception {
 
     private static final long serialVersionUID = 5246864272214219834L;
 
