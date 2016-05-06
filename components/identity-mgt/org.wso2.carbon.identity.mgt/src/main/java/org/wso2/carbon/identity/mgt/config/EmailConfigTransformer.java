@@ -71,6 +71,10 @@ public class EmailConfigTransformer {
                 template.setDisplayName("One Time Password");
             } else if (IdentityMgtConstants.Notification.TEMPORARY_PASSWORD.equals(key)) {
                 template.setDisplayName("Temporary Password");
+            } else if (IdentityMgtConstants.Notification.PASSWORD_EXPIRES.equals(key)) {
+                template.setDisplayName("Password Expires");
+            } else if (IdentityMgtConstants.Notification.PASSWORD_EXPIRED.equals(key)) {
+                template.setDisplayName("Password Expired");
             } else {
                 // Ignore all other keys in the registry mount.
                 continue;

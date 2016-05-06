@@ -1,0 +1,72 @@
+<!--
+  ~
+  ~ Copyright (c) 2011, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~  Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  ~
+  -->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1"></meta>
+  <title>User Identity Management - User Guide</title>
+  <link href="../../admin/css/documentation.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+
+<body style="font-family: Times New Roman,Times,serif; font-size: 12pt;">
+<h1>User Identity Management</h1>
+<p>This user guide describes the user identity management related options and configurations available in the WSO2 Identity Server.</p>
+
+<p>You can use the left hand side &quot;Configure&quot; menu to complete the below mentioned configuration and options details.</p>
+
+
+
+
+<h2>Challenge Questions Management</h2>
+<p>The Challenge Questions are the questions that the system presents to users when they need to recover the password by themselves in a situation where  they have forgotten the password to login.</p>
+<br/><br/>Following  section describes of adding challenge questions to the system by Administrator. These questions will be then shown in each users Account Recovery menu and user 
+can select questions and provide answer to them.<br/><br/>As shown in the Figure 1 click on Configure tab &gt; 
+Users and Roles and then click on Add Questions which is shown under Manage Challenge Questions.<br/><br/><br/>
+<img alt="" src="../images/challenge_mgt_setting_f1.png"/><br/>
+<p>Figure 1 : Challenge Question Management</p>
+<p>The Challenge Question Management page will be shown which is depicted in the Figure 2. 
+From here you can specify a new challenge question set by clicking on the Add new challenge question set button at the top. 
+By default there will be two challenge questions sets displayed. You can click them to see the challenge questions available for each set. 
+Also you can delete existing challenge question sets by clicking the relevant delete icon as shown in the Figure 2.</p><br/><br/>
+<img alt="" src="../images/challenge_mgt_setting_f2.png"/><br/>
+<p>Figure 2 : Challenge Question Main</p>
+
+<h2>Adding Challenge Questions to existing set</h2>
+
+<p>You can add more challenge questions to an existing set by clicking on a set shown in Figure 2 and the Add Challenge Questions screen will be displayed.  
+As shown in Figure 3 the set id will be read only. The questions available for the selected set will be displayed in the Challenge questions table as shown in Figure 3.</p>
+<p>A new question can be defined in the Enter new Challenge Question text box and click on Add button to add it to the challenge question set. 
+After defining the questions you can click on Finish button to save the changes. If you don't want to save the changes click on Cancel and you will be directed to previous page.</p>
+<p>You can delete the questions from the table using the correct delete icon. Click Yes in the delete confirmation dialog to remove it from the table. Click on Finish button to save the changes.</p><br/>
+<img alt="" src="../images/challenge_mgt_setting_f3.png"/>
+<p>Figure 3 : Add Challenge Questions</p>
+<h2>Editing a Challenge Question</h2>
+<p>You can edit existing challenge question by clicking on the Edit icon displayed against the question. 
+This will populate the text box with the question and remove it from the table as shown in the Figure 4. 
+When you finish editing the question click on Update button and it will again add the question to the table. Click on Finish button to save the changes.</p><br/><br/>
+<img alt="" src="../images/challenge_mgt_setting_f4.png"/><br/>Figure 4 : Edit Challenge Question
+<h2>Adding Challenge Question to new set</h2>
+<p>When you click on Add challenge question set from Figure 2 you will be directed to Add Question screen as shown Figure 5. 
+Give a unique set id and start adding questions. After you complete click on Finish button to save the challenge question set.</p><br/>
+<img alt="" src="../images/challenge_mgt_setting_f5.png"/>
+<p>Figure 5 : Add New Challenge Question set</p>
+</body>
+</html>

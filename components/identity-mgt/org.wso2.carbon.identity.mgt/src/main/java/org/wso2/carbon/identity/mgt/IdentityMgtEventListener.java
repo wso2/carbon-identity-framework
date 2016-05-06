@@ -251,10 +251,21 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
-        if(!userStoreManager.isReadOnly() && authenticated){
-            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_LOGIN_TIME, Long.toString(System
-                    .currentTimeMillis()), null);
+
+        String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        String usernameWithDomain = IdentityUtil.addDomainToName(userName, domainName);
+        boolean isUserExistInCurrentDomain = userStoreManager.isExistingUser(usernameWithDomain);
+
+        if (authenticated && isUserExistInCurrentDomain) {
+
+            if (isUserExistInCurrentDomain) {
+                Map<String, String> userClaims = new HashMap<>();
+                userClaims.put(IdentityMgtConstants.LAST_LOGIN_TIME, Long.toString(System
+                        .currentTimeMillis()));
+                userStoreManager.setUserClaimValues(userName, userClaims, null);
+            }
         }
+
         // Top level try and finally blocks are used to unset thread local variables
         try {
             if (!IdentityUtil.threadLocalProperties.get().containsKey(DO_POST_AUTHENTICATE)) {
@@ -381,11 +392,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                 if (!authenticated && config.isAuthPolicyAccountLockOnFailure()) {
                     // reading the max allowed #of failure attempts
-
-                    String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-                    String usernameWithDomain = UserCoreUtil.addDomainToName(userName, domainName);
-                    boolean isUserExistInCurrentDomain = userStoreManager.isExistingUser(usernameWithDomain);
-
                     if (isUserExistInCurrentDomain) {
                         userIdentityDTO.setFailAttempts();
 
@@ -518,7 +524,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         Iterator<Entry<String, String>> it = claims.entrySet().iterator();
         while (it.hasNext()) {
 
-            Map.Entry<String, String> claim = it.next();
+            Entry<String, String> claim = it.next();
 
             if (claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.CHALLENGE_QUESTION_URI) ||
                     claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
@@ -702,10 +708,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
-        if (!userStoreManager.isReadOnly()) {
-            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
-                    .toString(System.currentTimeMillis()), null);
-        }
+
+        Map<String, String> userClaims = new HashMap<>();
+        userClaims.put(IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
+                .toString(System.currentTimeMillis()));
+        userStoreManager.setUserClaimValues(userName, userClaims, null);
         return true;
 
     }
@@ -816,28 +823,11 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
         IdentityUtil.clearIdentityErrorMsg();
         String accountLocked = claims.get(UserIdentityDataStore.ACCOUNT_LOCK);
-        String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
         boolean isAccountLocked = false;
-        boolean isAccountDisabled = false;
 
         //Following logic is to avoid null value been interpreted as false
         if (StringUtils.isNotEmpty(accountLocked)) {
             isAccountLocked = Boolean.parseBoolean(accountLocked);
-        } else if (StringUtils.isNotEmpty(accountDisabled)) {
-            isAccountDisabled = Boolean.parseBoolean(accountDisabled);
-        }
-
-        if (isAccountLocked) {
-            IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
-                    .ErrorCode.USER_IS_LOCKED);
-            IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-
-        } else if (isAccountDisabled) {
-            IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
-                    IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
-            IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-        } else {
-            // do nothing
         }
 
         // Top level try and finally blocks are used to unset thread local variables
@@ -848,6 +838,24 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
                 Boolean wasAccountDisabled = identityDTO.getIsAccountDisabled();
+                String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
+                boolean isAccountDisabled = false;
+                if (StringUtils.isNotEmpty(accountDisabled)) {
+                    isAccountDisabled = Boolean.parseBoolean(accountDisabled);
+                } else {
+                    isAccountDisabled = wasAccountDisabled;
+                }
+                if (isAccountLocked) {
+                    IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
+                            .ErrorCode.USER_IS_LOCKED);
+                    IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
+                } else if (isAccountDisabled) {
+                    IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
+                            IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
+                    IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
+                } else {
+                    // do nothing
+                }
                 if (identityDTO == null) {
                     identityDTO = new UserIdentityClaimsDO(userName);
                 }
@@ -856,12 +864,13 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 if (wasAccountDisabled && isAccountDisabled) {
                     claims.clear();
                     log.warn("Trying to update claims of a disabled user account. This is not permitted.");
+                    throw new UserStoreException("User account is disabled, can't update claims without enabling.");
                 }
 
                 Iterator<Entry<String, String>> it = claims.entrySet().iterator();
                 while (it.hasNext()) {
 
-                    Map.Entry<String, String> claim = it.next();
+                    Entry<String, String> claim = it.next();
 
                     if (claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.CHALLENGE_QUESTION_URI)
                             || claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
@@ -1006,11 +1015,12 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
-        if (!userStoreManager.isReadOnly()) {
-            userStoreManager.setUserClaimValue(userName, IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
-                    .toString(System.currentTimeMillis()), null);
-        }
-       return true;
+
+        Map<String, String> userClaims = new HashMap<>();
+        userClaims.put(IdentityMgtConstants.LAST_PASSWORD_UPDATE_TIME, Long
+                .toString(System.currentTimeMillis()));
+        userStoreManager.setUserClaimValues(userName, userClaims, null);
+        return true;
 
     }
 
