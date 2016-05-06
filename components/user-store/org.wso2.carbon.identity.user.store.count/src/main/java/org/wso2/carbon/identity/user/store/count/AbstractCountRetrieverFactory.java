@@ -22,9 +22,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.user.api.RealmConfiguration;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Factory class to create instances of user store count retrievers as required.
  */
@@ -32,63 +29,13 @@ public abstract class AbstractCountRetrieverFactory {
 
     private static final Log log = LogFactory.getLog(AbstractCountRetrieverFactory.class);
 
-    public AbstractUserStoreCountRetriever getCountRetriever(String userStoreDomainName,
-            RealmConfiguration realmConfiguration) throws UserStoreCounterException {
-
-
-        //ToDO implement to get from memory map
-
-//        if (entry != null) {
-//            if (log.isDebugEnabled()) {
-//                log.debug("Count Retriever cache HIT for " + userStoreDomainName + " of tenant:" + realmConfiguration.getTenantId());
-//            }
-//        }
-
-        AbstractUserStoreCountRetriever countRetriever;
-
-        countRetriever = buildCountRetriever(realmConfiguration);
-        //ToDo
-        //            CountRetrieverCache.getInstance().addToCache(cacheKey, entry);
-
-        return countRetriever;
-
-    }
-
     /**
      * @param realmConfiguration
      * @return
      * @throws UserStoreCounterException
      */
-    protected abstract AbstractUserStoreCountRetriever buildCountRetriever(RealmConfiguration realmConfiguration)
+    public abstract AbstractUserStoreCountRetriever buildCountRetriever(RealmConfiguration realmConfiguration)
             throws UserStoreCounterException;
-
-    public void destroyCountRetriever(String userStoreDomainName, String tenantDomain)
-            throws UserStoreCounterException {
-
-
-        //ToDO implement to read from in-memory map
-
-//        if (entry == null) {
-//
-//            if (log.isDebugEnabled()) {
-//                log.debug("User store count retriever in memory entry removed for " + userStoreDomainName
-//                        + " from the count retriever " + getCounterType());
-//            }
-//        } else {
-//            if (log.isDebugEnabled()) {
-//                log.debug("User store count retriever in memory entry not found for " + userStoreDomainName
-//                        + " from the count retriever " + getCounterType());
-//            }
-//        }
-
-    }
-
-    /**
-     * @return
-     */
-    public List<String> getConfigurationProperties() {
-        return new ArrayList<>();
-    }
 
     /**
      * @return

@@ -31,7 +31,7 @@ public class InternalCountRetrieverFactory extends AbstractCountRetrieverFactory
     public static final String INTERNAL = InternalCountRetriever.class.getName();
     private static final Log log = LogFactory.getLog(InternalCountRetrieverFactory.class);
 
-    protected InternalCountRetriever buildCountRetriever(RealmConfiguration realmConfiguration)
+    public InternalCountRetriever buildCountRetriever(RealmConfiguration realmConfiguration)
             throws UserStoreCounterException {
         InternalCountRetriever internalCountRetriever = new InternalCountRetriever();
         internalCountRetriever.init(realmConfiguration);

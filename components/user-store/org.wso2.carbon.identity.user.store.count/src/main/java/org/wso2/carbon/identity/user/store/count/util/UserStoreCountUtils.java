@@ -131,7 +131,7 @@ public class UserStoreCountUtils {
         if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
             String retrieverType = realmConfiguration.getUserStoreProperty(countRetrieverClass);
             UserStoreCountRetriever userStoreCountRetriever = UserStoreCountDataHolder.getInstance()
-                    .getCountRetrieverFactories().get(retrieverType).getCountRetriever(domain, realmConfiguration);
+                    .getCountRetrieverFactories().get(retrieverType).buildCountRetriever(realmConfiguration);
             if (userStoreCountRetriever == null) {
                 throw new UserStoreCounterException(
                         "Could not create an instance of class: " + retrieverType + " for " +
@@ -154,9 +154,7 @@ public class UserStoreCountUtils {
 
         try {
             countRetreiver = UserStoreCountDataHolder.getInstance().getCountRetrieverFactories()
-                    .get(InternalCountRetriever.class.getName())
-                    .getCountRetriever(InternalStoreCountConstants.INTERNAL_DOMAIN,
-                            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration());
+                    .get(InternalCountRetriever.class.getName()).buildCountRetriever(CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration());
             if (countRetreiver == null) {
                 throw new UserStoreCounterException("Could not create a count retriever for Internal domain");
             }

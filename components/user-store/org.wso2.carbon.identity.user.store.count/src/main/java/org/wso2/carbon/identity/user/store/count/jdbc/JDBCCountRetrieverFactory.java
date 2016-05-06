@@ -31,7 +31,7 @@ public class JDBCCountRetrieverFactory extends AbstractCountRetrieverFactory {
     public static final String JDBC = "org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever";
     private static final Log log = LogFactory.getLog(JDBCCountRetrieverFactory.class);
 
-    protected JDBCUserStoreCountRetriever buildCountRetriever(RealmConfiguration realmConfiguration)
+    public JDBCUserStoreCountRetriever buildCountRetriever(RealmConfiguration realmConfiguration)
         throws UserStoreCounterException {
             JDBCUserStoreCountRetriever jdbcUserStoreCountRetriever = new JDBCUserStoreCountRetriever();
             jdbcUserStoreCountRetriever.init(realmConfiguration);
