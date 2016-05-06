@@ -28,7 +28,7 @@ import org.wso2.carbon.user.api.RealmConfiguration;
  */
 public class JDBCCountRetrieverFactory extends AbstractCountRetrieverFactory {
 
-    public static final String JDBC = "";
+    public static final String JDBC = "org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever";
     private static final Log log = LogFactory.getLog(JDBCCountRetrieverFactory.class);
 
     protected JDBCUserStoreCountRetriever buildCountRetriever(RealmConfiguration realmConfiguration)

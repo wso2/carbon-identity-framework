@@ -19,8 +19,6 @@ package org.wso2.carbon.identity.user.store.count;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.user.store.count.cache.CountRetrieverCacheEntry;
-import org.wso2.carbon.identity.user.store.count.cache.CountRetrieverCacheKey;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.user.api.RealmConfiguration;
 
@@ -37,26 +35,18 @@ public abstract class AbstractCountRetrieverFactory {
     public AbstractUserStoreCountRetriever getCountRetriever(String userStoreDomainName,
             RealmConfiguration realmConfiguration) throws UserStoreCounterException {
 
-        int tenantId = -1234;
 
-        CountRetrieverCacheKey cacheKey = new CountRetrieverCacheKey(userStoreDomainName,
-                realmConfiguration.getTenantId());
-        //ToDO implement cache properly
-        CountRetrieverCacheEntry entry = null;
-        // entry = CountRetrieverCache.getInstance().getValueFromCache(cacheKey);
+        //ToDO implement to get from memory map
 
-        if (entry != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Count Retriever cache HIT for " + userStoreDomainName + " of tenant:" + tenantId);
-            }
-            //                return entry.getProvisioningConnector();
-        }
+//        if (entry != null) {
+//            if (log.isDebugEnabled()) {
+//                log.debug("Count Retriever cache HIT for " + userStoreDomainName + " of tenant:" + realmConfiguration.getTenantId());
+//            }
+//        }
 
         AbstractUserStoreCountRetriever countRetriever;
 
         countRetriever = buildCountRetriever(realmConfiguration);
-        entry = new CountRetrieverCacheEntry();
-        entry.setUserStoreCountRetriever(countRetriever);
         //ToDo
         //            CountRetrieverCache.getInstance().addToCache(cacheKey, entry);
 
@@ -75,26 +65,21 @@ public abstract class AbstractCountRetrieverFactory {
     public void destroyCountRetriever(String userStoreDomainName, String tenantDomain)
             throws UserStoreCounterException {
 
-        int tenantId = -1234;
 
-        CountRetrieverCacheKey cacheKey = new CountRetrieverCacheKey(userStoreDomainName, tenantId);
-        //ToDO implement cache properly
-        CountRetrieverCacheEntry entry = null;
-        //entry = CountRetrieverCache.getInstance().getValueFromCache(cacheKey);
+        //ToDO implement to read from in-memory map
 
-        if (entry != null) {
-            //                CountRetrieverCache.getInstance().clearCacheEntry(cacheKey);
-
-            if (log.isDebugEnabled()) {
-                log.debug("User store count retriever cached entry removed for " + userStoreDomainName
-                        + " from the count retriever " + getCounterType());
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("User store count retriever cached entry not found for " + userStoreDomainName
-                        + " from the connector " + getCounterType());
-            }
-        }
+//        if (entry == null) {
+//
+//            if (log.isDebugEnabled()) {
+//                log.debug("User store count retriever in memory entry removed for " + userStoreDomainName
+//                        + " from the count retriever " + getCounterType());
+//            }
+//        } else {
+//            if (log.isDebugEnabled()) {
+//                log.debug("User store count retriever in memory entry not found for " + userStoreDomainName
+//                        + " from the count retriever " + getCounterType());
+//            }
+//        }
 
     }
 

@@ -39,7 +39,7 @@ import org.wso2.carbon.user.core.service.RealmService;
  * cardinality="1..1" policy="dynamic" bind="setRealmService"
  * unbind="unsetRealmService"
  * @scr.reference name="user.store.count"
- * interface="org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever"
+ * interface="org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory"
  * cardinality="0..n" policy="dynamic" bind="setCountRetrieverFactory"
  * unbind="unsetCountRetrieverFactory"
  */
