@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.identity.user.store.count.util;
 
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,7 +45,6 @@ public class UserStoreCountUtils {
     public static final String countRetrieverClass = "CountRetrieverClass";
     private static Log log = LogFactory.getLog(UserStoreCountUtils.class);
 
-
     /**
      * Get the available list of user store domains
      *
@@ -66,7 +64,8 @@ public class UserStoreCountUtils {
             while (realmConfiguration != null) {
                 realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
                 if (realmConfiguration != null) {
-                    domain = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                    domain = realmConfiguration
+                            .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                     userStoreList.put(domain, realmConfiguration);
                 } else {
                     break;
@@ -94,7 +93,8 @@ public class UserStoreCountUtils {
 
             while (realmConfiguration != null) {
                 if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
-                    userStoreList.add(realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                    userStoreList.add(realmConfiguration
+                            .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
                 }
                 realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
             }
@@ -104,7 +104,6 @@ public class UserStoreCountUtils {
 
         return userStoreList;
     }
-
 
     /**
      * Get the available user store domains
@@ -130,14 +129,14 @@ public class UserStoreCountUtils {
 
         RealmConfiguration realmConfiguration = getUserStoreList().get(domain);
         if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
-            String retriever = realmConfiguration.getUserStoreProperty(countRetrieverClass);
-            UserStoreCountRetriever userStoreCountRetriever = UserStoreCountDataHolder.getInstance().
-                    getUserStoreCountRetrievers().get(retriever);
+            String retrieverType = realmConfiguration.getUserStoreProperty(countRetrieverClass);
+            UserStoreCountRetriever userStoreCountRetriever = UserStoreCountDataHolder.getInstance()
+                    .getCountRetrieverFactories().get(retrieverType).buildCountRetriever(realmConfiguration);
             if (userStoreCountRetriever == null) {
-                throw new UserStoreCounterException("Could not create an instance of class: " + retriever + " for " +
-                        "the domain: " + domain);
+                throw new UserStoreCounterException(
+                        "Could not create an instance of class: " + retrieverType + " for " +
+                                "the domain: " + domain);
             }
-            userStoreCountRetriever.init(realmConfiguration);
             return userStoreCountRetriever;
         } else {
             return null;
@@ -151,9 +150,19 @@ public class UserStoreCountUtils {
      * @throws UserStoreCounterException
      */
     public static UserStoreCountRetriever getInternalCounterInstance() throws UserStoreCounterException {
-        return UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().get(
-                InternalCountRetriever.class.getName());
+        UserStoreCountRetriever countRetreiver;
 
+        try {
+            countRetreiver = UserStoreCountDataHolder.getInstance().getCountRetrieverFactories()
+                    .get(InternalCountRetriever.class.getName()).buildCountRetriever(CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration());
+            if (countRetreiver == null) {
+                throw new UserStoreCounterException("Could not create a count retriever for Internal domain");
+            }
+        } catch (UserStoreException e) {
+            throw new UserStoreCounterException("Could not create a count retriever for Internal domain");
+        }
+
+        return countRetreiver;
     }
 
     /**
@@ -190,10 +199,11 @@ public class UserStoreCountUtils {
     }
 
     public static Long getInternalRoleCount(String filter) throws UserStoreCounterException {
-        return getInternalCounterInstance().countRoles(UserCoreConstants.INTERNAL_DOMAIN+"%"+filter);
+        return getInternalCounterInstance().countRoles(UserCoreConstants.INTERNAL_DOMAIN + "%" + filter);
     }
 
     public static Long getApplicationRoleCount(String filter) throws UserStoreCounterException {
-        return getInternalCounterInstance().countRoles(InternalStoreCountConstants.APPLICATION_DOMAIN+"%" +filter + "%");
+        return getInternalCounterInstance()
+                .countRoles(InternalStoreCountConstants.APPLICATION_DOMAIN + "%" + filter + "%");
     }
 }
