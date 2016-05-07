@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.user.store.count.internal;
 
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -30,7 +31,7 @@ public class UserStoreCountDataHolder {
 
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private Map<String, UserStoreCountRetriever> countRetrievers = new HashMap<>();
+    private Map<String, AbstractCountRetrieverFactory> countRetrieverFactories = new HashMap<>();
 
     private UserStoreCountDataHolder() {
 
@@ -56,8 +57,8 @@ public class UserStoreCountDataHolder {
         this.bundleContext = bundleContext;
     }
 
-    public Map<String, UserStoreCountRetriever> getUserStoreCountRetrievers() {
-        return countRetrievers;
+    public Map<String, AbstractCountRetrieverFactory> getCountRetrieverFactories() {
+        return countRetrieverFactories;
     }
 
 }

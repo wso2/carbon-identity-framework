@@ -43,7 +43,7 @@ public class IdentityRequest implements Serializable {
     protected String pathTranslated;
     protected String queryString;
     protected String requestURI;
-    protected String requestURL;
+    protected StringBuffer requestURL;
     protected String servletPath;
     protected String contentType;
 
@@ -122,7 +122,7 @@ public class IdentityRequest implements Serializable {
         return requestURI;
     }
 
-    public String getRequestURL() {
+    public StringBuffer getRequestURL() {
         return requestURL;
     }
 
@@ -164,7 +164,7 @@ public class IdentityRequest implements Serializable {
         private String pathTranslated;
         private String queryString;
         private String requestURI;
-        private String requestURL;
+        private StringBuffer requestURL;
         private String servletPath;
         private String contentType;
 
@@ -297,7 +297,7 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder setRequestURL(String requestURL) {
+        public IdentityRequestBuilder setRequestURL(StringBuffer requestURL) {
             this.requestURL = requestURL;
             return this;
         }
