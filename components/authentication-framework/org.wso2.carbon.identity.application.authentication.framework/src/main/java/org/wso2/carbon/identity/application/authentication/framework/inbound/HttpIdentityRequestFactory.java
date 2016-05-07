@@ -18,15 +18,20 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HttpIdentityRequestFactory {
 
     protected Properties properties;
+    public static final String TENANT_DOMAIN_PATTERN = "/t/([a-zA-Z0-9\\$&\\(\\)-_\\[\\]\\:\\?\\/\\.\\,\\<\\>)";
 
     public void init(Properties properties) throws FrameworkRuntimeException {
         this.properties = properties;
@@ -41,7 +46,7 @@ public class HttpIdentityRequestFactory {
     }
 
     public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {
-        return false;
+        return true;
     }
 
     public IdentityRequest.IdentityRequestBuilder create(HttpServletRequest request, HttpServletResponse response)
@@ -58,6 +63,23 @@ public class HttpIdentityRequestFactory {
         for(Cookie cookie:cookies) {
             builder.addCookie(cookie.getName(), cookie);
         }
+        String requestURI = request.getRequestURI();
+        Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
+        Matcher matcher = pattern.matcher(requestURI);
+        if(matcher.find()) {
+            builder.setTenantDomain(matcher.group(1));
+        } else {
+            builder.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        }
+        builder.setContentType(request.getContentType());
+        builder.setContextPath(request.getContextPath());
+        builder.setMethod(request.getMethod());
+        builder.setPathInfo(request.getPathInfo());
+        builder.setPathTranslated(request.getPathTranslated());
+        builder.setQueryString(request.getQueryString());
+        builder.setRequestURI(requestURI);
+        builder.setRequestURL(request.getRequestURL());
+        builder.setServletPath(request.getServletPath());
         return builder;
     }
 
