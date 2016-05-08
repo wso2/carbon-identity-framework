@@ -18,50 +18,82 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.ArrayUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
 
 <%
-    org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient userInformationRecoveryClient =
-            new org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient();
+    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
 
     String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
-    String[] questionIds = IdentityManagementEndpointUtil.getStringArray(request.getSession().getAttribute(
-            "questionIdentifiers"));
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
+    String[] questionIds = IdentityManagementEndpointUtil.getStringArray(request.getSession().getAttribute(
+            "questionIdentifiers"));
 
-    int currentStep = request.getParameter("step") != null ? Integer.parseInt(request.getParameter("step")) : 0;
-    String securityQuestionAnswer = request.getParameter("securityQuestionAnswer");
+    if (Boolean.parseBoolean(application.getInitParameter(
+            IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
+        if (!ArrayUtils.isEmpty(questionIds)) {
+            UserChallengesDTO[] userChallengesDTOArray = new UserChallengesDTO[questionIds.length];
 
-    if (currentStep != 0) {
-        VerificationBean verificationBean =
-                userInformationRecoveryClient.verifyUserChallengeAnswer(username, confirmationKey,
-                                                                        questionIds[currentStep - 1],
-                                                                        securityQuestionAnswer);
-        if (!verificationBean.getVerified()) {
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg", "The answer you provided is incorrect. You cannot proceed further.");
-            request.getRequestDispatcher("error.jsp").forward(request, response);
-            return;
-        }
+            int count = 0;
+            for (String questionId : questionIds) {
+                UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
+                userChallengesDTO.setId(questionId);
+                userChallengesDTO.setAnswer(request.getParameter(questionId));
+                userChallengesDTOArray[count++] = userChallengesDTO;
+            }
 
-        confirmationKey = verificationBean.getKey();
-        request.getSession().setAttribute("confirmationKey", confirmationKey);
-    }
+            VerificationBean verificationBean = userInformationRecoveryClient
+                    .verifyUserChallengeAnswers(username, confirmationKey, userChallengesDTOArray);
+            if (!verificationBean.getVerified()) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg",
+                                     "One or more of your answers provided are wrong. You cannot proceed further.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
 
-    if (!ArrayUtils.isEmpty(questionIds)) {
-        if (currentStep < questionIds.length) {
-            UserChallengesDTO securityQuestion = userInformationRecoveryClient.getChallengeQuestion(username,
-                                                                                                    confirmationKey,
-                                                                                                    questionIds[currentStep]);
-            request.getSession().setAttribute("confirmationKey", securityQuestion.getKey());
-            request.setAttribute("question", securityQuestion.getQuestion());
-            request.getRequestDispatcher("challenge-question-view.jsp?step=" + (++currentStep))
-                   .forward(request, response);
-        } else {
+            confirmationKey = verificationBean.getKey();
+            session.setAttribute("confirmationKey", confirmationKey);
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         }
+    } else {
+        int currentStep = request.getParameter("step") != null ? Integer.parseInt(request.getParameter("step")) : 0;
+        String securityQuestionAnswer = request.getParameter("securityQuestionAnswer");
+
+        if (currentStep != 0) {
+            VerificationBean verificationBean =
+                    userInformationRecoveryClient.verifyUserChallengeAnswer(username, confirmationKey,
+                                                                            questionIds[currentStep - 1],
+                                                                            securityQuestionAnswer);
+            if (!verificationBean.getVerified()) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", "The answer you provided is incorrect. You cannot proceed further.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+
+            confirmationKey = verificationBean.getKey();
+            request.getSession().setAttribute("confirmationKey", confirmationKey);
+        }
+
+        if (!ArrayUtils.isEmpty(questionIds)) {
+            if (currentStep < questionIds.length) {
+                UserChallengesDTO securityQuestion = userInformationRecoveryClient.getChallengeQuestion(username,
+                                                                                                        confirmationKey,
+                                                                                                        questionIds[currentStep]);
+                request.getSession().setAttribute("confirmationKey", securityQuestion.getKey());
+                request.setAttribute("question", securityQuestion.getQuestion());
+                request.getRequestDispatcher("challenge-question-view.jsp?step=" + (++currentStep))
+                       .forward(request, response);
+            } else {
+                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+            }
+        }
     }
+
+
 %>

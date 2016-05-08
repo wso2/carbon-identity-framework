@@ -25,7 +25,7 @@ public class IdentityManagementEndpointConstants {
 
     public static final class ConfigConstants {
         public static final String ENABLE_EMAIL_NOTIFICATION = "EnableEmailNotification";
-        public static final String PROCESS_ALL_SECURITY_QUESTIONS = "ProcessAllSSecurityQuestions";
+        public static final String PROCESS_ALL_SECURITY_QUESTIONS = "ProcessAllSecurityQuestions";
     }
 
     public static final class ServiceAuthenticationConstants {

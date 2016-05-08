@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.services;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,9 +33,9 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.mgt.IdentityMgtEventListener;
 import org.wso2.carbon.identity.mgt.ChallengeQuestionProcessor;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
+import org.wso2.carbon.identity.mgt.IdentityMgtEventListener;
 import org.wso2.carbon.identity.mgt.IdentityMgtServiceException;
 import org.wso2.carbon.identity.mgt.RecoveryProcessor;
 import org.wso2.carbon.identity.mgt.beans.VerificationBean;
@@ -42,6 +43,7 @@ import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
 import org.wso2.carbon.identity.mgt.dto.ChallengeQuestionDTO;
 import org.wso2.carbon.identity.mgt.dto.ChallengeQuestionIdsDTO;
 import org.wso2.carbon.identity.mgt.dto.NotificationDataDTO;
+import org.wso2.carbon.identity.mgt.dto.UserChallengesCollectionDTO;
 import org.wso2.carbon.identity.mgt.dto.UserChallengesDTO;
 import org.wso2.carbon.identity.mgt.dto.UserDTO;
 import org.wso2.carbon.identity.mgt.dto.UserIdentityClaimDTO;
@@ -57,8 +59,8 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
-import org.wso2.carbon.user.mgt.UserMgtConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.user.mgt.UserMgtConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -540,6 +542,87 @@ public class UserInformationRecoveryService {
     }
 
     /**
+     * Returns all the challenge questions configured for the user.
+     *
+     * @param userName     username of the user
+     * @param confirmation confirmation code
+     * @return an instance of UserChallengesCollectionDTO which holds the challenge questions and status
+     * @throws IdentityMgtServiceException
+     */
+    public UserChallengesCollectionDTO getUserChallengeQuestions(String userName, String confirmation)
+            throws IdentityMgtServiceException {
+
+        UserDTO userDTO = null;
+        UserChallengesCollectionDTO userChallengesCollectionDTO = new UserChallengesCollectionDTO();
+
+        if (log.isDebugEnabled()) {
+            log.debug("User challenge question request received with username :" + userName);
+        }
+
+        try {
+            userDTO = Utils.processUserId(userName);
+        } catch (IdentityException e) {
+            log.error("Error while validating user " + userName, e);
+            return UserIdentityManagementUtil.handleChallengeQuestionSetError(
+                    VerificationBean.ERROR_CODE_INVALID_USER + " Error validating user : " + userName, null);
+        }
+
+        try {
+            if (IdentityMgtConfig.getInstance().isSaasEnabled()) {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                carbonContext.setTenantId(userDTO.getTenantId());
+                carbonContext.setTenantDomain(userDTO.getTenantDomain());
+            }
+
+            RecoveryProcessor processor = IdentityMgtServiceComponent.getRecoveryProcessor();
+
+            VerificationBean bean;
+            try {
+                bean = processor.verifyConfirmationCode(1, userDTO.getUserId(), confirmation);
+                if (bean.isVerified()) {
+                    bean = processor.updateConfirmationCode(20, userDTO.getUserId(), userDTO.getTenantId());
+                } else {
+                    bean.setVerified(false);
+                }
+            } catch (IdentityException e) {
+                log.error("Error while verifying confirmation code.", e);
+                return UserIdentityManagementUtil.getCustomErrorMessagesForChallengeQuestionSet(e, userName);
+            }
+
+            if (bean.isVerified()) {
+                UserChallengesDTO[] userChallengesDTOs = null;
+                try {
+                    userChallengesDTOs = processor.getQuestionProcessor().getUserChallengeQuestions(
+                            userDTO.getUserId(), userDTO.getTenantId());
+                    userChallengesCollectionDTO.setKey(bean.getKey());
+                    userChallengesCollectionDTO.setUserChallengesDTOs(userChallengesDTOs);
+                } catch (IdentityException e) {
+                    log.error("Error while retrieving challenge questions of the user " + userName, e);
+                    return UserIdentityManagementUtil.handleChallengeQuestionSetError(
+                            VerificationBean.ERROR_CODE_CHALLENGE_QUESTION_NOT_FOUND + " No associated challenge " +
+                            "questions found for the user : " + userName, null);
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("User challenge questions retrieved successfully");
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Verification failed for user. Error : " + bean.getError());
+                }
+                userChallengesCollectionDTO.setError(VerificationBean.ERROR_CODE_INVALID_USER + " " + bean.getError());
+            }
+        } finally {
+            if (IdentityMgtConfig.getInstance().isSaasEnabled()) {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
+
+        return userChallengesCollectionDTO;
+    }
+
+    /**
      * This method is to verify the user supplied answer for the challenge
      * question.
      *
@@ -624,6 +707,95 @@ public class UserInformationRecoveryService {
                 bean.setVerified(false);
                 bean.setKey(""); // clear the key to avoid returning to caller.
                 log.error(bean.getError());
+            }
+        } finally {
+            if (IdentityMgtConfig.getInstance().isSaasEnabled()) {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
+        return bean;
+    }
+
+    /**
+     * Verifies challenge question answers.
+     *
+     * @param userName username of the user
+     * @param confirmation confirmation code UserChallengesDTO instances which holds the question id and answer
+     * @param userChallengesDTOs an array of
+     * @return an instance of VerificationBean which denote the status
+     * @throws IdentityMgtServiceException
+     */
+    public VerificationBean verifyUserChallengeAnswers(String userName, String confirmation, UserChallengesDTO[] userChallengesDTOs) throws IdentityMgtServiceException {
+
+        VerificationBean bean = new VerificationBean();
+        bean.setVerified(false);
+
+        if (log.isDebugEnabled()) {
+            log.debug("User challenge answers request received with username :" + userName);
+        }
+
+        if (ArrayUtils.isEmpty(userChallengesDTOs)) {
+            String errorMsg = "No challenge question id provided for verification";
+            bean.setError(errorMsg);
+            if (log.isDebugEnabled()) {
+                log.debug(errorMsg);
+            }
+
+            return bean;
+        }
+
+        UserDTO userDTO;
+        try {
+            userDTO = Utils.processUserId(userName);
+        } catch (IdentityException e) {
+            bean = handleError(VerificationBean.ERROR_CODE_INVALID_USER + " Error verifying user: " + userName, e);
+            return bean;
+        }
+
+        try {
+            if (IdentityMgtConfig.getInstance().isSaasEnabled()) {
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                carbonContext.setTenantId(userDTO.getTenantId());
+                carbonContext.setTenantDomain(userDTO.getTenantDomain());
+            }
+
+            RecoveryProcessor recoveryProcessor = IdentityMgtServiceComponent.getRecoveryProcessor();
+
+            try {
+                bean = recoveryProcessor.verifyConfirmationCode(20, userDTO.getUserId(), confirmation);
+                if (bean.isVerified()) {
+                    bean = recoveryProcessor.updateConfirmationCode(30, userDTO.getUserId(), userDTO.getTenantId());
+                } else {
+                    bean.setVerified(false);
+                }
+            } catch (IdentityException e) {
+                log.error("Error while verifying confirmation code.", e);
+                bean = UserIdentityManagementUtil.getCustomErrorMessagesToVerifyCode(e, userName);
+                if (bean == null) {
+                    bean = handleError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
+                                       " Error verifying confirmation code for user : " + userName, e);
+                }
+                return bean;
+            }
+
+            ChallengeQuestionProcessor processor = recoveryProcessor.getQuestionProcessor();
+            boolean verification = processor.verifyUserChallengeAnswers(userDTO.getUserId(), userDTO.getTenantId(),
+                                                                        userChallengesDTOs);
+
+            if (verification) {
+                bean.setError("");
+                bean.setUserId(userName);
+                if (log.isDebugEnabled()) {
+                    log.debug("User answer verification successful for user: " + userName);
+                }
+            } else {
+                bean.setError("Verification failed for one or more answers provided by user : " + userName);
+                bean.setVerified(false);
+                bean.setKey(""); // clear the key to avoid returning to caller.
+                if (log.isDebugEnabled()) {
+                    log.debug(bean.getError());
+                }
             }
         } finally {
             if (IdentityMgtConfig.getInstance().isSaasEnabled()) {

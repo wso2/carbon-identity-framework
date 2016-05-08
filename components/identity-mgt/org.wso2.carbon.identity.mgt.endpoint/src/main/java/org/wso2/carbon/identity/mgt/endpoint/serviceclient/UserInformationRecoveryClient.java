@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.mgt.stub.UserInformationRecoveryServiceIdentityM
 import org.wso2.carbon.identity.mgt.stub.UserInformationRecoveryServiceStub;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 import org.wso2.carbon.identity.mgt.stub.dto.ChallengeQuestionIdsDTO;
+import org.wso2.carbon.identity.mgt.stub.dto.UserChallengesCollectionDTO;
 import org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO;
 import org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO;
 
@@ -170,6 +171,21 @@ public class UserInformationRecoveryClient {
     }
 
     /**
+     * Returns the challenge questions configured for the user.
+     *
+     * @param username username of the user
+     * @param confirmationCode confirmation code
+     * @return an instance of UserChallengesCollectionDTO which holds user challenge questions
+     * @throws RemoteException
+     * @throws UserInformationRecoveryServiceIdentityMgtServiceExceptionException
+     */
+    public UserChallengesCollectionDTO getChallengeQuestions(String username, String confirmationCode)
+            throws RemoteException, UserInformationRecoveryServiceIdentityMgtServiceExceptionException {
+
+        return stub.getUserChallengeQuestions(username, confirmationCode);
+    }
+
+    /**
      * Verifies the provided answer for the respective question.
      *
      * @param username username of the user
@@ -184,6 +200,23 @@ public class UserInformationRecoveryClient {
             throws RemoteException, UserInformationRecoveryServiceIdentityMgtServiceExceptionException {
 
         return stub.verifyUserChallengeAnswer(username, code, id, answer);
+    }
+
+    /**
+     * Verifies user answers for the user challenge question set.
+     *
+     * @param username username of the user
+     * @param confirmationCode confirmation code
+     * @param userChallengesDTOs an array of UserChallengesDTO instances which holds the respective question and answer
+     * @return an instance of VerificationBean which denotes the status
+     * @throws RemoteException
+     * @throws UserInformationRecoveryServiceIdentityMgtServiceExceptionException
+     */
+    public VerificationBean verifyUserChallengeAnswers(String username, String confirmationCode,
+                                                      UserChallengesDTO[] userChallengesDTOs)
+            throws RemoteException, UserInformationRecoveryServiceIdentityMgtServiceExceptionException {
+
+        return stub.verifyUserChallengeAnswers(username, confirmationCode, userChallengesDTOs);
     }
 
     /**
