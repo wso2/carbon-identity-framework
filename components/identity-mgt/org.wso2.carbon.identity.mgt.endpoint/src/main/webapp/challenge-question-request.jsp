@@ -38,7 +38,7 @@
 
     if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(confirmationKey)) {
 
-        request.getSession().setAttribute("username", username);
+        session.setAttribute("username", username);
 
         if (Boolean.parseBoolean(application.getInitParameter(
                 IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
@@ -55,7 +55,7 @@
             }
 
             questionIds = new String[userChallengesDTOs.length];
-            request.getSession().setAttribute("confirmationKey", userChallengesCollectionDTO.getKey());
+            session.setAttribute("confirmationKey", userChallengesCollectionDTO.getKey());
         } else {
             ChallengeQuestionIdsDTO challengeQuestionIds =
                     userInformationRecoveryClient.getUserChallengeQuestionIds(username,
@@ -72,8 +72,8 @@
                     return;
                 }
 
-                request.getSession().setAttribute("confirmationKey", challengeQuestionIds.getKey());
-                request.getSession().setAttribute("questionIdentifiers", questionIds);
+                session.setAttribute("confirmationKey", challengeQuestionIds.getKey());
+                session.setAttribute("questionIdentifiers", questionIds);
                 request.getRequestDispatcher("processsecurityquestions.do").forward(request, response);
                 return;
             } else {

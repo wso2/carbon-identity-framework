@@ -25,7 +25,7 @@
 <%
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
     if (StringUtils.isBlank(errorMsg)) {
-        errorMsg = exception.getMessage();
+        errorMsg = "Server failed to respond.";
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">

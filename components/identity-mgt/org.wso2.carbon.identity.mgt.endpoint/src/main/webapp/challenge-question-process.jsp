@@ -77,7 +77,7 @@
             }
 
             confirmationKey = verificationBean.getKey();
-            request.getSession().setAttribute("confirmationKey", confirmationKey);
+            session.setAttribute("confirmationKey", confirmationKey);
         }
 
         if (!ArrayUtils.isEmpty(questionIds)) {
@@ -85,7 +85,7 @@
                 UserChallengesDTO securityQuestion = userInformationRecoveryClient.getChallengeQuestion(username,
                                                                                                         confirmationKey,
                                                                                                         questionIds[currentStep]);
-                request.getSession().setAttribute("confirmationKey", securityQuestion.getKey());
+                session.setAttribute("confirmationKey", securityQuestion.getKey());
                 request.setAttribute("question", securityQuestion.getQuestion());
                 request.getRequestDispatcher("challenge-question-view.jsp?step=" + (++currentStep))
                        .forward(request, response);

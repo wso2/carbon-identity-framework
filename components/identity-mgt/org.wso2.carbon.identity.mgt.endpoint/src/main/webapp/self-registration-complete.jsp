@@ -63,6 +63,8 @@
         request.setAttribute("errorMsg", "Registered user not found in session.");
         request.getRequestDispatcher("error.jsp").forward(request, response);
     }
+
+    session.invalidate();
 %>
 <html>
 <head>

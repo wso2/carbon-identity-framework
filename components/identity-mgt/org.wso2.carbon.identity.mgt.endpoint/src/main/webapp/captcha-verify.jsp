@@ -108,8 +108,8 @@
             request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
         } else {
             if (isPasswordRecoveryEmailConfirmation) {
-                request.getSession().setAttribute("username", username);
-                request.getSession().setAttribute("confirmationKey", verificationBean.getKey());
+                session.setAttribute("username", username);
+                session.setAttribute("confirmationKey", verificationBean.getKey());
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
             } else {
                 request.setAttribute("username", username);
