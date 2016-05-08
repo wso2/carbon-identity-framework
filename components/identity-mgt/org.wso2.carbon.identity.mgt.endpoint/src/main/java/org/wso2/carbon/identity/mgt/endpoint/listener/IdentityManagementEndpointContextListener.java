@@ -29,6 +29,7 @@ import javax.servlet.ServletContextListener;
  * This class loads respective app level configurations.
  */
 public class IdentityManagementEndpointContextListener implements ServletContextListener {
+
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
 

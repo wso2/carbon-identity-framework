@@ -202,7 +202,9 @@
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <span class="margin-top padding-top-double font-large">Already have an account? </span>
-                                <a href="../dashboard/index.jag" id="signInLink" class="font-large">Sign in</a>
+                                <a href="<%=IdentityManagementEndpointUtil.getUserPortalUrl(
+                                    application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL))%>"
+                                   id="signInLink" class="font-large">Sign in</a>
                             </div>
                             <div class="clearfix"></div>
                         </div>

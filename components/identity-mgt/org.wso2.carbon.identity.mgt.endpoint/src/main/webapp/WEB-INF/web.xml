@@ -36,6 +36,10 @@
         <param-name>ProcessAllSecurityQuestions</param-name>
         <param-value>false</param-value>
     </context-param>
+    <!--context-param>
+        <param-name>UserPortalUrl</param-name>
+        <param-value>https://localhost:9443/dashboard/index.jag</param-value>
+    </context-param-->
     
     <listener>
         <listener-class>org.wso2.carbon.identity.mgt.endpoint.listener.IdentityManagementEndpointContextListener</listener-class>

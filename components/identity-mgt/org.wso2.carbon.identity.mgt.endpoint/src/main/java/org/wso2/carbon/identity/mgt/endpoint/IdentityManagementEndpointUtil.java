@@ -23,11 +23,23 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
+/**
+ * This class defines utility methods used within this web application.
+ */
 public class IdentityManagementEndpointUtil {
 
     private IdentityManagementEndpointUtil() {
     }
 
+    /**
+     * Reruns the full qualified username of the user in below format.
+     * <user_store_domain>/<username>@<tenant_domain>
+     *
+     * @param username username of the user
+     * @param tenantDomain tenant domain the user belongs to
+     * @param userStoreDomain user store domain usee belongs to
+     * @return full qualified username
+     */
     public static final String getFullQualifiedUsername(String username, String tenantDomain, String userStoreDomain) {
         String fullQualifiedUsername = username;
         if (StringUtils.isNotBlank(userStoreDomain) && !IdentityManagementEndpointConstants.PRIMARY_USER_STORE_DOMAIN
@@ -45,6 +57,14 @@ public class IdentityManagementEndpointUtil {
         return fullQualifiedUsername;
     }
 
+    /**
+     * Returns the error to be viewed for end user.
+     *
+     * @param errorMsgSummary required error message to be viewed
+     * @param optionalErrorMsg optional content to be viewed
+     * @param verificationBean info recovery confirmation bean
+     * @return error message to be viewed
+     */
     public static String getPrintableError(String errorMsgSummary, String optionalErrorMsg, VerificationBean
             verificationBean) {
 
@@ -60,13 +80,25 @@ public class IdentityManagementEndpointUtil {
         return errorMsg.toString();
     }
 
-    public static final String getAbsoluteServiceUrlPath(String serviceUrlPath) {
-        if (StringUtils.isNotBlank(serviceUrlPath)) {
-            return serviceUrlPath;
+    /**
+     * Returns the end user portal url.
+     *
+     * @param userPortalUrl configured user portal url
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getUserPortalUrl(String userPortalUrl) {
+        if (StringUtils.isNotBlank(userPortalUrl)) {
+            return userPortalUrl;
         }
-        return IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true);
+        return IdentityManagementEndpointConstants.DEFAULT_USER_PORTAL_URL;
     }
 
+    /**
+     * Cast the provided Object to a Boolean
+     *
+     * @param value Object
+     * @return Boolean
+     */
     public static boolean getBooleanValue(Object value) {
         if (value != null && value instanceof Boolean) {
             return (Boolean) value;
@@ -75,6 +107,12 @@ public class IdentityManagementEndpointUtil {
         return false;
     }
 
+    /**
+     * Cast the provided Object to a String
+     *
+     * @param value Object
+     * @return String
+     */
     public static String getStringValue(Object value) {
         if (value != null && value instanceof String) {
             return (String) value;
@@ -83,6 +121,12 @@ public class IdentityManagementEndpointUtil {
         return "";
     }
 
+    /**
+     * Cast provided Object to an Integer
+     *
+     * @param value Object
+     * @return Integer
+     */
     public static int getIntValue(Object value) {
         if (value != null && value instanceof Integer) {
             return (Integer) value;
@@ -91,6 +135,12 @@ public class IdentityManagementEndpointUtil {
         return 0;
     }
 
+    /**
+     * Cast provided Object to a String[]
+     *
+     * @param value Object
+     * @return String[]
+     */
     public static String[] getStringArray(Object value) {
         if (value != null && value instanceof String[]) {
             return (String[]) value;

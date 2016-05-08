@@ -26,6 +26,7 @@ public class IdentityManagementEndpointConstants {
     public static final class ConfigConstants {
         public static final String ENABLE_EMAIL_NOTIFICATION = "EnableEmailNotification";
         public static final String PROCESS_ALL_SECURITY_QUESTIONS = "ProcessAllSecurityQuestions";
+        public static final String USER_PORTAL_URL = "UserPortalUrl";
     }
 
     public static final class ServiceAuthenticationConstants {
@@ -57,12 +58,15 @@ public class IdentityManagementEndpointConstants {
         public static final String CHALLENGE_QUESTION_2_CLAIM = "http://wso2.org/claims/challengeQuestion2";
     }
 
-    public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
     public static final String SUPER_TENANT = "carbon.super";
+    public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
+
     public static final String TENANT_DOMAIN_SEPARATOR = "@";
     public static final String USER_STORE_DOMAIN_SEPARATOR = "/";
 
     public static final String WSO2_DIALECT = "http://wso2.org/claims";
+
+    public static final String DEFAULT_USER_PORTAL_URL = "../dashboard/index.jag";
 
     private IdentityManagementEndpointConstants() {
     }
