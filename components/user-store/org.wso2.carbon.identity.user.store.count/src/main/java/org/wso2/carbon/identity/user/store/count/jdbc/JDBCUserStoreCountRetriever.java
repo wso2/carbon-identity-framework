@@ -152,6 +152,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             prepStmt.setString(1, mappedAttribute);
             prepStmt.setInt(2, tenantId);
             prepStmt.setString(3, "%" + valueFilter + "%");
+            prepStmt.setString(4, UserCoreConstants.DEFAULT_PROFILE);
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();

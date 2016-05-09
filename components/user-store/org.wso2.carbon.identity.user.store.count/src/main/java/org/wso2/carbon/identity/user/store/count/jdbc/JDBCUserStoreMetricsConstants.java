@@ -28,7 +28,7 @@ public class JDBCUserStoreMetricsConstants {
             "UM_TENANT_ID = ?";
 
     public static final String COUNT_CLAIM_SQL = "SELECT COUNT(UM_USER_ID) FROM UM_USER_ATTRIBUTE WHERE UM_ATTR_NAME = ? " +
-            "AND UM_TENANT_ID = ? AND UM_ATTR_VALUE LIKE ? AND UM_PROFILE_ID = " + UserCoreConstants.DEFAULT_PROFILE;
+            "AND UM_TENANT_ID = ? AND UM_ATTR_VALUE LIKE ? AND UM_PROFILE_ID = ?";
 
     public static final String SELECT_CLAIM_SQL = "SELECT UM_USER_ID FROM UM_USER_ATTRIBUTE WHERE UM_ATTR_NAME = ? " +
             "AND UM_ATTR_VALUE LIKE ? AND UM_TENANT_ID = ? ";
