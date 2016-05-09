@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.user.store.count.jdbc;
 
+import org.wso2.carbon.user.core.UserCoreConstants;
+
 public class JDBCUserStoreMetricsConstants {
 
     public static final String COUNT_USERS_SQL = "SELECT COUNT(UM_USER_NAME) FROM UM_USER WHERE UM_USER_NAME LIKE ? " +
@@ -26,7 +28,7 @@ public class JDBCUserStoreMetricsConstants {
             "UM_TENANT_ID = ?";
 
     public static final String COUNT_CLAIM_SQL = "SELECT COUNT(UM_USER_ID) FROM UM_USER_ATTRIBUTE WHERE UM_ATTR_NAME = ? " +
-            "AND UM_TENANT_ID = ? AND UM_ATTR_VALUE LIKE ? ";
+            "AND UM_TENANT_ID = ? AND UM_ATTR_VALUE LIKE ? AND UM_PROFILE_ID = " + UserCoreConstants.DEFAULT_PROFILE;
 
     public static final String SELECT_CLAIM_SQL = "SELECT UM_USER_ID FROM UM_USER_ATTRIBUTE WHERE UM_ATTR_NAME = ? " +
             "AND UM_ATTR_VALUE LIKE ? AND UM_TENANT_ID = ? ";
