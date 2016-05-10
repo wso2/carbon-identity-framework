@@ -37,7 +37,7 @@ public class UserStoreCountService {
      * @return the number of users matching the filter by each domain
      */
     public PairDTO[] countUsers(String filter) throws UserStoreCounterException {
-        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
         PairDTO[] userCounts = new PairDTO[userStoreDomains.size()];
         int i = 0;
 
@@ -123,7 +123,7 @@ public class UserStoreCountService {
      * @return the number of users matching the claims set based on the filters by each domain
      */
     public PairDTO[] countClaims(PairDTO[] claimSetToFilter) throws UserStoreCounterException {
-        Set<String> userStoreDomains = UserStoreCountUtils.getUserStoreDomains();
+        Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
         PairDTO[] claimsCounts = new PairDTO[userStoreDomains.size()];
         int i = 0;
 
