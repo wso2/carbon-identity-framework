@@ -53,7 +53,7 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
         super.addToCache(key, context);
         if (enableRequestScopeCache) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
-            String tenantDomain = context.getRequest().getTenantDomain();
+            String tenantDomain = context.getInitialIdentityRequest().getTenantDomain();
             if (tenantDomain != null) {
                 tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             }

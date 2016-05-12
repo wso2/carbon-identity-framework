@@ -25,6 +25,10 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .handler.ContextInitializeHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .model.Sequence;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
         .AbstractPostHandler;
@@ -59,6 +63,8 @@ public class FrameworkServiceDataHolder {
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
 
+
+    //Framework handlers
     private List<AbstractRequestHandler> requestHandlers = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
     private List<JITHandler> jitHandlers = new ArrayList<>();
@@ -68,7 +74,11 @@ public class FrameworkServiceDataHolder {
     private Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandler = new HashMap<>();
     private Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandler = new HashMap<>();
 
+    //AuthenticationHandler sub-handler
+    private List<ContextInitializeHandler> contextInitializeHandlers = new ArrayList<>();
 
+    //SequenceHandler
+    private L
 
 
     private FrameworkServiceDataHolder() {
@@ -162,5 +172,9 @@ public class FrameworkServiceDataHolder {
 
     public Map<ExtensionHandlerPoints, List<AbstractPostHandler>> getPostHandler() {
         return postHandler;
+    }
+
+    public List<ContextInitializeHandler> getContextInitializeHandlers() {
+        return contextInitializeHandlers;
     }
 }

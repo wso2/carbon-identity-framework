@@ -347,7 +347,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                             context.setProperties(authProperties);
                         }
 
-                        //TODO: user tenant domain has to be an attribute in the AuthenticationContext
+                        //TODO: user tenant domain has to be an attribute in the AuthenticationRequestContext
                         authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
 
                         if (log.isDebugEnabled()) {

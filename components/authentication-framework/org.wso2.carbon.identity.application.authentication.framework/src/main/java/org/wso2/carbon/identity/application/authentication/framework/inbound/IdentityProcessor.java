@@ -216,20 +216,20 @@ public abstract class IdentityProcessor {
 
     /**
      * Processes the IdentityMessageContext and retrieved the using {@code sessionDataKey} parameter and sets the
-     * AuthenticationResult to message context if found in AuthenticationResultCache
+     * AuthenticationResponse to message context if found in AuthenticationResultCache
      *
      * @param context IdentityMessageContext
-     * @return AuthenticationResult
+     * @return AuthenticationResponse
      */
     protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context) {
 
-        String sessionDataKey = context.getRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        String sessionDataKey = context.getIdentityRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
         if (entry != null) {
             authnResult = entry.getResult();
         } else {
-            throw FrameworkRuntimeException.error("Cannot find AuthenticationResult from the cache");
+            throw FrameworkRuntimeException.error("Cannot find AuthenticationResponse from the cache");
         }
         FrameworkUtils.removeAuthenticationResultFromCache(sessionDataKey);
         if (authnResult.isAuthenticated()) {

@@ -41,7 +41,7 @@ public class HttpIdentityRequestFactory {
     }
 
     public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {
-        return false;
+        return true;
     }
 
     public IdentityRequest.IdentityRequestBuilder create(HttpServletRequest request, HttpServletResponse response)
@@ -64,7 +64,6 @@ public class HttpIdentityRequestFactory {
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception,
                                                                             HttpServletRequest request,
                                                                             HttpServletResponse response) {
-
         HttpIdentityResponse.HttpIdentityResponseBuilder builder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(400);

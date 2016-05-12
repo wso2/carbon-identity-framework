@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler;
 
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerStatus;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -32,36 +32,36 @@ public class HandlerManager {
         return instance;
     }
 
-    public FrameworkHandlerStatus doPreHandle(ExtensionHandlerPoints extensionHandlerPoint,
+    public FrameworkHandlerResponse doPreHandle(ExtensionHandlerPoints extensionHandlerPoint,
                                               IdentityMessageContext identityMessageContext)
             throws FrameworkHandlerException {
         List<AbstractPreHandler> abstractPreHandlers =
                 FrameworkServiceDataHolder.getInstance().getPreHandler().get(extensionHandlerPoint);
         for (AbstractPreHandler abstractPreHandler : abstractPreHandlers) {
             if (abstractPreHandler.canHandle(identityMessageContext)) {
-                FrameworkHandlerStatus handlerStatus = abstractPreHandler.handle(identityMessageContext);
-                if (FrameworkHandlerStatus.REDIRECT.equals(handlerStatus)) {
+                FrameworkHandlerResponse handlerStatus = abstractPreHandler.handle(identityMessageContext);
+                if (FrameworkHandlerResponse.REDIRECT.equals(handlerStatus)) {
                     return handlerStatus;
                 }
             }
         }
-        return FrameworkHandlerStatus.CONTINUE;
+        return FrameworkHandlerResponse.CONTINUE;
     }
 
-    public FrameworkHandlerStatus doPostHandle(ExtensionHandlerPoints extensionHandlerPoint,
+    public FrameworkHandlerResponse doPostHandle(ExtensionHandlerPoints extensionHandlerPoint,
                                                IdentityMessageContext identityMessageContext)
             throws FrameworkHandlerException {
         List<AbstractPostHandler> abstractPostHandlers =
                 FrameworkServiceDataHolder.getInstance().getPostHandler().get(extensionHandlerPoint);
         for (AbstractPostHandler abstractPostHandler : abstractPostHandlers) {
             if (abstractPostHandler.canHandle(identityMessageContext)) {
-                FrameworkHandlerStatus handlerStatus = abstractPostHandler.handle(identityMessageContext);
-                if (FrameworkHandlerStatus.REDIRECT.equals(handlerStatus)) {
+                FrameworkHandlerResponse handlerStatus = abstractPostHandler.handle(identityMessageContext);
+                if (FrameworkHandlerResponse.REDIRECT.equals(handlerStatus)) {
                     return handlerStatus;
                 }
             }
         }
-        return FrameworkHandlerStatus.CONTINUE;
+        return FrameworkHandlerResponse.CONTINUE;
     }
 
 

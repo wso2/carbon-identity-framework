@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension;
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerStatus;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
@@ -17,6 +17,6 @@ public abstract class AbstractPostHandler extends FrameworkHandler {
         return extensionHandlerPoints;
     }
 
-    public abstract FrameworkHandlerStatus handle(IdentityMessageContext identityMessageContext) throws
+    public abstract FrameworkHandlerResponse handle(IdentityMessageContext identityMessageContext) throws
                                                                                                  FrameworkHandlerException;
 }

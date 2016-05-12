@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response;
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerStatus;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 
 public class AuthenticationResponseHandler extends AbstractResponseHandler {
@@ -11,13 +11,13 @@ public class AuthenticationResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public FrameworkHandlerStatus buildErrorResponse(IdentityMessageContext identityMessageContext)
+    public FrameworkHandlerResponse buildErrorResponse(IdentityMessageContext identityMessageContext)
             throws ResponseException {
         return null;
     }
 
     @Override
-    public FrameworkHandlerStatus buildResponse(IdentityMessageContext identityMessageContext)
+    public FrameworkHandlerResponse buildResponse(IdentityMessageContext identityMessageContext)
             throws ResponseException {
         return null;
     }

@@ -36,7 +36,7 @@ public class CommonAuthenticationHandler {
             throws ServletException, IOException {
         doPost(request, response);
     }
-
+    
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 

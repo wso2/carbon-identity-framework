@@ -31,27 +31,32 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
 
     private static final long serialVersionUID = 104614801932285909L;
 
-    protected List<IdentityRequest> identityRequestHistory = new ArrayList<>();
-    protected Map<String, MessageContext<T1, T2>> identityMessageContextMap =
-            new HashMap<String, MessageContext<T1, T2>>();
-    protected IdentityRequest request;
+    protected IdentityRequest initialIdentityRequest;
+    protected IdentityRequest identityRequest ;
+
     protected Map<T1, T2> parameters = new HashMap<>();
 
-    public IdentityMessageContext(IdentityRequest request, Map<T1, T2> parameters) {
+    public IdentityMessageContext(IdentityRequest identityRequest, Map<T1, T2> parameters) {
         super(parameters);
-        this.request = request;
-        this.identityRequestHistory.add(request);
+        this.identityRequest = identityRequest;
+        this.initialIdentityRequest = identityRequest;
     }
 
-    public IdentityRequest getRequest() {
-        return request;
+    public IdentityRequest getIdentityRequest() {
+        return identityRequest;
     }
 
-    public List<IdentityRequest> getIdentityRequestHistory() {
-        return identityRequestHistory;
+    public void setIdentityRequest(
+            IdentityRequest identityRequest) {
+        this.identityRequest = identityRequest;
     }
 
-    public Map<String, MessageContext<T1, T2>> getIdentityMessageContextMap() {
-        return identityMessageContextMap;
+    public IdentityRequest getInitialIdentityRequest() {
+        return initialIdentityRequest;
+    }
+
+    @Override
+    public Map<T1, T2> getParameters() {
+        return parameters;
     }
 }

@@ -47,6 +47,7 @@ public class IdentityRequest implements Serializable {
     protected String servletPath;
     protected String contentType;
 
+
     protected IdentityRequest(IdentityRequestBuilder builder) {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
@@ -176,6 +177,14 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder() {
 
+        }
+
+        public HttpServletRequest getRequest() {
+            return request;
+        }
+
+        public HttpServletResponse getResponse() {
+            return response;
         }
 
         public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {

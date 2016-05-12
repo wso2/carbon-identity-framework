@@ -2,13 +2,18 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerStatus;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
         .FrameworkHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.HandlerManager;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
+        .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
@@ -17,58 +22,33 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.pro
         .AbstractRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.request
         .RequestHandlerException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response
+        .AbstractResponseHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response.ResponseException;
+import org.wso2.carbon.identity.base.IdentityException;
 
-public class LoginRequestProcessor extends AbstractRequestProcessor {
+public class LoginRequestProcessor extends IdentityProcessor{
 
+    private static final String PROCESS_CONTEXT_LOGIN = "login" ;
+    private static final String PROCESS_CONTEXT_AUTHENTICATION = "authentication" ;
 
     @Override
     public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
+        String processContext = "" ;
+        IdentityResponse.IdentityResponseBuilder identityResponseBuilder= null ;
 
-        IdentityMessageContext identityMessageContext = null; //read from cache, otherwise throw exception.
-        IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null;
-
-        FrameworkHandlerStatus identityFrameworkHandlerStatus = null;
-        try {
-            identityFrameworkHandlerStatus = validate(identityMessageContext);
-            if (identityFrameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
-                identityFrameworkHandlerStatus = authenticate(identityMessageContext);
-                if (identityFrameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
-
-                }
+        if(PROCESS_CONTEXT_LOGIN.equals(processContext)){
+            AuthenticationContext authenticationContext = initAuthenticationContext(identityRequest);
+            identityResponseBuilder = processLoginRequest(authenticationContext);
+        }else if(PROCESS_CONTEXT_AUTHENTICATION.equals(processContext)){
+            AuthenticationContext authenticationContext = getAuthenticationContextFromCache(identityRequest);
+            if(authenticationContext == null){
+                throw FrameworkRuntimeException.error("Invalid Request");
             }
-        } catch (AuthenticationHandlerException e) {
-            identityFrameworkHandlerStatus = doBuildErrorResponse(e, identityMessageContext);
+            identityResponseBuilder = processAuthenticationRequest(authenticationContext);
         }
-        return identityFrameworkHandlerStatus.getIdentityResponseBuilder();
+        return identityResponseBuilder ;
     }
-
-    protected FrameworkHandlerStatus doValidate(IdentityMessageContext identityMessageContext)
-            throws AuthenticationHandlerException, RequestHandlerException {
-        AbstractRequestHandler protocolRequestHandler =
-                HandlerManager.getInstance().getProtocolRequestHandler(identityMessageContext);
-        return protocolRequestHandler.validate(identityMessageContext);
-    }
-
-    protected FrameworkHandlerStatus validate(IdentityMessageContext identityMessageContext)
-            throws FrameworkHandlerException {
-
-        FrameworkHandlerStatus frameworkHandlerStatus = null;
-
-        frameworkHandlerStatus = doPostHandle(ExtensionHandlerPoints.REQUEST_HANDLER, identityMessageContext);
-        if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
-
-            frameworkHandlerStatus = doValidate(identityMessageContext);
-            if (frameworkHandlerStatus.equals(FrameworkHandlerStatus.CONTINUE)) {
-
-                frameworkHandlerStatus = doPostHandle(ExtensionHandlerPoints
-                                                              .REQUEST_HANDLER, identityMessageContext);
-
-            }
-        }
-        return frameworkHandlerStatus;
-
-    }
-
 
     @Override
     public String getName() {
@@ -84,4 +64,155 @@ public class LoginRequestProcessor extends AbstractRequestProcessor {
     public boolean canHandle(IdentityRequest identityRequest) {
         return false;
     }
+
+    private AuthenticationContext getAuthenticationContextFromCache(IdentityRequest identityRequest){
+        return null ;
+    }
+
+    private AuthenticationContext initAuthenticationContext(IdentityRequest identityRequest){
+        return null ;
+    }
+
+
+    protected IdentityResponse.IdentityResponseBuilder processLoginRequest(AuthenticationContext authenticationContext)
+            throws FrameworkHandlerException {
+
+        IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null;
+
+        FrameworkHandlerResponse identityFrameworkHandlerResponse = null;
+        try {
+            identityFrameworkHandlerResponse = validate(authenticationContext);
+            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+                identityFrameworkHandlerResponse = authenticate(authenticationContext);
+                if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+
+                }
+            }
+        } catch (AuthenticationHandlerException e) {
+            identityFrameworkHandlerResponse = doBuildErrorResponse(e, authenticationContext);
+        }
+        return identityFrameworkHandlerResponse.getIdentityResponseBuilder();
+
+    }
+
+    protected IdentityResponse.IdentityResponseBuilder processAuthenticationRequest(AuthenticationContext authenticationContext)
+            throws FrameworkHandlerException {
+        FrameworkHandlerResponse frameworkHandlerResponse = null;
+        try {
+            frameworkHandlerResponse = authenticate(authenticationContext);
+            if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+                frameworkHandlerResponse = doBuildResponse(authenticationContext);
+            }
+
+        } catch (AuthenticationHandlerException e) {
+            frameworkHandlerResponse = doBuildErrorResponse(e, authenticationContext);
+        }
+        return frameworkHandlerResponse.getIdentityResponseBuilder();
+
+    }
+
+    protected FrameworkHandlerResponse doBuildResponse(AuthenticationContext authenticationContext)
+            throws FrameworkHandlerException {
+        FrameworkHandlerResponse frameworkHandlerResponse = null;
+
+        frameworkHandlerResponse = doPreHandle(ExtensionHandlerPoints.RESPONSE_HANDLER, authenticationContext);
+        if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+
+            frameworkHandlerResponse = buildResponse(authenticationContext);
+        }
+        return frameworkHandlerResponse;
+
+
+    }
+
+    protected FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws FrameworkHandlerException {
+        AbstractResponseHandler responseBuilderHandler =
+                HandlerManager.getInstance().getResponseHandler(authenticationContext);
+        return responseBuilderHandler.buildResponse(authenticationContext);
+
+
+    }
+
+
+    protected FrameworkHandlerResponse doValidate(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException, RequestHandlerException {
+        AbstractRequestHandler protocolRequestHandler =
+                HandlerManager.getInstance().getProtocolRequestHandler(authenticationContext);
+        return protocolRequestHandler.validate(authenticationContext);
+    }
+
+    protected FrameworkHandlerResponse validate(AuthenticationContext authenticationContext)
+            throws FrameworkHandlerException {
+
+        FrameworkHandlerResponse frameworkHandlerResponse = null;
+
+        frameworkHandlerResponse = doPostHandle(ExtensionHandlerPoints.REQUEST_HANDLER, authenticationContext);
+        if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+
+            frameworkHandlerResponse = doValidate(authenticationContext);
+            if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+
+                frameworkHandlerResponse = doPostHandle(ExtensionHandlerPoints
+                                                              .REQUEST_HANDLER, authenticationContext);
+
+            }
+        }
+        return frameworkHandlerResponse;
+
+    }
+
+
+    protected FrameworkHandlerResponse authenticate(AuthenticationContext authenticationContext)
+            throws FrameworkHandlerException {
+
+        FrameworkHandlerResponse frameworkHandlerResponse = null;
+
+        frameworkHandlerResponse = doPreHandle(ExtensionHandlerPoints.AUTHENTICATION_HANDLER, authenticationContext);
+        if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+
+            frameworkHandlerResponse = doAuthenticate(authenticationContext);
+            if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+
+                frameworkHandlerResponse = doPostHandle(ExtensionHandlerPoints
+                                                                .AUTHENTICATION_HANDLER, authenticationContext);
+
+            }
+        }
+        return frameworkHandlerResponse;
+
+    }
+
+
+    protected FrameworkHandlerResponse doAuthenticate(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException {
+        AuthenticationHandler authenticationHandler =
+                HandlerManager.getInstance().getAuthenticationHandler(authenticationContext);
+        return authenticationHandler.doAuthenticate(authenticationContext);
+    }
+
+
+    protected FrameworkHandlerResponse doBuildErrorResponse(IdentityException e,
+                                                            AuthenticationContext
+                                                                    authenticationContext) throws ResponseException {
+        AbstractResponseHandler responseBuilderHandler =
+                HandlerManager.getInstance().getResponseHandler(authenticationContext);
+        return responseBuilderHandler.buildErrorResponse(authenticationContext);
+    }
+
+
+    protected FrameworkHandlerResponse doPreHandle(ExtensionHandlerPoints extensionHandlerPoints,
+                                                   AuthenticationContext authenticationContext)
+
+            throws FrameworkHandlerException {
+        return HandlerManager.getInstance().doPreHandle(extensionHandlerPoints, authenticationContext);
+    }
+
+    protected FrameworkHandlerResponse doPostHandle(ExtensionHandlerPoints extensionHandlerPoints,
+                                                    AuthenticationContext authenticationContext)
+
+            throws FrameworkHandlerException {
+        return HandlerManager.getInstance().doPostHandle(extensionHandlerPoints, authenticationContext);
+    }
+
 }
