@@ -87,6 +87,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     private static final String DO_POST_AUTHENTICATE = "doPostAuthenticate";
     private static final String DO_POST_ADD_USER = "doPostAddUser";
     private static final String DO_PRE_SET_USER_CLAIM_VALUES = "doPreSetUserClaimValues";
+    private static final String DO_PRE_UPDATE_CREDENTIAL_BY_ADMIN = "doPreUpdateCredentialByAdmin";
+    private static final String DO_PRE_UPDATE_CREDENTIAL = "doPreUpdateCredential";
     private static final String DO_POST_UPDATE_CREDENTIAL = "doPostUpdateCredential";
     private static final String ASK_PASSWORD_FEATURE_IS_DISABLED = "Ask Password Feature is disabled";
 
@@ -687,19 +689,48 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
 
         try {
-            // Enforcing the password policies.
-            if (newCredential != null
-                    && (newCredential instanceof String && (newCredential.toString().trim()
-                    .length() > 0))) {
-                policyRegistry.enforcePasswordPolicies(newCredential.toString(), userName);
+            if (!IdentityUtil.threadLocalProperties.get().containsKey(DO_PRE_UPDATE_CREDENTIAL)) {
+                IdentityUtil.threadLocalProperties.get().put(DO_PRE_UPDATE_CREDENTIAL, true);
+                IdentityMgtConfig config = IdentityMgtConfig.getInstance();
+                UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
+                UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
+                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
 
+                if (isAccountDisabled) {
+                    IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
+                            IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
+                    IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
+                } else {
+                    // do nothing
+                }
+                if (identityDTO == null) {
+                    identityDTO = new UserIdentityClaimsDO(userName);
+                }
+
+                //account is already disabled and trying to update the credential without enabling it
+                if (isAccountDisabled) {
+                    log.warn("Trying to update credential of a disabled user account. This is not permitted.");
+                    throw new UserStoreException("User account is disabled, can't update credential without enabling.");
+                }
+
+                try {
+                    // Enforcing the password policies.
+                    if (newCredential != null
+                        && (newCredential instanceof String && (newCredential.toString().trim()
+                                                                        .length() > 0))) {
+                        policyRegistry.enforcePasswordPolicies(newCredential.toString(), userName);
+
+                    }
+
+                } catch (PolicyViolationException pe) {
+                    throw new UserStoreException(pe.getMessage(), pe);
+                }
             }
-
-        } catch (PolicyViolationException pe) {
-            throw new UserStoreException(pe.getMessage(), pe);
+            return true;
+        } finally {
+            // Remove thread local variable
+            IdentityUtil.threadLocalProperties.get().remove(DO_PRE_UPDATE_CREDENTIAL);
         }
-
-        return true;
     }
 
     @Override
@@ -733,52 +764,82 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (log.isDebugEnabled()) {
             log.debug("Pre update credential by admin is called in IdentityMgtEventListener");
         }
-        IdentityMgtConfig config = IdentityMgtConfig.getInstance();
 
+        // Top level try and finally blocks are used to unset thread local variables
         try {
-            // Enforcing the password policies.
-            if (newCredential != null
-                    && (newCredential instanceof StringBuffer && (newCredential.toString().trim()
-                    .length() > 0))) {
-                policyRegistry.enforcePasswordPolicies(newCredential.toString(), userName);
-            }
+            if (!IdentityUtil.threadLocalProperties.get().containsKey(DO_PRE_UPDATE_CREDENTIAL_BY_ADMIN)) {
+                IdentityUtil.threadLocalProperties.get().put(DO_PRE_UPDATE_CREDENTIAL_BY_ADMIN, true);
+                IdentityMgtConfig config = IdentityMgtConfig.getInstance();
+                UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
+                UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
+                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
 
-        } catch (PolicyViolationException pe) {
-            throw new UserStoreException(pe.getMessage(), pe);
+                if (isAccountDisabled) {
+                    IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
+                            IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
+                    IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
+                } else {
+                    // do nothing
+                }
+                if (identityDTO == null) {
+                    identityDTO = new UserIdentityClaimsDO(userName);
+                }
+
+                //account is already disabled and trying to update the credential without enabling it
+                if (isAccountDisabled) {
+                    log.warn("Trying to update credential of a disabled user account. This is not permitted.");
+                    throw new UserStoreException("User account is disabled, can't update credential without enabling.");
+                }
+
+                try {
+                    // Enforcing the password policies.
+                    if (newCredential != null
+                        && (newCredential instanceof StringBuffer && (newCredential.toString().trim()
+                                                                              .length() > 0))) {
+                        policyRegistry.enforcePasswordPolicies(newCredential.toString(), userName);
+                    }
+
+                } catch (PolicyViolationException pe) {
+                    throw new UserStoreException(pe.getMessage(), pe);
+                }
+
+                if (newCredential == null
+                    || (newCredential instanceof StringBuffer && ((StringBuffer) newCredential)
+                                                                         .toString().trim().length() < 1)) {
+
+                    if (!config.isEnableTemporaryPassword()) {
+                        log.error("Empty passwords are not allowed");
+                        return false;
+                    }
+                    if (log.isDebugEnabled()) {
+                        log.debug("Credentials are null. Using a temporary password as credentials");
+                    }
+                    // temporary passwords will be used
+                    char[] temporaryPassword = UserIdentityManagementUtil.generateTemporaryPassword();
+                    // setting the password value
+                    ((StringBuffer) newCredential).replace(0, temporaryPassword.length, new String(
+                            temporaryPassword));
+
+                    UserIdentityMgtBean bean = new UserIdentityMgtBean();
+                    bean.setUserId(userName);
+                    bean.setConfirmationCode(newCredential.toString());
+                    bean.setRecoveryType(IdentityMgtConstants.Notification.TEMPORARY_PASSWORD);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Sending the temporary password to the user " + userName);
+                    }
+                    UserIdentityManagementUtil.notifyViaEmail(bean);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Updating credentials of user " + userName
+                                  + " by admin with a non-empty password");
+                    }
+                }
+            }
+            return true;
+        } finally {
+            // Remove thread local variable
+            IdentityUtil.threadLocalProperties.get().remove(DO_PRE_UPDATE_CREDENTIAL_BY_ADMIN);
         }
-
-        if (newCredential == null
-                || (newCredential instanceof StringBuffer && ((StringBuffer) newCredential)
-                .toString().trim().length() < 1)) {
-
-            if (!config.isEnableTemporaryPassword()) {
-                log.error("Empty passwords are not allowed");
-                return false;
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("Credentials are null. Using a temporary password as credentials");
-            }
-            // temporary passwords will be used
-            char[] temporaryPassword = UserIdentityManagementUtil.generateTemporaryPassword();
-            // setting the password value
-            ((StringBuffer) newCredential).replace(0, temporaryPassword.length, new String(
-                    temporaryPassword));
-
-            UserIdentityMgtBean bean = new UserIdentityMgtBean();
-            bean.setUserId(userName);
-            bean.setConfirmationCode(newCredential.toString());
-            bean.setRecoveryType(IdentityMgtConstants.Notification.TEMPORARY_PASSWORD);
-            if (log.isDebugEnabled()) {
-                log.debug("Sending the temporary password to the user " + userName);
-            }
-            UserIdentityManagementUtil.notifyViaEmail(bean);
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Updating credentials of user " + userName
-                        + " by admin with a non-empty password");
-            }
-        }
-        return true;
     }
 
     /**

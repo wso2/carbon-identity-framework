@@ -21,6 +21,11 @@ package org.wso2.carbon.identity.mgt.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.mgt.IdentityMgtConfigException;
+import org.wso2.carbon.identity.mgt.config.Config;
+import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
+import org.wso2.carbon.identity.mgt.config.EmailNotificationConfig;
+import org.wso2.carbon.identity.mgt.config.StorageType;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 import org.wso2.carbon.stratos.common.exception.StratosException;
@@ -38,11 +43,19 @@ public class TenantManagementListener implements TenantMgtListener {
     @Override
     public void onTenantCreate(TenantInfoBean tenantInfo) throws StratosException {
         try {
-            String tenantDomain = tenantInfo.getTenantDomain();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantInfo.getTenantDomain());
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantInfo.getTenantId());
             UserIdentityManagementUtil.loadDefaultChallenges();
+
+            Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
+            EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
+            emailNotificationConfig.setProperties(emailConfigFile.getProperties());
+            ConfigBuilder.getInstance().saveConfiguration(StorageType.REGISTRY, tenantInfo.getTenantId(),
+                                                          emailNotificationConfig);
+        } catch (IdentityMgtConfigException e) {
+            log.error("Error occurred while saving default email templates in registry for tenant: "
+                      + tenantInfo.getTenantDomain());
         } finally {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().endTenantFlow();
         }
