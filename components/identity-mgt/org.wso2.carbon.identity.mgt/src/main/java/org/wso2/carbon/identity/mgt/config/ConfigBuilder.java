@@ -132,7 +132,7 @@ public class ConfigBuilder {
         }
     }
 
-    private Config loadEmailConfigFile() {
+    public Config loadEmailConfigFile() {
 
         String confXml = CarbonUtils.getCarbonConfigDirPath() + File.separator
                 + IdentityMgtConstants.EMAIL_CONF_DIRECTORY + File.separator

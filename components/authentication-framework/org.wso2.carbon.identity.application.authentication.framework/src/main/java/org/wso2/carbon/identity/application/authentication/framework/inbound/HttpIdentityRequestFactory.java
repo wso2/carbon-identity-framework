@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 public class HttpIdentityRequestFactory {
 
     protected Properties properties;
-    public static final String TENANT_DOMAIN_PATTERN = "/t/([a-zA-Z0-9\\$&\\(\\)-_\\[\\]\\:\\?\\/\\.\\,\\<\\>)";
+    public static final String TENANT_DOMAIN_PATTERN = "/t/([a-zA-Z0-9\\$&\\(\\)-_\\[\\]\\:\\?\\/\\.\\,\\<\\>])";
 
     public void init(Properties properties) throws FrameworkRuntimeException {
         this.properties = properties;
