@@ -5,14 +5,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 import java.io.Serializable;
 
 public class SessionContext implements Serializable{
-    private SessionContext sessionContext = null ;
+    SequenceContext sequenceContext = null ;
 
-    public SessionContext getSessionContext() {
-        return sessionContext;
-    }
 
-    public void setSessionContext(
-            SessionContext sessionContext) {
-        this.sessionContext = sessionContext;
-    }
 }

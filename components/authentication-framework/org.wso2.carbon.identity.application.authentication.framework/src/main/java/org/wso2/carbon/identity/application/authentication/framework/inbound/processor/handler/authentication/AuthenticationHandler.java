@@ -2,19 +2,20 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .AuthenticationResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
-        .HandlerManager;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.model.SequenceConfig;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.handler.SequenceHandler;
+        .ContextInitializer;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
-        .handler.ContextInitializeHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.handler.SequenceConfigBuildHandler;
-
-
+        .SequenceBuildFactory;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .SequenceManager;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .model.Sequence;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .util.HandlerManager;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
@@ -24,30 +25,26 @@ public class AuthenticationHandler extends FrameworkHandler {
         return null;
     }
 
-    public FrameworkHandlerResponse doAuthenticate(IdentityMessageContext identityMessageContext) throws
+    public FrameworkHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
                                                                                                 AuthenticationHandlerException {
-        FrameworkHandlerResponse frameworkHandlerResponse = null ;
+        FrameworkHandlerResponse frameworkHandlerResponse = null;
 
         HandlerManager handlerManager = HandlerManager.getInstance();
-        try {
-            SequenceConfigBuildHandler sequenceBuildHandler = handlerManager.getSequenceBuildHandler(identityMessageContext);
-            SequenceConfig sequenceConfig = sequenceBuildHandler.buildSequenceConfig(identityMessageContext);
 
-            ContextInitializeHandler contextInitializerHandler =
-                    handlerManager.getContextInitializerHandler(identityMessageContext);
-            contextInitializerHandler.initialize(identityMessageContext, sequenceConfig);
+        SequenceBuildFactory sequenceBuildFactory = handlerManager.getSequenceBuildFactory(authenticationContext);
+        Sequence sequence = sequenceBuildFactory.buildSequence(authenticationContext);
 
-            SequenceHandler sequenceHandler =
-                    handlerManager.getSequenceProcessHandler(identityMessageContext);
+        ContextInitializer contextInitializerHandler =
+                handlerManager.getContextInitializerHandler(authenticationContext);
+        contextInitializerHandler.initialize(authenticationContext, sequence);
 
-            AuthenticationResponse authenticationResponse =
-                    sequenceHandler.handleSequence(identityMessageContext);
+        SequenceManager sequenceManager =
+                handlerManager.getSequenceManager(authenticationContext);
 
-            frameworkHandlerResponse = buildFrameworkHandlerResponse(authenticationResponse);
+        AuthenticationResponse authenticationResponse =
+                sequenceManager.handleSequence(authenticationContext);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        frameworkHandlerResponse = buildFrameworkHandlerResponse(authenticationResponse);
 
 
         return frameworkHandlerResponse;
@@ -58,8 +55,8 @@ public class AuthenticationHandler extends FrameworkHandler {
         return true;
     }
 
-    private FrameworkHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse){
-        return null ;
+    private FrameworkHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
+        return null;
     }
 
 

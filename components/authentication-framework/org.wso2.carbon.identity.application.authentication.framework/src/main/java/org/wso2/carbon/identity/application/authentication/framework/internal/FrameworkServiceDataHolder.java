@@ -25,10 +25,8 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Htt
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
-        .handler.ContextInitializeHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
-        .model.Sequence;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.ContextInitializer;
+
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
         .AbstractPostHandler;
@@ -75,9 +73,9 @@ public class FrameworkServiceDataHolder {
     private Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandler = new HashMap<>();
 
     //AuthenticationHandler sub-handler
-    private List<ContextInitializeHandler> contextInitializeHandlers = new ArrayList<>();
+    private List<ContextInitializer> contextInitializers = new ArrayList<>();
 
-    //SequenceHandler
+    //SequenceManager
     private L
 
 
@@ -174,7 +172,7 @@ public class FrameworkServiceDataHolder {
         return postHandler;
     }
 
-    public List<ContextInitializeHandler> getContextInitializeHandlers() {
-        return contextInitializeHandlers;
+    public List<ContextInitializer> getContextInitializers() {
+        return contextInitializers;
     }
 }

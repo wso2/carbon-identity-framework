@@ -12,7 +12,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
         .FrameworkHandlerException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.HandlerManager;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.util.HandlerManager;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication

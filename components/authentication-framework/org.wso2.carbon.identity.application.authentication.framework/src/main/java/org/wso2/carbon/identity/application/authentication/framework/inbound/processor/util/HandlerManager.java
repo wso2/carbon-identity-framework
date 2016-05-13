@@ -1,9 +1,11 @@
-package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.util;
 
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
+        .FrameworkHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension

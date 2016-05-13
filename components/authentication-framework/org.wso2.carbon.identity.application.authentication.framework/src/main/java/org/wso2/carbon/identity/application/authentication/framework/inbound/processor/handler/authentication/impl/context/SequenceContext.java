@@ -6,10 +6,8 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.pro
         .model.Sequence;
 
 public class SequenceContext {
+
     private Sequence sequence = null ;
 
-    public SequenceContext(){
-
-    }
 
 }

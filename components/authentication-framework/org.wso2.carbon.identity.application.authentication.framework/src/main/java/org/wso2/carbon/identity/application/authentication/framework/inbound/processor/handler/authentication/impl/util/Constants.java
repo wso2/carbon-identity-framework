@@ -1,4 +1,4 @@
-package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.util;
 
 /**
  * Created by harsha on 5/4/16.
