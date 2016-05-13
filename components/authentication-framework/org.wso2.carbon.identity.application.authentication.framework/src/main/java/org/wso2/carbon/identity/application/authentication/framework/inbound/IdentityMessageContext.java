@@ -42,6 +42,12 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
         this.initialIdentityRequest = identityRequest;
     }
 
+    public IdentityMessageContext(IdentityRequest identityRequest) {
+        super();
+        this.identityRequest = identityRequest;
+        this.initialIdentityRequest = identityRequest;
+    }
+
     public IdentityRequest getIdentityRequest() {
         return identityRequest;
     }

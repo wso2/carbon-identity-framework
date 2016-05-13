@@ -1,5 +1,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.processor;
 
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -10,8 +11,13 @@ public class AuthenticationRequest extends IdentityRequest{
     private String requestDataKey ;
 
     protected AuthenticationRequest(
-            IdentityRequestBuilder builder) {
+            AuthenticationRequestBuilder builder) {
         super(builder);
+        requestDataKey = builder.requestDataKey;
+    }
+
+    public String getRequestDataKey() {
+        return requestDataKey;
     }
 
     public static class AuthenticationRequestBuilder extends IdentityRequestBuilder{
@@ -21,16 +27,19 @@ public class AuthenticationRequest extends IdentityRequest{
             super(request, response);
         }
 
-        public String getRequestDataKey() {
-            return requestDataKey;
+
+        public AuthenticationRequestBuilder setRequestDataKey(String requestDataKey) {
+            this.requestDataKey = requestDataKey;
+            return this;
         }
 
-        public void setRequestDataKey(String requestDataKey) {
-            this.requestDataKey = requestDataKey;
+        @Override
+        public IdentityRequest build() throws FrameworkRuntimeException {
+            return new AuthenticationRequest(this);
         }
     }
 
     public static class AuthenticationRequestConstants{
-        private static final String REQUEST_DATA_KEY = "RequestDataKey" ;
+        public static final String REQUEST_DATA_KEY = "RequestDataKey" ;
     }
 }

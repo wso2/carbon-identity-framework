@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .context.SequenceContext;
 
@@ -14,9 +15,14 @@ public class AuthenticationContext extends IdentityMessageContext{
     private SequenceContext sequenceContext = null ;
 
     public AuthenticationContext(
-            IdentityRequest identityRequest,
+            AuthenticationRequest authenticationRequest,
             Map parameters) {
-        super(identityRequest, parameters);
+        super(authenticationRequest, parameters);
+    }
+
+    public AuthenticationContext(
+            AuthenticationRequest authenticationRequest) {
+        super(authenticationRequest);
     }
 
     public SessionContext getSessionContext() {
