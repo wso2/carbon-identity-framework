@@ -2,6 +2,8 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
         .model;
 
 
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
+        .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
@@ -22,12 +24,17 @@ public class ServiceProviderConfig implements Serializable {
         this.clientId = clientId;
     }
 
-    public ServiceProvider getServiceProvider() throws IdentityApplicationManagementException {
+    public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {
         if (this.serviceProvider == null) {
             synchronized (this) {
                 ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
-                this.serviceProvider =
-                        applicationManagementService.getServiceProviderByClientId(requestType, clientId, tenantDomain);
+                try {
+                    this.serviceProvider =
+                            applicationManagementService.getServiceProviderByClientId(requestType, clientId, tenantDomain);
+                } catch (IdentityApplicationManagementException e) {
+                    String errorMessage = "Error occured while trying to get service providers by calling admin service, " + e.getMessage() ;
+                    throw new AuthenticationHandlerException(errorMessage, e);
+                }
             }
         }
         return this.serviceProvider;

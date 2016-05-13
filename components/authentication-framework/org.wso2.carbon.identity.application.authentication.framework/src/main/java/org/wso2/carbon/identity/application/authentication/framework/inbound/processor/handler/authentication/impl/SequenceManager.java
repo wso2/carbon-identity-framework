@@ -2,6 +2,8 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .model.Sequence;
 
 public class SequenceManager extends FrameworkHandler {
     @Override
@@ -18,6 +20,7 @@ public class SequenceManager extends FrameworkHandler {
     }
 
     protected AuthenticationResponse handleRequestPathAuthentication(AuthenticationContext authenticationContext){
+        Sequence sequence = authenticationContext.getSequence();
 
         return null ;
     }

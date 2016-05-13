@@ -34,6 +34,8 @@ public class AuthenticationHandler extends FrameworkHandler {
         SequenceBuildFactory sequenceBuildFactory = handlerManager.getSequenceBuildFactory(authenticationContext);
         Sequence sequence = sequenceBuildFactory.buildSequence(authenticationContext);
 
+        authenticationContext.setSequence(sequence);
+        
         ContextInitializer contextInitializerHandler =
                 handlerManager.getContextInitializerHandler(authenticationContext);
         contextInitializerHandler.initialize(authenticationContext, sequence);
