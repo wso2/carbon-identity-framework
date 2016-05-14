@@ -50,6 +50,8 @@ public class EventMgtConstants {
 
         public static final String PRE_AUTHENTICATION = "PRE_AUTHENTICATION";
         public static final String POST_AUTHENTICATION = "POST_AUTHENTICATION";
+        public static final String PRE_SET_USER_CLAIMS = "PRE_SET_USER_CLAIMS";
+        public static final String POST_SET_USER_CLAIMS = "POST_SET_USER_CLAIMS";
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
 
     }
@@ -65,6 +67,8 @@ public class EventMgtConstants {
         public static final String TENANT_ID = "tenantId";
         public static final String TENANT_DOMAIN = "tenantDomain";
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
+        public static final String USER_CLAIMS = "USER_CLAIMS";
+        public static final String PROFILE_NAME = "PROFILE_NAME";
 
 
     }
