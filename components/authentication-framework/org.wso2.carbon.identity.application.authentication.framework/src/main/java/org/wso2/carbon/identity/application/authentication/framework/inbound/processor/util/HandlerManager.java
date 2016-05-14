@@ -3,7 +3,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
         .FrameworkHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -35,7 +35,7 @@ public class HandlerManager {
     }
 
     public FrameworkHandlerResponse doPreHandle(ExtensionHandlerPoints extensionHandlerPoint,
-                                              IdentityMessageContext identityMessageContext)
+                                                IdentityMessageContext identityMessageContext)
             throws FrameworkHandlerException {
         List<AbstractPreHandler> abstractPreHandlers =
                 FrameworkServiceDataHolder.getInstance().getPreHandler().get(extensionHandlerPoint);
@@ -51,7 +51,7 @@ public class HandlerManager {
     }
 
     public FrameworkHandlerResponse doPostHandle(ExtensionHandlerPoints extensionHandlerPoint,
-                                               IdentityMessageContext identityMessageContext)
+                                                 IdentityMessageContext identityMessageContext)
             throws FrameworkHandlerException {
         List<AbstractPostHandler> abstractPostHandlers =
                 FrameworkServiceDataHolder.getInstance().getPostHandler().get(extensionHandlerPoint);

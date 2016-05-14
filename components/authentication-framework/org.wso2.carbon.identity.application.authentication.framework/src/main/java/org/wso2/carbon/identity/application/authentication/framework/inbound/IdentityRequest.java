@@ -151,6 +151,15 @@ public class IdentityRequest implements Serializable {
         return contentType;
     }
 
+    public String getBrowserCookieValue() {
+        String cookieValue = null;
+        Cookie cookie = this.getCookieMap().get(IdentityRequestConstants.BROWSER_COOKIE);
+        if (cookie != null) {
+            cookieValue = cookie.getValue();
+        }
+        return cookieValue;
+    }
+
     public static class IdentityRequestBuilder {
 
         private HttpServletRequest request;
@@ -326,5 +335,9 @@ public class IdentityRequest implements Serializable {
         }
 
 
+    }
+
+    public static class IdentityRequestConstants {
+        public static final String BROWSER_COOKIE = "SIOWTOSW";
     }
 }

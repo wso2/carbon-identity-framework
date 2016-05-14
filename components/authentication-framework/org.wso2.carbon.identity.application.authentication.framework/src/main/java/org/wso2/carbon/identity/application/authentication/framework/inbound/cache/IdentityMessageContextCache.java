@@ -16,21 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.inbound;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.cache;
 
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-public class IdentityContextCache extends BaseCache<String, IdentityMessageContext> {
+public class IdentityMessageContextCache extends BaseCache<String, IdentityMessageContext> {
 
-    private static final String INBOUND_CONTEXT_CACHE_NAME = "InboundContextCache";
-    private static volatile IdentityContextCache instance;
+    private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
+    private static volatile IdentityMessageContextCache instance;
     private boolean enableRequestScopeCache = false;
 
-    private IdentityContextCache(String cacheName) {
+    private IdentityMessageContextCache(String cacheName) {
         super(cacheName);
         if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             enableRequestScopeCache = Boolean.parseBoolean(IdentityUtil.getProperty(
@@ -38,11 +39,11 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
         }
     }
 
-    public static IdentityContextCache getInstance() {
+    public static IdentityMessageContextCache getInstance() {
         if (instance == null) {
-            synchronized (IdentityContextCache.class) {
+            synchronized (IdentityMessageContextCache.class) {
                 if (instance == null) {
-                    instance = new IdentityContextCache(INBOUND_CONTEXT_CACHE_NAME);
+                    instance = new IdentityMessageContextCache(IDENTITY_MESSAGE_CONTEXT_CACHE);
                 }
             }
         }
@@ -57,7 +58,7 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
             if (tenantDomain != null) {
                 tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             }
-            SessionDataStore.getInstance().storeSessionData(key, INBOUND_CONTEXT_CACHE_NAME, context, tenantId);
+            SessionDataStore.getInstance().storeSessionData(key, IDENTITY_MESSAGE_CONTEXT_CACHE, context, tenantId);
         }
     }
 
@@ -65,7 +66,7 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
         IdentityMessageContext context = super.getValueFromCache(key);
         if (context == null && enableRequestScopeCache) {
             context = (IdentityMessageContext) SessionDataStore.getInstance().getSessionData(key,
-                                                                                             INBOUND_CONTEXT_CACHE_NAME);
+                                                                                             IDENTITY_MESSAGE_CONTEXT_CACHE);
         }
         return context;
     }
@@ -73,7 +74,7 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
     public void clearCacheEntry(String key) {
         super.clearCacheEntry(key);
         if (enableRequestScopeCache) {
-            SessionDataStore.getInstance().clearSessionData(key, INBOUND_CONTEXT_CACHE_NAME);
+            SessionDataStore.getInstance().clearSessionData(key, IDENTITY_MESSAGE_CONTEXT_CACHE);
         }
     }
 }

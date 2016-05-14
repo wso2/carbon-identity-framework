@@ -1,20 +1,21 @@
-package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.context;
 
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.AuthenticationRequest;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
-        .context.SequenceContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
+        .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .model.Sequence;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
-        .model.ServiceProviderConfig;
+        .util.Utility;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.Map;
 
 public class AuthenticationContext extends IdentityMessageContext {
 
-    private ServiceProviderConfig serviceProviderConfig = null;
+    private transient ServiceProvider serviceProvider = null;
+
     private transient Sequence sequence = null;
     private transient SessionContext sessionContext = null;
     private SequenceContext sequenceContext = null;
@@ -57,16 +58,16 @@ public class AuthenticationContext extends IdentityMessageContext {
         this.sequence = sequence;
     }
 
-    public ServiceProviderConfig getServiceProviderConfig() {
-        if (this.serviceProviderConfig == null) {
+    public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {
+        if (this.serviceProvider == null) {
             synchronized (this) {
                 AuthenticationRequest authenticationRequest = (AuthenticationRequest) getIdentityRequest();
-                this.serviceProviderConfig =
-                        new ServiceProviderConfig(authenticationRequest.getTenantDomain(), authenticationRequest
-                                .getRequestType(), authenticationRequest.getClientId());
+                ServiceProvider serviceProvider =
+                        Utility.getServiceProvider(authenticationRequest.getRequestType(), authenticationRequest
+                                .getClientId(), authenticationRequest.getTenantDomain());
             }
         }
 
-        return this.serviceProviderConfig;
+        return this.serviceProvider;
     }
 }

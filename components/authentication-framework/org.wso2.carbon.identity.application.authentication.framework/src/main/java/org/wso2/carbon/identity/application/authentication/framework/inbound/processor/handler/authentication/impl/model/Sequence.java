@@ -1,38 +1,35 @@
-package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.model;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .model;
 
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandlerException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Sequence implements Serializable{
+public class Sequence implements Serializable {
 
-    private ServiceProviderConfig serviceProviderConfig = null ;
+    private transient ServiceProvider serviceProvider = null;
 
-    public Sequence(ServiceProviderConfig serviceProviderConfig)
-            throws IdentityApplicationManagementException {
-        this.serviceProviderConfig = serviceProviderConfig;
+    public Sequence(ServiceProvider serviceProvider) {
+        this.serviceProvider = serviceProvider;
     }
 
     public RequestPathAuthenticatorConfig[] getRequestPathAuthenticatorConfig() throws AuthenticationHandlerException {
         RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs =
-                serviceProviderConfig.getServiceProvider().getRequestPathAuthenticatorConfigs();
-        return requestPathAuthenticatorConfigs ;
+                serviceProvider.getRequestPathAuthenticatorConfigs();
+        return requestPathAuthenticatorConfigs;
     }
-
 
     public AuthenticationStep[] getStepAuthenticatorConfig() throws AuthenticationHandlerException {
         AuthenticationStep[] authenticationSteps =
-                serviceProviderConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                         .getAuthenticationSteps();
 
-        return authenticationSteps ;
+        return authenticationSteps;
     }
 
 }

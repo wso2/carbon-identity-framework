@@ -1,14 +1,24 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl;
 
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
+        .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .model.Sequence;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 
-public abstract class SequenceBuildFactory extends FrameworkHandler {
-    public Sequence buildSequence(IdentityMessageContext identityMessageContext){
-        return null ;
+public class SequenceBuildFactory extends FrameworkHandler {
+    public Sequence buildSequence(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
+        ServiceProvider serviceProvider = authenticationContext.getServiceProvider();
+        Sequence sequence = new Sequence(serviceProvider);
+        return sequence;
+    }
+
+    @Override
+    public String getName() {
+        return null;
     }
 }

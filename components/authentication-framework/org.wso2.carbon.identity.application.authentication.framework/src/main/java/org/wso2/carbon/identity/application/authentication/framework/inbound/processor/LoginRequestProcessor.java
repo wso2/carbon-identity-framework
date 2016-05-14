@@ -4,15 +4,14 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityContextCache;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
         .FrameworkHandlerException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.util.HandlerManager;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -25,33 +24,35 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.pro
         .RequestHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response
         .AbstractResponseHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response.ResponseException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response
+        .ResponseException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.util.HandlerManager;
 import org.wso2.carbon.identity.base.IdentityException;
 
-public class LoginRequestProcessor extends IdentityProcessor{
+public class LoginRequestProcessor extends IdentityProcessor {
 
-    private static final String PROCESS_CONTEXT_LOGIN = "login" ;
-    private static final String PROCESS_CONTEXT_AUTHENTICATION = "authentication" ;
+    private static final String PROCESS_CONTEXT_LOGIN = "login";
+    private static final String PROCESS_CONTEXT_AUTHENTICATION = "authentication";
 
     @Override
     public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
-        String processContext = "" ;
-        IdentityResponse.IdentityResponseBuilder identityResponseBuilder= null ;
+        String processContext = "";
+        IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null;
 
         //Can be an issue if the factory pick non of AuthenticationRequest object by calling can handle
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest)identityRequest ;
+        AuthenticationRequest authenticationRequest = (AuthenticationRequest) identityRequest;
 
-        if(PROCESS_CONTEXT_LOGIN.equals(processContext)){
-            AuthenticationContext authenticationContext = initAuthenticationContext(authenticationRequest);
+        if (PROCESS_CONTEXT_LOGIN.equals(processContext)) {
+            AuthenticationContext authenticationContext = new AuthenticationContext(authenticationRequest);
             identityResponseBuilder = processLoginRequest(authenticationContext);
-        }else if(PROCESS_CONTEXT_AUTHENTICATION.equals(processContext)){
-            AuthenticationContext authenticationContext = getAuthenticationContextFromCache(authenticationRequest);
-            if(authenticationContext == null){
+        } else if (PROCESS_CONTEXT_AUTHENTICATION.equals(processContext)) {
+            AuthenticationContext authenticationContext = buildAuthenticationContext(authenticationRequest);
+            if (authenticationContext == null) {
                 throw FrameworkRuntimeException.error("Invalid Request");
             }
             identityResponseBuilder = processAuthenticationRequest(authenticationContext);
         }
-        return identityResponseBuilder ;
+        return identityResponseBuilder;
     }
 
     @Override
@@ -69,20 +70,20 @@ public class LoginRequestProcessor extends IdentityProcessor{
         return false;
     }
 
-    protected AuthenticationContext getAuthenticationContextFromCache(AuthenticationRequest authenticationRequest){
+    protected AuthenticationContext buildAuthenticationContext(AuthenticationRequest authenticationRequest) {
 
-        AuthenticationContext authenticationContext = null ;
+        AuthenticationContext authenticationContext = null;
         String requestDataKey = authenticationRequest.getRequestDataKey();
-        IdentityMessageContext identityMessageContext = IdentityContextCache.getInstance().getValueFromCache(requestDataKey);
-        if(identityMessageContext != null){
-            authenticationContext = (AuthenticationContext)identityMessageContext ;
-        }
-        return authenticationContext ;
-    }
+        IdentityMessageContext identityMessageContext =
+                IdentityMessageContextCache.getInstance().getValueFromCache(requestDataKey);
+        if (identityMessageContext != null) {
+            authenticationContext = (AuthenticationContext) identityMessageContext;
 
-    protected AuthenticationContext initAuthenticationContext(AuthenticationRequest authenticationRequest){
-        AuthenticationContext authenticationContext  = new AuthenticationContext(authenticationRequest);
-        return authenticationContext ;
+            String browserCookieValue = authenticationRequest.getBrowserCookieValue();
+            IdentityMessageContextCache.getInstance().getValueFromCache(browserCookieValue);
+
+        }
+        return authenticationContext;
     }
 
 
@@ -105,7 +106,8 @@ public class LoginRequestProcessor extends IdentityProcessor{
 
     }
 
-    protected IdentityResponse.IdentityResponseBuilder processAuthenticationRequest(AuthenticationContext authenticationContext)
+    protected IdentityResponse.IdentityResponseBuilder processAuthenticationRequest(
+            AuthenticationContext authenticationContext)
             throws FrameworkHandlerException {
         FrameworkHandlerResponse frameworkHandlerResponse = null;
         try {
@@ -164,7 +166,7 @@ public class LoginRequestProcessor extends IdentityProcessor{
             if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
 
                 frameworkHandlerResponse = doPostHandle(ExtensionHandlerPoints
-                                                              .REQUEST_HANDLER, authenticationContext);
+                                                                .REQUEST_HANDLER, authenticationContext);
 
             }
         }

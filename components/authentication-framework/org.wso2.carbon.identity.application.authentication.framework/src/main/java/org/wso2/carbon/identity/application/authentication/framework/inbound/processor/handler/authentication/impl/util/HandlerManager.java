@@ -1,16 +1,15 @@
-package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.util;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .util;
 
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityMessageContext;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context.AuthenticationContext;
-
-
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .ContextInitializer;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .SequenceBuildFactory;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.SequenceManager;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
+        .SequenceManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 
 import java.util.List;
@@ -27,11 +26,11 @@ public class HandlerManager {
         return instance;
     }
 
-    public ContextInitializer getContextInitializerHandler(AuthenticationContext authenticationContext){
+    public ContextInitializer getContextInitializerHandler(AuthenticationContext authenticationContext) {
         List<ContextInitializer> contextInitializers =
                 FrameworkServiceDataHolder.getInstance().getContextInitializers();
-        for (ContextInitializer contextInitializer : contextInitializers){
-            if(contextInitializer.canHandle(authenticationContext)){
+        for (ContextInitializer contextInitializer : contextInitializers) {
+            if (contextInitializer.canHandle(authenticationContext)) {
                 return contextInitializer;
             }
         }
@@ -39,16 +38,15 @@ public class HandlerManager {
     }
 
 
-    public SequenceManager getSequenceManager(AuthenticationContext authenticationContext){
+    public SequenceManager getSequenceManager(AuthenticationContext authenticationContext) {
 
         throw FrameworkRuntimeException.error("Cannot find SequenceManager to handle this request");
     }
 
-    public SequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext){
+    public SequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
 
         throw FrameworkRuntimeException.error("Cannot find AuthenticationContext to handle this request");
     }
-
 
 
 }

@@ -6,12 +6,12 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class AuthenticationRequest extends IdentityRequest{
+public class AuthenticationRequest extends IdentityRequest {
 
-    private String requestDataKey ;
+    private String requestDataKey;
 
-    private String clientId ;
-    private String requestType ;
+    private String clientId;
+    private String requestType;
 
     protected AuthenticationRequest(
             AuthenticationRequestBuilder builder) {
@@ -33,11 +33,12 @@ public class AuthenticationRequest extends IdentityRequest{
         return requestType;
     }
 
-    public static class AuthenticationRequestBuilder extends IdentityRequestBuilder{
-        private String requestDataKey ;
 
-        private String clientId ;
-        private String requestType ;
+    public static class AuthenticationRequestBuilder extends IdentityRequestBuilder {
+        private String requestDataKey;
+
+        private String clientId;
+        private String requestType;
 
         public AuthenticationRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             super(request, response);
@@ -65,7 +66,7 @@ public class AuthenticationRequest extends IdentityRequest{
         }
     }
 
-    public static class AuthenticationRequestConstants{
-        public static final String REQUEST_DATA_KEY = "RequestDataKey" ;
+    public static class AuthenticationRequestConstants extends IdentityRequestConstants {
+        public static final String REQUEST_DATA_KEY = "RequestDataKey";
     }
 }

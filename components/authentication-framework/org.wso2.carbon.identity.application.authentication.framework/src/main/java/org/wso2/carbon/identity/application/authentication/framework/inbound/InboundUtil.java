@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.wso2.carbon.identity.application.authentication.framework.inbound.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.IdentityMessageContext;
+
 public class InboundUtil {
 
     /**
@@ -28,7 +31,7 @@ public class InboundUtil {
      */
     public static void addContextToCache(String key, IdentityMessageContext context) {
 
-        IdentityContextCache.getInstance().addToCache(key, context);
+        IdentityMessageContextCache.getInstance().addToCache(key, context);
     }
 
     /**
@@ -39,7 +42,7 @@ public class InboundUtil {
      */
     public static IdentityMessageContext getContextFromCache(String key) {
 
-        IdentityMessageContext context = IdentityContextCache.getInstance().getValueFromCache(key);
+        IdentityMessageContext context = IdentityMessageContextCache.getInstance().getValueFromCache(key);
         return context;
     }
 }

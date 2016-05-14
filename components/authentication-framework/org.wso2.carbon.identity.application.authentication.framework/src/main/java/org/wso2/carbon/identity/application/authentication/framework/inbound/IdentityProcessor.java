@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -47,7 +48,10 @@ public abstract class IdentityProcessor {
      * @param identityRequest IdentityRequest
      * @return IdentityResponseBuilder
      * @throws org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException Error
-     * occurred while processing IdentityRequest
+     *                                                                                                    occurred
+     *                                                                                                    while
+     *                                                                                                    processing
+     *                                                                                                    IdentityRequest
      */
     public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
             throws FrameworkException;
@@ -223,7 +227,8 @@ public abstract class IdentityProcessor {
      */
     protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context) {
 
-        String sessionDataKey = context.getIdentityRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        String sessionDataKey =
+                context.getIdentityRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
         if (entry != null) {

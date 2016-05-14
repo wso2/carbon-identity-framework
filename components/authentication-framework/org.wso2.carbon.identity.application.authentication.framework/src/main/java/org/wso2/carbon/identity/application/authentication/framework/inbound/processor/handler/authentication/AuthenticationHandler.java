@@ -2,7 +2,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound.pr
 
 
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .AuthenticationResponse;
@@ -35,10 +35,10 @@ public class AuthenticationHandler extends FrameworkHandler {
         Sequence sequence = sequenceBuildFactory.buildSequence(authenticationContext);
 
         authenticationContext.setSequence(sequence);
-        
+
         ContextInitializer contextInitializerHandler =
                 handlerManager.getContextInitializerHandler(authenticationContext);
-        contextInitializerHandler.initialize(authenticationContext, sequence);
+        contextInitializerHandler.initialize(authenticationContext);
 
         SequenceManager sequenceManager =
                 handlerManager.getSequenceManager(authenticationContext);

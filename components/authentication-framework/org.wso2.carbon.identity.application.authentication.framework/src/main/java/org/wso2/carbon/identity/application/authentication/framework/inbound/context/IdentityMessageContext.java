@@ -16,14 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.inbound;
+package org.wso2.carbon.identity.application.authentication.framework.inbound.context;
 
+import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext
@@ -32,7 +31,7 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
     private static final long serialVersionUID = 104614801932285909L;
 
     protected IdentityRequest initialIdentityRequest;
-    protected IdentityRequest identityRequest ;
+    protected IdentityRequest identityRequest;
 
     protected Map<T1, T2> parameters = new HashMap<>();
 
