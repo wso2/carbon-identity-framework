@@ -23,10 +23,13 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory;
 import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.jdbc.JDBCCountRetrieverFactory;
 import org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetriever;
+import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetrieverFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -36,9 +39,9 @@ import org.wso2.carbon.user.core.service.RealmService;
  * cardinality="1..1" policy="dynamic" bind="setRealmService"
  * unbind="unsetRealmService"
  * @scr.reference name="user.store.count"
- * interface="org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever"
- * cardinality="0..n" policy="dynamic" bind="setUserStoreCountRetriever"
- * unbind="unsetUserStoreCountRetriever"
+ * interface="org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory"
+ * cardinality="0..n" policy="dynamic" bind="setCountRetrieverFactory"
+ * unbind="unsetCountRetrieverFactory"
  */
 
 public class UserStoreCountDSComponent {
@@ -76,18 +79,17 @@ public class UserStoreCountDSComponent {
         return bundleContext;
     }
 
-
     @SuppressWarnings("unchecked")
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
         UserStoreCountDataHolder.getInstance().setBundleContext(bundleContext);
 
-        UserStoreCountRetriever userStoreCountRetriever = new JDBCUserStoreCountRetriever();
-        UserStoreCountRetriever internalCountRetriever = new InternalCountRetriever();
-        ServiceRegistration serviceRegistration = bundleContext.registerService(
-                UserStoreCountRetriever.class.getName(), userStoreCountRetriever, null);
-        bundleContext.registerService(UserStoreCountRetriever.class.getName(), internalCountRetriever, null);
-
+        AbstractCountRetrieverFactory jdbcCountRetrieverFactory = new JDBCCountRetrieverFactory();
+        AbstractCountRetrieverFactory internalCountRetrieverFactory = new InternalCountRetrieverFactory();
+        ServiceRegistration serviceRegistration = bundleContext
+                .registerService(AbstractCountRetrieverFactory.class.getName(), jdbcCountRetrieverFactory, null);
+        bundleContext
+                .registerService(AbstractCountRetrieverFactory.class.getName(), internalCountRetrieverFactory, null);
 
         if (serviceRegistration != null) {
             if (log.isDebugEnabled()) {
@@ -106,25 +108,24 @@ public class UserStoreCountDSComponent {
         UserStoreCountDataHolder.getInstance().setBundleContext(null);
     }
 
-    protected void setUserStoreCountRetriever(UserStoreCountRetriever userStoreCountRetriever) {
+    protected void setCountRetrieverFactory(AbstractCountRetrieverFactory countRetrieverFactory) {
 
-        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().put(
-                userStoreCountRetriever.getClass().getName(), userStoreCountRetriever);
-
+        UserStoreCountDataHolder.getInstance().getCountRetrieverFactories()
+                .put(countRetrieverFactory.getCounterType(), countRetrieverFactory);
         if (log.isDebugEnabled()) {
-            log.debug("Added user store count retriever : " + userStoreCountRetriever.getClass().getName());
+            log.debug("Added count retriever : " + countRetrieverFactory.getCounterType());
         }
+
     }
 
-    protected void unsetUserStoreCountRetriever(UserStoreCountRetriever userStoreCountRetriever) {
+    protected void unsetCountRetrieverFactory(AbstractCountRetrieverFactory countRetrieverFactory) {
 
-        UserStoreCountDataHolder.getInstance().getUserStoreCountRetrievers().remove(
-                userStoreCountRetriever.getClass().getName());
+        UserStoreCountDataHolder.getInstance().getCountRetrieverFactories()
+                .remove(countRetrieverFactory.getCounterType());
 
         if (log.isDebugEnabled()) {
-            log.debug("Removed user store count retriever : " + userStoreCountRetriever.getClass().getName());
+            log.debug("Removed count retriever : " + countRetrieverFactory.getCounterType());
         }
     }
-
 
 }

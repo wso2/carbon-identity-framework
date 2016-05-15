@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,25 +21,25 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 public class InboundUtil {
 
     /**
-     * Add to InboundContextCache
+     * Add to IdentityMessageContext
      *
      * @param key Key
-     * @param context InboundMessageContext
+     * @param context IdentityMessageContext
      */
-    public static void addContextToCache(String key, InboundMessageContext context) {
+    public static void addContextToCache(String key, IdentityMessageContext context) {
 
-        InboundContextCache.getInstance().addToCache(key, context);
+        IdentityContextCache.getInstance().addToCache(key, context);
     }
 
     /**
-     * Get from InboundContextCache
+     * Get from IdentityMessageContext
      *
      * @param key cache key
-     * @return InboundMessageContext
+     * @return IdentityMessageContext
      */
-    public static InboundMessageContext getContextFromCache(String key) {
+    public static IdentityMessageContext getContextFromCache(String key) {
 
-        InboundMessageContext context = InboundContextCache.getInstance().getValueFromCache(key);
+        IdentityMessageContext context = IdentityContextCache.getInstance().getValueFromCache(key);
         return context;
     }
 }

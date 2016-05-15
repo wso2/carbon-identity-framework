@@ -285,7 +285,7 @@
                         break;
                     case "contains key":
                         template =
-                                "boolean(//*[local-name()='parameter'][@name='{{paramName}}']/*[local-name()='value'][@itemName='{{value}}']/*[local-name()='itemValue'])";
+                                "boolean(//*[local-name()='parameter'][@name='{{paramName}}']/*[local-name()='value']/*[local-name()='itemValue'][@itemName='{{value}}'])";
                         condition = template.replace("{{paramName}}", selectedParam).replace("{{value}}", val1);
                         break;
                     default :
