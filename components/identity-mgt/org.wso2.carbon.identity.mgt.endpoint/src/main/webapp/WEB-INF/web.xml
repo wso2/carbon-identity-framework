@@ -21,14 +21,6 @@
 
 <web-app>
     <context-param>
-        <param-name>ServiceAccessUsername</param-name>
-        <param-value>admin</param-value>
-    </context-param>
-    <context-param>
-        <param-name>ServiceAccessPassword</param-name>
-        <param-value>admin</param-value>
-    </context-param>
-    <context-param>
         <param-name>EnableEmailNotification</param-name>
         <param-value>false</param-value>
     </context-param>
