@@ -23,6 +23,7 @@
 <%@ page import="java.util.Set" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 
 <%
     if (session.getAttribute("username") != null) {
@@ -99,8 +100,8 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=IdentityManagementEndpointUtil.getUserPortalUrl(
-                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL))%>";
+            location.href = "<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>";
         })
     });
 </script>

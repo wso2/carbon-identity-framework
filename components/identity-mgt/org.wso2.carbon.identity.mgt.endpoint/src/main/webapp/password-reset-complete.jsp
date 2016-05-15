@@ -20,6 +20,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 
 <%
     UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
@@ -85,8 +86,8 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=IdentityManagementEndpointUtil.getUserPortalUrl(
-                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL))%>";
+            location.href = "<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>";
         })
     });
 </script>

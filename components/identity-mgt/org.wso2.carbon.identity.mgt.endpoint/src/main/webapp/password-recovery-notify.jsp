@@ -22,6 +22,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 
 <%
     UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
@@ -60,7 +61,7 @@
                 </div>
                 <div class="modal-body">
                     <p>Password recovery information has been sent to the email registered
-                        with the account <%=username%>
+                        with the account <%=Encode.forHtml(username)%>
                     </p>
                 </div>
                 <div class="modal-footer">
@@ -77,8 +78,8 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=IdentityManagementEndpointUtil.getUserPortalUrl(
-                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL))%>";
+            location.href = "<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>";
         })
     });
 </script>

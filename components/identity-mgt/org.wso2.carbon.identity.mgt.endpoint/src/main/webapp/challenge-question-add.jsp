@@ -114,12 +114,12 @@
                                     .entrySet()) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <select name=<%="Q-" + entry.getKey()%>>
+                                <select name=<%="Q-" + Encode.forHtmlAttribute(entry.getKey())%>>
                                     <%
                                         for (ChallengeQuestionDTO challengeQuestionDTO : entry.getValue()) {
                                     %>
-                                    <option value="<%=challengeQuestionDTO.getQuestion()%>"><%=challengeQuestionDTO
-                                            .getQuestion()%>
+                                    <option value="<%=Encode.forHtmlAttribute(challengeQuestionDTO.getQuestion())%>">
+                                        <%=Encode.forHtml(challengeQuestionDTO.getQuestion())%>
                                     </option>
                                     <%} %>
                                 </select>
@@ -127,7 +127,9 @@
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <label class="control-label">Your Answer</label>
-                                <input type="text" name="<%="A-" + entry.getKey()%>" class="form-control" required/>
+                                <input type="text" name="<%="A-" + Encode.forHtmlAttribute(entry.getKey())%>"
+                                       class="form-control"
+                                       required/>
                             </div>
                             <%
                                 }

@@ -119,7 +119,7 @@
                     <div class="padding-double">
                         <form method="post" action="verify.do" id="registrationConfirmationForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <img src="<%=captchaImageUrl%>"
+                                <img src="<%=Encode.forHtmlAttribute(captchaImageUrl)%>"
                                      alt='If you can not see the captcha image please refresh the page or click the link again.'/>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
@@ -131,10 +131,11 @@
                                 <input id="hidden-username" name="username" type="hidden" class="form-control"
                                        value="<%=Encode.forHtmlAttribute(username)%>">
                                 <input id="confirmationKey" type="hidden" name="confirmationKey"
-                                       value="<%=confirmationKey%>"/>
+                                       value="<%=Encode.forHtmlAttribute(confirmationKey)%>"/>
                                 <input id="captchaImagePath" type="hidden" name="captchaImagePath"
-                                       value="<%=captchaImagePath%>"/>
-                                <input id="captchaKey" type="hidden" name="captchaKey" value="<%=captchaKey%>"/>
+                                       value="<%=Encode.forHtmlAttribute(captchaImagePath)%>"/>
+                                <input id="captchaKey" type="hidden" name="captchaKey"
+                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
                                 <input id="isUserRegistrationEmailConfirmation" type="hidden"
                                        name="isUserRegistrationEmailConfirmation"
                                        value="true"/>
@@ -154,8 +155,8 @@
                                         <td>
                                             <button id="confirmationCancel"
                                                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                                    onclick="location.href='<%=IdentityManagementEndpointUtil.getUserPortalUrl(
-                                                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL))%>';">
+                                                    onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
+                                                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>';">
                                                 Cancel
                                             </button>
                                         </td>
