@@ -311,7 +311,7 @@
                 List<FlaggedName> dataList = new ArrayList<FlaggedName>(Arrays.asList(datas));
                 exceededDomains = dataList.remove(dataList.size() - 1);
                 session.setAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED, exceededDomains);
-                if (dataList == null || dataList.size() == 0) {
+                if (dataList == null || dataList.isEmpty()) {
                     session.removeAttribute(UserAdminUIConstants.USER_LIST_FILTER);
                     showFilterMessage = true;
                 }

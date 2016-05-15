@@ -120,16 +120,16 @@
                         <div class="clearfix"></div>
                         <div class="padding-double login-form">
                             <%
-                                if (localAuthenticatorNames.size() > 0) {
+                                if (!localAuthenticatorNames.isEmpty()) {
 
-                                    if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(OPEN_ID_AUTHENTICATOR)) {
+                                    if (!localAuthenticatorNames.isEmpty() && localAuthenticatorNames.contains(OPEN_ID_AUTHENTICATOR)) {
                                         hasLocalLoginOptions = true;
                             %>
 
                             <%@ include file="openid.jsp" %>
 
                             <%
-                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
+                            } else if (!localAuthenticatorNames.isEmpty() && localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                 hasLocalLoginOptions = true;
                             %>
 
@@ -215,7 +215,7 @@
                                     </div>
                                 <%} %>
                                 <%
-                                } else if (localAuthenticatorNames.size() > 0) {
+                                } else if (!localAuthenticatorNames.isEmpty()) {
                                     if (localAuthenticatorNames.contains(IWA_AUTHENTICATOR)) {
                                 %>
                                 <div>

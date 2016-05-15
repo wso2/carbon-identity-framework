@@ -74,7 +74,7 @@
     try {
         EntitlementPolicyAdminServiceClient client = new EntitlementPolicyAdminServiceClient(cookie,
                     serverURL, configContext);
-        if(attributeValueDTOs.size() > 0){
+        if(!attributeValueDTOs.isEmpty()){
             results = client.getAdvanceSearchResult(attributeValueDTOs.
                     toArray(new AttributeDTO[attributeValueDTOs.size()]));
             if(results != null){
@@ -236,7 +236,7 @@
                 </thead>
                 <tbody>
                 <%
-                if (policies != null && policies.size() > 0) {
+                if (policies != null && !policies.isEmpty()) {
                     for (PolicyDTO policyDTO : policies) {
                         if(policyDTO != null){
                 %>

@@ -96,7 +96,7 @@
         domainNames.add(UserAdminUIConstants.INTERNAL_DOMAIN.toUpperCase());
         domainNames.add(UserAdminUIConstants.APPLICATION_DOMAIN);
 
-        if (domainNames.size() > 0) {
+        if (!domainNames.isEmpty()) {
             if (primaryDomainName == null) {
                 primaryDomainName = UserAdminUIConstants.PRIMARY_DOMAIN_NAME_NOT_DEFINED;
                 domainNames.add(primaryDomainName);
@@ -274,7 +274,7 @@
                             <table class="normal">
                                 <%
                                     if (!UserAdminUIConstants.INTERNAL_ROLE.equalsIgnoreCase(roleType) &&
-                                        domainNames != null && domainNames.size() > 0) {
+                                        domainNames != null && !domainNames.isEmpty()) {
                                 %>
                                 <tr>
                                     <td><fmt:message key="select.domain"/></td>

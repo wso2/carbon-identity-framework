@@ -1451,7 +1451,7 @@ var roleMappinRowID = -1;
                     	</tr>   
                     	<% 
                     	
-                    	if(appBean.getEnabledFederatedIdentityProviders()  != null && appBean.getEnabledFederatedIdentityProviders().size() > 0) {%>
+                    	if(appBean.getEnabledFederatedIdentityProviders()  != null && !appBean.getEnabledFederatedIdentityProviders().isEmpty()) {%>
                     	<tr>
                     		<td class="leftCol-med labelField"/>
                         	<td>

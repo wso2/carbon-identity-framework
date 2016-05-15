@@ -84,7 +84,7 @@
 						CarbonConstants.CONFIGURATION_CONTEXT);
         client = new IdentityManagementAdminClient(cookie,
                 backendServerURL, configContext);
-        if(userChallengesDTOs.size() > 0){
+        if(!userChallengesDTOs.isEmpty()){
             client.setChallengeQuestionsOfUser(userName,
                     userChallengesDTOs.toArray(new UserChallengesDTO[userChallengesDTOs.size()]));
         }

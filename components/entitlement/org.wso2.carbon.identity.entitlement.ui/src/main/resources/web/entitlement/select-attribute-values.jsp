@@ -150,7 +150,7 @@
 %>
 
 <%
-    if(holders == null || holders.size() == 0){
+    if(holders == null || holders.isEmpty()){
         String message = resourceBundle.getString("no.entitlement.data.finder.defined");
 %>
 <script type="text/javascript">
@@ -297,7 +297,7 @@
                 <td>
                 <table>
     <%
-        if(holders != null && holders.size() > 0){
+        if(holders != null && !holders.isEmpty()){
     %>
                 <tr>
                     <td class="leftCel-med">

@@ -107,7 +107,7 @@
                 }
             }
 
-            if (attrList.size() > 0) {
+            if (!attrList.isEmpty()) {
                 mapping.setMappedAttributes(attrList.toArray(new ClaimAttributeDTO[attrList.size()]));
             }
 

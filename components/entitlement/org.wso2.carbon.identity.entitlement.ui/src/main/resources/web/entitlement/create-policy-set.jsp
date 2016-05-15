@@ -219,7 +219,7 @@
 <%
     if(targetDTO != null){
         List<RowDTO> rowDTOs = targetDTO.getRowDTOList();
-        if(rowDTOs != null  && rowDTOs.size() > 0){
+        if(rowDTOs != null  && !rowDTOs.isEmpty()){
             RowDTO rowDTO = rowDTOs.get(0);
             currentCategory = rowDTO.getCategory();
             currentPreFunction = rowDTO.getPreFunction();
@@ -246,7 +246,7 @@
     }
 
 
-    if(obligationDTOs != null && obligationDTOs.size() > 0){
+    if(obligationDTOs != null && !obligationDTOs.isEmpty()){
         ObligationDTO dto = obligationDTOs.get(0);
         currentObligationType = dto.getType();
         currentObligationId = dto.getObligationId();
@@ -462,7 +462,7 @@
     <td>
         <select id="algorithmName" name="algorithmName" class="text-box-big">
             <%
-                if (policyCombingAlgorithm != null && policyCombingAlgorithm.size() > 0) {
+                if (policyCombingAlgorithm != null && !policyCombingAlgorithm.isEmpty()) {
                     for (String algorithmName : policyCombingAlgorithm) {
                         if (algorithmName.equals(entitlementPolicyBean.getAlgorithmName())) {
             %>
@@ -521,7 +521,7 @@
         <% } %>
 
 
-        <%if(obligationDTOs == null || obligationDTOs.size() == 0){%>
+        <%if(obligationDTOs == null || obligationDTOs.isEmpty()){%>
         jQuery("#newObligationLinkRow").hide();
         <%}else{ %>
         jQuery("#newObligationLinkRow").show();
@@ -678,7 +678,7 @@
     <%
         if(targetDTO != null){
             List<RowDTO> rowDTOs = targetDTO.getRowDTOList();
-            if(rowDTOs != null && rowDTOs.size() > 0){
+            if(rowDTOs != null && !rowDTOs.isEmpty()){
                 //rowDTOs.remove(0);
                 for(int i = 1; i < rowDTOs.size(); i ++){
                     RowDTO rowDTO = rowDTOs.get(i);
@@ -734,7 +734,7 @@
 
 <tr>
     <td colspan="2" style="margin-top:10px;">
-        <h2 class="trigger  <%if(obligationDTOs == null || obligationDTOs.size() == 0){%>active<%} %>"><a href="#"><fmt:message
+        <h2 class="trigger  <%if(obligationDTOs == null || obligationDTOs.isEmpty()){%>active<%} %>"><a href="#"><fmt:message
                 key="add.new.obligations"/></a></h2>
         <div class="toggle_container" id="newObligationLinkRow">
 
@@ -820,7 +820,7 @@
                     </td>
                 </tr>
                 <%
-                    if(obligationDTOs != null && obligationDTOs.size() > 0){
+                    if(obligationDTOs != null && !obligationDTOs.isEmpty()){
                         //obligationDTOs.remove(0);
                         for(int i = 1; i < obligationDTOs.size(); i++){
                             ObligationDTO dto = obligationDTOs.get(i);
@@ -933,7 +933,7 @@
             </tr>
             </thead>
             <%
-                if (policyIds != null && policyIds.size() > 0) {
+                if (policyIds != null && !policyIds.isEmpty()) {
                     List<PolicyRefIdDTO> orderedPolicyDTOs = new ArrayList<PolicyRefIdDTO>();
                     String policyReferenceOrder = entitlementPolicyBean.getPolicyReferenceOrder();
                     if (policyReferenceOrder != null) {

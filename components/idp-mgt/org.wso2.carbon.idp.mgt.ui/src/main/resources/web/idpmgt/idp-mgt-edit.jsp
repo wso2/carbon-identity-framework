@@ -4603,7 +4603,7 @@ function doValidation() {
 
 <%
 
-    if (allFedAuthConfigs != null && allFedAuthConfigs.size() > 0) {
+    if (allFedAuthConfigs != null && !allFedAuthConfigs.isEmpty()) {
 
         for (Map.Entry<String, FederatedAuthenticatorConfig> entry : allFedAuthConfigs.entrySet()) {
             FederatedAuthenticatorConfig fedConfig = entry.getValue();

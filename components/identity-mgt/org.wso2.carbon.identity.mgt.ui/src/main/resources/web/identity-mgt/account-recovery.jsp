@@ -142,7 +142,7 @@
         <form action="account-recovery-finish.jsp?userName=<%=Encode.forUriComponent(username)%>">
 
         <%
-            if(challengesMap.size() > 0){
+            if(!challengesMap.isEmpty()){
 
              int challengeNumber = 1;
              for(Map.Entry<String,  HashSet<ChallengeQuestionDTO>> entry : challengesMap.entrySet()){

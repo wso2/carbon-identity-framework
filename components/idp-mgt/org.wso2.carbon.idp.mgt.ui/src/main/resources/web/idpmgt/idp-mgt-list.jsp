@@ -80,7 +80,7 @@
             <table class="styledLeft" id="idPsListTable">
                 <thead><tr><th class="leftCol-med"><fmt:message key='registered.idps'/></th><th class="leftCol-big"><fmt:message key='description'/></th><th style="width: 30% ;" ><fmt:message key='actions'/></th></tr></thead>
                 <tbody>
-                    <% if(identityProvidersList != null && identityProvidersList.size() > 0){ %>
+                    <% if(identityProvidersList != null && !identityProvidersList.isEmpty()){ %>
                         <% for(int i = 0; i < identityProvidersList.size(); i++){
                          String description = identityProvidersList.get(i).getIdentityProviderDescription();
                          boolean enable = identityProvidersList.get(i).getEnable();

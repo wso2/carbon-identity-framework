@@ -85,7 +85,7 @@
 
         elementDTOList = policyEditorDTO.getSimplePolicyEditorElementDTOs();
 
-        if(elementDTOList != null && elementDTOList.size() > 0){
+        if(elementDTOList != null && !elementDTOList.isEmpty()){
             SimplePolicyEditorElementDTO elementDTO = elementDTOList.get(0);
             if(elementDTO != null){
                 selectedRuleActionValue = elementDTO.getActionValue();
@@ -459,7 +459,7 @@
             </td>
             </tr>
 <%
-if(elementDTOList != null && elementDTOList.size() > 0){
+if(elementDTOList != null && !elementDTOList.isEmpty()){
     elementDTOList.remove(0);
     for(SimplePolicyEditorElementDTO elementDTO : elementDTOList){
         selectedRuleActionValue = elementDTO.getActionValue();
@@ -630,7 +630,7 @@ if(elementDTOList != null && elementDTOList.size() > 0){
             </td>
             </tr>
         <%
-            if(elementDTOList != null && elementDTOList.size() > 0){
+            if(elementDTOList != null && !elementDTOList.isEmpty()){
                 elementDTOList.remove(0);
                 for(SimplePolicyEditorElementDTO elementDTO : elementDTOList){
                     selectedRuleActionValue = elementDTO.getActionValue();
@@ -803,7 +803,7 @@ if(elementDTOList != null && elementDTOList.size() > 0){
               </td>
               </tr>
 <%
-  if(elementDTOList != null && elementDTOList.size() > 0){
+  if(elementDTOList != null && !elementDTOList.isEmpty()){
       elementDTOList.remove(0);
       for(SimplePolicyEditorElementDTO elementDTO : elementDTOList){
           selectedRuleActionValue = elementDTO.getActionValue();
