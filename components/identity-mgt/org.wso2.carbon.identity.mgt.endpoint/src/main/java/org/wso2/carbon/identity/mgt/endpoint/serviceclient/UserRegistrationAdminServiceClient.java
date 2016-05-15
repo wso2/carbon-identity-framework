@@ -23,6 +23,7 @@ import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
@@ -47,7 +48,7 @@ public class UserRegistrationAdminServiceClient {
         StringBuilder builder = new StringBuilder();
         String serviceURL = null;
 
-        serviceURL = builder.append(IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true))
+        serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
                             .append(IdentityManagementEndpointConstants.ServiceEndpoints.USER_REGISTRATION_SERVICE)
                             .toString().replaceAll("(?<!(http:|https:))//", "/");
 

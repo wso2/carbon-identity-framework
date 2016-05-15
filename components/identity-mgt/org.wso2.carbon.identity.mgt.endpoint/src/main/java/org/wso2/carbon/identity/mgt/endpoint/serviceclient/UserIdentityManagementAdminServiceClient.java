@@ -20,9 +20,8 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.ServiceClient;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
-import org.wso2.carbon.identity.mgt.endpoint.ServiceAuthenticator;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceStub;
 import org.wso2.carbon.identity.mgt.stub.dto.ChallengeQuestionDTO;
@@ -46,13 +45,13 @@ public class UserIdentityManagementAdminServiceClient {
         StringBuilder builder = new StringBuilder();
         String serviceURL = null;
 
-        serviceURL = builder.append(IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true))
+        serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL())
                             .append(IdentityManagementEndpointConstants.ServiceEndpoints.USER_IDENTITY_MANAGEMENT_SERVICE)
                             .toString().replaceAll("(?<!(http:|https:))//", "/");
 
         stub = new UserIdentityManagementAdminServiceStub(serviceURL);
         ServiceClient client = stub._getServiceClient();
-        ServiceAuthenticator.getInstance().authenticate(client);
+        IdentityManagementServiceUtil.getInstance().authenticate(client);
     }
 
     /**

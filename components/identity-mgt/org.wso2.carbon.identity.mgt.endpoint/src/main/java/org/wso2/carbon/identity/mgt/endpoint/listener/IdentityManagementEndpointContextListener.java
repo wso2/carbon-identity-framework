@@ -18,10 +18,8 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.listener;
 
-import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
-import org.wso2.carbon.identity.mgt.endpoint.ServiceAuthenticator;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -33,15 +31,7 @@ public class IdentityManagementEndpointContextListener implements ServletContext
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
 
-        ServletContext context = servletContextEvent.getServletContext();
-
-        ServiceAuthenticator serviceAuthenticator = ServiceAuthenticator.getInstance();
-        serviceAuthenticator.setServiceAccessUsername(context.getInitParameter(IdentityManagementEndpointConstants
-                                                                                       .ServiceAuthenticationConstants
-                                                                                       .SERVICE_ACCESS_USERNAME));
-        serviceAuthenticator.setServiceAccessPassword(context.getInitParameter(IdentityManagementEndpointConstants
-                                                                                       .ServiceAuthenticationConstants
-                                                                                       .SERVICE_ACCESS_PASSWORD));
+        IdentityManagementServiceUtil.getInstance().init();
     }
 
     @Override

@@ -21,9 +21,8 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.ServiceClient;
 import org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
-import org.wso2.carbon.identity.mgt.endpoint.ServiceAuthenticator;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.stub.UserInformationRecoveryServiceIdentityExceptionException;
 import org.wso2.carbon.identity.mgt.stub.UserInformationRecoveryServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.identity.mgt.stub.UserInformationRecoveryServiceStub;
@@ -51,13 +50,13 @@ public class UserInformationRecoveryClient {
         StringBuilder builder = new StringBuilder();
         String serviceURL = null;
 
-        serviceURL = builder.append(IdentityUtil.getServerURL(IdentityUtil.getServicePath(), true, true)).append
+        serviceURL = builder.append(IdentityManagementServiceUtil.getInstance().getServiceContextURL()).append
                 (IdentityManagementEndpointConstants.ServiceEndpoints.USER_INFORMATION_RECOVERY_SERVICE).toString()
                             .replaceAll("(?<!(http:|https:))//", "/");
 
         stub = new UserInformationRecoveryServiceStub(serviceURL);
         ServiceClient client = stub._getServiceClient();
-        ServiceAuthenticator.getInstance().authenticate(client);
+        IdentityManagementServiceUtil.getInstance().authenticate(client);
     }
 
     /**

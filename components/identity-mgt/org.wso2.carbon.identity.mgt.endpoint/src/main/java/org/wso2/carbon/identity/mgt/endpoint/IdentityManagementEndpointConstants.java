@@ -29,9 +29,10 @@ public class IdentityManagementEndpointConstants {
         public static final String USER_PORTAL_URL = "UserPortalUrl";
     }
 
-    public static final class ServiceAuthenticationConstants {
-        public static final String SERVICE_ACCESS_USERNAME = "ServiceAccessUsername";
-        public static final String SERVICE_ACCESS_PASSWORD = "ServiceAccessPassword";
+    public static final class ServiceConfigConstants {
+        public static final String SERVICE_ACCESS_USERNAME = "identity.server.service.access.username";
+        public static final String SERVICE_ACCESS_PASSWORD = "identity.server.service.access.password";
+        public static final String SERVICE_CONTEXT_URL = "identity.server.service.contextURL";
     }
 
     public static final class ServiceEndpoints {
@@ -67,6 +68,11 @@ public class IdentityManagementEndpointConstants {
     public static final String WSO2_DIALECT = "http://wso2.org/claims";
 
     public static final String DEFAULT_USER_PORTAL_URL = "../dashboard/index.jag";
+
+    public static final String RELATIVE_PATH_START_CHAR = ".";
+    public static final String SERVICE_CONFIG_RELATIVE_PATH =
+            "./repository/conf/identity/RecoveryEndpointConfig.properties";
+    public static final String SERVICE_CONFIG_FILE_NAME = "RecoveryEndpointConfig.properties";
 
     private IdentityManagementEndpointConstants() {
     }
