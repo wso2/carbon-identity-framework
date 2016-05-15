@@ -46,6 +46,13 @@
         <param-value>http://localhost:8080/customauthenticationendpoint/retry.do?type=retry.do</param-value>
     </context-param-->
     <!-- *************** End of Global configurations ********************** -->
+
+    <!-- *************** Account Recovery Endpoint Context URL Configuration ********************** -->
+    <!--context-param>
+       <param-name>IdentityManagementEndpointContextURL</param-name>
+       <param-value>https://localhost:9443/accountrecoveryendpoint</param-value>
+   </context-param-->
+    <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
     <filter>
         <filter-name>AuthenticationEndpointFilter</filter-name>
         <filter-class>
