@@ -1,29 +1,33 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound.context;
 
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.cache.SessionContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
         .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .model.Sequence;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl
         .util.Utility;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.request
+        .ClientAuthenticationRequest;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.Map;
 
 public class AuthenticationContext extends IdentityMessageContext {
 
-    private transient ServiceProvider serviceProvider = null;
+    protected AuthenticationRequest initialAuthenticationRequest ;
 
-    private transient Sequence sequence = null;
-    private transient SessionContext sessionContext = null;
+    private Sequence sequence = null;
     private SequenceContext sequenceContext = null;
 
     public AuthenticationContext(
             AuthenticationRequest authenticationRequest,
             Map parameters) {
         super(authenticationRequest, parameters);
+        this.initialAuthenticationRequest = authenticationRequest;
     }
 
     public AuthenticationContext(
@@ -31,14 +35,17 @@ public class AuthenticationContext extends IdentityMessageContext {
         super(authenticationRequest);
     }
 
-    public SessionContext getSessionContext() {
-        return sessionContext;
+    public AuthenticationRequest getInitialAuthenticationRequest() {
+        return initialAuthenticationRequest;
     }
 
-    public void setSessionContext(
-            SessionContext sessionContext) {
-        this.sessionContext = sessionContext;
+    public SessionContext getSessionContext() {
+        AuthenticationRequest authenticationRequest = (AuthenticationRequest) getIdentityRequest();
+        String browserCookieValue = authenticationRequest.getBrowserCookieValue();
+        return SessionContextCache.getInstance().getValueFromCache(browserCookieValue);
     }
+
+
 
     public SequenceContext getSequenceContext() {
         return sequenceContext;
@@ -59,15 +66,10 @@ public class AuthenticationContext extends IdentityMessageContext {
     }
 
     public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {
-        if (this.serviceProvider == null) {
-            synchronized (this) {
-                AuthenticationRequest authenticationRequest = (AuthenticationRequest) getIdentityRequest();
-                ServiceProvider serviceProvider =
-                        Utility.getServiceProvider(authenticationRequest.getRequestType(), authenticationRequest
-                                .getClientId(), authenticationRequest.getTenantDomain());
-            }
-        }
-
-        return this.serviceProvider;
+        ClientAuthenticationRequest clientAuthenticationRequest  = (ClientAuthenticationRequest) getInitialAuthenticationRequest();
+        ServiceProvider serviceProvider =
+                Utility.getServiceProvider(clientAuthenticationRequest.getRequestType(), clientAuthenticationRequest
+                        .getClientId(), clientAuthenticationRequest.getTenantDomain());
+        return serviceProvider;
     }
 }

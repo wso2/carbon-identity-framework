@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
@@ -42,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.pro
         .AbstractResponseHandler;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.authenticator.ApplicationAuthenticator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,9 +54,12 @@ public class FrameworkServiceDataHolder {
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private RegistryService registryService = null;
-    private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
+    private List<org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
+
+
+
     private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
@@ -76,8 +79,12 @@ public class FrameworkServiceDataHolder {
     private List<ContextInitializer> contextInitializers = new ArrayList<>();
 
     //SequenceManager
-    private L
 
+
+    //Authenticators
+    List<ApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
+    List<ApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
+    List<ApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -112,7 +119,7 @@ public class FrameworkServiceDataHolder {
         this.bundleContext = bundleContext;
     }
 
-    public List<ApplicationAuthenticator> getAuthenticators() {
+    public List<org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator> getAuthenticators() {
         return authenticators;
     }
 
@@ -174,5 +181,17 @@ public class FrameworkServiceDataHolder {
 
     public List<ContextInitializer> getContextInitializers() {
         return contextInitializers;
+    }
+
+    public List<ApplicationAuthenticator> getRequestPathApplicationAuthenticators() {
+        return requestPathApplicationAuthenticators;
+    }
+
+    public List<ApplicationAuthenticator> getLocalApplicationAuthenticators() {
+        return localApplicationAuthenticators;
+    }
+
+    public List<ApplicationAuthenticator> getFederatedApplicationAuthenticators() {
+        return federatedApplicationAuthenticators;
     }
 }

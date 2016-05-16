@@ -25,10 +25,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
@@ -51,7 +48,6 @@ import org.wso2.carbon.identity.application.authentication.framework.store.Sessi
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -81,7 +77,7 @@ import java.util.Map;
  * cardinality="1..1" policy="dynamic" bind="setRegistryService"
  * unbind="unsetRegistryService"
  * @scr.reference name="application.authenticator"
- * interface="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.authenticator.ApplicationAuthenticator"
  * cardinality="1..n" policy="dynamic" bind="setAuthenticator"
  * unbind="unsetAuthenticator"
  * @scr.reference name="identityCoreInitializedEventService"
@@ -172,9 +168,6 @@ public class FrameworkServiceComponent {
         return bundleContext;
     }
 
-    public static List<ApplicationAuthenticator> getAuthenticators() {
-        return FrameworkServiceDataHolder.getInstance().getAuthenticators();
-    }
 
     @SuppressWarnings("unchecked")
     protected void activate(ComponentContext ctxt) {
@@ -264,20 +257,8 @@ public class FrameworkServiceComponent {
 
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
-
-        Property[] configProperties = null;
-
-        if (authenticator.getConfigurationProperties() != null
-            && !authenticator.getConfigurationProperties().isEmpty()) {
-            configProperties = authenticator.getConfigurationProperties().toArray(new Property[0]);
-        }
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
-            LocalAuthenticatorConfig localAuthenticatorConfig = new LocalAuthenticatorConfig();
-            localAuthenticatorConfig.setName(authenticator.getName());
-            localAuthenticatorConfig.setProperties(configProperties);
-            localAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();

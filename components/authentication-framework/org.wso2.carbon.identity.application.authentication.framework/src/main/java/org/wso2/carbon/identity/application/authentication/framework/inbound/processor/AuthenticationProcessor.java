@@ -8,10 +8,8 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.cache.IdentityMessageContextCache;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.cache.SessionContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.context.IdentityMessageContext;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
         .FrameworkHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -28,10 +26,11 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.pro
         .AbstractResponseHandler;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response
         .ResponseException;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.util.HandlerManager;
 import org.wso2.carbon.identity.base.IdentityException;
 
-public class LoginRequestProcessor extends IdentityProcessor {
+public class AuthenticationProcessor extends IdentityProcessor {
 
     private static final String PROCESS_CONTEXT_LOGIN = "login";
     private static final String PROCESS_CONTEXT_AUTHENTICATION = "authentication";
@@ -80,12 +79,6 @@ public class LoginRequestProcessor extends IdentityProcessor {
                 IdentityMessageContextCache.getInstance().getValueFromCache(requestDataKey);
         if (identityMessageContext != null) {
             authenticationContext = (AuthenticationContext) identityMessageContext;
-
-            String browserCookieValue = authenticationRequest.getBrowserCookieValue();
-            SessionContext sessionContext = SessionContextCache.getInstance().getValueFromCache(browserCookieValue);
-            if(sessionContext!=null){
-                authenticationContext.setSessionContext(sessionContext);
-            }
         }
         return authenticationContext;
     }
