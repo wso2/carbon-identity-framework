@@ -61,7 +61,7 @@ public class AuthenticationRequest extends IdentityRequest {
         }
 
         @Override
-        public IdentityRequest build() throws FrameworkRuntimeException {
+        public AuthenticationRequest build() throws FrameworkRuntimeException {
             return new AuthenticationRequest(this);
         }
     }

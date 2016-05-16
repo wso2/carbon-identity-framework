@@ -8,8 +8,10 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityRequest;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.cache.SessionContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.context.IdentityMessageContext;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler
         .FrameworkHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
@@ -80,8 +82,10 @@ public class LoginRequestProcessor extends IdentityProcessor {
             authenticationContext = (AuthenticationContext) identityMessageContext;
 
             String browserCookieValue = authenticationRequest.getBrowserCookieValue();
-            IdentityMessageContextCache.getInstance().getValueFromCache(browserCookieValue);
-
+            SessionContext sessionContext = SessionContextCache.getInstance().getValueFromCache(browserCookieValue);
+            if(sessionContext!=null){
+                authenticationContext.setSessionContext(sessionContext);
+            }
         }
         return authenticationContext;
     }
