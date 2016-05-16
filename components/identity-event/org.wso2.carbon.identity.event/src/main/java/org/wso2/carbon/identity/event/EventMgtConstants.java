@@ -61,14 +61,19 @@ public class EventMgtConstants {
         private EventProperty(){}
 
         public static final String MODULE = "module";
-        public static final String USER_NAME = "userName";
-        public static final String USER_STORE_MANAGER = "userStoreManager";
+        public static final String USER_NAME = "user-name";
+        public static final String USER_STORE_DOMAIN = "userstore-domain";
+        public static final String CONFIRMATION_CODE = "confirmation-code";
+        public static final String TEMPORARY_PASSWORD = "temporary-password";
+        public static final String URL_USER_NAME = "url:user-name";
         public static final String IDENTITY_MGT_CONFIG = "identityMgtConfig";
         public static final String TENANT_ID = "tenantId";
-        public static final String TENANT_DOMAIN = "tenantDomain";
+        public static final String TENANT_DOMAIN = "tenant-domain";
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
+        public static final String USER_STORE_MANAGER = "userStoreManager";
         public static final String USER_CLAIMS = "USER_CLAIMS";
         public static final String PROFILE_NAME = "PROFILE_NAME";
+
 
 
     }
