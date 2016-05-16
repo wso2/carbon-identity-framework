@@ -74,6 +74,10 @@ public class IdentityManagementEndpointConstants {
             "./repository/conf/identity/RecoveryEndpointConfig.properties";
     public static final String SERVICE_CONFIG_FILE_NAME = "RecoveryEndpointConfig.properties";
 
+    public static final String SECRET_ALIAS = "secretAlias:";
+    public static final String SECRET_ALIAS_SEPARATOR = ":";
+
+
     private IdentityManagementEndpointConstants() {
     }
 }

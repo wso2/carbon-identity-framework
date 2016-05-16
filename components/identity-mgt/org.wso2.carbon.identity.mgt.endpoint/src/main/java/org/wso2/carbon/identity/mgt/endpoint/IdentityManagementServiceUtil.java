@@ -40,8 +40,6 @@ import java.util.Properties;
  */
 public class IdentityManagementServiceUtil {
 
-    private static final String SECRET_ALIAS = "secretAlias:";
-
     private static IdentityManagementServiceUtil instance = new IdentityManagementServiceUtil();
 
     private String accessUsername;
@@ -150,7 +148,7 @@ public class IdentityManagementServiceUtil {
 
         while (propertyNames.hasMoreElements()) {
             String key = (String) propertyNames.nextElement();
-            if (StringUtils.startsWith(properties.getProperty(key), SECRET_ALIAS)) {
+            if (StringUtils.startsWith(properties.getProperty(key), IdentityManagementEndpointConstants.SECRET_ALIAS)) {
                 return true;
             }
         }
@@ -162,20 +160,26 @@ public class IdentityManagementServiceUtil {
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
         Enumeration propertyNames = properties.propertyNames();
         if (secretResolver != null && secretResolver.isInitialized()) {
-            // Iterate through whole config file and find encrypted properties and resolve them
+            // Iterate through config file, find encrypted properties and resolve them
             while (propertyNames.hasMoreElements()) {
                 String key = (String) propertyNames.nextElement();
-                if (secretResolver.isTokenProtected(key)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Resolving and replacing secret for " + key);
-                    }
-                    // Resolving the secret password.
-                    String value = secretResolver.resolve(key);
-                    // Replaces the original encrypted property with resolved property
-                    properties.put(key, value);
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("No encryption done for value with key :" + key);
+                if (StringUtils
+                        .startsWith(properties.getProperty(key), IdentityManagementEndpointConstants.SECRET_ALIAS)) {
+                    String secretAlias = properties.getProperty(key)
+                                                   .split(IdentityManagementEndpointConstants.SECRET_ALIAS_SEPARATOR,
+                                                          2)[1];
+                    if (secretResolver.isTokenProtected(secretAlias)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Resolving and replacing secret for " + secretAlias);
+                        }
+                        // Resolving the secret password.
+                        String value = secretResolver.resolve(secretAlias);
+                        // Replaces the original encrypted property with resolved property
+                        properties.put(key, value);
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("No encryption done for value with key :" + key);
+                        }
                     }
                 }
             }
