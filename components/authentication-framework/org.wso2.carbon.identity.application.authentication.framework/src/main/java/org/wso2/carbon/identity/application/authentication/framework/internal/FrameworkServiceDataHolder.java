@@ -19,29 +19,32 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
+import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.impl.ContextInitializer;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.ContextInitializer;
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
+
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authorization
+        .AbstractAuthorizationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.claim.ClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
         .AbstractPostHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractPreHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPreHandler;
 
 
 
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.ExtensionHandlerPoints;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.request
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.ExtensionHandlerPoints;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.jit.JITHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request
         .AbstractRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response
         .AbstractResponseHandler;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +57,6 @@ public class FrameworkServiceDataHolder {
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private RegistryService registryService = null;
-    private List<org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
 
@@ -68,6 +70,7 @@ public class FrameworkServiceDataHolder {
     //Framework handlers
     private List<AbstractRequestHandler> requestHandlers = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
+    private List<AbstractAuthorizationHandler>  authorizationHandlers = new ArrayList<>();
     private List<JITHandler> jitHandlers = new ArrayList<>();
     private List<ClaimHandler> claimHandlers = new ArrayList<>();
     private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
@@ -119,10 +122,6 @@ public class FrameworkServiceDataHolder {
         this.bundleContext = bundleContext;
     }
 
-    public List<org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator> getAuthenticators() {
-        return authenticators;
-    }
-
     public long getNanoTimeReference() {
         return nanoTimeReference;
     }
@@ -153,6 +152,10 @@ public class FrameworkServiceDataHolder {
 
     public List<AuthenticationHandler> getAuthenticationHandlers() {
         return authenticationHandlers;
+    }
+
+    public List<AbstractAuthorizationHandler> getAuthorizationHandlers() {
+        return authorizationHandlers;
     }
 
     public List<AbstractRequestHandler> getRequestHandlers() {
@@ -194,4 +197,6 @@ public class FrameworkServiceDataHolder {
     public List<ApplicationAuthenticator> getFederatedApplicationAuthenticators() {
         return federatedApplicationAuthenticators;
     }
+
+
 }

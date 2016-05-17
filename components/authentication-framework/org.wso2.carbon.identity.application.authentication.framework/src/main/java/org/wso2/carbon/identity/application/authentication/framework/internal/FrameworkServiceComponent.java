@@ -24,34 +24,31 @@ import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.authenticator.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
+        .FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
+        .LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
+        .RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authorization
+        .AbstractAuthorizationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.claim.ClaimHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
         .AbstractPostHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
         .AbstractPreHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.ExtensionHandlerPoints;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.ExtensionHandlerPoints;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.jit.JITHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
-import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
-import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
-import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+
 import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import javax.servlet.Servlet;
@@ -77,50 +74,46 @@ import java.util.Map;
  * cardinality="1..1" policy="dynamic" bind="setRegistryService"
  * unbind="unsetRegistryService"
  * @scr.reference name="application.authenticator"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.authenticator.ApplicationAuthenticator"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator"
  * cardinality="1..n" policy="dynamic" bind="setAuthenticator"
  * unbind="unsetAuthenticator"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="identity.processor"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor"
  * cardinality="0..n" policy="dynamic" bind="addIdentityProcessor"
  * unbind="removeIdentityProcessor"
  * @scr.reference name="identity.request.factory"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityRequestFactory"
  * unbind="removeHttpIdentityRequestFactory"
  * @scr.reference name="identity.response.factory"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
  * unbind="removeHttpIdentityResponseFactory"
  * @scr.reference name="identity.handlers.authentication"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authentication.AuthenticationHandler"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.AuthenticationHandler"
  * cardinality="0..n" policy="dynamic" bind="addAuthenticationHandler"
  * unbind="removeAuthenticationHandler"
  * @scr.reference name="identity.handlers.authorization"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.authorization.AbstractAuthorizationHandler"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.authorization.AbstractAuthorizationHandler"
  * cardinality="0..n" policy="dynamic" bind="addAuthorizationHandler"
  * unbind="removeAuthorizationHandler"
  * @scr.reference name="identity.handlers.jit"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.jit.JITHandler"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.jit.JITHandler"
  * cardinality="0..n" policy="dynamic" bind="addJITHandler"
  * unbind="removeJITHandler"
  * @scr.reference name="identity.handlers.claim"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.claim.ClaimHandler"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.claim.ClaimHandler"
  * cardinality="0..n" policy="dynamic" bind="addClaimHandler"
  * unbind="removeClaimHandler"
  * @scr.reference name="identity.handlers.response"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.response.AbstractResponseHandler"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.AbstractResponseHandler"
  * cardinality="0..n" policy="dynamic" bind="addResponseHandler"
  * unbind="removeResponseHandler"
- * @scr.reference name="identity.handlers.extension"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractPreHandler"
+ * @scr.reference name="identity.handlers.extension.pre"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPreHandler"
  * cardinality="0..n" policy="dynamic" bind="addPreHandler"
  * unbind="removePreHandler"
- * @scr.reference name="identity.handlers.extension"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.processor.handler.extension.AbstractPostHandler"
+ * @scr.reference name="identity.handlers.extension.post"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPostHandler"
  * cardinality="0..n" policy="dynamic" bind="addPostHandler"
  * unbind="removePostHandler"
  */
@@ -157,12 +150,11 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
     }
 
-    public static BundleContext getBundleContext() throws FrameworkException {
+    public static BundleContext getBundleContext() {
         BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
         if (bundleContext == null) {
             String msg = "System has not been started properly. Bundle Context is null.";
             log.error(msg);
-            throw new FrameworkException(msg);
         }
 
         return bundleContext;
@@ -172,30 +164,11 @@ public class FrameworkServiceComponent {
     @SuppressWarnings("unchecked")
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
-        bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
-                ApplicationAuthenticationService(), null);
-        ;
-        boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
-        if (tenantDropdownEnabled) {
-            // Register the tenant management listener for tracking changes to tenants
-            bundleContext.registerService(TenantMgtListener.class.getName(),
-                                          new AuthenticationEndpointTenantActivityListener(), null);
-
-            if (log.isDebugEnabled()) {
-                log.debug("AuthenticationEndpointTenantActivityListener is registered. Tenant Domains Dropdown is " +
-                          "enabled.");
-            }
-        }
-
-        // Register Common servlet
-        Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
-                COMMON_SERVLET_URL);
 
         Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
                 IDENTITY_SERVLET_URL);
         try {
-            httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
             httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
         } catch (Exception e) {
             String errMsg = "Error when registering servlets via the HttpService.";
@@ -209,8 +182,6 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
-        //this is done to load SessionDataStore class and start the cleanup tasks.
-        SessionDataStore.getInstance();
 
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
@@ -259,19 +230,11 @@ public class FrameworkServiceComponent {
 
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
-            ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
+            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().add(authenticator);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
-            federatedAuthenticatorConfig.setName(authenticator.getName());
-            federatedAuthenticatorConfig.setProperties(configProperties);
-            federatedAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
-            ApplicationAuthenticatorService.getInstance().addFederatedAuthenticator(federatedAuthenticatorConfig);
+            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators().add(authenticator);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = new RequestPathAuthenticatorConfig();
-            reqPathAuthenticatorConfig.setName(authenticator.getName());
-            reqPathAuthenticatorConfig.setProperties(configProperties);
-            reqPathAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
-            ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
+            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators().add(authenticator);
         }
 
         if (log.isDebugEnabled()) {
@@ -281,22 +244,12 @@ public class FrameworkServiceComponent {
 
     protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticators().remove(authenticator);
-        String authenticatorName = authenticator.getName();
-        ApplicationAuthenticatorService appAuthenticatorService = ApplicationAuthenticatorService.getInstance();
-
         if (authenticator instanceof LocalApplicationAuthenticator) {
-            LocalAuthenticatorConfig localAuthenticatorConfig = appAuthenticatorService.getLocalAuthenticatorByName
-                    (authenticatorName);
-            appAuthenticatorService.removeLocalAuthenticator(localAuthenticatorConfig);
+            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().remove(authenticator);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            FederatedAuthenticatorConfig federatedAuthenticatorConfig = appAuthenticatorService
-                    .getFederatedAuthenticatorByName(authenticatorName);
-            appAuthenticatorService.removeFederatedAuthenticator(federatedAuthenticatorConfig);
+            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators().remove(authenticator);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            RequestPathAuthenticatorConfig reqPathAuthenticatorConfig = appAuthenticatorService
-                    .getRequestPathAuthenticatorByName(authenticatorName);
-            appAuthenticatorService.removeRequestPathAuthenticator(reqPathAuthenticatorConfig);
+            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators().remove(authenticator);
         }
 
         if (log.isDebugEnabled()) {
@@ -347,7 +300,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                httpIdentityResponseFactory);
+                         httpIdentityResponseFactory);
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
         }
@@ -378,6 +331,24 @@ public class FrameworkServiceComponent {
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AuthenticationHandler : " + authenticationHandler.getName());
+        }
+    }
+
+    protected void addAuthorizationHandler(AbstractAuthorizationHandler authorizationHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getAuthorizationHandlers().add(authorizationHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AuthorizationHandler : " + authorizationHandler.getName());
+        }
+    }
+
+    protected void removeAuthorizationHandler(AbstractAuthorizationHandler authorizationHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getAuthorizationHandlers().remove(authorizationHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AuthenticationHandler : " + authorizationHandler.getName());
         }
     }
 
@@ -497,17 +468,6 @@ public class FrameworkServiceComponent {
     }
 
 
-
-
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
-
-    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
 
     private static Comparator<IdentityProcessor> identityProcessor =
             new Comparator<IdentityProcessor>() {

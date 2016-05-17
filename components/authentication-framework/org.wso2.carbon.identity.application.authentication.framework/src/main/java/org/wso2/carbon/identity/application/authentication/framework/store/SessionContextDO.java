@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 import java.sql.Timestamp;
 
 /**
- * This class is used to pass the data to and from the SessionDataStore
+ *
  */
 public class SessionContextDO {
 

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -95,13 +96,6 @@ public class SessionDataStore {
 
     private static final String SQL_DELETE_EXPIRED_DATA_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED<?";
-    private static final String MYSQL_DATABASE = "MySQL";
-    private static final String H2_DATABASE = "H2";
-    private static final String DB2_DATABASE = "DB2";
-    private static final String MS_SQL_DATABASE = "MS SQL";
-    private static final String MICROSOFT_DATABASE = "Microsoft";
-    private static final String POSTGRESQL_DATABASE = "PostgreSQL";
-    private static final String INFORMIX_DATABASE = "Informix";
 
     private static int maxPoolSize = 100;
     private long operationCleanUpPeriod = 720;
@@ -119,7 +113,8 @@ public class SessionDataStore {
 
     static {
         try {
-            String maxPoolSizeConfigValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
+            String maxPoolSizeConfigValue = IdentityUtil
+                    .getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
             if (StringUtils.isNotBlank(maxPoolSizeConfigValue)) {
                 maxPoolSize = Integer.parseInt(maxPoolSizeConfigValue);
             }
@@ -189,10 +184,13 @@ public class SessionDataStore {
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        String isCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
+        String isCleanUpEnabledVal = IdentityUtil
+                .getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
 
-        String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
-        String operationCleanUpPeriodVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.CleanUpPeriod");
+        String isOperationCleanUpEnabledVal = IdentityUtil
+                .getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
+        String operationCleanUpPeriodVal = IdentityUtil
+                .getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.CleanUpPeriod");
 
 
         if (StringUtils.isBlank(isCleanUpEnabledVal)) {
@@ -254,17 +252,17 @@ public class SessionDataStore {
         ResultSet resultSet = null;
         try {
             if (StringUtils.isBlank(sqlSelect)) {
-                if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)
-                        || connection.getMetaData().getDriverName().contains(H2_DATABASE)) {
+                if (connection.getMetaData().getDriverName().contains("MySQL")
+                        || connection.getMetaData().getDriverName().contains("H2")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
-                } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
+                } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
-                } else if (connection.getMetaData().getDriverName().contains(MS_SQL_DATABASE)
-                        || connection.getMetaData().getDriverName().contains(MICROSOFT_DATABASE)) {
+                } else if (connection.getMetaData().getDriverName().contains("MS SQL")
+                        || connection.getMetaData().getDriverName().contains("Microsoft")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
-                } else if (connection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE)) {
+                } else if (connection.getMetaData().getDriverName().contains("PostgreSQL")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
-                } else if (connection.getMetaData().getDriverName().contains(INFORMIX_DATABASE)) {
+                } else if (connection.getMetaData().getDriverName().contains("Informix")) {
                     // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
                     sqlSelect = SQL_DESERIALIZE_OBJECT_INFORMIX;
                 } else {
@@ -277,10 +275,9 @@ public class SessionDataStore {
             resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
-                long timestamp = resultSet.getLong(3)/1000000;
                 if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)),
-                            new Timestamp(timestamp));
+                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), new Timestamp
+                            (resultSet.getLong(3)));
                 }
             }
         } catch (ClassNotFoundException | IOException | SQLException |
@@ -332,8 +329,7 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
-            long currentStandardNano = getCurrentStandardNano(timestamp);
-            statement.setLong(1, currentStandardNano);
+            statement.setLong(1, timestamp.getTime()*1000000);
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -364,7 +360,14 @@ public class SessionDataStore {
         }
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        long currentStandardNano = getCurrentStandardNano(timestamp);
+
+        // create a nano time stamp relative to Unix Epoch
+        long currentStandardNano = timestamp.getTime() * 1000000;
+        long currentSystemNano = System.nanoTime();
+
+        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                .getNanoTimeReference());
+
         try {
             preparedStatement = connection.prepareStatement(sqlInsertSTORE);
             preparedStatement.setString(1, key);
@@ -396,13 +399,12 @@ public class SessionDataStore {
             return;
         }
         PreparedStatement preparedStatement = null;
-        long currentStandardNano = getCurrentStandardNano(timestamp);
         try {
             preparedStatement = connection.prepareStatement(sqlInsertDELETE);
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.setString(3, OPERATION_DELETE);
-            preparedStatement.setLong(4, currentStandardNano);
+            preparedStatement.setLong(4, timestamp.getTime());
             preparedStatement.executeUpdate();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -460,15 +462,14 @@ public class SessionDataStore {
         }
         try {
             if (StringUtils.isBlank(sqlDeleteSTORETask)) {
-                if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)) {
+                if (connection.getMetaData().getDriverName().contains("MySQL")) {
                     sqlDeleteSTORETask = SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL;
                 } else {
                     sqlDeleteSTORETask = SQL_DELETE_STORE_OPERATIONS_TASK;
                 }
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
-            long currentStandardNano = getCurrentStandardNano(timestamp);
-            statement.setLong(1, currentStandardNano);
+            statement.setLong(1, timestamp.getTime());
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -494,8 +495,7 @@ public class SessionDataStore {
         }
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
-            long currentStandardNano = getCurrentStandardNano(timestamp);
-            statement.setLong(1, currentStandardNano);
+            statement.setLong(1, timestamp.getTime());
             statement.execute();
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -507,15 +507,5 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
         }
-    }
-
-    private long getCurrentStandardNano(Timestamp timestamp) {
-
-        // create a nano time stamp relative to Unix Epoch
-        long currentStandardNano = timestamp.getTime() * 1000000;
-        long currentSystemNano = System.nanoTime();
-        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
-                .getNanoTimeReference());
-        return currentStandardNano;
     }
 }
