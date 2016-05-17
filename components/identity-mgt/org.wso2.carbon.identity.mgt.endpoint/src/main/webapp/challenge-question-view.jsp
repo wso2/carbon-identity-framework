@@ -75,7 +75,7 @@
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input id="securityQuestionAnswer" name="securityQuestionAnswer" type="text"
                                        class="form-control"
-                                       tabindex="0" required/>
+                                       tabindex="0" autocomplete="off" required/>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input type="hidden" name="step"

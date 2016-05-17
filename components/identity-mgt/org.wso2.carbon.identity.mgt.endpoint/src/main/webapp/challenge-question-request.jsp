@@ -148,7 +148,7 @@
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input name="<%=Encode.forHtmlAttribute(userChallengesDTO.getId())%>" type="text"
                                        class="form-control"
-                                       tabindex="0" required/>
+                                       tabindex="0" autocomplete="off" required/>
                             </div>
                             <%
                                     questionIds[count++] = userChallengesDTO.getId();
