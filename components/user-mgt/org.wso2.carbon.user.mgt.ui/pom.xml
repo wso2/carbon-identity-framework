@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>user-mgt</artifactId>
-        <version>5.1.1-SNAPSHOT</version>
+        <version>5.5.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -116,7 +116,6 @@
                          <Export-Package>
                             org.wso2.carbon.user.mgt.ui.*;version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.userstore.ui.*,
-                             org.wso2.carbon.user.mgt.workflow.ui.*;version="${carbon.identity.package.export.version}",
                          </Export-Package>
                          <Carbon-Component>UIBundle</Carbon-Component>
                      </instructions>
