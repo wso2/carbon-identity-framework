@@ -6,8 +6,7 @@ import org.wso2.carbon.identity.application.authentication.framework.FrameworkRu
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .ContextInitializer;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
-        .SequenceBuildFactory;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .SequenceManager;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -43,7 +42,7 @@ public class HandlerManager {
         throw FrameworkRuntimeException.error("Cannot find SequenceManager to handle this request");
     }
 
-    public SequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
+    public AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
 
         throw FrameworkRuntimeException.error("Cannot find AuthenticationContext to handle this request");
     }

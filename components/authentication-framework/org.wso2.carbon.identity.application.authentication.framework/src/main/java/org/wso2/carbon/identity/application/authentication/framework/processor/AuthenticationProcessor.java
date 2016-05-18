@@ -41,7 +41,6 @@ public class AuthenticationProcessor extends IdentityProcessor {
         String processContext = "";
         IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null;
 
-        //Can be an issue if the factory pick non of AuthenticationRequest object by calling can handle
         AuthenticationRequest authenticationRequest = (AuthenticationRequest) identityRequest;
 
         if (PROCESS_CONTEXT_LOGIN.equals(processContext)) {

@@ -8,12 +8,11 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.h
         .AuthenticationResponse;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .ContextInitializer;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
-        .SequenceBuildFactory;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .SequenceManager;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
-        .model.Sequence;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model
+        .AbstractSequence;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .util.HandlerManager;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -31,10 +30,10 @@ public class AuthenticationHandler extends FrameworkHandler {
 
         HandlerManager handlerManager = HandlerManager.getInstance();
 
-        SequenceBuildFactory sequenceBuildFactory = handlerManager.getSequenceBuildFactory(authenticationContext);
-        Sequence sequence = sequenceBuildFactory.buildSequence(authenticationContext);
+        AbstractSequenceBuildFactory abstractSequenceBuildFactory = handlerManager.getSequenceBuildFactory(authenticationContext);
+        AbstractSequence abstractSequence = abstractSequenceBuildFactory.buildSequence(authenticationContext);
 
-        authenticationContext.setSequence(sequence);
+        authenticationContext.setAbstractSequence(abstractSequence);
 
         ContextInitializer contextInitializerHandler =
                 handlerManager.getContextInitializerHandler(authenticationContext);
@@ -58,7 +57,16 @@ public class AuthenticationHandler extends FrameworkHandler {
     }
 
     private FrameworkHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
-        return null;
+        FrameworkHandlerResponse frameworkHandlerResponse = null;
+        if(AuthenticationResponse.AUTHENTICATED.equals(handlerResponse)){
+            frameworkHandlerResponse = FrameworkHandlerResponse.CONTINUE;
+        }else if(AuthenticationResponse.FAILED.equals(handlerResponse)) {
+            frameworkHandlerResponse = FrameworkHandlerResponse.CONTINUE;
+        }else if(AuthenticationResponse.INCOMPLETE.equals(handlerResponse)){
+            frameworkHandlerResponse = FrameworkHandlerResponse.REDIRECT;
+            frameworkHandlerResponse.setIdentityResponseBuilder(handlerResponse.getIdentityResponseBuilder());
+        }
+        return frameworkHandlerResponse;
     }
 
 

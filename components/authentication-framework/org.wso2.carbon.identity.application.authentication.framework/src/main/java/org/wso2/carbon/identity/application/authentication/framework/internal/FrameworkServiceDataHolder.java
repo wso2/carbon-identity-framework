@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.application.authentication.framework.HttpIdentit
 import org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
+        .AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.ContextInitializer;
 
 
@@ -88,6 +90,9 @@ public class FrameworkServiceDataHolder {
     List<ApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
     List<ApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
     List<ApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
+
+    //SequenceBuilder
+    List<AbstractSequenceBuildFactory> sequenceBuildFactories = new ArrayList<>();
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -198,5 +203,7 @@ public class FrameworkServiceDataHolder {
         return federatedApplicationAuthenticators;
     }
 
-
+    public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
+        return sequenceBuildFactories;
+    }
 }

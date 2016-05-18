@@ -5,8 +5,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Sessi
 import org.wso2.carbon.identity.application.authentication.framework.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandlerException;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
-        .model.Sequence;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .util.Utility;
 import org.wso2.carbon.identity.application.authentication.framework.processor.request
@@ -19,7 +18,7 @@ public class AuthenticationContext extends IdentityMessageContext {
 
     protected AuthenticationRequest initialAuthenticationRequest ;
 
-    private Sequence sequence = null;
+    private AbstractSequence abstractSequence = null;
     private SequenceContext sequenceContext = null;
 
     public AuthenticationContext(
@@ -55,13 +54,13 @@ public class AuthenticationContext extends IdentityMessageContext {
         this.sequenceContext = sequenceContext;
     }
 
-    public Sequence getSequence() {
-        return sequence;
+    public AbstractSequence getAbstractSequence() {
+        return abstractSequence;
     }
 
-    public void setSequence(
-            Sequence sequence) {
-        this.sequence = sequence;
+    public void setAbstractSequence(
+            AbstractSequence abstractSequence) {
+        this.abstractSequence = abstractSequence;
     }
 
     public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {

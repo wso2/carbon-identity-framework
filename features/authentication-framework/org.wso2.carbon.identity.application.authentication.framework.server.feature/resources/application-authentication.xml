@@ -40,8 +40,8 @@
 		<RequestCoordinator>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator</RequestCoordinator>
 		<AuthenticationRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler</AuthenticationRequestHandler>
 		<LogoutRequestHandler>org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler</LogoutRequestHandler>
-		<StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler</StepBasedSequenceHandler>
-		<RequestPathBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler</RequestPathBasedSequenceHandler>
+		<StepBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.abstractSequence.impl.DefaultStepBasedSequenceHandler</StepBasedSequenceHandler>
+		<RequestPathBasedSequenceHandler>org.wso2.carbon.identity.application.authentication.framework.handler.abstractSequence.impl.DefaultRequestPathBasedSequenceHandler</RequestPathBasedSequenceHandler>
 		<StepHandler>org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler</StepHandler>
 		<HomeRealmDiscoverer>org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer</HomeRealmDiscoverer>
 		<ClaimHandler>org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler</ClaimHandler>
@@ -124,8 +124,8 @@
 
     <!--
 		Sequences allow specifying authentication flows for different
-		registered applications. \'default\' sequence is taken if an
-		application specific sequence doesn't exist in this file or
+		registered applications. \'default\' abstractSequence is taken if an
+		application specific abstractSequence doesn't exist in this file or
 		in the Application Mgt module.
     -->	
 	<Sequences>

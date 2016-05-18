@@ -24,6 +24,7 @@ import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.identity.application.authentication.framework.demo.DemoSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory;
@@ -35,6 +36,8 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.a
         .LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
         .RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
+        .AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authorization
         .AbstractAuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.claim.ClaimHandler;
@@ -116,6 +119,10 @@ import java.util.Map;
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPostHandler"
  * cardinality="0..n" policy="dynamic" bind="addPostHandler"
  * unbind="removePostHandler"
+ * @scr.reference name="identity.handlers.sequence.factory"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.AbstractSequenceBuildFactory"
+ * cardinality="0..n" policy="dynamic" bind="addSequenceBuildFactory"
+ * unbind="removeSequenceBuildFactory"
  */
 
 
@@ -180,6 +187,10 @@ public class FrameworkServiceComponent {
         HttpIdentityRequestFactory httpIdentityRequestFactory = new HttpIdentityRequestFactory();
         addHttpIdentityRequestFactory(httpIdentityRequestFactory);
 
+        //Registering this for demo perposes only
+        DemoSequenceBuildFactory demoSequenceBuildFactory = new DemoSequenceBuildFactory();
+        addSequenceBuildFactory(demoSequenceBuildFactory);
+
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
 
@@ -228,13 +239,14 @@ public class FrameworkServiceComponent {
 
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
-
         if (authenticator instanceof LocalApplicationAuthenticator) {
             FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().add(authenticator);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators().add(authenticator);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
             FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators().add(authenticator);
+        }else{
+            log.error("Unsupported Authenticator found : " + authenticator.getName());
         }
 
         if (log.isDebugEnabled()) {
@@ -466,6 +478,26 @@ public class FrameworkServiceComponent {
             log.debug("Removed AbstractPostHandler : " + postHandler.getName());
         }
     }
+
+
+    protected void addSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
+
+        FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories().add(sequenceBuildFactory);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
+        }
+    }
+
+    protected void removeSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
+
+        FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories().remove(sequenceBuildFactory);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
+        }
+    }
+
 
 
 
