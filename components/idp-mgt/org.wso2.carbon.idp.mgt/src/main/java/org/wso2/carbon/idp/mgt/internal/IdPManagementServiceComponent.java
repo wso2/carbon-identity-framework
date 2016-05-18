@@ -139,9 +139,7 @@ public class IdPManagementServiceComponent {
             } else {
                 log.error("Identity Provider Management - TenantMgtListener could not be registered");
             }
-
-
-
+            
             ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
                     UserOperationEventListener.class.getName(), new UserStoreListener(), null);
             if (userOperationListenerSR != null) {
