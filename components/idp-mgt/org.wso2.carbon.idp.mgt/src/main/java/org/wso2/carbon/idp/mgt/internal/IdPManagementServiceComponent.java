@@ -140,7 +140,7 @@ public class IdPManagementServiceComponent {
                 log.error("Identity Provider Management - TenantMgtListener could not be registered");
             }
 
-            bundleCtx.registerService(IdpManager.class, IdentityProviderManager.getInstance(), null);
+
 
             ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
                     UserOperationEventListener.class.getName(), new UserStoreListener(), null);
@@ -167,6 +167,7 @@ public class IdPManagementServiceComponent {
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME) == null) {
                 addSuperTenantIdp();
             }
+            bundleCtx.registerService(IdpManager.class, IdentityProviderManager.getInstance(), null);
 
             buildFileBasedIdPList();
             cleanUpRemovedIdps();

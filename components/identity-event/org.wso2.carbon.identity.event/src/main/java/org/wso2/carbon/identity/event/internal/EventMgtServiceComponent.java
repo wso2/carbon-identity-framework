@@ -53,6 +53,9 @@ import java.util.List;
  * @scr.reference name="identityCoreInitializedEventService"
  * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
  * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
+ * @scr.reference name="IdentityProviderManager"
+ * interface="org.wso2.carbon.idp.mgt.IdpManager" cardinality="1..1"
+ * policy="dynamic" bind="setIdpManager" unbind="unsetIdpManager"
  */
 
 public class EventMgtServiceComponent {
