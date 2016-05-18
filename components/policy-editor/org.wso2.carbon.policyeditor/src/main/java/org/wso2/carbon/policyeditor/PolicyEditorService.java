@@ -153,7 +153,9 @@ public class PolicyEditorService {
         } finally {
             IdentityIOStreamUtils.closeReader(dis);
             try {
-                in.close();
+                if (in != null) {
+                    in.close();
+                }
             } catch (IOException e) {
                 throw new AxisFault("Axis fault while getting schemas.", e);
             }
