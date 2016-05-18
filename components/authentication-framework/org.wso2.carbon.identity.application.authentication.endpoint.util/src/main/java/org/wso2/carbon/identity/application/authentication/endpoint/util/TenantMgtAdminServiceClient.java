@@ -80,7 +80,7 @@ public class TenantMgtAdminServiceClient {
     /**
      * Default ssl protocol for client
      */
-    private static String protocol = "SSLv3";
+    private static String protocol = "TLSv1.2";
     private static KeyStore keyStore;
     private static KeyStore trustStore;
     private static char[] keyStorePassword;
