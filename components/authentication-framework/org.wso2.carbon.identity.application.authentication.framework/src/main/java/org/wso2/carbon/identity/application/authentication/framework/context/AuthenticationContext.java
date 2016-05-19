@@ -18,7 +18,7 @@ public class AuthenticationContext extends IdentityMessageContext {
 
     protected AuthenticationRequest initialAuthenticationRequest ;
 
-    private AbstractSequence abstractSequence = null;
+    private AbstractSequence sequence = null;
     private SequenceContext sequenceContext = null;
 
     public AuthenticationContext(
@@ -54,13 +54,13 @@ public class AuthenticationContext extends IdentityMessageContext {
         this.sequenceContext = sequenceContext;
     }
 
-    public AbstractSequence getAbstractSequence() {
-        return abstractSequence;
+    public AbstractSequence getSequence() {
+        return sequence;
     }
 
-    public void setAbstractSequence(
-            AbstractSequence abstractSequence) {
-        this.abstractSequence = abstractSequence;
+    public void setSequence(
+            AbstractSequence sequence) {
+        this.sequence = sequence;
     }
 
     public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {

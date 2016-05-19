@@ -15,7 +15,7 @@ public class DemoSequenceBuildFactory extends AbstractSequenceBuildFactory {
     @Override
     public AbstractSequence buildSequence(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
-        return new DemoSequence();
+        return new DemoSequence(authenticationContext);
     }
 
     @Override

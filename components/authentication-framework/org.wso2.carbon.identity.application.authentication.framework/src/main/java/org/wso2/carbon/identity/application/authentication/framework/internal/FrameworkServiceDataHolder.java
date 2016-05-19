@@ -22,6 +22,12 @@ import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
+        .FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
+        .LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
+        .RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
@@ -87,9 +93,9 @@ public class FrameworkServiceDataHolder {
 
 
     //Authenticators
-    List<ApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
-    List<ApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
-    List<ApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
+    List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
+    List<LocalApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
+    List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
 
     //SequenceBuilder
     List<AbstractSequenceBuildFactory> sequenceBuildFactories = new ArrayList<>();
@@ -191,15 +197,15 @@ public class FrameworkServiceDataHolder {
         return contextInitializers;
     }
 
-    public List<ApplicationAuthenticator> getRequestPathApplicationAuthenticators() {
+    public List<RequestPathApplicationAuthenticator> getRequestPathApplicationAuthenticators() {
         return requestPathApplicationAuthenticators;
     }
 
-    public List<ApplicationAuthenticator> getLocalApplicationAuthenticators() {
+    public List<LocalApplicationAuthenticator> getLocalApplicationAuthenticators() {
         return localApplicationAuthenticators;
     }
 
-    public List<ApplicationAuthenticator> getFederatedApplicationAuthenticators() {
+    public List<FederatedApplicationAuthenticator> getFederatedApplicationAuthenticators() {
         return federatedApplicationAuthenticators;
     }
 
