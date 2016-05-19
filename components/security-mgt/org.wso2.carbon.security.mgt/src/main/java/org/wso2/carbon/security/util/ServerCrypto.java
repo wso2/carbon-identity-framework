@@ -75,12 +75,10 @@ public class ServerCrypto implements Crypto {
     public final static String PROP_ID_TRUST_STORES = "org.wso2.carbon.security.crypto.truststores";
     public final static String PROP_ID_CERT_PROVIDER = "org.wso2.carbon.security.crypto.cert.provider";
     public final static String PROP_ID_DEFAULT_ALIAS = "org.wso2.carbon.security.crypto.alias";
-    public final static String PROP_ID_REGISTRY = "org.wso2.carbon.security.crypto.registry";
     public final static String PROP_ID_CACERT_PASS = "org.wso2.carbon.security.crypto.cacert.pass";
-    public final static String PROP_ID_XKMS_SERVICE_PASS_PHRASE = "org.wso2.wsas.security.wso2wsas.crypto.xkms.pass";
     public final static String PROP_ID_TENANT_ID = "org.wso2.stratos.tenant.id";
-    public final static String PROP_ID_XKMS_SERVICE_URL = "org.wso2.carbon.security.crypto.xkms.url";
     private static final String SKI_OID = "2.5.29.14";
+    private static final String SHA_256 = "SHA-256";
     private static Log log = LogFactory.getLog(ServerCrypto.class);
     private static CertificateFactory certFact = null;
     private Properties properties = null;
@@ -88,7 +86,6 @@ public class ServerCrypto implements Crypto {
     private KeyStore cacerts = null;
     private List<KeyStore> trustStores = new ArrayList<>();
     private Registry registry = null;
-    private Boolean useXkms;
 
     public ServerCrypto(Properties prop) throws CredentialException, IOException {
         this(prop, ServerCrypto.class.getClassLoader());
@@ -507,11 +504,19 @@ public class ServerCrypto implements Crypto {
             System.arraycopy(encoded, 22, value, 0, value.length);
             MessageDigest sha;
             try {
-                sha = MessageDigest.getInstance("SHA-1");
+                sha = MessageDigest.getInstance(SHA_256);
             } catch (NoSuchAlgorithmException ex) {
-                throw new WSSecurityException(1, "noSKIHandling",
-                        new Object[]{"Wrong certificate version (<3) and no "
-                                + "SHA1 message digest availabe"});
+                if (log.isDebugEnabled()) {
+                    log.debug("SHA-256 algorithm is not available for message digest");
+                }
+                try {
+                    sha = MessageDigest.getInstance("SHA-1");
+                } catch (NoSuchAlgorithmException e) {
+                    throw new WSSecurityException(1, "noSKIHandling", new Object[] {
+                            "Wrong certificate version (<3) and no " + "SHA1 message digest available"
+                    });
+                }
+
             }
             sha.reset();
             sha.update(value);
@@ -535,11 +540,21 @@ public class ServerCrypto implements Crypto {
     public String getAliasForX509CertThumb(byte[] thumb) throws WSSecurityException {
         Certificate cert;
         MessageDigest sha;
+
         try {
-            sha = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e1) {
-            throw new WSSecurityException(0, "noSHA1availabe");
+            sha = MessageDigest.getInstance(SHA_256);
+        } catch (NoSuchAlgorithmException ex) {
+            try {
+                if (log.isDebugEnabled()) {
+                    log.debug("SHA-256 algorithm is not available for message digest");
+                }
+                sha = MessageDigest.getInstance("SHA-1");
+            } catch (NoSuchAlgorithmException e) {
+                throw new WSSecurityException(0, "noSHA1available");
+            }
+
         }
+
         try {
             for (Enumeration e = keystore.aliases(); e.hasMoreElements(); ) {
                 String alias = (String) e.nextElement();
