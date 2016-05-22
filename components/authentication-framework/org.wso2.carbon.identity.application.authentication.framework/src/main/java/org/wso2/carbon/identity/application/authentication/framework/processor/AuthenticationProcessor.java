@@ -10,22 +10,16 @@ import org.wso2.carbon.identity.application.authentication.framework.IdentityRes
 import org.wso2.carbon.identity.application.authentication.framework.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler
-        .FrameworkHandlerException;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandlerException;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
-        .ExtensionHandlerPoints;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request
-        .AbstractRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request
-        .RequestHandlerException;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response
-        .AbstractResponseHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response
-        .ResponseException;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.ExtensionHandlerPoints;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request.RequestHandlerException;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.application.authentication.framework.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.processor.request.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.processor.util.HandlerManager;
@@ -74,7 +68,7 @@ public class AuthenticationProcessor extends IdentityProcessor {
     protected AuthenticationContext buildAuthenticationContext(AuthenticationRequest authenticationRequest) {
 
         AuthenticationContext authenticationContext = null;
-        String requestDataKey = ((LocalAuthenticationRequest)authenticationRequest).getRequestDataKey();
+        String requestDataKey = ((LocalAuthenticationRequest) authenticationRequest).getRequestDataKey();
         IdentityMessageContext identityMessageContext =
                 IdentityMessageContextCache.getInstance().getValueFromCache(requestDataKey);
         if (identityMessageContext != null) {

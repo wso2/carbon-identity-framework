@@ -32,27 +32,19 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.h
         .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.ContextInitializer;
-
-
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
+        .ContextInitializer;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authorization
         .AbstractAuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.claim.ClaimHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
-        .AbstractPostHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPostHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPreHandler;
-
-
-
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.jit.JITHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request
-        .AbstractRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response
-        .AbstractResponseHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,44 +53,33 @@ import java.util.Map;
 
 public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
-
+    //Authenticators
+    List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
+    List<LocalApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
+    List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
+    //SequenceBuilder
+    List<AbstractSequenceBuildFactory> sequenceBuildFactories = new ArrayList<>();
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private RegistryService registryService = null;
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
-
-
-
     private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
-
-
     //Framework handlers
     private List<AbstractRequestHandler> requestHandlers = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
-    private List<AbstractAuthorizationHandler>  authorizationHandlers = new ArrayList<>();
+    private List<AbstractAuthorizationHandler> authorizationHandlers = new ArrayList<>();
     private List<JITHandler> jitHandlers = new ArrayList<>();
     private List<ClaimHandler> claimHandlers = new ArrayList<>();
-    private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
-
-    private Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandler = new HashMap<>();
-    private Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandler = new HashMap<>();
-
-    //AuthenticationHandler sub-handler
-    private List<ContextInitializer> contextInitializers = new ArrayList<>();
 
     //SequenceManager
-
-
-    //Authenticators
-    List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
-    List<LocalApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
-    List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
-
-    //SequenceBuilder
-    List<AbstractSequenceBuildFactory> sequenceBuildFactories = new ArrayList<>();
+    private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
+    private Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandler = new HashMap<>();
+    private Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandler = new HashMap<>();
+    //AuthenticationHandler sub-handler
+    private List<ContextInitializer> contextInitializers = new ArrayList<>();
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());

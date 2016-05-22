@@ -6,7 +6,7 @@ import org.wso2.carbon.identity.application.authentication.framework.FrameworkRu
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class ClientAuthenticationRequest extends AuthenticationRequest{
+public class ClientAuthenticationRequest extends AuthenticationRequest {
 
     private String clientId;
     private String requestType;

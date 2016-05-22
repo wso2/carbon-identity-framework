@@ -3,8 +3,7 @@ package org.wso2.carbon.identity.application.authentication.framework.processor.
 import org.wso2.carbon.identity.application.authentication.framework.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.FrameworkHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler
-        .FrameworkHandlerException;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.FrameworkHandlerException;
 
 public abstract class AbstractPreHandler extends FrameworkHandler {
 

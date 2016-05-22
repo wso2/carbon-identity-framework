@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SequenceContext {
-
-    private int stepOrder = 0 ;
-    private boolean current
-
+    private int currentStepCount = 1;
     private RequestPathAuthenticatorContext requestPathAuthenticatorContext = null;
-    private List<StepAuthenticatorContext> stepAuthenticatorContextList = new ArrayList<>();
+    private List<StepContext> stepContextList = new ArrayList<>();
+    public SequenceContext() {
+
+    }
 
     public RequestPathAuthenticatorContext getRequestPathAuthenticator() {
         return requestPathAuthenticatorContext;
@@ -21,27 +21,26 @@ public class SequenceContext {
         this.requestPathAuthenticatorContext = requestPathAuthenticatorContext;
     }
 
+    public int getCurrentStepCount() {
+        return currentStepCount;
+    }
 
+    public void setCurrentStepCount(int currentStepCount) {
+        this.currentStepCount = currentStepCount;
+    }
 
-    public StepAuthenticatorContext getCurrentStepAuthenticator() {
-        StepAuthenticatorContext stepAuthenticatorsContext = null;
-        if (stepAuthenticatorContextList.size() > 0) {
-            stepAuthenticatorsContext = stepAuthenticatorContextList.get(stepAuthenticatorContextList.size());
+    public StepContext getCurrentStepContext() {
+        StepContext stepAuthenticatorsContext = null;
+        if (stepContextList.size() >= currentStepCount) {
+            stepAuthenticatorsContext = stepContextList.get(stepContextList.size());
         }
         return stepAuthenticatorsContext;
     }
 
-    public void addCurrentStepAuthenticatorContext(StepAuthenticatorContext  stepAuthenticatorContext){
-        stepAuthenticatorContextList.add(stepAuthenticatorContext);
+    public void addCurrentStepAuthenticatorContext(StepContext stepContext) {
+        stepContextList.add(stepContext);
     }
 
-    public int getCurrentStep() {
-        return currentStep;
-    }
-
-    public void setCurrentStep(int currentStep) {
-        this.currentStep = currentStep;
-    }
 
     public static class RequestPathAuthenticatorContext {
         private boolean isAuthenticated = false;
@@ -55,16 +54,18 @@ public class SequenceContext {
         }
     }
 
-    public static class StepAuthenticatorContext {
-        private int step;
+    public static class StepContext {
+        private int stepCount;
+        private String name;
+        private boolean isLocalApplicationAuthenticator = false;
         private boolean isAuthenticated = false;
 
-        public int getStep() {
-            return step;
+        public int getStepCount() {
+            return stepCount;
         }
 
-        public void setStep(int step) {
-            this.step = step;
+        public void setStepCount(int stepCount) {
+            this.stepCount = stepCount;
         }
 
         public boolean isAuthenticated() {
@@ -73,6 +74,22 @@ public class SequenceContext {
 
         public void setIsAuthenticated(boolean isAuthenticated) {
             this.isAuthenticated = isAuthenticated;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public boolean isLocalApplicationAuthenticator() {
+            return isLocalApplicationAuthenticator;
+        }
+
+        public void setIsLocalApplicationAuthenticator(boolean isLocalApplicationAuthenticator) {
+            this.isLocalApplicationAuthenticator = isLocalApplicationAuthenticator;
         }
     }
 

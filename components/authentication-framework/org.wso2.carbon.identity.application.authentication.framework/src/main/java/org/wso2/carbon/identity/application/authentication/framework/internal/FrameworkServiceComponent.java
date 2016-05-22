@@ -24,33 +24,30 @@ import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.application.authentication.framework.demo.DemoSequenceBuildFactory;
-import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor;
 import org.wso2.carbon.identity.application.authentication.framework.IdentityServlet;
+import org.wso2.carbon.identity.application.authentication.framework.demo.DemoSequenceBuildFactory;
+import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
         .FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
         .LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.processor.authenticator
         .RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
+        .AuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authorization
         .AbstractAuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.claim.ClaimHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
-        .AbstractPostHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
-        .AbstractPreHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPostHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPreHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
-        .AuthenticationHandler;
-
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -67,64 +64,64 @@ import java.util.Map;
  * @scr.reference name="osgi.httpservice"
  * interface="org.osgi.service.http.HttpService"
  * cardinality="1..1" policy="dynamic" bind="setHttpService"
- * unbind="unsetHttpService"
+ * unbind="unSetHttpService"
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService"
  * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
+ * unbind="unSetRealmService"
  * @scr.reference name="registry.service"
  * interface="org.wso2.carbon.registry.core.service.RegistryService"
  * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
+ * unbind="unSetRegistryService"
  * @scr.reference name="application.authenticator"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.authenticator.ApplicationAuthenticator"
  * cardinality="1..n" policy="dynamic" bind="setAuthenticator"
- * unbind="unsetAuthenticator"
+ * unbind="unSetAuthenticator"
+ * @scr.reference name="identity.processor"
  * interface="org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor"
  * cardinality="0..n" policy="dynamic" bind="addIdentityProcessor"
- * unbind="removeIdentityProcessor"
+ * unbind="unSetIdentityProcessor"
  * @scr.reference name="identity.request.factory"
  * interface="org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityRequestFactory"
- * unbind="removeHttpIdentityRequestFactory"
+ * unbind="unSetHttpIdentityRequestFactory"
  * @scr.reference name="identity.response.factory"
  * interface="org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
- * unbind="removeHttpIdentityResponseFactory"
+ * unbind="unSetHttpIdentityResponseFactory"
  * @scr.reference name="identity.handlers.authentication"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.AuthenticationHandler"
  * cardinality="0..n" policy="dynamic" bind="addAuthenticationHandler"
- * unbind="removeAuthenticationHandler"
+ * unbind="unSetAuthenticationHandler"
  * @scr.reference name="identity.handlers.authorization"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.authorization.AbstractAuthorizationHandler"
  * cardinality="0..n" policy="dynamic" bind="addAuthorizationHandler"
- * unbind="removeAuthorizationHandler"
+ * unbind="unSetAuthorizationHandler"
  * @scr.reference name="identity.handlers.jit"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.jit.JITHandler"
  * cardinality="0..n" policy="dynamic" bind="addJITHandler"
- * unbind="removeJITHandler"
+ * unbind="unSetJITHandler"
  * @scr.reference name="identity.handlers.claim"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.claim.ClaimHandler"
  * cardinality="0..n" policy="dynamic" bind="addClaimHandler"
- * unbind="removeClaimHandler"
+ * unbind="unSetClaimHandler"
  * @scr.reference name="identity.handlers.response"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.AbstractResponseHandler"
  * cardinality="0..n" policy="dynamic" bind="addResponseHandler"
- * unbind="removeResponseHandler"
+ * unbind="unSetResponseHandler"
  * @scr.reference name="identity.handlers.extension.pre"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPreHandler"
  * cardinality="0..n" policy="dynamic" bind="addPreHandler"
- * unbind="removePreHandler"
+ * unbind="unSetPreHandler"
  * @scr.reference name="identity.handlers.extension.post"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPostHandler"
  * cardinality="0..n" policy="dynamic" bind="addPostHandler"
- * unbind="removePostHandler"
+ * unbind="unSetPostHandler"
  * @scr.reference name="identity.handlers.sequence.factory"
  * interface="org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.AbstractSequenceBuildFactory"
  * cardinality="0..n" policy="dynamic" bind="addSequenceBuildFactory"
- * unbind="removeSequenceBuildFactory"
+ * unbind="unSetSequenceBuildFactory"
  */
-
 
 
 public class FrameworkServiceComponent {
@@ -132,6 +129,9 @@ public class FrameworkServiceComponent {
     public static final String COMMON_SERVLET_URL = "/commonauth";
     private static final String IDENTITY_SERVLET_URL = "/identity";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
+
+
+
 
     private HttpService httpService;
 
@@ -167,14 +167,13 @@ public class FrameworkServiceComponent {
         return bundleContext;
     }
 
-
     @SuppressWarnings("unchecked")
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
 
 
         Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                IDENTITY_SERVLET_URL);
+                                                                IDENTITY_SERVLET_URL);
         try {
             httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
         } catch (Exception e) {
@@ -215,24 +214,24 @@ public class FrameworkServiceComponent {
         this.httpService = httpService;
     }
 
-    protected void unsetHttpService(HttpService httpService) {
+    protected void unSetHttpService(HttpService httpService) {
         if (log.isDebugEnabled()) {
-            log.debug("HTTP Service is unset in the Application Authentication Framework bundle");
+            log.debug("HTTP Service is unSet in the Application Authentication Framework bundle");
         }
 
         this.httpService = null;
     }
 
-    protected void unsetRealmService(RealmService realmService) {
+    protected void unSetRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
-            log.debug("RealmService is unset in the Application Authentication Framework bundle");
+            log.debug("RealmService is unSet in the Application Authentication Framework bundle");
         }
         FrameworkServiceDataHolder.getInstance().setRealmService(null);
     }
 
-    protected void unsetRegistryService(RegistryService registryService) {
+    protected void unSetRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
-            log.debug("RegistryService is unset in the Application Authentication Framework bundle");
+            log.debug("RegistryService is unSet in the Application Authentication Framework bundle");
         }
         FrameworkServiceDataHolder.getInstance().setRegistryService(null);
     }
@@ -240,12 +239,12 @@ public class FrameworkServiceComponent {
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().add(authenticator);
+            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().add((LocalApplicationAuthenticator)authenticator);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators().add(authenticator);
+            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators().add((FederatedApplicationAuthenticator)authenticator);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators().add(authenticator);
-        }else{
+            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators().add((RequestPathApplicationAuthenticator)authenticator);
+        } else {
             log.error("Unsupported Authenticator found : " + authenticator.getName());
         }
 
@@ -254,7 +253,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void unsetAuthenticator(ApplicationAuthenticator authenticator) {
+    protected void unSetAuthenticator(ApplicationAuthenticator authenticator) {
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
             FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().remove(authenticator);
@@ -274,14 +273,14 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
-                identityProcessor);
+                         identityProcessor);
 
         if (log.isDebugEnabled()) {
             log.debug("Added IdentityProcessor : " + requestProcessor.getName());
         }
     }
 
-    protected void removeIdentityProcessor(IdentityProcessor requestProcessor) {
+    protected void unSetIdentityProcessor(IdentityProcessor requestProcessor) {
 
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().remove(requestProcessor);
 
@@ -294,13 +293,13 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                httpIdentityRequestFactory);
+                         httpIdentityRequestFactory);
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
         }
     }
 
-    protected void removeHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
+    protected void unSetHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().remove(factory);
         if (log.isDebugEnabled()) {
@@ -318,15 +317,13 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
+    protected void unSetHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed HttpIdentityResponseFactory : " + factory.getName());
         }
     }
-
-
 
     protected void addAuthenticationHandler(AuthenticationHandler authenticationHandler) {
 
@@ -337,7 +334,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeAuthenticationHandler(AuthenticationHandler authenticationHandler) {
+    protected void unSetAuthenticationHandler(AuthenticationHandler authenticationHandler) {
 
         FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers().remove(authenticationHandler);
 
@@ -355,7 +352,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeAuthorizationHandler(AbstractAuthorizationHandler authorizationHandler) {
+    protected void unSetAuthorizationHandler(AbstractAuthorizationHandler authorizationHandler) {
 
         FrameworkServiceDataHolder.getInstance().getAuthorizationHandlers().remove(authorizationHandler);
 
@@ -373,7 +370,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeJITHandler(JITHandler jitHandler) {
+    protected void unSetJITHandler(JITHandler jitHandler) {
 
         FrameworkServiceDataHolder.getInstance().getJitHandlers().remove(jitHandler);
 
@@ -391,7 +388,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeClaimHandler(ClaimHandler claimHandler) {
+    protected void unSetClaimHandler(ClaimHandler claimHandler) {
 
         FrameworkServiceDataHolder.getInstance().getClaimHandlers().remove(claimHandler);
 
@@ -409,7 +406,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeResponseHandler(AbstractResponseHandler responseHandler) {
+    protected void unSetResponseHandler(AbstractResponseHandler responseHandler) {
 
         FrameworkServiceDataHolder.getInstance().getResponseHandlers().remove(responseHandler);
 
@@ -418,15 +415,15 @@ public class FrameworkServiceComponent {
         }
     }
 
-
     protected void addPreHandler(AbstractPreHandler preHandler) {
 
-        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap = FrameworkServiceDataHolder.getInstance().getPreHandler();
+        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap =
+                FrameworkServiceDataHolder.getInstance().getPreHandler();
 
         List<AbstractPreHandler> abstractPreHandlers = preHandlerMap.get(preHandler.getExtensionHandlerPoints());
-        if(abstractPreHandlers == null){
+        if (abstractPreHandlers == null) {
             abstractPreHandlers = new ArrayList<>();
-            preHandlerMap.put(preHandler.getExtensionHandlerPoints(),abstractPreHandlers);
+            preHandlerMap.put(preHandler.getExtensionHandlerPoints(), abstractPreHandlers);
         }
         abstractPreHandlers.add(preHandler);
 
@@ -435,12 +432,13 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removePreHandler(AbstractPreHandler preHandler) {
+    protected void unSetPreHandler(AbstractPreHandler preHandler) {
 
-        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap = FrameworkServiceDataHolder.getInstance().getPreHandler();
+        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap =
+                FrameworkServiceDataHolder.getInstance().getPreHandler();
 
         List<AbstractPreHandler> abstractPreHandlers = preHandlerMap.get(preHandler.getExtensionHandlerPoints());
-        if(abstractPreHandlers != null) {
+        if (abstractPreHandlers != null) {
             abstractPreHandlers.remove(preHandler);
         }
         if (log.isDebugEnabled()) {
@@ -448,16 +446,15 @@ public class FrameworkServiceComponent {
         }
     }
 
-
-
     protected void addPostHandler(AbstractPostHandler postHandler) {
 
-        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap  = FrameworkServiceDataHolder.getInstance().getPostHandler();
+        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap =
+                FrameworkServiceDataHolder.getInstance().getPostHandler();
 
         List<AbstractPostHandler> abstractPostHandlers = postHandlerMap.get(postHandler.getExtensionHandlerPoints());
-        if(abstractPostHandlers == null){
+        if (abstractPostHandlers == null) {
             abstractPostHandlers = new ArrayList<>();
-            postHandlerMap.put(postHandler.getExtensionHandlerPoints(),abstractPostHandlers);
+            postHandlerMap.put(postHandler.getExtensionHandlerPoints(), abstractPostHandlers);
         }
         abstractPostHandlers.add(postHandler);
 
@@ -466,19 +463,19 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removePostHandler(AbstractPostHandler postHandler) {
+    protected void unSetPostHandler(AbstractPostHandler postHandler) {
 
-        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap  = FrameworkServiceDataHolder.getInstance().getPostHandler();
+        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap =
+                FrameworkServiceDataHolder.getInstance().getPostHandler();
 
         List<AbstractPostHandler> abstractPostHandlers = postHandlerMap.get(postHandler.getExtensionHandlerPoints());
-        if(abstractPostHandlers != null) {
+        if (abstractPostHandlers != null) {
             abstractPostHandlers.remove(postHandler);
         }
         if (log.isDebugEnabled()) {
             log.debug("Removed AbstractPostHandler : " + postHandler.getName());
         }
     }
-
 
     protected void addSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
 
@@ -489,7 +486,7 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void removeSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
+    protected void unSetSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
 
         FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories().remove(sequenceBuildFactory);
 
@@ -497,8 +494,6 @@ public class FrameworkServiceComponent {
             log.debug("Removed AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
         }
     }
-
-
 
 
     private static Comparator<IdentityProcessor> identityProcessor =
@@ -517,7 +512,6 @@ public class FrameworkServiceComponent {
                     }
                 }
             };
-
     private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
             new Comparator<HttpIdentityRequestFactory>() {
 
@@ -534,7 +528,6 @@ public class FrameworkServiceComponent {
                     }
                 }
             };
-
     private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
             new Comparator<HttpIdentityResponseFactory>() {
 

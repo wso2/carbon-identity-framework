@@ -5,16 +5,17 @@ import org.wso2.carbon.identity.application.authentication.framework.FrameworkHa
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
+        .AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .AuthenticationResponse;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .ContextInitializer;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .SequenceManager;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model
         .AbstractSequence;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
-        .util.HandlerManager;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.util
+        .HandlerManager;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
@@ -30,10 +31,11 @@ public class AuthenticationHandler extends FrameworkHandler {
 
         HandlerManager handlerManager = HandlerManager.getInstance();
 
-        AbstractSequenceBuildFactory abstractSequenceBuildFactory = handlerManager.getSequenceBuildFactory(authenticationContext);
+        AbstractSequenceBuildFactory abstractSequenceBuildFactory =
+                handlerManager.getSequenceBuildFactory(authenticationContext);
         AbstractSequence abstractSequence = abstractSequenceBuildFactory.buildSequence(authenticationContext);
 
-        authenticationContext.setAbstractSequence(abstractSequence);
+        authenticationContext.setSequence(abstractSequence);
 
         ContextInitializer contextInitializerHandler =
                 handlerManager.getContextInitializerHandler(authenticationContext);
@@ -58,11 +60,9 @@ public class AuthenticationHandler extends FrameworkHandler {
 
     private FrameworkHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
         FrameworkHandlerResponse frameworkHandlerResponse = null;
-        if(AuthenticationResponse.AUTHENTICATED.equals(handlerResponse)){
+        if (AuthenticationResponse.AUTHENTICATED.equals(handlerResponse)) {
             frameworkHandlerResponse = FrameworkHandlerResponse.CONTINUE;
-        }else if(AuthenticationResponse.FAILED.equals(handlerResponse)) {
-            frameworkHandlerResponse = FrameworkHandlerResponse.CONTINUE;
-        }else if(AuthenticationResponse.INCOMPLETE.equals(handlerResponse)){
+        } else if (AuthenticationResponse.INCOMPLETE.equals(handlerResponse)) {
             frameworkHandlerResponse = FrameworkHandlerResponse.REDIRECT;
             frameworkHandlerResponse.setIdentityResponseBuilder(handlerResponse.getIdentityResponseBuilder());
         }

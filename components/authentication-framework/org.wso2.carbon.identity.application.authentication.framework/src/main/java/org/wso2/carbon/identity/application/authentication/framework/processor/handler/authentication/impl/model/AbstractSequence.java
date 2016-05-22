@@ -2,12 +2,11 @@ package org.wso2.carbon.identity.application.authentication.framework.processor.
         .model;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
-        .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+
 import java.io.Serializable;
 
 public abstract class AbstractSequence implements Serializable {
@@ -18,14 +17,15 @@ public abstract class AbstractSequence implements Serializable {
         this.authenticationContext = authenticationContext;
     }
 
+    protected AbstractSequence() {
+
+    }
+
     public AuthenticationContext getAuthenticationContext() {
         return authenticationContext;
     }
 
-    protected AbstractSequence() {
-
-    }
-    public abstract RequestPathAuthenticatorConfig[] getRequestPathAuthenticatorConfig() ;
+    public abstract RequestPathAuthenticatorConfig[] getRequestPathAuthenticatorConfig();
 
     public abstract AuthenticationStep[] getStepAuthenticatorConfig();
 
@@ -33,9 +33,19 @@ public abstract class AbstractSequence implements Serializable {
 
     public abstract boolean isStepAuthenticatorAvailable();
 
-    public abstract boolean getAuthenticatorConfig(int step,String authenticatorName);
+    public abstract boolean hasNext(int step);
 
-    public abstract boolean getLocalAuthenticatorConfig(int step,String authenticatorName);
+    public abstract AuthenticationStep getAuthenticatorStep(int step);
 
-    public abstract FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(int step,String authenticatorName);
+    public abstract LocalAuthenticatorConfig getLocalAuthenticatorConfigForSingleOption(int step);
+
+    public abstract IdentityProvider getFederatedIdentityProviderForSingleOption(int step);
+
+    public abstract boolean isMultiOptionStep(int step);
+
+    public abstract LocalAuthenticatorConfig getLocalAuthenticatorConfig(int step, String authenticatorName);
+
+    public abstract IdentityProvider getFederatedIdentityProvider(int step, String idenitytProvider);
+
+
 }

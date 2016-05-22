@@ -7,7 +7,6 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.h
         .AuthenticationResponse;
 import org.wso2.carbon.identity.application.common.model.Property;
 
-import javax.mail.AuthenticationFailedException;
 import java.util.List;
 
 public interface ApplicationAuthenticator {

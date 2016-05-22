@@ -35,12 +35,11 @@ public final class OperationCleanUpService {
 
     private static final int NUM_THREADS = 1;
     private static final Log log = LogFactory.getLog(OperationCleanUpService.class);
+    // Time skew in minute
+    private static final int defaultTimeSkew = 60;
     private final ScheduledExecutorService scheduler;
     private final long initialDelay;
     private final long delayBetweenRuns;
-
-    // Time skew in minute
-    private static final int defaultTimeSkew = 60;
 
     /**
      * @param initialDelay

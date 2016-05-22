@@ -5,7 +5,6 @@ import org.wso2.carbon.identity.application.authentication.framework.IdentityRes
 
 public enum AuthenticationResponse {
     AUTHENTICATED,
-    FAILED,
     INCOMPLETE;
 
     private IdentityResponse.IdentityResponseBuilder identityResponseBuilder;

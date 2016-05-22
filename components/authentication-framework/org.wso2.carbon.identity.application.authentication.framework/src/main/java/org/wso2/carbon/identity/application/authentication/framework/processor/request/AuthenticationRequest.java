@@ -14,12 +14,10 @@ public class AuthenticationRequest extends IdentityRequest {
     }
 
 
-
     public static class AuthenticationRequestBuilder extends IdentityRequestBuilder {
         public AuthenticationRequestBuilder() {
             super();
         }
-
 
 
         public AuthenticationRequestBuilder(HttpServletRequest request, HttpServletResponse response) {

@@ -1,0 +1,2 @@
+[  36997]   WARN - om.intellij.util.ProfilingUtil - Profiling agent is not enabled. Add -agentlib:yjpagent to idea.vmoptions if necessary to profile IDEA. 
+[  66361]   WARN - .ExternalResourceManagerExImpl - Cannot find standard resource. filename:/META-INF/tapestry_5_3.xsd class=class com.intellij.javaee.ResourceRegistrarImpl, classLoader:null 

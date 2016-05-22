@@ -2,24 +2,23 @@ package org.wso2.carbon.identity.application.authentication.framework.context;
 
 
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
-import org.wso2.carbon.identity.application.authentication.framework.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandlerException;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model.AbstractSequence;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
-        .util.Utility;
-import org.wso2.carbon.identity.application.authentication.framework.processor.request
-        .ClientAuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model
+        .AbstractSequence;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.util.Utility;
+import org.wso2.carbon.identity.application.authentication.framework.processor.request.AuthenticationRequest;
+import org.wso2.carbon.identity.application.authentication.framework.processor.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.Map;
 
 public class AuthenticationContext extends IdentityMessageContext {
 
-    protected AuthenticationRequest initialAuthenticationRequest ;
+    protected AuthenticationRequest initialAuthenticationRequest;
 
     private AbstractSequence sequence = null;
-    private SequenceContext sequenceContext = null;
+    private SequenceContext sequenceContext = new SequenceContext();
 
     public AuthenticationContext(
             AuthenticationRequest authenticationRequest,
@@ -44,7 +43,6 @@ public class AuthenticationContext extends IdentityMessageContext {
     }
 
 
-
     public SequenceContext getSequenceContext() {
         return sequenceContext;
     }
@@ -64,7 +62,8 @@ public class AuthenticationContext extends IdentityMessageContext {
     }
 
     public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {
-        ClientAuthenticationRequest clientAuthenticationRequest  = (ClientAuthenticationRequest) getInitialAuthenticationRequest();
+        ClientAuthenticationRequest clientAuthenticationRequest =
+                (ClientAuthenticationRequest) getInitialAuthenticationRequest();
         ServiceProvider serviceProvider =
                 Utility.getServiceProvider(clientAuthenticationRequest.getRequestType(), clientAuthenticationRequest
                         .getClientId(), clientAuthenticationRequest.getTenantDomain());

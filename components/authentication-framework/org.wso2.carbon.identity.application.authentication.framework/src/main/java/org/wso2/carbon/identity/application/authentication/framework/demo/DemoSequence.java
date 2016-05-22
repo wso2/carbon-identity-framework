@@ -6,16 +6,17 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.h
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 
 
-public class DemoSequence extends AbstractSequence{
+public class DemoSequence extends AbstractSequence {
 
-    private AuthenticationStep[] authenticationSteps = null ;
+    private AuthenticationStep[] authenticationSteps = null;
 
-    public DemoSequence(AuthenticationContext authenticationContext){
+    public DemoSequence(AuthenticationContext authenticationContext) {
         super(authenticationContext);
-        authenticationSteps = new  AuthenticationStep[1];
+        authenticationSteps = new AuthenticationStep[1];
         AuthenticationStep authenticationStep = new AuthenticationStep();
         IdentityProvider identityProvider = new IdentityProvider();
         identityProvider.setIdentityProviderName("demo-idp");
@@ -29,8 +30,9 @@ public class DemoSequence extends AbstractSequence{
         identityProvider.setDefaultAuthenticatorConfig(federatedAuthenticatorConfig);
 
         authenticationStep.setFederatedIdentityProviders(new IdentityProvider[]{identityProvider});
-        authenticationSteps[0] = authenticationStep ;
+        authenticationSteps[0] = authenticationStep;
     }
+
     @Override
     public RequestPathAuthenticatorConfig[] getRequestPathAuthenticatorConfig() {
         return new RequestPathAuthenticatorConfig[0];
@@ -52,21 +54,83 @@ public class DemoSequence extends AbstractSequence{
     }
 
     @Override
-    public boolean getAuthenticatorConfig(int step, String authenticatorName) {
-        return false;
+    public boolean hasNext(int step) {
+        if (authenticationSteps.length >= step) {
+            return true;
+        }
+        return true;
     }
 
     @Override
-    public boolean getLocalAuthenticatorConfig(int step, String authenticatorName) {
-        return false;
+    public AuthenticationStep getAuthenticatorStep(int step) {
+        AuthenticationStep authenticationStep = null;
+        if (authenticationSteps.length >= step) {
+            authenticationStep = authenticationSteps[step];
+        }
+        return authenticationStep;
     }
 
     @Override
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(int step, String authenticatorName) {
-        AuthenticationStep authenticationStep = authenticationSteps[step];
-        IdentityProvider[] federatedIdentityProviders = authenticationStep.getFederatedIdentityProviders();
-        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs =
-                federatedIdentityProviders[0].getFederatedAuthenticatorConfigs();
-        return federatedAuthenticatorConfigs[0];
+    public LocalAuthenticatorConfig getLocalAuthenticatorConfigForSingleOption(int step) {
+        LocalAuthenticatorConfig localAuthenticatorConfig = null;
+        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs = authenticatorStep.getLocalAuthenticatorConfigs();
+        if (localAuthenticatorConfigs.length == 1) {
+            localAuthenticatorConfig = localAuthenticatorConfigs[0];
+        }
+        return localAuthenticatorConfig;
     }
+
+    @Override
+    public IdentityProvider getFederatedIdentityProviderForSingleOption(int step) {
+        IdentityProvider identityProvider = null;
+        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        IdentityProvider[] federatedIdentityProviders = authenticatorStep.getFederatedIdentityProviders();
+
+        if (federatedIdentityProviders.length == 1) {
+            identityProvider = federatedIdentityProviders[0];
+        }
+        return identityProvider;
+    }
+
+    @Override
+    public boolean isMultiOptionStep(int step) {
+        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        boolean isMultiOption = false;
+        if ((authenticatorStep.getFederatedIdentityProviders().length +
+             authenticatorStep.getLocalAuthenticatorConfigs().length) > 1) {
+            isMultiOption = true;
+        }
+        return isMultiOption;
+    }
+
+    @Override
+    public LocalAuthenticatorConfig getLocalAuthenticatorConfig(int step, String authenticatorName) {
+        LocalAuthenticatorConfig localAuthenticatorConfig = null;
+        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs = authenticatorStep.getLocalAuthenticatorConfigs();
+        for (LocalAuthenticatorConfig tmpAuthenticatorConfig : localAuthenticatorConfigs) {
+            if (tmpAuthenticatorConfig.getName().equals(authenticatorName)) {
+                localAuthenticatorConfig = tmpAuthenticatorConfig;
+                break;
+            }
+        }
+        return localAuthenticatorConfig;
+    }
+
+    @Override
+    public IdentityProvider getFederatedIdentityProvider(int step, String identityProviderName) {
+        IdentityProvider identityProvider = null;
+        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        IdentityProvider[] federatedIdentityProviders = authenticatorStep.getFederatedIdentityProviders();
+        for (IdentityProvider tmpIdentityProvider : federatedIdentityProviders) {
+            if (tmpIdentityProvider.getDisplayName().equals(identityProviderName)) {
+                identityProvider = tmpIdentityProvider;
+                break;
+            }
+        }
+
+        return identityProvider;
+    }
+
 }

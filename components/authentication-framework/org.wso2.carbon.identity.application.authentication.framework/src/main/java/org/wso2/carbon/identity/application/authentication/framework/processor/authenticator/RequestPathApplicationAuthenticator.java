@@ -1,5 +1,8 @@
 package org.wso2.carbon.identity.application.authentication.framework.processor.authenticator;
 
 
-public interface RequestPathApplicationAuthenticator extends ApplicationAuthenticator{
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+
+public interface RequestPathApplicationAuthenticator extends ApplicationAuthenticator {
+    public boolean canHandle(AuthenticationContext authenticationContext);
 }

@@ -44,10 +44,10 @@ public abstract class IdentityProcessor {
      * @param identityRequest IdentityRequest
      * @return IdentityResponseBuilder
      * @throws FrameworkException Error
-     *                                                                                                    occurred
-     *                                                                                                    while
-     *                                                                                                    processing
-     *                                                                                                    IdentityRequest
+     *                            occurred
+     *                            while
+     *                            processing
+     *                            IdentityRequest
      */
     public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
             throws FrameworkException;

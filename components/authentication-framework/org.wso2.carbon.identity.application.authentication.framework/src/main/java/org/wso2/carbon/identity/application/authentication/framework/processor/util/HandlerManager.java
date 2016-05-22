@@ -4,21 +4,15 @@ package org.wso2.carbon.identity.application.authentication.framework.processor.
 import org.wso2.carbon.identity.application.authentication.framework.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.application.authentication.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler
-        .FrameworkHandlerException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
-        .AbstractPostHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
-        .AbstractPreHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension
-        .ExtensionHandlerPoints;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request
-        .AbstractRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response
-        .AbstractResponseHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPostHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.AbstractPreHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.extension.ExtensionHandlerPoints;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.response.AbstractResponseHandler;
 
 import java.util.List;
 

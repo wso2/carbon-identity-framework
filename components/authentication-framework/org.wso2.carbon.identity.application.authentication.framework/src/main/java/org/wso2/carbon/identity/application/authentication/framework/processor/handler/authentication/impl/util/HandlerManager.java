@@ -4,12 +4,16 @@ package org.wso2.carbon.identity.application.authentication.framework.processor.
 
 import org.wso2.carbon.identity.application.authentication.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
+        .AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .ContextInitializer;
-import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
+        .RequestPathHandler;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl
         .SequenceManager;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.StepHandler;
 
 import java.util.List;
 
@@ -47,5 +51,14 @@ public class HandlerManager {
         throw FrameworkRuntimeException.error("Cannot find AuthenticationContext to handle this request");
     }
 
+    public StepHandler getStepHandler(AuthenticationContext authenticationContext) {
+
+        throw FrameworkRuntimeException.error("Cannot find StepHandler to handle this request");
+    }
+
+    public RequestPathHandler getRequestPathHandler(AuthenticationContext authenticationContext) {
+
+        throw FrameworkRuntimeException.error("Cannot find RequestPathHandler to handle this request");
+    }
 
 }

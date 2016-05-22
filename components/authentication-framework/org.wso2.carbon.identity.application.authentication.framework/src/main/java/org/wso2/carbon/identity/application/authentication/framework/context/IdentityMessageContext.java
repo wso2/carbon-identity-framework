@@ -53,6 +53,7 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
             IdentityRequest identityRequest) {
         this.identityRequest = identityRequest;
     }
+
     @Override
     public Map<T1, T2> getParameters() {
         return parameters;
