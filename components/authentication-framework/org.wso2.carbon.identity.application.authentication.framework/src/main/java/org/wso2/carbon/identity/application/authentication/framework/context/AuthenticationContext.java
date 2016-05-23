@@ -2,6 +2,8 @@ package org.wso2.carbon.identity.application.authentication.framework.context;
 
 
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.model.User;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserAttribute;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model
@@ -9,6 +11,7 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.h
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.application.authentication.framework.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.io.Serializable;
@@ -70,5 +73,37 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
                 Utility.getServiceProvider(clientAuthenticationRequest.getRequestType(), clientAuthenticationRequest
                         .getClientId(), clientAuthenticationRequest.getTenantDomain());
         return serviceProvider;
+    }
+
+    public User getSubjectUser(){
+        SequenceContext sequenceContext = getSequenceContext();
+        User subjectStepUser = null ;
+        AbstractSequence sequence = getSequence();
+        AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
+        for(AuthenticationStep authenticationStep : stepAuthenticatorConfig){
+            boolean subjectUser = authenticationStep.isSubjectStep();
+            if(subjectUser) {
+                SequenceContext.StepContext stepContext =
+                        sequenceContext.getStepContext(authenticationStep.getStepOrder());
+                subjectStepUser = stepContext.getUser();
+            }
+        }
+        return subjectStepUser ;
+    }
+
+    public UserAttribute getAttribute(){
+        SequenceContext sequenceContext = getSequenceContext();
+        User attributeStepUser = null ;
+        AbstractSequence sequence = getSequence();
+        AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
+        for(AuthenticationStep authenticationStep : stepAuthenticatorConfig){
+            boolean attributeStep = authenticationStep.isAttributeStep();
+            if(attributeStep) {
+                SequenceContext.StepContext stepContext =
+                        sequenceContext.getStepContext(authenticationStep.getStepOrder());
+                attributeStepUser = stepContext.getUser();
+            }
+        }
+        return attributeStepUser.getAttribute() ;
     }
 }

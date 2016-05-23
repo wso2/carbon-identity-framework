@@ -44,7 +44,7 @@ public class StepHandler extends FrameworkHandler {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
             }
         } else {
-            if (sequence.getStep(sequenceContext.getCurrentStepCount()).isMultiOption()) {
+            if (sequence.getStep(sequenceContext.getCurrentStep()).isMultiOption()) {
                 IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
                 String authenticatorName = null;
                 if (identityRequest instanceof LocalAuthenticationRequest) {
@@ -66,13 +66,13 @@ public class StepHandler extends FrameworkHandler {
 
             } else {
                 LocalAuthenticatorConfig localAuthenticatorConfigForSingleOption =
-                        sequence.getLocalAuthenticatorConfigForSingleOption(sequenceContext.getCurrentStepCount());
+                        sequence.getLocalAuthenticatorConfigForSingleOption(sequenceContext.getCurrentStep());
                 if (localAuthenticatorConfigForSingleOption != null) {
                     applicationAuthenticator =
                             Utility.getLocalApplicationAuthenticator(localAuthenticatorConfigForSingleOption.getName());
                 } else {
                     IdentityProvider federatedIdentityProviderForSingleOption =
-                            sequence.getFederatedIdentityProviderForSingleOption(sequenceContext.getCurrentStepCount());
+                            sequence.getFederatedIdentityProviderForSingleOption(sequenceContext.getCurrentStep());
                     applicationAuthenticator =
                             Utility.getFederatedApplicationAuthenticator(federatedIdentityProviderForSingleOption
                                                                                  .getDefaultAuthenticatorConfig()
@@ -86,7 +86,7 @@ public class StepHandler extends FrameworkHandler {
 
         if (AuthenticationResponse.AUTHENTICATED.equals(authenticationResponse)) {
             currentStepContext.setIsAuthenticated(true);
-            int nextStep = sequenceContext.getCurrentStepCount() + 1;
+            int nextStep = sequenceContext.getCurrentStep() + 1;
             if (sequence.hasNext(nextStep)) {
                 authenticationResponse = handleStepAuthentication(authenticationContext);
             }

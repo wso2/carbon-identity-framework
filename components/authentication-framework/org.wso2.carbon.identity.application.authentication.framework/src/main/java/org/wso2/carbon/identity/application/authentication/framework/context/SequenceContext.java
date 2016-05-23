@@ -1,13 +1,15 @@
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
 
+import org.wso2.carbon.identity.application.authentication.framework.model.User;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SequenceContext {
 
-    private int currentStepCount = 1;
+    private int currentStep = 1;
 
     private RequestPathAuthenticatorContext requestPathAuthenticatorContext = null;
     private List<StepContext> stepContextList = new ArrayList<>();
@@ -25,22 +27,28 @@ public class SequenceContext {
         this.requestPathAuthenticatorContext = requestPathAuthenticatorContext;
     }
 
-    public int getCurrentStepCount() {
-        return currentStepCount;
+    public int getCurrentStep() {
+        return currentStep;
     }
 
-    public void setCurrentStepCount(int currentStepCount) {
-        this.currentStepCount = currentStepCount;
+    public void setCurrentStep(int currentStep) {
+        this.currentStep = currentStep;
     }
 
+    public StepContext getStepContext(int step) {
+        StepContext stepAuthenticatorsContext = null;
+        if (stepContextList.size() >= step) {
+            stepAuthenticatorsContext = stepContextList.get(step);
+        }
+        return stepAuthenticatorsContext;
+    }
     public StepContext getCurrentStepContext() {
         StepContext stepAuthenticatorsContext = null;
-        if (stepContextList.size() >= currentStepCount) {
+        if (stepContextList.size() >= currentStep) {
             stepAuthenticatorsContext = stepContextList.get(stepContextList.size());
         }
         return stepAuthenticatorsContext;
     }
-
     public void addCurrentStepAuthenticatorContext(StepContext stepContext) {
         stepContextList.add(stepContext);
     }
@@ -97,54 +105,7 @@ public class SequenceContext {
         }
     }
 
-    public static class User implements Serializable {
-        private String userIdentifier;
 
-
-        public String getUserIdentifier() {
-            return userIdentifier;
-        }
-
-        public void setUserIdentifier(String userIdentifier) {
-            this.userIdentifier = userIdentifier;
-        }
-
-    }
-
-    public class FederatedUser extends User {
-
-    }
-
-    public static class LocalUser extends User {
-
-        private String tenantDomain;
-        private String userStoreDomain;
-        private String userName;
-
-        public String getTenantDomain() {
-            return tenantDomain;
-        }
-
-        public void setTenantDomain(String tenantDomain) {
-            this.tenantDomain = tenantDomain;
-        }
-
-        public String getUserStoreDomain() {
-            return userStoreDomain;
-        }
-
-        public void setUserStoreDomain(String userStoreDomain) {
-            this.userStoreDomain = userStoreDomain;
-        }
-
-        public String getUserName() {
-            return userName;
-        }
-
-        public void setUserName(String userName) {
-            this.userName = userName;
-        }
-    }
 
 
 }
