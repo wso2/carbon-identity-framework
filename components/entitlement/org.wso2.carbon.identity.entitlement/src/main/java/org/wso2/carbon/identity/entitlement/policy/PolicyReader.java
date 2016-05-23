@@ -26,6 +26,7 @@ import org.wso2.balana.ParsingException;
 import org.wso2.balana.Policy;
 import org.wso2.balana.PolicySet;
 import org.wso2.balana.finder.PolicyFinder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -60,9 +61,8 @@ public class PolicyReader implements ErrorHandler {
 
         this.policyFinder = policyFinder;
         // create the factory
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilder();
         factory.setIgnoringComments(true);
-        factory.setNamespaceAware(true);
         // now use the factory to create the document builder
         try {
             builder = factory.newDocumentBuilder();

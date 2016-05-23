@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.entitlement.pap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.balana.AbstractPolicy;
@@ -28,6 +27,7 @@ import org.wso2.balana.ParsingException;
 import org.wso2.balana.Policy;
 import org.wso2.balana.PolicySet;
 import org.wso2.balana.finder.PolicyFinder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.policy.PolicyTarget;
 import org.wso2.carbon.identity.entitlement.util.CarbonEntityResolver;
 import org.xml.sax.ErrorHandler;
@@ -37,7 +37,6 @@ import org.xml.sax.SAXParseException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.XMLConstants;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
@@ -54,10 +53,6 @@ public class PAPPolicyReader implements ErrorHandler {
 
     // the standard attribute for specifying schema source
     private static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
-    public static final String EXTERNAL_GENERAL_ENTITIES_URI = "http://xml.org/sax/features/external-general-entities";
     // To enable attempted thread-safety using double-check locking
     private static final Object lock = new Object();
     private static Log log = LogFactory.getLog(PAPPolicyReader.class);
@@ -73,18 +68,11 @@ public class PAPPolicyReader implements ErrorHandler {
 
         this.policyFinder = policyFinder;
         // create the factory
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
         documentBuilderFactory.setIgnoringComments(true);
-        documentBuilderFactory.setNamespaceAware(true);
-        documentBuilderFactory.setExpandEntityReferences(false);
-        SecurityManager securityManager = new SecurityManager();
-        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-        documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
 
         // now use the factory to create the document builder
         try {
-            documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            documentBuilderFactory.setFeature(EXTERNAL_GENERAL_ENTITIES_URI, false);
             builder = documentBuilderFactory.newDocumentBuilder();
             builder.setEntityResolver(new CarbonEntityResolver());
             builder.setErrorHandler(this);

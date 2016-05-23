@@ -247,8 +247,7 @@ public class TenantDataManager {
 
                 InputSource inputSource = new InputSource(new StringReader(xmlString));
 
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                factory.setNamespaceAware(true);
+                DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilder();
 
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc = builder.parse(inputSource);

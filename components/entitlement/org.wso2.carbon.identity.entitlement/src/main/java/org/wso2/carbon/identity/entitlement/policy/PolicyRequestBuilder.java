@@ -23,6 +23,7 @@ import org.apache.xerces.impl.Constants;
 import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.util.CarbonEntityResolver;
 import org.xml.sax.SAXException;
@@ -40,10 +41,7 @@ import java.io.IOException;
 public class PolicyRequestBuilder {
 
     private static Log log = LogFactory.getLog(PolicyRequestBuilder.class);
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
-    public static final String EXTERNAL_GENERAL_ENTITIES_URI = "http://xml.org/sax/features/external-general-entities";
+
     /**
      * creates DOM representation of the XACML request
      *
@@ -56,19 +54,13 @@ public class PolicyRequestBuilder {
         ByteArrayInputStream inputStream;
         DocumentBuilderFactory documentBuilderFactory;
         Document doc;
+        DocumentBuilder documentBuilder;
 
         inputStream = new ByteArrayInputStream(request.getBytes());
-        documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        documentBuilderFactory.setExpandEntityReferences(false);
+        documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
 
-        SecurityManager securityManager = new SecurityManager();
-        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-        documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
-        DocumentBuilder documentBuilder;
         try {
-            documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            documentBuilderFactory.setFeature(EXTERNAL_GENERAL_ENTITIES_URI, false);
+
             documentBuilder = documentBuilderFactory.newDocumentBuilder();
             documentBuilder.setEntityResolver(new CarbonEntityResolver());
             doc = documentBuilder.parse(inputStream);
