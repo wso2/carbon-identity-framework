@@ -59,13 +59,13 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityRequest = factory.create(request, response).build();
-            if (identityRequest == null) {
-                throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!");
+            if(identityRequest == null) {
+                throw FrameworkRuntimeException.error("IdentityRequest is Null. Cannot proceed!!");
             }
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e, request, response);
-            if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+            if(responseBuilder == null) {
+                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         }
@@ -75,20 +75,20 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityResponse = manager.process(identityRequest);
-            if (identityResponse == null) {
-                throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!");
+            if(identityResponse == null) {
+                throw FrameworkRuntimeException.error("IdentityResponse is Null. Cannot proceed!!");
             }
             responseFactory = getIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
-            if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+            if(responseBuilder == null) {
+                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         } catch (FrameworkException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
-            if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+            if(responseBuilder == null) {
+                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         }
@@ -110,7 +110,7 @@ public class IdentityServlet extends HttpServlet {
             try {
                 sendRedirect(response, httpIdentityResponse);
             } catch (IOException ex) {
-                throw new FrameworkRuntimeException("Error occurred while redirecting response", ex);
+                throw FrameworkRuntimeException.error("Error occurred while redirecting response", ex);
             }
         } else {
             response.setStatus(httpIdentityResponse.getStatusCode());
@@ -143,7 +143,7 @@ public class IdentityServlet extends HttpServlet {
                 return requestBuilder;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityRequestFactory found to create the request");
+        throw FrameworkRuntimeException.error("No HttpIdentityRequestFactory found to create the request");
     }
 
     /**
@@ -162,7 +162,7 @@ public class IdentityServlet extends HttpServlet {
                 return responseFactory;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
+        throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the request");
     }
 
     /**
@@ -181,7 +181,7 @@ public class IdentityServlet extends HttpServlet {
                 return responseFactory;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
+        throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the request");
     }
 
     private void sendRedirect(HttpServletResponse response, HttpIdentityResponse HttpIdentityResponse)

@@ -34,11 +34,9 @@ public class StepHandler extends FrameworkHandler {
 
         if (currentStepContext != null) {
             if (!currentStepContext.isAuthenticated()) {
-                if (currentStepContext.isLocalApplicationAuthenticator()) {
-                    applicationAuthenticator =
-                            Utility.getLocalApplicationAuthenticator(currentStepContext.getName());
-
-                } else {
+                applicationAuthenticator =
+                        Utility.getLocalApplicationAuthenticator(currentStepContext.getName());
+                if (applicationAuthenticator == null) {
                     applicationAuthenticator =
                             Utility.getFederatedApplicationAuthenticator(currentStepContext.getName());
                 }
@@ -46,7 +44,7 @@ public class StepHandler extends FrameworkHandler {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
             }
         } else {
-            if (sequence.isMultiOptionStep(sequenceContext.getCurrentStepCount())) {
+            if (sequence.getStep(sequenceContext.getCurrentStepCount()).isMultiOption()) {
                 IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
                 String authenticatorName = null;
                 if (identityRequest instanceof LocalAuthenticationRequest) {

@@ -11,9 +11,10 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.r
 import org.wso2.carbon.identity.application.authentication.framework.processor.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+import java.io.Serializable;
 import java.util.Map;
 
-public class AuthenticationContext extends IdentityMessageContext {
+public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable>  extends IdentityMessageContext {
 
     protected AuthenticationRequest initialAuthenticationRequest;
 
@@ -22,7 +23,7 @@ public class AuthenticationContext extends IdentityMessageContext {
 
     public AuthenticationContext(
             AuthenticationRequest authenticationRequest,
-            Map parameters) {
+            Map<T1, T2> parameters) {
         super(authenticationRequest, parameters);
         this.initialAuthenticationRequest = authenticationRequest;
     }
@@ -30,6 +31,7 @@ public class AuthenticationContext extends IdentityMessageContext {
     public AuthenticationContext(
             AuthenticationRequest authenticationRequest) {
         super(authenticationRequest);
+        this.initialAuthenticationRequest = authenticationRequest;
     }
 
     public AuthenticationRequest getInitialAuthenticationRequest() {

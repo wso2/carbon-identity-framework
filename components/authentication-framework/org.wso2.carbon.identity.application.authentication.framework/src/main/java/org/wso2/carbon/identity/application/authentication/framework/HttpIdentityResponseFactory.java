@@ -44,6 +44,8 @@ public abstract class HttpIdentityResponseFactory {
 
     public abstract HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse);
 
+    public abstract HttpIdentityResponse.HttpIdentityResponseBuilder create(HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse);
+
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkException exception) {
 
         HttpIdentityResponse.HttpIdentityResponseBuilder builder =

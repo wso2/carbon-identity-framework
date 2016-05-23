@@ -35,13 +35,13 @@ public abstract class AbstractSequence implements Serializable {
 
     public abstract boolean hasNext(int step);
 
-    public abstract AuthenticationStep getAuthenticatorStep(int step);
+    public abstract Step getStep(int step);
 
     public abstract LocalAuthenticatorConfig getLocalAuthenticatorConfigForSingleOption(int step);
 
     public abstract IdentityProvider getFederatedIdentityProviderForSingleOption(int step);
 
-    public abstract boolean isMultiOptionStep(int step);
+
 
     public abstract LocalAuthenticatorConfig getLocalAuthenticatorConfig(int step, String authenticatorName);
 

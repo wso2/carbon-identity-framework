@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.application.authentication.framework.demo;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model
         .AbstractSequence;
+import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model.Step;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -62,18 +63,20 @@ public class DemoSequence extends AbstractSequence {
     }
 
     @Override
-    public AuthenticationStep getAuthenticatorStep(int step) {
+    public Step getStep(int stepCount) {
         AuthenticationStep authenticationStep = null;
-        if (authenticationSteps.length >= step) {
-            authenticationStep = authenticationSteps[step];
+        if (authenticationSteps.length >= stepCount) {
+            authenticationStep = authenticationSteps[stepCount];
         }
-        return authenticationStep;
+        Step step = new Step();
+        step.setAuthenticationStep(authenticationStep);
+        return step;
     }
 
     @Override
     public LocalAuthenticatorConfig getLocalAuthenticatorConfigForSingleOption(int step) {
         LocalAuthenticatorConfig localAuthenticatorConfig = null;
-        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        AuthenticationStep authenticatorStep = getStep(step).getAuthenticationStep();
         LocalAuthenticatorConfig[] localAuthenticatorConfigs = authenticatorStep.getLocalAuthenticatorConfigs();
         if (localAuthenticatorConfigs.length == 1) {
             localAuthenticatorConfig = localAuthenticatorConfigs[0];
@@ -84,7 +87,7 @@ public class DemoSequence extends AbstractSequence {
     @Override
     public IdentityProvider getFederatedIdentityProviderForSingleOption(int step) {
         IdentityProvider identityProvider = null;
-        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        AuthenticationStep authenticatorStep = getStep(step).getAuthenticationStep();
         IdentityProvider[] federatedIdentityProviders = authenticatorStep.getFederatedIdentityProviders();
 
         if (federatedIdentityProviders.length == 1) {
@@ -94,20 +97,9 @@ public class DemoSequence extends AbstractSequence {
     }
 
     @Override
-    public boolean isMultiOptionStep(int step) {
-        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
-        boolean isMultiOption = false;
-        if ((authenticatorStep.getFederatedIdentityProviders().length +
-             authenticatorStep.getLocalAuthenticatorConfigs().length) > 1) {
-            isMultiOption = true;
-        }
-        return isMultiOption;
-    }
-
-    @Override
     public LocalAuthenticatorConfig getLocalAuthenticatorConfig(int step, String authenticatorName) {
         LocalAuthenticatorConfig localAuthenticatorConfig = null;
-        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        AuthenticationStep authenticatorStep = getStep(step).getAuthenticationStep();
         LocalAuthenticatorConfig[] localAuthenticatorConfigs = authenticatorStep.getLocalAuthenticatorConfigs();
         for (LocalAuthenticatorConfig tmpAuthenticatorConfig : localAuthenticatorConfigs) {
             if (tmpAuthenticatorConfig.getName().equals(authenticatorName)) {
@@ -121,7 +113,7 @@ public class DemoSequence extends AbstractSequence {
     @Override
     public IdentityProvider getFederatedIdentityProvider(int step, String identityProviderName) {
         IdentityProvider identityProvider = null;
-        AuthenticationStep authenticatorStep = getAuthenticatorStep(step);
+        AuthenticationStep authenticatorStep = getStep(step).getAuthenticationStep();
         IdentityProvider[] federatedIdentityProviders = authenticatorStep.getFederatedIdentityProviders();
         for (IdentityProvider tmpIdentityProvider : federatedIdentityProviders) {
             if (tmpIdentityProvider.getDisplayName().equals(identityProviderName)) {

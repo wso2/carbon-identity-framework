@@ -43,6 +43,10 @@ public class IdentityResponse implements Serializable {
             this.context = context;
         }
 
+        public IdentityResponseBuilder() {
+
+        }
+
         public IdentityResponse build() {
             return new IdentityResponse(this);
         }

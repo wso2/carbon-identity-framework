@@ -95,11 +95,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             } catch (AuthenticationFailedException e) {
-                Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+                Map<Integer, Step> stepMap = context.getSequenceConfig().getStepMap();
                 boolean stepHasMultiOption = false;
 
                 if (stepMap != null && !stepMap.isEmpty()) {
-                    StepConfig stepConfig = stepMap.get(context.getCurrentStep());
+                    Step stepConfig = stepMap.get(context.getCurrentStep());
 
                     if (stepConfig != null) {
                         stepHasMultiOption = stepConfig.isMultiOption();

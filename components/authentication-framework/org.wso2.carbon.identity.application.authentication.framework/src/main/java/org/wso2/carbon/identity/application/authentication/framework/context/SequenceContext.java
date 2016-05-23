@@ -1,13 +1,17 @@
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SequenceContext {
+
     private int currentStepCount = 1;
+
     private RequestPathAuthenticatorContext requestPathAuthenticatorContext = null;
     private List<StepContext> stepContextList = new ArrayList<>();
+
     public SequenceContext() {
 
     }
@@ -55,17 +59,17 @@ public class SequenceContext {
     }
 
     public static class StepContext {
-        private int stepCount;
-        private String name;
-        private boolean isLocalApplicationAuthenticator = false;
+        private int step;
+        private String name ;
+        private User user;
         private boolean isAuthenticated = false;
 
-        public int getStepCount() {
-            return stepCount;
+        public String getName() {
+            return name;
         }
 
-        public void setStepCount(int stepCount) {
-            this.stepCount = stepCount;
+        public void setName(String name) {
+            this.name = name;
         }
 
         public boolean isAuthenticated() {
@@ -76,20 +80,69 @@ public class SequenceContext {
             this.isAuthenticated = isAuthenticated;
         }
 
-        public String getName() {
-            return name;
+        public int getStep() {
+            return step;
         }
 
-        public void setName(String name) {
-            this.name = name;
+        public void setStep(int step) {
+            this.step = step;
         }
 
-        public boolean isLocalApplicationAuthenticator() {
-            return isLocalApplicationAuthenticator;
+        public User getUser() {
+            return user;
         }
 
-        public void setIsLocalApplicationAuthenticator(boolean isLocalApplicationAuthenticator) {
-            this.isLocalApplicationAuthenticator = isLocalApplicationAuthenticator;
+        public void setUser(User user) {
+            this.user = user;
+        }
+    }
+
+    public static class User implements Serializable {
+        private String userIdentifier;
+
+
+        public String getUserIdentifier() {
+            return userIdentifier;
+        }
+
+        public void setUserIdentifier(String userIdentifier) {
+            this.userIdentifier = userIdentifier;
+        }
+
+    }
+
+    public class FederatedUser extends User {
+
+    }
+
+    public static class LocalUser extends User {
+
+        private String tenantDomain;
+        private String userStoreDomain;
+        private String userName;
+
+        public String getTenantDomain() {
+            return tenantDomain;
+        }
+
+        public void setTenantDomain(String tenantDomain) {
+            this.tenantDomain = tenantDomain;
+        }
+
+        public String getUserStoreDomain() {
+            return userStoreDomain;
+        }
+
+        public void setUserStoreDomain(String userStoreDomain) {
+            this.userStoreDomain = userStoreDomain;
+        }
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
         }
     }
 
