@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>identity-mgt-feature</artifactId>
-        <version>5.1.1-SNAPSHOT</version>
+        <version>5.5.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -49,7 +49,6 @@
 
     <build>
         <plugins>
-
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
@@ -65,7 +64,6 @@
                                 <resource>
                                     <directory>resources</directory>
                                     <includes>
-                                        <include>email-admin-config.xml</include>
                                         <include>claim-config.xml</include>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
