@@ -121,7 +121,6 @@ public class DemoSequence extends AbstractSequence {
                 break;
             }
         }
-
         return identityProvider;
     }
 

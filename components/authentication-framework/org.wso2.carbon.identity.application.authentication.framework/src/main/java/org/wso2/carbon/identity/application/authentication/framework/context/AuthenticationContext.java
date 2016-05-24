@@ -20,6 +20,8 @@ import java.util.Map;
 
 public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable>  extends IdentityMessageContext {
 
+    private static final long serialVersionUID = 6821167819709907062L;
+
     protected AuthenticationRequest initialAuthenticationRequest;
 
     private AbstractSequence sequence = null;
