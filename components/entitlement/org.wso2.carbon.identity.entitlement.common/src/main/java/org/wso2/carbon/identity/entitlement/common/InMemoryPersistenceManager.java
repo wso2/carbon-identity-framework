@@ -20,18 +20,14 @@ package org.wso2.carbon.identity.entitlement.common;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.wso2.carbon.identity.base.IdentityBaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.common.dto.PolicyEditorDataHolder;
 import org.wso2.carbon.identity.entitlement.common.util.CarbonEntityResolver;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
