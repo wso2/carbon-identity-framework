@@ -408,7 +408,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Create DocumentBuilderFactory with the XXE and XEE prevention measurements
+     * Create DocumentBuilderFactory with the XXE and XEE prevention measurements.
      *
      * @return DocumentBuilderFactory instance
      */
@@ -427,7 +427,7 @@ public class IdentityUtil {
         } catch (ParserConfigurationException e) {
             log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or " +
                     Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE +
-                    " or secure-processing" );
+                    " or secure-processing." );
         }
 
         SecurityManager securityManager = new SecurityManager();
