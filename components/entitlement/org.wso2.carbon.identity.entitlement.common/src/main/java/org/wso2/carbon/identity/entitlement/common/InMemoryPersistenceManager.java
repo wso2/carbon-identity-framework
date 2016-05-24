@@ -20,16 +20,13 @@ package org.wso2.carbon.identity.entitlement.common;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.common.dto.PolicyEditorDataHolder;
-import org.wso2.carbon.identity.entitlement.common.util.CarbonEntityResolver;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -47,10 +44,6 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
 
     private static Log log = LogFactory.getLog(InMemoryPersistenceManager.class);
     private Map<String, String> xmlConfig = new HashMap<String, String>();
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
-    public static final String EXTERNAL_GENERAL_ENTITIES_URI = "http://xml.org/sax/features/external-general-entities";
 
     @Override
     public Map<String, PolicyEditorDataHolder> buildDataHolder() throws PolicyEditorException {
@@ -131,16 +124,8 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
      * @throws ParserConfigurationException
      */
     private DocumentBuilder getSecuredDocumentBuilder() throws ParserConfigurationException {
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        documentBuilderFactory.setExpandEntityReferences(false);
-        documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        documentBuilderFactory.setFeature(EXTERNAL_GENERAL_ENTITIES_URI, false);
-        SecurityManager securityManager = new SecurityManager();
-        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-        documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
+        DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        documentBuilder.setEntityResolver(new CarbonEntityResolver());
         return documentBuilder;
     }
 
