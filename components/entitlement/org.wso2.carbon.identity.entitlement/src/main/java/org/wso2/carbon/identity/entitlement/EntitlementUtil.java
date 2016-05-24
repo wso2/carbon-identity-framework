@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.entitlement;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.balana.AbstractPolicy;
@@ -51,6 +49,7 @@ import org.wso2.balana.combine.xacml3.PermitUnlessDenyPolicyAlg;
 import org.wso2.balana.ctx.AbstractRequestCtx;
 import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.xacml3.Attributes;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.cache.EntitlementBaseCache;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheEntry;
 import org.wso2.carbon.identity.entitlement.cache.IdentityCacheKey;
@@ -72,7 +71,6 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.utils.CarbonUtils;
-import org.wso2.carbon.identity.entitlement.util.CarbonEntityResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -82,7 +80,6 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
-import javax.xml.XMLConstants;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -103,11 +100,6 @@ import java.util.Set;
 public class EntitlementUtil {
 
     private static Log log = LogFactory.getLog(EntitlementUtil.class);
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
-    public static final String EXTERNAL_GENERAL_ENTITIES_URI = "http://xml.org/sax/features/external-general-entities";
-
 
     /**
      * Return an instance of a named cache that is common to all tenants.
@@ -642,17 +634,9 @@ public class EntitlementUtil {
     private static DocumentBuilder getSecuredDocumentBuilder(boolean setIgnoreComments) throws
             ParserConfigurationException {
 
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
         documentBuilderFactory.setIgnoringComments(setIgnoreComments);
-        documentBuilderFactory.setNamespaceAware(true);
-        documentBuilderFactory.setExpandEntityReferences(false);
-        documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        documentBuilderFactory.setFeature(EXTERNAL_GENERAL_ENTITIES_URI, false);
-        SecurityManager securityManager = new SecurityManager();
-        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-        documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        documentBuilder.setEntityResolver(new CarbonEntityResolver());
         return documentBuilder;
 
     }
