@@ -31,8 +31,6 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.rpc.receivers.RPCMessageReceiver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.apache.xml.security.signature.XMLSignature;
 import org.joda.time.DateTime;
@@ -73,8 +71,8 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.util.CarbonEntityResolver;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -91,9 +89,6 @@ import java.util.List;
 
 public class WSXACMLMessageReceiver extends RPCMessageReceiver {
 
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
-    private static final int ENTITY_EXPANSION_LIMIT = 0;
     private static Log log = LogFactory.getLog(WSXACMLMessageReceiver.class);
     private static boolean isBootStrapped = false;
     private static OMNamespace xacmlContextNS = OMAbstractFactory.getOMFactory()
@@ -342,17 +337,9 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
 
         try {
             doBootstrap();
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            documentBuilderFactory.setNamespaceAware(true);
-
-            documentBuilderFactory.setExpandEntityReferences(false);
-            documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            SecurityManager securityManager = new SecurityManager();
-            securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-            documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
+            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
 
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-            docBuilder.setEntityResolver(new CarbonEntityResolver());
             Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes()));
             Element element = document.getDocumentElement();
             UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
