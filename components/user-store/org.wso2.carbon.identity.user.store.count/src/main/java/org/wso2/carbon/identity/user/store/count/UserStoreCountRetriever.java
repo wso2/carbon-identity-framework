@@ -50,11 +50,4 @@ public interface UserStoreCountRetriever {
      */
     Long countClaim(String claimURI, String valueFilter) throws UserStoreCounterException;
 
-    /**
-     * Get the count of users, having claim values matching the given filter, for the given claim URI
-     *
-     * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
-     * @return the number of users matching the claims set based on the filters by each domain
-     */
-    Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException;
 }
