@@ -26,7 +26,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.common.dto.PolicyEditorDataHolder;
-import org.wso2.carbon.identity.entitlement.common.util.CarbonEntityResolver;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -127,7 +126,6 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
     private DocumentBuilder getSecuredDocumentBuilder() throws ParserConfigurationException {
         DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        documentBuilder.setEntityResolver(new CarbonEntityResolver());
         return documentBuilder;
     }
 

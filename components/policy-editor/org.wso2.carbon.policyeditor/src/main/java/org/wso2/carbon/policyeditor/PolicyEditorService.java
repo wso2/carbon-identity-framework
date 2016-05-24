@@ -28,7 +28,6 @@ import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.Document;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.policyeditor.util.CarbonEntityResolver;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -177,7 +176,6 @@ public class PolicyEditorService {
 
             // now use the factory to create the document builder
             docBuilder = docFactory.newDocumentBuilder();
-            docBuilder.setEntityResolver(new CarbonEntityResolver());
             xmlDoc = docBuilder.parse(new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8)));
 
 

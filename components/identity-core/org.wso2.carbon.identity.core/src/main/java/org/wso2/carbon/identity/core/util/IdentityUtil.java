@@ -39,7 +39,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.Utils;
-import org.wso2.carbon.identity.base.CarbonEntityResolver;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -397,7 +396,6 @@ public class IdentityUtil {
         try {
             DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilder();
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-            docBuilder.setEntityResolver(new CarbonEntityResolver());
             Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes(Charsets.UTF_8)));
             Element element = document.getDocumentElement();
             UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
@@ -410,7 +408,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Create DocumentBuilderFactory with the XXE prevention measurements
+     * Create DocumentBuilderFactory with the XXE and XEE prevention measurements
      *
      * @return DocumentBuilderFactory instance
      */
@@ -428,7 +426,8 @@ public class IdentityUtil {
 
         } catch (ParserConfigurationException e) {
             log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or " +
-                    Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE);
+                    Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE +
+                    " or secure-processing" );
         }
 
         SecurityManager securityManager = new SecurityManager();

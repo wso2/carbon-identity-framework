@@ -71,7 +71,6 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.utils.CarbonUtils;
-import org.wso2.carbon.identity.entitlement.util.CarbonEntityResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -638,7 +637,6 @@ public class EntitlementUtil {
         DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
         documentBuilderFactory.setIgnoringComments(setIgnoreComments);
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        documentBuilder.setEntityResolver(new CarbonEntityResolver());
         return documentBuilder;
 
     }

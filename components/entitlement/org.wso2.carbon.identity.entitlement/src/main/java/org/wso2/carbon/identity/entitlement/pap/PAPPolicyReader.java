@@ -19,7 +19,6 @@ package org.wso2.carbon.identity.entitlement.pap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.balana.AbstractPolicy;
@@ -29,7 +28,6 @@ import org.wso2.balana.PolicySet;
 import org.wso2.balana.finder.PolicyFinder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.policy.PolicyTarget;
-import org.wso2.carbon.identity.entitlement.util.CarbonEntityResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -65,8 +63,8 @@ public class PAPPolicyReader implements ErrorHandler {
 
     private PAPPolicyReader(PolicyFinder policyFinder) {
 
-
         this.policyFinder = policyFinder;
+
         // create the factory
         DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
         documentBuilderFactory.setIgnoringComments(true);
@@ -74,7 +72,6 @@ public class PAPPolicyReader implements ErrorHandler {
         // now use the factory to create the document builder
         try {
             builder = documentBuilderFactory.newDocumentBuilder();
-            builder.setEntityResolver(new CarbonEntityResolver());
             builder.setErrorHandler(this);
         } catch (ParserConfigurationException pce) {
             throw new IllegalArgumentException("Failed to create the DocumentBuilder. : ", pce);

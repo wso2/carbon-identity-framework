@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.user.registration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -38,7 +36,6 @@ import org.wso2.carbon.identity.user.registration.dto.PasswordRegExDTO;
 import org.wso2.carbon.identity.user.registration.dto.TenantRegistrationConfig;
 import org.wso2.carbon.identity.user.registration.dto.UserDTO;
 import org.wso2.carbon.identity.user.registration.dto.UserFieldDTO;
-import org.wso2.carbon.identity.user.registration.util.CarbonEntityResolver;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -53,7 +50,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -405,7 +401,6 @@ public class UserRegistrationService {
     private DocumentBuilder getSecuredDocumentBuilder() throws ParserConfigurationException {
         DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        documentBuilder.setEntityResolver(new CarbonEntityResolver());
         return documentBuilder;
     }
 }

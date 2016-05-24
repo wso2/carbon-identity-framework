@@ -19,16 +19,12 @@ package org.wso2.carbon.identity.entitlement.policy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.util.CarbonEntityResolver;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -62,7 +58,6 @@ public class PolicyRequestBuilder {
         try {
 
             documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            documentBuilder.setEntityResolver(new CarbonEntityResolver());
             doc = documentBuilder.parse(inputStream);
         } catch (SAXException e) {
             throw new EntitlementException("Error while creating DOM from XACML request");
