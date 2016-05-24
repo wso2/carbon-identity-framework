@@ -73,7 +73,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_USER_NAME)");
+                return resultSet.getLong("RESULT");
             } else {
                 log.error("No user count is retrieved from the user store");
                 return Long.valueOf(-1);
@@ -108,9 +108,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_ROLE_NAME)");
+                return resultSet.getLong("RESULT");
             } else {
-                log.error("No role count is retrieved from the user store");
+                log.error("No role count is retrieved from the user store.");
                 return Long.valueOf(-1);
             }
 
@@ -156,9 +156,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_USER_ID)");
+                return resultSet.getLong("RESULT");
             } else {
-                log.error("No claim count is retrieved from the user store");
+                log.error("No claim count is retrieved from the user store.");
                 return Long.valueOf(-1);
             }
 
