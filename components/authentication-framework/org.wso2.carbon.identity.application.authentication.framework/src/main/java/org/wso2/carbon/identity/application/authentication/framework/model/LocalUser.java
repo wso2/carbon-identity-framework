@@ -1,5 +1,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import java.util.List;
+
 public class LocalUser extends User {
 
     private String tenantDomain;
@@ -28,5 +30,12 @@ public class LocalUser extends User {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+
+    @Override
+    public List<UserClaim> getUserClaims() {
+        //TODO:read from user store
+        return null;
     }
 }

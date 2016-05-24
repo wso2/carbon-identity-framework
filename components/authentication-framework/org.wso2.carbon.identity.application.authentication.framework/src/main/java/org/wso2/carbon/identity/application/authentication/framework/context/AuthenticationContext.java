@@ -3,7 +3,7 @@ package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.model.User;
-import org.wso2.carbon.identity.application.authentication.framework.model.UserAttribute;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserClaim;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication
         .AuthenticationHandlerException;
 import org.wso2.carbon.identity.application.authentication.framework.processor.handler.authentication.impl.model
@@ -15,6 +15,7 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable>  extends IdentityMessageContext {
@@ -91,7 +92,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         return subjectStepUser ;
     }
 
-    public UserAttribute getAttribute(){
+    public List<UserClaim> getUserClaims(){
         SequenceContext sequenceContext = getSequenceContext();
         User attributeStepUser = null ;
         AbstractSequence sequence = getSequence();
@@ -104,6 +105,6 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
                 attributeStepUser = stepContext.getUser();
             }
         }
-        return attributeStepUser.getAttribute() ;
+        return attributeStepUser.getUserClaims();
     }
 }

@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.processor.r
 import org.wso2.carbon.identity.application.authentication.framework.processor.request.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.processor.util.HandlerManager;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 public class AuthenticationProcessor extends IdentityProcessor {
 
@@ -38,7 +39,7 @@ public class AuthenticationProcessor extends IdentityProcessor {
         AuthenticationRequest authenticationRequest = (AuthenticationRequest) identityRequest;
 
         if (PROCESS_CONTEXT_LOGIN.equals(processContext)) {
-            AuthenticationContext authenticationContext = new AuthenticationContext(authenticationRequest);
+            AuthenticationContext authenticationContext = initAuthenticationContext(authenticationRequest);
             identityResponseBuilder = processLoginRequest(authenticationContext);
         } else if (PROCESS_CONTEXT_AUTHENTICATION.equals(processContext)) {
             AuthenticationContext authenticationContext = buildAuthenticationContext(authenticationRequest);
@@ -63,6 +64,14 @@ public class AuthenticationProcessor extends IdentityProcessor {
     @Override
     public boolean canHandle(IdentityRequest identityRequest) {
         return false;
+    }
+
+    protected AuthenticationContext initAuthenticationContext(AuthenticationRequest authenticationRequest) {
+
+        AuthenticationContext authenticationContext = new AuthenticationContext(authenticationRequest);
+        String requestDataKey = UUIDGenerator.generateUUID();
+        IdentityMessageContextCache.getInstance().addToCache(requestDataKey, authenticationContext);
+        return authenticationContext;
     }
 
     protected AuthenticationContext buildAuthenticationContext(AuthenticationRequest authenticationRequest) {

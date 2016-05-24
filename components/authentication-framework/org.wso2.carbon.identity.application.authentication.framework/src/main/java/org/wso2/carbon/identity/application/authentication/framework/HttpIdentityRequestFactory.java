@@ -77,7 +77,7 @@ public class HttpIdentityRequestFactory {
     }
 
     public int getPriority() {
-        return 0;
+        return 100;
     }
 
     public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {

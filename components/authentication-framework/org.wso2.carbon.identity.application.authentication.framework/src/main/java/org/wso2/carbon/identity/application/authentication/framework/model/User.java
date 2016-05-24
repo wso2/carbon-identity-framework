@@ -1,8 +1,10 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
 import java.io.Serializable;
+import java.util.List;
 
-public class User implements Serializable {
+public abstract class User implements Serializable {
+
     private String userIdentifier;
     private User attributeStepUser = this ;
 
@@ -14,12 +16,6 @@ public class User implements Serializable {
         this.userIdentifier = userIdentifier;
     }
 
-    public UserAttribute getAttribute(){
-        return this.attributeStepUser.getAttribute();
-    }
+    public abstract List<UserClaim> getUserClaims();
 
-    public void setAttributeStepUser(
-            User attributeStepUser) {
-        this.attributeStepUser = attributeStepUser;
-    }
 }

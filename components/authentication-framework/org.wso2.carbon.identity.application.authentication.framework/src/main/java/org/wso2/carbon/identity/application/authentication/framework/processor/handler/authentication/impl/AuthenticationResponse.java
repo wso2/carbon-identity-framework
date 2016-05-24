@@ -13,8 +13,9 @@ public enum AuthenticationResponse {
         return identityResponseBuilder;
     }
 
-    public void setIdentityResponseBuilder(
+    public AuthenticationResponse setIdentityResponseBuilder(
             IdentityResponse.IdentityResponseBuilder identityResponseBuilder) {
         this.identityResponseBuilder = identityResponseBuilder;
+        return this ;
     }
 }
