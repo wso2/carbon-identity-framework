@@ -73,7 +73,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_USER_NAME)");
+                return resultSet.getLong("RESULT");
             } else {
                 log.error("No user count is retrieved from the user store");
                 return Long.valueOf(-1);
@@ -108,9 +108,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_ROLE_NAME)");
+                return resultSet.getLong("RESULT");
             } else {
-                log.error("No role count is retrieved from the user store");
+                log.error("No role count is retrieved from the user store.");
                 return Long.valueOf(-1);
             }
 
@@ -156,68 +156,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_USER_ID)");
+                return resultSet.getLong("RESULT");
             } else {
-                log.error("No claim count is retrieved from the user store");
-                return Long.valueOf(-1);
-            }
-
-        } catch (SQLException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Using sql : " + sqlStmt);
-            }
-            throw new UserStoreCounterException(e.getMessage(), e);
-        } catch (Exception e) {
-            throw new UserStoreCounterException(e.getMessage(), e);
-        } finally {
-            DatabaseUtil.closeAllConnections(dbConnection, resultSet, prepStmt);
-        }
-    }
-
-    @Override
-    public Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException {
-        Connection dbConnection = null;
-        String sqlStmt = null;
-        PreparedStatement prepStmt = null;
-        ResultSet resultSet = null;
-
-        try {
-            dbConnection = getDBConnection(realmConfiguration);
-            sqlStmt = JDBCUserStoreMetricsConstants.SELECT_COUNT_SQL;
-
-            for (int i = 0; i < claimSetToFilter.size(); i++) {
-                //if the last one to append
-                if (i == claimSetToFilter.size() - 1) {
-                    sqlStmt = sqlStmt + JDBCUserStoreMetricsConstants.SELECT_CLAIM_SQL + ")";
-                } else {
-                    sqlStmt = sqlStmt + JDBCUserStoreMetricsConstants.SELECT_CLAIM_SQL + " " +
-                            JDBCUserStoreMetricsConstants.INTERSECT_SQL + " ";
-                }
-            }
-            prepStmt = dbConnection.prepareStatement(sqlStmt);
-
-            Iterator iterator = claimSetToFilter.entrySet().iterator();
-            int i = 0;
-            while (iterator.hasNext()) {
-                Map.Entry pair = (Map.Entry) iterator.next();
-
-                i = i++;
-                prepStmt.setString(i, (String) pair.getKey());
-
-                i = i++;
-                prepStmt.setString(i, "%" + pair.getValue() + "%");
-
-                i = i++;
-                prepStmt.setInt(i, tenantId);
-            }
-
-            prepStmt.setQueryTimeout(searchTime);
-
-            resultSet = prepStmt.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_USER_ID)");
-            } else {
-                log.error("No claim count is retrieved from the user store");
+                log.error("No claim count is retrieved from the user store.");
                 return Long.valueOf(-1);
             }
 
