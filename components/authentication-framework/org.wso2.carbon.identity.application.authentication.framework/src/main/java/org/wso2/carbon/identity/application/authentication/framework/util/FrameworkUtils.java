@@ -666,21 +666,6 @@ public class FrameworkUtils {
     }
 
     /**
-     * @param req
-     */
-    public static void setRequestPathCredentials(HttpServletRequest req) {
-        // reading the authorization header for request path authentication
-        String reqPathCred = req.getHeader("Authorization");
-        if (reqPathCred == null) {
-            reqPathCred = req.getParameter("ReqPathCredential");
-        }
-        if (reqPathCred != null) {
-            log.debug("A Request path credential found");
-            req.getSession().setAttribute("Authorization", reqPathCred);
-        }
-    }
-
-    /**
      * @param externalIdPConfig
      * @param name
      * @return
