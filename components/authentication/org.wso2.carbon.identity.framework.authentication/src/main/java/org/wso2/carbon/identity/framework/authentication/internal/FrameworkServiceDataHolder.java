@@ -29,6 +29,9 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.authe
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl
         .AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.ContextInitializer;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.RequestPathHandler;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.SequenceManager;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.StepHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authorization.AbstractAuthorizationHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.claim.ClaimHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.extension.AbstractPostHandler;
@@ -53,6 +56,13 @@ public class FrameworkServiceDataHolder {
     List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
     //SequenceBuilder
     List<AbstractSequenceBuildFactory> sequenceBuildFactories = new ArrayList<>();
+    List<SequenceManager> sequenceManagers = new ArrayList<>();
+    List<StepHandler> stepHandlers = new ArrayList<>();
+    List<RequestPathHandler> requestPathHandlers = new ArrayList<>();
+
+
+
+
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private RegistryService registryService = null;
@@ -74,6 +84,7 @@ public class FrameworkServiceDataHolder {
     private Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandler = new HashMap<>();
     //AuthenticationHandler sub-handler
     private List<ContextInitializer> contextInitializers = new ArrayList<>();
+
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -186,5 +197,18 @@ public class FrameworkServiceDataHolder {
 
     public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
         return sequenceBuildFactories;
+    }
+
+
+    public List<SequenceManager> getSequenceManagers() {
+        return sequenceManagers;
+    }
+
+    public List<StepHandler> getStepHandlers() {
+        return stepHandlers;
+    }
+
+    public List<RequestPathHandler> getRequestPathHandlers() {
+        return requestPathHandlers;
     }
 }

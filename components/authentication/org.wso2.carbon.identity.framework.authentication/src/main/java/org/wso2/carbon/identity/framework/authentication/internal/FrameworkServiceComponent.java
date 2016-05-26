@@ -35,6 +35,9 @@ import org.wso2.carbon.identity.framework.authentication.processor.authenticator
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl
         .AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.RequestPathHandler;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.SequenceManager;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.StepHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authorization.AbstractAuthorizationHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.claim.ClaimHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.extension.AbstractPostHandler;
@@ -107,6 +110,18 @@ import java.util.Map;
  * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.AbstractSequenceBuildFactory"
  * cardinality="0..n" policy="dynamic" bind="addSequenceBuildFactory"
  * unbind="unSetSequenceBuildFactory"
+ * @scr.reference name="identity.handlers.sequence.factory"
+ * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.SequenceManager"
+ * cardinality="0..n" policy="dynamic" bind="addSequenceManager"
+ * unbind="unSetSequenceManager"
+ * @scr.reference name="identity.handlers.sequence.factory"
+ * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.RequestPathHandler"
+ * cardinality="0..n" policy="dynamic" bind="addRequestPathHandler"
+ * unbind="unSetRequestPathHandler"
+ * @scr.reference name="identity.handlers.sequence.factory"
+ * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.StepHandler"
+ * cardinality="0..n" policy="dynamic" bind="addStepHandler"
+ * unbind="unSetStepHandler"
  */
 
 
@@ -207,8 +222,13 @@ public class FrameworkServiceComponent {
 
 
         //Registering this for demo perposes only
-        DemoSequenceBuildFactory demoSequenceBuildFactory = new DemoSequenceBuildFactory();
-        bundleContext.registerService(DemoSequenceBuildFactory.class, demoSequenceBuildFactory, null);
+        bundleContext.registerService(AbstractSequenceBuildFactory.class, new DemoSequenceBuildFactory(), null);
+        bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
+        bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
+        bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
+        bundleContext.registerService(StepHandler.class, new StepHandler(), null);
+
+
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
@@ -514,6 +534,65 @@ public class FrameworkServiceComponent {
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
+        }
+    }
+
+
+    protected void addSequenceManager(SequenceManager sequenceManager) {
+
+        FrameworkServiceDataHolder.getInstance().getSequenceManagers().add(sequenceManager);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added SequenceManager : " + sequenceManager.getName());
+        }
+    }
+
+    protected void unSetSequenceManager(SequenceManager sequenceManager) {
+
+        FrameworkServiceDataHolder.getInstance().getSequenceManagers().remove(sequenceManager);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed SequenceManager : " + sequenceManager.getName());
+        }
+    }
+
+
+
+    protected void addRequestPathHandler(RequestPathHandler requestPathHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getRequestPathHandlers().add(requestPathHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added RequestPathHandler : " + requestPathHandler.getName());
+        }
+    }
+
+    protected void unSetRequestPathHandler(RequestPathHandler requestPathHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getRequestPathHandlers().remove(requestPathHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed RequestPathHandler : " + requestPathHandler.getName());
+        }
+    }
+
+
+
+    protected void addStepHandler(StepHandler stepHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getStepHandlers().add(stepHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added StepHandler : " + stepHandler.getName());
+        }
+    }
+
+    protected void unSetStepHandler(StepHandler stepHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getStepHandlers().remove(stepHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed StepHandler : " + stepHandler.getName());
         }
     }
 }

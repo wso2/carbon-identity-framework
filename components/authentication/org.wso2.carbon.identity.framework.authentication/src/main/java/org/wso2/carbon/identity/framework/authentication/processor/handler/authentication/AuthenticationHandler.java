@@ -34,10 +34,11 @@ public class AuthenticationHandler extends FrameworkHandler {
 
         authenticationContext.setSequence(abstractSequence);
 
+        /*
         ContextInitializer contextInitializerHandler =
                 handlerManager.getContextInitializerHandler(authenticationContext);
         contextInitializerHandler.initialize(authenticationContext);
-
+        */
         SequenceManager sequenceManager =
                 handlerManager.getSequenceManager(authenticationContext);
 

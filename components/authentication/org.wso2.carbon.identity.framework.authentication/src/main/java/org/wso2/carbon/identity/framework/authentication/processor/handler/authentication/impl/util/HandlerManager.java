@@ -2,6 +2,7 @@ package org.wso2.carbon.identity.framework.authentication.processor.handler.auth
         .util;
 
 
+import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.internal.FrameworkServiceDataHolder;
@@ -27,35 +28,36 @@ public class HandlerManager {
     }
 
     public ContextInitializer getContextInitializerHandler(AuthenticationContext authenticationContext) {
-        List<ContextInitializer> contextInitializers =
-                FrameworkServiceDataHolder.getInstance().getContextInitializers();
-        for (ContextInitializer contextInitializer : contextInitializers) {
-            if (contextInitializer.canHandle(authenticationContext)) {
-                return contextInitializer;
-            }
-        }
-        throw FrameworkRuntimeException.error("Cannot find ContextInitializer to handle this request");
+        return (ContextInitializer)getHandler(FrameworkServiceDataHolder.getInstance().getContextInitializers(), authenticationContext);
     }
 
 
     public SequenceManager getSequenceManager(AuthenticationContext authenticationContext) {
-
-        throw FrameworkRuntimeException.error("Cannot find SequenceManager to handle this request");
+        return (SequenceManager)getHandler(FrameworkServiceDataHolder.getInstance().getSequenceManagers(), authenticationContext);
     }
 
     public AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
-
-        throw FrameworkRuntimeException.error("Cannot find AuthenticationContext to handle this request");
+        return (AbstractSequenceBuildFactory)getHandler(FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories(), authenticationContext);
     }
 
     public StepHandler getStepHandler(AuthenticationContext authenticationContext) {
-
-        throw FrameworkRuntimeException.error("Cannot find StepHandler to handle this request");
+        return (StepHandler)getHandler(FrameworkServiceDataHolder.getInstance().getStepHandlers(), authenticationContext);
     }
 
     public RequestPathHandler getRequestPathHandler(AuthenticationContext authenticationContext) {
+        return (RequestPathHandler)getHandler(FrameworkServiceDataHolder.getInstance().getRequestPathHandlers(), authenticationContext);
+    }
 
-        throw FrameworkRuntimeException.error("Cannot find RequestPathHandler to handle this request");
+
+    private AbstractIdentityHandler getHandler(List<? extends AbstractIdentityHandler > abstractIdentityHandlers, AuthenticationContext authenticationContext){
+        if(abstractIdentityHandlers != null){
+            for(AbstractIdentityHandler abstractIdentityHandler: abstractIdentityHandlers){
+                if(abstractIdentityHandler.canHandle(authenticationContext)){
+                    return abstractIdentityHandler ;
+                }
+            }
+        }
+        throw FrameworkRuntimeException.error("Cannot find a Handler to handle this request");
     }
 
 }
