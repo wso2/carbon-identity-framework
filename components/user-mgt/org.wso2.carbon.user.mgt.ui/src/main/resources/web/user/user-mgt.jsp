@@ -369,9 +369,18 @@
         function deleteUser(user) {
             function doDelete() {
                 var userName = user;
-                location.href = 'delete-finish.jsp?username=' + userName;
+                $.ajax({
+                    type: 'POST',
+                    url: 'delete-finish.jsp',
+                    data: 'username=' + userName,
+                    success: function () {
+                        location.href = "user-mgt.jsp?ordinal=1";
+                    },
+                    error: function () {
+                        CARBON.showErrorDialog('<fmt:message key="user.cannot.delete"/>' + ' ' + userName);
+                    }
+                });
             }
-
             CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.user"/> \'" + user + "\'?", doDelete, null);
         }
 

@@ -333,14 +333,25 @@
 <carbon:breadcrumb label="roles"
 		resourceBundle="org.wso2.carbon.userstore.ui.i18n.Resources"
 		topPage="false" request="<%=request%>" />
-		
+
     <script type="text/javascript">
 
         function deleteUserGroup(role) {
-            function doDelete(){
+            function doDelete() {
                 var roleName = role;
-                location.href = 'delete-role.jsp?roleName=' + roleName +'&userType=internal';
+                $.ajax({
+                    type: 'POST',
+                    url: 'delete-role.jsp',
+                    data: 'roleName=' + roleName + '&userType=internal',
+                    success: function () {
+                        location.href = "role-mgt.jsp";
+                    },
+                    error: function () {
+                        CARBON.showErrorDialog('<fmt:message key="role.cannot.delete"/>' + ' ' + roleName);
+                    }
+                });
             }
+
             CARBON.showConfirmationDialog('<fmt:message key="confirm.delete.role"/> ' + role + '?', doDelete, null);
         }
 
