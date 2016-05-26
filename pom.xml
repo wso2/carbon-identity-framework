@@ -38,10 +38,8 @@
     </scm>
 
     <modules>
-        <module>components/authentication-framework</module>
-        <module>components/application-mgt</module>
-        <module>features/authentication-framework</module>
-        <module>features/application-mgt</module>
+        <module>components/framework</module>
+        <module>components/authentication</module>
     </modules>
 
     <repositories>
@@ -698,6 +696,16 @@
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.framework</artifactId>
+                <version>${identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.framework.authentication</artifactId>
+                <version>${identity.framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
