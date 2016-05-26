@@ -1,4 +1,3 @@
-<%@ page import="org.owasp.encoder.Encode" %>
 <!--
 ~ Copyright (c) 2005-2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 ~
