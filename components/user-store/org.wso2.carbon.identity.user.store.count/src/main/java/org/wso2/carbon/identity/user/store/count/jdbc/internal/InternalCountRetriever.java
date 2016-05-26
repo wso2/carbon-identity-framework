@@ -69,7 +69,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_ID)");
+                return resultSet.getLong("RESULT");
             } else {
                 log.error("No role count is retrieved for Internal domain filter:" + filter);
                 return Long.valueOf(-1);
@@ -103,7 +103,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
 
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                return resultSet.getLong("COUNT(UM_ID)");
+                return resultSet.getLong("RESULT");
             } else {
                 log.error("No role count is retrieved for Internal domain filter:" + filter);
                 return Long.valueOf(-1);
