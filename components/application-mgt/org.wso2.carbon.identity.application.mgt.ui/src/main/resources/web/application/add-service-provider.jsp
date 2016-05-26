@@ -30,15 +30,15 @@
 
 <script type="text/javascript">
 function createAppOnclick() {
-    var spName = document.getElementById("spName").value;
-    var description = document.getElementById("sp-description").value;
-    if( spName == '') {
+    var spName = document.getElementById("spName");
+    if (spName.value == '') {
         CARBON.showWarningDialog('Please provide Service Provider ID');
         location.href = '#';
-    } else if (!validateTextForIllegal(document.getElementById("spName"))) {
+    } else if (!validateTextForIllegal(spName)) {
         return false;
-    }else {
-        location.href='add-service-provider-finish.jsp?spName=' + spName+'&sp-description='+description;
+    } else {
+        $("#add-sp-form").submit();
+        return true;
     }
 }
 
@@ -59,7 +59,7 @@ function validateTextForIllegal(fld) {
             <fmt:message key='title.service.providers.add'/>
         </h2>
         <div id="workArea">
-            <form id="idp-mgt-edit-form" name="add-service-provider-form" method="post" action="add-service-provider-finish.jsp" enctype="multipart/form-data" >
+            <form id="idp-mgt-edit-form" name="add-service-provider-form" method="post" action="add-service-provider-finish.jsp">
             <div class="sectionSeperator togglebleTitle"><fmt:message key='title.config.app.basic.config'/></div>
             <div class="sectionSub">
                 <table class="carbonFormTable">
