@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.IdpManagerService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -60,7 +61,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @scr.component name="idp.mgt.dscomponent" immediate=true
+ * @scr.component name="idp.mgt.dscomponent" immediate="true"
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
@@ -138,9 +139,7 @@ public class IdPManagementServiceComponent {
             } else {
                 log.error("Identity Provider Management - TenantMgtListener could not be registered");
             }
-
-            bundleCtx.registerService(IdpManagerService.class.getName(), IdentityProviderManager.getInstance(), null);
-
+            
             ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
                     UserOperationEventListener.class.getName(), new UserStoreListener(), null);
             if (userOperationListenerSR != null) {
@@ -166,6 +165,7 @@ public class IdPManagementServiceComponent {
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME) == null) {
                 addSuperTenantIdp();
             }
+            bundleCtx.registerService(IdpManager.class, IdentityProviderManager.getInstance(), null);
 
             buildFileBasedIdPList();
             cleanUpRemovedIdps();

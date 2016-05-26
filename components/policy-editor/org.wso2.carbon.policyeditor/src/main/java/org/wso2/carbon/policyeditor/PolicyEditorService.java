@@ -128,8 +128,9 @@ public class PolicyEditorService {
 
         StringBuilder fBuf = null;
         BufferedReader dis = null;
+        InputStream in = null;
         try {
-            InputStream in = PolicyEditorService.class.getResourceAsStream(
+            in = PolicyEditorService.class.getResourceAsStream(
                     ORG_WSO2_CARBON_POLICYEDITOR_XSD + "policies.xml");
 
             dis = new BufferedReader(new InputStreamReader(in, Charsets.UTF_8));
@@ -144,6 +145,13 @@ public class PolicyEditorService {
             throw new AxisFault("Axis fault while getting schemas.", e);
         } finally {
             IdentityIOStreamUtils.closeReader(dis);
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException e) {
+                throw new AxisFault("Axis fault while getting schemas.", e);
+            }
         }
 
         return "<![CDATA[" + fileList + "]]>";

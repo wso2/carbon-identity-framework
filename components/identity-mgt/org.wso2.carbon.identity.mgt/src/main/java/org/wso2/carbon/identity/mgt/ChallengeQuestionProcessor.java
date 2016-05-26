@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.mgt;
 
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -184,6 +183,48 @@ public class ChallengeQuestionProcessor {
 
     }
 
+    /**
+     * Retrieves challenge questions associated with the user.
+     *
+     * @param userName username of the user
+     * @param tenantId tenant user belongs to
+     * @return an array of UserChallengesDTO instances which holds the challenge questions
+     * @throws IdentityException
+     */
+    public UserChallengesDTO[] getUserChallengeQuestions(String userName, int tenantId) throws
+                                                                                        IdentityException {
+
+        List<UserChallengesDTO> userChallengesDTOList = new ArrayList<>();
+
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Retrieving Challenge questions from the user profile.");
+            }
+
+            List<String> challengeQuestionUris = getChallengeQuestionUris(userName, tenantId);
+
+            String[] challengeQuestionUriArray = new String[challengeQuestionUris.size()];
+            Map<String, String> challengeQuestionClaimValues =
+                    Utils.getClaimsFromUserStoreManager(userName, tenantId, challengeQuestionUris.toArray(
+                            challengeQuestionUriArray));
+
+            for (Map.Entry<String, String> challengeQuestionClaimValue : challengeQuestionClaimValues.entrySet()) {
+                String[] challengeQuestionItems = challengeQuestionClaimValue.getValue().split(
+                        IdentityMgtConfig.getInstance().getChallengeQuestionSeparator());
+
+                UserChallengesDTO dto = new UserChallengesDTO();
+                dto.setId(challengeQuestionClaimValue.getKey());
+                dto.setQuestion(challengeQuestionItems[0]);
+                userChallengesDTOList.add(dto);
+            }
+
+        } catch (Exception e) {
+            throw IdentityException.error("No associated challenge questions found for the user.", e);
+        }
+
+        UserChallengesDTO[] userChallengesDTOs = new UserChallengesDTO[userChallengesDTOList.size()];
+        return userChallengesDTOList.toArray(userChallengesDTOs);
+    }
 
     public UserChallengesDTO getUserChallengeQuestion(String userName, int tenantId,
                                                       boolean adminService) throws IdentityMgtServiceException {
@@ -487,6 +528,51 @@ public class ChallengeQuestionProcessor {
         } catch (Exception e) {
             String msg = "No associated challenge question found for the user";
             log.debug(msg, e);
+        }
+
+        return verification;
+    }
+
+    /**
+     * Verifies challenge question answers.
+     *
+     * @param userName username of the user
+     * @param tenantId tenant user belongs to
+     * @param userChallengesDTOs an array of UserChallengesDTO instances which holds the answer and the question id
+     * @return true if answers are correct and false otherwise
+     */
+    public boolean verifyUserChallengeAnswers(String userName, int tenantId,
+                                              UserChallengesDTO[] userChallengesDTOs) {
+
+        boolean verification = true;
+        try {
+
+            if (log.isDebugEnabled()) {
+                log.debug("verifying challenge question answers");
+            }
+
+            UserChallengesDTO[] storedUserChallengeDTOs = getChallengeQuestionsOfUser(userName, tenantId, true);
+
+            int count = 0;
+            for (UserChallengesDTO storedUserChallengesDTO : storedUserChallengeDTOs) {
+                for (UserChallengesDTO receivedUserChallengesDTO : userChallengesDTOs) {
+                    if (storedUserChallengesDTO.getId().equals(receivedUserChallengesDTO.getId())) {
+                        count++;
+                        String hashedAnswer = Utils.doHash(receivedUserChallengesDTO.getAnswer().trim().toLowerCase());
+                        if (!hashedAnswer.equals(storedUserChallengesDTO.getAnswer())) {
+                            verification = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (verification) {
+                verification = (storedUserChallengeDTOs.length == count);
+            }
+        } catch (Exception e) {
+            log.error("Error while verifying challenge question answers", e);
+            verification = false;
         }
 
         return verification;
