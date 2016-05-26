@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * @scr.component name="identity.application.authentication.framework.component"
+ * @scr.component name="identity.framework.component"
  * immediate="true"
  * @scr.reference name="osgi.httpservice"
  * interface="org.osgi.service.http.HttpService"
@@ -112,7 +112,6 @@ public class FrameworkServiceComponent {
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
 
-
         Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
                                                                 IDENTITY_SERVLET_URL);
         try {
@@ -125,7 +124,8 @@ public class FrameworkServiceComponent {
 
         //Default HttpIdentityRequestFactory is registered.
         HttpIdentityRequestFactory httpIdentityRequestFactory = new HttpIdentityRequestFactory();
-        addHttpIdentityRequestFactory(httpIdentityRequestFactory);
+        bundleContext.registerService(HttpIdentityRequestFactory.class, httpIdentityRequestFactory, null);
+
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 

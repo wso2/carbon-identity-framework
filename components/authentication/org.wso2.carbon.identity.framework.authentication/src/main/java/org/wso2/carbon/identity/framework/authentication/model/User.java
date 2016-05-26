@@ -6,7 +6,7 @@ import java.util.List;
 public abstract class User implements Serializable {
 
     private String userIdentifier;
-    private User attributeStepUser = this ;
+    private User attributeStepUser = this;
 
     public String getUserIdentifier() {
         return userIdentifier;

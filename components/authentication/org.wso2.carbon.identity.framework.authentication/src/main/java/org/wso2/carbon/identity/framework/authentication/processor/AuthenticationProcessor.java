@@ -4,12 +4,12 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.IdentityRequest;
 import org.wso2.carbon.identity.framework.IdentityResponse;
 import org.wso2.carbon.identity.framework.authentication.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
-import org.wso2.carbon.identity.framework.authentication.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication
@@ -20,6 +20,7 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.reque
 import org.wso2.carbon.identity.framework.authentication.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.framework.authentication.processor.request.AuthenticationRequest;
+import org.wso2.carbon.identity.framework.authentication.processor.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.framework.authentication.processor.request.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.framework.authentication.processor.util.HandlerManager;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -36,10 +37,10 @@ public class AuthenticationProcessor extends IdentityProcessor {
 
         AuthenticationRequest authenticationRequest = (AuthenticationRequest) identityRequest;
 
-        if (PROCESS_CONTEXT_LOGIN.equals(processContext)) {
+        if (identityRequest instanceof ClientAuthenticationRequest) {
             AuthenticationContext authenticationContext = initAuthenticationContext(authenticationRequest);
             identityResponseBuilder = processLoginRequest(authenticationContext);
-        } else if (PROCESS_CONTEXT_AUTHENTICATION.equals(processContext)) {
+        } else if (identityRequest instanceof LocalAuthenticationRequest) {
             AuthenticationContext authenticationContext = buildAuthenticationContext(authenticationRequest);
             if (authenticationContext == null) {
                 throw FrameworkRuntimeException.error("Invalid Request");

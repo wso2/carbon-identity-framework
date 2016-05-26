@@ -20,14 +20,12 @@ package org.wso2.carbon.identity.framework.authentication.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.IdentityServlet;
+import org.wso2.carbon.identity.framework.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.framework.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.authentication.demo.DemoSequenceBuildFactory;
 import org.wso2.carbon.identity.framework.authentication.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.ApplicationAuthenticator;
@@ -43,11 +41,11 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.exten
 import org.wso2.carbon.identity.framework.authentication.processor.handler.extension.AbstractPreHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.jit.JITHandler;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import javax.servlet.Servlet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,7 +53,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @scr.component name="identity.application.authentication.framework.component"
+ * @scr.component name="identity.framework.authentication.component"
  * immediate="true"
  * @scr.reference name="osgi.httpservice"
  * interface="org.osgi.service.http.HttpService"
@@ -73,18 +71,10 @@ import java.util.Map;
  * interface="org.wso2.carbon.identity.framework.authentication.processor.authenticator.ApplicationAuthenticator"
  * cardinality="1..n" policy="dynamic" bind="setAuthenticator"
  * unbind="unSetAuthenticator"
- * @scr.reference name="identity.processor"
- * interface="org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor"
- * cardinality="0..n" policy="dynamic" bind="addIdentityProcessor"
- * unbind="unSetIdentityProcessor"
- * @scr.reference name="identity.request.factory"
- * interface="org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory"
- * cardinality="0..n" policy="dynamic" bind="addHttpIdentityRequestFactory"
- * unbind="unSetHttpIdentityRequestFactory"
- * @scr.reference name="identity.response.factory"
- * interface="org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory"
- * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
- * unbind="unSetHttpIdentityResponseFactory"
+ * @scr.reference name="identity.handlers.request"
+ * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.request.AbstractRequestHandler"
+ * cardinality="0..n" policy="dynamic" bind="addRequestHandler"
+ * unbind="unSetRequestHandler"
  * @scr.reference name="identity.handlers.authentication"
  * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandler"
  * cardinality="0..n" policy="dynamic" bind="addAuthenticationHandler"
@@ -125,10 +115,54 @@ public class FrameworkServiceComponent {
     public static final String COMMON_SERVLET_URL = "/commonauth";
     private static final String IDENTITY_SERVLET_URL = "/identitynew";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
+    private static Comparator<IdentityProcessor> identityProcessor =
+            new Comparator<IdentityProcessor>() {
 
+                @Override
+                public int compare(IdentityProcessor identityProcessor1,
+                                   IdentityProcessor identityProcessor2) {
 
+                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
+                        return 1;
+                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
+    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
+            new Comparator<HttpIdentityRequestFactory>() {
 
+                @Override
+                public int compare(HttpIdentityRequestFactory factory1,
+                                   HttpIdentityRequestFactory factory2) {
 
+                    if (factory1.getPriority() > factory2.getPriority()) {
+                        return 1;
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
+    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
+            new Comparator<HttpIdentityResponseFactory>() {
+
+                @Override
+                public int compare(HttpIdentityResponseFactory factory1,
+                                   HttpIdentityResponseFactory factory2) {
+
+                    if (factory1.getPriority() > factory2.getPriority()) {
+                        return 1;
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
     private HttpService httpService;
 
     public static RealmService getRealmService() {
@@ -167,28 +201,14 @@ public class FrameworkServiceComponent {
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
 
-
-        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                                                                IDENTITY_SERVLET_URL);
-        try {
-            httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
-        } catch (Exception e) {
-            String errMsg = "Error when registering servlets via the HttpService.";
-            log.error(errMsg, e);
-            throw new RuntimeException(errMsg, e);
-        }
-
         //Registering processor
-        IdentityProcessor identityProcessor = new AuthenticationProcessor();
-        addIdentityProcessor(identityProcessor);
+        AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
+        bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
 
-        //Default HttpIdentityRequestFactory is registered.
-        HttpIdentityRequestFactory httpIdentityRequestFactory = new HttpIdentityRequestFactory();
-        addHttpIdentityRequestFactory(httpIdentityRequestFactory);
 
         //Registering this for demo perposes only
         DemoSequenceBuildFactory demoSequenceBuildFactory = new DemoSequenceBuildFactory();
-        addSequenceBuildFactory(demoSequenceBuildFactory);
+        bundleContext.registerService(DemoSequenceBuildFactory.class, demoSequenceBuildFactory, null);
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
@@ -239,11 +259,14 @@ public class FrameworkServiceComponent {
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().add((LocalApplicationAuthenticator)authenticator);
+            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators()
+                    .add((LocalApplicationAuthenticator) authenticator);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators().add((FederatedApplicationAuthenticator)authenticator);
+            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators()
+                    .add((FederatedApplicationAuthenticator) authenticator);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators().add((RequestPathApplicationAuthenticator)authenticator);
+            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators()
+                    .add((RequestPathApplicationAuthenticator) authenticator);
         } else {
             log.error("Unsupported Authenticator found : " + authenticator.getName());
         }
@@ -269,25 +292,6 @@ public class FrameworkServiceComponent {
 
     }
 
-    protected void addIdentityProcessor(IdentityProcessor requestProcessor) {
-
-        FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
-                         identityProcessor);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added IdentityProcessor : " + requestProcessor.getName());
-        }
-    }
-
-    protected void unSetIdentityProcessor(IdentityProcessor requestProcessor) {
-
-        FrameworkServiceDataHolder.getInstance().getIdentityProcessors().remove(requestProcessor);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed IdentityProcessor : " + requestProcessor.getName());
-        }
-    }
 
     protected void addHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
@@ -322,6 +326,24 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed HttpIdentityResponseFactory : " + factory.getName());
+        }
+    }
+
+    protected void addRequestHandler(AbstractRequestHandler abstractRequestHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getRequestHandlers().add(abstractRequestHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AuthenticationHandler : " + abstractRequestHandler.getName());
+        }
+    }
+
+    protected void unSetRequestHandler(AbstractRequestHandler abstractRequestHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getRequestHandlers().remove(abstractRequestHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AuthenticationHandler : " + abstractRequestHandler.getName());
         }
     }
 
@@ -494,54 +516,4 @@ public class FrameworkServiceComponent {
             log.debug("Removed AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
         }
     }
-
-
-    private static Comparator<IdentityProcessor> identityProcessor =
-            new Comparator<IdentityProcessor>() {
-
-                @Override
-                public int compare(IdentityProcessor identityProcessor1,
-                                   IdentityProcessor identityProcessor2) {
-
-                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
-                        return 1;
-                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
-            new Comparator<HttpIdentityRequestFactory>() {
-
-                @Override
-                public int compare(HttpIdentityRequestFactory factory1,
-                                   HttpIdentityRequestFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
-            new Comparator<HttpIdentityResponseFactory>() {
-
-                @Override
-                public int compare(HttpIdentityResponseFactory factory1,
-                                   HttpIdentityResponseFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
 }

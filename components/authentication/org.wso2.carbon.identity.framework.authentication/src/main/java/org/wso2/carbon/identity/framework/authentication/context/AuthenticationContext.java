@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.framework.authentication.context;
 
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.framework.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.authentication.cache.SessionContextCache;
 import org.wso2.carbon.identity.framework.authentication.model.User;
 import org.wso2.carbon.identity.framework.authentication.model.UserClaim;
@@ -17,7 +18,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable>  extends IdentityMessageContext {
+public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable> extends IdentityMessageContext {
 
     private static final long serialVersionUID = 6821167819709907062L;
 
@@ -77,30 +78,30 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         return serviceProvider;
     }
 
-    public User getSubjectUser(){
+    public User getSubjectUser() {
         SequenceContext sequenceContext = getSequenceContext();
-        User subjectStepUser = null ;
+        User subjectStepUser = null;
         AbstractSequence sequence = getSequence();
         AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
-        for(AuthenticationStep authenticationStep : stepAuthenticatorConfig){
+        for (AuthenticationStep authenticationStep : stepAuthenticatorConfig) {
             boolean subjectUser = authenticationStep.isSubjectStep();
-            if(subjectUser) {
+            if (subjectUser) {
                 SequenceContext.StepContext stepContext =
                         sequenceContext.getStepContext(authenticationStep.getStepOrder());
                 subjectStepUser = stepContext.getUser();
             }
         }
-        return subjectStepUser ;
+        return subjectStepUser;
     }
 
-    public List<UserClaim> getUserClaims(){
+    public List<UserClaim> getUserClaims() {
         SequenceContext sequenceContext = getSequenceContext();
-        User attributeStepUser = null ;
+        User attributeStepUser = null;
         AbstractSequence sequence = getSequence();
         AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
-        for(AuthenticationStep authenticationStep : stepAuthenticatorConfig){
+        for (AuthenticationStep authenticationStep : stepAuthenticatorConfig) {
             boolean attributeStep = authenticationStep.isAttributeStep();
-            if(attributeStep) {
+            if (attributeStep) {
                 SequenceContext.StepContext stepContext =
                         sequenceContext.getStepContext(authenticationStep.getStepOrder());
                 attributeStepUser = stepContext.getUser();

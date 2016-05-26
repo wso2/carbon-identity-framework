@@ -22,7 +22,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.framework.authentication.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.store.SessionDataStore;
 
 public class IdentityMessageContextCache extends BaseCache<String, IdentityMessageContext> {

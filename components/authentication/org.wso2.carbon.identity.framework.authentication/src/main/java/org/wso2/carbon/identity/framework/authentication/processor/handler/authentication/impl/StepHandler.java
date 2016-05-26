@@ -2,9 +2,9 @@ package org.wso2.carbon.identity.framework.authentication.processor.handler.auth
 
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.application.authentication.framework.IdentityRequest;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.framework.IdentityRequest;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.context.SequenceContext;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.ApplicationAuthenticator;

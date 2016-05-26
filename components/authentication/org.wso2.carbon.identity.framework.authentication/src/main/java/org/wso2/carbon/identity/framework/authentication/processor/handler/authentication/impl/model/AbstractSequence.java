@@ -42,7 +42,6 @@ public abstract class AbstractSequence implements Serializable {
     public abstract IdentityProvider getFederatedIdentityProviderForSingleOption(int step);
 
 
-
     public abstract LocalAuthenticatorConfig getLocalAuthenticatorConfig(int step, String authenticatorName);
 
     public abstract IdentityProvider getFederatedIdentityProvider(int step, String idenitytProvider);

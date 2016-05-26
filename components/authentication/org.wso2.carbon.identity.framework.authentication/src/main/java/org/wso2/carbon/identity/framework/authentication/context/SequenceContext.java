@@ -41,6 +41,7 @@ public class SequenceContext {
         }
         return stepAuthenticatorsContext;
     }
+
     public StepContext getCurrentStepContext() {
         StepContext stepAuthenticatorsContext = null;
         if (stepContextList.size() >= currentStep) {
@@ -48,6 +49,7 @@ public class SequenceContext {
         }
         return stepAuthenticatorsContext;
     }
+
     public void addCurrentStepAuthenticatorContext(StepContext stepContext) {
         stepContextList.add(stepContext);
     }
@@ -67,7 +69,7 @@ public class SequenceContext {
 
     public static class StepContext {
         private int step;
-        private String name ;
+        private String name;
         private User user;
         private boolean isAuthenticated = false;
 
@@ -103,8 +105,6 @@ public class SequenceContext {
             this.user = user;
         }
     }
-
-
 
 
 }

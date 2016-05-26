@@ -17,7 +17,8 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
@@ -45,7 +46,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.framework</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
+            <version>${identity.framework.version}</version>
         </dependency>
     </dependencies>
 
@@ -63,7 +64,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Private-Package>org.wso2.carbon.identity.framework.internal,
+                        <Private-Package>org.wso2.carbon.identity.framework.authentication.internal,
                         </Private-Package>
                         <Import-Package>
                             javax.xml.namespace,
@@ -92,14 +93,13 @@
 
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
 
-                            org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.framework.authentication.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.framework.*; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>!org.wso2.carbon.identity.framework.authentication.internal,
-                            org.wso2.carbon.identity.framework.authentication.*;
-                            version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.framework.authentication.*;version="${carbon.identity.package.export.version}"
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>

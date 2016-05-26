@@ -2,7 +2,7 @@ package org.wso2.carbon.identity.framework.authentication.processor.handler.auth
         .util;
 
 
-import org.wso2.carbon.identity.application.authentication.framework.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl

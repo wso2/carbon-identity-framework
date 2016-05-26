@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.framework.authentication.processor.handler.extension;
 
 import org.wso2.carbon.identity.framework.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.framework.authentication.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandlerException;
 

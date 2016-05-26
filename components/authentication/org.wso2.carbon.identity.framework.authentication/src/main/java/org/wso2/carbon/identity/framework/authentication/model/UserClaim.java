@@ -2,10 +2,10 @@ package org.wso2.carbon.identity.framework.authentication.model;
 
 import java.io.Serializable;
 
-public class UserClaim implements Serializable{
+public class UserClaim implements Serializable {
 
-    private String uri ;
-    private String value ;
+    private String uri;
+    private String value;
 
     public UserClaim(String uri, String value) {
         this.uri = uri;

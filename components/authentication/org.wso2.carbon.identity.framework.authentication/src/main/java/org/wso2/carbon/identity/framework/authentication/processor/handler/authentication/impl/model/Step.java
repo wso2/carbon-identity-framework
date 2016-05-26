@@ -4,9 +4,9 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 
 import java.io.Serializable;
 
-public class Step implements Serializable{
+public class Step implements Serializable {
 
-    private AuthenticationStep authenticationStep = null ;
+    private AuthenticationStep authenticationStep = null;
 
     public AuthenticationStep getAuthenticationStep() {
         return authenticationStep;
@@ -17,14 +17,14 @@ public class Step implements Serializable{
         this.authenticationStep = authenticationStep;
     }
 
-    public boolean isMultiOption(){
+    public boolean isMultiOption() {
         AuthenticationStep authenticationStep = getAuthenticationStep();
         int localAuthenticatorsCount = authenticationStep.getLocalAuthenticatorConfigs().length;
         int federatedIdentityProviders = authenticationStep.getFederatedIdentityProviders().length;
 
-        if((localAuthenticatorsCount + federatedIdentityProviders) > 1){
-            return true ;
+        if ((localAuthenticatorsCount + federatedIdentityProviders) > 1) {
+            return true;
         }
-        return false ;
+        return false;
     }
 }

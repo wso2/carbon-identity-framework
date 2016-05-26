@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.framework.authentication.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.application.authentication.framework.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.application.authentication.framework.IdentityProcessor;
+import org.wso2.carbon.identity.framework.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.framework.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.RequestPathApplicationAuthenticator;

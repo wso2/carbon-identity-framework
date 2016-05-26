@@ -42,5 +42,4 @@ public class SequenceManager extends FrameworkHandler {
     }
 
 
-
 }

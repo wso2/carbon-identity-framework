@@ -3,7 +3,7 @@ package org.wso2.carbon.identity.framework.authentication.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FederatedUser extends User{
+public class FederatedUser extends User {
 
     private List<UserClaim> userClaims = new ArrayList<>();
 
