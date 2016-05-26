@@ -19,11 +19,10 @@ package org.wso2.carbon.identity.user.store.count.jdbc.internal;
 
 public class InternalStoreCountConstants {
 
-    public static final String INTERNAL_DOMAIN = "Internal";
     public static final String APPLICATION_DOMAIN = "Application";
-    public static final String COUNT_INTERNAL_ROLES_SQL = "SELECT COUNT(UM_ID) FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME " +
+    public static final String COUNT_INTERNAL_ROLES_SQL = "SELECT COUNT(UM_ID) AS RESULT FROM UM_HYBRID_ROLE WHERE UM_ROLE_NAME " +
             "LIKE ? AND " +"UM_TENANT_ID = ?";
-    public static final String COUNT_INTERNAL_ONLY_ROLES_SQL = "SELECT COUNT(UM_ID) FROM UM_HYBRID_ROLE WHERE " +
+    public static final String COUNT_INTERNAL_ONLY_ROLES_SQL = "SELECT COUNT(UM_ID) AS RESULT FROM UM_HYBRID_ROLE WHERE " +
             "UM_ROLE_NAME NOT LIKE '" + APPLICATION_DOMAIN + "%' AND UM_ROLE_NAME LIKE ? AND UM_TENANT_ID = ?";
 
 }
