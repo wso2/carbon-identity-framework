@@ -38,7 +38,7 @@ public class UserInformationRecoveryClient {
     public UserInformationRecoveryClient(String url, ConfigurationContext configContext) throws AxisFault {
         try {
             stub = new UserInformationRecoveryServiceStub(configContext, url + "UserInformationRecoveryService");
-        } catch (java.lang.Exception e) {
+        } catch (Exception e) {
             handleException(e.getMessage(), e);
         }
     }
@@ -50,7 +50,7 @@ public class UserInformationRecoveryClient {
             Options option = client.getOptions();
             option.setManageSession(true);
             option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, cookie);
-        } catch (java.lang.Exception e) {
+        } catch (Exception e) {
             handleException(e.getMessage(), e);
         }
     }

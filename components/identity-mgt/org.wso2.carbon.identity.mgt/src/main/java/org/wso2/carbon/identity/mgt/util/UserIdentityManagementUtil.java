@@ -73,6 +73,7 @@ public class UserIdentityManagementUtil {
     private static VerificationBean vBean = new VerificationBean();
     private static ChallengeQuestionIdsDTO idsDTO = new ChallengeQuestionIdsDTO();
     private static UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
+    private static UserChallengesCollectionDTO userChallengesCollectionDTO = new UserChallengesCollectionDTO();
     private static Log log = LogFactory.getLog(UserIdentityManagementUtil.class);
 
     private UserIdentityManagementUtil() {
@@ -769,6 +770,33 @@ public class UserIdentityManagementUtil {
         }
     }
 
+    public static UserChallengesCollectionDTO getCustomErrorMessagesForChallengeQuestionSet(IdentityException e, String userName) {
+        if (e.getMessage() != null) {
+            if (e.getMessage().contains(VerificationBean.ERROR_CODE_EXPIRED_CODE)) {
+                userChallengesCollectionDTO = handleChallengeQuestionSetError(VerificationBean.ERROR_CODE_EXPIRED_CODE + " The code is " +
+                        "expired", e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.INVALID_CONFIRMATION_CODE)) {
+                userChallengesCollectionDTO = handleChallengeQuestionSetError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
+                                                                       IdentityMgtConstants.ErrorHandling.INVALID_CONFIRMATION_CODE,
+                                                                       e);
+            } else if (e.getMessage().contains(VerificationBean.ERROR_CODE_LOADING_DATA_FAILURE)) {
+                userChallengesCollectionDTO = handleChallengeQuestionSetError(
+                        VerificationBean.ERROR_CODE_LOADING_DATA_FAILURE + " Error" +
+                        " loading data for user : " + userName, e);
+            } else if (e.getMessage().contains(IdentityMgtConstants.ErrorHandling.EXTERNAL_CODE)) {
+                userChallengesCollectionDTO = handleChallengeQuestionSetError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
+                                                                       IdentityMgtConstants.ErrorHandling.EXTERNAL_CODE +
+                                                                       ": " + userName, e);
+            }
+        } else {
+            userChallengesCollectionDTO = handleChallengeQuestionSetError(VerificationBean.ERROR_CODE_INVALID_CODE + " " +
+                                                                IdentityMgtConstants.ErrorHandling.EXTERNAL_CODE +
+                                                                ": " + userName, e);
+        }
+
+        return userChallengesCollectionDTO;
+    }
+
     private static UserChallengesDTO handleChallengesError(String error, Exception e) {
 
         UserChallengesDTO bean = new UserChallengesDTO();
@@ -800,6 +828,22 @@ public class UserIdentityManagementUtil {
         return bean;
 
     }
+
+    public static UserChallengesCollectionDTO handleChallengeQuestionSetError(String error, Exception e) {
+
+        UserChallengesCollectionDTO bean = new UserChallengesCollectionDTO();
+
+        if (error != null) {
+            bean.setError(error);
+            log.error(error, e);
+        } else {
+            bean.setError(e.getMessage());
+            log.error(e.getMessage(), e);
+        }
+
+        return bean;
+    }
+
     private static VerificationBean handleError(String error, Exception e) {
 
         VerificationBean bean = new VerificationBean();

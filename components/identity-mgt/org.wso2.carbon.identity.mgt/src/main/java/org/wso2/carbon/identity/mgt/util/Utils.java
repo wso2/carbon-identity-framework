@@ -200,6 +200,34 @@ public class Utils {
         }
     }
 
+    public static Map<String,String> getClaimsFromUserStoreManager(String userName, int tenantId, String[] claims)
+            throws IdentityException {
+
+        Map<String, String> claimValues = new HashMap<>();
+        org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
+        RealmService realmService = IdentityMgtServiceComponent.getRealmService();
+
+        try {
+            if (realmService.getTenantUserRealm(tenantId) != null) {
+                userStoreManager = (org.wso2.carbon.user.core.UserStoreManager) realmService.getTenantUserRealm(tenantId).
+                        getUserStoreManager();
+            }
+        } catch (UserStoreException e) {
+            throw IdentityException.error("Error retrieving the user store manager for tenant id : " + tenantId, e);
+        }
+
+        try {
+            if (userStoreManager != null) {
+                claimValues = userStoreManager.getUserClaimValues(userName, claims, UserCoreConstants.DEFAULT_PROFILE);
+
+            }
+        } catch (Exception e) {
+            throw IdentityException.error("Unable to retrieve the claim for user : " + userName, e);
+        }
+
+        return claimValues;
+    }
+
     /**
      * get email address from user store
      *

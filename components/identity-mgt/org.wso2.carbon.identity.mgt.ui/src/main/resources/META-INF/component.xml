@@ -57,18 +57,18 @@
             <icon>../identity-mgt/images/keys.gif</icon>
             <require-permission>/permission/admin/login</require-permission>
         </menu-->
-        <menu>
-            <id>identity_emailtemplate_menu</id>
-            <i18n-key>identity_emailtemplate</i18n-key>
-            <i18n-bundle>org.wso2.carbon.identity.mgt.ui.i18n.Resources</i18n-bundle>
-            <parent-menu>configure_menu</parent-menu>
-            <link>../identity-mgt/email-template-config.jsp</link>
-            <region>region1</region>
-            <order>15</order>
-            <style-class>manage</style-class>
-		    <icon>../identity-mgt/images/email-template.png</icon>
-		    <require-permission>/permission/admin/configure/security</require-permission>
-        </menu>
+        <!--<menu>-->
+            <!--<id>identity_emailtemplate_menu</id>-->
+            <!--<i18n-key>identity_emailtemplate</i18n-key>-->
+            <!--<i18n-bundle>org.wso2.carbon.identity.mgt.ui.i18n.Resources</i18n-bundle>-->
+            <!--<parent-menu>configure_menu</parent-menu>-->
+            <!--<link>../identity-mgt/email-template-config.jsp</link>-->
+            <!--<region>region1</region>-->
+            <!--<order>15</order>-->
+            <!--<style-class>manage</style-class>-->
+		    <!--<icon>../identity-mgt/images/email-template.png</icon>-->
+		    <!--<require-permission>/permission/admin/configure/security</require-permission>-->
+        <!--</menu>-->
         <menu>
             <id>identity_security_questions_menu</id>
             <i18n-key>manage.challenge.questions</i18n-key>

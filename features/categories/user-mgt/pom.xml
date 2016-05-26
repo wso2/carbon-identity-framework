@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.1.1-SNAPSHOT</version>
+        <version>5.5.0-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -58,14 +58,14 @@
                                     org.wso2.carbon.user.mgt:compatible:${identity.framework.version}
                                 </importFeatureDef>
                                 <importFeatureDef>
-                                    org.wso2.carbon.user.mgt.workflow:compatible:${identity.framework.version}
-                                </importFeatureDef>
-                                <importFeatureDef>
                                     org.wso2.carbon.claim.mgt:compatible:${identity.framework.version}
                                 </importFeatureDef>
-                                <importFeatureDef>
-                                    org.wso2.carbon.identity.mgt:compatible:${identity.framework.version}
-                                </importFeatureDef>
+                                <!--<importFeatureDef>-->
+                                    <!--org.wso2.carbon.identity.mgt:compatible:${identity.framework.version}-->
+                                <!--</importFeatureDef>-->
+                                <!--<importFeatureDef>-->
+                                    <!--org.wso2.carbon.identity.event-->
+                                <!--</importFeatureDef>-->
                                 <importFeatureDef>
                                     org.wso2.carbon.identity.user.profile:compatible:${identity.framework.version}
                                 </importFeatureDef>
