@@ -47,9 +47,4 @@ public abstract class AbstractUserStoreCountRetriever implements UserStoreCountR
         return Long.valueOf(-1);
     }
 
-    @Override
-    public Long countClaims(Map<String, String> claimSetToFilter) throws UserStoreCounterException {
-        return Long.valueOf(-1);
-    }
-
 }

@@ -117,32 +117,6 @@ public class UserStoreCountService {
     }
 
     /**
-     * Get the count of users, having claim values matching the given filter, for the given claim URI
-     *
-     * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
-     * @return the number of users matching the claims set based on the filters by each domain
-     */
-    public PairDTO[] countClaims(PairDTO[] claimSetToFilter) throws UserStoreCounterException {
-        Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
-        PairDTO[] claimsCounts = new PairDTO[userStoreDomains.size()];
-        int i = 0;
-
-        for (String userStoreDomain : userStoreDomains) {
-            UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain);
-            Long count = Long.valueOf(-1);
-            if (counter != null) {
-                count = counter.countClaims(UserStoreCountUtils.convertArrayToMap(claimSetToFilter));
-            } else {
-                //no action
-            }
-            claimsCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
-            i++;
-        }
-
-        return claimsCounts;
-    }
-
-    /**
      * Get the count of users having a matching user name for the filter
      *
      * @param filter the filter for the user name. Use '*' to have all.
@@ -198,21 +172,10 @@ public class UserStoreCountService {
     }
 
     /**
-     * Get the count of users, having claim values matching the given filter, for the given claim URIs
-     *
-     * @param claimSetToFilter A map of the claim URIs and filter for each to be used in counting the users
-     * @return the number of users matching the claims set based on the filters within this user store domain
+     * Get count enabled user stores.
+     * @return
+     * @throws UserStoreCounterException
      */
-    public Long countByClaimsInDomain(PairDTO[] claimSetToFilter, String domain) throws UserStoreCounterException {
-        UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
-        if (counter != null) {
-            return counter.countClaims(UserStoreCountUtils.convertArrayToMap(claimSetToFilter));
-        } else {
-            return Long.valueOf(-1);
-        }
-
-    }
-
     public String[] getCountEnabledUserStores() throws UserStoreCounterException {
         Set<String> domains = UserStoreCountUtils.getCountEnabledUserStores();
         return domains.toArray(new String[domains.size()]);
