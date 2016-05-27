@@ -134,13 +134,32 @@
     }
 
     function enable(policy) {
-        location.href = "enable-disable-policy.jsp?policyid=" + policy +"&action=enable";
+        $.ajax({
+            type: 'POST',
+            url: 'enable-disable-policy.jsp',
+            data: 'policyid=' + policy + "&action=enable",
+            success: function () {
+                location.href = "my-pdp.jsp";
+            },
+            error: function () {
+                CARBON.showErrorDialog('<fmt:message key="error.while.enabling.policy"/>' + ' ' + policy);
+            }
+        });
     }
 
     function disable(policy) {
-        location.href = "enable-disable-policy.jsp?policyid=" + policy +"&action=disable";
+        $.ajax({
+            type: 'POST',
+            url: 'enable-disable-policy.jsp',
+            data: 'policyid=' + policy + "&action=disable",
+            success: function () {
+                location.href = "my-pdp.jsp";
+            },
+            error: function () {
+                CARBON.showErrorDialog('<fmt:message key="error.while.enabling.policy"/>' + ' ' + policy);
+            }
+        });
     }
-
 
     function deletePolicy(policy) {
         CARBON.showConfirmationDialog("<fmt:message key="de.promote.policy.message"/>",function() {
@@ -248,7 +267,17 @@
 
     function updateOrder(policyId, order) {
         saveOrder();
-        location.href = 'update_order.jsp?policyId=' + Encode.forUriComponent(policyId) + "&order=" + Encode.forUriComponent(order);
+        $.ajax({
+            type: 'POST',
+            url: 'update_order.jsp',
+            data: 'policyId=' + policyId + "&order=" + order,
+            success: function () {
+                location.href = "my-pdp.jsp";
+            },
+            error: function () {
+                CARBON.showErrorDialog('<fmt:message key="error.while.ordering.policy"/>' + ' ' + policyId);
+            }
+        });
     }
 </script>
 

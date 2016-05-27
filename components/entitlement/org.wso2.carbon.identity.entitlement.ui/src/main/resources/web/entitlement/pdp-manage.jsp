@@ -96,15 +96,35 @@
 
     function clearCache() {
         CARBON.showConfirmationDialog("<fmt:message key='cache.clear.message'/>",
-                function() {
-                    location.href = "clear-cache.jsp";
+                function () {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'clear-cache.jsp',
+                        data: {},
+                        success: function () {
+                            location.href = "pdp-manage.jsp?region=region1&item=policy_menu";
+                        },
+                        error: function () {
+                            CARBON.showErrorDialog('<fmt:message key="cache.clear.error"/>');
+                        }
+                    });
                 }, null);
     }
 
     function clearAttributeCache() {
         CARBON.showConfirmationDialog("<fmt:message key='attribute.cache.clear.message'/>",
-                function() {
-                    location.href = "clear-attribute-cache.jsp";
+                function () {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'clear-attribute-cache.jsp',
+                        data: {},
+                        success: function () {
+                            location.href = "pdp-manage.jsp?region=region1&item=policy_menu";
+                        },
+                        error: function () {
+                            CARBON.showErrorDialog('<fmt:message key="cache.clear.error"/>');
+                        }
+                    });
                 }, null);
     }
     
