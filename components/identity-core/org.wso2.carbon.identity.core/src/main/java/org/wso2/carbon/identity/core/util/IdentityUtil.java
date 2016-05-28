@@ -562,6 +562,28 @@ public class IdentityUtil {
         return Integer.parseInt(cleanUpPeriod);
     }
 
+    public static int getOperationCleanUpTimeout() {
+
+        String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT);
+        if (StringUtils.isBlank(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT_DEFAULT;
+        }
+        return Integer.parseInt(cleanUpTimeout);
+    }
+
+    public static int getOperationCleanUpPeriod(String tenantDomain) {
+
+        String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD);
+        if (StringUtils.isBlank(cleanUpPeriod)) {
+            cleanUpPeriod = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
+            cleanUpPeriod = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD_DEFAULT;
+        }
+        return Integer.parseInt(cleanUpPeriod);
+    }
+
     public static String extractDomainFromName(String nameWithDomain) {
 
         if(nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0){
