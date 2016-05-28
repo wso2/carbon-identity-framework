@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.mail.Notification;
 import org.wso2.carbon.identity.mgt.mail.NotificationBuilder;
 import org.wso2.carbon.identity.mgt.mail.NotificationData;
+import org.wso2.carbon.identity.mgt.store.RegistryRecoveryDataStore;
 import org.wso2.carbon.identity.mgt.store.UserIdentityDataStore;
 import org.wso2.carbon.identity.mgt.store.UserRecoveryDataStore;
 import org.wso2.carbon.identity.mgt.util.Utils;
@@ -327,7 +328,11 @@ public class RecoveryProcessor {
         try {
             dataDO = dataStore.load(internalCode);
             if (dataDO != null && sequence != 2 && sequence != 40) {
-                dataStore.invalidate(dataDO);
+                if (dataStore instanceof RegistryRecoveryDataStore) {
+                    dataStore.invalidate(internalCode);
+                } else {
+                    dataStore.invalidate(dataDO);
+                }
             }
 
         } catch (IdentityException e) {
