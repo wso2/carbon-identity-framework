@@ -87,6 +87,11 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
 
     }
 
+    @Override
+    public void invalidate(String code) throws IdentityException {
+        //todo
+    }
+
     /**
      * Stores identity data.
      *
