@@ -18,23 +18,54 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.handler.InitConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HttpIdentityRequestFactory {
 
-    protected Properties properties;
-    public static final String TENANT_DOMAIN_PATTERN = "/t/([a-zA-Z0-9\\$&\\(\\)-_\\[\\]\\:\\?\\/\\.\\,\\<\\>])";
+    private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
 
-    public void init(Properties properties) throws FrameworkRuntimeException {
-        this.properties = properties;
+    protected final Properties properties = new Properties();
+
+    protected InitConfig initConfig;
+
+    public static final String TENANT_DOMAIN_PATTERN = "/t/([^/]+)";
+
+    public void init(InitConfig initConfig) {
+
+        this.initConfig = initConfig;
+
+        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                (HttpIdentityRequestFactory.class.getName(), this.getClass().getName());
+
+        if (identityEventListenerConfig == null) {
+            return;
+        }
+
+        if(identityEventListenerConfig.getProperties() != null) {
+            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
+                String key = (String)property.getKey();
+                String value = (String)property.getValue();
+                if(!properties.containsKey(key)) {
+                    properties.setProperty(key, value);
+                } else {
+                    log.warn("Property key " + key + " already exists. Cannot add property!!");
+                }
+            }
+        }
     }
 
     public String getName() {
@@ -53,6 +84,40 @@ public class HttpIdentityRequestFactory {
             throws FrameworkClientException {
 
         IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request, response);
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while(headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            builder.addHeader(headerName, request.getHeader(headerName));
+        }
+        builder.setParameters(request.getParameterMap());
+        Cookie[] cookies = request.getCookies();
+        for(Cookie cookie:cookies) {
+            builder.addCookie(cookie.getName(), cookie);
+        }
+        String requestURI = request.getRequestURI();
+        Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
+        Matcher matcher = pattern.matcher(requestURI);
+        if(matcher.find()) {
+            builder.setTenantDomain(matcher.group(1));
+        } else {
+            builder.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        }
+        builder.setContentType(request.getContentType());
+        builder.setContextPath(request.getContextPath());
+        builder.setMethod(request.getMethod());
+        builder.setPathInfo(request.getPathInfo());
+        builder.setPathTranslated(request.getPathTranslated());
+        builder.setQueryString(request.getQueryString());
+        builder.setRequestURI(requestURI);
+        builder.setRequestURL(request.getRequestURL());
+        builder.setServletPath(request.getServletPath());
+        return builder;
+    }
+
+    public IdentityRequest.IdentityRequestBuilder create(IdentityRequest.IdentityRequestBuilder builder,
+                                                         HttpServletRequest request, HttpServletResponse response)
+            throws FrameworkClientException {
+
         Enumeration<String> headerNames = request.getHeaderNames();
         while(headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();

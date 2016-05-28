@@ -312,7 +312,7 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequest build() throws FrameworkRuntimeException {
+        public IdentityRequest build() {
             return new IdentityRequest(this);
         }
 
