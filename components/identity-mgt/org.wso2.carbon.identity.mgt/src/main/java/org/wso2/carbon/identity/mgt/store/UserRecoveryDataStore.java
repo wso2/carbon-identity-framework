@@ -43,4 +43,6 @@ public interface UserRecoveryDataStore {
     public void invalidate(UserRecoveryDataDO recoveryDataDO) throws IdentityException;
 
     public void invalidate(String userId, int tenantId) throws IdentityException;
+
+    public void invalidate(String code) throws IdentityException;
 }
