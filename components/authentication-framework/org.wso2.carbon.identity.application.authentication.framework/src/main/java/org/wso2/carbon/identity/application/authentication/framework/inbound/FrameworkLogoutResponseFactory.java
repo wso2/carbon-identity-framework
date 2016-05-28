@@ -56,4 +56,25 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
 
         return responseBuilder;
     }
+
+    @Override
+    public HttpIdentityResponse.HttpIdentityResponseBuilder create(
+            HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse) {
+
+        FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
+
+        builder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
+                             new String[]{response.getAuthName()});
+        builder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
+                             new String[]{response.getContextKey()});
+        builder.addParameter(InboundConstants.RequestProcessor.CALL_BACK_PATH,
+                             new String[]{response.getCallbackPath()});
+        builder.addParameter(InboundConstants.RequestProcessor.RELYING_PARTY,
+                             new String[]{response.getRelyingParty()});
+        builder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE,
+                             new String[]{response.getAuthType()});
+        builder.setRedirectURL(response.getRedirectUrl());
+
+        return builder;
+    }
 }
