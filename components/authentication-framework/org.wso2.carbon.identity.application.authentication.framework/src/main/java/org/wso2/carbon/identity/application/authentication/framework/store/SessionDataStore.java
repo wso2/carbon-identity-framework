@@ -214,9 +214,8 @@ public class SessionDataStore {
             log.info("Session Data CleanUp Task of Authentication framework is not enabled.");
         }
         if (Boolean.parseBoolean(isOperationCleanUpEnabledVal)) {
-            if (StringUtils.isNotBlank(operationCleanUpPeriodVal)) {
-                operationCleanUpPeriod = Long.parseLong(operationCleanUpPeriodVal);
-            }
+            long operationCleanUpPeriod = IdentityUtil.getOperationCleanUpPeriod(
+                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
             OperationCleanUpService operationCleanUpService = new OperationCleanUpService(operationCleanUpPeriod/4,
                     operationCleanUpPeriod);
             operationCleanUpService.activateCleanUp();
