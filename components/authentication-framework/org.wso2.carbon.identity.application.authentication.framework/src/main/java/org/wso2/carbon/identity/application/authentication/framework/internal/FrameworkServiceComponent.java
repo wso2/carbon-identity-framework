@@ -24,6 +24,7 @@ import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
@@ -89,6 +90,10 @@ import java.util.List;
  * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
  * unbind="removeHttpIdentityResponseFactory"
+ * @scr.reference name="identity.authentication.data.publisher"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher"
+ * cardinality="0..n" policy="dynamic" bind="setAuthenticationDataPublisher"
+ * unbind="unsetAuthenticationDataPublisher"
  */
 
 
@@ -351,6 +356,14 @@ public class FrameworkServiceComponent {
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
+    }
+
+    protected void setAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
+        FrameworkServiceDataHolder.getInstance().getDataPublishers().add(publisher);
+    }
+
+    protected void unsetAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
+        FrameworkServiceDataHolder.getInstance().getDataPublishers().remove(publisher);
     }
 
     private static Comparator<IdentityProcessor> identityProcessor =
