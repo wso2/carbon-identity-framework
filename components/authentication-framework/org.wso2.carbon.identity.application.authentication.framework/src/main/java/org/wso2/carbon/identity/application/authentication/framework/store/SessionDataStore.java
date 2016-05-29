@@ -40,8 +40,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -304,7 +302,7 @@ public class SessionDataStore {
         }
         long nanoTime = FrameworkUtils.getCurrentStandardNano();
         if (maxPoolSize > 0) {
-            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime));
+            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime, tenantId));
         } else {
             persistSessionData(key, type, entry, nanoTime, tenantId);
         }
