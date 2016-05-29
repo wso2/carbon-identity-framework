@@ -248,7 +248,7 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
                     String[] splittedResource = resource.split("___");
                     if (splittedResource.length == 3) {
                         //PRIMARY USER STORE
-                        if (resource.contains("___" + userName + "___")) {
+                        if (resource.contains("___" + userName.toLowerCase() + "___")) {
                             registry.delete(resource);
                         }
                     } else if (splittedResource.length == 2) {
