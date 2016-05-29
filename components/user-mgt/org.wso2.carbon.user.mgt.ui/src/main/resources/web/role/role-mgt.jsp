@@ -207,7 +207,7 @@
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
             countableUserStores = countClient.getCountableUserStores();
 
-            if(countableUserStores.size() > 0) {
+            if(countableUserStores != null && countableUserStores.size() > 0) {
                 countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
                 countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
                 countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
