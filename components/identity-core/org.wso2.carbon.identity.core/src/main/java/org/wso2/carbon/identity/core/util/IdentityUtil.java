@@ -540,7 +540,7 @@ public class IdentityUtil {
         }
     }
 
-    public static int getCleanUpTimeout() {
+    public static long getCleanUpTimeout() {
 
         String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_TIMEOUT);
         if (StringUtils.isBlank(cleanUpTimeout)) {
@@ -551,7 +551,7 @@ public class IdentityUtil {
         return Integer.parseInt(cleanUpTimeout);
     }
 
-    public static int getCleanUpPeriod(String tenantDomain) {
+    public static long getCleanUpPeriod(String tenantDomain) {
 
         String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
         if (StringUtils.isBlank(cleanUpPeriod)) {
@@ -562,7 +562,7 @@ public class IdentityUtil {
         return Integer.parseInt(cleanUpPeriod);
     }
 
-    public static int getOperationCleanUpTimeout() {
+    public static long getOperationCleanUpTimeout() {
 
         String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT);
         if (StringUtils.isBlank(cleanUpTimeout)) {
@@ -573,7 +573,7 @@ public class IdentityUtil {
         return Integer.parseInt(cleanUpTimeout);
     }
 
-    public static int getOperationCleanUpPeriod(String tenantDomain) {
+    public static long getOperationCleanUpPeriod(String tenantDomain) {
 
         String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD);
         if (StringUtils.isBlank(cleanUpPeriod)) {
