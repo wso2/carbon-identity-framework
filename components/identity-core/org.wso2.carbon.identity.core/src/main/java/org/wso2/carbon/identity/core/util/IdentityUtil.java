@@ -540,7 +540,7 @@ public class IdentityUtil {
         }
     }
 
-    public static int getCleanUpTimeout() {
+    public static long getCleanUpTimeout() {
 
         String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_TIMEOUT);
         if (StringUtils.isBlank(cleanUpTimeout)) {
@@ -551,13 +551,35 @@ public class IdentityUtil {
         return Integer.parseInt(cleanUpTimeout);
     }
 
-    public static int getCleanUpPeriod(String tenantDomain) {
+    public static long getCleanUpPeriod(String tenantDomain) {
 
         String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
         if (StringUtils.isBlank(cleanUpPeriod)) {
             cleanUpPeriod = IdentityConstants.ServerConfig.CLEAN_UP_PERIOD_DEFAULT;
         } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
             cleanUpPeriod = IdentityConstants.ServerConfig.CLEAN_UP_PERIOD_DEFAULT;
+        }
+        return Integer.parseInt(cleanUpPeriod);
+    }
+
+    public static long getOperationCleanUpTimeout() {
+
+        String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT);
+        if (StringUtils.isBlank(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT_DEFAULT;
+        }
+        return Integer.parseInt(cleanUpTimeout);
+    }
+
+    public static long getOperationCleanUpPeriod(String tenantDomain) {
+
+        String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD);
+        if (StringUtils.isBlank(cleanUpPeriod)) {
+            cleanUpPeriod = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
+            cleanUpPeriod = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD_DEFAULT;
         }
         return Integer.parseInt(cleanUpPeriod);
     }
