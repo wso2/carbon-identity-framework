@@ -194,8 +194,6 @@ public class SessionDataStore {
         String isCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
 
         String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
-        String operationCleanUpPeriodVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.CleanUpPeriod");
-
 
         if (StringUtils.isBlank(isCleanUpEnabledVal)) {
             isCleanUpEnabledVal = defaultCleanUpEnabled;
