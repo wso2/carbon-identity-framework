@@ -548,7 +548,7 @@ public class IdentityUtil {
         } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
             cleanUpTimeout = IdentityConstants.ServerConfig.CLEAN_UP_TIMEOUT_DEFAULT;
         }
-        return Integer.parseInt(cleanUpTimeout);
+        return Long.parseLong(cleanUpTimeout);
     }
 
     public static long getCleanUpPeriod(String tenantDomain) {
@@ -559,7 +559,7 @@ public class IdentityUtil {
         } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
             cleanUpPeriod = IdentityConstants.ServerConfig.CLEAN_UP_PERIOD_DEFAULT;
         }
-        return Integer.parseInt(cleanUpPeriod);
+        return Long.parseLong(cleanUpPeriod);
     }
 
     public static long getOperationCleanUpTimeout() {
@@ -570,7 +570,7 @@ public class IdentityUtil {
         } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
             cleanUpTimeout = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT_DEFAULT;
         }
-        return Integer.parseInt(cleanUpTimeout);
+        return Long.parseLong(cleanUpTimeout);
     }
 
     public static long getOperationCleanUpPeriod(String tenantDomain) {
@@ -581,7 +581,7 @@ public class IdentityUtil {
         } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
             cleanUpPeriod = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD_DEFAULT;
         }
-        return Integer.parseInt(cleanUpPeriod);
+        return Long.parseLong(cleanUpPeriod);
     }
 
     public static String extractDomainFromName(String nameWithDomain) {
