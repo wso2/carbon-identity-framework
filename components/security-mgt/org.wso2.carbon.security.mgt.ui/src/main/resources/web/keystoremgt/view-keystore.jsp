@@ -111,11 +111,22 @@
 <script type="text/javascript">
 
     function deleteCert(alias, keystore) {
-
         function doDelete() {
             var certAlias = alias;
             var keystoreName = keystore;
             location.href = 'delete-cert.jsp?alias=' + certAlias + '&keystore=' + keystoreName;
+            $.ajax({
+                type: 'POST',
+                url: 'delete-cert.jsp',
+                data: 'alias=' + certAlias + '&keystore=' + keystoreName,
+                success: function () {
+                    location.href = "view-keystore.jsp?keyStore=" + keystoreName;
+                },
+                error: function () {
+                    CARBON.showErrorDialog('<fmt:message key="cert.cannot.delete"/>' + ' '
+                    + keystoreName);
+                }
+            });
         }
 
         CARBON.showConfirmationDialog('<fmt:message key="do.you.want.to.delete.the.certificate"/> ' + alias + '?', doDelete, null);
