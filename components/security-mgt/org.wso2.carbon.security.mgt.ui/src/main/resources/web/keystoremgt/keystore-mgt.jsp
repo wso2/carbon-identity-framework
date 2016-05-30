@@ -113,7 +113,7 @@
                     },
                     error: function () {
                         CARBON.showErrorDialog('<fmt:message key="keystore.cannot.delete"/>' + ' '
-                        + dialect);
+                        + keystoreName);
                     }
                 });
             }
