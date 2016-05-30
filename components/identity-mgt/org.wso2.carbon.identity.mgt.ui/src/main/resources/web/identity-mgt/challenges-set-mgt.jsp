@@ -89,7 +89,6 @@
 
         function removeSet(row) {
             function doDelete() {
-//            	location.href= 'challenges-mgt-finish.jsp?removeSetId=' + encodeURIComponent(row);
                 $.ajax({
                     type: 'POST',
                     url: 'challenges-mgt-finish.jsp',
