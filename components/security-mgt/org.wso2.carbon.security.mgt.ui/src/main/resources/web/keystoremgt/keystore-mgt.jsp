@@ -105,7 +105,6 @@
         function deleteKeystore(keystore) {
             function doDelete() {
                 var keystoreName = keystore;
-                location.href = 'delete-keystore.jsp?keyStore=' + keystoreName;
                 $.ajax({
                     type: 'POST',
                     url: 'delete-keystore.jsp',

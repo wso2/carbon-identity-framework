@@ -114,7 +114,6 @@
         function doDelete() {
             var certAlias = alias;
             var keystoreName = keystore;
-            location.href = 'delete-cert.jsp?alias=' + certAlias + '&keystore=' + keystoreName;
             $.ajax({
                 type: 'POST',
                 url: 'delete-cert.jsp',
