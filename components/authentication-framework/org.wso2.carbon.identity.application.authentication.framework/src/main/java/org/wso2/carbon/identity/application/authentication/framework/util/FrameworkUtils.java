@@ -69,6 +69,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.ste
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -599,7 +600,12 @@ public class FrameworkUtils {
                 }
             }
         }
-
+        Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, null);
+        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
+        }
         cacheEntry.setContext(sessionContext);
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }

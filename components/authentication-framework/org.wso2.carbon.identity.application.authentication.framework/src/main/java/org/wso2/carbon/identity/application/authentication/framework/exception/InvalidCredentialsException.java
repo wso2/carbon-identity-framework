@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.exception;
 
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+
 public class InvalidCredentialsException extends AuthenticationFailedException {
 
     private static final long serialVersionUID = 6368867651869262347L;
@@ -25,8 +27,15 @@ public class InvalidCredentialsException extends AuthenticationFailedException {
     public InvalidCredentialsException(String message) {
         super(message);
     }
+    public InvalidCredentialsException(String message, AuthenticatedUser user) {
+        super(message,user);
+    }
 
     public InvalidCredentialsException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public InvalidCredentialsException(String message, AuthenticatedUser user, Throwable cause) {
+        super(message, user, cause);
     }
 }
