@@ -170,19 +170,14 @@
         <%
         	}
         %>
-        <div id="workArea">   
+        <div id="workArea">
             <script type="text/javascript">
-              function removeProfile(username,profile) {
-                 if(profile == "default"){
-                	 CARBON.showWarningDialog("<fmt:message key='cannot.remove.default.profile'/>", null, null);
-                	 return;
-                 }
-        	     CARBON.showConfirmationDialog("<fmt:message key='remove.message1'/>"+ profile +"<fmt:message key='remove.message2'/>",
-                    function() {
-              	       location.href = "remove-profile.jsp?username=" + username + "&profile=" + profile +
-                                     "&fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>";
-                     }, null);
-                 }
+                function removeProfile(username, profile) {
+                    if (profile == "default") {
+                        CARBON.showWarningDialog("<fmt:message key='cannot.remove.default.profile'/>", null, null);
+                        return;
+                    }
+                }
             </script>
             <% if(!readOnlyUserStore) {%>
             <div style="height:30px;">
