@@ -334,17 +334,14 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             throw new UserStoreException("Could not load user given name", e2);
                         }
 
-
                         String userStoreDomain = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
 
                         emailNotificationData.setTagData("first-name", firstName);
                         emailNotificationData.setTagData("user-name", userName);
                         emailNotificationData.setTagData("otp-password", password);
                         emailNotificationData.setTagData("userstore-domain",userStoreDomain);
                         emailNotificationData.setTagData("tenant-domain",tenantDomain);
-
 
                         emailNotificationData.setSendTo(email);
 
