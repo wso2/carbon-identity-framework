@@ -22,6 +22,7 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
@@ -332,9 +333,18 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         } catch (IdentityException e2) {
                             throw new UserStoreException("Could not load user given name", e2);
                         }
+
+
+                        String userStoreDomain = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+
                         emailNotificationData.setTagData("first-name", firstName);
                         emailNotificationData.setTagData("user-name", userName);
                         emailNotificationData.setTagData("otp-password", password);
+                        emailNotificationData.setTagData("userstore-domain",userStoreDomain);
+                        emailNotificationData.setTagData("tenant-domain",tenantDomain);
+
 
                         emailNotificationData.setSendTo(email);
 
