@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -35,6 +37,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,10 +79,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         }
                     }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
+                    publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
                     Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
                     boolean stepHasMultiOption = false;
+                    publishAuthenticationStepAttempt(request, context, e.getUser(), false);
 
                     if (stepMap != null && !stepMap.isEmpty()) {
                         StepConfig stepConfig = stepMap.get(context.getCurrentStep());
@@ -117,6 +122,32 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
         }
+    }
+
+    private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
+                                                  AuthenticatedUser user, boolean success) {
+
+        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
+
+        if (dataPublishers.size() > 0) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            if (success) {
+                for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
+                    if (publisher.isEnabled(null)) {
+                        publisher.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
+                    }
+                }
+            } else {
+                for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
+                    if (publisher.isEnabled(null)) {
+                        publisher.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
+                    }
+                }
+            }
+        }
+
     }
 
     protected void initiateAuthenticationRequest(HttpServletRequest request,
