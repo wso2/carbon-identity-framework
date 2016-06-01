@@ -325,9 +325,12 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         String emailTemplate = null;
                         int tenantId = userStoreManager.getTenantId();
                         String firstName = null;
+                        String userStoreDomain = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                        String domainSpecificUserName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
+
                         try {
                             firstName =
-                                    Utils.getClaimFromUserStoreManager(userName, tenantId,
+                                    Utils.getClaimFromUserStoreManager(domainSpecificUserName, tenantId,
                                             "http://wso2.org/claims/givenname");
                         } catch (IdentityException e2) {
                             throw new UserStoreException("Could not load user given name", e2);
