@@ -22,7 +22,6 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
@@ -336,7 +335,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                         String userStoreDomain = userStoreManager.getRealmConfiguration()
                                 .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-                        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+                        String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
 
                         emailNotificationData.setTagData("first-name", firstName);
                         emailNotificationData.setTagData("user-name", userName);
