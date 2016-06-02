@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -43,8 +45,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -264,6 +268,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sessionContext = FrameworkUtils.getSessionContextFromCache(commonAuthCookie);
                 }
             }
+            String sessionId = null;
 
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
@@ -273,6 +278,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
+                sessionId = commonAuthCookie;
             } else {
                 sessionContext = new SessionContext();
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
@@ -280,9 +286,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
                 sessionContext.setRememberMe(context.isRememberMe());
                 String sessionKey = UUIDGenerator.generateUUID();
+                sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
                 FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext);
 
                 setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
+                sessionId = sessionKey;
             }
 
             if (authenticatedUserTenantDomain == null) {
@@ -303,6 +311,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
                     "Login",
                     "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_SUCCESS));
+            publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
+            publishSessionCreation(sessionId, request, context, sequenceConfig.getAuthenticatedUser());
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
@@ -326,6 +336,39 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+
+    private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
+                                              AuthenticatedUser user) {
+
+        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
+        if (dataPublishers.size() > 0) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
+                publisher.publishAuthenticationSuccess(request, context, unmodifiableParamMap);
+            }
+        }
+
+    }
+
+
+    private void publishSessionCreation(String sessionId, HttpServletRequest request, AuthenticationContext context,
+                                        AuthenticatedUser user) {
+
+        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
+
+        if (dataPublishers.size() > 0) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
+                publisher.publishSessionCreation(request, context, unmodifiableParamMap);
+            }
+        }
     }
 
 
