@@ -22,22 +22,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.wso2.carbon.identity.event.EventDistributionTask;
-import org.wso2.carbon.identity.event.EventMgtException;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
-import org.wso2.carbon.identity.event.internal.EventMgtServiceComponent;
+import org.wso2.carbon.identity.event.internal.IdentityEventServiceComponent;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 
-public class EventMgtServiceImpl implements EventMgtService {
+public class IdentityEventServiceImpl implements IdentityEventService {
 
-    private static final Log log = LogFactory.getLog(EventMgtServiceImpl.class);
+    private static final Log log = LogFactory.getLog(IdentityEventServiceImpl.class);
     private EventDistributionTask eventDistributionTask;
 
-    public EventMgtServiceImpl (List<AbstractEventHandler> handlerList, int threadPoolSize) {
+    public IdentityEventServiceImpl(List<AbstractEventHandler> handlerList, int threadPoolSize) {
         this.eventDistributionTask = new EventDistributionTask(handlerList, threadPoolSize);
         if (log.isDebugEnabled()) {
             log.debug("Starting event distribution task from Notification Management component");
@@ -45,23 +43,19 @@ public class EventMgtServiceImpl implements EventMgtService {
         new Thread(eventDistributionTask).start();
     }
     @Override
-    public boolean handleEvent(Event event) throws EventMgtException {
+    public void handleEvent(Event event) throws IdentityEventException {
 
-        List<AbstractEventHandler> eventHandlerList = EventMgtServiceComponent.eventHandlerList;
-        Map<String, Event> eventMap = new HashMap<>();
-        eventMap.put("Event", event);
-        IdentityEventMessageContext eventContext = new IdentityEventMessageContext(eventMap);
-        boolean returnValue = true;
+        List<AbstractEventHandler> eventHandlerList = IdentityEventServiceComponent.eventHandlerList;
+        IdentityEventMessageContext eventContext = new IdentityEventMessageContext(event);
         for (final AbstractEventHandler handler : eventHandlerList) {
 
             if (handler.canHandle(eventContext)) {
                 if (handler.isAssociationAsync(event.getEventName())) {
                     eventDistributionTask.addEventToQueue(event);
                 } else {
-                    returnValue = handler.handleEvent(event);
+                    handler.handleEvent(event);
                 }
             }
         }
-        return returnValue;
     }
 }

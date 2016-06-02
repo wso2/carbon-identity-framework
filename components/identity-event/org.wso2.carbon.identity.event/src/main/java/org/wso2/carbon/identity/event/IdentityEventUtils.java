@@ -32,11 +32,11 @@ import java.util.Properties;
  * Util functionality for MessageSending Components
  */
 @SuppressWarnings("unused")
-public class EventManagementUtils {
+public class IdentityEventUtils {
 
-    private static final Log log = LogFactory.getLog(EventManagementUtils.class);
+    private static final Log log = LogFactory.getLog(IdentityEventUtils.class);
 
-    private EventManagementUtils() {
+    private IdentityEventUtils() {
     }
 
     /**
@@ -104,7 +104,7 @@ public class EventManagementUtils {
                     "single word keys.");
         }
 
-        propertiesWithFullKeys = EventManagementUtils.getPropertiesWithPrefix(prefix, propertiesWithFullKeys);
+        propertiesWithFullKeys = IdentityEventUtils.getPropertiesWithPrefix(prefix, propertiesWithFullKeys);
         Properties properties = new Properties();
         Enumeration propertyNames = propertiesWithFullKeys.propertyNames();
 

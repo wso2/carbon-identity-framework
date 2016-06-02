@@ -18,15 +18,11 @@
 
 package org.wso2.carbon.identity.event.services;
 
-import org.wso2.carbon.identity.event.EventMgtException;
+import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
-import org.wso2.carbon.user.core.UserStoreException;
 
-import java.util.Map;
-import java.util.Properties;
+public interface IdentityEventService {
 
-public interface EventMgtService {
-
-    boolean handleEvent(Event event) throws EventMgtException;
+    void handleEvent(Event event) throws IdentityEventException;
 
 }

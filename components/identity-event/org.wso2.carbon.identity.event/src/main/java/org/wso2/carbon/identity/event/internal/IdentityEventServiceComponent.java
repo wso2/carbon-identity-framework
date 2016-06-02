@@ -23,11 +23,11 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.identity.event.EventMgtException;
-import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
-import org.wso2.carbon.identity.event.services.EventMgtService;
-import org.wso2.carbon.identity.event.services.EventMgtServiceImpl;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.event.services.IdentityEventServiceImpl;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @scr.component name="org.wso2.carbon.identity.event.internal.EventMgtServiceComponent"
+ * @scr.component name="identity.event.service"
  * immediate="true"
  * @scr.reference name="realm.service"
  * interface="org.wso2.carbon.user.core.service.RealmService"cardinality="1..1"
@@ -58,9 +58,9 @@ import java.util.List;
  * policy="dynamic" bind="setIdpManager" unbind="unsetIdpManager"
  */
 
-public class EventMgtServiceComponent {
+public class IdentityEventServiceComponent {
 
-    private static Log log = LogFactory.getLog(EventMgtServiceComponent.class);
+    private static Log log = LogFactory.getLog(IdentityEventServiceComponent.class);
 
     private static RealmService realmService;
 
@@ -72,12 +72,12 @@ public class EventMgtServiceComponent {
     protected void activate(ComponentContext context) {
 
         try {
-            EventMgtServiceDataHolder.getInstance().setEventMgtService(new EventMgtServiceImpl(eventHandlerList,
-                    Integer.parseInt(EventMgtConfigBuilder.getInstance().getThreadPoolSize())));
+            IdentityEventServiceDataHolder.getInstance().setEventMgtService(new IdentityEventServiceImpl(eventHandlerList,
+                    Integer.parseInt(IdentityEventConfigBuilder.getInstance().getThreadPoolSize())));
 
-            context.getBundleContext().registerService(EventMgtService.class.getName(),  EventMgtServiceDataHolder
+            context.getBundleContext().registerService(IdentityEventService.class.getName(),  IdentityEventServiceDataHolder
                     .getInstance().getEventMgtService(), null);
-        } catch (EventMgtException e) {
+        } catch (IdentityEventException e) {
             log.error("Error while initiating IdentityMgtService.");
         }
         if (log.isDebugEnabled()) {
@@ -92,9 +92,9 @@ public class EventMgtServiceComponent {
         }
     }
 
-    protected void registerEventHandler(AbstractEventHandler eventHandler) throws EventMgtException {
+    protected void registerEventHandler(AbstractEventHandler eventHandler) throws IdentityEventException {
         String handlerName = eventHandler.getName();
-        eventHandler.init(EventMgtConfigBuilder.getInstance().getModuleConfigurations(handlerName));
+        eventHandler.init(IdentityEventConfigBuilder.getInstance().getModuleConfigurations(handlerName));
         eventHandlerList.add(eventHandler);
     }
 
@@ -111,14 +111,14 @@ public class EventMgtServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Setting the Realm Service");
         }
-        EventMgtServiceComponent.realmService = realmService;
+        IdentityEventServiceComponent.realmService = realmService;
     }
 
     protected void unsetRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
             log.debug("UnSetting the Realm Service");
         }
-        EventMgtServiceComponent.realmService = null;
+        IdentityEventServiceComponent.realmService = null;
     }
 
     public static RealmService getRealmService() {
@@ -136,10 +136,10 @@ public class EventMgtServiceComponent {
     }
 
     protected void unsetIdpManager(IdpManager idpManager) {
-        EventMgtServiceDataHolder.getInstance().setIdpManager(null);
+        IdentityEventServiceDataHolder.getInstance().setIdpManager(null);
     }
 
     protected void setIdpManager(IdpManager idpManager) {
-        EventMgtServiceDataHolder.getInstance().setIdpManager(idpManager);
+        IdentityEventServiceDataHolder.getInstance().setIdpManager(idpManager);
     }
 }

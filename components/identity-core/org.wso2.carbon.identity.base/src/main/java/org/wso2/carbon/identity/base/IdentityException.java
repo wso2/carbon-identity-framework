@@ -204,46 +204,4 @@ public class IdentityException extends Exception {
         }
         return builder.toString();
     }
-
-//    public String toString() {
-//        StringBuilder builder = new StringBuilder();
-//
-//        builder.append(getCode());
-//        builder.append('\n');
-//
-//        //append additional context information.
-//        for(int i = this.errorInfoList.size() - 1; i >= 0; i--) {
-//            ErrorInfo info = this.errorInfoList.get(i);
-//            builder.append('[');
-//            builder.append(info.contextId);
-//            builder.append(':');
-//            builder.append(info.errorCode);
-//            builder.append(']');
-//            builder.append(info.errorDescription);
-//            if(i > 0) {
-//                builder.append('\n');
-//            }
-//        }
-//
-//        //append root causes and text from this exception first.
-//        if(getMessage() != null) {
-//            builder.append('\n');
-//            if(getCause() == null) {
-//                builder.append(getMessage());
-//            } else if(!getMessage().equals(getCause().toString())) {
-//                builder.append(getMessage());
-//            }
-//        }
-//        appendException(builder, getCause());
-//        return builder.toString();
-//    }
-//
-//    private void appendException(StringBuilder builder, Throwable throwable) {
-//        if(throwable == null) {
-//            return;
-//        }
-//        appendException(builder, throwable.getCause());
-//        builder.append(throwable.toString());
-//        builder.append('\n');
-//    }
 }

@@ -16,34 +16,21 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.event.bean;
+package org.wso2.carbon.identity.event;
 
-public class EventMgtConfiguration {
+import org.wso2.carbon.identity.base.IdentityException;
 
-    private String property;
-    private String propertyValue;
+public class IdentityEventException extends IdentityException {
 
-    public EventMgtConfiguration() {
+    private static final long serialVersionUID = 5488593245689924485L;
+
+    public IdentityEventException(String message) {
+        super(message);
     }
 
-    public EventMgtConfiguration(String property, String propertyValue) {
-        this.property = property;
-        this.propertyValue = propertyValue;
+    public IdentityEventException(String message, Throwable e) {
+        super(message, e);
     }
 
-    public String getProperty() {
-        return property;
-    }
-
-    public void setProperty(String property) {
-        this.property = property;
-    }
-
-    public String getPropertyValue() {
-        return propertyValue;
-    }
-
-    public void setPropertyValue(String propertyValue) {
-        this.propertyValue = propertyValue;
-    }
 }
+

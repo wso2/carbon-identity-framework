@@ -28,6 +28,10 @@ public abstract class MessageContext<T1 extends Object,T2 extends Object> {
 
     protected Map<T1,T2> parameters = new HashMap<>();
 
+    public MessageContext() {
+
+    }
+
     public MessageContext(Map<T1, T2> parameters){
         this.parameters = parameters;
     }

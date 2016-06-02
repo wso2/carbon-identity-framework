@@ -24,25 +24,21 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
-import org.wso2.carbon.identity.event.EventMgtException;
-import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
 import org.wso2.carbon.identity.event.event.Event;
-import org.wso2.carbon.identity.event.internal.EventMgtServiceDataHolder;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public abstract class AbstractEventHandler extends AbstractIdentityHandler {
 
-    private static final Log log = LogFactory.getLog(AbstractEventHandler.class);
+    protected ModuleConfiguration configs;
 
-    // the event types registered in this handler
-    protected List<String> registeredEventList;
-    private String moduleName;
+    private static final Log log = LogFactory.getLog(AbstractEventHandler.class);
 
     public String getName() {
         return this.getClass().getSimpleName();
@@ -53,10 +49,10 @@ public abstract class AbstractEventHandler extends AbstractIdentityHandler {
         Event event = ((IdentityEventMessageContext)messageContext).getEvent();
         String eventName = event.getEventName();
         String moduleName = this.getName();
-        EventMgtConfigBuilder notificationMgtConfigBuilder = null;
+        IdentityEventConfigBuilder notificationMgtConfigBuilder = null;
         try {
-            notificationMgtConfigBuilder = EventMgtConfigBuilder.getInstance();
-        } catch (EventMgtException e) {
+            notificationMgtConfigBuilder = IdentityEventConfigBuilder.getInstance();
+        } catch (IdentityEventException e) {
             log.error("Error while retrieving event mgt config builder", e);
         }
         List<Subscription> subscriptionList = notificationMgtConfigBuilder.getModuleConfigurations(moduleName)
@@ -69,8 +65,8 @@ public abstract class AbstractEventHandler extends AbstractIdentityHandler {
         return false;
     }
 
-    public boolean isAssociationAsync(String eventName) throws EventMgtException {
-        Map<String, ModuleConfiguration> moduleConfigurationList = EventMgtConfigBuilder.getInstance()
+    public boolean isAssociationAsync(String eventName) throws IdentityEventException {
+        Map<String, ModuleConfiguration> moduleConfigurationList = IdentityEventConfigBuilder.getInstance()
                 .getModuleConfiguration();
         ModuleConfiguration moduleConfiguration = moduleConfigurationList.get(this.getName());
         List<Subscription> subscriptions = moduleConfiguration.getSubscriptions();
@@ -89,26 +85,11 @@ public abstract class AbstractEventHandler extends AbstractIdentityHandler {
         return false;
     }
 
-//    public Map<String, String> getTenantConfigurations (int tenantId) throws EventMgtException {
-//        return EventMgtServiceDataHolder.getInstance().getEventMgtService().getConfiguration(tenantId);
-//    }
-
-    public abstract boolean handleEvent(Event event) throws EventMgtException;
+    public abstract void handleEvent(Event event) throws IdentityEventException;
 
     @Override
     public void init(InitConfig configuration) throws IdentityRuntimeException {
-        ModuleConfiguration moduleConfig = (ModuleConfiguration)configuration;
-        Set<String> modulePropertyNames = moduleConfig.getModuleProperties().stringPropertyNames();
-        for (String modulePropertyName : modulePropertyNames) {
-            properties.put(modulePropertyName, moduleConfig.getModuleProperties().getProperty(modulePropertyName));
-        }
-        List<Subscription> subscriptions = moduleConfig.getSubscriptions();
-        for (Subscription subscription : subscriptions) {
-            modulePropertyNames = subscription.getSubscriptionProperties().stringPropertyNames();
-            for (String modulePropertyName : modulePropertyNames) {
-                properties.put(modulePropertyName, subscription.getSubscriptionProperties().getProperty(modulePropertyName));
-            }
-        }
+        this.configs = (ModuleConfiguration)configuration;
     }
 
 }
