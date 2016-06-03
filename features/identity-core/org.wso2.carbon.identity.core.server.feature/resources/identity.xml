@@ -383,6 +383,9 @@
                        orderId="100" enable="false">
         <Property name="Data.Store">org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore</Property>
         </EventListener>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.data.publisher.application.authentication.impl.DASAuthnDataPublisherImpl"
+                       orderId="10" enable="false"/>
     </EventListeners>
 
     <CacheConfig>
