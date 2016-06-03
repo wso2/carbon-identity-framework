@@ -331,7 +331,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
                         try {
                             firstName = Utils.getClaimFromUserStoreManager(domainSpecificUserName, tenantId,
-                                    "http://wso2.org/claims/givenname");
+                                    UserCoreConstants.ClaimTypeURIs.GIVEN_NAME);
                         } catch (IdentityException e2) {
                             throw new UserStoreException("Could not load user given name", e2);
                         }
