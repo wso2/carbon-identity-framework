@@ -348,7 +348,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                publisher.publishAuthenticationSuccess(request, context, unmodifiableParamMap);
+                if(publisher != null && publisher.isEnabled(null)) {
+                    publisher.publishAuthenticationSuccess(request, context, unmodifiableParamMap);
+                }
+
             }
         }
 
@@ -366,7 +369,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                publisher.publishSessionCreation(request, context, unmodifiableParamMap);
+                if(publisher != null && publisher.isEnabled(null)) {
+                    publisher.publishSessionCreation(request, context, unmodifiableParamMap);
+                }
             }
         }
     }
