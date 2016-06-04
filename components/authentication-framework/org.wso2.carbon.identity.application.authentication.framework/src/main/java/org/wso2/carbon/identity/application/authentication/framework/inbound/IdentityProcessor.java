@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
@@ -35,6 +35,7 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -139,9 +140,12 @@ public abstract class IdentityProcessor {
         IdentityRequest identityRequest = context.getRequest();
 
         Map<String, String[]> parameterMap = identityRequest.getParameterMap();
-
-        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
-        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
+        Map<String, String[]> modParaMap = new HashMap<String, String[]>();
+        for (String key : parameterMap.keySet()) {
+            modParaMap.put(key, parameterMap.get(key));
+        }
+        modParaMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[]{sessionDataKey});
+        modParaMap.put(FrameworkConstants.RequestParams.TYPE, new String[]{getName()});
 
         authenticationRequest.appendRequestQueryParams(parameterMap);
 
@@ -168,6 +172,7 @@ public abstract class IdentityProcessor {
 
         FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
                 new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
+        responseBuilder.setParameterMap(modParaMap);
         responseBuilder.setAuthName(getName());
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));

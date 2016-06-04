@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import java.util.Map;
+
 public class FrameworkLoginResponse extends IdentityResponse {
 
     private String authName;
@@ -26,6 +28,7 @@ public class FrameworkLoginResponse extends IdentityResponse {
     private String relyingParty;
     private String callbackPath;
     private String redirectUrl;
+    private Map<String, String[]> parameterMap;
 
     public String getAuthName() {
         return authName;
@@ -51,6 +54,10 @@ public class FrameworkLoginResponse extends IdentityResponse {
         return redirectUrl;
     }
 
+    public Map<String, String[]> getParameterMap() {
+        return parameterMap;
+    }
+
     protected FrameworkLoginResponse(FrameworkLoginResponseBuilder builder) {
         super(builder);
         this.authName = builder.authName;
@@ -59,6 +66,7 @@ public class FrameworkLoginResponse extends IdentityResponse {
         this.relyingParty = builder.relyingParty;
         this.callbackPath = builder.callbackPath;
         this.redirectUrl = builder.redirectUrl;
+        this.parameterMap = builder.parameterMap;
     }
 
     public static class FrameworkLoginResponseBuilder extends IdentityResponseBuilder {
@@ -69,6 +77,7 @@ public class FrameworkLoginResponse extends IdentityResponse {
         private String relyingParty;
         private String callbackPath;
         private String redirectUrl;
+        private Map<String, String[]> parameterMap;
 
         public FrameworkLoginResponseBuilder(IdentityMessageContext context) {
             super(context);
@@ -101,6 +110,11 @@ public class FrameworkLoginResponse extends IdentityResponse {
 
         public FrameworkLoginResponseBuilder setRedirectURL(String redirectUrl) {
             this.redirectUrl = redirectUrl;
+            return this;
+        }
+
+        public FrameworkLoginResponseBuilder setParameterMap(Map<String, String[]> parameterMap) {
+            this.parameterMap = parameterMap;
             return this;
         }
 
