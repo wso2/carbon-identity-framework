@@ -374,9 +374,9 @@ public class FrameworkServiceComponent {
                                    IdentityProcessor identityProcessor2) {
 
                     if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
-                        return 1;
-                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
                         return -1;
+                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
+                        return 1;
                     } else {
                         return 0;
                     }
@@ -391,9 +391,9 @@ public class FrameworkServiceComponent {
                                    HttpIdentityRequestFactory factory2) {
 
                     if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
                         return -1;
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
+                        return 1;
                     } else {
                         return 0;
                     }
@@ -408,9 +408,9 @@ public class FrameworkServiceComponent {
                                    HttpIdentityResponseFactory factory2) {
 
                     if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
                         return -1;
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
+                        return 1;
                     } else {
                         return 0;
                     }
