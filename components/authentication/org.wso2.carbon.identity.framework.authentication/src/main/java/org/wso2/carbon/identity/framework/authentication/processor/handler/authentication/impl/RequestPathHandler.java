@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl;
 
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandler;
@@ -31,4 +32,8 @@ public class RequestPathHandler extends FrameworkHandler {
         return authenticationResponse;
     }
 
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true ;
+    }
 }

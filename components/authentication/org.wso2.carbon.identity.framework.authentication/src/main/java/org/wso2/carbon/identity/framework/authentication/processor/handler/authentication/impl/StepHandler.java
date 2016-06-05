@@ -4,6 +4,7 @@ package org.wso2.carbon.identity.framework.authentication.processor.handler.auth
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.framework.IdentityRequest;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.context.SequenceContext;
@@ -13,6 +14,7 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.authe
         .AuthenticationHandlerException;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.util.Utility;
+import org.wso2.carbon.identity.framework.authentication.processor.request.FrameworkLoginRequest;
 import org.wso2.carbon.identity.framework.authentication.processor.request.LocalAuthenticationRequest;
 
 public class StepHandler extends FrameworkHandler {
@@ -34,25 +36,28 @@ public class StepHandler extends FrameworkHandler {
         if (currentStepContext != null) {
             if (!currentStepContext.isAuthenticated()) {
                 applicationAuthenticator =
-                        Utility.getLocalApplicationAuthenticator(currentStepContext.getName());
+                        Utility.getLocalApplicationAuthenticator(currentStepContext.getAuthenticatorName());
                 if (applicationAuthenticator == null) {
                     applicationAuthenticator =
-                            Utility.getFederatedApplicationAuthenticator(currentStepContext.getName());
+                            Utility.getFederatedApplicationAuthenticator(currentStepContext.getAuthenticatorName());
                 }
             } else {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
             }
         } else {
+            currentStepContext = sequenceContext.addStepContext();
             if (sequence.getStep(sequenceContext.getCurrentStep()).isMultiOption()) {
                 IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
                 String authenticatorName = null;
-                if (identityRequest instanceof LocalAuthenticationRequest) {
-                    LocalAuthenticationRequest localAuthenticationRequest =
-                            (LocalAuthenticationRequest) identityRequest;
-                    authenticatorName = localAuthenticationRequest.getAuthenticatorName();
+                if (identityRequest instanceof FrameworkLoginRequest) {
+                    FrameworkLoginRequest frameworkLoginRequest =
+                            (FrameworkLoginRequest) identityRequest;
+                    authenticatorName = frameworkLoginRequest.getAuthenticatorName();
+                    currentStepContext.setIdentityProviderName(frameworkLoginRequest.getIdentityProviderName());
                 }
 
                 if (StringUtils.isNotBlank(authenticatorName)) {
+                    currentStepContext.setAuthenticatorName(authenticatorName);
                     applicationAuthenticator =
                             Utility.getLocalApplicationAuthenticator(authenticatorName);
                     if (applicationAuthenticator == null) {
@@ -69,6 +74,7 @@ public class StepHandler extends FrameworkHandler {
                 if (localAuthenticatorConfigForSingleOption != null) {
                     applicationAuthenticator =
                             Utility.getLocalApplicationAuthenticator(localAuthenticatorConfigForSingleOption.getName());
+                    currentStepContext.setAuthenticatorName(localAuthenticatorConfigForSingleOption.getName());
                 } else {
                     IdentityProvider federatedIdentityProviderForSingleOption =
                             sequence.getFederatedIdentityProviderForSingleOption(sequenceContext.getCurrentStep());
@@ -76,6 +82,8 @@ public class StepHandler extends FrameworkHandler {
                             Utility.getFederatedApplicationAuthenticator(federatedIdentityProviderForSingleOption
                                                                                  .getDefaultAuthenticatorConfig()
                                                                                  .getName());
+                    currentStepContext.setAuthenticatorName(applicationAuthenticator.getName());
+                    currentStepContext.setIdentityProviderName(federatedIdentityProviderForSingleOption.getIdentityProviderName());
                 }
             }
         }
@@ -94,5 +102,8 @@ public class StepHandler extends FrameworkHandler {
         return authenticationResponse;
     }
 
-
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true ;
+    }
 }

@@ -68,8 +68,9 @@ public class AuthenticationProcessor extends IdentityProcessor {
     protected AuthenticationContext initAuthenticationContext(AuthenticationRequest authenticationRequest) {
 
         AuthenticationContext authenticationContext = new AuthenticationContext(authenticationRequest);
-        String requestDataKey = UUIDGenerator.generateUUID();
-        IdentityMessageContextCache.getInstance().addToCache(requestDataKey, authenticationContext);
+
+
+        IdentityMessageContextCache.getInstance().addToCache(authenticationRequest.getRequestDataKey(), authenticationContext);
         return authenticationContext;
     }
 
@@ -81,6 +82,7 @@ public class AuthenticationProcessor extends IdentityProcessor {
                 IdentityMessageContextCache.getInstance().getValueFromCache(requestDataKey);
         if (identityMessageContext != null) {
             authenticationContext = (AuthenticationContext) identityMessageContext;
+            authenticationContext.setIdentityRequest(authenticationRequest);
         }
         return authenticationContext;
     }

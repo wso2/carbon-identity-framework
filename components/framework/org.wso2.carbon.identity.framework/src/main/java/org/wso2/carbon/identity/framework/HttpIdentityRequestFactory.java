@@ -36,7 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class HttpIdentityRequestFactory {
+public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> {
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
     protected Properties properties;
@@ -112,8 +112,7 @@ public class HttpIdentityRequestFactory {
     }
 
 
-    public IdentityRequest.IdentityRequestBuilder create(IdentityRequest.IdentityRequestBuilder builder,
-                                                         HttpServletRequest request, HttpServletResponse response)
+    public void create(T builder, HttpServletRequest request, HttpServletResponse response)
             throws FrameworkClientException {
 
         Enumeration<String> headerNames = request.getHeaderNames();
@@ -123,8 +122,10 @@ public class HttpIdentityRequestFactory {
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies) {
-            builder.addCookie(cookie.getName(), cookie);
+        if(cookies != null) {
+            for (Cookie cookie : cookies) {
+                builder.addCookie(cookie.getName(), cookie);
+            }
         }
         String requestURI = request.getRequestURI();
         Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
@@ -143,7 +144,6 @@ public class HttpIdentityRequestFactory {
         builder.setRequestURI(requestURI);
         builder.setRequestURL(request.getRequestURL());
         builder.setServletPath(request.getServletPath());
-        return builder;
     }
 
 

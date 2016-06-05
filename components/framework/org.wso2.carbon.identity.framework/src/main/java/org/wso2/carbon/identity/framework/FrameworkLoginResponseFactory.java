@@ -52,7 +52,7 @@ public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
         responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE,
                                      new String[]{response.getAuthType()});
         responseBuilder.setRedirectURL(response.getRedirectUrl());
-
+        responseBuilder.setStatusCode(302);
         return responseBuilder;
     }
 

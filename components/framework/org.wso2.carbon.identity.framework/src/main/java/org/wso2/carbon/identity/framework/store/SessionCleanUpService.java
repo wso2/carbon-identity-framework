@@ -72,7 +72,7 @@ public final class SessionCleanUpService {
 
             log.debug("Start running the Session Data cleanup task.");
             Date date = new Date();
-            int sessionTimeout = IdentityUtil.getCleanUpTimeout();
+            long sessionTimeout = IdentityUtil.getCleanUpTimeout();
             Timestamp timestamp = new Timestamp((date.getTime() - (sessionTimeout * 60 * 1000)));
             SessionDataStore.getInstance().removeExpiredSessionData(timestamp);
             log.debug("Stop running the Session Data cleanup task.");

@@ -1,5 +1,6 @@
 package org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl;
 
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication
@@ -41,5 +42,8 @@ public class SequenceManager extends FrameworkHandler {
         return stepHandler.handleStepAuthentication(authenticationContext);
     }
 
-
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true ;
+    }
 }

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.framework;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -188,6 +188,7 @@ public class IdentityServlet extends HttpServlet {
             throws IOException {
 
         String queryParams = IdentityUtil.buildQueryString(HttpIdentityResponse.getParameters());
-        response.sendRedirect(HttpIdentityResponse.getRedirectURL() + queryParams);
+        //TODO: should add query param correctly
+        response.sendRedirect(HttpIdentityResponse.getRedirectURL() + "&"+ queryParams);
     }
 }

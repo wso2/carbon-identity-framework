@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.identity.framework.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.framework.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.framework.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.exten
 import org.wso2.carbon.identity.framework.authentication.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.framework.authentication.processor.request.FrameworkLoginRequestFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -110,15 +112,15 @@ import java.util.Map;
  * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.AbstractSequenceBuildFactory"
  * cardinality="0..n" policy="dynamic" bind="addSequenceBuildFactory"
  * unbind="unSetSequenceBuildFactory"
- * @scr.reference name="identity.handlers.sequence.factory"
+ * @scr.reference name="identity.handlers.sequence.manager"
  * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.SequenceManager"
  * cardinality="0..n" policy="dynamic" bind="addSequenceManager"
  * unbind="unSetSequenceManager"
- * @scr.reference name="identity.handlers.sequence.factory"
+ * @scr.reference name="identity.handlers.requestpath"
  * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.RequestPathHandler"
  * cardinality="0..n" policy="dynamic" bind="addRequestPathHandler"
  * unbind="unSetRequestPathHandler"
- * @scr.reference name="identity.handlers.sequence.factory"
+ * @scr.reference name="identity.handlers.step"
  * interface="org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.StepHandler"
  * cardinality="0..n" policy="dynamic" bind="addStepHandler"
  * unbind="unSetStepHandler"
@@ -228,6 +230,8 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
         bundleContext.registerService(StepHandler.class, new StepHandler(), null);
 
+        bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
+        bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
 
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);

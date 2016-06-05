@@ -2,6 +2,7 @@ package org.wso2.carbon.identity.framework.authentication.processor.request;
 
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.IdentityRequest;
+import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,6 +15,9 @@ public class AuthenticationRequest extends IdentityRequest {
             AuthenticationRequestBuilder builder) {
         super(builder);
         requestDataKey = builder.requestDataKey;
+        if(requestDataKey == null){
+            requestDataKey = UUIDGenerator.generateUUID();
+        }
     }
 
     public String getRequestDataKey() {

@@ -25,32 +25,32 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext
+public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends IdentityRequest> extends MessageContext
         implements Serializable {
 
     private static final long serialVersionUID = 104614801932285909L;
 
 
-    protected IdentityRequest identityRequest;
+    protected T3 identityRequest;
 
     protected Map<T1, T2> parameters = new HashMap<>();
 
-    public IdentityMessageContext(IdentityRequest identityRequest, Map<T1, T2> parameters) {
+    public IdentityMessageContext(T3  identityRequest, Map<T1, T2> parameters) {
         super(parameters);
         this.identityRequest = identityRequest;
     }
 
-    public IdentityMessageContext(IdentityRequest identityRequest) {
+    public IdentityMessageContext(T3 identityRequest) {
         super(new HashMap());
         this.identityRequest = identityRequest;
     }
 
-    public IdentityRequest getIdentityRequest() {
+    public T3 getIdentityRequest() {
         return identityRequest;
     }
 
     public void setIdentityRequest(
-            IdentityRequest identityRequest) {
+            T3 identityRequest) {
         this.identityRequest = identityRequest;
     }
 

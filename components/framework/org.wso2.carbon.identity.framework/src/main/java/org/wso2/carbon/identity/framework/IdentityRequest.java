@@ -109,8 +109,10 @@ public class IdentityRequest implements Serializable {
 
     public String getParameter(String paramName) {
         String[] values = parameters.get(paramName);
-        if (values.length > 0) {
-            return values[0];
+        if(values!=null) {
+            if (values.length > 0) {
+                return values[0];
+            }
         }
         return null;
     }

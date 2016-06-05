@@ -5,32 +5,37 @@ import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ClientAuthenticationRequest extends AuthenticationRequest {
 
-    private String clientId;
-    private String requestType;
+    private String uniqueId;
+    private String type;
 
     protected ClientAuthenticationRequest(
-            ClientAuthenticationRequestBuilder builder) {
+            ClientAuthenticationRequestBuilder builder, String uniqueId, String type) {
         super(builder);
-        clientId = builder.clientId;
-        requestType = builder.requestType;
+        this.uniqueId = uniqueId ;
+        this.type = type ;
     }
 
-    public String getClientId() {
-        return clientId;
+    public String getUniqueId() {
+        return uniqueId;
     }
 
-    public String getRequestType() {
-        return requestType;
-    }
 
+    public String getType() {
+        return type;
+    }
 
     public static class ClientAuthenticationRequestBuilder extends AuthenticationRequest.AuthenticationRequestBuilder {
 
-        private String clientId;
-        private String requestType;
+        private String uniqueId;
+        private String type;
+
 
         public ClientAuthenticationRequestBuilder() {
             super();
@@ -40,24 +45,21 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
             super(request, response);
         }
 
-        public ClientAuthenticationRequestBuilder setClientId(String clientId) {
-            this.clientId = clientId;
+        public ClientAuthenticationRequestBuilder setUniqueId(String uniqueId) {
+            this.uniqueId = uniqueId;
             return this;
         }
-
-        public ClientAuthenticationRequestBuilder setRequestType(String requestType) {
-            this.requestType = requestType;
+        public ClientAuthenticationRequestBuilder setType(String type) {
+            this.type = type;
             return this;
         }
-
         @Override
         public ClientAuthenticationRequest build() throws FrameworkRuntimeException {
-            return new ClientAuthenticationRequest(this);
+            return new ClientAuthenticationRequest(this, uniqueId, type);
         }
     }
 
     public static class ClientAuthenticationRequestConstants extends AuthenticationRequest.IdentityRequestConstants {
-        public static final String CLIENT_ID = "ClientId";
-        public static final String REQUEST_TYPE = "RequestType";
+
     }
 }
