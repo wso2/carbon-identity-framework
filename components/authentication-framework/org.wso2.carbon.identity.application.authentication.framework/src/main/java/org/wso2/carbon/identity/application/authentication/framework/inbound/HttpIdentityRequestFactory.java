@@ -114,7 +114,7 @@ public class HttpIdentityRequestFactory {
         return builder;
     }
 
-    public IdentityRequest.IdentityRequestBuilder create(IdentityRequest.IdentityRequestBuilder builder,
+    public void create(IdentityRequest.IdentityRequestBuilder builder,
                                                          HttpServletRequest request, HttpServletResponse response)
             throws FrameworkClientException {
 
@@ -125,8 +125,10 @@ public class HttpIdentityRequestFactory {
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies) {
-            builder.addCookie(cookie.getName(), cookie);
+        if(cookies!=null) {
+            for (Cookie cookie : cookies) {
+                builder.addCookie(cookie.getName(), cookie);
+            }
         }
         String requestURI = request.getRequestURI();
         Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
@@ -145,7 +147,7 @@ public class HttpIdentityRequestFactory {
         builder.setRequestURI(requestURI);
         builder.setRequestURL(request.getRequestURL());
         builder.setServletPath(request.getServletPath());
-        return builder;
+
     }
 
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception,
