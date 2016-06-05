@@ -292,7 +292,7 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
                 identityProcessor);
-
+        Collections.reverse(FrameworkServiceDataHolder.getInstance().getIdentityProcessors());
         if (log.isDebugEnabled()) {
             log.debug("Added IdentityProcessor : " + requestProcessor.getName());
         }
@@ -312,6 +312,7 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
                 httpIdentityRequestFactory);
+        Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
         }
@@ -330,6 +331,7 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
                 httpIdentityResponseFactory);
+        Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
         }
