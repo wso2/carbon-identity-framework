@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.core.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -35,13 +36,12 @@ public abstract class AbstractIdentityMessageHandler implements IdentityMessageH
 
     protected InitConfig initConfig;
 
-    @Override
     public void init(InitConfig initConfig) {
 
         this.initConfig = initConfig;
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (AbstractIdentityHandler.class.getName(), this.getClass().getName());
+                (AbstractIdentityMessageHandler.class.getName(), this.getClass().getName());
 
         if (identityEventListenerConfig == null) {
             return;
@@ -60,11 +60,10 @@ public abstract class AbstractIdentityMessageHandler implements IdentityMessageH
         }
     }
 
-    @Override
-    public boolean isEnabled() {
+    public boolean isEnabled(MessageContext messageContext) {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (AbstractIdentityHandler.class.getName(), this.getClass().getName());
+                (AbstractIdentityMessageHandler.class.getName(), this.getClass().getName());
 
         if (identityEventListenerConfig == null) {
             return true;
@@ -73,19 +72,18 @@ public abstract class AbstractIdentityMessageHandler implements IdentityMessageH
         return Boolean.parseBoolean(identityEventListenerConfig.getEnable());
     }
 
-    @Override
-    public int getPriority() {
+    public int getPriority(MessageContext messageContext) {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (AbstractIdentityHandler.class.getName(), this.getClass().getName());
+                (AbstractIdentityMessageHandler.class.getName(), this.getClass().getName());
         if (identityEventListenerConfig == null) {
             return IdentityCoreConstants.EVENT_LISTENER_ORDER_ID;
         }
         return identityEventListenerConfig.getOrder();
     }
 
-    @Override
-    public boolean canHandle() {
+    public boolean canHandle(MessageContext messageContext) {
         return false;
     }
+
 }

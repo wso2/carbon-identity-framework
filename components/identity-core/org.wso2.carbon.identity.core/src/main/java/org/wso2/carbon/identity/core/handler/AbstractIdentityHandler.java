@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.core.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -36,6 +35,7 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
 
     protected InitConfig initConfig;
 
+    @Override
     public void init(InitConfig initConfig) {
 
         this.initConfig = initConfig;
@@ -60,7 +60,8 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
         }
     }
 
-    public boolean isEnabled(MessageContext messageContext) {
+    @Override
+    public boolean isEnabled() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (AbstractIdentityHandler.class.getName(), this.getClass().getName());
@@ -72,7 +73,8 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
         return Boolean.parseBoolean(identityEventListenerConfig.getEnable());
     }
 
-    public int getPriority(MessageContext messageContext) {
+    @Override
+    public int getPriority() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (AbstractIdentityHandler.class.getName(), this.getClass().getName());
@@ -82,8 +84,8 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
         return identityEventListenerConfig.getOrder();
     }
 
-    public boolean canHandle(MessageContext messageContext) {
+    @Override
+    public boolean canHandle() {
         return false;
     }
-
 }
