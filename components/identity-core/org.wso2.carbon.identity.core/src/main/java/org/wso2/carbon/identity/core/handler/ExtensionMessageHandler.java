@@ -18,27 +18,20 @@
 
 package org.wso2.carbon.identity.core.handler;
 
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
-import java.util.Comparator;
-
-/*
- * Comparator for sorting handler collection
+/**
+ * This class needs to be implemented by any identity message extension handler.
  */
-public class HandlerComparator implements Comparator<IdentityHandler> {
+public abstract class ExtensionMessageHandler extends AbstractIdentityMessageHandler {
 
-    public HandlerComparator(MessageContext messageContext){
-    }
-
-    @Override
-    public int compare(IdentityHandler o1, IdentityHandler o2) {
-
-        if (o1.getPriority() > o2.getPriority()) {
-            return 1;
-        } else if (o1.getPriority() == o2.getPriority()) {
-            return 0;
-        } else {
-            return -1;
-        }
-    }
+    /**
+     * Handles the message
+     *
+     * @param messageContext The runtime message context
+     * @return {@code HandlerReturnStatus}
+     * @throws org.wso2.carbon.identity.base.IdentityException
+     */
+    public abstract ExtHandlerReturnStatus handle(MessageContext messageContext) throws IdentityException;
 }

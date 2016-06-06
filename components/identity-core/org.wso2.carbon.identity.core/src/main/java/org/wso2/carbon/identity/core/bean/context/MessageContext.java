@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.core.bean.context;
 
+import org.apache.commons.collections.MapUtils;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 
 import java.util.Collections;
@@ -28,8 +29,13 @@ public abstract class MessageContext<T1 extends Object,T2 extends Object> {
 
     protected Map<T1,T2> parameters = new HashMap<>();
 
-    public MessageContext(Map<T1, T2> parameters){
-        this.parameters = parameters;
+    public MessageContext(Map<T1,T2> parameters){
+        if(parameters != null || MapUtils.isNotEmpty(parameters)) {
+            this.parameters = parameters;
+        }
+    }
+
+    public MessageContext() {
     }
 
     public void addParameter(T1 key, T2 value){
