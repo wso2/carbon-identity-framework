@@ -20,3 +20,6 @@ hs_err_pid*
 
 # Ignore everything in this directory
 target
+
+# OS X temp files
+.DS_Store
