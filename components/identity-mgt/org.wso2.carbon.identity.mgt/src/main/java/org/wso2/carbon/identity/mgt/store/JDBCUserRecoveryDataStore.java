@@ -192,6 +192,11 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
         return null;
     }
 
+    @Override
+    public void invalidate(String code) throws IdentityException {
+        //todo
+    }
+
     /**
      * This class contains the SQL queries.
      */

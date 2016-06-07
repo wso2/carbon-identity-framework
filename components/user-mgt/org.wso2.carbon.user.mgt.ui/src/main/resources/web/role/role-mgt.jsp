@@ -207,9 +207,11 @@
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
             countableUserStores = countClient.getCountableUserStores();
 
-            countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
-            countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
-            countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
+            if(countableUserStores != null && countableUserStores.size() > 0) {
+                countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
+                countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
+                countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
+            }
 
             if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
                 roleCount = countClient.countRoles(countFilter);

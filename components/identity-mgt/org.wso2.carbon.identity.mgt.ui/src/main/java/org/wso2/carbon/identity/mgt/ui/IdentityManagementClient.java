@@ -40,23 +40,23 @@ public class IdentityManagementClient {
     protected UserIdentityManagementServiceStub stub = null;
 
     public IdentityManagementClient(String url, ConfigurationContext configContext)
-            throws java.lang.Exception {
+            throws Exception {
         try {
             stub = new UserIdentityManagementServiceStub(configContext, url + "UserIdentityManagementService");
-        } catch (java.lang.Exception e) {
+        } catch (Exception e) {
             handleException(e.getMessage(), e);
         }
     }
 
     public IdentityManagementClient(String cookie, String url, ConfigurationContext configContext)
-            throws java.lang.Exception {
+            throws Exception {
         try {
             stub = new UserIdentityManagementServiceStub(configContext, url + "UserIdentityManagementService");
             ServiceClient client = stub._getServiceClient();
             Options option = client.getOptions();
             option.setManageSession(true);
             option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, cookie);
-        } catch (java.lang.Exception e) {
+        } catch (Exception e) {
             handleException(e.getMessage(), e);
         }
     }

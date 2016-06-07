@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -66,7 +67,9 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
@@ -98,6 +101,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 public class FrameworkUtils {
 
@@ -596,7 +600,12 @@ public class FrameworkUtils {
                 }
             }
         }
-
+        Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, null);
+        if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
+        }
         cacheEntry.setContext(sessionContext);
         SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
     }
@@ -660,21 +669,6 @@ public class FrameworkUtils {
         }
 
         return authenticationContext;
-    }
-
-    /**
-     * @param req
-     */
-    public static void setRequestPathCredentials(HttpServletRequest req) {
-        // reading the authorization header for request path authentication
-        String reqPathCred = req.getHeader("Authorization");
-        if (reqPathCred == null) {
-            reqPathCred = req.getParameter("ReqPathCredential");
-        }
-        if (reqPathCred != null) {
-            log.debug("A Request path credential found");
-            req.getSession().setAttribute("Authorization", reqPathCred);
-        }
     }
 
     /**
@@ -1124,4 +1118,44 @@ public class FrameworkUtils {
     public static void endTenantFlow() {
         PrivilegedCarbonContext.endTenantFlow();
     }
+
+    /**
+     * create a nano time stamp relative to Unix Epoch
+     */
+    public static long getCurrentStandardNano() {
+
+        long epochTimeReference = TimeUnit.MILLISECONDS.toNanos(
+                FrameworkServiceDataHolder.getInstance().getUnixTimeReference());
+        long currentSystemNano = System.nanoTime();
+        long currentStandardNano = epochTimeReference + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+                .getNanoTimeReference());
+        return currentStandardNano;
+    }
+
+    /**
+     * Append a query param to the URL (URL may already contain query params)
+     */
+    public static String appendQueryParamsStringToUrl(String url, String queryParamString) {
+        String queryAppendedUrl = url;
+        // check whether param string to append is blank
+        if (StringUtils.isNotEmpty(queryParamString)) {
+            // check whether the URL already contains query params
+            String appender;
+            if (url.contains("?")) {
+                appender = "&";
+            } else{
+                appender = "?";
+            }
+
+            // remove leading anchor or question mark in query params
+            if (queryParamString.startsWith("?") || queryParamString.startsWith("&")) {
+                queryParamString = queryParamString.substring(1);
+            }
+
+            queryAppendedUrl += appender + queryParamString;
+        }
+
+        return queryAppendedUrl;
+    }
 }
+

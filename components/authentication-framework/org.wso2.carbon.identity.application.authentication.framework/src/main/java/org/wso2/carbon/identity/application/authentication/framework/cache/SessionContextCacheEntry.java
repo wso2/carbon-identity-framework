@@ -40,7 +40,7 @@ public class SessionContextCacheEntry extends CacheEntry {
         SessionContextCacheEntry entry = (SessionContextCacheEntry) sessionContextDO.getEntry();
         this.context = entry.getContext();
         this.loggedInUser = entry.getLoggedInUser();
-        this.setAccessedTime(sessionContextDO.getTimestamp().getTime());
+        this.setAccessedTime(TimeUnit.NANOSECONDS.toMillis(sessionContextDO.getNanoTime()));
     }
 
     public String getLoggedInUser() {

@@ -17,7 +17,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>identity-framework</artifactId>
-        <version>5.0.9-SNAPSHOT</version>
+        <version>5.5.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -34,9 +34,6 @@
         <module>org.wso2.carbon.identity.user.profile.ui.feature</module>
         <module>org.wso2.carbon.identity.user.profile.server.feature</module>
         <module>org.wso2.carbon.identity.user.profile.feature</module>
-        <module>org.wso2.carbon.user.mgt.workflow.feature</module>
-        <module>org.wso2.carbon.user.mgt.workflow.server.feature</module>
-        <module>org.wso2.carbon.user.mgt.workflow.ui.feature</module>
         <module>org.wso2.carbon.identity.user.registration.feature</module>
         <module>org.wso2.carbon.identity.user.registration.server.feature</module>
         <module>org.wso2.carbon.identity.user.registration.ui.feature</module>

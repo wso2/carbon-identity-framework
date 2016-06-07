@@ -39,7 +39,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.core.util.Utils;
-import org.wso2.carbon.identity.base.CarbonEntityResolver;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -108,8 +107,6 @@ public class IdentityUtil {
     private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
-    private static final String SECURITY_MANAGER_PROPERTY = Constants.XERCES_PROPERTY_PREFIX +
-            Constants.SECURITY_MANAGER_PROPERTY;
     private static final int ENTITY_EXPANSION_LIMIT = 0;
 
     /**
@@ -398,17 +395,8 @@ public class IdentityUtil {
     public static XMLObject unmarshall(String xmlString) throws IdentityException {
 
         try {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            documentBuilderFactory.setNamespaceAware(true);
-
-            documentBuilderFactory.setExpandEntityReferences(false);
-            documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            org.apache.xerces.util.SecurityManager securityManager = new SecurityManager();
-            securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-            documentBuilderFactory.setAttribute(SECURITY_MANAGER_PROPERTY, securityManager);
-
+            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilder();
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-            docBuilder.setEntityResolver(new CarbonEntityResolver());
             Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes(Charsets.UTF_8)));
             Element element = document.getDocumentElement();
             UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
@@ -418,6 +406,37 @@ public class IdentityUtil {
             String message = "Error in constructing XML Object from the encoded String";
             throw IdentityException.error(message, e);
         }
+    }
+
+    /**
+     * Create DocumentBuilderFactory with the XXE and XEE prevention measurements.
+     *
+     * @return DocumentBuilderFactory instance
+     */
+    public static DocumentBuilderFactory getSecuredDocumentBuilder() {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        dbf.setXIncludeAware(false);
+        dbf.setExpandEntityReferences(false);
+        try {
+            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+            dbf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+        } catch (ParserConfigurationException e) {
+            log.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or " +
+                    Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE +
+                    " or secure-processing." );
+        }
+
+        SecurityManager securityManager = new SecurityManager();
+        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
+        dbf.setAttribute(Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY, securityManager);
+
+        return dbf;
+
     }
 
     /**
@@ -522,7 +541,7 @@ public class IdentityUtil {
         }
     }
 
-    public static int getCleanUpTimeout() {
+    public static long getCleanUpTimeout() {
 
         String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_TIMEOUT);
         if (StringUtils.isBlank(cleanUpTimeout)) {
@@ -530,10 +549,10 @@ public class IdentityUtil {
         } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
             cleanUpTimeout = IdentityConstants.ServerConfig.CLEAN_UP_TIMEOUT_DEFAULT;
         }
-        return Integer.parseInt(cleanUpTimeout);
+        return Long.parseLong(cleanUpTimeout);
     }
 
-    public static int getCleanUpPeriod(String tenantDomain) {
+    public static long getCleanUpPeriod(String tenantDomain) {
 
         String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
         if (StringUtils.isBlank(cleanUpPeriod)) {
@@ -541,7 +560,29 @@ public class IdentityUtil {
         } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
             cleanUpPeriod = IdentityConstants.ServerConfig.CLEAN_UP_PERIOD_DEFAULT;
         }
-        return Integer.parseInt(cleanUpPeriod);
+        return Long.parseLong(cleanUpPeriod);
+    }
+
+    public static long getOperationCleanUpTimeout() {
+
+        String cleanUpTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT);
+        if (StringUtils.isBlank(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpTimeout)) {
+            cleanUpTimeout = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_TIMEOUT_DEFAULT;
+        }
+        return Long.parseLong(cleanUpTimeout);
+    }
+
+    public static long getOperationCleanUpPeriod(String tenantDomain) {
+
+        String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD);
+        if (StringUtils.isBlank(cleanUpPeriod)) {
+            cleanUpPeriod = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
+            cleanUpPeriod = IdentityConstants.ServerConfig.OPERATION_CLEAN_UP_PERIOD_DEFAULT;
+        }
+        return Long.parseLong(cleanUpPeriod);
     }
 
     public static String extractDomainFromName(String nameWithDomain) {
