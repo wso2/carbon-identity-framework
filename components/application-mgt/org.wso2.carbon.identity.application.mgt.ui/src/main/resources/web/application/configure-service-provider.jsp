@@ -62,11 +62,11 @@ location.href = "list-service-providers.jsp";
 	return;
 }
 	String spName = appBean.getServiceProvider().getApplicationName();
-	
-	List<String> permissions = null;		
+
+	List<String> permissions = null;
 	permissions = appBean.getPermissions();
-	
-	String[] allClaimUris = appBean.getClaimUris();	
+
+	String[] allClaimUris = appBean.getClaimUris();
 	Map<String, String> claimMapping = appBean.getClaimMapping();
 	Map<String, String> roleMapping = appBean.getRoleMapping();
 	boolean isLocalClaimsSelected = appBean.isLocalClaimsSelected();
@@ -87,7 +87,7 @@ location.href = "list-service-providers.jsp";
     	appBean.setSAMLIssuer(samlIssuerName);
     	isNeedToUpdate = true;
     }
-    
+
     if (samlIssuerName != null && "delete".equals(action)){
     	appBean.deleteSAMLIssuer();
         isNeedToUpdate = true;
@@ -114,46 +114,46 @@ location.href = "list-service-providers.jsp";
 	if(attributeConsumingServiceIndex != null){
 		appBean.setAttributeConsumingServiceIndex(attributeConsumingServiceIndex);
 	}
-    
+
     String oauthapp = request.getParameter("oauthapp");
     
     if (oauthapp!=null && "update".equals(action)){
     	appBean.setOIDCAppName(oauthapp);
     	isNeedToUpdate = true;
     }
-    
+
     if (oauthapp!=null && "delete".equals(action)){
     	appBean.deleteOauthApp();
         isNeedToUpdate = true;
     }
-    
+
     String oauthConsumerSecret = null;
-    
+
     if(session.getAttribute("oauth-consum-secret")!= null && "update".equals(action)){
     	oauthConsumerSecret = (String) session.getAttribute("oauth-consum-secret");
     	appBean.setOauthConsumerSecret(oauthConsumerSecret);
     	session.removeAttribute("oauth-consum-secret");
     }
-    
+
     oauthapp = appBean.getOIDCClientId();
-   
+
     String wsTrust = request.getParameter("serviceName");
-    
+
     if (wsTrust != null && "update".equals(action)){
     	appBean.setWstrustEp(wsTrust);
     	isNeedToUpdate = true;
     }
-    
+
     if (wsTrust != null && "delete".equals(action)){
     	appBean.deleteWstrustEp();
         isNeedToUpdate = true;
     }
-    
+
     wsTrust  = appBean.getWstrustSP();
-    
+
     String display = request.getParameter("display");
-    
-    
+
+
     if(idPName != null && idPName.equals("")){
         idPName = null;
     }
@@ -161,14 +161,14 @@ location.href = "list-service-providers.jsp";
     if(ApplicationBean.AUTH_TYPE_FLOW.equals(authTypeReq) && "update".equals(action)) {
         isNeedToUpdate = true;
     }
-    
+
     String authType = appBean.getAuthenticationType();
 
 	StringBuffer localAuthTypes = new StringBuffer();
 	String startOption = "<option value=\"";
 	String middleOption = "\">";
 	String endOPtion = "</option>";
-    
+
 	StringBuffer requestPathAuthTypes = new StringBuffer();
 	RequestPathAuthenticatorConfig[] requestPathAuthenticators = appBean.getRequestPathAuthenticators();
 
@@ -177,7 +177,7 @@ location.href = "list-service-providers.jsp";
 			requestPathAuthTypes.append(startOption + Encode.forHtmlAttribute(reqAuth.getName()) + middleOption + Encode.forHtmlContent(reqAuth.getDisplayName()) + endOPtion);
 		}
 	}
-	
+
 	Map<String, String> idpAuthenticators = new HashMap<String, String>();
 	IdentityProvider[] federatedIdPs = appBean.getFederatedIdentityProviders();
 	Map<String, String> proIdpConnector = new HashMap<String, String>();
@@ -219,9 +219,9 @@ location.href = "list-service-providers.jsp";
 					enabledProIdpConnector.put(idp.getIdentityProviderName(), enabledConnType.toString());
 					idpType.append(startOption + Encode.forHtmlAttribute(idp.getIdentityProviderName()) + "\" data=\""+Encode.forHtmlAttribute(provisioningConnectors.toString()) + "\" >" + Encode.forHtmlContent(idp.getIdentityProviderName()) + endOPtion);
 				}
-			} 
+			}
 		}
-		
+
 		if (appBean.getServiceProvider().getOutboundProvisioningConfig() != null
 				&& appBean.getServiceProvider().getOutboundProvisioningConfig() .getProvisioningIdentityProviders()!=null
 			&& appBean.getServiceProvider().getOutboundProvisioningConfig() .getProvisioningIdentityProviders().length>0) {
@@ -243,10 +243,10 @@ location.href = "list-service-providers.jsp";
 					options = enabledProIdpConnector.get(idp.getIdentityProviderName());
 					selectedProIdpConnectors.put(idp.getIdentityProviderName(), options);
 				}
-				
+
 			}
 		}
-		
+
 	}
 	try {
 		String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
@@ -699,7 +699,7 @@ var roleMappinRowID = -1;
 			$(element).text('Show');
 		}
 	}
-    
+
     function disable() {
         document.getElementById("scim-inbound-userstore").disabled =!document.getElementById("scim-inbound-userstore").disabled;
         document.getElementById("dumb").value = document.getElementById("scim-inbound-userstore").disabled;
@@ -798,10 +798,10 @@ var roleMappinRowID = -1;
                               <th><fmt:message key='config.application.authz.permissions.action'/></th></tr></thead>
                               <tbody>
                               <% if(claimMapping != null && !claimMapping.isEmpty()){ %>
-                          
-                               <% 
+
+                               <%
                                int i = -1;
-                               for(Map.Entry<String, String> entry : claimMapping.entrySet()){ 
+                               for(Map.Entry<String, String> entry : claimMapping.entrySet()){
                             	   i++;
                                %>
                                <tr>
@@ -809,17 +809,17 @@ var roleMappinRowID = -1;
                                	<td>
 									<select id="idpClaim_<%=i%>" name="idpClaim_<%=i%>" class="idpClaim" style="float:left; width: 100%">						
 										<% String[] localClaims = appBean.getClaimUris();
-										for(String localClaimName : localClaims) { 
+										for(String localClaimName : localClaims) {
 											if(localClaimName.equals(entry.getKey())){%>
 												<option value="<%=Encode.forHtmlAttribute(localClaimName)%>" selected> <%=Encode.forHtmlContent(localClaimName)%></option>
-											<%}else{%> 
+											<%}else{%>
 												<option value="<%=Encode.forHtmlAttribute(localClaimName)%>"> <%=Encode.forHtmlContent(localClaimName)%></option>
 										<% }
 										}%>
 									</select>
                                	</td>                                   
                                    <td style="<%=isLocalClaimsSelected ? "display:none;" : ""%>">
-                                   <% if ("true".equals(appBean.getRequestedClaims().get(entry.getValue()))){%>                                 
+                                   <% if ("true".equals(appBean.getRequestedClaims().get(entry.getValue()))){%>
                                    <input type="checkbox"  id="spClaim_req_<%=i%>" name="spClaim_req_<%=i%>" checked/>
                                    <%} else { %>
                                     <input type="checkbox"  id="spClaim_req_<%=i%>" name="spClaim_req_<%=i%>" />
@@ -895,7 +895,7 @@ var roleMappinRowID = -1;
                         <td >
                         	<select id="roleClaim" name="roleClaim" style="float:left;min-width: 250px;">
                         		<option value="">---Select---</option>
-                        		<% if(!isLocalClaimsSelected){ 
+                        		<% if(!isLocalClaimsSelected){
                         			for(Map.Entry<String, String> entry : claimMapping.entrySet()){ %>
                         			 <% if(entry.getValue() != null && !entry.getValue().isEmpty()){
                         			 		if(appBean.getRoleClaimUri() != null && appBean.getRoleClaimUri().equals(entry.getValue())) { %>
@@ -943,7 +943,7 @@ var roleMappinRowID = -1;
                                 <tbody>
                                 <% if(permissions != null && !permissions.isEmpty()){ %>
                                
-                                <% for(int i = 0; i < permissions.size(); i++){ 
+                                <% for(int i = 0; i < permissions.size(); i++){
                                 if (permissions.get(i)!=null){
                                 %>
                                 
@@ -994,7 +994,7 @@ var roleMappinRowID = -1;
                               </script>
                                <% 
                               	int i = -1;
-                               for(Map.Entry<String, String> entry : roleMapping.entrySet()){ 
+                               for(Map.Entry<String, String> entry : roleMapping.entrySet()){
                             	   i++;
                                %>
                                <tr>
@@ -1133,7 +1133,9 @@ var roleMappinRowID = -1;
                                 	</td>
                                 		<td style="white-space: nowrap;">
                                 			<a title="Edit Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                			<a title="Delete Service Providers" onclick="updateBeanAndRedirect('../oauth/remove-app.jsp?consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
+                                			<a title="Revoke Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');" class="icon-link" style="background-image: url(../admin/images/edit.gif)">Revoke</a>
+                                            <a title="Regenerate Secret Key" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');" class="icon-link" style="background-image: url(../admin/images/edit.gif)">Regenerate Secret</a>
+                                            <a title="Delete Service Providers" onclick="updateBeanAndRedirect('../oauth/remove-app.jsp?consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
                                 		</td>
                                 	</tr>
                                 </tbody>
