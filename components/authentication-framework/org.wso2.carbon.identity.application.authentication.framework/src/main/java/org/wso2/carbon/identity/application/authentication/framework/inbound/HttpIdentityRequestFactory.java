@@ -34,7 +34,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HttpIdentityRequestFactory {
+public class HttpIdentityRequestFactory implements IdentityHandler{
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
 
@@ -91,8 +91,10 @@ public class HttpIdentityRequestFactory {
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies) {
-            builder.addCookie(cookie.getName(), cookie);
+        if(cookies != null) {
+            for (Cookie cookie : cookies) {
+                builder.addCookie(cookie.getName(), cookie);
+            }
         }
         String requestURI = request.getRequestURI();
         Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);

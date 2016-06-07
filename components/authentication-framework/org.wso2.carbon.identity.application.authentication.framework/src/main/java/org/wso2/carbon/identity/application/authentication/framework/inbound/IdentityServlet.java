@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -136,6 +137,7 @@ public class IdentityServlet extends HttpServlet {
     private HttpIdentityRequestFactory getIdentityRequestFactory(HttpServletRequest request, HttpServletResponse response) {
 
         List<HttpIdentityRequestFactory> factories = FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
+        Collections.sort(factories,new HandlerComparator());
 
         for (HttpIdentityRequestFactory requestBuilder : factories) {
             if (requestBuilder.canHandle(request, response)) {
@@ -155,6 +157,7 @@ public class IdentityServlet extends HttpServlet {
 
         List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
+        Collections.sort(factories,new HandlerComparator());
 
         for (HttpIdentityResponseFactory responseFactory : factories) {
             if (responseFactory.canHandle(identityResponse)) {
@@ -174,6 +177,7 @@ public class IdentityServlet extends HttpServlet {
 
         List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
+        Collections.sort(factories,new HandlerComparator());
 
         for (HttpIdentityResponseFactory responseFactory : factories) {
             if (responseFactory.canHandle(exception)) {

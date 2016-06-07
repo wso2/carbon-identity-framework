@@ -38,7 +38,7 @@ import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class IdentityProcessor {
+public abstract class IdentityProcessor implements IdentityHandler{
 
     private static Log log = LogFactory.getLog(IdentityProcessor.class);
 

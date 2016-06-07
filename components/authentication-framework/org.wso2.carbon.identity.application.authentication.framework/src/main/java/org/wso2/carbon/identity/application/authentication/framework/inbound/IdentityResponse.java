@@ -49,4 +49,9 @@ public class IdentityResponse implements Serializable {
             return new IdentityResponse(this);
         }
     }
+
+    public static class IdentityResponseConstants {
+
+
+    }
 }
