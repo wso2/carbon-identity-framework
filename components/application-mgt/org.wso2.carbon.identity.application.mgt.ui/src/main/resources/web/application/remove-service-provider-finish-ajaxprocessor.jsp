@@ -26,27 +26,13 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
-<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon"%>
-
-
-<script type="text/javascript" src="extensions/js/vui.js"></script>
-<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
-<script type="text/javascript" src="../admin/js/main.js"></script>
-
-<jsp:include page="../dialog/display_messages.jsp" />
-
-<fmt:bundle
-	basename="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources">
-	<carbon:breadcrumb label="application.mgt"
-		resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
-		topPage="true" request="<%=request%>" />
-
-	<script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-	<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-	<script type="text/javascript" src="../carbon/admin/js/main.js"></script>
-
 	<%
+		String httpMethod = request.getMethod();
+		if (!"post".equalsIgnoreCase(httpMethod)) {
+			response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+			return;
+		}
+
 		String appid = request.getParameter("appid");
 		String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
     	ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -75,6 +61,3 @@
 	<script>
 		location.href = 'list-service-providers.jsp';
 	</script>
-
-
-</fmt:bundle>
