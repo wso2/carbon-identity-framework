@@ -47,9 +47,12 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             authenticationData.setUserStoreDomain(user.getUserStoreDomain());
             authenticationData.setUsername(user.getUserName());
         }
+        Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
+        if (isFederatedObj != null) {
+            authenticationData.setFederated((Boolean) isFederatedObj);
+        }
         authenticationData.setContextId(context.getContextIdentifier());
         authenticationData.setEventId(UUID.randomUUID().toString());
-        authenticationData.setFederated(this instanceof FederatedApplicationAuthenticator);
         authenticationData.setAuthnSuccess(false);
         authenticationData.setRemoteIp(request.getRemoteAddr());
         authenticationData.setServiceProvider(context.getServiceProviderName());
@@ -58,7 +61,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         authenticationData.setForcedAuthn(context.isForceAuthenticate());
         authenticationData.setPassive(context.isPassiveAuthenticate());
         authenticationData.setInitialLogin(true);
-        authenticationData.setAuthenticator(this.getName());
+        authenticationData.setAuthenticator(context.getCurrentAuthenticator());
         authenticationData.setSuccess(true);
         authenticationData.setStepNo(step);
         doPublishAuthenticationStepSuccess(authenticationData);
@@ -81,9 +84,12 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             authenticationData.setUserStoreDomain(user.getUserStoreDomain());
             authenticationData.setUsername(user.getUserName());
         }
+        Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
+        if (isFederatedObj != null) {
+            authenticationData.setFederated((Boolean) isFederatedObj);
+        }
         authenticationData.setContextId(context.getContextIdentifier());
         authenticationData.setEventId(UUID.randomUUID().toString());
-        authenticationData.setFederated(this instanceof FederatedApplicationAuthenticator);
         authenticationData.setAuthnSuccess(false);
         authenticationData.setRemoteIp(request.getRemoteAddr());
         authenticationData.setServiceProvider(context.getServiceProviderName());
@@ -92,7 +98,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         authenticationData.setForcedAuthn(context.isForceAuthenticate());
         authenticationData.setPassive(context.isPassiveAuthenticate());
         authenticationData.setInitialLogin(true);
-        authenticationData.setAuthenticator(this.getName());
+        authenticationData.setAuthenticator(context.getCurrentAuthenticator());
         authenticationData.setSuccess(false);
         authenticationData.setStepNo(step);
         doPublishAuthenticationStepFailure(authenticationData);
@@ -109,7 +115,12 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             authenticationData.setUserStoreDomain(user.getUserStoreDomain());
             authenticationData.setUsername(user.getUserName());
         }
+        Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
+        if (isFederatedObj != null) {
+            authenticationData.setFederated((Boolean) isFederatedObj);
+        }
 
+        authenticationData.setSuccess(true);
         authenticationData.setContextId(context.getContextIdentifier());
         authenticationData.setEventId(UUID.randomUUID().toString());
         authenticationData.setAuthnSuccess(true);
@@ -196,6 +207,4 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
 
     public abstract void doPublishSessionTermination(String user, String userStoreDomain, String tenantDomain,
                                                      String sessionId, long timestamp, boolean isRememberMe);
-
-
 }

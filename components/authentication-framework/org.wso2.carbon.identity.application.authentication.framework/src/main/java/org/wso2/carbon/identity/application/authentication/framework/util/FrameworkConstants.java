@@ -188,7 +188,8 @@ public abstract class FrameworkConstants {
 
     public static class PublisherParamNames {
 
-        public static final String USER = "User";
-        public static final String SESSION_ID = "User";
+        public static final String USER = "user";
+        public static final String SESSION_ID = "sessionId";
+        public static final String IS_FEDERATED = "isFederated";
     }
 }
