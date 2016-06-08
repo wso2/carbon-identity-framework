@@ -328,6 +328,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         String userStoreDomain = userStoreManager.getRealmConfiguration()
                                 .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                         String domainSpecificUserName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
+                        String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
 
                         try {
                             firstName = Utils.getClaimFromUserStoreManager(domainSpecificUserName, tenantId,
@@ -338,6 +339,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         emailNotificationData.setTagData("first-name", firstName);
                         emailNotificationData.setTagData("user-name", userName);
                         emailNotificationData.setTagData("otp-password", password);
+                        emailNotificationData.setTagData("userstore-domain", userStoreDomain);
+                        emailNotificationData.setTagData("tenant-domain", tenantDomain);
 
                         emailNotificationData.setSendTo(email);
 
