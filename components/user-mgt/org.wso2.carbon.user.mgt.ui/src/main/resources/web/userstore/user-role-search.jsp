@@ -604,18 +604,6 @@
                        topPage="false" request="<%=request%>"/>
 
     <script type="text/javascript">
-
-
-
-        function deleteUser(user) {
-            function doDelete() {
-                var userName = user;
-                location.href = 'delete-finish.jsp?username=' + userName;
-            }
-
-            CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.user"/> \'" + user + "\'?", doDelete, null);
-        }
-
         <%if (showFilterMessage == true) {%>
         jQuery(document).ready(function () {
             CARBON.showInfoDialog('<fmt:message key="no.users.filtered"/>', null, null);
