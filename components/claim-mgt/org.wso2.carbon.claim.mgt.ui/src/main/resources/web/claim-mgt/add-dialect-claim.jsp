@@ -83,10 +83,6 @@
                         CARBON.showWarningDialog('<fmt:message key="cannot.remove.default.carbon.dialect"/>', null, null);
                         return;
                     }
-                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + dialect + '<fmt:message key="remove.message2"/>',
-                            function () {
-                                location.href = "remove-dialect.jsp?store=" + store + "&dialect=" + dialect;
-                            }, null);
                 }
 
             </script>

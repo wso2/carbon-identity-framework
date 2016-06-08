@@ -92,7 +92,18 @@
                     } else {
                         CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + claim + '<fmt:message key="remove.message2"/>',
                                 function () {
-                                    location.href = "remove-claim.jsp?dialect=" + dialect + "&claimUri=" + claim;
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: 'remove-claim.jsp',
+                                        data: 'dialect=' + dialect + '&claimUri=' + claim,
+                                        success: function () {
+                                            location.href = "claim-view.jsp?dialect=" + dialect + "&ordinal=1";
+                                        },
+                                        error: function () {
+                                            CARBON.showErrorDialog('<fmt:message key="error.removing.claim.mapping"/>' + ' '
+                                            + claim);
+                                        }
+                                    });
                                 }, null);
                     }
                 }

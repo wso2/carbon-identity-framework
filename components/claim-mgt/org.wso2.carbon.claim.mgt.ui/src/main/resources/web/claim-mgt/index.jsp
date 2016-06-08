@@ -90,7 +90,18 @@
                     }
                     CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + dialect + '<fmt:message key="remove.message2"/>',
                             function () {
-                                location.href = "remove-dialect.jsp?store=" + store + "&dialect=" + dialect;
+                                $.ajax({
+                                    type: 'POST',
+                                    url: 'remove-dialect.jsp',
+                                    data: 'store=' + store + '&dialect=' + dialect,
+                                    success: function () {
+                                        location.href = "index.jsp?region=region1&item=claim_mgt_menu&ordinal=0";
+                                    },
+                                    error: function () {
+                                        CARBON.showErrorDialog('<fmt:message key="error.removing.claim.mapping"/>' + ' '
+                                        + claim);
+                                    }
+                                });
                             }, null);
                 }
             </script>
