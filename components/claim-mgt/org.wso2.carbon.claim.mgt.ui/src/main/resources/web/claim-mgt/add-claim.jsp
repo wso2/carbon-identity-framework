@@ -124,13 +124,6 @@
                     }
                 }
 
-                function remove(dialect, claim) {
-                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + claim + '<fmt:message key="remove.message2"/>',
-                            function () {
-                                location.href = "remove-claim.jsp?dialect=" + dialect + "&claimUri=" + claim;
-                            }, null);
-                }
-
                 function validate() {
 
                     var value = document.getElementsByName("displayName")[0].value;
