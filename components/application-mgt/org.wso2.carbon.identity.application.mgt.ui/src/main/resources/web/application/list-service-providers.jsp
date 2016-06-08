@@ -56,11 +56,26 @@
             <script type="text/javascript">
 
                 function removeItem(appid) {
-                    CARBON.showConfirmationDialog('Are you sure you want to delete "' + appid + '" SP information?',
-                            function () {
-                                location.href = "remove-service-provider.jsp?appid=" + appid;
+                    function doDelete() {
+                        var appName = appid;
+                        $.ajax({
+                            type: 'POST',
+                            url: 'remove-service-provider-finish-ajaxprocessor.jsp',
+                            headers: {
+                                Accept: "text/html"
                             },
-                            null);
+                            data: 'appid=' + appName,
+                            async: false,
+                            success: function (responseText, status) {
+                                if (status == "success") {
+                                    location.assign("list-service-providers.jsp");
+                                }
+                            }
+                        });
+                    }
+
+                    CARBON.showConfirmationDialog('Are you sure you want to delete "' + appid + '" SP information?',
+                            doDelete, null);
                 }
             </script>
 
