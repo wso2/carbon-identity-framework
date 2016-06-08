@@ -22,6 +22,12 @@
 <%@page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
 	String forwardTo = null;
     String roleName = request.getParameter("roleName");
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
