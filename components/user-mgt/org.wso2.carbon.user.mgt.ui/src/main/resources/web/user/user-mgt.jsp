@@ -371,13 +371,16 @@
                 var userName = user;
                 $.ajax({
                     type: 'POST',
-                    url: 'delete-finish.jsp',
-                    data: 'username=' + userName,
-                    success: function () {
-                        location.href = "user-mgt.jsp?ordinal=1";
+                    url: 'delete-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
                     },
-                    error: function () {
-                        CARBON.showErrorDialog('<fmt:message key="user.cannot.delete"/>' + ' ' + userName);
+                    data: 'username=' + userName,
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("user-mgt.jsp?ordinal=1");
+                        }
                     }
                 });
             }

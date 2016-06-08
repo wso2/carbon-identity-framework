@@ -341,13 +341,16 @@
                 var roleName = role;
                 $.ajax({
                     type: 'POST',
-                    url: 'delete-role.jsp',
-                    data: 'roleName=' + roleName + '&userType=internal',
-                    success: function () {
-                        location.href = "role-mgt.jsp";
+                    url: 'delete-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
                     },
-                    error: function () {
-                        CARBON.showErrorDialog('<fmt:message key="role.cannot.delete"/>' + ' ' + roleName);
+                    data: 'roleName=' + roleName + '&userType=internal',
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("role-mgt.jsp");
+                        }
                     }
                 });
             }
