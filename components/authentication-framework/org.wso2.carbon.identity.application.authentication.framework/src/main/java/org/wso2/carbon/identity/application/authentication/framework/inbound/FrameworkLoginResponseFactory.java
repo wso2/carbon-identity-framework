@@ -44,7 +44,7 @@ public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
 
         FrameworkLoginResponse response = (FrameworkLoginResponse)identityResponse;
 
-        builder.setStatusCode(HttpServletResponse.SC_MOVED_TEMPORARILY);
+        builder.setStatusCode(HttpServletResponse.SC_FOUND);
         builder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
                              new String[]{response.getAuthName()});
         builder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
