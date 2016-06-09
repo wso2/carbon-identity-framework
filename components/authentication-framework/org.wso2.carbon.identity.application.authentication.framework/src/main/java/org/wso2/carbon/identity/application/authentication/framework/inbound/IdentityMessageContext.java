@@ -37,7 +37,6 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
     }
 
     public IdentityMessageContext(IdentityRequest request) {
-        super(new HashMap<T1,T2>());
         this.request = request;
     }
 
