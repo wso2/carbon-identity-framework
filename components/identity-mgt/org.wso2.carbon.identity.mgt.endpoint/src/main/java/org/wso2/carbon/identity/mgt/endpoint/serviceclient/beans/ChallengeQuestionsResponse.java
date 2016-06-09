@@ -1,0 +1,48 @@
+package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
+
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "")
+public class ChallengeQuestionsResponse {
+
+    private ChallengeQuestion[] question;
+    private String code;
+    private String status;
+
+    public ChallengeQuestionsResponse() {
+        //Default constructor
+    }
+
+    public ChallengeQuestionsResponse(ChallengeQuestion[] question) {
+        this.question = question;
+    }
+
+    public ChallengeQuestion[] getQuestion() {
+        return question;
+    }
+
+    public void setQuestion(ChallengeQuestion[] question) {
+        this.question = question;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}

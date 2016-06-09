@@ -33,7 +33,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -43,6 +45,7 @@ public class IdentityManagementServiceUtil {
 
     private static IdentityManagementServiceUtil instance = new IdentityManagementServiceUtil();
     JSONProvider jsonProvider = new JSONProvider ();
+    List providers = new ArrayList();
 
     private String accessUsername;
     private String accessPassword;
@@ -67,6 +70,7 @@ public class IdentityManagementServiceUtil {
         InputStream inputStream = null;
         jsonProvider.setIgnoreNamespaces(true);
         jsonProvider.setDropRootElement(true);
+        providers.add(jsonProvider);
 
         try {
             Properties properties = new Properties();
@@ -146,9 +150,8 @@ public class IdentityManagementServiceUtil {
         option.setManageSession(true);
     }
 
-    public JSONProvider getJSONProvider (){
-        
-        return jsonProvider;
+    public List getJSONProvider (){
+        return providers;
     }
 
     private static boolean isSecuredPropertyAvailable(Properties properties) {
