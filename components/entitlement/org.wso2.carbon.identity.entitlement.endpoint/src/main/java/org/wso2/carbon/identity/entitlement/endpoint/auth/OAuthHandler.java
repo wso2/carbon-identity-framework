@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -26,9 +26,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.message.Message;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.common.model.ProvisioningServiceProviderType;
-import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 import org.wso2.carbon.identity.oauth2.OAuth2TokenValidationService;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2ClientApplicationDTO;
@@ -122,14 +119,7 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
                     // setup thread local variable to be consumed by the provisioning framework.
                     RealmService realmService = (RealmService) PrivilegedCarbonContext
                             .getThreadLocalCarbonContext().getOSGiService(RealmService.class);
-                    ThreadLocalProvisioningServiceProvider serviceProvider = new ThreadLocalProvisioningServiceProvider();
-                    serviceProvider.setServiceProviderName(validationApp.getConsumerKey());
-                    serviceProvider
-                            .setServiceProviderType(ProvisioningServiceProviderType.OAUTH);
-                    serviceProvider.setClaimDialect(EntitlementEndpointConstants.DEFAULT_SCIM_DIALECT);
-                    serviceProvider.setTenantDomain(MultitenantUtils.getTenantDomain(userName));
-                    IdentityApplicationManagementUtil
-                            .setThreadLocalProvisioningServiceProvider(serviceProvider);
+
                     PrivilegedCarbonContext.startTenantFlow();
                     PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
                     String tenantDomain = MultitenantUtils.getTenantDomain(userName);
