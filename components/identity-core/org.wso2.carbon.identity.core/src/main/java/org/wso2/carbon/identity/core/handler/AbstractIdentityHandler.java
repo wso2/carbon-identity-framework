@@ -84,8 +84,7 @@ public abstract class AbstractIdentityHandler implements IdentityHandler {
         return identityEventListenerConfig.getOrder();
     }
 
-    @Override
-    public boolean canHandle() {
-        return false;
+    public String getName() {
+        return this.getClass().getSimpleName();
     }
 }

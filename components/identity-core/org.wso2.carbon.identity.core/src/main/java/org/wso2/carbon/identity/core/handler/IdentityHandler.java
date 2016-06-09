@@ -47,10 +47,4 @@ public interface IdentityHandler {
      */
     public int getPriority();
 
-    /**
-     * Tells if this request can be handled by this handler
-     *
-     * @return {@code true} if the request can be handled by this handler
-     */
-    public abstract boolean canHandle();
 }

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -39,7 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class IdentityProcessor {
+public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
     private static Log log = LogFactory.getLog(IdentityProcessor.class);
 
@@ -89,13 +90,6 @@ public abstract class IdentityProcessor {
             throws FrameworkException;
 
     /**
-     * Returns the unique name of the request IdentityProcessor
-     *
-     * @return name
-     */
-    public abstract String getName();
-
-    /**
      * Get callback path
      *
      * @param context IdentityMessageContext
@@ -109,13 +103,6 @@ public abstract class IdentityProcessor {
      * @return Relying party unique ID
      */
     public abstract String getRelyingPartyId();
-
-    /**
-     * Get priority
-     *
-     * @return priority
-     */
-    public abstract int getPriority();
 
     /**
      * Tells if this processor can handle this IdentityRequest
