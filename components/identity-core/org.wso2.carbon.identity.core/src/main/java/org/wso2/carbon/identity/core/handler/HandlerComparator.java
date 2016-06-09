@@ -27,6 +27,9 @@ import java.util.Comparator;
  */
 public class HandlerComparator implements Comparator<IdentityHandler> {
 
+    public HandlerComparator(){
+    }
+
     @Override
     public int compare(IdentityHandler o1, IdentityHandler o2) {
 

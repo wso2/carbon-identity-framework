@@ -36,7 +36,7 @@ public interface IdentityMessageHandler {
      *
      * @return Name of the handler
      */
-    public abstract String getName();
+    public String getName();
 
     /**
      * Tells if the handler is enabled or not. Based on the result {@Code canHandle()} and {@code handle()} may be
@@ -60,5 +60,5 @@ public interface IdentityMessageHandler {
      * @param messageContext The runtime message context
      * @return {@code true} if the message can be handled by this handler
      */
-    public abstract boolean canHandle(MessageContext messageContext);
+    public boolean canHandle(MessageContext messageContext);
 }
