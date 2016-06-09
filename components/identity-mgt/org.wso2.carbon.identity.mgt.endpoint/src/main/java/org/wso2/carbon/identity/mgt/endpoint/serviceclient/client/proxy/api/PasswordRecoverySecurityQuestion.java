@@ -18,11 +18,11 @@ public interface PasswordRecoverySecurityQuestion {
 
     @PUT @Path("/verify") public Response verifyUserChallengeAnswer(VerifyAnswerRequest verifyAnswerRequest);
 
-    @PUT @Path("/reset_password") public Response updatePassword(UserPassword userPassword);
+    @PUT @Path("/reset-password") public Response updatePassword(UserPassword userPassword);
 
-    @PUT @Path("/initiate_all") public Response initiateUserChallengeQuestionAtOnce(User user);
+    @PUT @Path("/initiate-all") public Response initiateUserChallengeQuestionAtOnce(User user);
 
-    @PUT @Path("/verify_all") public Response verifyUserChallengeAnswerAtOnce(
+    @PUT @Path("/verify-all") public Response verifyUserChallengeAnswerAtOnce(
             VerifyAllAnswerRequest verifyAllAnswerRequest);
 
 }
