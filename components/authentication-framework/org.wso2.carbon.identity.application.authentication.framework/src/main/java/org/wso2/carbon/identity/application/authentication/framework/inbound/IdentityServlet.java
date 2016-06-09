@@ -80,7 +80,7 @@ public class IdentityServlet extends HttpServlet {
             if(identityResponse == null) {
                 throw FrameworkRuntimeException.error("IdentityResponse is Null. Cannot proceed!!");
             }
-            responseFactory = getIdentityResponseFactory(identityResponse);
+            responseFactory = getHttpIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
             if(responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
@@ -153,7 +153,7 @@ public class IdentityServlet extends HttpServlet {
      * @param identityResponse IdentityResponse
      * @return HttpIdentityResponseFactory
      */
-    private HttpIdentityResponseFactory getIdentityResponseFactory(IdentityResponse identityResponse) {
+    private HttpIdentityResponseFactory getHttpIdentityResponseFactory(IdentityResponse identityResponse) {
 
         List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
@@ -187,9 +187,9 @@ public class IdentityServlet extends HttpServlet {
         throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the request");
     }
 
-    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse HttpIdentityResponse) throws IOException {
+    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse httpIdentityResponse) throws IOException {
 
-        String queryParams = IdentityUtil.buildQueryString(HttpIdentityResponse.getParameters());
-        response.sendRedirect(HttpIdentityResponse.getRedirectURL() + queryParams);
+        String queryParams = IdentityUtil.buildQueryString(httpIdentityResponse.getParameters());
+        response.sendRedirect(httpIdentityResponse.getRedirectURL() + queryParams);
     }
 }

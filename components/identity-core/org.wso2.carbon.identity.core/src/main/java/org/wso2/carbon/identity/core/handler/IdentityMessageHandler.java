@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.core.handler;
 
-public interface IdentityHandler {
+public interface IdentityMessageHandler {
 
     /**
      * Initializes the handler
@@ -50,7 +50,7 @@ public interface IdentityHandler {
     /**
      * Tells if this request can be handled by this handler
      *
-     * @return {@code true} if the request can be handled by this handler
+     * @return {@code true} if the message can be handled by this handler
      */
     public abstract boolean canHandle();
 }

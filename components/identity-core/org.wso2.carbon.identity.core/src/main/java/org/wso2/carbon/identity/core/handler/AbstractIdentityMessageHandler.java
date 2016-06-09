@@ -27,9 +27,9 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class AbstractIdentityHandler implements IdentityHandler {
+public abstract class AbstractIdentityMessageHandler implements IdentityMessageHandler {
 
-    private static Log log = LogFactory.getLog(AbstractIdentityHandler.class);
+    private static Log log = LogFactory.getLog(AbstractIdentityMessageHandler.class);
 
     protected final Properties properties = new Properties();
 
