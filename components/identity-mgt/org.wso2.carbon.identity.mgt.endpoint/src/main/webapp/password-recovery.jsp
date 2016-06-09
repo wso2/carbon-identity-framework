@@ -17,38 +17,18 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
 
     boolean isEmailNotificationEnabled = false;
-    boolean isPasswordRecoveryEmailConfirmation = false;
 
-    String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    String confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
-
-    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(confirmationKey)) {
-        isPasswordRecoveryEmailConfirmation = true;
-    } else {
-        isEmailNotificationEnabled = Boolean.parseBoolean(application.getInitParameter(
+    isEmailNotificationEnabled = Boolean.parseBoolean(application.getInitParameter(
                 IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION));
-    }
-
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
-
-    CaptchaInfoBean captchaInfoBean = userInformationRecoveryClient.generateCaptcha();
-
-    String captchaImagePath = captchaInfoBean.getImagePath();
-    String captchaImageUrl = IdentityUtil.getServerURL(null, false, false) + "/" + captchaImagePath;
-    String captchaKey = captchaInfoBean.getSecretKey();
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
@@ -107,43 +87,9 @@
                     <div class="padding-double font-large">Enter below details to recover your password</div>
                     <div class="padding-double">
                         <form method="post" action="verify.do" id="recoverDetailsForm">
-                            <%
-                                if (isPasswordRecoveryEmailConfirmation) {
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <input id="hidden-username" name="username" type="hidden" class="form-control"
-                                       value="<%=Encode.forHtmlAttribute(username)%>">
-                            </div>
-                            <%
-
-                            } else {
-                            %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <input id="username" name="username" type="text" class="form-control" tabindex="0"
                                        placeholder="Username" required>
-                            </div>
-                            <%
-                                }
-                            %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <img src="<%=Encode.forHtmlAttribute(captchaImageUrl)%>"
-                                     alt='If you can not see the captcha image please refresh the page or click the link again.'/>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label">Enter Captcha Text</label>
-                                <input id="captchaAnswer" name="captchaAnswer" type="text" class="form-control"
-                                       required>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input id="confirmationKey" type="hidden" name="confirmationKey"
-                                       value="<%=Encode.forHtmlAttribute(confirmationKey)%>"/>
-                                <input id="captchaImagePath" type="hidden" name="captchaImagePath"
-                                       value="<%=Encode.forHtmlAttribute(captchaImagePath)%>"/>
-                                <input id="captchaKey" type="hidden" name="captchaKey"
-                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
-                                <input id="isPasswordRecoveryEmailConfirmation" type="hidden"
-                                       name="isPasswordRecoveryEmailConfirmation"
-                                       value="<%=isPasswordRecoveryEmailConfirmation%>"/>
                             </div>
                             <%
                                 if (isEmailNotificationEnabled) {
