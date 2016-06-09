@@ -17,11 +17,19 @@
  -->
 <%@ page import="org.apache.axis2.context.ConfigurationContext"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
-<%@ page import="org.wso2.carbon.identity.entitlement.ui.client.EntitlementAdminServiceClient"%>
+<%@ page import="org.wso2.carbon.identity.entitlement.ui.client.EntitlementPolicyAdminServiceClient"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 
+<%@page import="org.wso2.carbon.utils.ServerConstants"%>
+<%@page import="java.util.ResourceBundle"%>
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
 	String serverURL = CarbonUIUtil.getServerURL(config
 			.getServletContext(), session);
 	ConfigurationContext configContext = (ConfigurationContext) config
@@ -29,24 +37,32 @@
 					CarbonConstants.CONFIGURATION_CONTEXT);
 	String cookie = (String) session
 			.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-	String forwardTo = null;
+    String forwardTo = "my-pdp.jsp";
+	String action = request.getParameter("action");
+	String policyid = request.getParameter("policyid");
 	String BUNDLE = "org.wso2.carbon.identity.entitlement.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
+	if ((request.getParameter("policyid") != null)) {
 		try {
-			EntitlementAdminServiceClient client = new EntitlementAdminServiceClient(cookie, serverURL, configContext);
-			client.clearDecisionCache();
-			forwardTo = "pdp-manage.jsp?region=region1&item=policy_menu";
+			EntitlementPolicyAdminServiceClient client =
+                    new EntitlementPolicyAdminServiceClient(cookie, serverURL, configContext);
+            if ("enable".equals(action)){
+                client.enableDisablePolicy(policyid, true);
+                String message = resourceBundle.getString("policy.enabled.successfully");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+            } else if("disable".equals(action)) {
+                client.enableDisablePolicy(policyid, false);
+                String message = resourceBundle.getString("policy.disable.successfully");
+                CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+            }
 		} catch (Exception e) {
-			String message = resourceBundle.getString("cache.clear.error");
-			CarbonUIMessage.sendCarbonUIMessage(message,CarbonUIMessage.ERROR, request);
-			forwardTo = "pdp-manage.jsp?region=region1&item=policy_menu";
-		}
-
+			String message = resourceBundle.getString("error.while.enabling.policy") + e.getMessage();
+			CarbonUIMessage.sendCarbonUIMessage(message,	CarbonUIMessage.ERROR, request);
+        }
+	}
 %>
 
-<%@page import="org.wso2.carbon.utils.ServerConstants"%>
-<%@ page import="java.util.ResourceBundle" %>
 <script
 	type="text/javascript">
     function forward() {
