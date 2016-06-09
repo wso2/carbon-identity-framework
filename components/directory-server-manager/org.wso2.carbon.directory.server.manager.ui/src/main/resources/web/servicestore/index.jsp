@@ -45,15 +45,6 @@
             location.href = 'add-step1.jsp';
         }
 
-        function deleteServicePrinciple(spn) {
-
-            function doDelete(){
-                var spnName = spn;
-                location.href = 'delete-finish.jsp?spnName=' + spnName;
-            }
-            CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.spn"/> \'"+ spn + "\'?", doDelete, null);
-        }
-
         function changeSpnPassword(spn) {
             location.href = 'change-passwd.jsp?spnName=' + spn;
         }

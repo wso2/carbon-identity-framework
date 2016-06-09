@@ -132,10 +132,6 @@
 
     var allPolicesSelected = false;        
 
-    function removePolicies() {
-        location.href = "remove-policy.jsp";
-    }
-
     function edit(policy) {
         location.href = "edit-policy.jsp?policyid=" + policy;
     }
