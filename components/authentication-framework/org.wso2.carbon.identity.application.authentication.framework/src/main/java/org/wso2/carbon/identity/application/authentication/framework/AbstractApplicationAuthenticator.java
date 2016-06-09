@@ -136,13 +136,13 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (success) {
                 for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                    if (publisher.isEnabled(null)) {
+                    if (publisher.isEnabled()) {
                         publisher.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
                     }
                 }
             } else {
                 for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                    if (publisher.isEnabled(null)) {
+                    if (publisher.isEnabled()) {
                         publisher.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
                     }
                 }
