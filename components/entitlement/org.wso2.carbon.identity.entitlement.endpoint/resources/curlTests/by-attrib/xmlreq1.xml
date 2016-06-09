@@ -1,0 +1,5 @@
+<DecisionRequest>
+	<action>read</action>
+	<subject></subject>
+	<resource>http://127.0.0.1/secure</resource>
+</DecisionRequest>

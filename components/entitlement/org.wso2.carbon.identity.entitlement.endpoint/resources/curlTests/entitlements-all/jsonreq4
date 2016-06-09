@@ -1,0 +1,8 @@
+{
+  "givenAttributes" : [{
+			"attributeId":"urn:oasis:names:tc:xacml:1.0:resource:resource-id",
+			"attributeDataType":"http://www.w3.org/2001/XMLSchema#string",
+			"attributeValue":"foo",
+			"category":"urn:oasis:names:tc:xacml:3.0:attribute-category:resource"
+			}]
+}

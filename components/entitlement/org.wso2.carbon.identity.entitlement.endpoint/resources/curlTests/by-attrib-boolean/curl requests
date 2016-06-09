@@ -1,0 +1,3 @@
+curl -v -k --user admin:admin -X POST -d "@jsonreq2" -H "Content-Type:application/json" -H "Accept:application/json" https://localhost:9443/wso2-entitlement/entitlement/Decision/by-attrib-boolean
+
+curl -v -k --user admin:admin -X POST -d "@xmlreq2.xml" -H "Content-Type:application/xml" -H "Accept:application/xml" https://localhost:9443/wso2-entitlement/entitlement/Decision/by-attrib-boolean
