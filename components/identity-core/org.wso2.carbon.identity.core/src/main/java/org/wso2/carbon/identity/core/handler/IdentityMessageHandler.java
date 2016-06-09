@@ -18,7 +18,12 @@
 
 package org.wso2.carbon.identity.core.handler;
 
-public interface IdentityHandler {
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
+
+/**
+ * This interface needs to be implemented by any identity handler.
+ */
+public interface IdentityMessageHandler {
 
     /**
      * Initializes the handler
@@ -37,14 +42,23 @@ public interface IdentityHandler {
      * Tells if the handler is enabled or not. Based on the result {@Code canHandle()} and {@code handle()} may be
      * called.
      *
+     * @param messageContext The runtime message context
      */
-    public boolean isEnabled();
+    public boolean isEnabled(MessageContext messageContext);
 
     /**
      * Used to sort the set of handlers
      *
+     * @param messageContext The runtime message context
      * @return The priority value of the handler
      */
-    public int getPriority();
+    public int getPriority(MessageContext messageContext);
 
+    /**
+     * Tells if this request can be handled by this handler
+     *
+     * @param messageContext The runtime message context
+     * @return {@code true} if the message can be handled by this handler
+     */
+    public abstract boolean canHandle(MessageContext messageContext);
 }

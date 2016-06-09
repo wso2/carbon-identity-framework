@@ -25,20 +25,14 @@ import java.util.Comparator;
 /*
  * Comparator for sorting handler collection
  */
-public class HandlerComparator implements Comparator<IdentityHandler>  {
-
-    private MessageContext messageContext = null;
-
-    public HandlerComparator(MessageContext messageContext){
-        this.messageContext = messageContext;
-    }
+public class HandlerComparator implements Comparator<IdentityHandler> {
 
     @Override
     public int compare(IdentityHandler o1, IdentityHandler o2) {
 
-        if (o1.getPriority(messageContext) > o2.getPriority(messageContext)) {
+        if (o1.getPriority() > o2.getPriority()) {
             return 1;
-        } else if (o1.getPriority(messageContext) == o2.getPriority(messageContext)) {
+        } else if (o1.getPriority() == o2.getPriority()) {
             return 0;
         } else {
             return -1;

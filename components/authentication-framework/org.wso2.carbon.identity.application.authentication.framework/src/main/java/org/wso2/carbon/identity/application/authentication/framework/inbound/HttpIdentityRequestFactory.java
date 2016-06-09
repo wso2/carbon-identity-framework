@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -34,7 +35,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HttpIdentityRequestFactory implements IdentityHandler{
+public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
 
@@ -66,14 +67,6 @@ public class HttpIdentityRequestFactory implements IdentityHandler{
                 }
             }
         }
-    }
-
-    public String getName() {
-        return "HttpIdentityRequestFactory";
-    }
-
-    public int getPriority() {
-        return 0;
     }
 
     public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {

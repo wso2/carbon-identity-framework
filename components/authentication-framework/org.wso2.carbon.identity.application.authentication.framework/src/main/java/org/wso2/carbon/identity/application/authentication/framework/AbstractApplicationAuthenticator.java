@@ -132,16 +132,17 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         if (dataPublishers.size() > 0) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED , this instanceof FederatedApplicationAuthenticator);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (success) {
                 for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                    if (publisher.isEnabled(null)) {
+                    if (publisher.isEnabled()) {
                         publisher.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
                     }
                 }
             } else {
                 for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                    if (publisher.isEnabled(null)) {
+                    if (publisher.isEnabled()) {
                         publisher.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
                     }
                 }

@@ -186,7 +186,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                if(publisher != null && publisher.isEnabled(null)) {
+                if(publisher != null && publisher.isEnabled()) {
                     publisher.publishSessionTermination(request, context, unmodifiableParamMap);
                 }
             }

@@ -133,12 +133,21 @@
         location.href = 'my-pdp.jsp?globalAlgorithmName=' + globalAlgorithmName;
     }
 
-    function enable(policy) {
-        location.href = "enable-disable-policy.jsp?policyid=" + policy +"&action=enable";
-    }
-
-    function disable(policy) {
-        location.href = "enable-disable-policy.jsp?policyid=" + policy +"&action=disable";
+    function enableDisablePolicy(policy, action) {
+        $.ajax({
+            type: 'POST',
+            url: 'enable-disable-policy-ajaxprocessor.jsp',
+            headers: {
+                Accept: "text/html"
+            },
+            data: 'policyid=' + policy + '&action=' + action,
+            async: false,
+            success: function (responseText, status) {
+                if (status == "success") {
+                    location.assign("my-pdp.jsp");
+                }
+            }
+        });
     }
 
 
@@ -248,7 +257,20 @@
 
     function updateOrder(policyId, order) {
         saveOrder();
-        location.href = 'update_order.jsp?policyId=' + Encode.forUriComponent(policyId) + "&order=" + Encode.forUriComponent(order);
+        $.ajax({
+            type: 'POST',
+            url: 'update_order-ajaxprocessor.jsp',
+            headers: {
+                Accept: "text/html"
+            },
+            data: 'policyId=' + policyId + '&order=' + order,
+            async: false,
+            success: function (responseText, status) {
+                if (status == "success") {
+                    location.assign("my-pdp.jsp");
+                }
+            }
+        });
     }
 </script>
 
@@ -397,14 +419,14 @@
                             if (policies[i].getActive()) {
                     %>
                     <a title="<fmt:message key='disable.policy'/>"
-                       onclick="disable('<%=Encode.forJavaScriptAttribute(policies[i].getPolicyId())%>');return false;"
+                       onclick="enableDisablePolicy('<%=Encode.forJavaScriptAttribute(policies[i].getPolicyId())%>','disable');return false;"
                        href="#" style="background-image: url(images/disable.gif);" class="icon-link">
                         <fmt:message key='disable.policy'/></a>
                     <%
                             } else {
                     %>
                     <a title="<fmt:message key='enable.policy'/>"
-                       onclick="enable('<%=Encode.forJavaScriptAttribute(policies[i].getPolicyId())%>');return false;"
+                       onclick="enableDisablePolicy('<%=Encode.forJavaScriptAttribute(policies[i].getPolicyId())%>', 'enable');return false;"
                        href="#" style="background-image: url(images/enable.gif);" class="icon-link">
                         <fmt:message key='enable.policy'/></a>
                     <%

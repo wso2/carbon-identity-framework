@@ -16,23 +16,29 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.inbound;
+package org.wso2.carbon.identity.core.handler;
 
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 import java.util.Comparator;
 
 /*
- * Comparator for sorting handler collection
+ * Comparator for sorting message handler collection
  */
-public class HandlerComparator implements Comparator<IdentityHandler>  {
+public class MessageHandlerComparator implements Comparator<IdentityMessageHandler> {
 
+    private MessageContext messageContext = null;
+
+    public MessageHandlerComparator(MessageContext messageContext){
+        this.messageContext = messageContext;
+    }
 
     @Override
-    public int compare(IdentityHandler o1, IdentityHandler o2) {
+    public int compare(IdentityMessageHandler o1, IdentityMessageHandler o2) {
 
-        if (o1.getPriority() > o2.getPriority()) {
+        if (o1.getPriority(messageContext) > o2.getPriority(messageContext)) {
             return 1;
-        } else if (o1.getPriority() == o2.getPriority()) {
+        } else if (o1.getPriority(messageContext) == o2.getPriority(messageContext)) {
             return 0;
         } else {
             return -1;

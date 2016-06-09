@@ -103,10 +103,25 @@
                 CARBON.showWarningDialog('<fmt:message key="cannot.remove.default.carbon.dialect.all.claims"/>');
                 return false;
             } else {
+                function doDelete() {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'remove-claim-finish-ajaxprocessor.jsp',
+                        headers: {
+                            Accept: "text/html"
+                        },
+                        data: 'dialect=' + dialect + '&claimUri=' + claim,
+                        async: false,
+                        success: function (responseText, status) {
+                            if (status == "success") {
+                                location.assign("claim-view.jsp?dialect=" + dialect + "&ordinal=1");
+                            }
+                        }
+                    });
+                }
+
                 CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + claim + '<fmt:message key="remove.message2"/>',
-                        function () {
-                            location.href = "remove-claim.jsp?dialect=" + dialect + "&claimUri=" + claim;
-                        }, null);
+                       doDelete, null);
             }
         }
     </script>

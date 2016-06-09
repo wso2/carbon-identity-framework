@@ -77,21 +77,6 @@
         <h2><fmt:message key='add-claim.management'/></h2>
 
         <div id="workArea">
-            <script type="text/javascript">
-                function removeItem(store, dialect, defaultDialect) {
-                    if (dialect == defaultDialect) {
-                        CARBON.showWarningDialog('<fmt:message key="cannot.remove.default.carbon.dialect"/>', null, null);
-                        return;
-                    }
-                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + dialect + '<fmt:message key="remove.message2"/>',
-                            function () {
-                                location.href = "remove-dialect.jsp?store=" + store + "&dialect=" + dialect;
-                            }, null);
-                }
-
-            </script>
-
-
             <table class="styledLeft" id="internal" name="internal" width="100%">
                 <tr class="tableOddRow">
                     <td style="width: 30px;">

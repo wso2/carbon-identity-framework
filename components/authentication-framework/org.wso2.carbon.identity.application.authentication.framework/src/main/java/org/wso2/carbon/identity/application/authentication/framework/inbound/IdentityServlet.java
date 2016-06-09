@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.servlet.ServletException;
@@ -80,7 +81,7 @@ public class IdentityServlet extends HttpServlet {
             if(identityResponse == null) {
                 throw FrameworkRuntimeException.error("IdentityResponse is Null. Cannot proceed!!");
             }
-            responseFactory = getIdentityResponseFactory(identityResponse);
+            responseFactory = getHttpIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
             if(responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
@@ -137,7 +138,7 @@ public class IdentityServlet extends HttpServlet {
     private HttpIdentityRequestFactory getIdentityRequestFactory(HttpServletRequest request, HttpServletResponse response) {
 
         List<HttpIdentityRequestFactory> factories = FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
-        Collections.sort(factories,new HandlerComparator());
+        Collections.sort(factories,new org.wso2.carbon.identity.core.handler.HandlerComparator());
 
         for (HttpIdentityRequestFactory requestBuilder : factories) {
             if (requestBuilder.canHandle(request, response)) {
@@ -153,7 +154,7 @@ public class IdentityServlet extends HttpServlet {
      * @param identityResponse IdentityResponse
      * @return HttpIdentityResponseFactory
      */
-    private HttpIdentityResponseFactory getIdentityResponseFactory(IdentityResponse identityResponse) {
+    private HttpIdentityResponseFactory getHttpIdentityResponseFactory(IdentityResponse identityResponse) {
 
         List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
@@ -187,9 +188,9 @@ public class IdentityServlet extends HttpServlet {
         throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the request");
     }
 
-    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse HttpIdentityResponse) throws IOException {
+    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse httpIdentityResponse) throws IOException {
 
-        String queryParams = IdentityUtil.buildQueryString(HttpIdentityResponse.getParameters());
-        response.sendRedirect(HttpIdentityResponse.getRedirectURL() + queryParams);
+        String queryParams = IdentityUtil.buildQueryString(httpIdentityResponse.getParameters());
+        response.sendRedirect(httpIdentityResponse.getRedirectURL() + queryParams);
     }
 }

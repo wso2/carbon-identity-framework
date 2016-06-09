@@ -16,12 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.inbound;
+package org.wso2.carbon.identity.core.handler;
 
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
-import org.wso2.carbon.identity.core.handler.InitConfig;
 
+/**
+ * This class needs to be implemented by any identity message extension handler.
+ */
+public abstract class ExtensionMessageHandler extends AbstractIdentityMessageHandler {
 
-public interface IdentityHandler{
-    public int getPriority();
+    /**
+     * Handles the message
+     *
+     * @param messageContext The runtime message context
+     * @return {@code HandlerReturnStatus}
+     * @throws org.wso2.carbon.identity.base.IdentityException
+     */
+    public abstract ExtHandlerReturnStatus handle(MessageContext messageContext) throws IdentityException;
 }

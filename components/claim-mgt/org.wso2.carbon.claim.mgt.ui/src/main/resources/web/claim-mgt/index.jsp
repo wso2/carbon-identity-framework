@@ -88,10 +88,26 @@
                         CARBON.showWarningDialog('<fmt:message key="cannot.remove.default.carbon.dialect"/>', null, null);
                         return;
                     }
+
+                    function doDelete() {
+                        $.ajax({
+                            type: 'POST',
+                            url: 'remove-dialect-finish-ajaxprocessor.jsp',
+                            headers: {
+                                Accept: "text/html"
+                            },
+                            data: 'store=' + store + '&dialect=' + dialect,
+                            async: false,
+                            success: function (responseText, status) {
+                                if (status == "success") {
+                                    location.assign("index.jsp?region=region1&item=claim_mgt_menu&ordinal=0");
+                                }
+                            }
+                        });
+                    }
+
                     CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + dialect + '<fmt:message key="remove.message2"/>',
-                            function () {
-                                location.href = "remove-dialect.jsp?store=" + store + "&dialect=" + dialect;
-                            }, null);
+                            doDelete, null);
                 }
             </script>
             <table style="width: 100%" class="styledLeft">
