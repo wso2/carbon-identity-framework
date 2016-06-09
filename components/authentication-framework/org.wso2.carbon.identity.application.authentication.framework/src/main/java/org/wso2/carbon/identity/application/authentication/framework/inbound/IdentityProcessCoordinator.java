@@ -22,7 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.core.handler.HandlerComparator;
 
+import java.util.Collections;
 import java.util.List;
 
 public class IdentityProcessCoordinator {
@@ -44,7 +46,7 @@ public class IdentityProcessCoordinator {
 
     private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
         List<IdentityProcessor> processors = FrameworkServiceDataHolder.getInstance().getIdentityProcessors();
-
+        Collections.sort(processors, new HandlerComparator());
         for (IdentityProcessor requestProcessor : processors) {
             if (requestProcessor.canHandle(identityRequest)) {
                 return requestProcessor;

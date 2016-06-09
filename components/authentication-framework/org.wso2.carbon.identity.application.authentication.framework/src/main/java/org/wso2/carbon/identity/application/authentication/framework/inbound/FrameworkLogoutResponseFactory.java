@@ -23,6 +23,11 @@ import javax.servlet.http.HttpServletResponse;
 public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory {
 
     @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
     public boolean canHandle(IdentityResponse identityResponse) {
         if(identityResponse instanceof FrameworkLogoutResponse) {
             return true;
@@ -35,11 +40,12 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
-        return create(responseBuilder, identityResponse);
+        create(responseBuilder, identityResponse);
+        return responseBuilder;
     }
 
     @Override
-    public HttpIdentityResponse.HttpIdentityResponseBuilder create(
+    public void create(
             HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse) {
 
         FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
@@ -57,6 +63,10 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
                              new String[]{response.getAuthType()});
         builder.setRedirectURL(response.getRedirectUrl());
 
-        return builder;
+    }
+
+    @Override
+    public int getPriority() {
+        return 0;
     }
 }
