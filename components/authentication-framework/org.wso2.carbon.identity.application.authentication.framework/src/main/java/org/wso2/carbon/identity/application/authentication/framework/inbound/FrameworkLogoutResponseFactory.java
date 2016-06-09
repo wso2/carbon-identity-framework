@@ -33,25 +33,9 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
     @Override
     public HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse) {
 
-
-        FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
-
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
-        responseBuilder.setStatusCode(HttpServletResponse.SC_MOVED_TEMPORARILY);
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
-                new String[]{response.getAuthName()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
-                new String[]{response.getContextKey()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.CALL_BACK_PATH,
-                new String[]{response.getCallbackPath()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.RELYING_PARTY,
-                new String[]{response.getRelyingParty()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE,
-                new String[]{response.getAuthType()});
-        responseBuilder.setRedirectURL(response.getRedirectUrl());
-
-        return responseBuilder;
+        return create(responseBuilder, identityResponse);
     }
 
     @Override
@@ -60,6 +44,7 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
 
         FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
 
+        builder.setStatusCode(HttpServletResponse.SC_FOUND);
         builder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
                              new String[]{response.getAuthName()});
         builder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
