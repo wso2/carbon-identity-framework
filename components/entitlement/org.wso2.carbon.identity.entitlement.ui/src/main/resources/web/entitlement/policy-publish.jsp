@@ -153,11 +153,6 @@
         location.href = "show-subscriber-status.jsp?subscriberId=" + subscriber;
     }
 
-
-    function deleteSubscriber(subscriber) {
-        location.href = "policy-publish.jsp?delete=" + subscriber;
-    }
-
     function publishToSubscriber() {
         var selected = false;
 

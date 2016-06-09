@@ -130,11 +130,7 @@
 <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
 <script type="text/javascript">
 
-    var allPolicesSelected = false;        
-
-    function removePolicies() {
-        location.href = "remove-policy.jsp";
-    }
+    var allPolicesSelected = false;
 
     function edit(policy) {
         location.href = "edit-policy.jsp?policyid=" + policy;
