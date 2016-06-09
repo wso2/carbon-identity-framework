@@ -82,7 +82,7 @@ public class EventDistributionTask implements Runnable {
                 IdentityEventMessageContext eventContext = new IdentityEventMessageContext(eventMap);
                 for (final AbstractEventHandler module : notificationSendingModules) {
                     // If the module is subscribed to the event, module will be executed.
-                    if (module.isEnabled(eventContext)) {
+                    if (module.isEnabled()) {
                         // Create a runnable and submit to the thread pool for sending message.
                         Runnable msgSender = new Runnable() {
                             @Override

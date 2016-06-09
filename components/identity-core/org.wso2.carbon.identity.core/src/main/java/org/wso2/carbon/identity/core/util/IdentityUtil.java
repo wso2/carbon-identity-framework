@@ -71,6 +71,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -781,25 +782,23 @@ public class IdentityUtil {
         return ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
     }
 
-    public static String buildQueryString(Map<String,String[]> parameterMap) throws UnsupportedEncodingException {
+    public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
 
         StringBuilder queryString = new StringBuilder("?");
         boolean isFirst = true;
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-            for(String paramValue:entry.getValue()) {
+            for (String paramValue : entry.getValue()) {
                 if (isFirst) {
-                    queryString.append(entry.getKey());
-                    queryString.append("=");
-                    queryString.append(paramValue);
                     isFirst = false;
+                } else {
+                    queryString.append("&");
                 }
-                queryString.append("&");
-                queryString.append(entry.getKey());
+                queryString.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.name()));
                 queryString.append("=");
-                queryString.append(paramValue);
+                queryString.append(URLEncoder.encode(paramValue, StandardCharsets.UTF_8.name()));
 
             }
         }
-        return URLEncoder.encode(queryString.toString(), "UTF-8");
+        return queryString.toString();
     }
 }
