@@ -15,13 +15,14 @@
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
-        <artifactId>identity-extension-parent</artifactId>
-        <relativePath>../identity-extension-parent/pom.xml</relativePath>
+        <artifactId>entitlement</artifactId>
+        <relativePath>../pom.xml</relativePath>
         <version>5.0.9-SNAPSHOT</version>
     </parent>
 
@@ -82,12 +83,6 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.scim.common</artifactId>
-            <version>5.0.9-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
             <version>5.0.9-SNAPSHOT</version>
             <scope>provided</scope>
@@ -103,27 +98,27 @@
             <version>2.5.4</version>
         </dependency>
         <!--<dependency>-->
-            <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-            <!--<artifactId>jackson-core</artifactId>-->
-            <!--<version>${com.fasterxml.jackson.version}</version>-->
-            <!--<scope>provided</scope>-->
+        <!--<groupId>com.fasterxml.jackson.core</groupId>-->
+        <!--<artifactId>jackson-core</artifactId>-->
+        <!--<version>${com.fasterxml.jackson.version}</version>-->
+        <!--<scope>provided</scope>-->
         <!--</dependency>-->
         <!--<dependency>-->
-            <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-            <!--<artifactId>jackson-annotations</artifactId>-->
-            <!--<version>${com.fasterxml.jackson.annotation.version}</version>-->
-            <!--<scope>provided</scope>-->
+        <!--<groupId>com.fasterxml.jackson.core</groupId>-->
+        <!--<artifactId>jackson-annotations</artifactId>-->
+        <!--<version>${com.fasterxml.jackson.annotation.version}</version>-->
+        <!--<scope>provided</scope>-->
         <!--</dependency>-->
         <!--<dependency>-->
-            <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-            <!--<artifactId>jackson-databind</artifactId>-->
-            <!--<version>${com.fasterxml.jackson.annotation.version}</version>-->
-            <!--<scope>provided</scope>-->
+        <!--<groupId>com.fasterxml.jackson.core</groupId>-->
+        <!--<artifactId>jackson-databind</artifactId>-->
+        <!--<version>${com.fasterxml.jackson.annotation.version}</version>-->
+        <!--<scope>provided</scope>-->
         <!--</dependency>-->
         <!--<dependency>-->
-            <!--<groupId>com.fasterxml.jackson.jaxrs</groupId>-->
-            <!--<artifactId>jackson-jaxrs-json-endpoint</artifactId>-->
-            <!--<version>${com.fasterxml.jackson.version}</version>-->
+        <!--<groupId>com.fasterxml.jackson.jaxrs</groupId>-->
+        <!--<artifactId>jackson-jaxrs-json-endpoint</artifactId>-->
+        <!--<version>${com.fasterxml.jackson.version}</version>-->
         <!--</dependency>-->
     </dependencies>
 

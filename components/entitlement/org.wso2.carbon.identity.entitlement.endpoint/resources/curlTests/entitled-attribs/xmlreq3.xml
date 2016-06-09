@@ -1,4 +1,4 @@
 <EntitledAttributesRequest>
-	<action>read</action>
-	<subjectName>admin</subjectName>
+    <action>read</action>
+    <subjectName>admin</subjectName>
 </EntitledAttributesRequest>

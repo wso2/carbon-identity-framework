@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -28,10 +28,7 @@ import org.apache.cxf.message.Message;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
-import org.wso2.carbon.identity.entitlement.endpoint.util.JAXRSResponseBuilder;
-import org.wso2.charon.core.encoder.json.JSONEncoder;
 import org.wso2.charon.core.exceptions.UnauthorizedException;
-import org.wso2.charon.core.protocol.endpoints.AbstractResourceEndpoint;
 
 import javax.ws.rs.core.Response;
 
@@ -46,15 +43,15 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
 
         if (log.isDebugEnabled()) {
-            log.debug("Authenticating SCIM request..");
+            log.debug("Authenticating Entitlement Endpoint request..");
         }
-        EntitlementAuthenticatorRegistry SCIMAuthRegistry = EntitlementAuthenticatorRegistry.getInstance();
-        if (SCIMAuthRegistry != null) {
-            EntitlementAuthenticationHandler SCIMAuthHandler = SCIMAuthRegistry.getAuthenticator(
+        EntitlementAuthenticatorRegistry entitlementAuthRegistry = EntitlementAuthenticatorRegistry.getInstance();
+        if (entitlementAuthRegistry != null) {
+            EntitlementAuthenticationHandler entitlementAuthHandler = entitlementAuthRegistry.getAuthenticator(
                     message, classResourceInfo);
             boolean isAuthenticated = false;
-            if (SCIMAuthHandler != null) {
-                isAuthenticated = SCIMAuthHandler.isAuthenticated(message, classResourceInfo);
+            if (entitlementAuthHandler != null) {
+                isAuthenticated = entitlementAuthHandler.isAuthenticated(message, classResourceInfo);
                 if (isAuthenticated) {
                     return null;
                 }
@@ -63,8 +60,7 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
         //if null response is not returned(i.e:message continues its way to the resource), return error & terminate.
         UnauthorizedException unauthorizedException = new UnauthorizedException(
                 "Authentication failed for this resource.");
-        return new JAXRSResponseBuilder().buildResponse(
-                AbstractResourceEndpoint.encodeSCIMException(new JSONEncoder(), unauthorizedException));
+        return null;
     }
 
     // To clear the ThreadLocalProvisioningServiceProvider in a non faulty case

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -41,11 +41,6 @@ public class ApplicationInitializer implements ServletContextListener {
         try {
             //Initialize Authentication Registry
             initEntitlementAuthenticatorRegistry();
-
-            //initialize identity scim manager
-            //nope no need to initialize a SCIM manager
-            //IdentitySCIMManager.getInstance();
-
         } catch (Exception e) {
             logger.error("Error in initializing the Authentocators at the initialization of " +
                     "Entitlement webapp", e);
@@ -62,9 +57,9 @@ public class ApplicationInitializer implements ServletContextListener {
         if (entitlementAuthRegistry != null) {
             //set authenticators after building auth config
             EntitlementAuthConfigReader configReader = new EntitlementAuthConfigReader();
-            List<EntitlementAuthenticationHandler> SCIMAuthenticators = configReader.buildSCIMAuthenticators();
-            if (SCIMAuthenticators != null && !SCIMAuthenticators.isEmpty()) {
-                for (EntitlementAuthenticationHandler entitlementAuthenticator : SCIMAuthenticators) {
+            List<EntitlementAuthenticationHandler> entitlementAuthenticators = configReader.buildEntitlementAuthenticators();
+            if (entitlementAuthenticators != null && !entitlementAuthenticators.isEmpty()) {
+                for (EntitlementAuthenticationHandler entitlementAuthenticator : entitlementAuthenticators) {
                     entitlementAuthRegistry.setAuthenticator(entitlementAuthenticator);
                 }
 
