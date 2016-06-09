@@ -18,12 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
+import javax.servlet.http.HttpServletResponse;
 
-    @Override
-    public String getName() {
-        return "FrameworkLoginResponseFactory";
-    }
+public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
 
     @Override
     public boolean canHandle(IdentityResponse identityResponse) {
@@ -41,6 +38,7 @@ public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        responseBuilder.setStatusCode(HttpServletResponse.SC_MOVED_TEMPORARILY);
         responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
                 new String[]{response.getAuthName()});
         responseBuilder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,

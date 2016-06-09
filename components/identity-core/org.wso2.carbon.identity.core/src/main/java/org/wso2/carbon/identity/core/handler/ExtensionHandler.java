@@ -29,10 +29,8 @@ public abstract class ExtensionHandler extends AbstractIdentityHandler {
     /**
      * Handles the request
      *
-     * @param messageContext The runtime message context
      * @return {@code HandlerReturnStatus}
-     * @throws org.wso2.carbon.identity.base.IdentityRuntimeException
+     * @throws IdentityException
      */
-    public abstract ExtHandlerReturnStatus handle(MessageContext messageContext) throws IdentityException;
-
+    public abstract ExtHandlerReturnStatus handle() throws IdentityException;
 }
