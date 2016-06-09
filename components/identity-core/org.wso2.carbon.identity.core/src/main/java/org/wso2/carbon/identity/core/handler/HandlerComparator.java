@@ -27,7 +27,7 @@ import java.util.Comparator;
  */
 public class HandlerComparator implements Comparator<IdentityHandler> {
 
-    public HandlerComparator(MessageContext messageContext){
+    public HandlerComparator(){
     }
 
     @Override
