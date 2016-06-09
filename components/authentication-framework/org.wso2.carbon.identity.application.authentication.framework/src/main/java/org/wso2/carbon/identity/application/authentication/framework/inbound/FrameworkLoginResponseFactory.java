@@ -35,7 +35,8 @@ public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
-        return create(responseBuilder, identityResponse);
+        create(responseBuilder, identityResponse);
+        return responseBuilder ;
     }
 
     @Override
