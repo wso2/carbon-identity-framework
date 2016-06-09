@@ -173,8 +173,8 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             userStoreDomain = user.getUserStoreDomain();
             tenantDomain = user.getTenantDomain();
         }
-        doPublishSessionCreation(userName, userStoreDomain, tenantDomain, sessionId,
-                System.currentTimeMillis(), context.isRememberMe());
+//        doPublishSessionCreation(userName, userStoreDomain, tenantDomain, sessionId,
+//                System.currentTimeMillis(), context.isRememberMe());
     }
 
     public void publishSessionTermination(HttpServletRequest request, AuthenticationContext context,
@@ -190,8 +190,8 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             userStoreDomain = user.getUserStoreDomain();
             tenantDomain = user.getTenantDomain();
         }
-        doPublishSessionTermination(userName, userStoreDomain, tenantDomain, sessionId,
-                System.currentTimeMillis(), context.isRememberMe());
+//        doPublishSessionTermination(userName, userStoreDomain, tenantDomain, sessionId,
+//                System.currentTimeMillis(), context.isRememberMe());
     }
 
     public abstract void doPublishAuthenticationStepSuccess(AuthenticationData authenticationData);
@@ -203,8 +203,14 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
     public abstract void doPublishAuthenticationFailure(AuthenticationData authenticationData);
 
     public abstract void doPublishSessionCreation(String user, String userStoreDomain, String tenantDomain,
-                                                  String sessionId, long timestamp, boolean isRememberMe);
+                                                  String sessionId, long createdTimestamp, long updatedTimestamp,
+                                                  long terminationTimestamp, boolean isRememberMe);
+
+    public abstract void doPublishSessionUpdate(String user, String userStoreDomain, String tenantDomain,
+                                                     String sessionId, long createdTimestamp, long updatedTimestamp,
+                                                     long terminationTimestamp, boolean isRememberMe);
 
     public abstract void doPublishSessionTermination(String user, String userStoreDomain, String tenantDomain,
-                                                     String sessionId, long timestamp, boolean isRememberMe);
+                                                     String sessionId, long createdTimestamp, long updatedTimestamp,
+                                                     long terminationTimestamp, boolean isRememberMe);
 }
