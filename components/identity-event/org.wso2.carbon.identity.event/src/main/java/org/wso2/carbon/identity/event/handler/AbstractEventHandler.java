@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.event.EventMgtException;
 import org.wso2.carbon.identity.event.EventMgtConfigBuilder;
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractEventHandler extends AbstractIdentityHandler {
+public abstract class AbstractEventHandler extends AbstractIdentityMessageHandler {
 
     private static final Log log = LogFactory.getLog(AbstractEventHandler.class);
 
