@@ -346,6 +346,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (dataPublishers.size() > 0) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            if (user != null) {
+                paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, user.isFederatedUser());
+            }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
                 if(publisher != null && publisher.isEnabled(null)) {
