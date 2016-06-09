@@ -453,7 +453,7 @@
     } else {
         forwardTo = nextPage + ".jsp?ruleId=" + ruleId;
         if(categoryType != null && categoryType.trim().length() > 0){
-            forwardTo = forwardTo + "&category=" + categoryType + "&returnPage=policy-editor";
+            forwardTo = forwardTo + "&category=" + categoryType + "&returnPage=policy-editor.jsp";
         }
         if(selectedAttributeDataType != null && selectedAttributeDataType.trim().length() > 0){
             forwardTo = forwardTo + "&selectedAttributeDataType=" + selectedAttributeDataType;
