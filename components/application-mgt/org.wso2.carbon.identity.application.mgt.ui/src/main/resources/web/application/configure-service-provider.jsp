@@ -552,7 +552,7 @@ var roleMappinRowID = -1;
     		
     		$.ajax({
     		    type: "POST",
-    			url: 'configure-service-provider-update.jsp?spName=<%=Encode.forUriComponent(spName)%>',
+    			url: 'configure-service-provider-update-ajaxprocessor.jsp?spName=<%=Encode.forUriComponent(spName)%>',
     		    data: $("#configure-sp-form").serialize()
     		});
         }
@@ -721,7 +721,7 @@ var roleMappinRowID = -1;
             <fmt:message key='title.service.providers'/>
         </h2>
         <div id="workArea">
-            <form id="configure-sp-form" method="post" name="configure-sp-form" method="post" action="configure-service-provider-finish.jsp" >
+            <form id="configure-sp-form" method="post" name="configure-sp-form" method="post" action="configure-service-provider-finish-ajaxprocessor.jsp" >
             <input type="hidden" name="oldSPName" id="oldSPName" value="<%=Encode.forHtmlAttribute(spName)%>"/>
             <input type="hidden" id="isNeedToUpdate" value="<%=isNeedToUpdate%>"/>
             <div class="sectionSeperator togglebleTitle"><fmt:message key='title.config.app.basic.config'/></div>
