@@ -21,22 +21,22 @@
            prefix="carbon" %>
 <%@ page import="org.apache.axis2.AxisFault" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.WorkflowAdminServiceWorkflowException" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.bean.WorkflowRequest" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowEvent" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowAdminServiceClient" %>
+
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.bean.WorkflowRequest" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowEvent" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%! public static final String ADMIN_ERROR_PAGE = "../admin/error.jsp";
     public static final String ALL_TASKS = "allTasks";
     public static final String CREATED_AT = "createdAt";
@@ -183,8 +183,21 @@
 
         function removeRequest(requestId) {
             function doDelete() {
-                location.href = 'wf-request-delete-finish.jsp?<%=WorkflowUIConstants.PARAM_REQUEST_ID%>=' +
-                        requestId;
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'wf-request-delete-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
+                    },
+                    data: '<%=WorkflowUIConstants.PARAM_REQUEST_ID%>=' + requestId,
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("wf-request-list.jsp");
+                        }
+                    }
+                });
             }
 
             CARBON.showConfirmationDialog('<fmt:message key="confirmation.request.delete"/> ?',
