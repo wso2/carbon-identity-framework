@@ -59,6 +59,14 @@ public class IdentityManagementEndpointConstants {
         public static final String CHALLENGE_QUESTION_2_CLAIM = "http://wso2.org/claims/challengeQuestion2";
     }
 
+    public static final class UserInfoRecovery {
+        public static final String REST_URL = "https://localhost:9443/account-recovery/";
+    }
+
+    public static final class UserInfoRecoveryStatusCodes {
+        public static final String SUCCESS = "200";
+    }
+
     public static final String SUPER_TENANT = "carbon.super";
     public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
 

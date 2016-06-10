@@ -30,8 +30,8 @@
                                                                                           userStoreDomain);
     if (StringUtils.isNotBlank(fulQualifiedUsername) && StringUtils.isNotBlank(confirmationKey)) {
         request.setAttribute("username", fulQualifiedUsername);
-        request.setAttribute("confirmationKey", confirmationKey);
-        request.getRequestDispatcher("recoverpassword.do").forward(request, response);
+        request.getSession().setAttribute("confirmationKey", confirmationKey);
+        request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg",
