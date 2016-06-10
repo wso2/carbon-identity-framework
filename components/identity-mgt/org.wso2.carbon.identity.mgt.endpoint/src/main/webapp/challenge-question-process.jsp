@@ -50,37 +50,37 @@
 
         ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
 
-            String code =  challengeQuestionResponse.getCode();
-            ChallengeQuestion challengeQuestion = challengeQuestionResponse.getQuestion();
-            String question = challengeQuestion.getQuestion();
-            String getQuestionSetId = challengeQuestion.getQuestionSetId();
+        String code =  challengeQuestionResponse.getCode();
+        ChallengeQuestion challengeQuestion = challengeQuestionResponse.getQuestion();
+        String question = challengeQuestion.getQuestion();
+        String getQuestionSetId = challengeQuestion.getQuestionSetId();
 
-            User user = (User)session.getAttribute("user");
+        User user = (User)session.getAttribute("user");
 
-            VerifyAnswerRequest verifyAnswerRequest = new VerifyAnswerRequest();
+        VerifyAnswerRequest verifyAnswerRequest = new VerifyAnswerRequest();
 
-            verifyAnswerRequest.setUser(user);
-            verifyAnswerRequest.setCode(code);
+        verifyAnswerRequest.setUser(user);
+        verifyAnswerRequest.setCode(code);
 
-            UserChallengeQuestion userChallengeQuestion = new UserChallengeQuestion();
-            userChallengeQuestion.setQuestion(question);
-            userChallengeQuestion.setQuestionSetId(getQuestionSetId);
+        UserChallengeQuestion userChallengeQuestion = new UserChallengeQuestion();
+        userChallengeQuestion.setQuestion(question);
+        userChallengeQuestion.setQuestionSetId(getQuestionSetId);
 
-            UserChallengeAnswer userChallengeAnswer = new UserChallengeAnswer();
-            userChallengeAnswer.setQuestion(userChallengeQuestion);
-            userChallengeAnswer.setAnswer(securityQuestionAnswer);
+        UserChallengeAnswer userChallengeAnswer = new UserChallengeAnswer();
+        userChallengeAnswer.setQuestion(userChallengeQuestion);
+        userChallengeAnswer.setAnswer(securityQuestionAnswer);
 
-            verifyAnswerRequest.setAnswer(userChallengeAnswer);
-            PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-            ChallengeQuestionResponse challengeQuestionResponse1 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
-            String status = challengeQuestionResponse1.getStatus();
-            session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
-            if("INCOMPLETE".equals(status)){
-                request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
-
-            }else if("COMPLETE".equals(status)){
+        verifyAnswerRequest.setAnswer(userChallengeAnswer);
+        PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+        ChallengeQuestionResponse challengeQuestionResponse1 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
+        String status = challengeQuestionResponse1.getStatus();
+        session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
+        
+        if("INCOMPLETE".equals(status)){
+            request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+        }else if("COMPLETE".equals(status)){
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
-            }
+        }
     }
 
 %>
