@@ -37,6 +37,11 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-bundle</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.securevault</groupId>
             <artifactId>org.wso2.securevault</artifactId>
             <exclusions>
@@ -110,6 +115,8 @@
                     </webResources>
                     <warName>accountrecoveryendpoint</warName>
                     <packagingExcludes>WEB-INF/lib/commons-logging*.jar</packagingExcludes>
+                    <packagingExcludes>WEB-INF/lib/axis2*.jar</packagingExcludes>
+                    <packagingExcludes>WEB-INF/lib/axiom*.jar</packagingExcludes>
                 </configuration>
             </plugin>
         </plugins>

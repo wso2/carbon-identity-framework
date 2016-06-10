@@ -24,6 +24,7 @@ import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -32,7 +33,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -41,6 +44,8 @@ import java.util.Properties;
 public class IdentityManagementServiceUtil {
 
     private static IdentityManagementServiceUtil instance = new IdentityManagementServiceUtil();
+    private JSONProvider jsonProvider = new JSONProvider();
+    private List providers = new ArrayList();
 
     private String accessUsername;
     private String accessPassword;
@@ -63,6 +68,11 @@ public class IdentityManagementServiceUtil {
     public void init() {
 
         InputStream inputStream = null;
+        jsonProvider.setDropRootElement(true);
+        jsonProvider.setIgnoreNamespaces(true);
+        jsonProvider.setValidateOutput(true);
+        jsonProvider.setSupportUnwrapped(true);
+        providers.add(jsonProvider);
 
         try {
             Properties properties = new Properties();
@@ -140,6 +150,10 @@ public class IdentityManagementServiceUtil {
         auth.setPreemptiveAuthentication(true);
         option.setProperty(org.apache.axis2.transport.http.HTTPConstants.AUTHENTICATE, auth);
         option.setManageSession(true);
+    }
+
+    public List getJSONProvider(){
+        return providers;
     }
 
     private static boolean isSecuredPropertyAvailable(Properties properties) {
