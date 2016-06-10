@@ -145,12 +145,34 @@
     }
 
     function enable(domain) {
-        location.href = "enable-disable-userstores.jsp?domain=" + domain + "&action=enable";
+        $.ajax({
+            type: 'POST',
+            url: 'enable-disable-userstores.jsp',
+            data: 'domain=' + domain + '&className=' + '&action=enable',
+            success: function () {
+                location.href = "index.jsp?region=region1&item=userstores_mgt_menu";
+            },
+            error: function () {
+                CARBON.showErrorDialog('<fmt:message key="invalid.domain.not.updated"/>' + ' '
+                + domain);
+            }
+        });
 
     }
 
     function disable(domain) {
-        location.href = "enable-disable-userstores.jsp?domain=" + domain + "&action=disable";
+        $.ajax({
+            type: 'POST',
+            url: 'enable-disable-userstores.jsp',
+            data: 'domain=' + domain + '&className=' + '&action=disable',
+            success: function () {
+                location.href = "index.jsp?region=region1&item=userstores_mgt_menu";
+            },
+            error: function () {
+                CARBON.showErrorDialog('<fmt:message key="invalid.domain.not.updated"/>' + ' '
+                +domain);
+            }
+        });
 
     }
 
