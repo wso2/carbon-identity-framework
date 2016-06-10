@@ -28,6 +28,14 @@ public class ChallengeQuestion implements Serializable {
 
     private String questionSetId;
 
+    public ChallengeQuestion() {
+    }
+
+    public ChallengeQuestion(String question, String questionSetId) {
+        this.question = question;
+        this.questionSetId = questionSetId;
+    }
+
     public String getQuestionSetId() {
         return questionSetId;
     }

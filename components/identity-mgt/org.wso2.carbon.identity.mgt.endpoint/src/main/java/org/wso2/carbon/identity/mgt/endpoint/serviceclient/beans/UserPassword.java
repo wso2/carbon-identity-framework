@@ -24,11 +24,23 @@ import java.io.Serializable;
 @XmlType(propOrder = { "user", "code", "password" })
 @XmlRootElement(name = "userPassword")
 public class UserPassword implements Serializable{
-    @XmlElement(required = true) private User user;
+    @XmlElement(required = true)
+    private User user;
 
-    @XmlElement(required = true) private String password;
+    @XmlElement(required = true)
+    private String password;
 
-    @XmlElement(required = true) private String code;
+    @XmlElement(required = true)
+    private String code;
+
+    public UserPassword() {
+    }
+
+    public UserPassword(User user, String password, String code) {
+        this.user = user;
+        this.password = password;
+        this.code = code;
+    }
 
     public User getUser() {
         return user;

@@ -30,11 +30,24 @@ import java.io.Serializable;
 })
 @XmlRootElement(name = "verifyAllAnswerRequest")
 public class VerifyAllAnswerRequest implements Serializable {
-    @XmlElement(required = true) private User user;
 
-    @XmlElement(required = true) private UserChallengeAnswer[] answers;
+    @XmlElement(required = true)
+    private User user;
 
-    @XmlElement(required = true) private String code;
+    @XmlElement(required = true)
+    private UserChallengeAnswer[] answers;
+
+    @XmlElement(required = true)
+    private String code;
+
+    public VerifyAllAnswerRequest() {
+    }
+
+    public VerifyAllAnswerRequest(User user, UserChallengeAnswer[] answers, String code) {
+        this.user = user;
+        this.answers = answers;
+        this.code = code;
+    }
 
     public User getUser() {
         return user;

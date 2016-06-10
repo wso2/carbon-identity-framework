@@ -18,13 +18,18 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
+@XmlRootElement(name = "answer")
 public class UserChallengeAnswer implements Serializable{
 
     private UserChallengeQuestion question;
 
     private String answer;
+
+    public UserChallengeAnswer() {
+    }
 
     public UserChallengeAnswer(UserChallengeQuestion question, String answer) {
         this.question = question;

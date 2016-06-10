@@ -40,6 +40,14 @@ public class VerifyAnswerRequest implements Serializable {
     @XmlElement(required = true)
     private String code;
 
+    public VerifyAnswerRequest() {
+    }
+
+    public VerifyAnswerRequest(User user, UserChallengeAnswer answer, String code) {
+        this.user = user;
+        this.answer = answer;
+        this.code = code;
+    }
 
     public User getUser() {
         return user;

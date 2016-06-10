@@ -30,6 +30,15 @@ public class User implements Serializable {
     protected String userStoreDomain;
     protected String userName;
 
+    public User() {
+    }
+
+    public User(String tenantDomain, String userStoreDomain, String userName) {
+        this.tenantDomain = tenantDomain;
+        this.userStoreDomain = userStoreDomain;
+        this.userName = userName;
+    }
+
     public String getTenantDomain() {
         return tenantDomain;
     }
