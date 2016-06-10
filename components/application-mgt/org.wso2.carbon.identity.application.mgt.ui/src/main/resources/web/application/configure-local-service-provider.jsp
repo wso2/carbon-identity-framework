@@ -215,7 +215,7 @@
             <fmt:message key='title.local.service.providers'/>
         </h2>
         <div id="workArea">
-            <form id="configure-sp-form" method="post" name="configure-sp-form" method="post" action="configure-service-provider-finish.jsp" >
+            <form id="configure-sp-form" method="post" name="configure-sp-form" method="post" action="configure-service-provider-finish-ajaxprocessor.jsp" >
             <input type="hidden" value="wso2carbon-local-sp" name="spName">
             <input type="hidden" value="<%=Encode.forHtmlAttribute(appBean.getServiceProvider().getDescription())%>" name="sp-description">
             <input type="hidden" name="oldSPName" value="<%=Encode.forHtmlAttribute(spName)%>"/>

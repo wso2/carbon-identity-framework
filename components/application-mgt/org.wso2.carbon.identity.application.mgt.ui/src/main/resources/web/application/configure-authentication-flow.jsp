@@ -381,7 +381,7 @@ var img = "";
             <fmt:message key='breadcrumb.advanced.auth.step.config.for'/><%=Encode.forHtmlContent(spName)%>
         </h2>
         <div id="workArea">
-            <form id="configure-auth-flow-form" method="post" name="configure-auth-flow-form" method="post" action="configure-authentication-flow-finish.jsp" >        
+            <form id="configure-auth-flow-form" method="post" name="configure-auth-flow-form" method="post" action="configure-authentication-flow-finish-ajaxprocessor.jsp" >
             <input type=hidden name=spName value='<%=Encode.forHtmlAttribute(spName)%>'/>
           
            
