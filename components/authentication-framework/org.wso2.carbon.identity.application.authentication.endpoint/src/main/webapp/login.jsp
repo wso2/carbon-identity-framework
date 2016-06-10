@@ -70,7 +70,12 @@
 
 
     %>
-
+    <%
+        boolean reCpatchaEnabled = false;
+        if (request.getParameter("reCaptcha") != null && "TRUE".equalsIgnoreCase(request.getParameter("reCaptcha"))) {
+            reCpatchaEnabled = true;
+        }
+    %>
     <html>
     <head>
         <meta charset="utf-8">
@@ -86,6 +91,15 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+
+        <%
+            if (reCpatchaEnabled) {
+        %>
+        <script src='<%=
+        (request.getParameter("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
     </head>
 
     <body>
@@ -292,6 +306,23 @@
                 $('.main-link').next().hide();
             });
 
+            <%
+            if(reCpatchaEnabled) {
+            %>
+            var error_msg = $("#error-msg");
+            $("#loginForm").submit(function (e) {
+                var resp = $("[name='g-recaptcha-response']")[0].value;
+                if (resp.trim() == '') {
+                    error_msg.text("Please select reCaptcha.");
+                    error_msg.show();
+                    $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
+                    return false;
+                }
+                return true;
+            });
+            <%
+            }
+            %>
         });
         function myFunction(key, value, name) {
             var object = document.getElementById(name);
