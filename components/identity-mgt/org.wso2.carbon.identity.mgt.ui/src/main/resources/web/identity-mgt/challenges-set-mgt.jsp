@@ -87,11 +87,23 @@
 
     <script type="text/javascript">
 
-        function removeSet(row){
-        	function doDelete() {
-            	location.href= 'challenges-mgt-finish.jsp?removeSetId=' + encodeURIComponent(row);
-        	}
-            
+        function removeSet(row) {
+            function doDelete() {
+                $.ajax({
+                    type: 'POST',
+                    url: 'challenges-mgt-finish.jsp',
+                    data: 'removeSetId=' + encodeURIComponent(row),
+                    success: function () {
+                        location.href = "challenges-set-mgt.jsp";
+                    },
+                    error: function () {
+                        CARBON.showErrorDialog('<fmt:message key="error.removing.challenge.set"/>');
+                    }
+                });
+
+
+            }
+
             CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.challenge.set"/> " + row + " ?", doDelete, null);
         }
 
