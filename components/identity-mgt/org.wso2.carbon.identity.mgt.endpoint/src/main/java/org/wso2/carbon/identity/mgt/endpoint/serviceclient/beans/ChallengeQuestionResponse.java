@@ -22,10 +22,7 @@ import org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuesti
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-<<<<<<< HEAD
-=======
 import java.io.Serializable;
->>>>>>> master
 
 /**
  * Store single challenge question response
@@ -41,7 +38,6 @@ public class ChallengeQuestionResponse implements Serializable {
     public ChallengeQuestionResponse() {
         //Default constructor
     }
-
 
     public ChallengeQuestion getQuestion() {
         return question;
