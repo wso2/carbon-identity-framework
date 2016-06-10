@@ -21,8 +21,11 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient.model;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
+/**
+ * store challenge question answer along with challenge question properties
+ */
 @XmlRootElement(name = "answer")
-public class UserChallengeAnswer implements Serializable{
+public class UserChallengeAnswer implements Serializable {
 
     private UserChallengeQuestion question;
 

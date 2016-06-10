@@ -44,7 +44,7 @@ import java.util.Properties;
 public class IdentityManagementServiceUtil {
 
     private static IdentityManagementServiceUtil instance = new IdentityManagementServiceUtil();
-    private JSONProvider jsonProvider = new JSONProvider ();
+    private JSONProvider jsonProvider = new JSONProvider();
     private List providers = new ArrayList();
 
     private String accessUsername;
@@ -152,7 +152,7 @@ public class IdentityManagementServiceUtil {
         option.setManageSession(true);
     }
 
-    public List getJSONProvider (){
+    public List getJSONProvider(){
         return providers;
     }
 

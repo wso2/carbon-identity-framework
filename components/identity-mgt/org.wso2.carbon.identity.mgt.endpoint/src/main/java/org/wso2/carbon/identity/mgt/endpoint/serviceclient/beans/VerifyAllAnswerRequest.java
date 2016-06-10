@@ -19,9 +19,16 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
 
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 
+/**
+ * Store attributes required to verify multiple challenge questions answers
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
         "user",

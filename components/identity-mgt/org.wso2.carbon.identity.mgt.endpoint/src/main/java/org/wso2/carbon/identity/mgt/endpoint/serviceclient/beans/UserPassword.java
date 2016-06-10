@@ -17,13 +17,21 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
 import java.io.Serializable;
 
+/**
+ * Store attributes required for password reset
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = { "user", "code", "password" })
 @XmlRootElement(name = "userPassword")
-public class UserPassword implements Serializable{
+public class UserPassword implements Serializable {
     @XmlElement(required = true)
     private User user;
 

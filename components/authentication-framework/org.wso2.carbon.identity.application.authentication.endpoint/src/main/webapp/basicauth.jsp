@@ -63,7 +63,17 @@
         <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
             (request.getParameter("sessionDataKey"))%>'/>
     </div>
-
+    <%
+        if (reCpatchaEnabled) {
+    %>
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+        <div class="g-recaptcha"
+             data-sitekey="<%=Encode.forHtmlContent(request.getParameter("reCapatchaKey"))%>">
+        </div>
+    </div>
+    <%
+        }
+    %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="checkbox">
             <label>
