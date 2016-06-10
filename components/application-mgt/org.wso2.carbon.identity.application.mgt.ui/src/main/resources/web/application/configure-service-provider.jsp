@@ -39,9 +39,6 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
 <%@ page import="org.apache.commons.collections.CollectionUtils" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.oauth.dao.OAuthAppDAO" %>
-<%@ page import="org.wso2.carbon.identity.oauth.common.OAuthConstants" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -77,7 +74,6 @@ location.href = "list-service-providers.jsp";
     String action = request.getParameter("action");
     String[] userStoreDomains = null;
     boolean isNeedToUpdate = false;
-    String appstate = request.getParameter("appState");
 
     String authTypeReq =  request.getParameter("authType");
     if (authTypeReq!=null && authTypeReq.trim().length()>0){
@@ -164,11 +160,6 @@ location.href = "list-service-providers.jsp";
 
     if(ApplicationBean.AUTH_TYPE_FLOW.equals(authTypeReq) && "update".equals(action)) {
         isNeedToUpdate = true;
-    }
-
-    if(StringUtils.isBlank(appstate)) {
-        OAuthAppDAO oAuthAppDAO = new OAuthAppDAO();
-        appstate = oAuthAppDAO.getConsumerAppState(appBean.getOIDCClientId());
     }
     
     String authType = appBean.getAuthenticationType();
@@ -1142,12 +1133,8 @@ var roleMappinRowID = -1;
                                 	</td>
                                     <td style="white-space: nowrap;">
                                         <a title="Edit Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                        <% if(OAuthConstants.OauthAppStates.APP_STATE_REVOKED.equals(appstate)) { %>
-                                        <a title="Revoke Service Providers" disabled="disabled" onclick="return false;" class="icon-link" style="background-image:url(images/disabled.png)" style="display:none">Revoke</a>
-                                        <% } else { %>
-                                        <a title="Revoke Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');" class="icon-link" style="background-image: url(images/enabled.png)">Revoke</a>
-                                        <% } %>
-                                        <a title="Regenerate Secret Key" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');" class="icon-link" style="background-image: url(../admin/images/edit.gif)">Regenerate Secret</a>
+                                        <a title="Revoke Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');" class="icon-link" style="background-image: url(images/disabled.png)">Revoke</a>
+                                        <a title="Regenerate Secret Key" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');" class="icon-link" style="background-image: url(images/enabled.png)">Regenerate Secret</a>
                                         <a title="Delete Service Providers" onclick="updateBeanAndRedirect('../oauth/remove-app.jsp?consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
                                     </td>
                                 	</tr>
