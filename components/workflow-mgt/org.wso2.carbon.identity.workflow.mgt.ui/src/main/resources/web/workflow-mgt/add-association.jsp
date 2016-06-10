@@ -402,7 +402,7 @@
 
         <div id="workArea">
             <div id="addNew">
-                <form id="id_form_add_association" action="update-association-finish.jsp" method="post">
+                <form id="id_form_add_association" action="update-association-finish-ajaxprocessor.jsp" method="post">
                     <input type="hidden" name="<%=WorkflowUIConstants.PARAM_ACTION%>"
                            value="<%=WorkflowUIConstants.ACTION_VALUE_ADD%>">
 

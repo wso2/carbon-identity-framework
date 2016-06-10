@@ -28,6 +28,12 @@ Work<%--
 <%@ page import="java.util.ResourceBundle" %>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String requestId = request.getParameter(WorkflowUIConstants.PARAM_REQUEST_ID);
 
     WorkflowAdminServiceClient client = null;
