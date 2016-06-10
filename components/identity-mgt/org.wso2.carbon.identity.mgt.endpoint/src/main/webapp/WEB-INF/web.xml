@@ -63,6 +63,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>passwordreset.do</servlet-name>
+        <jsp-file>/password-reset.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>register.do</servlet-name>
         <jsp-file>/self-registration.jsp</jsp-file>
     </servlet>
@@ -84,7 +89,7 @@
 
     <servlet>
         <servlet-name>verify.do</servlet-name>
-        <jsp-file>/captcha-verify.jsp</jsp-file>
+        <jsp-file>/recovery.jsp</jsp-file>
     </servlet>
 
     <servlet-mapping>
@@ -110,6 +115,11 @@
     <servlet-mapping>
         <servlet-name>completepasswordreset.do</servlet-name>
         <url-pattern>/completepasswordreset.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>passwordreset.do</servlet-name>
+        <url-pattern>/passwordreset.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
