@@ -17,18 +17,10 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
 
 <%
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
-
     boolean isUserRegistrationEmailConfirmation =
             Boolean.parseBoolean(request.getParameter("isUserRegistrationEmailConfirmation"));
     boolean isPasswordRecoveryEmailConfirmation =
@@ -42,17 +34,11 @@
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
 
-    VerificationBean verificationBean = null;
-
     if (isUserRegistrationEmailConfirmation) {
         // Self Registration Account Confirmation Scenario
-        /*verificationBean = userInformationRecoveryClient.confirmUserSelfRegistration(username, confirmationKey,
-                                                                                     captchaInfoBean,
-                                                                                     MultitenantUtils.getTenantDomain(
-                                                                                             username));*/
     } else if (isUsernameRecovery) {
         // Username Recovery Scenario
-        UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
+/*        UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
                 IdentityManagementEndpointConstants.WSO2_DIALECT);
 
         List<UserIdentityClaimDTO> claimDTOList = new ArrayList<UserIdentityClaimDTO>();
@@ -76,44 +62,38 @@
             }
         }
 
-        UserIdentityClaimDTO[] claimDTOArray = new UserIdentityClaimDTO[claimDTOList.size()];
+        UserIdentityClaimDTO[] claimDTOArray = new UserIdentityClaimDTO[claimDTOList.size()];*/
     } else {
-        // Password Recovery Scenario
+        /*verificationBean = userInformationRecoveryClient.verifyUser(username, captchaInfoBean);*/
+    }
+
+    // if (verificationBean != null && verificationBean.getVerified()) {
+    if (isUserRegistrationEmailConfirmation) {
+        request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
+    } else if (isUsernameRecovery) {
+        request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
+    } else {
         if (isPasswordRecoveryEmailConfirmation) {
-            /*verificationBean = userInformationRecoveryClient.verifyConfirmationCode(username, confirmationKey,
-                                                                                    captchaInfoBean);*/
+            session.setAttribute("username", username);
+            session.setAttribute("confirmationKey", confirmationKey);
+            request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else {
-            /*verificationBean = userInformationRecoveryClient.verifyUser(username, captchaInfoBean);*/
+            request.setAttribute("username", username);
+
+            if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.EMAIL.equals(recoveryOption)) {
+                request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);
+            } else if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.SECURITY_QUESTIONS
+                    .equals(recoveryOption)) {
+                request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
+            } else {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", "Unknown Password Recovery Option");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+            }
         }
     }
 
-    if (verificationBean != null && verificationBean.getVerified()) {
-        if (isUserRegistrationEmailConfirmation) {
-            request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
-        } else if (isUsernameRecovery) {
-            request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
-        } else {
-            if (isPasswordRecoveryEmailConfirmation) {
-                session.setAttribute("username", username);
-                session.setAttribute("confirmationKey", verificationBean.getKey());
-                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
-            } else {
-                request.setAttribute("username", username);
-                request.setAttribute("confirmationKey", verificationBean.getKey());
-
-                if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.EMAIL.equals(recoveryOption)) {
-                    request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);
-                } else if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.SECURITY_QUESTIONS
-                        .equals(recoveryOption)) {
-                    request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
-                } else {
-                    request.setAttribute("error", true);
-                    request.setAttribute("errorMsg", "Unknown Password Recovery Option");
-                    request.getRequestDispatcher("error.jsp").forward(request, response);
-                }
-            }
-        }
-    } else {
+    /*else {
         if (isUserRegistrationEmailConfirmation || isPasswordRecoveryEmailConfirmation) {
             request.setAttribute("username", username);
             request.setAttribute("confirmationKey", confirmationKey);
@@ -132,7 +112,7 @@
         } else {
             request.getRequestDispatcher("recoverpassword.do").forward(request, response);
         }
-    }
+    }*/
 %>
 <html>
 <head>

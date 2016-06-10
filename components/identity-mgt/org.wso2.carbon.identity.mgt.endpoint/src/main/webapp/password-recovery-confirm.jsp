@@ -29,6 +29,8 @@
     String fulQualifiedUsername = IdentityManagementEndpointUtil.getFullQualifiedUsername(username, tenantDomain,
                                                                                           userStoreDomain);
     if (StringUtils.isNotBlank(fulQualifiedUsername) && StringUtils.isNotBlank(confirmationKey)) {
+        request.setAttribute("username", fulQualifiedUsername);
+        request.getSession().setAttribute("confirmationKey", confirmationKey);
         request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);

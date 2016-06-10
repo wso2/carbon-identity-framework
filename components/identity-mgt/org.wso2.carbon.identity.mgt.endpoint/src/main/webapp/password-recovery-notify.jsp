@@ -18,30 +18,34 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
+<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 
 <%
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+
+    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
 
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    String confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
 
-    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(confirmationKey)) {
-        VerificationBean verificationBean =
-                userInformationRecoveryClient.sendRecoveryNotification(username, confirmationKey);
-        if (verificationBean == null || !verificationBean.getVerified()) {
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg",
-                                 IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification.",
-                                                                                  "Cannot verify the user with given username or captcha answer.",
-                                                                                  verificationBean));
-            request.getRequestDispatcher("error.jsp").forward(request, response);
-            return;
-        }
+    String userStoreDomain = Utils.getUserStoreDomainName(username);
+    String tenantDomain = MultitenantUtils.getTenantDomain(username);
+
+    Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendRecoveryNotification(username, tenantDomain, userStoreDomain);
+
+    if ((sendNotificationResponse == null) || (StringUtils.isBlank(Integer.toString(sendNotificationResponse.getStatus()))) ||
+            !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(sendNotificationResponse.getStatus()))) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg",
+                IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification.",
+                        "Cannot verify the user with given username or captcha answer.",
+                        sendNotificationResponse.getStatusInfo()));
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
     }
 %>
 <html>
