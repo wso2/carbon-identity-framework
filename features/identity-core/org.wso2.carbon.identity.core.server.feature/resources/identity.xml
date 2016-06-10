@@ -371,7 +371,7 @@
             <username>
                 <enable>true</enable>
             </username>
-            <internallyManaged>true</internallyManaged>
+            <internallyManage>true</internallyManage>
         </notification>
         <question>
             <password>
@@ -380,7 +380,7 @@
                 <minAnswers>2</minAnswers>
             </password>
         </question>
-        <expieryTime>3</expieryTime>
+        <expiryTime>3</expiryTime>
     </Recovery>
 
     <!--SessionContextCache>
