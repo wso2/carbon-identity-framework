@@ -223,7 +223,7 @@
 
             </script>
 
-            <form name="addclaim" action="add-claim-submit.jsp" method="post">
+            <form name="addclaim" action="add-claim-finish-ajaxprocessor.jsp" method="post">
                 <table style="width: 100%" class="styledLeft">
                     <thead>
                     <tr>
