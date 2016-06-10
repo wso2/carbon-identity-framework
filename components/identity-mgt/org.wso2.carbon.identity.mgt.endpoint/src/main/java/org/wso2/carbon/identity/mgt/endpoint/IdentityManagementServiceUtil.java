@@ -44,8 +44,8 @@ import java.util.Properties;
 public class IdentityManagementServiceUtil {
 
     private static IdentityManagementServiceUtil instance = new IdentityManagementServiceUtil();
-    JSONProvider jsonProvider = new JSONProvider ();
-    List providers = new ArrayList();
+    private JSONProvider jsonProvider = new JSONProvider ();
+    private List providers = new ArrayList();
 
     private String accessUsername;
     private String accessPassword;
