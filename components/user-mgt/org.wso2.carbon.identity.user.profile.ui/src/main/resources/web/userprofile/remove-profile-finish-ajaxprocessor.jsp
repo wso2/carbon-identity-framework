@@ -32,9 +32,13 @@
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
-<jsp:include page="../dialog/display_messages.jsp" />
-
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String profile = request.getParameter("profile");
     String username = request.getParameter("username");
     String forwardTo = "";
