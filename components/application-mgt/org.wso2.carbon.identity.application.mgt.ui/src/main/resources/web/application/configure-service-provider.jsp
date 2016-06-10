@@ -74,6 +74,7 @@ location.href = "list-service-providers.jsp";
     String action = request.getParameter("action");
     String[] userStoreDomains = null;
     boolean isNeedToUpdate = false;
+    String appstate = request.getParameter("appState");
 
     String authTypeReq =  request.getParameter("authType");
     if (authTypeReq!=null && authTypeReq.trim().length()>0){
@@ -128,8 +129,8 @@ location.href = "list-service-providers.jsp";
     }
     
     String oauthConsumerSecret = null;
-    
-    if(session.getAttribute("oauth-consum-secret")!= null && "update".equals(action)){
+
+    if(session.getAttribute("oauth-consum-secret")!= null && ("update".equals(action) || "regenerate".equals(action))){
     	oauthConsumerSecret = (String) session.getAttribute("oauth-consum-secret");
     	appBean.setOauthConsumerSecret(oauthConsumerSecret);
     	session.removeAttribute("oauth-consum-secret");
@@ -1131,10 +1132,12 @@ var roleMappinRowID = -1;
                                 				</div>
                                 		  <%} %>
                                 	</td>
-                                		<td style="white-space: nowrap;">
-                                			<a title="Edit Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                			<a title="Delete Service Providers" onclick="updateBeanAndRedirect('../oauth/remove-app.jsp?consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
-                                		</td>
+                                    <td style="white-space: nowrap;">
+                                        <a title="Edit Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
+                                        <a title="Revoke Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');" class="icon-link" style="background-image: url(../admin/images/edit.gif)">Revoke</a>
+                                        <a title="Regenerate Secret Key" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');" class="icon-link" style="background-image: url(../admin/images/edit.gif)">Regenerate Secret</a>
+                                        <a title="Delete Service Providers" onclick="updateBeanAndRedirect('../oauth/remove-app.jsp?consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
+                                    </td>
                                 	</tr>
                                 </tbody>
                                 </table>
