@@ -68,8 +68,10 @@ public class IdentityManagementServiceUtil {
     public void init() {
 
         InputStream inputStream = null;
-        jsonProvider.setIgnoreNamespaces(true);
         jsonProvider.setDropRootElement(true);
+        jsonProvider.setIgnoreNamespaces(true);
+        jsonProvider.setValidateOutput(true);
+        jsonProvider.setSupportUnwrapped(true);
         providers.add(jsonProvider);
 
         try {

@@ -22,6 +22,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
+/**
+ * Store end user attributes
+ */
 @XmlRootElement( name = "user")
 @XmlAccessorType( XmlAccessType.FIELD )
 public class User implements Serializable {

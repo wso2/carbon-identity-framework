@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient.model;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
+/**
+ * Store user challenge question properties for unmarshalling
+ */
 @XmlRootElement(name = "question")
 public class ChallengeQuestion implements Serializable {
 
