@@ -184,4 +184,34 @@
         </footer>
         <redirectPath></redirectPath>
     </configuration>
+    <configuration type="passwordResetSucess">
+        <targetEpr></targetEpr>
+        <subject>WSO2 Carbon - Your Password Reset successfully</subject>
+        <body>
+            Hi {first-name},
+
+            Please note that your password reset operation is successfully completed.
+        </body>
+        <footer>
+            Best Regards,
+            WSO2 Identity Server Team
+            http://www.wso2.com
+        </footer>
+        <redirectPath></redirectPath>
+    </configuration>
+    <configuration type="initiateRecovery">
+        <targetEpr></targetEpr>
+        <subject>WSO2 Carbon - You started to reset password</subject>
+        <body>
+            Hi {first-name},
+
+            This is to notify that you have initiate to reset your password using security questions.
+        </body>
+        <footer>
+            Best Regards,
+            WSO2 Identity Server Team
+            http://www.wso2.com
+        </footer>
+        <redirectPath></redirectPath>
+    </configuration>
 </configurations>

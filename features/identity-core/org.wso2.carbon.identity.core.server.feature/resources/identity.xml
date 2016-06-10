@@ -363,6 +363,26 @@
         </SCIMAuthenticators>
     </SCIM>
 
+    <Recovery>
+        <notification>
+            <password>
+                <enable>true</enable>
+            </password>
+            <username>
+                <enable>true</enable>
+            </username>
+            <internallyManaged>true</internallyManaged>
+        </notification>
+        <question>
+            <password>
+                <enable>true</enable>
+                <separator>!</separator>
+                <minAnswers>2</minAnswers>
+            </password>
+        </question>
+        <expieryTime>3</expieryTime>
+    </Recovery>
+
     <!--SessionContextCache>
         <Enable>true</Enable>
         <Capacity>100000</Capacity>
