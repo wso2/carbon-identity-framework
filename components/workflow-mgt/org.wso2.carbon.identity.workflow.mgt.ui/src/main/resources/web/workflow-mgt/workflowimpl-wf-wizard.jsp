@@ -327,7 +327,7 @@
              <%
                 if(workflowImpl!=null && workflowImpl.getWorkflowImplId() != null ){
             %>
-                <form method="post" name="serviceAdd" id="id_nextwizard" action="finish-wf-wizard.jsp">
+                <form method="post" name="serviceAdd" id="id_nextwizard" action="finish-wf-wizard-ajaxprocessor.jsp">
                     <input type="hidden" name="<%=WorkflowUIConstants.PARAM_PAGE_REQUEST_TOKEN%>" value="<%=Encode.forHtmlAttribute(requestToken)%>"/>
                     <input type="hidden" name="<%=WorkflowUIConstants.PARAM_REQUEST_PATH%>" value="<%=Encode.forHtmlAttribute(requestPath)%>"/>
                     <input type="hidden" name="<%=WorkflowUIConstants.PARAM_ACTION%>" value="<%=WorkflowUIConstants.ACTION_VALUE_ADD%>">
