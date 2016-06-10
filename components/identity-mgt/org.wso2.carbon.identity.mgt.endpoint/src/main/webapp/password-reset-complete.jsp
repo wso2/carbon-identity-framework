@@ -41,7 +41,7 @@
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
 
         ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
-        User user = (User)session.getAttribute("user");
+        User user = (User) session.getAttribute("user");
 
         UserPassword userPassword = new UserPassword();
         userPassword.setCode(challengeQuestionResponse.getCode());

@@ -35,18 +35,16 @@
     String userName = request.getParameter("username");
     String securityQuestionAnswer = request.getParameter("securityQuestionAnswer");
 
-    if(userName != null){
+    if(userName != null) {
 
         User user = new User();
         user.setUserName(userName);
-        user.setTenantDomain("carbon.super");
-        user.setUserStoreDomain("PRIMARY");
         session.setAttribute("user", user);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
         ChallengeQuestionResponse challengeQuestionResponse = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
         session.setAttribute("challengeQuestionResponse", challengeQuestionResponse);
         request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
-    } else if(securityQuestionAnswer != null){
+    } else if(securityQuestionAnswer != null) {
 
         ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
 
@@ -76,9 +74,9 @@
         String status = challengeQuestionResponse1.getStatus();
         session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
         
-        if("INCOMPLETE".equals(status)){
+        if("INCOMPLETE".equals(status)) {
             request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
-        }else if("COMPLETE".equals(status)){
+        }else if("COMPLETE".equals(status)) {
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         }
     }
