@@ -23,77 +23,64 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeQuestion" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 
 <%
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+    String userName = request.getParameter("username");
+    String securityQuestionAnswer = request.getParameter("securityQuestionAnswer");
 
-    String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
-    String confirmationKey =
-            IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
-    String[] questionIds = IdentityManagementEndpointUtil.getStringArray(request.getSession().getAttribute(
-            "questionIdentifiers"));
+    if(userName != null){
 
-    if (Boolean.parseBoolean(application.getInitParameter(
-            IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
-        if (!ArrayUtils.isEmpty(questionIds)) {
-            UserChallengesDTO[] userChallengesDTOArray = new UserChallengesDTO[questionIds.length];
+        User user = new User();
+        user.setUserName(userName);
+        user.setTenantDomain("carbon.super");
+        user.setUserStoreDomain("PRIMARY");
+        session.setAttribute("user", user);
+        PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+        ChallengeQuestionResponse challengeQuestionResponse = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
+        session.setAttribute("challengeQuestionResponse", challengeQuestionResponse);
+        request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+    } else if(securityQuestionAnswer != null){
 
-            int count = 0;
-            for (String questionId : questionIds) {
-                UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
-                userChallengesDTO.setId(questionId);
-                userChallengesDTO.setAnswer(request.getParameter(questionId));
-                userChallengesDTOArray[count++] = userChallengesDTO;
-            }
+        ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
 
-            VerificationBean verificationBean = userInformationRecoveryClient
-                    .verifyUserChallengeAnswers(username, confirmationKey, userChallengesDTOArray);
-            if (!verificationBean.getVerified()) {
-                request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                                     "One or more of your answers provided are wrong. You cannot proceed further.");
-                request.getRequestDispatcher("error.jsp").forward(request, response);
-                return;
-            }
+            String code =  challengeQuestionResponse.getCode();
+            ChallengeQuestion challengeQuestion = challengeQuestionResponse.getQuestion();
+            String question = challengeQuestion.getQuestion();
+            String getQuestionSetId = challengeQuestion.getQuestionSetId();
 
-            confirmationKey = verificationBean.getKey();
-            session.setAttribute("confirmationKey", confirmationKey);
-            request.getRequestDispatcher("password-reset.jsp").forward(request, response);
-        }
-    } else {
-        int currentStep = request.getParameter("step") != null ? Integer.parseInt(request.getParameter("step")) : 0;
-        String securityQuestionAnswer = request.getParameter("securityQuestionAnswer");
+            User user = (User)session.getAttribute("user");
 
-        if (currentStep != 0) {
-            VerificationBean verificationBean =
-                    userInformationRecoveryClient.verifyUserChallengeAnswer(username, confirmationKey,
-                                                                            questionIds[currentStep - 1],
-                                                                            securityQuestionAnswer);
-            if (!verificationBean.getVerified()) {
-                request.setAttribute("error", true);
-                request.setAttribute("errorMsg", "The answer you provided is incorrect. You cannot proceed further.");
-                request.getRequestDispatcher("error.jsp").forward(request, response);
-                return;
-            }
+            VerifyAnswerRequest verifyAnswerRequest = new VerifyAnswerRequest();
 
-            confirmationKey = verificationBean.getKey();
-            session.setAttribute("confirmationKey", confirmationKey);
-        }
+            verifyAnswerRequest.setUser(user);
+            verifyAnswerRequest.setCode(code);
 
-        if (!ArrayUtils.isEmpty(questionIds)) {
-            if (currentStep < questionIds.length) {
-                UserChallengesDTO securityQuestion = userInformationRecoveryClient.getChallengeQuestion(username,
-                                                                                                        confirmationKey,
-                                                                                                        questionIds[currentStep]);
-                session.setAttribute("confirmationKey", securityQuestion.getKey());
-                request.setAttribute("question", securityQuestion.getQuestion());
-                request.getRequestDispatcher("challenge-question-view.jsp?step=" + (++currentStep))
-                       .forward(request, response);
-            } else {
+            UserChallengeQuestion userChallengeQuestion = new UserChallengeQuestion();
+            userChallengeQuestion.setQuestion(question);
+            userChallengeQuestion.setQuestionSetId(getQuestionSetId);
+
+            UserChallengeAnswer userChallengeAnswer = new UserChallengeAnswer();
+            userChallengeAnswer.setQuestion(userChallengeQuestion);
+            userChallengeAnswer.setAnswer(securityQuestionAnswer);
+
+            verifyAnswerRequest.setAnswer(userChallengeAnswer);
+            PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+            ChallengeQuestionResponse challengeQuestionResponse1 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
+            String status = challengeQuestionResponse1.getStatus();
+            session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
+            if("INCOMPLETE".equals(status)){
+                request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+
+            }else if("COMPLETE".equals(status)){
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
             }
-        }
     }
-
 
 %>

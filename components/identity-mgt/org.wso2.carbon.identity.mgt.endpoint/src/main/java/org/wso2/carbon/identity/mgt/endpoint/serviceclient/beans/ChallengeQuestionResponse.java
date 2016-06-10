@@ -2,7 +2,9 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
 
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "")
@@ -16,9 +18,6 @@ public class ChallengeQuestionResponse {
         //Default constructor
     }
 
-    public ChallengeQuestionResponse(ChallengeQuestion question) {
-        this.question = question;
-    }
 
     public ChallengeQuestion getQuestion() {
         return question;

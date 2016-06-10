@@ -42,13 +42,6 @@
                 IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION));
     }
 
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
-
-    CaptchaInfoBean captchaInfoBean = userInformationRecoveryClient.generateCaptcha();
-
-    String captchaImagePath = captchaInfoBean.getImagePath();
-    String captchaImageUrl = IdentityUtil.getServerURL(null, false, false) + "/" + captchaImagePath;
-    String captchaKey = captchaInfoBean.getSecretKey();
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
@@ -106,7 +99,7 @@
 
                     <div class="padding-double font-large">Enter below details to recover your password</div>
                     <div class="padding-double">
-                        <form method="post" action="verify.do" id="recoverDetailsForm">
+                        <form method="post" action="challenge-question-process.jsp" id="recoverDetailsForm">
                             <%
                                 if (isPasswordRecoveryEmailConfirmation) {
                             %>
@@ -125,22 +118,9 @@
                             <%
                                 }
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <img src="<%=Encode.forHtmlAttribute(captchaImageUrl)%>"
-                                     alt='If you can not see the captcha image please refresh the page or click the link again.'/>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label">Enter Captcha Text</label>
-                                <input id="captchaAnswer" name="captchaAnswer" type="text" class="form-control"
-                                       required>
-                            </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input id="confirmationKey" type="hidden" name="confirmationKey"
                                        value="<%=Encode.forHtmlAttribute(confirmationKey)%>"/>
-                                <input id="captchaImagePath" type="hidden" name="captchaImagePath"
-                                       value="<%=Encode.forHtmlAttribute(captchaImagePath)%>"/>
-                                <input id="captchaKey" type="hidden" name="captchaKey"
-                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
                                 <input id="isPasswordRecoveryEmailConfirmation" type="hidden"
                                        name="isPasswordRecoveryEmailConfirmation"
                                        value="<%=isPasswordRecoveryEmailConfirmation%>"/>

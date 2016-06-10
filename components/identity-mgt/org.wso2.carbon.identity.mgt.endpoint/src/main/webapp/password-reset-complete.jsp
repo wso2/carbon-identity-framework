@@ -21,28 +21,33 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeQuestion" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 <%
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
 
-    String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
-    String confirmationKey =
-            IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
 
     String newPassword = request.getParameter("reset-password");
 
+
     if (StringUtils.isNotBlank(newPassword)) {
-        VerificationBean verificationBean =
-                userInformationRecoveryClient.resetPassword(username, confirmationKey, newPassword);
-        if (verificationBean == null || !verificationBean.getVerified()) {
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg",
-                                 IdentityManagementEndpointUtil.getPrintableError("Failed to reset password.",
-                                                                                  "Missing confirmation code or invalid session. Cannot proceed further.",
-                                                                                  verificationBean));
-            request.getRequestDispatcher("error.jsp").forward(request, response);
-            return;
-        }
+
+        PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+
+        ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
+        User user = (User)session.getAttribute("user");
+
+        UserPassword userPassword = new UserPassword();
+        userPassword.setCode(challengeQuestionResponse.getCode());
+        userPassword.setUser(user);
+        userPassword.setPassword(newPassword);
+        pwRecoverySecurityQuestionClient.updatePassword(userPassword);
 
     } else {
         request.setAttribute("error", true);
