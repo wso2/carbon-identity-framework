@@ -172,17 +172,32 @@
         %>
         <div id="workArea">   
             <script type="text/javascript">
-              function removeProfile(username,profile) {
-                 if(profile == "default"){
-                	 CARBON.showWarningDialog("<fmt:message key='cannot.remove.default.profile'/>", null, null);
-                	 return;
-                 }
-        	     CARBON.showConfirmationDialog("<fmt:message key='remove.message1'/>"+ profile +"<fmt:message key='remove.message2'/>",
-                    function() {
-              	       location.href = "remove-profile.jsp?username=" + username + "&profile=" + profile +
-                                     "&fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>";
-                     }, null);
-                 }
+                function removeProfile(username, profile) {
+
+                    if (profile == "default") {
+                        CARBON.showWarningDialog("<fmt:message key='cannot.remove.default.profile'/>", null, null);
+                        return;
+                    }
+
+                    function doDelete() {
+                        $.ajax({
+                            type: 'POST',
+                            url: 'remove-profile-finish-ajaxprocessor.jsp',
+                            headers: {
+                                Accept: "text/html"
+                            },
+                            data: 'username=' + username + '&profile=' + profile + '&fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>',
+                            async: false,
+                            success: function (responseText, status) {
+                                if (status == "success") {
+                                    location.assign("index.jsp?username=" + username);
+                                }
+                            }
+                        });
+                    }
+
+                    CARBON.showConfirmationDialog("<fmt:message key='remove.message1'/>" + profile + "<fmt:message key='remove.message2'/>", doDelete, null);
+                }
             </script>
             <% if(!readOnlyUserStore) {%>
             <div style="height:30px;">
