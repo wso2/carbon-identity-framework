@@ -99,7 +99,7 @@
 
                     <div class="padding-double font-large">Enter below details to recover your password</div>
                     <div class="padding-double">
-                        <form method="post" action="challenge-question-process.jsp" id="recoverDetailsForm">
+                        <form method="post" action="processsecurityquestions.do" id="recoverDetailsForm">
                             <%
                                 if (isPasswordRecoveryEmailConfirmation) {
                             %>

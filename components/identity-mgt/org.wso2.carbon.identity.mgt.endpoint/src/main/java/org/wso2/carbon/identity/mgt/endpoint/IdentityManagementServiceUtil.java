@@ -26,6 +26,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
@@ -201,5 +204,27 @@ public class IdentityManagementServiceUtil {
             log.warn("Secret Resolver is not present. Failed to resolve encryption in " +
                      IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME + " file");
         }
+    }
+
+    /**
+     * Build user object from complete username
+     * @param userName
+     * @return
+     */
+    public User getUser(String userName) {
+
+        if (userName == null) {
+            return null;
+        }
+
+        String userStoreDomain = UserCoreUtil.extractDomainFromName(userName);
+        String tenantDomain = MultitenantUtils.getTenantDomain(userName);
+
+        User user = new User();
+        user.setUserName(userName);
+        user.setUserStoreDomain(userStoreDomain);
+        user.setTenantDomain(tenantDomain);
+
+        return user;
     }
 }

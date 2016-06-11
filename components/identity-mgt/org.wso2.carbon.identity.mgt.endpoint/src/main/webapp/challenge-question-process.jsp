@@ -30,6 +30,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeQuestion" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 
 <%
     String userName = request.getParameter("username");
@@ -37,8 +38,7 @@
 
     if(userName != null) {
 
-        User user = new User();
-        user.setUserName(userName);
+        User user = IdentityManagementServiceUtil.getInstance().getUser(userName);
         session.setAttribute("user", user);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
         ChallengeQuestionResponse challengeQuestionResponse = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
