@@ -60,7 +60,8 @@ public class IdentityManagementEndpointConstants {
     }
 
     public static final class UserInfoRecovery {
-        public static final String REST_URL = "https://localhost:9443/account-recovery/";
+        public static final String SERVICE_CONTEXT_URL_DOMAIN = "services";
+        public static final String REST_API_URL_DOMAIN = "account-recovery";
     }
 
     public static final class UserInfoRecoveryStatusCodes {

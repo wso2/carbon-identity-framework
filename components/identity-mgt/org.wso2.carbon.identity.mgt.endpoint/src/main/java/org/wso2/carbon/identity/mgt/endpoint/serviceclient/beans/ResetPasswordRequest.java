@@ -17,9 +17,16 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 
+/**
+ * Store reset password request
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
         "user",
@@ -28,11 +35,14 @@ import java.io.Serializable;
 })
 @XmlRootElement(name = "resetPasswordRequest")
 public class ResetPasswordRequest implements Serializable {
-    @XmlElement(required = true) private User user;
+    @XmlElement(required = true)
+    private User user;
 
-    @XmlElement(required = true) private String code;
+    @XmlElement(required = true)
+    private String code;
 
-    @XmlElement(required = true) private String password;
+    @XmlElement(required = true)
+    private String password;
 
     public User getUser() {
         return user;

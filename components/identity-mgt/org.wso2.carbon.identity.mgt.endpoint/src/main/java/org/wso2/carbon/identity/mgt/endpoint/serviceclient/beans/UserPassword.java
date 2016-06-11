@@ -29,7 +29,7 @@ import java.io.Serializable;
  * Store attributes required for password reset
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = { "user", "code", "password" })
+@XmlType(propOrder = {"user", "code", "password"})
 @XmlRootElement(name = "userPassword")
 public class UserPassword implements Serializable {
     @XmlElement(required = true)

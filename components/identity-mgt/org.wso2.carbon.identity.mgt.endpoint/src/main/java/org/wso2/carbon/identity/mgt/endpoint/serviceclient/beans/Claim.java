@@ -17,9 +17,16 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import java.io.Serializable;
 
+/**
+ * Store a user claim
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
         "claimURI",
@@ -28,9 +35,11 @@ import java.io.Serializable;
 @XmlRootElement(name = "claim")
 public class Claim implements Serializable {
 
-    @XmlElement(required = true) private String claimURI;
+    @XmlElement(required = true)
+    private String claimURI;
 
-    @XmlElement(required = true) private String claimValue;
+    @XmlElement(required = true)
+    private String claimValue;
 
     public String getClaimURI() {
         return claimURI;
