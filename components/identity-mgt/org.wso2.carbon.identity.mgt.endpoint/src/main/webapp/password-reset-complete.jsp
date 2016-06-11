@@ -28,6 +28,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest" %>
 <%
 
     UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
@@ -47,7 +48,17 @@
 
     if (StringUtils.isNotBlank(newPassword)) {
         if (isPasswordRecoveryEmailConfirmation) {
-            resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(username, tenantDomain, userStoreDomain, confirmationKey, newPassword);
+            User user = new User();
+            user.setUserName(username);
+            user.setTenantDomain(tenantDomain);
+            user.setUserStoreDomain(userStoreDomain);
+
+            ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
+            resetPasswordRequest.setUser(user);
+            resetPasswordRequest.setPassword(newPassword);
+            resetPasswordRequest.setCode(confirmationKey);
+
+            resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(resetPasswordRequest);
 
             if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
                     !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(resetPasswordResponse.getStatus()))) {
