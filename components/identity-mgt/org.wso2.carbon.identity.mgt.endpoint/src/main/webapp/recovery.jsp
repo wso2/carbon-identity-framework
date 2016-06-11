@@ -18,13 +18,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
-<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 
@@ -44,24 +42,14 @@
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
 
-    // Captcha Related Request Parameters
-    String captchaImagePath = request.getParameter("captchaImagePath");
-    String captchaKey = request.getParameter("captchaKey");
-    String captchaAnswer = request.getParameter("captchaAnswer");
-
-    CaptchaInfoBean captchaInfoBean = new CaptchaInfoBean();
-    captchaInfoBean.setImagePath(captchaImagePath);
-    captchaInfoBean.setSecretKey(captchaKey);
-    captchaInfoBean.setUserAnswer(captchaAnswer);
-
     VerificationBean verificationBean = null;
 
     if (isUserRegistrationEmailConfirmation) {
         // Self Registration Account Confirmation Scenario
-        verificationBean = userInformationRecoveryClient.confirmUserSelfRegistration(username, confirmationKey,
+        /*verificationBean = userInformationRecoveryClient.confirmUserSelfRegistration(username, confirmationKey,
                                                                                      captchaInfoBean,
                                                                                      MultitenantUtils.getTenantDomain(
-                                                                                             username));
+                                                                                             username));*/
     } else if (isUsernameRecovery) {
         // Username Recovery Scenario
         UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
@@ -89,15 +77,13 @@
         }
 
         UserIdentityClaimDTO[] claimDTOArray = new UserIdentityClaimDTO[claimDTOList.size()];
-        verificationBean =
-                userInformationRecoveryClient.verifyAccount(claimDTOList.toArray(claimDTOArray), captchaInfoBean, null);
     } else {
         // Password Recovery Scenario
         if (isPasswordRecoveryEmailConfirmation) {
-            verificationBean = userInformationRecoveryClient.verifyConfirmationCode(username, confirmationKey,
-                                                                                    captchaInfoBean);
+            /*verificationBean = userInformationRecoveryClient.verifyConfirmationCode(username, confirmationKey,
+                                                                                    captchaInfoBean);*/
         } else {
-            verificationBean = userInformationRecoveryClient.verifyUser(username, captchaInfoBean);
+            /*verificationBean = userInformationRecoveryClient.verifyUser(username, captchaInfoBean);*/
         }
     }
 
