@@ -32,11 +32,7 @@ public class ChallengeQuestion implements Serializable {
     private String questionSetId;
 
     public ChallengeQuestion() {
-    }
-
-    public ChallengeQuestion(String question, String questionSetId) {
-        this.question = question;
-        this.questionSetId = questionSetId;
+        //default constructor
     }
 
     public String getQuestionSetId() {

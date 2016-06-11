@@ -39,10 +39,6 @@ public class ChallengeQuestionResponse implements Serializable {
         //Default constructor
     }
 
-    public ChallengeQuestionResponse(ChallengeQuestion question) {
-        this.question = question;
-    }
-
     public ChallengeQuestion getQuestion() {
         return question;
     }
