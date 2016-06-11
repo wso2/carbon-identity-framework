@@ -35,8 +35,3 @@ public interface UsernameRecoveryNotification {
     @PUT @Path("/notify") public Response sendUsernameRecoveryNotification(Claim[] requestedClaims);
 
 }
-
-
-
-
-
