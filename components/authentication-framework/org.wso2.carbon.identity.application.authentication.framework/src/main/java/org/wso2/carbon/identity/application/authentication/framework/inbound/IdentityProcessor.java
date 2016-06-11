@@ -246,11 +246,13 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      * AuthenticationResult to message context if found in AuthenticationResultCache
      *
      * @param context IdentityMessageContext
+     * @param identityRequest Current IdentityRequest object
      * @return AuthenticationResult
      */
-    protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context) {
+    protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context,
+                                                                     IdentityRequest identityRequest) {
 
-        String sessionDataKey = context.getRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        String sessionDataKey = identityRequest.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
         if(entry != null) {
