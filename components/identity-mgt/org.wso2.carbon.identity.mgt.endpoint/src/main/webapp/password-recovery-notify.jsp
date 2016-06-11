@@ -22,12 +22,13 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 
 <%
+
 
     UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
 
@@ -44,15 +45,15 @@
     Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendPasswordRecoveryNotification(user);
 
     if ((sendNotificationResponse == null) || (StringUtils.isBlank(Integer.toString(sendNotificationResponse.getStatus()))) ||
-            !(Response.Status.OK.equals(sendNotificationResponse.getStatus()))) {
+            !(Integer.toString(Response.Status.OK.getStatusCode()).equals(Integer.toString(sendNotificationResponse.getStatus())))) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg",
-                IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification for password recovery.",
-                        "Cannot verify the user with given username or confirmation key.",
-                        sendNotificationResponse.getStatusInfo()));
+            IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_1 + "\t" +
+                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_2);
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
+
 %>
 <html>
 <head>

@@ -63,28 +63,6 @@ public class IdentityManagementEndpointUtil {
      *
      * @param errorMsgSummary required error message to be viewed
      * @param optionalErrorMsg optional content to be viewed
-     * @param statusType status type
-     * @return error message to be viewed
-     */
-    public static String getPrintableError(String errorMsgSummary, String optionalErrorMsg, Response.StatusType
-            statusType) {
-
-        StringBuilder errorMsg = new StringBuilder(errorMsgSummary);
-
-        if (statusType != null && StringUtils.isNotBlank(statusType.getReasonPhrase())) {
-            errorMsg.append(" ").append(statusType.getReasonPhrase());
-        } else if (StringUtils.isNotBlank(optionalErrorMsg)) {
-            errorMsg.append(" ").append(optionalErrorMsg);
-        }
-
-        return errorMsg.toString();
-    }
-
-    /**
-     * Returns the error to be viewed for end user.
-     *
-     * @param errorMsgSummary required error message to be viewed
-     * @param optionalErrorMsg optional content to be viewed
      * @param verificationBean info recovery confirmation bean
      * @return error message to be viewed
      */

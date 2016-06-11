@@ -65,6 +65,14 @@ public class IdentityManagementEndpointConstants {
         public static final String REST_API_URL_DOMAIN = "account-recovery";
     }
 
+    public static final class UserInfoRecoveryErrorDesc {
+        public static final String NOTIFICATION_ERROR_1 = "Failed to send email notification for password recovery.";
+        public static final String NOTIFICATION_ERROR_2 = "Cannot verify the user with given username or confirmation key.";
+        public static final String NOTIFICATION_ERROR_3 = "Failed to reset password.";
+        public static final String NOTIFICATION_ERROR_4 = "Missing confirmation code or invalid session. Cannot proceed further.";
+        public static final String NOTIFICATION_ERROR_5 = "Failed to send email notification for username recovery.";
+    }
+
     public static final String SUPER_TENANT = "carbon.super";
     public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
 

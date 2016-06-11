@@ -59,12 +59,11 @@
     Response usernameRecoveryResponse = userInfoRecoveryWithNotificationClient.sendUserNameRecoveryNotification(claimList.toArray(claimArray));
 
     if ((usernameRecoveryResponse == null) || (StringUtils.isBlank(Integer.toString(usernameRecoveryResponse.getStatus()))) ||
-            !(Response.Status.OK.equals(usernameRecoveryResponse.getStatus()))) {
+            !(Integer.toString(Response.Status.OK.getStatusCode()).equals(Integer.toString(usernameRecoveryResponse.getStatus())))) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg",
-                IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification for username recovery.",
-                        "Cannot verify the user with given username or confirmation key.",
-                        usernameRecoveryResponse.getStatusInfo()));
+                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_5 + "\t" +
+                        IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_2);
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }

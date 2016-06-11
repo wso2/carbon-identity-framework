@@ -19,10 +19,20 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
+
+    boolean isPasswordRecoveryEmailConfirmation = false;
+
+    String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
+    String confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
+
+    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(confirmationKey)) {
+        isPasswordRecoveryEmailConfirmation = true;
+    }
 %>
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -92,6 +102,11 @@
                                 <input id="reset-password2" name="reset-password2" type="password" class="form-control"
                                        data-match="reset-password" required="">
                             </div>
+
+                            <input id="isPasswordRecoveryEmailConfirmation" type="hidden"
+                                   name="isPasswordRecoveryEmailConfirmation"
+                                   value="<%=isPasswordRecoveryEmailConfirmation%>"/>
+
                             <div class="form-actions">
                                 <button id="submit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"

@@ -33,6 +33,7 @@
 
     UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
     PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+
     String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
@@ -61,12 +62,11 @@
             resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(resetPasswordRequest);
 
             if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
-                    !(Response.Status.OK.equals(resetPasswordResponse.getStatus()))) {
+                    !(Integer.toString(Response.Status.OK.getStatusCode()).equals(Integer.toString(resetPasswordResponse.getStatus())))) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg",
-                        IdentityManagementEndpointUtil.getPrintableError("Failed to reset password.",
-                                "Missing confirmation code or invalid session. Cannot proceed further.",
-                                resetPasswordResponse.getStatusInfo()));
+                        IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_3 + "\t" +
+                                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_4);
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }

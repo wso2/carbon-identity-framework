@@ -57,6 +57,15 @@ public class UserInfoRecoveryWithNotificationClient {
         return response;
     }
 
+    // Returns the supported claims
+    public Response getAllLocalSupportedClaims() {
+        UsernameRecoveryNotification usernameRecoveryNotification =
+                JAXRSClientFactory.create(ENDPOINT_URL, UsernameRecoveryNotification.class,
+                        IdentityManagementServiceUtil.getInstance().getJSONProvider());
+        Response response = usernameRecoveryNotification.getAllLocalSupportedClaims();
+        return response;
+    }
+
     // Send a email notification for username recovery
     public Response sendUserNameRecoveryNotification(Claim[] requestedClaims) {
 
