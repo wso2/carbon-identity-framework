@@ -16,38 +16,59 @@
   ~ under the License.
   --%>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeQuestion" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword" %>
+<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
+<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="javax.ws.rs.core.Response" %>
 <%
 
+    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
+    PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+    String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
+    String confirmationKey =
+            IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
+    boolean isPasswordRecoveryEmailConfirmation =
+            Boolean.parseBoolean(request.getParameter("isPasswordRecoveryEmailConfirmation"));
+
+    Response resetPasswordResponse = null;
 
     String newPassword = request.getParameter("reset-password");
 
+    String userStoreDomain = Utils.getUserStoreDomainName(username);
+    String tenantDomain = MultitenantUtils.getTenantDomain(username);
 
     if (StringUtils.isNotBlank(newPassword)) {
+        if (isPasswordRecoveryEmailConfirmation) {
+            resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(username, tenantDomain, userStoreDomain, confirmationKey, newPassword);
 
-        PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+            if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
+                    !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(resetPasswordResponse.getStatus()))) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg",
+                        IdentityManagementEndpointUtil.getPrintableError("Failed to reset password.",
+                                "Missing confirmation code or invalid session. Cannot proceed further.",
+                                resetPasswordResponse.getStatusInfo()));
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+        } else {
+            ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
+            User user = (User) session.getAttribute("user");
 
-        ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
-        User user = (User) session.getAttribute("user");
-
-        UserPassword userPassword = new UserPassword();
-        userPassword.setCode(challengeQuestionResponse.getCode());
-        userPassword.setUser(user);
-        userPassword.setPassword(newPassword);
-        pwRecoverySecurityQuestionClient.updatePassword(userPassword);
+            UserPassword userPassword = new UserPassword();
+            userPassword.setCode(challengeQuestionResponse.getCode());
+            userPassword.setUser(user);
+            userPassword.setPassword(newPassword);
+            pwRecoverySecurityQuestionClient.updatePassword(userPassword);
+        }
 
     } else {
         request.setAttribute("error", true);
