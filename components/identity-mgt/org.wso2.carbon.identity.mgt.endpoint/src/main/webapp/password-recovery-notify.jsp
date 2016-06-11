@@ -44,7 +44,7 @@
     Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendPasswordRecoveryNotification(user);
 
     if ((sendNotificationResponse == null) || (StringUtils.isBlank(Integer.toString(sendNotificationResponse.getStatus()))) ||
-            !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(sendNotificationResponse.getStatus()))) {
+            !(Response.Status.OK.equals(sendNotificationResponse.getStatus()))) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg",
                 IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification for password recovery.",

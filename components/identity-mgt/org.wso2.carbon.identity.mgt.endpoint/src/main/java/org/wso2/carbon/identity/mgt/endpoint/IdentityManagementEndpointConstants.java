@@ -65,10 +65,6 @@ public class IdentityManagementEndpointConstants {
         public static final String REST_API_URL_DOMAIN = "account-recovery";
     }
 
-    public static final class UserInfoRecoveryStatusCodes {
-        public static final String SUCCESS = "200";
-    }
-
     public static final String SUPER_TENANT = "carbon.super";
     public static final String PRIMARY_USER_STORE_DOMAIN = "PRIMARY";
 

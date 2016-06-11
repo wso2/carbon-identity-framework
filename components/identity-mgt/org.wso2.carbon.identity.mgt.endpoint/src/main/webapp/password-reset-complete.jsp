@@ -61,7 +61,7 @@
             resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(resetPasswordRequest);
 
             if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
-                    !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(resetPasswordResponse.getStatus()))) {
+                    !(Response.Status.OK.equals(resetPasswordResponse.getStatus()))) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg",
                         IdentityManagementEndpointUtil.getPrintableError("Failed to reset password.",

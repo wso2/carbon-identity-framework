@@ -59,7 +59,7 @@
     Response usernameRecoveryResponse = userInfoRecoveryWithNotificationClient.sendUserNameRecoveryNotification(claimList.toArray(claimArray));
 
     if ((usernameRecoveryResponse == null) || (StringUtils.isBlank(Integer.toString(usernameRecoveryResponse.getStatus()))) ||
-            !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(usernameRecoveryResponse.getStatus()))) {
+            !(Response.Status.OK.equals(usernameRecoveryResponse.getStatus()))) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg",
                 IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification for username recovery.",
