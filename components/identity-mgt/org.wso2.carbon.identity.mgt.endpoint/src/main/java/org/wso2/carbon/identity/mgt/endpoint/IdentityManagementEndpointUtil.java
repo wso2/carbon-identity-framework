@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt.endpoint;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
 import javax.ws.rs.core.Response;
 
@@ -72,6 +73,29 @@ public class IdentityManagementEndpointUtil {
 
         if (statusType != null && StringUtils.isNotBlank(statusType.getReasonPhrase())) {
             errorMsg.append(" ").append(statusType.getReasonPhrase());
+        } else if (StringUtils.isNotBlank(optionalErrorMsg)) {
+            errorMsg.append(" ").append(optionalErrorMsg);
+        }
+
+        return errorMsg.toString();
+    }
+
+    /**
+     * Returns the error to be viewed for end user.
+     *
+     * @param errorMsgSummary required error message to be viewed
+     * @param optionalErrorMsg optional content to be viewed
+     * @param verificationBean info recovery confirmation bean
+     * @return error message to be viewed
+     */
+    public static String getPrintableError(String errorMsgSummary, String optionalErrorMsg, VerificationBean
+            verificationBean) {
+
+        StringBuilder errorMsg = new StringBuilder(errorMsgSummary);
+
+        if (verificationBean != null && StringUtils.isNotBlank(verificationBean.getError())) {
+            String[] error = verificationBean.getError().split(" ", 2);
+            errorMsg.append(" ").append(error[1]);
         } else if (StringUtils.isNotBlank(optionalErrorMsg)) {
             errorMsg.append(" ").append(optionalErrorMsg);
         }

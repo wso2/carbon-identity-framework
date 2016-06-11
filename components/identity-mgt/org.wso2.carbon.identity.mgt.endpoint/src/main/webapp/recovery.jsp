@@ -19,8 +19,14 @@
 
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
+<%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
+<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
+<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 
-<%
+<% UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+
     boolean isUserRegistrationEmailConfirmation =
             Boolean.parseBoolean(request.getParameter("isUserRegistrationEmailConfirmation"));
     boolean isPasswordRecoveryEmailConfirmation =
@@ -34,8 +40,21 @@
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
 
+    // Captcha Related Request Parameters
+    String captchaImagePath = request.getParameter("captchaImagePath");
+    String captchaKey = request.getParameter("captchaKey");
+    String captchaAnswer = request.getParameter("captchaAnswer");
+    CaptchaInfoBean captchaInfoBean = new CaptchaInfoBean();
+    captchaInfoBean.setImagePath(captchaImagePath);
+    captchaInfoBean.setSecretKey(captchaKey);
+    captchaInfoBean.setUserAnswer(captchaAnswer);
+
+    VerificationBean verificationBean = null;
+
     if (isUserRegistrationEmailConfirmation) {
         // Self Registration Account Confirmation Scenario
+        verificationBean = userInformationRecoveryClient.confirmUserSelfRegistration(username, confirmationKey,
+                captchaInfoBean, MultitenantUtils.getTenantDomain(username));
     } else if (isUsernameRecovery) {
         // Username Recovery Scenario
 /*        UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
@@ -63,56 +82,47 @@
         }
 
         UserIdentityClaimDTO[] claimDTOArray = new UserIdentityClaimDTO[claimDTOList.size()];*/
-    } else {
-        /*verificationBean = userInformationRecoveryClient.verifyUser(username, captchaInfoBean);*/
     }
 
-    // if (verificationBean != null && verificationBean.getVerified()) {
-    if (isUserRegistrationEmailConfirmation) {
-        request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
-    } else if (isUsernameRecovery) {
-        request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
-    } else {
-        if (isPasswordRecoveryEmailConfirmation) {
-            session.setAttribute("username", username);
-            session.setAttribute("confirmationKey", confirmationKey);
-            request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+    if (verificationBean != null) {
+        if (verificationBean.getVerified()) {
+            if (isUserRegistrationEmailConfirmation) {
+                request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
+            }
         } else {
             request.setAttribute("username", username);
-
-            if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.EMAIL.equals(recoveryOption)) {
-                request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);
-            } else if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.SECURITY_QUESTIONS
-                    .equals(recoveryOption)) {
-                request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
+            request.setAttribute("confirmationKey", confirmationKey);
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg",
+                    IdentityManagementEndpointUtil.getPrintableError("Invalid information provided.",
+                            "Either the user not found or captcha answer is incorrect.",
+                            verificationBean));
+            request.getRequestDispatcher("confirmregistration.do").forward(request, response);
+        }
+    } else {
+        if (isUsernameRecovery) {
+            request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
+        } else {
+            if (isPasswordRecoveryEmailConfirmation) {
+                session.setAttribute("username", username);
+                session.setAttribute("confirmationKey", confirmationKey);
+                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
             } else {
-                request.setAttribute("error", true);
-                request.setAttribute("errorMsg", "Unknown Password Recovery Option");
-                request.getRequestDispatcher("error.jsp").forward(request, response);
+                request.setAttribute("username", username);
+
+                if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.EMAIL.equals(recoveryOption)) {
+                    request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);
+                } else if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.SECURITY_QUESTIONS
+                        .equals(recoveryOption)) {
+                    request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
+                } else {
+                    request.setAttribute("error", true);
+                    request.setAttribute("errorMsg", "Unknown Password Recovery Option");
+                    request.getRequestDispatcher("error.jsp").forward(request, response);
+                }
             }
         }
     }
-
-    /*else {
-        if (isUserRegistrationEmailConfirmation || isPasswordRecoveryEmailConfirmation) {
-            request.setAttribute("username", username);
-            request.setAttribute("confirmationKey", confirmationKey);
-        }
-
-        request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-                             IdentityManagementEndpointUtil.getPrintableError("Invalid information provided.",
-                                                                              "Either the user not found or captcha answer is incorrect.",
-                                                                              verificationBean));
-
-        if (isUserRegistrationEmailConfirmation) {
-            request.getRequestDispatcher("confirmregistration.do").forward(request, response);
-        } else if (isUsernameRecovery) {
-            request.getRequestDispatcher("recoverusername.do").forward(request, response);
-        } else {
-            request.getRequestDispatcher("recoverpassword.do").forward(request, response);
-        }
-    }*/
 %>
 <html>
 <head>
