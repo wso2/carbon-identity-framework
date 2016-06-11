@@ -20,9 +20,11 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.UserInfoRecoveryNotification;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.PasswordRecoveryNotification;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.UsernameRecoveryNotification;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ import java.util.Map;
 public class UserInfoRecoveryWithNotificationClient {
 
     // Validate user and returns a new key through a notification
-    public Response sendRecoveryNotification(String username, String tenantDomain, String userStoreDomain) {
+    public Response sendPasswordRecoveryNotification(String username, String tenantDomain, String userStoreDomain) {
 
         String url = IdentityManagementEndpointConstants.UserInfoRecovery.REST_URL;
 
@@ -47,14 +49,14 @@ public class UserInfoRecoveryWithNotificationClient {
         jsonProvider.setNamespaceMap(map);
         providers.add(jsonProvider);
 
-        UserInfoRecoveryNotification userInfoRecoveryNotification = JAXRSClientFactory.create(url, UserInfoRecoveryNotification.class, providers, false);
+        PasswordRecoveryNotification passwordRecoveryNotification = JAXRSClientFactory.create(url, PasswordRecoveryNotification.class, providers, false);
 
         User user = new User();
         user.setUserName(username);
         user.setTenantDomain(tenantDomain);
         user.setUserStoreDomain(userStoreDomain);
 
-        Response response = userInfoRecoveryNotification.sendEmailNotification(user);
+        Response response = passwordRecoveryNotification.sendPasswordRecoveryNotification(user);
 
         return response;
     }
@@ -72,7 +74,7 @@ public class UserInfoRecoveryWithNotificationClient {
         jsonProvider.setNamespaceMap(map);
         providers.add(jsonProvider);
 
-        UserInfoRecoveryNotification userInfoRecoveryNotification = JAXRSClientFactory.create(url, UserInfoRecoveryNotification.class, providers, false);
+        PasswordRecoveryNotification passwordRecoveryNotification = JAXRSClientFactory.create(url, PasswordRecoveryNotification.class, providers, false);
 
         User user = new User();
         user.setUserName(username);
@@ -84,7 +86,49 @@ public class UserInfoRecoveryWithNotificationClient {
         resetPasswordRequest.setCode(code);
         resetPasswordRequest.setPassword(password);
 
-        Response response = userInfoRecoveryNotification.resetPassword(resetPasswordRequest);
+        Response response = passwordRecoveryNotification.resetPassword(resetPasswordRequest);
+
+        return response;
+    }
+
+
+    // Returns the claims supported
+    public Response getUserIdentitySupportedClaims() {
+        String url = IdentityManagementEndpointConstants.UserInfoRecovery.REST_URL;
+
+        List providers = new ArrayList();
+
+        JSONProvider jsonProvider = new JSONProvider();
+        jsonProvider.setDropRootElement(true);
+        jsonProvider.setIgnoreNamespaces(true);
+        Map<String, String> map = new HashMap<>();
+        jsonProvider.setNamespaceMap(map);
+        providers.add(jsonProvider);
+
+        UsernameRecoveryNotification usernameRecoveryNotification = JAXRSClientFactory.create(url, UsernameRecoveryNotification.class, providers, false);
+        Response response = usernameRecoveryNotification.getUserIdentitySupportedClaims();
+
+        return response;
+    }
+
+
+
+    public Response sendUserNameRecoveryNotification(Claim[] requestedClaims) {
+
+        String url = IdentityManagementEndpointConstants.UserInfoRecovery.REST_URL;
+
+        List providers = new ArrayList();
+
+        JSONProvider jsonProvider = new JSONProvider();
+        jsonProvider.setDropRootElement(true);
+        jsonProvider.setIgnoreNamespaces(true);
+
+        Map<String, String> map = new HashMap<>();
+        jsonProvider.setNamespaceMap(map);
+        providers.add(jsonProvider);
+
+        UsernameRecoveryNotification usernameRecoveryNotification = JAXRSClientFactory.create(url, UsernameRecoveryNotification.class, providers, false);
+        Response response = usernameRecoveryNotification.sendUsernameRecoveryNotification(requestedClaims);
 
         return response;
     }

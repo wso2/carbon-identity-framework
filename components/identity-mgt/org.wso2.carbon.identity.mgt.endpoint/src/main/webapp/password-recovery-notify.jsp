@@ -35,7 +35,7 @@
     String userStoreDomain = Utils.getUserStoreDomainName(username);
     String tenantDomain = MultitenantUtils.getTenantDomain(username);
 
-    Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendRecoveryNotification(username, tenantDomain, userStoreDomain);
+    Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendPasswordRecoveryNotification(username, tenantDomain, userStoreDomain);
 
     if ((sendNotificationResponse == null) || (StringUtils.isBlank(Integer.toString(sendNotificationResponse.getStatus()))) ||
             !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(sendNotificationResponse.getStatus()))) {
