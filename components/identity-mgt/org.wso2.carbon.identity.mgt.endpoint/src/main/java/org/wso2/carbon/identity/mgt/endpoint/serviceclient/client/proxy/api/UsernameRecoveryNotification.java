@@ -35,10 +35,6 @@ import javax.ws.rs.core.Response;
 @Produces({MediaType.APPLICATION_JSON})
 public interface UsernameRecoveryNotification {
 
-    @GET
-    @Path("/claims")
-    public Response getUserIdentitySupportedClaims();
-
     @PUT
     @Path("/notify")
     public Response sendUsernameRecoveryNotification(Claim[] requestedClaims);

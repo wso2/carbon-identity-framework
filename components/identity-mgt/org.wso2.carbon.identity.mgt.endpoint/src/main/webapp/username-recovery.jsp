@@ -113,7 +113,7 @@
 
                     <div class="padding-double font-large">Enter below details to recover your username</div>
                     <div class="padding-double">
-                        <form method="post" action="verify.do" id="recoverDetailsForm">
+                        <form method="post" action="recoverusernamecomplete.do" id="recoverDetailsForm">
                             <% if (isFirstNameInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
                                 <label class="control-label">First Name</label>

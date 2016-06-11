@@ -47,6 +47,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>recoverusernamecomplete.do</servlet-name>
+        <jsp-file>/username-recovery-complete.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>recoverpassword.do</servlet-name>
         <jsp-file>/password-recovery.jsp</jsp-file>
     </servlet>
@@ -99,6 +104,11 @@
     <servlet-mapping>
         <servlet-name>recoverusername.do</servlet-name>
         <url-pattern>/recoverusername.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>recoverusernamecomplete.do</servlet-name>
+        <url-pattern>/recoverusernamecomplete.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

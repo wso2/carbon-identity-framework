@@ -20,6 +20,56 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="javax.ws.rs.core.Response" %>
+
+<%
+    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
+    UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
+            IdentityManagementEndpointConstants.WSO2_DIALECT);
+
+    List<Claim> claimList = new ArrayList<Claim>();
+
+    for (UserIdentityClaimDTO claimDTO : claimDTOs) {
+        if (claimDTO.getRequired()) {
+            Claim claim = new Claim();
+            claim.setClaimURI(claimDTO.getClaimUri());
+            claim.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
+            claimList.add(claim);
+        } else if (StringUtils.equals(claimDTO.getClaimUri(),
+                IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) ||
+                StringUtils.equals(claimDTO.getClaimUri(),
+                        IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) ||
+                StringUtils.equals(claimDTO.getClaimUri(),
+                        IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+            Claim claim = new Claim();
+            claim.setClaimURI(claimDTO.getClaimUri());
+            claim.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
+            claimList.add(claim);
+        }
+    }
+    Claim[] claimArray = new Claim[claimList.size()];
+    Response usernameRecoveryResponse = userInfoRecoveryWithNotificationClient.sendUserNameRecoveryNotification(claimList.toArray(claimArray));
+
+    if ((usernameRecoveryResponse == null) || (StringUtils.isBlank(Integer.toString(usernameRecoveryResponse.getStatus()))) ||
+            !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(usernameRecoveryResponse.getStatus()))) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg",
+                IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification for username recovery.",
+                        "Cannot verify the user with given username or confirmation key.",
+                        usernameRecoveryResponse.getStatusInfo()));
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
+%>
+
 <html>
 <head>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">

@@ -47,8 +47,8 @@
             !(IdentityManagementEndpointConstants.UserInfoRecoveryStatusCodes.SUCCESS.equals(sendNotificationResponse.getStatus()))) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg",
-                IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification.",
-                        "Cannot verify the user with given username or captcha answer.",
+                IdentityManagementEndpointUtil.getPrintableError("Failed to send email notification for password recovery.",
+                        "Cannot verify the user with given username or confirmation key.",
                         sendNotificationResponse.getStatusInfo()));
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
