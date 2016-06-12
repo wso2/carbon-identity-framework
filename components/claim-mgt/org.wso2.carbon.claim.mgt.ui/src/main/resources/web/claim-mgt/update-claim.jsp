@@ -201,8 +201,7 @@
                         key='remove.claim.mapping'/></a>
             </div>
 
-            <form name="updateclaim" action="update-claim-finish-ajaxprocessor.jsp?claimUri=<%=Encode.forUriComponent(claimUri)%>&dialect
-            =<%=Encode.forUriComponent(dialectUri)%>"
+            <form name="updateclaim" action="update-claim-finish-ajaxprocessor.jsp?claimUri=<%=Encode.forUriComponent(claimUri)%>&dialect=<%=Encode.forUriComponent(dialectUri)%>"
                   method="post">
                 <table style="width: 100%" class="styledLeft">
                     <% for (int j = 0; j < claims.length; j++) {
