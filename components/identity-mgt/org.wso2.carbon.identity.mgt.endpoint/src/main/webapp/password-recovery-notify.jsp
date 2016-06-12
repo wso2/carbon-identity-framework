@@ -45,7 +45,7 @@
     Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendPasswordRecoveryNotification(user);
 
     if ((sendNotificationResponse == null) || (StringUtils.isBlank(Integer.toString(sendNotificationResponse.getStatus()))) ||
-            !(Response.Status.OK.getStatusCode() == sendNotificationResponse.getStatus())) {
+            (Response.Status.OK.getStatusCode() != sendNotificationResponse.getStatus())) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg",
             IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_1 + "\t" +
