@@ -6,7 +6,7 @@
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -44,7 +44,9 @@ public class DecisionResource extends AbstractResource {
                               @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
                               String xacmlRequest) {
 
-        log.info("recieved :" + xacmlRequest);
+        if(log.isDebugEnabled()) {
+            log.debug("recieved :" + xacmlRequest);
+        }
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
         try {
             return entitlementEngine.evaluate(xacmlRequest);
@@ -143,10 +145,12 @@ public class DecisionResource extends AbstractResource {
                                                            @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
                                                            AllEntitlementsRequestModel request) {
 
-        log.info(request.getGivenAttributes()[0].getAttributeId());
-        log.info(request.getGivenAttributes()[0].getAttributeDataType());
-        log.info(request.getGivenAttributes()[0].getAttributeValue());
-        log.info(request.getGivenAttributes()[0].getCategory());
+        if(log.isDebugEnabled()) {
+            log.debug(request.getGivenAttributes()[0].getAttributeId());
+            log.debug(request.getGivenAttributes()[0].getAttributeDataType());
+            log.debug(request.getGivenAttributes()[0].getAttributeValue());
+            log.debug(request.getGivenAttributes()[0].getCategory());
+        }
 
         PolicySearch policySearch = EntitlementEngine.getInstance().getPolicySearch();
         EntitledResultSetDTO resultSet = policySearch.getEntitledAttributes(request.getIdentifier(), request.getGivenAttributes());
