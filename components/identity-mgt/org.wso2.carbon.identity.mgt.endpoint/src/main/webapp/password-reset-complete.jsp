@@ -62,7 +62,7 @@
             resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(resetPasswordRequest);
 
             if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
-                    !(Integer.toString(Response.Status.OK.getStatusCode()).equals(Integer.toString(resetPasswordResponse.getStatus())))) {
+                    !(Response.Status.OK.getStatusCode() == resetPasswordResponse.getStatus())) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg",
                         IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_3 + "\t" +
