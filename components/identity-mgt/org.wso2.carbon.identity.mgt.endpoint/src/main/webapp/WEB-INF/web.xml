@@ -28,6 +28,10 @@
         <param-name>ProcessAllSecurityQuestions</param-name>
         <param-value>false</param-value>
     </context-param>
+    <context-param>
+        <param-name>EnableCaptchaVerification</param-name>
+        <param-value>false</param-value>
+    </context-param>
     <!--context-param>
         <param-name>UserPortalUrl</param-name>
         <param-value>https://localhost:9443/dashboard/index.jag</param-value>
@@ -40,6 +44,11 @@
     <servlet>
         <servlet-name>recoverusername.do</servlet-name>
         <jsp-file>/username-recovery.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>recoverusernamecomplete.do</servlet-name>
+        <jsp-file>/username-recovery-complete.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -95,6 +104,11 @@
     <servlet-mapping>
         <servlet-name>recoverusername.do</servlet-name>
         <url-pattern>/recoverusername.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>recoverusernamecomplete.do</servlet-name>
+        <url-pattern>/recoverusernamecomplete.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

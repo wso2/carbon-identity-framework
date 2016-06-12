@@ -26,9 +26,11 @@
     String tenantDomain = request.getParameter("tenantdomain");
     String confirmationKey = request.getParameter("confirmation");
 
-    String fulQualifiedUsername = IdentityManagementEndpointUtil.getFullQualifiedUsername(username, tenantDomain,
+    String fullQualifiedUsername = IdentityManagementEndpointUtil.getFullQualifiedUsername(username, tenantDomain,
                                                                                           userStoreDomain);
-    if (StringUtils.isNotBlank(fulQualifiedUsername) && StringUtils.isNotBlank(confirmationKey)) {
+    if (StringUtils.isNotBlank(fullQualifiedUsername) && StringUtils.isNotBlank(confirmationKey)) {
+        request.getSession().setAttribute("username", fullQualifiedUsername);
+        request.getSession().setAttribute("confirmationKey", confirmationKey);
         request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);

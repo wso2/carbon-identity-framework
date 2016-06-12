@@ -26,6 +26,7 @@ public class IdentityManagementEndpointConstants {
     public static final class ConfigConstants {
         public static final String ENABLE_EMAIL_NOTIFICATION = "EnableEmailNotification";
         public static final String PROCESS_ALL_SECURITY_QUESTIONS = "ProcessAllSecurityQuestions";
+        public static final String ENABLE_CAPTCHA_VERIFICATION = "EnableCaptchaVerification";
         public static final String USER_PORTAL_URL = "UserPortalUrl";
     }
 
@@ -57,6 +58,19 @@ public class IdentityManagementEndpointConstants {
         public static final String CHALLENGE_QUESTION_URI_CLAIM = "http://wso2.org/claims/challengeQuestionUris";
         public static final String CHALLENGE_QUESTION_1_CLAIM = "http://wso2.org/claims/challengeQuestion1";
         public static final String CHALLENGE_QUESTION_2_CLAIM = "http://wso2.org/claims/challengeQuestion2";
+    }
+
+    public static final class UserInfoRecovery {
+        public static final String SERVICE_CONTEXT_URL_DOMAIN = "services";
+        public static final String REST_API_URL_DOMAIN = "account-recovery";
+    }
+
+    public static final class UserInfoRecoveryErrorDesc {
+        public static final String NOTIFICATION_ERROR_1 = "Failed to send email notification for password recovery.";
+        public static final String NOTIFICATION_ERROR_2 = "Cannot verify the user with given username or confirmation key.";
+        public static final String NOTIFICATION_ERROR_3 = "Failed to reset password.";
+        public static final String NOTIFICATION_ERROR_4 = "Missing confirmation code or invalid session. Cannot proceed further.";
+        public static final String NOTIFICATION_ERROR_5 = "Failed to send email notification for username recovery.";
     }
 
     public static final String SUPER_TENANT = "carbon.super";

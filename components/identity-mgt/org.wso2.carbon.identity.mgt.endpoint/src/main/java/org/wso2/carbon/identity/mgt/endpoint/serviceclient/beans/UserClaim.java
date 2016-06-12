@@ -22,55 +22,38 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
 import java.io.Serializable;
 
 /**
- * Store attributes required for password reset
+ * Store a user claim
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {"user", "code", "password"})
-@XmlRootElement(name = "userPassword")
-public class UserPassword implements Serializable {
-    @XmlElement(required = true)
-    private User user;
+@XmlType(propOrder = {
+        "claimURI",
+        "claimValue",
+})
+@XmlRootElement(name = "claim")
+public class UserClaim implements Serializable {
 
     @XmlElement(required = true)
-    private String password;
+    private String claimURI;
 
     @XmlElement(required = true)
-    private String code;
+    private String claimValue;
 
-    public UserPassword() {
+    public String getClaimURI() {
+        return claimURI;
     }
 
-    public UserPassword(User user, String password, String code) {
-        this.user = user;
-        this.password = password;
-        this.code = code;
+    public void setClaimURI(String claimURI) {
+        this.claimURI = claimURI;
     }
 
-    public User getUser() {
-        return user;
+    public String getClaimValue() {
+        return claimValue;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
+    public void setClaimValue(String claimValue) {
+        this.claimValue = claimValue;
     }
 }

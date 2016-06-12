@@ -22,33 +22,27 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-
 import java.io.Serializable;
 
 /**
- * Store attributes required for password reset
+ * Store reset password request
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {"user", "code", "password"})
-@XmlRootElement(name = "userPassword")
-public class UserPassword implements Serializable {
+@XmlType(propOrder = {
+        "user",
+        "code",
+        "password"
+})
+@XmlRootElement(name = "resetPasswordRequest")
+public class ResetPasswordRequest implements Serializable {
     @XmlElement(required = true)
     private User user;
 
     @XmlElement(required = true)
-    private String password;
-
-    @XmlElement(required = true)
     private String code;
 
-    public UserPassword() {
-    }
-
-    public UserPassword(User user, String password, String code) {
-        this.user = user;
-        this.password = password;
-        this.code = code;
-    }
+    @XmlElement(required = true)
+    private String password;
 
     public User getUser() {
         return user;
@@ -58,19 +52,19 @@ public class UserPassword implements Serializable {
         this.user = user;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getCode() {
         return code;
     }
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse;
@@ -36,7 +37,8 @@ public class PasswordRecoverySecurityQuestionClient {
 
     StringBuilder builder = new StringBuilder();
     String url = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace("services", "account-recovery");
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                    IdentityManagementEndpointConstants.UserInfoRecovery.REST_API_URL_DOMAIN);
 
     public ChallengeQuestionResponse initiateUserChallengeQuestion(User user) {
         PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = JAXRSClientFactory

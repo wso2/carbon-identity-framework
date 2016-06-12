@@ -17,12 +17,11 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api;
 
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -30,32 +29,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * Client Proxy API for security question password recovery
+ * Client Proxy API for password recovery with email notification
  */
-@Path("/questions")
+@Path("/notification")
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-public interface PasswordRecoverySecurityQuestion {
+public interface PasswordRecoveryNotification {
 
-    @PUT
-    @Path("/initiate")
-    public Response initiateUserChallengeQuestion(User user);
-
-    @PUT
-    @Path("/verify")
-    public Response verifyUserChallengeAnswer(VerifyAnswerRequest verifyAnswerRequest);
+    @POST
+    @Path("/notify")
+    public Response sendPasswordRecoveryNotification(User user);
 
     @PUT
     @Path("/reset-password")
-    public Response updatePassword(UserPassword userPassword);
-
-    @PUT
-    @Path("/initiate-all")
-    public Response initiateUserChallengeQuestionAtOnce(User user);
-
-    @PUT
-    @Path("/verify-all")
-    public Response verifyUserChallengeAnswerAtOnce(
-            VerifyAllAnswerRequest verifyAllAnswerRequest);
+    public Response resetPassword(ResetPasswordRequest resetPasswordRequest);
 
 }

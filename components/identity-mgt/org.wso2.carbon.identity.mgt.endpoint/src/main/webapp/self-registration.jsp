@@ -21,7 +21,9 @@
 
 <%
     if (Boolean.parseBoolean(application.getInitParameter(
-            IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION))) {
+            IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION)) &&
+            Boolean.parseBoolean(application.getInitParameter(
+            IdentityManagementEndpointConstants.ConfigConstants.ENABLE_CAPTCHA_VERIFICATION))) {
         request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
     } else {
         request.getRequestDispatcher("self-registration-without-verification.jsp").forward(request, response);
