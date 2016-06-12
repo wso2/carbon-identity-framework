@@ -27,19 +27,22 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 
 <%
-    String servicePrincipleName = request.getParameter("spnName");
-    String oldPassword = request.getParameter("currentPassword");
-    String newPassword = request.getParameter("newPassword");
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
 
-    String forwardTo = null;
-    String spName = (String) session.getAttribute("application-sp-name");
-    session.removeAttribute("application-sp-name");
-    boolean isError = false;
+    String spName = request.getParameter("spName");
+    String servicePrincipleName = request.getParameter("spnName");
+
+    String forwardTo = "index.jsp";
 
     String BUNDLE = "org.wso2.carbon.directory.server.manager.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     DirectoryServerManagerClient serverManager = null;
+    boolean isError = false;
 
     try {
 
@@ -57,21 +60,17 @@
             session.setAttribute(DirectoryServerManagerClient.SERVER_MANAGER_CLIENT, serverManager);
         }
 
-        serverManager.updatePassword(servicePrincipleName, oldPassword, newPassword);
+        serverManager.removeServicePrinciple(servicePrincipleName);
 
-        String message = MessageFormat.format(resourceBundle.getString("password.change.successful"),
+        String message = MessageFormat.format(resourceBundle.getString("spn.deleted.success"),
                 new Object[]{servicePrincipleName});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
-
-        forwardTo = "index.jsp";
-        
 
     } catch (Exception e) {
         isError = true;
         String message = MessageFormat.format(resourceBundle.getString(e.getMessage()),
                 new Object[]{servicePrincipleName});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        forwardTo = "change-passwd.jsp?spnName=" + Encode.forUriComponent(servicePrincipleName);
     }
 %>
 
@@ -85,17 +84,17 @@
     if (qpplicationComponentFound) {
         if (!isError) {
     %>
-    location.href = '../application/configure-service-provider.jsp?action=update&display=kerberos&spName=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&kerberos=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(servicePrincipleName))%>';
+    location.href =
+            '../application/configure-service-provider.jsp?action=delete&display=kerberos&spName=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&kerberos&=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(servicePrincipleName))%>';
     <%  } else { %>
     location.href = '../application/configure-service-provider.jsp?action=cancel&display=kerberos&spName=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>';
     <%
         }
     }else {
     %>
-    location.href = '<%=Encode.forJavaScriptBlock(forwardTo)%>';
+    location.href = '<%=forwardTo%>';
     <% } %>
 </script>
-
 
 <script type="text/javascript">
     forward();
