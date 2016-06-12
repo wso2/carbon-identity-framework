@@ -43,10 +43,10 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
 
     private static Log log = LogFactory.getLog(BasicAuthHandler.class);
     /* constants specific to this authenticator */
-    private final String BEARER_AUTH_HEADER = "Bearer";
-    private final String LOCAL_PREFIX = "local";
-    private final int DEFAULT_PRIORITY = 10;
-    private final String LOCAL_AUTH_SERVER = "local://services";
+    private static final String BEARER_AUTH_HEADER = "Bearer";
+    private static final String LOCAL_PREFIX = "local";
+    private static final int DEFAULT_PRIORITY = 10;
+    private static final String LOCAL_AUTH_SERVER = "local://services";
     /* properties map to be initialized */
     private Map<String, String> properties;
     /* properties specific to this authenticator */
