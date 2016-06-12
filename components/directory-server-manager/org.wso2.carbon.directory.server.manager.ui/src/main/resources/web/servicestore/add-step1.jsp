@@ -136,7 +136,7 @@
 
 
     function doFinish() {
-        document.dataForm.action = "add-finish.jsp";
+        document.dataForm.action = "add-finish-ajaxprocessor.jsp";
         if (doValidation() == true) {
             document.dataForm.submit();
         }
@@ -148,7 +148,7 @@
 
     <div id="workArea">
 
-        <form method="post" action="add-finish.jsp" name="dataForm">
+        <form method="post" action="add-finish-ajaxprocessor.jsp" name="dataForm">
             <table class="styledLeft" id="userAdd" width="60%">
                 <thead>
                     <tr>
