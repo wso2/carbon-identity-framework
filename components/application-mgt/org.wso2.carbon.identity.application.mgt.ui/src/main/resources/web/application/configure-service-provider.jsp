@@ -17,28 +17,28 @@
 -->
 
 <%@page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.apache.commons.collections.CollectionUtils"%>
+<%@ page import="org.owasp.encoder.Encode"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider"%>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig"%>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig"%>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig"%>
 <%@ page
-	import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean"%>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient"%>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
-<%@page import="org.wso2.carbon.ui.CarbonUIMessage"%>
+	import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig"%>
+<%@page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
+<%@page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@page import="java.util.HashMap"%>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
-<%@ page import="org.apache.commons.collections.CollectionUtils" %>
-<%@ page import="java.util.ArrayList" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -375,6 +375,39 @@ var roleMappinRowID = -1;
 		    }
 		});
 	}
+
+function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
+	var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
+	document.getElementById('number_of_claimmappings').value = numberOfClaimMappings;
+
+	var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
+	document.getElementById('number_of_permissions').value = numberOfPermissions;
+
+	var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
+	document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+
+	$.ajax({
+		type: "POST",
+		url: 'update-application-bean.jsp?spName=<%=Encode.forUriComponent(spName)%>',
+		data: $("#configure-sp-form").serialize(),
+		success: function () {
+			$.ajax({
+				type: 'POST',
+				url: postURL,
+				headers: {
+					Accept: "text/html"
+				},
+				data: data,
+				async: false,
+				success: function (responseText, status) {
+					if (status == "success") {
+						location.assign(redirectURLOnSuccess);
+					}
+				}
+			});
+		}
+	});
+}
 
     function onSamlSsoClick() {
 		var spName = document.getElementById("oldSPName").value;
@@ -1317,7 +1350,9 @@ var roleMappinRowID = -1;
 												  class="icon-link"
 												  style="background-image: url(../admin/images/edit.gif)">Change Password</a>
 											   <a title="Delete"
-												  onclick="updateBeanAndRedirect('../servicestore/delete-finish.jsp?SPAction=delete&spnName=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>&spName=<%=Encode.forUriComponent(spName)%>');"
+												  onclick="updateBeanAndPost('../servicestore/delete-finish-ajaxprocessor.jsp',
+														  'SPAction=delete&spnName=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>&spName=<%=Encode.forUriComponent(spName)%>',
+														  'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&kerberos=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>');"
 												  class="icon-link" style="background-image: url(images/delete.gif)">
 												   Delete </a>
 										   </td>
@@ -1342,6 +1377,7 @@ var roleMappinRowID = -1;
                             standardInboundAuthTypes.add("samlsso");
                             standardInboundAuthTypes.add("openid");
                             standardInboundAuthTypes.add("passivests");
+							standardInboundAuthTypes.add("kerberos");
 
                             if (!CollectionUtils.isEmpty(appBean.getInboundAuthenticators())) {
                                 List<InboundAuthenticationRequestConfig> customAuthenticators = appBean
