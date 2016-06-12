@@ -97,11 +97,11 @@
 
     </script>
     <div id="middle">
-        <h2><fmt:message key="change.password.spn"/> <%=Encode.forHml(spnName)%></h2>
+        <h2><fmt:message key="change.password.spn"/> <%=Encode.forHtml(spnName)%></h2>
 
         <div id="workArea">
             <form name="chgPassWdForm" method="post"
-                  onsubmit="return doValidation();" action="change-passwd-finish.jsp">
+                  onsubmit="return doValidation();" action="change-passwd-finish-ajaxprocessor.jsp">
                 <input type="hidden" name="spnName" value="<%=Encode.forHtmlAttribute(spnName)%>"/>
 
                 <table class="styledLeft" id="changePassword" width="60%">

@@ -27,16 +27,25 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 
 <%
-    String spName = request.getParameter("spName");
-    String servicePrincipleName = request.getParameter("spnName");
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
 
-    String forwardTo = "index.jsp";
+    String servicePrincipleName = request.getParameter("serviceName");
+    String description = request.getParameter("serviceDescription");
+    String password = request.getParameter("password");
+    String spName = (String) session.getAttribute("application-sp-name");
+    session.removeAttribute("application-sp-name");
+    boolean isError = false;
+
+    String forwardTo = null;
 
     String BUNDLE = "org.wso2.carbon.directory.server.manager.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     DirectoryServerManagerClient serverManager = null;
-    boolean isError = false;
 
     try {
 
@@ -54,17 +63,20 @@
             session.setAttribute(DirectoryServerManagerClient.SERVER_MANAGER_CLIENT, serverManager);
         }
 
-        serverManager.removeServicePrinciple(servicePrincipleName);
+        serverManager.addServicePrinciple(servicePrincipleName, description, password);
 
-        String message = MessageFormat.format(resourceBundle.getString("spn.deleted.success"),
+        String message = MessageFormat.format(resourceBundle.getString("service.added"),
                 new Object[]{servicePrincipleName});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+
+        forwardTo = "index.jsp";
 
     } catch (Exception e) {
         isError = true;
         String message = MessageFormat.format(resourceBundle.getString(e.getMessage()),
                 new Object[]{servicePrincipleName});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "add-step1.jsp";
     }
 %>
 
@@ -78,8 +90,7 @@
     if (qpplicationComponentFound) {
         if (!isError) {
     %>
-    location.href =
-            '../application/configure-service-provider.jsp?action=delete&display=kerberos&spName=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&kerberos&=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(servicePrincipleName))%>';
+    location.href = '../application/configure-service-provider.jsp?action=update&display=kerberos&spName=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>&kerberos=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(servicePrincipleName))%>';
     <%  } else { %>
     location.href = '../application/configure-service-provider.jsp?action=cancel&display=kerberos&spName=<%=Encode.forJavaScriptBlock(Encode.forUriComponent(spName))%>';
     <%
@@ -88,6 +99,7 @@
     %>
     location.href = '<%=forwardTo%>';
     <% } %>
+
 </script>
 
 <script type="text/javascript">
