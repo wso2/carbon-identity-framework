@@ -6,7 +6,7 @@
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -20,8 +20,11 @@ package org.wso2.carbon.identity.entitlement.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.entitlement.endpoint.auth.*;
-
+import org.wso2.carbon.identity.entitlement.endpoint.auth.BasicAuthHandler;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthConfigReader;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.OAuthHandler;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.util.List;
