@@ -22,8 +22,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
-import javax.ws.rs.core.Response;
-
 /**
  * This class defines utility methods used within this web application.
  */
