@@ -19,6 +19,8 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
@@ -45,17 +47,23 @@
 
     for (UserIdentityClaimDTO claimDTO : claimDTOs) {
         if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
+                IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
             isFirstNameInClaims = true;
         }
         if (StringUtils.equals(claimDTO.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)) {
             isLastNameInClaims = true;
         }
         if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+                IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
             isEmailInClaims = true;
         }
     }
+
+    CaptchaInfoBean captchaInfoBean = userInformationRecoveryClient.generateCaptcha();
+
+    String captchaImagePath = captchaInfoBean.getImagePath();
+    String captchaImageUrl = IdentityUtil.getServerURL(null, false, false) + "/" + captchaImagePath;
+    String captchaKey = captchaInfoBean.getSecretKey();
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
@@ -113,7 +121,7 @@
 
                     <div class="padding-double font-large">Enter below details to recover your username</div>
                     <div class="padding-double">
-                        <form method="post" action="recoverusernamecomplete.do" id="recoverDetailsForm">
+                        <form method="post" action="verify.do" id="recoverDetailsForm">
                             <% if (isFirstNameInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
                                 <label class="control-label">First Name</label>
@@ -143,12 +151,12 @@
 
                             <% for (UserIdentityClaimDTO claimDTO : claimDTOs) {
                                 if (claimDTO.getRequired() &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                                IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
+                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                                IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
+                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                                IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <label class="control-label"><%= Encode.forHtmlContent(claimDTO.getDisplayName())%>
@@ -160,6 +168,25 @@
                                     }
                                 }
                             %>
+
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                                <img src="<%=Encode.forHtmlAttribute(captchaImageUrl)%>"
+                                     alt='If you can not see the captcha image please refresh the page or click the link again.'/>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <label class="control-label">Enter Captcha Text</label>
+                                <input id="captchaAnswer" name="captchaAnswer" type="text" class="form-control"
+                                       required>
+                            </div>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <input id="confirmationKey" type="hidden" name="captchaKey"
+                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
+                                <input id="captchaImagePath" type="hidden" name="captchaImagePath"
+                                       value="<%=Encode.forHtmlAttribute(captchaImagePath)%>"/>
+                                <input id="captchaKey" type="hidden" name="captchaKey"
+                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
+                                <input id="isUsernameRecovery" type="hidden" name="isUsernameRecovery" value="true"/>
+                            </div>
 
                             <div class="form-actions">
                                 <table width="100%" class="styledLeft">

@@ -38,6 +38,7 @@
             Boolean.parseBoolean(request.getParameter("isUserRegistrationEmailConfirmation"));
     boolean isPasswordRecoveryEmailConfirmation =
             Boolean.parseBoolean(request.getParameter("isPasswordRecoveryEmailConfirmation"));
+    boolean isUsernameRecovery = Boolean.parseBoolean(request.getParameter("isUsernameRecovery"));
 
     // Common parameters for password recovery with email and self registration with email
     String username = request.getParameter("username");
@@ -73,6 +74,45 @@
                             "Either the user not found or captcha answer is incorrect.",
                             verificationBean));
             request.getRequestDispatcher("confirmregistration.do").forward(request, response);
+        }
+    } else if (isUsernameRecovery) {
+        // Username Recovery Scenario
+        UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
+                IdentityManagementEndpointConstants.WSO2_DIALECT);
+
+        List<UserIdentityClaimDTO> claimDTOList = new ArrayList<UserIdentityClaimDTO>();
+
+        for (UserIdentityClaimDTO claimDTO : claimDTOs) {
+            if (claimDTO.getRequired()) {
+                UserIdentityClaimDTO userIdentityClaimDTO = new UserIdentityClaimDTO();
+                userIdentityClaimDTO.setClaimUri(claimDTO.getClaimUri());
+                userIdentityClaimDTO.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
+                claimDTOList.add(userIdentityClaimDTO);
+            } else if (StringUtils.equals(claimDTO.getClaimUri(),
+                    IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) ||
+                    StringUtils.equals(claimDTO.getClaimUri(),
+                            IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) ||
+                    StringUtils.equals(claimDTO.getClaimUri(),
+                            IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+                UserIdentityClaimDTO userIdentityClaimDTO = new UserIdentityClaimDTO();
+                userIdentityClaimDTO.setClaimUri(claimDTO.getClaimUri());
+                userIdentityClaimDTO.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
+                claimDTOList.add(userIdentityClaimDTO);
+            }
+        }
+
+        UserIdentityClaimDTO[] claimDTOArray = new UserIdentityClaimDTO[claimDTOList.size()];
+        verificationBean =
+                userInformationRecoveryClient.verifyAccount(claimDTOList.toArray(claimDTOArray), captchaInfoBean, null);
+        if (verificationBean != null && verificationBean.getVerified()) {
+            request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
+        } else {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg",
+                    IdentityManagementEndpointUtil.getPrintableError("Invalid information provided.",
+                            "Either the user not found or captcha answer is incorrect.",
+                            verificationBean));
+            request.getRequestDispatcher("recoverusername.do").forward(request, response);
         }
     } else {
         if (isPasswordRecoveryEmailConfirmation) {

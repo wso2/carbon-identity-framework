@@ -20,59 +20,6 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="java.util.List" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserClaim" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
-
-<%
-    String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
-
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
-    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
-    UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
-            IdentityManagementEndpointConstants.WSO2_DIALECT);
-
-    List<UserClaim> claimList = new ArrayList<UserClaim>();
-
-    for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-        if (claimDTO.getRequired()) {
-            UserClaim claim = new UserClaim();
-            claim.setClaimURI(claimDTO.getClaimUri());
-            claim.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
-            claimList.add(claim);
-        } else if (StringUtils.equals(claimDTO.getClaimUri(),
-                IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) ||
-                StringUtils.equals(claimDTO.getClaimUri(),
-                        IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) ||
-                StringUtils.equals(claimDTO.getClaimUri(),
-                        IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
-            UserClaim claim = new UserClaim();
-            claim.setClaimURI(claimDTO.getClaimUri());
-            claim.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
-            claimList.add(claim);
-        }
-    }
-    UserClaim[] claimArray = new UserClaim[claimList.size()];
-    Response usernameRecoveryResponse = userInfoRecoveryWithNotificationClient.sendUserNameRecoveryNotification(claimList.toArray(claimArray), tenantDomain);
-
-    if ((usernameRecoveryResponse == null) || (StringUtils.isBlank(Integer.toString(usernameRecoveryResponse.getStatus()))) ||
-            !(Integer.toString(Response.Status.OK.getStatusCode()).equals(Integer.toString(usernameRecoveryResponse.getStatus())))) {
-        request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_5 + "\t" +
-                        IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_2);
-        request.getRequestDispatcher("error.jsp").forward(request, response);
-        return;
-    }
-%>
-
 <html>
 <head>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
