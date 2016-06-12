@@ -16,5 +16,3 @@ Procedure
 6. TO test various service methods, use the curl requests and json/xml request definitions available under resources/curlTests
 
 Thank you!!
-
-*You are awesome :)*
