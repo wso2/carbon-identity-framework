@@ -22,35 +22,29 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
 
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext =
             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-	String forwardTo = "index.jsp";
+	String forwardTo = "policy-publish.jsp";
 	String BUNDLE = "org.wso2.carbon.identity.entitlement.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
-        String policyId = request.getParameter("policyId");
-        String dePromote = request.getParameter("dePromote");
-    	EntitlementPolicyAdminServiceClient client = new EntitlementPolicyAdminServiceClient(cookie, serverURL, configContext);
-        String[] selectedPolicies = request.getParameterValues("policies");
-        if(policyId != null && policyId.trim().length() > 0){
-            client.dePromotePolicy(policyId);
-            forwardTo = "my-pdp.jsp";
-            String message = resourceBundle.getString("policy.pdp.deleted.successfully");
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
-        } else if(Boolean.parseBoolean(dePromote)) {
-            client.removePolicies(selectedPolicies, true);
-        } else {
-            client.removePolicies(selectedPolicies, false);
-            String message = resourceBundle.getString("policy.deleted.successfully");
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+    	EntitlementPolicyAdminServiceClient client = new EntitlementPolicyAdminServiceClient(cookie,
+                                                serverURL, configContext);
+        String[] selectedSubscribers = request.getParameterValues("subscribers");
+        for(String subscriber :selectedSubscribers){
+            client.deleteSubscriber(subscriber);
         }
-
     } catch (Exception e) {
-    	String message = resourceBundle.getString("policy.could.not.be.deleted");
+    	String message = resourceBundle.getString("subscriber.could.not.be.deleted");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
     }
 %>
