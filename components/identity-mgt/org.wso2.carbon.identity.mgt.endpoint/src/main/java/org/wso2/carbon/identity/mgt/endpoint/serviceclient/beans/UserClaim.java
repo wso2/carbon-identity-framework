@@ -33,7 +33,7 @@ import java.io.Serializable;
         "claimValue",
 })
 @XmlRootElement(name = "claim")
-public class Claim implements Serializable {
+public class UserClaim implements Serializable {
 
     @XmlElement(required = true)
     private String claimURI;

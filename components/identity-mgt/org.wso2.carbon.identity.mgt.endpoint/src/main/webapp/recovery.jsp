@@ -29,7 +29,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserClaim" %>
 
 <%
     UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();

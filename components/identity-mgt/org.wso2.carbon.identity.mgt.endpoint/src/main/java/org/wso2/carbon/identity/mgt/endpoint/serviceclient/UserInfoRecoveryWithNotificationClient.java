@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserClaim;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.PasswordRecoveryNotification;
@@ -67,12 +67,12 @@ public class UserInfoRecoveryWithNotificationClient {
     }
 
     // Send a email notification for username recovery
-    public Response sendUserNameRecoveryNotification(Claim[] requestedClaims) {
+    public Response sendUserNameRecoveryNotification(UserClaim[] userClaims, String tenantDomain) {
 
         UsernameRecoveryNotification usernameRecoveryNotification =
                 JAXRSClientFactory.create(ENDPOINT_URL, UsernameRecoveryNotification.class,
                         IdentityManagementServiceUtil.getInstance().getJSONProvider());
-        Response response = usernameRecoveryNotification.sendUsernameRecoveryNotification(requestedClaims);
+        Response response = usernameRecoveryNotification.sendUsernameRecoveryNotification(userClaims, tenantDomain);
         return response;
     }
 
