@@ -33,6 +33,12 @@
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String emailSubject = request.getParameter("emailSubject");
 	String emailBody = request.getParameter("emailBody");
 	String emailFooter = request.getParameter("emailFooter");
