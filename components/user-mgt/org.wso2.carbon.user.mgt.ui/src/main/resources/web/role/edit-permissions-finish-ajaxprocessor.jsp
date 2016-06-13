@@ -19,61 +19,70 @@
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.context.PrivilegedCarbonContext" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-<%@ page import="org.wso2.carbon.user.core.util.UserCoreUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
 
 <%
-    String forwardTo = null;
-    String username = request.getParameter("username");
-    String newPassword = request.getParameter("newPassword");
-    String isUserChange = request.getParameter("isUserChange");
-    String returnPath = request.getParameter("returnPath");
-    String currentPassword = request.getParameter("currentPassword");
-
-    String trustedReturnPath = "../userstore/index.jsp";
-    if ("user-mgt.jsp".equals(returnPath)) {
-        trustedReturnPath = "user-mgt.jsp";
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
     }
 
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
+    String forwardTo = "role-mgt.jsp?ordinal=1";
+    String roleName = request.getParameter("roleName");
+
+    if (request.getParameter("prevPage") != null && request.getParameter("prevUser") != null) {
+        String prevPage = request.getParameter("prevPage");
+        String prevUser = request.getParameter("prevUser");
+        String prevPageNumber = request.getParameter("prevPageNumber");
+        if ("view".equals(prevPage)) {
+            forwardTo = "../user/view-roles.jsp?username=" + Encode.forUriComponent(prevUser) + "&pageNumber=" +
+                        Encode.forUriComponent(prevPageNumber);
+        } else if ("edit".equals(prevPage)) {
+            forwardTo = "../user/edit-user-roles.jsp?username=" + Encode.forUriComponent(prevUser) + "&pageNumber=" +
+                        Encode.forUriComponent(prevPageNumber);
+        }
+    }
+
+    String message = MessageFormat.format(resourceBundle.getString("role.update"), roleName);
+
     try {
+        String[] selectedPermissions = request.getParameterValues("selectedPermissions");
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
-        if (isUserChange != null) {
-            String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            client.changePasswordByUser(UserCoreUtil.addTenantDomainToEntry(username, tenantDomain),
-                                        currentPassword, newPassword);
-            forwardTo = trustedReturnPath;
-            session.removeAttribute(ServerConstants.PASSWORD_EXPIRATION);
-        } else {
-            client.changePassword(username, newPassword);
-            forwardTo = "user-mgt.jsp?ordinal=1";
-        }
 
-        String message = MessageFormat.format(resourceBundle.getString("password.change.successful"),
-                                              new Object[] { username });
+        client.setRoleUIPermission(roleName, selectedPermissions);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 
+    } catch (InstantiationException e) {
+
+        CarbonUIMessage.sendCarbonUIMessage("Your session has timed out. Please try again.",
+                                            CarbonUIMessage.ERROR, request);
+
     } catch (Exception e) {
-        String message = MessageFormat.format(resourceBundle.getString("password.change.error"),
-                                              username, e.getMessage());
+
+        message = MessageFormat.format(resourceBundle.getString("role.cannot.update"), roleName, e.getMessage());
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        if (isUserChange != null) {
-            forwardTo = "change-passwd.jsp?ordinal=2&returnPath=" + trustedReturnPath + "&isUserChange=true";
-        } else {
-            forwardTo = "change-passwd.jsp?username=" + Encode.forUriComponent(username) + "&ordinal=2";
-        }
+%>
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        CARBON.showErrorDialog('<%=Encode.forJavaScript(Encode.forHtml(message))%>', function () {
+            location.href = "role-mgt.jsp";
+        });
+    });
+</script>
+<%
     }
 %>
 

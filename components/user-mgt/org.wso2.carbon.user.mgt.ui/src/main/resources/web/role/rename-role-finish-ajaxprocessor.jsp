@@ -27,6 +27,12 @@
 <%@ page import="java.util.ResourceBundle" %>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String oldRoleName = request.getParameter("oldRoleName");
     String newRoleName = request.getParameter("newRoleName");
 	String forwardTo = null;
