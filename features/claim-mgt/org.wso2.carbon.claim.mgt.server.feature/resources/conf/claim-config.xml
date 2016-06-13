@@ -246,7 +246,7 @@
 				<ClaimURI>http://wso2.org/claims/challengeQuestion1</ClaimURI>
 				<DisplayName>Challenge Question1</DisplayName>
 			<!-- Proper attribute Id in your user store must be configured for this -->
-				<AttributeID>gender</AttributeID>
+				<AttributeID>firstChallenge</AttributeID>
 				<Description>Challenge Question1</Description>
 
 			</Claim>
@@ -254,7 +254,7 @@
 				<ClaimURI>http://wso2.org/claims/challengeQuestion2</ClaimURI>
 				<DisplayName>Challenge Question2</DisplayName>
 			<!-- Proper attribute Id in your user store must be used configured for this -->
-				<AttributeID>localityName</AttributeID>
+				<AttributeID>secondChallenge</AttributeID>
 				<Description>Challenge Question2</Description>
 			</Claim>
             <Claim>
