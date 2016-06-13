@@ -34,6 +34,12 @@
 <%@ page import="java.util.Set" %>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     boolean logout = false;
     boolean finish = false;
     boolean viewUsers = false;

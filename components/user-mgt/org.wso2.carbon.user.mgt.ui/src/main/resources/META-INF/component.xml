@@ -60,8 +60,8 @@
     <framework-configuration>
         <bypass>
             <tiles>
-                <link>../user/edit-user-roles-finish.jsp</link>
-                <link>../role/edit-users-finish.jsp</link>
+                <link>../user/edit-user-roles-finish-ajaxprocessor.jsp</link>
+                <link>../role/edit-users-finish-ajaxprocessor.jsp</link>
             </tiles>
         </bypass>
     </framework-configuration>

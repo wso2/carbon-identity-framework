@@ -236,7 +236,7 @@
         <div id="workArea">
             <h3><fmt:message key="step.1.role"/></h3>
 
-            <form method="post" name="addRoleForm" onsubmit="return doValidation();" action="add-finish.jsp">
+            <form method="post" name="addRoleForm" onsubmit="return doValidation();" action="add-finish-ajaxprocessor.jsp">
 
                 <input type="hidden" id="role_primary_null" name="role_primary_null"
                        value='<%=Encode.forHtmlAttribute(userStoreInfo.getRoleNameRegEx())%>'>
