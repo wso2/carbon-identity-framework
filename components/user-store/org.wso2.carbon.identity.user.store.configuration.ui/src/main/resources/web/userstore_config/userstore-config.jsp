@@ -190,7 +190,7 @@
     function doSubmit() {
         if (doValidationDomainNameOnly() && doValidationDomainExistence()) {
             if (doValidationMandatoryProperties()) {
-                document.dataForm.action = "userstore-config-finish.jsp";
+                document.dataForm.action = "userstore-config-finish-ajaxprocessor.jsp";
                 document.dataForm.submit();
             }
         }
@@ -199,13 +199,13 @@
     function doUpdate() {
         if (doValidateUpdate()) {
             if (doValidationMandatoryProperties()) {
-                document.dataForm.action = "userstore-config-finish.jsp";
+                document.dataForm.action = "userstore-config-finish-ajaxprocessor.jsp";
                 document.dataForm.submit();
             }
         }
         else if (doValidationDomainNameOnly() && doValidationDomainExistence()) {
             if (doValidationMandatoryProperties()) {
-                document.dataForm.action = "userstore-config-finish.jsp";
+                document.dataForm.action = "userstore-config-finish-ajaxprocessor.jsp";
                 document.dataForm.submit();
             }
         }
