@@ -256,20 +256,20 @@
             }
             if (allSubscribersSelected) {
                 CARBON.showConfirmationDialog("<fmt:message key="publish.to.all.subscribers.prompt"/>", function () {
-                    document.publishForm.action = "publish-finish.jsp";
+                    document.publishForm.action = "publish-finish-ajaxprocessor.jsp";
                     document.publishForm.submit();
-                });
+                }, null);
             } else {
                 CARBON.showConfirmationDialog("<fmt:message key="publish.selected.subscriber.prompt"/>", function () {
-                    document.publishForm.action = "publish-finish.jsp";
+                    document.publishForm.action = "publish-finish-ajaxprocessor.jsp";
                     document.publishForm.submit();
-                });
+                }, null);
             }
         }  else {
             CARBON.showConfirmationDialog("<fmt:message key="publish.pdp.subscriber.prompt"/>", function () {
-                document.publishForm.action = "publish-finish.jsp";
+                document.publishForm.action = "publish-finish-ajaxprocessor.jsp";
                 document.publishForm.submit();
-            });
+            }, null);
         }
     }
 
@@ -279,9 +279,9 @@
             return;
         } else {
             CARBON.showConfirmationDialog("<fmt:message key="publish.to.all.subscribersList.prompt"/>", function () {
-                document.publishForm.action = "publish-finish.jsp?publishToAllSubscribers=true";
+                document.publishForm.action = "publish-finish-ajaxprocessor.jsp?publishToAllSubscribers=true";
                 document.publishForm.submit();
-            });
+            }, null);
         }
     }
 
