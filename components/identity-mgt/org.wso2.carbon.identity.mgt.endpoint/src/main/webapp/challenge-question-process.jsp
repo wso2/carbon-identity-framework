@@ -31,12 +31,13 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeQuestion" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.utils.xml.StringUtils" %>
 
 <%
     String userName = request.getParameter("username");
     String securityQuestionAnswer = request.getParameter("securityQuestionAnswer");
 
-    if(userName != null) {
+    if (userName != null) {
 
         User user = IdentityManagementServiceUtil.getInstance().getUser(userName);
         session.setAttribute("user", user);
@@ -44,16 +45,16 @@
         ChallengeQuestionResponse challengeQuestionResponse = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
         session.setAttribute("challengeQuestionResponse", challengeQuestionResponse);
         request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
-    } else if(securityQuestionAnswer != null) {
+    } else if (securityQuestionAnswer != null) {
 
-        ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
+        ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
 
-        String code =  challengeQuestionResponse.getCode();
+        String code = challengeQuestionResponse.getCode();
         ChallengeQuestion challengeQuestion = challengeQuestionResponse.getQuestion();
         String question = challengeQuestion.getQuestion();
         String getQuestionSetId = challengeQuestion.getQuestionSetId();
 
-        User user = (User)session.getAttribute("user");
+        User user = (User) session.getAttribute("user");
 
         VerifyAnswerRequest verifyAnswerRequest = new VerifyAnswerRequest();
 
@@ -73,11 +74,18 @@
         ChallengeQuestionResponse challengeQuestionResponse1 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
         String status = challengeQuestionResponse1.getStatus();
         session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
-        
-        if("INCOMPLETE".equals(status)) {
+
+        if (StringUtils.isEmpty(status)) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg",
+                    IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.CHALLENGE_QUESTION_ERROR_3 + "\t" +
+                            IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.CHALLENGE_QUESTION_ERROR_4);
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        } else if ("INCOMPLETE".equals(status)) {
             request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
-        }else if("COMPLETE".equals(status)) {
-                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+        } else if ("COMPLETE".equals(status)) {
+            request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         }
     }
 

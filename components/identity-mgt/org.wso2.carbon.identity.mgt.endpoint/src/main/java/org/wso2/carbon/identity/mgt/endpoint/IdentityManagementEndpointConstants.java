@@ -74,6 +74,8 @@ public class IdentityManagementEndpointConstants {
 
         public static final String CHALLENGE_QUESTION_ERROR_1 = "Failed to retrieve challenge questions for the user.";
         public static final String CHALLENGE_QUESTION_ERROR_2 = "Challenge questions are not defined for the user.";
+        public static final String CHALLENGE_QUESTION_ERROR_3 = "Failed in processing challenge question answer for the user.";
+        public static final String CHALLENGE_QUESTION_ERROR_4 = "Provided answer for the challenge question is invalid.";
     }
 
     public static final String SUPER_TENANT = "carbon.super";
