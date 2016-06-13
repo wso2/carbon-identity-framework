@@ -25,6 +25,12 @@
 <%@ page import="java.util.ResourceBundle" %>
 
 <%
+	String httpMethod = request.getMethod();
+	if (!"post".equalsIgnoreCase(httpMethod)) {
+		response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+		return;
+	}
+
 	String forwardTo = "index.jsp";
 	String[] checkedList = request.getParameter("checkedList").split(
 			",");

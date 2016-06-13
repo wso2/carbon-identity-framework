@@ -31,6 +31,12 @@
         <%@ page import="java.util.ResourceBundle" %>
 
         <%
+            String httpMethod = request.getMethod();
+            if (!"post".equalsIgnoreCase(httpMethod)) {
+                response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                return;
+            }
+
         	Map<String, String> properties = new HashMap<String, String>();
             String forwardTo = "index.jsp";
             String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
