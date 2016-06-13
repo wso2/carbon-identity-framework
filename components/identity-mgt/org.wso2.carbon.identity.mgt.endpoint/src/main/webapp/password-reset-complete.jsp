@@ -29,6 +29,7 @@
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%
 
     UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
@@ -44,15 +45,9 @@
 
     String newPassword = request.getParameter("reset-password");
 
-    String userStoreDomain = Utils.getUserStoreDomainName(username);
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
-
     if (StringUtils.isNotBlank(newPassword)) {
         if (isPasswordRecoveryEmailConfirmation) {
-            User user = new User();
-            user.setUserName(username);
-            user.setTenantDomain(tenantDomain);
-            user.setUserStoreDomain(userStoreDomain);
+            User user = IdentityManagementServiceUtil.getInstance().getUser(username);
 
             ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
             resetPasswordRequest.setUser(user);
