@@ -37,6 +37,12 @@
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
         String forwardTo = null;
         try {
 
