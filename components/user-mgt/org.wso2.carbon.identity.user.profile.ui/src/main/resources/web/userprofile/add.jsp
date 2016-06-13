@@ -172,7 +172,7 @@ function validateTextForIllegal(fld,fldName) {
             </script>
 
             <form method="post" name="addProfileform"
-                  action="set-finish.jsp?fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>" target="_self">
+                  action="set-finish-ajaxprocessor.jsp?fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>" target="_self">
                 <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
                 <table style="width: 100%" class="styledLeft">
                     <thead>
