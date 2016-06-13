@@ -63,7 +63,7 @@
                         policy = document.importPolicy.policyFromFileSystem.value;
                     } else {
                         policy = document.importPolicy.policyFromRegistry.value;
-                        document.importPolicy.action = "import-policy-submit.jsp";
+                        document.importPolicy.action = "import-policy-submit-ajaxprocessor.jsp";
                     }
 
                     if (policy == '') {

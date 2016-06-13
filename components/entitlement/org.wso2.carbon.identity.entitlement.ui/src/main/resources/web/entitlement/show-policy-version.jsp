@@ -210,7 +210,7 @@
     })
 
     function submitForm() {
-        document.versionForm.action= "rollback-policy.jsp?policyId=<%=Encode.forUriComponent(policyId)%>";
+        document.versionForm.action= "rollback-policy-ajaxprocessor.jsp?policyId=<%=Encode.forUriComponent(policyId)%>";
         document.versionForm.submit();
     }
 

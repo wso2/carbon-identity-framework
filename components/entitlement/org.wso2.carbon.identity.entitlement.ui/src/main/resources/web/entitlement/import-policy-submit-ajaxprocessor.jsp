@@ -22,32 +22,42 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
 
+    String policyFromRegistry = request.getParameter("policyFromRegistry");
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext =
             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-	String forwardTo = "policy-publish.jsp";
+	String forwardTo = null;
 	String BUNDLE = "org.wso2.carbon.identity.entitlement.ui.i18n.Resources";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+	ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
-    	EntitlementPolicyAdminServiceClient client = new EntitlementPolicyAdminServiceClient(cookie,
-                                                serverURL, configContext);
-        String[] selectedSubscribers = request.getParameterValues("subscribers");
-        for(String subscriber :selectedSubscribers){
-            client.deleteSubscriber(subscriber);
+    	EntitlementPolicyAdminServiceClient client = new EntitlementPolicyAdminServiceClient(cookie, serverURL, configContext);
+        if(policyFromRegistry != null && !policyFromRegistry.trim().equals("")){
+            client.importPolicyFromRegistry(policyFromRegistry.trim());
+            String message = resourceBundle.getString("imported.successfuly");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+            forwardTo="index.jsp?region=region1&item=policy_menu";            
+        } else {
+            forwardTo = "import-policy.jsp";
+            CarbonUIMessage.sendCarbonUIMessage("Registry path can not be empty", CarbonUIMessage.ERROR, request);
         }
     } catch (Exception e) {
-    	String message = resourceBundle.getString("subscriber.could.not.be.deleted");
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "import-policy.jsp";
+        CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request);
     }
 %>
 
 <%@page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@page import="java.util.ResourceBundle"%>
-<script
-	type="text/javascript">
+
+<script type="text/javascript">
     function forward() {
         location.href = "<%=forwardTo%>";
 	}
