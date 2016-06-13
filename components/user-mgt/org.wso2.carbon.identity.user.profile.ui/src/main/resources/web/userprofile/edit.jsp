@@ -203,7 +203,7 @@
             </script>
 
             <form method="post" name="updateProfileform"
-                  action="edit-finish.jsp?profile=<%=Encode.forUriComponent(userProfile.getProfileName())%>&fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>&noOfProfiles=<%=Encode.forUriComponent(noOfProfiles)%>"
+                  action="edit-finish-ajaxprocessor.jsp?profile=<%=Encode.forUriComponent(userProfile.getProfileName())%>&fromUserMgt=<%=Encode.forUriComponent(fromUserMgt)%>&noOfProfiles=<%=Encode.forUriComponent(noOfProfiles)%>"
                   target="_self">
                 <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
                 <table style="width: 100%" class="styledLeft">
