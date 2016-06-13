@@ -131,7 +131,7 @@
 //                jQuery('.valueCell a').each(function () {
 //                    orderList.push($(this).html().trim());
 //                });
-                document.userStoreForm.action = "remove-userstore.jsp?checkedList=" + checkedList;
+                document.userStoreForm.action = "remove-userstore-ajaxprocessor.jsp?checkedList=" + checkedList;
                 document.userStoreForm.submit();
             });
         }
