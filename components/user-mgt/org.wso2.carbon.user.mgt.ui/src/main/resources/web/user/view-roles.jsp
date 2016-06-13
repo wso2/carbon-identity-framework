@@ -354,7 +354,7 @@
                               noOfPageLinksToDisplay="<%=noOfPageLinksToDisplay%>"
                               page="view-roles.jsp" pageNumberParameterName="pageNumber"
                               parameters="<%="username=" + Encode.forHtmlAttribute(userName)%>"/>
-            <form method="post" action="edit-user-roles-finish.jsp?viewRoles=true" onsubmit="return doValidation();"
+            <form method="post" action="edit-user-roles-finish-ajaxprocessor.jsp?viewRoles=true" onsubmit="return doValidation();"
                   name="edit_users" id="edit_users">
                 <input type="hidden" id="username" name="username" value="<%=Encode.forHtmlAttribute(userName)%>"/>
                 <input type="hidden" id="logout" name="logout" value="false"/>

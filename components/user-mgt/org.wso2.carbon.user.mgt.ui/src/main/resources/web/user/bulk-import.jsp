@@ -92,7 +92,7 @@
         <h2><fmt:message key="bulk.import.user"/></h2>
 
         <div id="workArea">
-            <form method="post" action="bulk-import-finish.jsp" name="dataForm"
+            <form method="post" action="bulk-import-finish-ajaxprocessor.jsp" name="dataForm"
                   enctype="multipart/form-data" onsubmit="return doValidation();">
                 <table class="styledLeft" id="userAdd" width="60%">
                     <thead>

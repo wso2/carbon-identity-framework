@@ -249,7 +249,7 @@
                     </tr>
                 </table>
             </form>
-            <form method="get" name="dataForm" action="add-finish.jsp">
+            <form method="post" name="dataForm" action="add-finish-ajaxprocessor.jsp">
 
                 <carbon:paginator pageNumber="<%=pageNumber%>"
                                   action="post"

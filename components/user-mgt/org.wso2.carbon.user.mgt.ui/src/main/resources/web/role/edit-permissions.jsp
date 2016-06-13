@@ -154,7 +154,7 @@
 
                 <div id="treeDiv1"></div>
             </div>
-            <form name="permissionForm" method="post" action="edit-permissions-finish.jsp"
+            <form name="permissionForm" method="post" action="edit-permissions-finish-ajaxprocessor.jsp"
                   onsubmit="setFieldsOnSubmit()">
                 <span id="permissions"></span>
                 <table>
