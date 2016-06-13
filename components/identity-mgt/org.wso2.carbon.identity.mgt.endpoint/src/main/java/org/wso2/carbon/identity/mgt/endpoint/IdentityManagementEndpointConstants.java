@@ -71,6 +71,11 @@ public class IdentityManagementEndpointConstants {
         public static final String NOTIFICATION_ERROR_3 = "Failed to reset password.";
         public static final String NOTIFICATION_ERROR_4 = "Missing confirmation code or invalid session. Cannot proceed further.";
         public static final String NOTIFICATION_ERROR_5 = "Failed to send email notification for username recovery.";
+
+        public static final String CHALLENGE_QUESTION_ERROR_1 = "Failed to retrieve challenge questions for the user.";
+        public static final String CHALLENGE_QUESTION_ERROR_2 = "Challenge questions are not defined for the user.";
+        public static final String CHALLENGE_QUESTION_ERROR_3 = "Failed in processing challenge question answer for the user.";
+        public static final String CHALLENGE_QUESTION_ERROR_4 = "Provided answer for the challenge question is invalid.";
     }
 
     public static final String SUPER_TENANT = "carbon.super";

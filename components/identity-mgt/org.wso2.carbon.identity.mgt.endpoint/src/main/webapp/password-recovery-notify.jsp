@@ -26,6 +26,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 
 <%
 
@@ -34,13 +35,7 @@
 
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
 
-    String userStoreDomain = Utils.getUserStoreDomainName(username);
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
-
-    User user = new User();
-    user.setUserName(username);
-    user.setTenantDomain(tenantDomain);
-    user.setUserStoreDomain(userStoreDomain);
+    User user = IdentityManagementServiceUtil.getInstance().getUser(username);
 
     Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendPasswordRecoveryNotification(user);
 

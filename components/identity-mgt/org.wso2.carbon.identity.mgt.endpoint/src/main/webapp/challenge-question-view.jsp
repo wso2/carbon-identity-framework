@@ -22,9 +22,20 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+<%@ page import="org.wso2.carbon.utils.xml.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 
 <%
    ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
+
+    if(challengeQuestionResponse.getQuestion() == null) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg",
+                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.CHALLENGE_QUESTION_ERROR_1 + "\t" +
+                        IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.CHALLENGE_QUESTION_ERROR_2);
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
 %>
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
