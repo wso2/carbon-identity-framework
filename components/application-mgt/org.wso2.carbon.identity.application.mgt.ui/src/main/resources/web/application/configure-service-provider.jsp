@@ -1173,7 +1173,12 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                         <a title="Edit Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                         <a title="Revoke Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');" class="icon-link" style="background-image: url(images/disabled.png)">Revoke</a>
                                         <a title="Regenerate Secret Key" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');" class="icon-link" style="background-image: url(images/enabled.png)">Regenerate Secret</a>
-                                        <a title="Delete Service Providers" onclick="updateBeanAndRedirect('../oauth/remove-app.jsp?consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
+                                        <a title="Delete Service Providers"
+                                           onclick="updateBeanAndPost('../oauth/remove-app-ajaxprocessor.jsp',
+                                                   'consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>',
+                                                   'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&oauthapp=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
+                                        class="icon-link" style="background-image: url(images/delete.gif)">
+                                        Delete </a>
                                     </td>
                                 	</tr>
                                 </tbody>
