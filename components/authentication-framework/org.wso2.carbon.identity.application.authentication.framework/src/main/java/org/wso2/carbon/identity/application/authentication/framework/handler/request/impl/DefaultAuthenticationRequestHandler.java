@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -268,7 +269,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sessionContext = FrameworkUtils.getSessionContextFromCache(commonAuthCookie);
                 }
             }
-            String sessionId = null;
 
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
@@ -278,7 +278,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
-                sessionId = commonAuthCookie;
+                publishSessionUpdate(commonAuthCookie, request, context, sessionContext, sequenceConfig.getAuthenticatedUser());
+
             } else {
                 sessionContext = new SessionContext();
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
@@ -290,7 +291,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext);
 
                 setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
-                sessionId = sessionKey;
+                sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
+                publishSessionCreation(sessionKey, request, context, sessionContext, sequenceConfig.getAuthenticatedUser());
             }
 
             if (authenticatedUserTenantDomain == null) {
@@ -312,7 +314,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     "Login",
                     "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_SUCCESS));
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
-            publishSessionCreation(sessionId, request, context, sequenceConfig.getAuthenticatedUser());
+
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
@@ -362,7 +364,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
 
     private void publishSessionCreation(String sessionId, HttpServletRequest request, AuthenticationContext context,
-                                        AuthenticatedUser user) {
+                                        SessionContext sessionContext, AuthenticatedUser user) {
 
         List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
 
@@ -373,7 +375,25 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
                 if(publisher != null && publisher.isEnabled()) {
-                    publisher.publishSessionCreation(request, context, unmodifiableParamMap);
+                    publisher.publishSessionCreation(request, context, sessionContext, unmodifiableParamMap);
+                }
+            }
+        }
+    }
+
+    private void publishSessionUpdate(String sessionId, HttpServletRequest request, AuthenticationContext context,
+                                        SessionContext sessionContext, AuthenticatedUser user) {
+
+        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
+
+        if (dataPublishers.size() > 0) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
+                if(publisher != null && publisher.isEnabled()) {
+                    publisher.publishSessionUpdate(request, context, sessionContext, unmodifiableParamMap);
                 }
             }
         }
