@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -156,8 +157,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         FrameworkConstants.AUDIT_MESSAGE,
                         sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
                         "Logout", idpName, auditData, FrameworkConstants.AUDIT_SUCCESS));
-                publishSessionTermination(context.getSessionIdentifier(), request, context, sequenceConfig.
-                        getAuthenticatedUser());
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
+                publishSessionTermination(context.getSessionIdentifier(), request, context, sessionContext,
+                        sequenceConfig.getAuthenticatedUser());
             }
         }
 
@@ -175,8 +177,8 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         }
     }
 
-    private void publishSessionTermination(String sessionId, HttpServletRequest request, AuthenticationContext context,
-                                           AuthenticatedUser user) {
+    private void publishSessionTermination(String sessionId, HttpServletRequest request, AuthenticationContext
+            context, SessionContext sessionContext, AuthenticatedUser user) {
 
         List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
 
@@ -187,7 +189,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
                 if(publisher != null && publisher.isEnabled()) {
-                    publisher.publishSessionTermination(request, context, unmodifiableParamMap);
+                    publisher.publishSessionTermination(request, context, sessionContext, unmodifiableParamMap);
                 }
             }
         }
