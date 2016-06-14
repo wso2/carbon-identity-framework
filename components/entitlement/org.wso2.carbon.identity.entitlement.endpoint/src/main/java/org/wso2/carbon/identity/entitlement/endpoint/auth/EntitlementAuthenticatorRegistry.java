@@ -27,7 +27,6 @@ import java.util.TreeMap;
 /**
  * This stores the authenticators registered for Entitlement REST endpoints and returns the appropriate
  * authenticator as requested by authentication filter associated with Entitlement REST endpoints.
- * Derived from the SCIMAuthenticatorRegistry Class
  */
 public class EntitlementAuthenticatorRegistry {
 
