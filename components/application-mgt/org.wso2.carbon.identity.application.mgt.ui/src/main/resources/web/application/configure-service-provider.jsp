@@ -128,7 +128,7 @@ location.href = "list-service-providers.jsp";
     }
     
     String oauthConsumerSecret = null;
-    
+
     if(session.getAttribute("oauth-consum-secret")!= null && "update".equals(action)){
     	oauthConsumerSecret = (String) session.getAttribute("oauth-consum-secret");
     	appBean.setOauthConsumerSecret(oauthConsumerSecret);
@@ -1171,7 +1171,12 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 	</td>
                                 		<td style="white-space: nowrap;">
                                 			<a title="Edit Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                			<a title="Delete Service Providers" onclick="updateBeanAndRedirect('../oauth/remove-app.jsp?consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
+                                			<a title="Delete Service Providers"
+                                			   onclick="updateBeanAndPost('../oauth/remove-app-ajaxprocessor.jsp',
+                                					   'consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>',
+                                					   'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&oauthapp=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
+                                			   class="icon-link" style="background-image: url(images/delete.gif)">
+                                				Delete </a>
                                 		</td>
                                 	</tr>
                                 </tbody>
