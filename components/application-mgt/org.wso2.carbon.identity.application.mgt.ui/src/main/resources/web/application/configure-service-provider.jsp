@@ -1103,7 +1103,12 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 	</td>
                                 		<td style="white-space: nowrap;">
                                 			<a title="Edit Service Providers" onclick="updateBeanAndRedirect('../sso-saml/add_service_provider.jsp?SPAction=editServiceProvider&issuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                			<a title="Delete Service Providers" onclick="updateBeanAndRedirect('../sso-saml/remove_service_providers.jsp?issuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>');" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
+											<a title="Delete Service Providers"
+											   onclick="updateBeanAndPost('../sso-saml/remove_service_provider-finish-ajaxprocessor.jsp',
+													   'issuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>',
+													   'configure-service-provider.jsp?action=delete&samlIssuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>');"
+											   class="icon-link" style="background-image: url(images/delete.gif)">
+												Delete </a>
                                 		</td>
                                 	</tr>
                                 </tbody>
