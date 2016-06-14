@@ -889,7 +889,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
-        IdentityUtil.clearIdentityErrorMsg();
         String accountLocked = claims.get(UserIdentityDataStore.ACCOUNT_LOCK);
         boolean isAccountLocked = false;
 
@@ -914,10 +913,12 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     isAccountDisabled = wasAccountDisabled;
                 }
                 if (isAccountLocked) {
+                    IdentityUtil.clearIdentityErrorMsg();
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
                             .ErrorCode.USER_IS_LOCKED);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                 } else if (isAccountDisabled) {
+                    IdentityUtil.clearIdentityErrorMsg();
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
