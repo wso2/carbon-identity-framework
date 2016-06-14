@@ -31,10 +31,19 @@ import org.wso2.carbon.identity.entitlement.policy.search.PolicySearch;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+/**
+ * <p>
+ *     Entry point class for the REST API end points
+ * </p>
+ */
 @Path("/")
 public class DecisionResource extends AbstractResource {
     private static Log log = LogFactory.getLog(DecisionResource.class);
 
+    /**
+     * API endpoint for evaluating XACML XML policies
+     * @return XML Policy result String
+     */
     @POST
     @Path("by-xacml")
     @Produces(MediaType.APPLICATION_XML)
@@ -60,6 +69,10 @@ public class DecisionResource extends AbstractResource {
 
     }
 
+    /**
+     * API endpoint for evaluating policy by attributes as queries
+     * @return XML Policy result string
+     */
     @POST
     @Path("by-attrib")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -82,6 +95,11 @@ public class DecisionResource extends AbstractResource {
         }
 
     }
+
+    /**
+     *API endpoint evaluating policy by using attributes as queries and return if true or false
+     * @return Boolean
+     */
 
     @POST
     @Path("by-attrib-boolean")
@@ -107,6 +125,10 @@ public class DecisionResource extends AbstractResource {
 
     }
 
+    /**
+     * API endpoint for returning entitled attributes for a give set of parameters
+     * @return EntitledAttributesResponse object
+     */
     @POST
     @Path("entitled-attribs")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -136,6 +158,10 @@ public class DecisionResource extends AbstractResource {
 
     }
 
+    /**
+     * API endpoint for returning all entitlements for a given set of parameters
+     * @return AllEntitlementResponseModel object
+     */
     @POST
     @Path("entitlements-all")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})

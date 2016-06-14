@@ -39,6 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * This is the default oAuth authentication handler for Entitlement REST Endpoints
+ */
 public class OAuthHandler implements EntitlementAuthenticationHandler {
 
     private static Log log = LogFactory.getLog(BasicAuthHandler.class);

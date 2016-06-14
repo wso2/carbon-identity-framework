@@ -26,6 +26,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * <p>
+ *     Initiating authenticator classes
+ * </p>
+ */
 public class EntitlementAuthConfigReader {
 
     private static Log logger = LogFactory.getLog(EntitlementAuthConfigReader.class);

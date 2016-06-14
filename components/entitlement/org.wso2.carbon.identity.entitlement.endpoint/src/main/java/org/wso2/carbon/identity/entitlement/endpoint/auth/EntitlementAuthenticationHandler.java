@@ -26,7 +26,6 @@ import java.util.Map;
 /**
  * Interface to be implemented by any type of authentication handlers that will be registered
  * to authenticate Entitlement requests coming to Entitlement REST endpoints.
- * Derived from SCIMAuthenticationHandler class
  */
 public interface EntitlementAuthenticationHandler {
 

@@ -38,8 +38,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * This is the default BASIC-Auth authentication handler for Entitlement REST Endpoints.
- * Derived from BasicAuthHandler for SCIM REST Endpoints
+ * This is the default BASIC-Auth authentication handler for Entitlement REST Endpoints
  */
 public class BasicAuthHandler implements EntitlementAuthenticationHandler {
 
