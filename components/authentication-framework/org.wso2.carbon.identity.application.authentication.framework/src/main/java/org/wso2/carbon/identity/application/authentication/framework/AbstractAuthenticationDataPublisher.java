@@ -19,14 +19,18 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationData;
+import org.wso2.carbon.identity.application.authentication.framework.model.SessionData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractAuthenticationDataPublisher extends AbstractIdentityHandler {
 
@@ -159,39 +163,116 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         doPublishAuthenticationFailure(authenticationData);
     }
 
-    public void publishSessionCreation(HttpServletRequest request, AuthenticationContext context,
-                                       Map<String, Object> params) {
+    public void publishSessionCreation(HttpServletRequest request, AuthenticationContext context, SessionContext
+            sessionContext, Map<String, Object> params) {
 
+        SessionData sessionData = new SessionData();
         Object userObj = params.get(FrameworkConstants.PublisherParamNames.USER);
         String sessionId = (String) params.get(FrameworkConstants.PublisherParamNames.SESSION_ID);
         String userName = null;
         String userStoreDomain = null;
         String tenantDomain = null;
+        Long terminationTime = null;
+        Long createdTime = null;
         if (userObj != null && userObj instanceof AuthenticatedUser) {
             AuthenticatedUser user = (AuthenticatedUser) userObj;
             userName = user.getUserName();
             userStoreDomain = user.getUserStoreDomain();
             tenantDomain = user.getTenantDomain();
         }
-//        doPublishSessionCreation(userName, userStoreDomain, tenantDomain, sessionId,
-//                System.currentTimeMillis(), context.isRememberMe());
+        if (sessionContext != null) {
+            Object createdTimeObj = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+            createdTime = (Long) createdTimeObj;
+            terminationTime = getSessionExpirationTime(createdTime, createdTime, tenantDomain, sessionContext.isRememberMe());
+        }
+        sessionData.setUser(userName);
+        sessionData.setUserStoreDomain(userStoreDomain);
+        sessionData.setTenantDomain(tenantDomain);
+        sessionData.setSessionId(sessionId);
+        sessionData.setCreatedTimestamp(createdTime);
+        sessionData.setUpdatedTimestamp(createdTime);
+        sessionData.setTerminationTimestamp(terminationTime);
+        if (context != null) {
+            sessionData.setIsRememberMe(context.isRememberMe());
+        }
+
+        doPublishSessionCreation(sessionData);
     }
 
     public void publishSessionTermination(HttpServletRequest request, AuthenticationContext context,
-                                          Map<String, Object> params) {
+                                          SessionContext sessionContext, Map<String, Object> params) {
+
+        SessionData sessionData = new SessionData();
         Object userObj = params.get(FrameworkConstants.PublisherParamNames.USER);
         String sessionId = (String) params.get(FrameworkConstants.PublisherParamNames.SESSION_ID);
         String userName = null;
         String userStoreDomain = null;
         String tenantDomain = null;
+        Long createdTime = null;
+        Long currentTime = System.currentTimeMillis();
         if (userObj != null && userObj instanceof AuthenticatedUser) {
             AuthenticatedUser user = (AuthenticatedUser) userObj;
             userName = user.getUserName();
             userStoreDomain = user.getUserStoreDomain();
             tenantDomain = user.getTenantDomain();
         }
-//        doPublishSessionTermination(userName, userStoreDomain, tenantDomain, sessionId,
-//                System.currentTimeMillis(), context.isRememberMe());
+
+        if (sessionContext != null) {
+            Object createdTimeObj = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+            createdTime = (Long) createdTimeObj;
+        }
+
+        sessionData.setUser(userName);
+        sessionData.setUserStoreDomain(userStoreDomain);
+        sessionData.setTenantDomain(tenantDomain);
+        sessionData.setSessionId(sessionId);
+        sessionData.setCreatedTimestamp(createdTime);
+        sessionData.setUpdatedTimestamp(currentTime);
+        sessionData.setTerminationTimestamp(currentTime);
+        if (context != null) {
+            sessionData.setIsRememberMe(context.isRememberMe());
+        }
+        doPublishSessionTermination(sessionData);
+
+    }
+
+    public void publishSessionUpdate(HttpServletRequest request, AuthenticationContext context, SessionContext
+            sessionContext, Map<String, Object> params) {
+
+        SessionData sessionData = new SessionData();
+        Object userObj = params.get(FrameworkConstants.PublisherParamNames.USER);
+        String sessionId = (String) params.get(FrameworkConstants.PublisherParamNames.SESSION_ID);
+        String userName = null;
+        String userStoreDomain = null;
+        String tenantDomain = null;
+        Long terminationTime = null;
+        Long createdTime = null;
+        Long currentTime = System.currentTimeMillis();
+
+        if (userObj != null && userObj instanceof AuthenticatedUser) {
+            AuthenticatedUser user = (AuthenticatedUser) userObj;
+            userName = user.getUserName();
+            userStoreDomain = user.getUserStoreDomain();
+            tenantDomain = user.getTenantDomain();
+        }
+
+        if (sessionContext != null) {
+            Object createdTimeObj = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+            createdTime = (Long) createdTimeObj;
+            terminationTime = getSessionExpirationTime(createdTime, currentTime, tenantDomain, sessionContext.isRememberMe());
+        }
+
+        sessionData.setUser(userName);
+        sessionData.setUserStoreDomain(userStoreDomain);
+        sessionData.setTenantDomain(tenantDomain);
+        sessionData.setSessionId(sessionId);
+        sessionData.setCreatedTimestamp(createdTime);
+        sessionData.setUpdatedTimestamp(currentTime);
+        sessionData.setTerminationTimestamp(terminationTime);
+        if (context != null) {
+            sessionData.setIsRememberMe(context.isRememberMe());
+        }
+        doPublishSessionUpdate(sessionData);
     }
 
     public abstract void doPublishAuthenticationStepSuccess(AuthenticationData authenticationData);
@@ -202,15 +283,19 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
 
     public abstract void doPublishAuthenticationFailure(AuthenticationData authenticationData);
 
-    public abstract void doPublishSessionCreation(String user, String userStoreDomain, String tenantDomain,
-                                                  String sessionId, long createdTimestamp, long updatedTimestamp,
-                                                  long terminationTimestamp, boolean isRememberMe);
+    public abstract void doPublishSessionCreation(SessionData sessionData);
 
-    public abstract void doPublishSessionUpdate(String user, String userStoreDomain, String tenantDomain,
-                                                     String sessionId, long createdTimestamp, long updatedTimestamp,
-                                                     long terminationTimestamp, boolean isRememberMe);
+    public abstract void doPublishSessionUpdate(SessionData sessionData);
 
-    public abstract void doPublishSessionTermination(String user, String userStoreDomain, String tenantDomain,
-                                                     String sessionId, long createdTimestamp, long updatedTimestamp,
-                                                     long terminationTimestamp, boolean isRememberMe);
+    public abstract void doPublishSessionTermination(SessionData sessionData);
+
+    protected long getSessionExpirationTime(long createdTime, long updatedTime, String tenantDomain,
+                                            boolean isRememberMe) {
+        if (isRememberMe) {
+            long rememberMeTimeout = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+            return createdTime + rememberMeTimeout;
+        }
+        long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
+        return idleSessionTimeOut + updatedTime;
+    }
 }

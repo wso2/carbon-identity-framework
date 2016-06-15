@@ -59,6 +59,7 @@ public abstract class FrameworkConstants {
     public static final String LOCAL = "LOCAL";
     public static final String SHOW_AUTHFAILURE_RESON_CONFIG = "showAuthFailureReason";
     public static final String AUTHENTICATED_USER = "AuthenticatedUser";
+    public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
 
     private FrameworkConstants() {
 
