@@ -254,6 +254,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             Object createdTimeObj = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
             createdTime = (Long) createdTimeObj;
             terminationTime = getSessionExpirationTime(createdTime, createdTime, tenantDomain, sessionContext.isRememberMe());
+            sessionData.setIsRememberMe(sessionContext.isRememberMe());
         }
         sessionData.setUser(userName);
         sessionData.setUserStoreDomain(userStoreDomain);
@@ -263,9 +264,6 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         sessionData.setUpdatedTimestamp(createdTime);
         sessionData.setTerminationTimestamp(terminationTime);
         sessionData.setRemoteIP(getClientIpAddress(request));
-        if (context != null) {
-            sessionData.setIsRememberMe(context.isRememberMe());
-        }
 
         doPublishSessionCreation(sessionData);
     }
@@ -306,6 +304,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             Object createdTimeObj = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
             createdTime = (Long) createdTimeObj;
             terminationTime = getSessionExpirationTime(createdTime, currentTime, tenantDomain, sessionContext.isRememberMe());
+            sessionData.setIsRememberMe(sessionContext.isRememberMe());
         }
 
         sessionData.setUser(userName);
@@ -316,9 +315,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         sessionData.setUpdatedTimestamp(currentTime);
         sessionData.setTerminationTimestamp(terminationTime);
         sessionData.setRemoteIP(getClientIpAddress(request));
-        if (context != null) {
-            sessionData.setIsRememberMe(context.isRememberMe());
-        }
+
         doPublishSessionUpdate(sessionData);
     }
 
@@ -354,6 +351,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         if (sessionContext != null) {
             Object createdTimeObj = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
             createdTime = (Long) createdTimeObj;
+            sessionData.setIsRememberMe(sessionContext.isRememberMe());
         }
 
         sessionData.setUser(userName);
@@ -364,11 +362,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         sessionData.setUpdatedTimestamp(currentTime);
         sessionData.setTerminationTimestamp(currentTime);
         sessionData.setRemoteIP(getClientIpAddress(request));
-        if (context != null) {
-            sessionData.setIsRememberMe(context.isRememberMe());
-        }
         doPublishSessionTermination(sessionData);
-
     }
 
     /**
