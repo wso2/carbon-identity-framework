@@ -36,7 +36,9 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -365,26 +367,52 @@ public class ChallengeQuestionProcessor {
             List<String> challengesUris = new ArrayList<String>();
             String challengesUrisValue = "";
             String separator = IdentityMgtConfig.getInstance().getChallengeQuestionSeparator();
+            Map<String,String> oldClaims = new HashMap<String,String>();
+            Map<String,String> newClaims = new HashMap<String,String>();
+            String[] requestclaims = new String[challengesDTOs.length];
+
+            int x = 0;
+            for(UserChallengesDTO claimDto: challengesDTOs) {
+                requestclaims[x++] = claimDto.getId();
+            }
+
+            // Getting user store manager here to reduce the calls for claim retrieval.
+            // TODO need to put into a new method in a new release version. Used to avoid API changes in patch.
+            org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
+            RealmService realmService = IdentityMgtServiceComponent.getRealmService();
+            try {
+                if (realmService.getTenantUserRealm(tenantId) != null) {
+                    userStoreManager = (org.wso2.carbon.user.core.UserStoreManager) realmService
+                            .getTenantUserRealm(tenantId).getUserStoreManager();
+                }
+            } catch (Exception e) {
+                String msg = "Error retrieving the user store manager for the tenant";
+                log.error(msg, e);
+                throw IdentityException.error(msg, e);
+            }
+
+            if(userStoreManager != null) {
+                oldClaims = userStoreManager.getUserClaimValues(userName, requestclaims, null);
+            }
 
             if (!ArrayUtils.isEmpty(challengesDTOs)) {
                 for (UserChallengesDTO dto : challengesDTOs) {
                     if (dto.getId() != null && dto.getQuestion() != null && dto.getAnswer() != null) {
-                        String oldValue = Utils.
-                                getClaimFromUserStoreManager(userName, tenantId, dto.getId().trim());
 
-                        if (oldValue != null && oldValue.contains(separator)) {
-                            String oldAnswer = oldValue.split(separator)[1];
+                        String oldClaimValue = oldClaims.get(dto.getId());
+                        if((oldClaimValue != null) && oldClaimValue.contains(separator)) {
+                            String oldAnswer = oldClaimValue.split(separator)[1];
                             if (!oldAnswer.trim().equals(dto.getAnswer().trim())) {
                                 String claimValue = dto.getQuestion().trim() + separator +
                                         Utils.doHash(dto.getAnswer().trim().toLowerCase());
-                                Utils.setClaimInUserStoreManager(userName,
-                                        tenantId, dto.getId().trim(), claimValue);
+                                if(!oldClaimValue.equals(claimValue)) {
+                                    newClaims.put(dto.getId().trim(), claimValue);
+                                }
                             }
                         } else {
                             String claimValue = dto.getQuestion().trim() + separator +
                                     Utils.doHash(dto.getAnswer().trim().toLowerCase());
-                            Utils.setClaimInUserStoreManager(userName,
-                                    tenantId, dto.getId().trim(), claimValue);
+                            newClaims.put(dto.getId().trim(), claimValue);
                         }
                         challengesUris.add(dto.getId().trim());
                     }
@@ -399,8 +427,10 @@ public class ChallengeQuestionProcessor {
                     }
                 }
 
-                Utils.setClaimInUserStoreManager(userName, tenantId,
-                        "http://wso2.org/claims/challengeQuestionUris", challengesUrisValue);
+                newClaims.put("http://wso2.org/claims/challengeQuestionUris", challengesUrisValue);
+
+                // Single call to save all challenge questions.
+                userStoreManager.setUserClaimValues(userName, newClaims, UserCoreConstants.DEFAULT_PROFILE);
 
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {

@@ -220,18 +220,9 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
         try {
             registry = IdentityMgtServiceComponent.getRegistryService().
                     getConfigSystemRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-            registry.beginTransaction();
             deleteOldResourcesIfFound(registry, userId, IdentityMgtConstants.IDENTITY_MANAGEMENT_DATA);
         } catch (RegistryException e) {
             throw IdentityException.error("Error while deleting the old confirmation code.", e);
-        } finally {
-            if (registry != null) {
-                try {
-                    registry.commitTransaction();
-                } catch (RegistryException e) {
-                    log.error("Error while deleting the old confirmation code.", e);
-                }
-            }
         }
     }
 
@@ -241,16 +232,35 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
     }
 
     private void deleteOldResourcesIfFound(Registry registry, String userName, String secretKeyPath) {
+
+        Collection collection = null;
         try {
-            if (registry.resourceExists(secretKeyPath.toLowerCase())) {
-                Collection collection = (Collection) registry.get(secretKeyPath.toLowerCase());
+            collection = (Collection) registry.get(secretKeyPath.toLowerCase());
+        } catch (RegistryException e) {
+            log.error("Error while deleting the old confirmation code. Unable to find data collection in registry." + e);
+        }
+
+        try {
+            if (collection != null) {
                 String[] resources = collection.getChildren();
                 for (String resource : resources) {
                     String[] splittedResource = resource.split("___");
                     if (splittedResource.length == 3) {
                         //PRIMARY USER STORE
                         if (resource.contains("___" + userName.toLowerCase() + "___")) {
-                            registry.delete(resource);
+
+                            registry.beginTransaction();
+                            // Check whether the resource still exists for concurrent cases.
+                            if (registry.resourceExists(resource)) {
+                                registry.delete(resource);
+                                registry.commitTransaction();
+                            } else {
+                                // Already deleted by another thread. Do nothing.
+                                registry.rollbackTransaction();
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Confirmation code already deleted in path of resource : " + resource);
+                                }
+                            }
                         }
                     } else if (splittedResource.length == 2) {
                         //SECONDARY USER STORE. Resource is a collection.
@@ -261,6 +271,5 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
         } catch (RegistryException e) {
             log.error("Error while deleting the old confirmation code \n" + e);
         }
-
     }
 }
