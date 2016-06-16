@@ -42,12 +42,12 @@ public class NotificationSender {
             int threadPoolSize = identityMgtConfig.getNotificationSendingThreadPoolSize();
             int notificationSendingTimeout = identityMgtConfig.getNotificationSendingTimeout();
 
-            if (threadPoolSize > 0) {
-                threadPool = Executors.newFixedThreadPool(threadPoolSize);
-            } else {
-                threadPool = Executors.newFixedThreadPool(5);
+            if (threadPoolSize <= 0) {
+                threadPoolSize = 5;
             }
 
+            Executors.newFixedThreadPool(threadPoolSize);
+            
             if (notificationSendingTimeout > 0) {
                 try {
                     threadPool.awaitTermination(notificationSendingTimeout * 1000, TimeUnit.MILLISECONDS);
