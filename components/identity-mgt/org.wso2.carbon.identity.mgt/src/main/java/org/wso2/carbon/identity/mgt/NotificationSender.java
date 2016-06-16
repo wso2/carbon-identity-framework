@@ -30,12 +30,13 @@ public class NotificationSender {
     NotificationSendingModule module;
 
     static {
-        threadPool = Executors.newFixedThreadPool(5);
         IdentityMgtConfig identityMgtConfig = IdentityMgtConfig.getInstance();
         if (identityMgtConfig != null) {
             int threadPoolSize = identityMgtConfig.getNotificationSendingThreadPoolSize();
             if (threadPoolSize > 0) {
                 threadPool = Executors.newFixedThreadPool(threadPoolSize);
+            } else {
+                threadPool = Executors.newFixedThreadPool(5);
             }
         }
     }

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -350,7 +351,7 @@ public class IdentityMgtConfig {
             String tempNotificationSendingThreadPoolSize = properties
                     .getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SENDING_THREAD_POOL_SIZE);
 
-            if (tempNotificationSendingThreadPoolSize != null) {
+            if (NumberUtils.isNumber(tempNotificationSendingThreadPoolSize)) {
                 notificationSendingThreadPoolSize = Integer.parseInt(tempNotificationSendingThreadPoolSize);
             }
 
