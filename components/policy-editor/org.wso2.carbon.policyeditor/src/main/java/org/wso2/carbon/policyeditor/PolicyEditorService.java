@@ -163,7 +163,7 @@ public class PolicyEditorService {
             Document xmlDoc;
 
             // create the factory
-            DocumentBuilderFactory docFactory = IdentityUtil.getSecuredDocumentBuilder();
+            DocumentBuilderFactory docFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
             docFactory.setIgnoringComments(true);
 
             // now use the factory to create the document builder

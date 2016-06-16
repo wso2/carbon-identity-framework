@@ -256,7 +256,7 @@ public class TenantDataManager {
 
                 InputSource inputSource = new InputSource(new StringReader(xmlString));
 
-                DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilder();
+                DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
 
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc = builder.parse(inputSource);
