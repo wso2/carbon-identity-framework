@@ -395,7 +395,7 @@ public class IdentityUtil {
     public static XMLObject unmarshall(String xmlString) throws IdentityException {
 
         try {
-            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilder();
+            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilderFactory();
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes(Charsets.UTF_8)));
             Element element = document.getDocumentElement();
@@ -413,7 +413,7 @@ public class IdentityUtil {
      *
      * @return DocumentBuilderFactory instance
      */
-    public static DocumentBuilderFactory getSecuredDocumentBuilder() {
+    public static DocumentBuilderFactory getSecuredDocumentBuilderFactory() {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
