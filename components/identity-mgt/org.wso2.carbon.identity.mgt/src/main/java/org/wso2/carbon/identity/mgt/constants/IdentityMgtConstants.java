@@ -177,6 +177,8 @@ public class IdentityMgtConstants {
 
         public static final String  NOTIFICATION_SENDING_THREAD_POOL_SIZE = "Notification.Sending.Thread.Pool.Size";
 
+        public static final String  NOTIFICATION_SENDING_TIMEOUT = "Notification.Sending.Timeout";
+
         public static final String PASSWORD_POLICY_EXTENSIONS = "Password.policy.extensions";
 
         public static final String PASSWORD_LENGTH_MIN = "Password.policy.min.length";
