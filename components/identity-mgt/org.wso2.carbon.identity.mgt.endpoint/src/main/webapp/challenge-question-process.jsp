@@ -24,13 +24,16 @@
 <%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeQuestion" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 
 <%
     String userName = request.getParameter("username");
@@ -41,9 +44,20 @@
         User user = IdentityManagementServiceUtil.getInstance().getUser(userName);
         session.setAttribute("user", user);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-        ChallengeQuestionResponse challengeQuestionResponse = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
-        session.setAttribute("challengeQuestionResponse", challengeQuestionResponse);
-        request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+        Response response1 = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
+        int status = response1.getStatus();
+        if(Response.Status.OK.getStatusCode() == status) {
+            ChallengeQuestionResponse challengeQuestionResponse = response1.readEntity(ChallengeQuestionResponse.class);
+            session.setAttribute("challengeQuestionResponse", challengeQuestionResponse);
+            request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+        } else if (Response.Status.BAD_REQUEST.getStatusCode() == status || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == status) {
+            ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", errorResponse.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
+
     } else if(securityQuestionAnswer != null) {
 
         ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
@@ -60,24 +74,65 @@
         verifyAnswerRequest.setUser(user);
         verifyAnswerRequest.setCode(code);
 
-        UserChallengeQuestion userChallengeQuestion = new UserChallengeQuestion();
-        userChallengeQuestion.setQuestion(question);
-        userChallengeQuestion.setQuestionSetId(getQuestionSetId);
-
         UserChallengeAnswer userChallengeAnswer = new UserChallengeAnswer();
-        userChallengeAnswer.setQuestion(userChallengeQuestion);
+        userChallengeAnswer.setQuestion(challengeQuestion);
         userChallengeAnswer.setAnswer(securityQuestionAnswer);
 
         verifyAnswerRequest.setAnswer(userChallengeAnswer);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-        ChallengeQuestionResponse challengeQuestionResponse1 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
-        String status = challengeQuestionResponse1.getStatus();
-        session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
-        
-        if("INCOMPLETE".equals(status)) {
-            request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
-        }else if("COMPLETE".equals(status)) {
+        Response response2 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
+        int statusCode = response2.getStatus();
+        if(Response.Status.OK.getStatusCode() == statusCode) {
+            ChallengeQuestionResponse challengeQuestionResponse1 = response2.readEntity(ChallengeQuestionResponse.class);
+            String status = challengeQuestionResponse1.getStatus();
+            session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
+            if("INCOMPLETE".equals(status)) {
+                request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+            }else if("COMPLETE".equals(status)) {
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+            }
+        } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
+            ErrorResponse errorResponse = response2.readEntity(ErrorResponse.class);
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", errorResponse.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
+    } else if(Boolean.parseBoolean(application.getInitParameter(
+                              IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
+
+        ChallengeQuestionsResponse challengeQuestionsResponse = (ChallengeQuestionsResponse)session.getAttribute("challengeQuestionsResponse");
+        ChallengeQuestion[] challengeQuestions = challengeQuestionsResponse.getQuestion();
+
+        UserChallengeAnswer[] userChallengeAnswers = new UserChallengeAnswer[challengeQuestions.length];
+        for(int i=0;i<challengeQuestions.length;i++){
+
+            String answer = request.getParameter(challengeQuestions[i].getQuestionSetId());
+            UserChallengeAnswer userChallengeAnswer = new UserChallengeAnswer();
+            userChallengeAnswer.setQuestion(challengeQuestions[i]);
+            userChallengeAnswer.setAnswer(answer);
+            userChallengeAnswers[i] = userChallengeAnswer;
+
+        }
+        String code = challengeQuestionsResponse.getCode();
+        User user = (User)session.getAttribute("user");
+        VerifyAllAnswerRequest verifyAllAnswerRequest = new VerifyAllAnswerRequest();
+        verifyAllAnswerRequest.setCode(code);
+        verifyAllAnswerRequest.setUser(user);
+        verifyAllAnswerRequest.setAnswers(userChallengeAnswers);
+        PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+        Response response1 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
+        int statusCode = response1.getStatus();
+        if(Response.Status.OK.getStatusCode() == statusCode) {
+            ChallengeQuestionResponse challengeQuestionResponse1 = response1.readEntity(ChallengeQuestionResponse.class);
+            session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
+            request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+        } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
+            ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", errorResponse.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
         }
     }
 

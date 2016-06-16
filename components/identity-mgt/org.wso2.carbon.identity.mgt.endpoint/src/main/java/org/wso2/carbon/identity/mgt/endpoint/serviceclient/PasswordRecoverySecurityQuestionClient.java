@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.PasswordRecoverySecurityQuestion;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse;
 
 import javax.ws.rs.core.Response;
 
@@ -40,22 +41,20 @@ public class PasswordRecoverySecurityQuestionClient {
             .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                     IdentityManagementEndpointConstants.UserInfoRecovery.REST_API_URL_DOMAIN);
 
-    public ChallengeQuestionResponse initiateUserChallengeQuestion(User user) {
+    public Response initiateUserChallengeQuestion(User user) {
         PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = JAXRSClientFactory
                 .create(url, PasswordRecoverySecurityQuestion.class,
                         IdentityManagementServiceUtil.getInstance().getJSONProvider());
         Response response = passwordRecoverySecurityQuestion.initiateUserChallengeQuestion(user);
-        ChallengeQuestionResponse challengeQuestionResponse = response.readEntity(ChallengeQuestionResponse.class);
-        return challengeQuestionResponse;
+        return response;
     }
 
-    public ChallengeQuestionResponse verifyUserChallengeAnswer(VerifyAnswerRequest verifyAnswerRequest) {
+    public Response verifyUserChallengeAnswer(VerifyAnswerRequest verifyAnswerRequest) {
         PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = JAXRSClientFactory
                 .create(url, PasswordRecoverySecurityQuestion.class,
                         IdentityManagementServiceUtil.getInstance().getJSONProvider());
         Response response = passwordRecoverySecurityQuestion.verifyUserChallengeAnswer(verifyAnswerRequest);
-        ChallengeQuestionResponse challengeQuestionResponse = response.readEntity(ChallengeQuestionResponse.class);
-        return challengeQuestionResponse;
+        return response;
     }
 
     public Response updatePassword(UserPassword userPassword) {
@@ -66,22 +65,20 @@ public class PasswordRecoverySecurityQuestionClient {
         return response;
     }
 
-    public ChallengeQuestionsResponse initiateUserChallengeQuestionAtOnce(User user) {
+    public Response initiateUserChallengeQuestionAtOnce(User user) {
         PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = JAXRSClientFactory
                 .create(url, PasswordRecoverySecurityQuestion.class,
                         IdentityManagementServiceUtil.getInstance().getJSONProvider());
         Response response = passwordRecoverySecurityQuestion.initiateUserChallengeQuestionAtOnce(user);
-        ChallengeQuestionsResponse challengeQuestionsResponse = response.readEntity(ChallengeQuestionsResponse.class);
-        return challengeQuestionsResponse;
+        return response;
     }
 
-    public ChallengeQuestionsResponse verifyUserChallengeAnswerAtOnce(VerifyAllAnswerRequest verifyAllAnswerRequest) {
+    public Response verifyUserChallengeAnswerAtOnce(VerifyAllAnswerRequest verifyAllAnswerRequest) {
         PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = JAXRSClientFactory
                 .create(url, PasswordRecoverySecurityQuestion.class,
                         IdentityManagementServiceUtil.getInstance().getJSONProvider());
         Response response = passwordRecoverySecurityQuestion.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
-        ChallengeQuestionsResponse challengeQuestionsResponse = response.readEntity(ChallengeQuestionsResponse.class);
-        return challengeQuestionsResponse;
+        return response;
     }
 
 }

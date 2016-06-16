@@ -26,68 +26,47 @@
 <%@ page import="org.wso2.carbon.identity.mgt.stub.dto.ChallengeQuestionIdsDTO" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesCollectionDTO" %>
 <%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 
 <%
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
-
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    String confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
-    String[] questionIds;
-
-    UserChallengesDTO[] userChallengesDTOs = null;
-
-    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(confirmationKey)) {
-
-        session.setAttribute("username", username);
-
+    PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+    ChallengeQuestion[] challengeQuestions = null;
+    if (StringUtils.isNotBlank(username)) {
         if (Boolean.parseBoolean(application.getInitParameter(
                 IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
-            UserChallengesCollectionDTO userChallengesCollectionDTO =
-                    userInformationRecoveryClient.getChallengeQuestions(username, confirmationKey);
-            userChallengesDTOs = userChallengesCollectionDTO.getUserChallengesDTOs();
+            User user = IdentityManagementServiceUtil.getInstance().getUser(username);
+            session.setAttribute("user", user);
+            Response response1 = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestionAtOnce(user);
 
-            if (ArrayUtils.isEmpty(userChallengesDTOs)) {
+            int statusCode = response1.getStatus();
+            if(Response.Status.OK.getStatusCode() == statusCode) {
+                ChallengeQuestionsResponse challengeQuestionsResponse = response1.readEntity(ChallengeQuestionsResponse.class);
+                session.setAttribute("challengeQuestionsResponse", challengeQuestionsResponse);
+                challengeQuestions = challengeQuestionsResponse.getQuestion();
+            } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
+                ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                                     "Could not find Security Questions. Seems you have not configured them.");
+                request.setAttribute("errorMsg", errorResponse.getMessage());
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
-
-            questionIds = new String[userChallengesDTOs.length];
-            session.setAttribute("confirmationKey", userChallengesCollectionDTO.getKey());
         } else {
-            ChallengeQuestionIdsDTO challengeQuestionIds =
-                    userInformationRecoveryClient.getUserChallengeQuestionIds(username,
-                                                                              confirmationKey);
-
-            if (challengeQuestionIds != null) {
-                questionIds = challengeQuestionIds.getIds();
-
-                if (ArrayUtils.isEmpty(questionIds)) {
-                    request.setAttribute("error", true);
-                    request.setAttribute("errorMsg",
-                                         "Could not find Security Questions. Seems you have not configured them.");
-                    request.getRequestDispatcher("error.jsp").forward(request, response);
-                    return;
-                }
-
-                session.setAttribute("confirmationKey", challengeQuestionIds.getKey());
-                session.setAttribute("questionIdentifiers", questionIds);
-                request.getRequestDispatcher("processsecurityquestions.do").forward(request, response);
-                return;
-            } else {
-                request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                                     "Could not find Security Questions. Seems you have not configured them.");
-                request.getRequestDispatcher("error.jsp").forward(request, response);
-                return;
-            }
+            request.getRequestDispatcher("challenge-question-process.jsp?username=" + username).forward(request,
+                            response);
         }
     } else {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-                             "Username or confirmation code is missing.");
+        request.setAttribute("errorMsg", "Username is missing.");
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
@@ -139,22 +118,21 @@
                         <form method="post" action="processsecurityquestions.do" id="securityQuestionForm">
                             <%
                                 int count = 0;
-                                for (UserChallengesDTO userChallengesDTO : userChallengesDTOs) {
+                                if (challengeQuestions != null) {
+                                    for (ChallengeQuestion challengeQuestion : challengeQuestions) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label"><%=Encode.forHtml(userChallengesDTO.getQuestion())%>
+                                <label class="control-label"><%=Encode.forHtml(challengeQuestion.getQuestion())%>
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input name="<%=Encode.forHtmlAttribute(userChallengesDTO.getId())%>" type="text"
+                                <input name="<%=Encode.forHtmlAttribute(challengeQuestion.getQuestionSetId())%>" type="text"
                                        class="form-control"
                                        tabindex="0" autocomplete="off" required/>
                             </div>
                             <%
-                                    questionIds[count++] = userChallengesDTO.getId();
+                                    }
                                 }
-
-                                session.setAttribute("questionIdentifiers", questionIds);
                             %>
 
                             <div class="form-actions">

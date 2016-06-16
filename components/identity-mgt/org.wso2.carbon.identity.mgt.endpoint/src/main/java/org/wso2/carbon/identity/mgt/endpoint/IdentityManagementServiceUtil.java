@@ -217,11 +217,13 @@ public class IdentityManagementServiceUtil {
             return null;
         }
 
-        String userStoreDomain = UserCoreUtil.extractDomainFromName(userName);
+        String userStoreDomain = IdentityUtil.extractDomainFromName(userName);
         String tenantDomain = MultitenantUtils.getTenantDomain(userName);
+        String userNameWithoutTenantDomainAndUserStoreDomain = MultitenantUtils
+                .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(userName));
 
         User user = new User();
-        user.setUserName(userName);
+        user.setUserName(userNameWithoutTenantDomainAndUserStoreDomain);
         user.setUserStoreDomain(userStoreDomain);
         user.setTenantDomain(tenantDomain);
 

@@ -126,7 +126,7 @@
                 request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);
             } else if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.SECURITY_QUESTIONS
                     .equals(recoveryOption)) {
-                request.getRequestDispatcher("challenge-question-process.jsp?username=" + username).forward(request,
+                request.getRequestDispatcher("challenge-question-request.jsp?username=" + username).forward(request,
                 response);
             } else {
                 request.setAttribute("error", true);
