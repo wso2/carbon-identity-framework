@@ -124,7 +124,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
      * @throws ParserConfigurationException
      */
     private DocumentBuilder getSecuredDocumentBuilder() throws ParserConfigurationException {
-        DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
+        DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         return documentBuilder;
     }
