@@ -73,6 +73,7 @@ public class IdentityMgtConfig {
     private int authPolicyLockingTime;
     private int authPolicyPasswordExpireTime;
     private int notificationExpireTime;
+    private int notificationSendingThreadPoolSize;
     private boolean authPolicyAccountLockCheck;
     private boolean authPolicyAccountDisableCheck;
     private boolean authPolicyAccountExistCheck;
@@ -346,6 +347,13 @@ public class IdentityMgtConfig {
                 this.registryCleanUpPeriod = Long.parseLong(registryCleanUpPeriod);
             }
 
+            String tempNotificationSendingThreadPoolSize = properties
+                    .getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SENDING_THREAD_POOL_SIZE);
+
+            if (tempNotificationSendingThreadPoolSize != null) {
+                notificationSendingThreadPoolSize = Integer.parseInt(tempNotificationSendingThreadPoolSize);
+            }
+
             int i = 1;
             while (true) {
                 String module = properties.
@@ -537,6 +545,10 @@ public class IdentityMgtConfig {
 
     public int getNotificationExpireTime() {
         return notificationExpireTime;
+    }
+
+    public int getNotificationSendingThreadPoolSize() {
+        return notificationSendingThreadPoolSize;
     }
 
     public boolean isListenerEnable() {

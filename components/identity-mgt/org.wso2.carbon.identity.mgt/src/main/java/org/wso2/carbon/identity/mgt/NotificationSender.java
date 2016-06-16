@@ -26,8 +26,19 @@ import java.util.concurrent.Executors;
  */
 public class NotificationSender {
 
-    private static ExecutorService threadPool = Executors.newFixedThreadPool(5);
+    private static ExecutorService threadPool = null;
     NotificationSendingModule module;
+
+    static {
+        threadPool = Executors.newFixedThreadPool(5);
+        IdentityMgtConfig identityMgtConfig = IdentityMgtConfig.getInstance();
+        if (identityMgtConfig != null) {
+            int threadPoolSize = identityMgtConfig.getNotificationSendingThreadPoolSize();
+            if (threadPoolSize > 0) {
+                threadPool = Executors.newFixedThreadPool(threadPoolSize);
+            }
+        }
+    }
 
     /**
      * creates and submits a task to the thread pool
