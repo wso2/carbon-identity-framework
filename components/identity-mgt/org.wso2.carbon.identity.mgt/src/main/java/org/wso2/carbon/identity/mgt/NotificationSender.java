@@ -46,8 +46,8 @@ public class NotificationSender {
                 threadPoolSize = 5;
             }
 
-            Executors.newFixedThreadPool(threadPoolSize);
-            
+            threadPool = Executors.newFixedThreadPool(threadPoolSize);
+
             if (notificationSendingTimeout > 0) {
                 try {
                     threadPool.awaitTermination(notificationSendingTimeout * 1000, TimeUnit.MILLISECONDS);
