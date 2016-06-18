@@ -29,6 +29,9 @@ import javax.xml.bind.annotation.*;
         "enableChildSearch"
 })
 @XmlRootElement(name = "EntitledAttributesRequest")
+/**
+ * Modeel class representing Entitled Attributes Request
+ */
 public class EntitledAttributesRequestModel {
     @XmlElement(required = false)
     private String subjectName;
