@@ -26,6 +26,9 @@ import javax.xml.bind.annotation.*;
 @XmlType(propOrder = {
         "entitledResultSetDTO"
 })
+/**
+ * Model class representing the Entitled Attributes Response
+ */
 @XmlRootElement(name = "EntitledAttributesResponse")
 public class EntitledAttributesResponseModel {
     @XmlElement(required = true)

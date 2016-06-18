@@ -28,6 +28,9 @@ import javax.xml.bind.annotation.*;
         "environment"
 })
 @XmlRootElement(name = "DecisionRequest")
+/**
+ * Model class representing Decision/By-attribs request
+ */
 public class DecisionRequestModel {
     @XmlElement(required = false)
     private String subject;
