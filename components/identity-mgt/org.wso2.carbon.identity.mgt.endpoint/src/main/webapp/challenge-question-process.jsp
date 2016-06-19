@@ -44,14 +44,14 @@
         User user = IdentityManagementServiceUtil.getInstance().getUser(userName);
         session.setAttribute("user", user);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-        Response response1 = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
-        int status = response1.getStatus();
+        Response responseJAXRS = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestion(user);
+        int status = responseJAXRS.getStatus();
         if(Response.Status.OK.getStatusCode() == status) {
-            ChallengeQuestionResponse challengeQuestionResponse = response1.readEntity(ChallengeQuestionResponse.class);
+            ChallengeQuestionResponse challengeQuestionResponse = responseJAXRS.readEntity(ChallengeQuestionResponse.class);
             session.setAttribute("challengeQuestionResponse", challengeQuestionResponse);
             request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == status || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == status) {
-            ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
+            ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
             request.setAttribute("error", true);
             request.setAttribute("errorMsg", errorResponse.getMessage());
             request.getRequestDispatcher("error.jsp").forward(request, response);
@@ -80,10 +80,10 @@
 
         verifyAnswerRequest.setAnswer(userChallengeAnswer);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-        Response response2 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
-        int statusCode = response2.getStatus();
+        Response responseJAXRS = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
+        int statusCode = responseJAXRS.getStatus();
         if(Response.Status.OK.getStatusCode() == statusCode) {
-            ChallengeQuestionResponse challengeQuestionResponse1 = response2.readEntity(ChallengeQuestionResponse.class);
+            ChallengeQuestionResponse challengeQuestionResponse1 = responseJAXRS.readEntity(ChallengeQuestionResponse.class);
             String status = challengeQuestionResponse1.getStatus();
             session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
             if("INCOMPLETE".equals(status)) {
@@ -92,7 +92,7 @@
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
             }
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
-            ErrorResponse errorResponse = response2.readEntity(ErrorResponse.class);
+            ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
             request.setAttribute("error", true);
             request.setAttribute("errorMsg", errorResponse.getMessage());
             request.getRequestDispatcher("error.jsp").forward(request, response);
@@ -121,14 +121,14 @@
         verifyAllAnswerRequest.setUser(user);
         verifyAllAnswerRequest.setAnswers(userChallengeAnswers);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-        Response response1 = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
-        int statusCode = response1.getStatus();
+        Response responseJAXRS = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
+        int statusCode = responseJAXRS.getStatus();
         if(Response.Status.OK.getStatusCode() == statusCode) {
-            ChallengeQuestionResponse challengeQuestionResponse1 = response1.readEntity(ChallengeQuestionResponse.class);
+            ChallengeQuestionResponse challengeQuestionResponse1 = responseJAXRS.readEntity(ChallengeQuestionResponse.class);
             session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
-            ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
+            ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
             request.setAttribute("error", true);
             request.setAttribute("errorMsg", errorResponse.getMessage());
             request.getRequestDispatcher("error.jsp").forward(request, response);

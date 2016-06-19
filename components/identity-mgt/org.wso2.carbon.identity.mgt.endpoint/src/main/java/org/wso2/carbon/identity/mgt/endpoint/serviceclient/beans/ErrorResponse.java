@@ -22,6 +22,9 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Store unmarshalled error information
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "")
 public class ErrorResponse {

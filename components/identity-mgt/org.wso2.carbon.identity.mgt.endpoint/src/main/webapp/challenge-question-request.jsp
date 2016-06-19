@@ -46,15 +46,15 @@
                 IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
             User user = IdentityManagementServiceUtil.getInstance().getUser(username);
             session.setAttribute("user", user);
-            Response response1 = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestionAtOnce(user);
+            Response responseJAXRS = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestionAtOnce(user);
 
-            int statusCode = response1.getStatus();
+            int statusCode = responseJAXRS.getStatus();
             if(Response.Status.OK.getStatusCode() == statusCode) {
-                ChallengeQuestionsResponse challengeQuestionsResponse = response1.readEntity(ChallengeQuestionsResponse.class);
+                ChallengeQuestionsResponse challengeQuestionsResponse = responseJAXRS.readEntity(ChallengeQuestionsResponse.class);
                 session.setAttribute("challengeQuestionsResponse", challengeQuestionsResponse);
                 challengeQuestions = challengeQuestionsResponse.getQuestion();
             } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
-                ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
+                ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg", errorResponse.getMessage());
                 request.getRequestDispatcher("error.jsp").forward(request, response);
