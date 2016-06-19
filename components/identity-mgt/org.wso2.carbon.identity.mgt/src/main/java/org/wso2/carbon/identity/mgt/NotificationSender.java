@@ -18,8 +18,11 @@
 
 package org.wso2.carbon.identity.mgt;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * email sender this creates a new task in thread pool for each email sending request
@@ -28,6 +31,29 @@ public class NotificationSender {
 
     private static ExecutorService threadPool = Executors.newFixedThreadPool(5);
     NotificationSendingModule module;
+    private static final Log log = LogFactory.getLog(NotificationSender.class);
+
+    static {
+
+        IdentityMgtConfig identityMgtConfig = IdentityMgtConfig.getInstance();
+        if (identityMgtConfig != null) {
+
+            int threadPoolSize = identityMgtConfig.getNotificationSendingThreadPoolSize();
+            int notificationSendingTimeout = identityMgtConfig.getNotificationSendingTimeout();
+
+            if (threadPoolSize > 0) {
+                threadPool = Executors.newFixedThreadPool(threadPoolSize);
+            }
+
+            if (notificationSendingTimeout > 0) {
+                try {
+                    threadPool.awaitTermination(notificationSendingTimeout * 1000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    log.error("Interruption occurred while waiting for termination", e);
+                }
+            }
+        }
+    }
 
     /**
      * creates and submits a task to the thread pool
