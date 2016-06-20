@@ -45,6 +45,10 @@
             <artifactId>org.wso2.carbon.logging</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.ui</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.directory.server.manager.stub</artifactId>
         </dependency>

@@ -86,12 +86,24 @@
 		topPage="false" request="<%=request%>" />
 
     <script type="text/javascript">
+        function removeSet(row) {
+            function doDelete() {
+                $.ajax({
+                    type: 'POST',
+                    url: 'challenges-mgt-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
+                    },
+                    data: 'removeSetId=' + encodeURIComponent(row),
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("challenges-set-mgt.jsp");
+                        }
+                    }
+                });
+            }
 
-        function removeSet(row){
-        	function doDelete() {
-            	location.href= 'challenges-mgt-finish.jsp?removeSetId=' + encodeURIComponent(row);
-        	}
-            
             CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.challenge.set"/> " + row + " ?", doDelete, null);
         }
 

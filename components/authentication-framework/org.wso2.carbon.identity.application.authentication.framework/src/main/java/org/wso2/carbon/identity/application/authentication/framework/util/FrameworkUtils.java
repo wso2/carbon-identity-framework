@@ -483,8 +483,8 @@ public class FrameworkUtils {
 
         IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
 
-        if (commonAuthIdCookieConfig != null)   {
-            if (commonAuthIdCookieConfig.getDomain() != null)   {
+        if (commonAuthIdCookieConfig != null) {
+            if (commonAuthIdCookieConfig.getDomain() != null) {
                 cookieBuilder.setDomain(commonAuthIdCookieConfig.getDomain());
             }
 
@@ -492,26 +492,36 @@ public class FrameworkUtils {
                 cookieBuilder.setPath(commonAuthIdCookieConfig.getPath());
             }
 
-            if (commonAuthIdCookieConfig.getComment() != null)  {
+            if (commonAuthIdCookieConfig.getComment() != null) {
                 cookieBuilder.setComment(commonAuthIdCookieConfig.getComment());
             }
 
-            if (commonAuthIdCookieConfig.getMaxAge() > 0)   {
+            if (commonAuthIdCookieConfig.getMaxAge() > 0) {
                 cookieBuilder.setMaxAge(commonAuthIdCookieConfig.getMaxAge());
             } else if (age != null) {
                 cookieBuilder.setMaxAge(age);
             }
 
-            if (commonAuthIdCookieConfig.getVersion() > 0)  {
+            if (commonAuthIdCookieConfig.getVersion() > 0) {
                 cookieBuilder.setVersion(commonAuthIdCookieConfig.getVersion());
             }
 
-            if (commonAuthIdCookieConfig.isHttpOnly())  {
+            if (commonAuthIdCookieConfig.isHttpOnly()) {
                 cookieBuilder.setHttpOnly(commonAuthIdCookieConfig.isHttpOnly());
             }
 
-            if (commonAuthIdCookieConfig.isSecure())    {
+            if (commonAuthIdCookieConfig.isSecure()) {
                 cookieBuilder.setSecure(commonAuthIdCookieConfig.isSecure());
+            }
+
+        } else {
+
+            cookieBuilder.setSecure(true);
+            cookieBuilder.setHttpOnly(true);
+            cookieBuilder.setPath("/");
+
+            if (age != null) {
+                cookieBuilder.setMaxAge(age);
             }
         }
 

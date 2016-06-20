@@ -19,18 +19,18 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 <%@page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@page import="org.owasp.encoder.Encode" %>
 <%@page import="org.wso2.carbon.CarbonConstants" %>
 <%@page import="org.wso2.carbon.directory.common.stub.types.ServerPrinciple" %>
-<%@page import="org.wso2.carbon.directory.server.manager.ui.DirectoryServerManagerClient" %>
 
-<%@page import="org.wso2.carbon.ui.CarbonUIMessage"%>
+<%@page import="org.wso2.carbon.directory.server.manager.ui.DirectoryServerManagerClient"%>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 
-<script type="text/javascript" src="../admin/js/main.js"></script>
-
-<jsp:include page="../dialog/display_messages.jsp"/>
+<script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+<script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
+<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
 
 <fmt:bundle basename="org.wso2.carbon.directory.server.manager.ui.i18n.Resources">
 
@@ -47,11 +47,25 @@
 
         function deleteServicePrinciple(spn) {
 
-            function doDelete(){
-                var spnName = spn;
-                location.href = 'delete-finish.jsp?spnName=' + spnName;
+            function doDelete() {
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'delete-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
+                    },
+                    data: 'spnName=' + spn,
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("index.jsp");
+                        }
+                    }
+                });
             }
-            CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.spn"/> \'"+ spn + "\'?", doDelete, null);
+
+            CARBON.showConfirmationDialog('<fmt:message key="confirm.delete.spn"/>' + spn + '?', doDelete, null);
         }
 
         function changeSpnPassword(spn) {
@@ -155,9 +169,15 @@
                                 <td><%=Encode.forHtml(principle.getServerName())%></td>
                                 <td><%=Encode.forHtml(principle.getServerDescription())%></td>
                                 <td>
-                                    <a href="#" onclick="changeSpnPassword('<%=Encode.forJavascriptAttribute(principle.getServerName())%>')" class="icon-link" style="background-image:url(images/edit.gif);"><fmt:message key="edit"/></a>
+                                    <a href="#"
+                                       onclick="changeSpnPassword('<%=Encode.forJavaScriptAttribute(principle.getServerName())%>')"
+                                       class="icon-link" style="background-image:url(images/edit.gif);"><fmt:message
+                                            key="edit"/></a>
                                      &nbsp;
-                                    <a href="#" onclick="deleteServicePrinciple('<%=Encode.forJavascriptAttribute(principle.getServerName())%>')" class="icon-link" style="background-image:url(images/delete.gif);"><fmt:message key="delete"/></a>
+                                    <a href="#"
+                                       onclick="deleteServicePrinciple('<%=Encode.forJavaScriptAttribute(principle.getServerName())%>')"
+                                       class="icon-link" style="background-image:url(images/delete.gif);"><fmt:message
+                                            key="delete"/></a>
                                 </td>
                             </tr>
 

@@ -34,6 +34,12 @@
              class="org.wso2.carbon.user.mgt.ui.RoleBean" scope="session"/>
 <jsp:setProperty name="roleBean" property="*" />
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String forwardTo = null;
     String roleName = null;
     String roleType = null;

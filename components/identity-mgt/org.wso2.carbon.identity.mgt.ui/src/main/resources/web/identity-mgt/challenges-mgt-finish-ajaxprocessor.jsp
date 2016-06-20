@@ -35,6 +35,12 @@
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     List<ChallengeQuestionDTO> challenges =  new ArrayList<ChallengeQuestionDTO>();
     String  removeSetId = request.getParameter("removeSetId");
 

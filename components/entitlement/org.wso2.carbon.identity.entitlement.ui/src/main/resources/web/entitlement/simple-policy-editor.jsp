@@ -155,7 +155,7 @@
     function doSubmit(){
         if(doValidationPolicyNameOnly()){
             preSubmit();
-            document.dataForm.action = "simple-policy-finish.jsp";
+            document.dataForm.action = "simple-policy-finish-ajaxprocessor.jsp";
             document.dataForm.submit();
         }
     }

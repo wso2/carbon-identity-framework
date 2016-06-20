@@ -653,7 +653,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throw new IdentityUserStoreMgtException(errorMessage);
         }
 
-        DocumentBuilderFactory documentFactory = IdentityUtil.getSecuredDocumentBuilder();
+        DocumentBuilderFactory documentFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
         DocumentBuilder documentBuilder = null;
         try {
             documentBuilder = documentFactory.newDocumentBuilder();
@@ -795,7 +795,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     private void writeUserMgtXMLFile(File userStoreConfigFile, UserStoreDTO userStoreDTO,
                                      boolean editSecondaryUserStore) throws IdentityUserStoreMgtException {
         StreamResult result = new StreamResult(userStoreConfigFile);
-        DocumentBuilderFactory docFactory = IdentityUtil.getSecuredDocumentBuilder();
+        DocumentBuilderFactory docFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
 
         try {
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();

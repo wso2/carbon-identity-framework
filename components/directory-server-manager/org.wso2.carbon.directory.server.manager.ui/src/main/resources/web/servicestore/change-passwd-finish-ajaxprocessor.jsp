@@ -27,14 +27,20 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 
 <%
-    String servicePrincipleName = request.getParameter("serviceName");
-    String description = request.getParameter("serviceDescription");
-    String password = request.getParameter("password");
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
+    String servicePrincipleName = request.getParameter("spnName");
+    String oldPassword = request.getParameter("currentPassword");
+    String newPassword = request.getParameter("newPassword");
+
+    String forwardTo = null;
     String spName = (String) session.getAttribute("application-sp-name");
     session.removeAttribute("application-sp-name");
     boolean isError = false;
-
-    String forwardTo = null;
 
     String BUNDLE = "org.wso2.carbon.directory.server.manager.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -57,20 +63,21 @@
             session.setAttribute(DirectoryServerManagerClient.SERVER_MANAGER_CLIENT, serverManager);
         }
 
-        serverManager.addServicePrinciple(servicePrincipleName, description, password);
+        serverManager.updatePassword(servicePrincipleName, oldPassword, newPassword);
 
-        String message = MessageFormat.format(resourceBundle.getString("service.added"),
+        String message = MessageFormat.format(resourceBundle.getString("password.change.successful"),
                 new Object[]{servicePrincipleName});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
 
         forwardTo = "index.jsp";
+        
 
     } catch (Exception e) {
         isError = true;
         String message = MessageFormat.format(resourceBundle.getString(e.getMessage()),
                 new Object[]{servicePrincipleName});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        forwardTo = "add-step1.jsp";
+        forwardTo = "change-passwd.jsp?spnName=" + Encode.forUriComponent(servicePrincipleName);
     }
 %>
 
@@ -91,10 +98,10 @@
         }
     }else {
     %>
-    location.href = '<%=forwardTo%>';
+    location.href = '<%=Encode.forJavaScriptBlock(forwardTo)%>';
     <% } %>
-
 </script>
+
 
 <script type="text/javascript">
     forward();

@@ -38,44 +38,7 @@
     <carbon:breadcrumb label="system.user.store"
                        resourceBundle="org.wso2.carbon.userstore.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-
-
-    <script type="text/javascript">
-        function deleteUserStore() {
-            CARBON.showConfirmationDialog('<fmt:message key="confirm.delete.userstore"/> ' + '?', doDelete, null);
-        }
-
-        function doDelete() {
-            location.href = 'delete-finish.jsp';
-        }
-        function displayToken() {
-            //alert(cookie + backendURL);
-            sessionAwareFunction(function () {
-                new Ajax.Request('../resources/get_accesstoken_ajaxprocessor.jsp',
-                                 {
-                                     method:'post',
-                                     parameters:{},
-
-                                     onSuccess:function (transport) {
-                                         var response = transport.responseText;
-                                         var startIndex = response.indexOf("$$$");
-                                         var endIndex = response.lastIndexOf("$$$")
-                                         var token = response.substring(startIndex + 3, endIndex);
-                                         CARBON.showInfoDialog("Your access token is: " + token);
-
-
-                                     },
-
-                                     onFailure:function (transport) {
-                                         CARBON.showErrorDialog("Unbale to get the access token");
-
-                                     }
-                                 });
-            }, "session timed out");
-        }
-
-    </script>
-    <%
+        <%
     	UserRealmInfo userRealmInfo = null;
             String currentUser = (String) session.getAttribute("logged-user");
 

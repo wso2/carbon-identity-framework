@@ -66,7 +66,7 @@ public class PAPPolicyReader implements ErrorHandler {
         this.policyFinder = policyFinder;
 
         // create the factory
-        DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
+        DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
         documentBuilderFactory.setIgnoringComments(true);
 
         // now use the factory to create the document builder
