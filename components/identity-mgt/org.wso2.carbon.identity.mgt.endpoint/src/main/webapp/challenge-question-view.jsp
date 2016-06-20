@@ -20,11 +20,13 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 
 <%
    ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
+   ErrorResponse errorResponse = (ErrorResponse)session.getAttribute("errorResponse");
 %>
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -67,6 +69,15 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
+            <%
+                if(errorResponse != null) {
+            %>
+                     <div class="alert alert-danger" id="server-error-msg">
+                        <%=errorResponse.getMessage()%>
+                     </div>
+            <%
+                }
+            %>
                 <div class="clearfix"></div>
                 <div class="boarder-all ">
 

@@ -93,9 +93,8 @@
             }
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
             ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg", errorResponse.getMessage());
-            request.getRequestDispatcher("error.jsp").forward(request, response);
+            session.setAttribute("errorResponse", errorResponse);
+            request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
             return;
         }
     } else if(Boolean.parseBoolean(application.getInitParameter(
@@ -129,9 +128,8 @@
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
             ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg", errorResponse.getMessage());
-            request.getRequestDispatcher("error.jsp").forward(request, response);
+            session.setAttribute("errorResponse", errorResponse);
+            request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
             return;
         }
     }
