@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.AuthnDataPublishHandlerManager;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -35,7 +35,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -50,7 +49,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
@@ -179,19 +177,13 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     private void publishSessionTermination(String sessionId, HttpServletRequest request, AuthenticationContext
             context, SessionContext sessionContext, AuthenticatedUser user) {
-
-        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
-
-        if (dataPublishers.size() > 0) {
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
             paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                if(publisher != null && publisher.isEnabled()) {
-                    publisher.publishSessionTermination(request, context, sessionContext, unmodifiableParamMap);
-                }
-            }
+            AuthnDataPublishHandlerManager.getInstance().publishSessionTermination(request, context, sessionContext,
+                    unmodifiableParamMap);
         }
     }
 
