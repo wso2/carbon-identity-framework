@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -127,10 +126,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
                                                   AuthenticatedUser user, boolean success) {
 
-        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance()
-                .getDataPublishers();
-
-        if (dataPublishers.size() > 0) {
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
             paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, this instanceof
@@ -145,7 +141,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         unmodifiableParamMap);
             }
         }
-
     }
 
     protected void initiateAuthenticationRequest(HttpServletRequest request,

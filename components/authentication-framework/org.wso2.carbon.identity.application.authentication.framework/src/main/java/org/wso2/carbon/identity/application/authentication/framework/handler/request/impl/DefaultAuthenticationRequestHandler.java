@@ -341,36 +341,43 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
-
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-        if (user != null) {
-            paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, user.isFederatedUser());
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            if (user != null) {
+                paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, user.isFederatedUser());
+            }
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            AuthnDataPublishHandlerManager.getInstance().publishAuthenticationSuccess(request, context,
+                    unmodifiableParamMap);
         }
-        Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-        AuthnDataPublishHandlerManager.getInstance().publishAuthenticationSuccess(request, context, unmodifiableParamMap);
     }
 
 
     private void publishSessionCreation(String sessionId, HttpServletRequest request, AuthenticationContext context,
                                         SessionContext sessionContext, AuthenticatedUser user) {
 
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-        paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
-        Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-        AuthnDataPublishHandlerManager.getInstance().publishSessionCreation(request, context, sessionContext, unmodifiableParamMap);
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            AuthnDataPublishHandlerManager.getInstance().publishSessionCreation(request, context, sessionContext,
+                    unmodifiableParamMap);
+        }
     }
 
     private void publishSessionUpdate(String sessionId, HttpServletRequest request, AuthenticationContext context,
                                       SessionContext sessionContext, AuthenticatedUser user) {
 
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-        paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
-        Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-        AuthnDataPublishHandlerManager.getInstance().publishSessionUpdate(request, context, sessionContext,
-                unmodifiableParamMap);
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            AuthnDataPublishHandlerManager.getInstance().publishSessionUpdate(request, context, sessionContext,
+                    unmodifiableParamMap);
+        }
     }
 
 
