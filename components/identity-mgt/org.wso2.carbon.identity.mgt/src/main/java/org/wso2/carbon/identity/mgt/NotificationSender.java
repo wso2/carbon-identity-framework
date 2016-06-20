@@ -36,26 +36,24 @@ public class NotificationSender {
     static {
 
         IdentityMgtConfig identityMgtConfig = IdentityMgtConfig.getInstance();
+        int threadPoolSize = 5;
+        int notificationSendingTimeout = 0;
         if (identityMgtConfig != null) {
 
-            int threadPoolSize = identityMgtConfig.getNotificationSendingThreadPoolSize();
-            int notificationSendingTimeout = identityMgtConfig.getNotificationSendingTimeout();
+            threadPoolSize = identityMgtConfig.getNotificationSendingThreadPoolSize();
+            notificationSendingTimeout = identityMgtConfig.getNotificationSendingTimeout();
 
             if (threadPoolSize <= 0) {
                 threadPoolSize = 5;
             }
-
-            threadPool = Executors.newFixedThreadPool(threadPoolSize);
-
-            if (notificationSendingTimeout > 0) {
-                try {
-                    threadPool.awaitTermination(notificationSendingTimeout * 1000, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                    log.error("Interruption occurred while waiting for termination", e);
-                }
+        }
+        threadPool = Executors.newFixedThreadPool(threadPoolSize);
+        if (notificationSendingTimeout > 0) {
+            try {
+                threadPool.awaitTermination(notificationSendingTimeout * 1000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                log.error("Interruption occurred while waiting for termination", e);
             }
-        } else {
-            threadPool = Executors.newFixedThreadPool(5);
         }
     }
 
