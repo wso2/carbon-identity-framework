@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class NotificationSender {
 
-    private static ExecutorService threadPool = Executors.newFixedThreadPool(5);
+    private static ExecutorService threadPool = null;
     NotificationSendingModule module;
     private static final Log log = LogFactory.getLog(NotificationSender.class);
 
@@ -41,9 +41,11 @@ public class NotificationSender {
             int threadPoolSize = identityMgtConfig.getNotificationSendingThreadPoolSize();
             int notificationSendingTimeout = identityMgtConfig.getNotificationSendingTimeout();
 
-            if (threadPoolSize > 0) {
-                threadPool = Executors.newFixedThreadPool(threadPoolSize);
+            if (threadPoolSize <= 0) {
+                threadPoolSize = 5;
             }
+
+            threadPool = Executors.newFixedThreadPool(threadPoolSize);
 
             if (notificationSendingTimeout > 0) {
                 try {
@@ -52,6 +54,8 @@ public class NotificationSender {
                     log.error("Interruption occurred while waiting for termination", e);
                 }
             }
+        } else {
+            threadPool = Executors.newFixedThreadPool(5);
         }
     }
 
