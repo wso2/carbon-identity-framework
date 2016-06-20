@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthnDataPublishHandlerManager;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -49,7 +48,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -343,59 +341,39 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
-
-        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
-        if (dataPublishers.size() > 0) {
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
             if (user != null) {
                 paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, user.isFederatedUser());
             }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                if(publisher != null && publisher.isEnabled()) {
-                    publisher.publishAuthenticationSuccess(request, context, unmodifiableParamMap);
-                }
-
-            }
+            AuthnDataPublishHandlerManager.getInstance().publishAuthenticationSuccess(request, context, unmodifiableParamMap);
         }
-
     }
 
 
     private void publishSessionCreation(String sessionId, HttpServletRequest request, AuthenticationContext context,
                                         SessionContext sessionContext, AuthenticatedUser user) {
-
-        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
-
-        if (dataPublishers.size() > 0) {
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
             paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                if(publisher != null && publisher.isEnabled()) {
-                    publisher.publishSessionCreation(request, context, sessionContext, unmodifiableParamMap);
-                }
-            }
+            AuthnDataPublishHandlerManager.getInstance().publishSessionCreation(request, context, sessionContext,
+                    unmodifiableParamMap);
         }
     }
 
     private void publishSessionUpdate(String sessionId, HttpServletRequest request, AuthenticationContext context,
-                                        SessionContext sessionContext, AuthenticatedUser user) {
-
-        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
-
-        if (dataPublishers.size() > 0) {
+                                      SessionContext sessionContext, AuthenticatedUser user) {
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
             paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                if(publisher != null && publisher.isEnabled()) {
-                    publisher.publishSessionUpdate(request, context, sessionContext, unmodifiableParamMap);
-                }
-            }
+            AuthnDataPublishHandlerManager.getInstance().publishSessionUpdate(request, context, sessionContext,
+                    unmodifiableParamMap);
         }
     }
 

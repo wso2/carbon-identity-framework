@@ -27,7 +27,8 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationData;
 import org.wso2.carbon.identity.application.authentication.framework.model.SessionData;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
+import org.wso2.carbon.identity.core.bean.context.MessageContext;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,12 +36,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public abstract class AbstractAuthenticationDataPublisher extends AbstractIdentityHandler {
+public abstract class AbstractAuthenticationDataPublisher extends AbstractIdentityMessageHandler {
 
     private static final Log log = LogFactory.getLog(AbstractAuthenticationDataPublisher.class);
     public static final String UNKNOWN = "unknown";
     // HTTP headers which may contain IP address of the client in the order of priority
-    private static final String[] HEADERS_TO_TRY = {
+    private static final String[] HEADERS_WITH_IP = {
             "X-Forwarded-For",
             "Proxy-Client-IP",
             "WL-Proxy-Client-IP",
@@ -441,7 +442,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
      * @return IP address of the initial client
      */
     protected String getClientIpAddress(HttpServletRequest request) {
-        for (String header : HEADERS_TO_TRY) {
+        for (String header : HEADERS_WITH_IP) {
             String ip = request.getHeader(header);
             if (ip != null && ip.length() != 0 && !UNKNOWN.equalsIgnoreCase(ip)) {
                 return getFirstIP(ip);
@@ -461,5 +462,10 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             return commaSeparatedIPs.split(",")[0];
         }
         return commaSeparatedIPs;
+    }
+
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true;
     }
 }
