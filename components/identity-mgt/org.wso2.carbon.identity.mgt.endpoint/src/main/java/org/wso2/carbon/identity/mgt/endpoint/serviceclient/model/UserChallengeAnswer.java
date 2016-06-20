@@ -27,23 +27,23 @@ import java.io.Serializable;
 @XmlRootElement(name = "answer")
 public class UserChallengeAnswer implements Serializable {
 
-    private UserChallengeQuestion question;
+    private ChallengeQuestion question;
 
     private String answer;
 
     public UserChallengeAnswer() {
     }
 
-    public UserChallengeAnswer(UserChallengeQuestion question, String answer) {
+    public UserChallengeAnswer(ChallengeQuestion question, String answer) {
         this.question = question;
         this.answer = answer;
     }
 
-    public UserChallengeQuestion getQuestion() {
+    public ChallengeQuestion getQuestion() {
         return question;
     }
 
-    public void setQuestion(UserChallengeQuestion question) {
+    public void setQuestion(ChallengeQuestion question) {
         this.question = question;
     }
 

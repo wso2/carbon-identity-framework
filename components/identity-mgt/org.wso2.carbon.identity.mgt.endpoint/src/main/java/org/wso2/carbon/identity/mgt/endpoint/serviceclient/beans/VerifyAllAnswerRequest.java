@@ -64,7 +64,7 @@ public class VerifyAllAnswerRequest implements Serializable {
         this.user = user;
     }
 
-    public void setAnswers(UserChallengeAnswer[] answer) {
+    public void setAnswers(UserChallengeAnswer[] answers) {
         this.answers = answers;
     }
 
