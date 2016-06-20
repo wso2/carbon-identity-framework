@@ -177,12 +177,14 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
     private void publishSessionTermination(String sessionId, HttpServletRequest request, AuthenticationContext
             context, SessionContext sessionContext, AuthenticatedUser user) {
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-        paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
-        Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-        AuthnDataPublishHandlerManager.getInstance().publishSessionTermination(request, context, sessionContext,
-                unmodifiableParamMap);
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            AuthnDataPublishHandlerManager.getInstance().publishSessionTermination(request, context, sessionContext,
+                    unmodifiableParamMap);
+        }
     }
 
     protected void sendResponse(HttpServletRequest request, HttpServletResponse response,

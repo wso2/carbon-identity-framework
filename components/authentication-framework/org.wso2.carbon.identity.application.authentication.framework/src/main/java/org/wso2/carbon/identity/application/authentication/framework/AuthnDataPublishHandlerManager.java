@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -181,5 +181,15 @@ public class AuthnDataPublishHandlerManager {
                 return publisher1.getPriority(context) - publisher2.getPriority(context);
             }
         });
+    }
+
+    /**
+     * Checks whether registered listeners are available.* @return true if listeners are available
+     */
+    public boolean isListenersAvailable() {
+        if (dataPublishers != null && dataPublishers.size() > 0) {
+            return true;
+        }
+        return false;
     }
 }
