@@ -83,7 +83,12 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         }
         Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
         if (isFederatedObj != null) {
-            authenticationData.setFederated((Boolean) isFederatedObj);
+            boolean isFederated = (Boolean) isFederatedObj;
+            if(isFederated) {
+                authenticationData.setIdentityProviderType(FrameworkConstants.FEDERATED_IDP_NAME);
+            }  else {
+                authenticationData.setIdentityProviderType(FrameworkConstants.LOCAL_IDP_NAME);
+            }
         }
         authenticationData.setContextId(context.getContextIdentifier());
         authenticationData.setEventId(UUID.randomUUID().toString());
@@ -130,7 +135,12 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         }
         Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
         if (isFederatedObj != null) {
-            authenticationData.setFederated((Boolean) isFederatedObj);
+            boolean isFederated = (Boolean) isFederatedObj;
+            if(isFederated) {
+                authenticationData.setIdentityProviderType(FrameworkConstants.FEDERATED_IDP_NAME);
+            }  else {
+                authenticationData.setIdentityProviderType(FrameworkConstants.LOCAL_IDP_NAME);
+            }
         }
         authenticationData.setContextId(context.getContextIdentifier());
         authenticationData.setEventId(UUID.randomUUID().toString());
@@ -169,11 +179,25 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
             authenticationData.setUserStoreDomain(user.getUserStoreDomain());
             authenticationData.setUsername(user.getUserName());
         }
-        Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
-        if (isFederatedObj != null) {
-            authenticationData.setFederated((Boolean) isFederatedObj);
-        }
 
+        Object hasFederatedStepObj = context.getProperty(FrameworkConstants.PublisherParamNames.HAS_FEDERATED_STEP);
+        Object hasLocalStepObj = context.getProperty(FrameworkConstants.PublisherParamNames.HAS_LOCAL_STEP);
+        boolean hasFederated = false;
+        boolean hasLocal = false;
+        if (hasFederatedStepObj != null) {
+            hasFederated = (Boolean) hasFederatedStepObj;
+        }
+        if (hasLocalStepObj != null) {
+            hasLocal = (Boolean) hasLocalStepObj;
+        }
+        if (hasFederated && hasLocal) {
+            authenticationData.setIdentityProviderType(FrameworkConstants.FEDERATED_IDP_NAME + "," +
+                    FrameworkConstants.LOCAL_IDP_NAME);
+        } else if (hasLocal) {
+            authenticationData.setIdentityProviderType(FrameworkConstants.LOCAL_IDP_NAME);
+        } else if (hasFederated) {
+            authenticationData.setIdentityProviderType(FrameworkConstants.FEDERATED_IDP_NAME);
+        }
         authenticationData.setSuccess(true);
         authenticationData.setContextId(context.getContextIdentifier());
         authenticationData.setEventId(UUID.randomUUID().toString());
