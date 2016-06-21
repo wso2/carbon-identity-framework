@@ -22,7 +22,7 @@ public class AuthenticationData {
 
     private String eventId;
     private String contextId;
-    private boolean federated;
+    private String identityProviderType;
     private boolean authnSuccess;
     private String username;
     private String userStoreDomain;
@@ -61,14 +61,14 @@ public class AuthenticationData {
         this.contextId = contextId;
     }
 
-    public boolean isFederated() {
+    public String getIdentityProviderType() {
 
-        return federated;
+        return identityProviderType;
     }
 
-    public void setFederated(boolean federated) {
+    public void setIdentityProviderType(String identityProviderType) {
 
-        this.federated = federated;
+        this.identityProviderType = identityProviderType;
     }
 
     public boolean isAuthnSuccess() {
