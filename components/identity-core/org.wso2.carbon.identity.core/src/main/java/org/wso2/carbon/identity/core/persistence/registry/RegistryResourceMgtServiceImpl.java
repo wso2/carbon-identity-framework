@@ -14,44 +14,38 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.resource.mgt;
+package org.wso2.carbon.identity.core.persistence.registry;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.resource.mgt.constants.ResourceMgtConstants;
-import org.wso2.carbon.identity.resource.mgt.internal.ResourceMgtServiceComponent;
 import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 
-import java.util.Locale;
-
 import static org.wso2.carbon.identity.base.IdentityRuntimeException.ErrorInfo.ErrorInfoBuilder;
 
 /**
- * A Util O
+ * A Util OSGi service to provide registry resource management functionality based on locale
  */
 public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtService {
 
     private static final Log log = LogFactory.getLog(RegistryResourceMgtServiceImpl.class);
-    private static final RegistryService registryService = ResourceMgtServiceComponent.getRegistryService();
+    private static final RegistryService registryService = IdentityTenantUtil.getRegistryService();
 
-
-    @Override
-    public Resource getNewIdentityResource(String tenantDomain) throws RegistryException {
-        return getRegistryForTenant(tenantDomain).newResource();
-    }
+    private static final String EN_US = "en_us";
 
     @Override
     public Resource getIdentityResource(String path,
                                         String tenantDomain,
-                                        Locale locale) throws IdentityRuntimeException {
+                                        String locale) throws IdentityRuntimeException {
 
-        String localeString = locale.toLanguageTag();
-        path = path + ResourceMgtConstants.LOCALE_SEPARATOR + localeString;
+        String localeString = StringUtils.isBlank(locale) ? EN_US : locale.toLowerCase();
+        path = path + RegistryConstants.PATH_SEPARATOR + localeString;
 
         return getIdentityResource(path, tenantDomain);
     }
@@ -60,10 +54,10 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     public void putIdentityResource(Resource identityResource,
                                     String path,
                                     String tenantDomain,
-                                    Locale locale) throws IdentityRuntimeException {
+                                    String locale) throws IdentityRuntimeException {
 
-        String localeString = locale.toLanguageTag();
-        path = path + ResourceMgtConstants.LOCALE_SEPARATOR + localeString;
+        String localeString = StringUtils.isBlank(locale) ? EN_US : locale.toLowerCase();
+        path = path + RegistryConstants.PATH_SEPARATOR + localeString;
 
         putIdentityResource(identityResource, path, tenantDomain);
     }
@@ -92,6 +86,9 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
         try {
             Registry registry = getRegistryForTenant(tenantDomain);
             registry.put(path, identityResource);
+            if (log.isDebugEnabled()) {
+                log.debug("Resource persisted at " + path + " in " + tenantDomain + " tenant domain.");
+            }
         } catch (RegistryException e) {
             String errorMsg = "Error persisting registry resource of tenant : " + tenantDomain + " at " + path;
             throw getIdentityRunTimeException(errorMsg, e);

@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.resource.mgt;
+package org.wso2.carbon.identity.core.persistence.registry;
 
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.registry.core.Resource;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
-
-import java.util.Locale;
 
 public interface RegistryResourceMgtService {
-
-    /**
-     *
-     * @param tenantDomain
-     * @return
-     * @throws RegistryException
-     */
-    Resource getNewIdentityResource(String tenantDomain) throws RegistryException;
 
     /**
      *
@@ -42,7 +31,7 @@ public interface RegistryResourceMgtService {
      */
     Resource getIdentityResource(String path,
                                  String tenantDomain,
-                                 Locale locale) throws IdentityRuntimeException;
+                                 String locale) throws IdentityRuntimeException;
 
     /**
      *
@@ -55,7 +44,7 @@ public interface RegistryResourceMgtService {
     void putIdentityResource(Resource identityResource,
                              String path,
                              String tenantDomain,
-                             Locale locale) throws IdentityRuntimeException;
+                             String locale) throws IdentityRuntimeException;
 
     /**
      *
