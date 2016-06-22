@@ -52,6 +52,32 @@ public class EventMgtConstants {
         public static final String POST_AUTHENTICATION = "POST_AUTHENTICATION";
         public static final String PRE_SET_USER_CLAIMS = "PRE_SET_USER_CLAIMS";
         public static final String POST_SET_USER_CLAIMS = "POST_SET_USER_CLAIMS";
+        public static final String PRE_ADD_USER= "PRE_ADD_USER";
+        public static final String POST_ADD_USER= "POST_ADD_USER";
+        public static final String PRE_UPDATE_CREDENTIAL= "PRE_UPDATE_CREDENTIAL";
+        public static final String POST_UPDATE_CREDENTIAL= "POST_UPDATE_CREDENTIAL";
+        public static final String PRE_UPDATE_CREDENTIAL_BY_ADMIN= "PRE_UPDATE_CREDENTIAL_BY_ADMIN";
+        public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN= "POST_UPDATE_CREDENTIAL_BY_ADMIN";
+        public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
+        public static final String POST_DELETE_USER= "POST_DELETE_USER";
+        public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
+        public static final String POST_SET_USER_CLAIM= "POST_SET_USER_CLAIM";
+        public static final String PRE_DELETE_USER_CLAIMS= "PRE_DELETE_USER_CLAIMS";
+        public static final String POST_DELETE_USER_CLAIMS= "POST_DELETE_USER_CLAIMS";
+        public static final String PRE_DELETE_USER_CLAIM= "PRE_DELETE_USER_CLAIM";
+        public static final String POST_DELETE_USER_CLAIM= "POST_DELETE_USER_CLAIM";
+        public static final String PRE_ADD_ROLE= "PRE_ADD_ROLE";
+        public static final String POST_ADD_ROLE= "POST_ADD_ROLE";
+        public static final String PRE_DELETE_ROLE= "PRE_DELETE_ROLE";
+        public static final String POST_DELETE_ROLE= "POST_DELETE_ROLE";
+        public static final String PRE_UPDATE_ROLE= "PRE_UPDATE_ROLE";
+        public static final String POST_UPDATE_ROLE= "POST_UPDATE_ROLE";
+        public static final String PRE_UPDATE_USER_LIST_OF_ROLE= "PRE_UPDATE_USER_LIST_OF_ROLE";
+        public static final String POST_UPDATE_USER_LIST_OF_ROLE= "POST_UPDATE_USER_LIST_OF_ROLE";
+        public static final String PRE_UPDATE_ROLE_LIST_OF_USER= "PRE_UPDATE_ROLE_LIST_OF_USER";
+        public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
+
+
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
 
     }
@@ -62,6 +88,7 @@ public class EventMgtConstants {
 
         public static final String MODULE = "module";
         public static final String USER_NAME = "user-name";
+        public static final String ROLE_NAME = "role-name";
         public static final String USER_STORE_DOMAIN = "userstore-domain";
         public static final String CONFIRMATION_CODE = "confirmation-code";
         public static final String TEMPORARY_PASSWORD = "temporary-password";
@@ -72,6 +99,18 @@ public class EventMgtConstants {
         public static final String OPERATION_STATUS = "OPERATION_STATUS";
         public static final String USER_STORE_MANAGER = "userStoreManager";
         public static final String USER_CLAIMS = "USER_CLAIMS";
+        public static final String ROLE_LIST = "ROLE_LIST";
+        public static final String CREDENTIAL = "CREDENTIAL";
+        public static final String CLAIM_URI = "CLAIM_URI";
+        public static final String CLAIM_VALUE = "CLAIM_VALUE";
+        public static final String USER_LIST = "USER_LIST";
+        public static final String PERMISSIONS = "PERMISSIONS";
+        public static final String OLD_CREDENTIAL = "OLD_CREDENTIAL";
+        public static final String NEW_ROLE_NAME = "NEW_ROLE_NAME";
+        public static final String DELETED_USERS = "DELETED_USERS";
+        public static final String NEW_USERS = "NEW_USERS";
+        public static final String DELETED_ROLES = "DELETED_ROLES";
+        public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
 
 
