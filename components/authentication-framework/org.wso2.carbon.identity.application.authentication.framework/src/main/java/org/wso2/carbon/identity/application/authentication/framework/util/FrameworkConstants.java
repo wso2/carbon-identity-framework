@@ -35,6 +35,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
     public static final String LOCAL_IDP_NAME = "LOCAL";
+    public static final String FEDERATED_IDP_NAME = "FEDERATED";
     public static final String REQ_ATTR_HANDLED = "commonAuthHandled";
     public static final String LOGOUT = "commonAuthLogout";
     public static final String IDP = "idp";
@@ -192,5 +193,7 @@ public abstract class FrameworkConstants {
         public static final String USER = "user";
         public static final String SESSION_ID = "sessionId";
         public static final String IS_FEDERATED = "isFederated";
+        public static final String HAS_FEDERATED_STEP = "hasFederatedStep";
+        public static final String HAS_LOCAL_STEP = "hasLocalStep";
     }
 }
