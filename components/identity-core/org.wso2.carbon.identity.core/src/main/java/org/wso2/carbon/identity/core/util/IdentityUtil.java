@@ -779,7 +779,15 @@ public class IdentityUtil {
      */
     public static String getHostName() {
 
-        return ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+        String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+        if (hostName == null) {
+            try {
+                hostName = NetworkUtils.getLocalHostname();
+            } catch (SocketException e) {
+                throw IdentityRuntimeException.error("Error while trying to read hostname.", e);
+            }
+        }
+        return hostName;
     }
 
     public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
