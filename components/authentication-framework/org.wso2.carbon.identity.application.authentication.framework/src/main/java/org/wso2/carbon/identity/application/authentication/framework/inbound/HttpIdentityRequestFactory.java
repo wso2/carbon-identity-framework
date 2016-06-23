@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -34,7 +35,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HttpIdentityRequestFactory {
+public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
 
@@ -68,14 +69,6 @@ public class HttpIdentityRequestFactory {
         }
     }
 
-    public String getName() {
-        return "HttpIdentityRequestFactory";
-    }
-
-    public int getPriority() {
-        return 0;
-    }
-
     public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {
         return true;
     }
@@ -84,37 +77,11 @@ public class HttpIdentityRequestFactory {
             throws FrameworkClientException {
 
         IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request, response);
-        Enumeration<String> headerNames = request.getHeaderNames();
-        while(headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            builder.addHeader(headerName, request.getHeader(headerName));
-        }
-        builder.setParameters(request.getParameterMap());
-        Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies) {
-            builder.addCookie(cookie.getName(), cookie);
-        }
-        String requestURI = request.getRequestURI();
-        Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
-        Matcher matcher = pattern.matcher(requestURI);
-        if(matcher.find()) {
-            builder.setTenantDomain(matcher.group(1));
-        } else {
-            builder.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        }
-        builder.setContentType(request.getContentType());
-        builder.setContextPath(request.getContextPath());
-        builder.setMethod(request.getMethod());
-        builder.setPathInfo(request.getPathInfo());
-        builder.setPathTranslated(request.getPathTranslated());
-        builder.setQueryString(request.getQueryString());
-        builder.setRequestURI(requestURI);
-        builder.setRequestURL(request.getRequestURL());
-        builder.setServletPath(request.getServletPath());
+        create(builder, request, response);
         return builder;
     }
 
-    public IdentityRequest.IdentityRequestBuilder create(IdentityRequest.IdentityRequestBuilder builder,
+    public void create(IdentityRequest.IdentityRequestBuilder builder,
                                                          HttpServletRequest request, HttpServletResponse response)
             throws FrameworkClientException {
 
@@ -125,8 +92,10 @@ public class HttpIdentityRequestFactory {
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies) {
-            builder.addCookie(cookie.getName(), cookie);
+        if(cookies!=null) {
+            for (Cookie cookie : cookies) {
+                builder.addCookie(cookie.getName(), cookie);
+            }
         }
         String requestURI = request.getRequestURI();
         Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
@@ -145,7 +114,7 @@ public class HttpIdentityRequestFactory {
         builder.setRequestURI(requestURI);
         builder.setRequestURL(request.getRequestURL());
         builder.setServletPath(request.getServletPath());
-        return builder;
+
     }
 
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception,

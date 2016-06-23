@@ -47,14 +47,14 @@
 
     for (UserIdentityClaimDTO claimDTO : claimDTOs) {
         if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
+                IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
             isFirstNameInClaims = true;
         }
         if (StringUtils.equals(claimDTO.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)) {
             isLastNameInClaims = true;
         }
         if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+                IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
             isEmailInClaims = true;
         }
     }
@@ -151,12 +151,12 @@
 
                             <% for (UserIdentityClaimDTO claimDTO : claimDTOs) {
                                 if (claimDTO.getRequired() &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
+                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                                IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
+                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                                IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
+                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                                IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <label class="control-label"><%= Encode.forHtmlContent(claimDTO.getDisplayName())%>

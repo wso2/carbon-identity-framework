@@ -255,7 +255,7 @@
         }
 
         function doFinish() {
-            document.dataForm.action = "add-finish.jsp";
+            document.dataForm.action = "add-finish-ajaxprocessor.jsp";
             if (doValidation() == true) {
                 document.dataForm.submit();
             }
@@ -298,7 +298,7 @@
         <div id="workArea">
             <h3><fmt:message key="step.1.user"/></h3>
 
-            <form method="post" action="add-finish.jsp" name="dataForm" onsubmit="return doValidation();">
+            <form method="post" action="add-finish-ajaxprocessor.jsp" name="dataForm" onsubmit="return doValidation();">
 
                 <input type="hidden" id="pwd_primary_null" name="pwd_primary_null"
                        value=<%=Encode.forHtmlAttribute(userRealmInfo.getPrimaryUserStoreInfo().getPasswordRegEx())%>>

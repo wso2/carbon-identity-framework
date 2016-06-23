@@ -38,7 +38,8 @@ function createAppOnclick() {
     } else if (!validateTextForIllegal(document.getElementById("spName"))) {
         return false;
     }else {
-        location.href='add-service-provider-finish.jsp?spName=' + spName+'&sp-description='+description;
+        $("#add-sp-form").submit();
+        return true;
     }
 }
 
@@ -59,7 +60,8 @@ function validateTextForIllegal(fld) {
             <fmt:message key='title.service.providers.add'/>
         </h2>
         <div id="workArea">
-            <form id="idp-mgt-edit-form" name="add-service-provider-form" method="post" action="add-service-provider-finish.jsp" enctype="multipart/form-data" >
+            <form id="add-sp-form" name="add-service-provider-form" method="post"
+                  action="add-service-provider-finish-ajaxprocessor.jsp">
             <div class="sectionSeperator togglebleTitle"><fmt:message key='title.config.app.basic.config'/></div>
             <div class="sectionSub">
                 <table class="carbonFormTable">

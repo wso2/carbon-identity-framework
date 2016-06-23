@@ -131,7 +131,7 @@
 
             </script>
 
-            <form name="adddialect" action="add-dialect-submit.jsp" method="post">
+            <form name="adddialect" action="add-dialect-finish-ajaxprocessor.jsp" method="post">
                 <table style="width: 100%" class="styledLeft">
                     <thead>
                     <tr>

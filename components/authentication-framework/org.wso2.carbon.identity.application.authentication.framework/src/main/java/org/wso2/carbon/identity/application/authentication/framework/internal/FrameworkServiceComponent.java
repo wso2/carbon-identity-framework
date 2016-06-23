@@ -24,6 +24,7 @@ import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
+import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
@@ -45,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -89,6 +91,10 @@ import java.util.List;
  * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
  * unbind="removeHttpIdentityResponseFactory"
+ * @scr.reference name="identity.authentication.data.publisher"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher"
+ * cardinality="0..n" policy="dynamic" bind="setAuthenticationDataPublisher"
+ * unbind="unsetAuthenticationDataPublisher"
  */
 
 
@@ -291,8 +297,8 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
-                identityProcessor);
-
+                         new HandlerComparator());
+        Collections.reverse(FrameworkServiceDataHolder.getInstance().getIdentityProcessors());
         if (log.isDebugEnabled()) {
             log.debug("Added IdentityProcessor : " + requestProcessor.getName());
         }
@@ -311,7 +317,8 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                httpIdentityRequestFactory);
+                         new HandlerComparator());
+        Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
         }
@@ -329,7 +336,8 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                httpIdentityResponseFactory);
+                         new HandlerComparator());
+        Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
         }
@@ -353,54 +361,11 @@ public class FrameworkServiceComponent {
          is started */
     }
 
-    private static Comparator<IdentityProcessor> identityProcessor =
-            new Comparator<IdentityProcessor>() {
+    protected void setAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
+        FrameworkServiceDataHolder.getInstance().getDataPublishers().add(publisher);
+    }
 
-                @Override
-                public int compare(IdentityProcessor identityProcessor1,
-                                   IdentityProcessor identityProcessor2) {
-
-                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
-                        return 1;
-                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-
-    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
-            new Comparator<HttpIdentityRequestFactory>() {
-
-                @Override
-                public int compare(HttpIdentityRequestFactory factory1,
-                                   HttpIdentityRequestFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-
-    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
-            new Comparator<HttpIdentityResponseFactory>() {
-
-                @Override
-                public int compare(HttpIdentityResponseFactory factory1,
-                                   HttpIdentityResponseFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
+    protected void unsetAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
+        FrameworkServiceDataHolder.getInstance().getDataPublishers().remove(publisher);
+    }
 }

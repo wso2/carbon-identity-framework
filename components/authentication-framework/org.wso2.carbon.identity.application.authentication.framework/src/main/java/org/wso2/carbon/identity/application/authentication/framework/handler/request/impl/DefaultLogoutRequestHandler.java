@@ -23,16 +23,19 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.AuthnDataPublishHandlerManager;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -44,6 +47,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
@@ -149,6 +155,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         FrameworkConstants.AUDIT_MESSAGE,
                         sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
                         "Logout", idpName, auditData, FrameworkConstants.AUDIT_SUCCESS));
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
+                publishSessionTermination(context.getSessionIdentifier(), request, context, sessionContext,
+                        sequenceConfig.getAuthenticatedUser());
             }
         }
 
@@ -163,6 +172,18 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             sendResponse(request, response, context, true);
         } catch (ServletException | IOException e) {
             throw new FrameworkException(e.getMessage(), e);
+        }
+    }
+
+    private void publishSessionTermination(String sessionId, HttpServletRequest request, AuthenticationContext
+            context, SessionContext sessionContext, AuthenticatedUser user) {
+        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            AuthnDataPublishHandlerManager.getInstance().publishSessionTermination(request, context, sessionContext,
+                    unmodifiableParamMap);
         }
     }
 

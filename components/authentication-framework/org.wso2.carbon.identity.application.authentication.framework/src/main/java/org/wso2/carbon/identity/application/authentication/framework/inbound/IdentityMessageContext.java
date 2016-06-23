@@ -24,16 +24,19 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext
+public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext<T1,T2>
         implements Serializable {
 
     private static final long serialVersionUID = 104614801932285909L;
 
 	protected IdentityRequest request;
-    protected Map<T1,T2> parameters = new HashMap<>();
 
-    public IdentityMessageContext(IdentityRequest request, Map<T1, T2> parameters) {
+    public IdentityMessageContext(IdentityRequest request, Map<T1,T2> parameters) {
         super(parameters);
+        this.request = request;
+    }
+
+    public IdentityMessageContext(IdentityRequest request) {
         this.request = request;
     }
 

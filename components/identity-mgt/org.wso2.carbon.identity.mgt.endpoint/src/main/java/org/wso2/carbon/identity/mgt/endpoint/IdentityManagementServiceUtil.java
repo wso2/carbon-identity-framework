@@ -24,7 +24,11 @@ import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
@@ -32,7 +36,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -41,6 +47,8 @@ import java.util.Properties;
 public class IdentityManagementServiceUtil {
 
     private static IdentityManagementServiceUtil instance = new IdentityManagementServiceUtil();
+    private JSONProvider jsonProvider = new JSONProvider();
+    private List providers = new ArrayList();
 
     private String accessUsername;
     private String accessPassword;
@@ -63,6 +71,11 @@ public class IdentityManagementServiceUtil {
     public void init() {
 
         InputStream inputStream = null;
+        jsonProvider.setDropRootElement(true);
+        jsonProvider.setIgnoreNamespaces(true);
+        jsonProvider.setValidateOutput(true);
+        jsonProvider.setSupportUnwrapped(true);
+        providers.add(jsonProvider);
 
         try {
             Properties properties = new Properties();
@@ -142,6 +155,10 @@ public class IdentityManagementServiceUtil {
         option.setManageSession(true);
     }
 
+    public List getJSONProvider(){
+        return providers;
+    }
+
     private static boolean isSecuredPropertyAvailable(Properties properties) {
 
         Enumeration propertyNames = properties.propertyNames();
@@ -187,5 +204,29 @@ public class IdentityManagementServiceUtil {
             log.warn("Secret Resolver is not present. Failed to resolve encryption in " +
                      IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME + " file");
         }
+    }
+
+    /**
+     * Build user object from complete username
+     * @param userName
+     * @return
+     */
+    public User getUser(String userName) {
+
+        if (userName == null) {
+            return null;
+        }
+
+        String userStoreDomain = IdentityUtil.extractDomainFromName(userName);
+        String tenantDomain = MultitenantUtils.getTenantDomain(userName);
+        String userNameWithoutTenantDomainAndUserStoreDomain = MultitenantUtils
+                .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(userName));
+
+        User user = new User();
+        user.setUserName(userNameWithoutTenantDomainAndUserStoreDomain);
+        user.setUserStoreDomain(userStoreDomain);
+        user.setTenantDomain(tenantDomain);
+
+        return user;
     }
 }

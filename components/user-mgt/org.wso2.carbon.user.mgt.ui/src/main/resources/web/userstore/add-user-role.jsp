@@ -44,9 +44,6 @@
             CARBON.showConfirmationDialog('<fmt:message key="confirm.delete.userstore"/> ' + '?', doDelete, null);
         }
 
-        function doDelete() {
-            location.href = 'delete-finish.jsp';
-        }
         function displayToken() {
             //alert(cookie + backendURL);
             sessionAwareFunction(function () {

@@ -53,7 +53,7 @@ public class PolicyRequestBuilder {
         DocumentBuilder documentBuilder;
 
         inputStream = new ByteArrayInputStream(request.getBytes());
-        documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
+        documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
 
         try {
 

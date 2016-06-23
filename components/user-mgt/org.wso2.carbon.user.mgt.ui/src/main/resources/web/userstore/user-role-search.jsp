@@ -1,19 +1,19 @@
 <%--
-  Copyright (c) 2015 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-
-   WSO2 Inc. licenses this file to you under the Apache License,
-   Version 2.0 (the "License"); you may not use this file except
-   in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing,
-   software distributed under the License is distributed on an
-   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-   KIND, either express or implied.  See the License for the
-   specific language governing permissions and limitations
-   under the License.
+  ~ Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  Version 2.0 (the "License"); you may not use this file except
+  ~  in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
   --%>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -249,13 +249,13 @@
             String message = MessageFormat.format(resourceBundle.getString("error.while.user.filtered"),
                                                   e.getMessage());
             if (!StringUtils.isNotBlank(isAJAXRequest) || isAJAXRequest.equals("false")) {
-                %>
-                    <script type="text/javascript">
-                        jQuery(document).ready(function () {
-                            CARBON.showErrorDialog('<%=Encode.forJavaScript(Encode.forHtml(message))%>', null);
-                        });
-                    </script>
-                <%
+%>
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        CARBON.showErrorDialog('<%=Encode.forJavaScript(Encode.forHtml(message))%>', null);
+    });
+</script>
+<%
             }
         }
     }
@@ -273,218 +273,218 @@
     if(!StringUtils.isNotBlank(isAJAXRequest) || isAJAXRequest.equals("false")){
 %>
 <fmt:bundle basename="org.wso2.carbon.userstore.ui.i18n.Resources">
-<script>
+    <script>
 
-    var navigatorHolder = '<%=Encode.forJavaScript(navigatorHolder)%>';
-    var resultHolder = '<%=Encode.forJavaScript(resultHolder)%>';
+        var navigatorHolder = '<%=Encode.forJavaScript(navigatorHolder)%>';
+        var resultHolder = '<%=Encode.forJavaScript(resultHolder)%>';
 
-    function search(pageNumber){
-        if(!pageNumber){
-            pageNumber = "0";
+        function search(pageNumber){
+            if(!pageNumber){
+                pageNumber = "0";
+            }
+
+            if (doValidateForm($("#id_search")[0], '<fmt:message key="error.input.validation.msg"/>')) {
+                var category = $("input[name=radio_user_role]:checked").val();
+                $.ajax({
+                    url: "/userandrolemgtservice?category=" + category + "&pageNumber=" + pageNumber,
+                    type: "POST",
+                    data: $("#id_search").serialize(),
+                    success: function (data, textStatus, jqXHR) {
+                        doSearch("success", data);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        doSearch("fail", errorThrown);
+                    }
+                });
+            }
+        }
+        var registerSearchResult = null ;
+        function registerSearchResultEvent(registerSearchResultParam){
+            registerSearchResult = registerSearchResultParam ;
         }
 
-        if (doValidateForm($("#id_search")[0], '<fmt:message key="error.input.validation.msg"/>')) {
+        var registerNavigateEvent = null ;
+        function registerNavigateEvent(registerNavigateParam){
+            registerNavigateEvent = registerNavigateParam ;
+        }
+
+        var registerGetSelectedItem = <%= functionForGetAllItems %> ;
+
+
+
+        function doSearch(status, data){
+            if(registerSearchResult!=null){
+                registerSearchResult(status, data);
+                return;
+            }
+            $('#'+navigatorHolder).empty();
+            $('#'+resultHolder).empty();
+
+            var navigatorHtml = loadNavigator(data.numberOfPages, data.pageNumber , data.noOfPageLinksToDisplay);
+            $('#'+navigatorHolder).append(navigatorHtml);
+
             var category = $("input[name=radio_user_role]:checked").val();
-            $.ajax({
-                url: "/userandrolemgtservice?category=" + category + "&pageNumber=" + pageNumber,
-                type: "POST",
-                data: $("#id_search").serialize(),
-                success: function (data, textStatus, jqXHR) {
-                    doSearch("success", data);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    doSearch("fail", errorThrown);
+
+            var resultTable = "" ;
+            if(category == "users"){
+
+                resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
+                resultTable += '<tr>';
+                resultTable += '<th width="50px">Select</th>';
+                resultTable += '<th>UserName</th>';
+                resultTable += '</tr>';
+                resultTable += '</thead>';
+                resultTable += '<tbody>';
+                for(var i=0 ;i<data.userBeans.length;i++){
+                    var userName = data.userBeans[i].username ;
+
+                    resultTable += '<tr>';
+                    resultTable += '<td><input type="checkbox" name="item" value="'+userName+'"/></td>';
+                    resultTable += '<td>'+userName+'</td>';
+                    resultTable += '</tr>';
+
                 }
-            });
-        }
-    }
-    var registerSearchResult = null ;
-    function registerSearchResultEvent(registerSearchResultParam){
-        registerSearchResult = registerSearchResultParam ;
-    }
-
-    var registerNavigateEvent = null ;
-    function registerNavigateEvent(registerNavigateParam){
-        registerNavigateEvent = registerNavigateParam ;
-    }
-
-    var registerGetSelectedItem = <%= functionForGetAllItems %> ;
-
-
-
-    function doSearch(status, data){
-        if(registerSearchResult!=null){
-            registerSearchResult(status, data);
-            return;
-        }
-        $('#'+navigatorHolder).empty();
-        $('#'+resultHolder).empty();
-
-        var navigatorHtml = loadNavigator(data.numberOfPages, data.pageNumber , data.noOfPageLinksToDisplay);
-        $('#'+navigatorHolder).append(navigatorHtml);
-
-        var category = $("input[name=radio_user_role]:checked").val();
-
-        var resultTable = "" ;
-        if(category == "users"){
-
-            resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
-            resultTable += '<tr>';
-            resultTable += '<th width="50px">Select</th>';
-            resultTable += '<th>UserName</th>';
-            resultTable += '</tr>';
-            resultTable += '</thead>';
-            resultTable += '<tbody>';
-            for(var i=0 ;i<data.userBeans.length;i++){
-                var userName = data.userBeans[i].username ;
-
+                resultTable += '</tbody>';
+                resultTable += '</table>';
+                resultTable += '<table>';
                 resultTable += '<tr>';
-                resultTable += '<td><input type="checkbox" name="item" value="'+userName+'"/></td>';
-                resultTable += '<td>'+userName+'</td>';
+                resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.users'/></a></td>';
                 resultTable += '</tr>';
+                resultTable += '</table>';
+
+            }else if(category == "roles"){
+
+                resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
+                resultTable += '<tr>';
+                resultTable += '<th width="50px">Select</th>';
+                resultTable += '<th>RoleName</th>';
+                resultTable += '</tr>';
+                resultTable += '</thead>';
+                resultTable += '<tbody>';
+                for(var i=0 ;i<data.roleBeans.length;i++){
+                    var roleName = data.roleBeans[i].roleName ;
+
+                    resultTable += '<tr>';
+                    resultTable += '<td><input type="checkbox" name="item" value="'+roleName+'"/></td>';
+                    resultTable += '<td>'+roleName+'</td>';
+                    resultTable += '</tr>';
+
+                }
+                resultTable += '</tbody>';
+                resultTable += '</table>';
+                resultTable += '<table>';
+                resultTable += '<tr>';
+                resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.roles'/></a></td>';
+                resultTable += '</tr>';
+                resultTable += '</table>';
 
             }
-            resultTable += '</tbody>';
-            resultTable += '</table>';
-            resultTable += '<table>';
-            resultTable += '<tr>';
-            resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.users'/></a></td>';
-            resultTable += '</tr>';
-            resultTable += '</table>';
 
-        }else if(category == "roles"){
-
-            resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
-            resultTable += '<tr>';
-            resultTable += '<th width="50px">Select</th>';
-            resultTable += '<th>RoleName</th>';
-            resultTable += '</tr>';
-            resultTable += '</thead>';
-            resultTable += '<tbody>';
-            for(var i=0 ;i<data.roleBeans.length;i++){
-                var roleName = data.roleBeans[i].roleName ;
-
-                resultTable += '<tr>';
-                resultTable += '<td><input type="checkbox" name="item" value="'+roleName+'"/></td>';
-                resultTable += '<td>'+roleName+'</td>';
-                resultTable += '</tr>';
-
-            }
-            resultTable += '</tbody>';
-            resultTable += '</table>';
-            resultTable += '<table>';
-            resultTable += '<tr>';
-            resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.roles'/></a></td>';
-            resultTable += '</tr>';
-            resultTable += '</table>';
-
-        }
-
-        $('#'+resultHolder).append(resultTable);
-    }
-
-
-
-
-    function updateEmptyResultView(){
-
-        $('#'+navigatorHolder).empty();
-        $('#'+resultHolder).empty();
-
-
-        var category = $("input[name=radio_user_role]:checked").val();
-
-        var resultTable = "" ;
-        if(category == "users"){
-
-            resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
-            resultTable += '<tr>';
-            resultTable += '<th width="50px">Select</th>';
-            resultTable += '<th>UserName</th>';
-            resultTable += '</tr>';
-            resultTable += '</thead>';
-            resultTable += '</table>';
-            resultTable += '<table>';
-            resultTable += '<tr>';
-            resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.users'/></a></td>';
-            resultTable += '</tr>';
-            resultTable += '</table>';
-
-        }else if(category == "roles"){
-
-            resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
-            resultTable += '<tr>';
-            resultTable += '<th width="50px">Select</th>';
-            resultTable += '<th>RoleName</th>';
-            resultTable += '</tr>';
-            resultTable += '</thead>';
-            resultTable += '</table>';
-            resultTable += '<table>';
-            resultTable += '<tr>';
-            resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.roles'/></a></td>';
-            resultTable += '</tr>';
-            resultTable += '</table>';
-
-        }
-
-        $('#'+resultHolder).append(resultTable);
-    }
-
-    function doPaginate(pageName, pageNumberParamaeterName, pageNumber){
-        if(registerNavigateEvent!=null){
-            registerNavigateEvent(pageName, pageNumberParamaeterName, pageNumber);
-            return;
-        }
-        search(pageNumber);
-
-    }
-
-    function changeCategory(category,init){
-
-        updateEmptyResultView();
-
-        if(category == "users"){
-            $("#id_claim_attribute").show();
-            $("#id_search_button").val('<fmt:message key="user.search"/>');
-            $("#id_pattern_category").html('<fmt:message key="list.users"/>');
-            $("#id_filter").attr('name','<%=UserAdminUIConstants.USER_LIST_FILTER%>');
-
-
-        }else{
-            $("#id_claim_attribute").hide();
-            $("#id_search_button").val('<fmt:message key="role.search"/>');
-            $("#id_pattern_category").html('<fmt:message key="list.roles"/>');
-            $("#id_filter").attr('name','<%=UserAdminUIConstants.ROLE_LIST_FILTER%>');
+            $('#'+resultHolder).append(resultTable);
         }
 
 
-    }
 
-    function loadCategory(category,init){
 
-        if(init){
-            $('input:radio[name=radio_user_role][value=roles]').prop('checked', true);
-        }else{
-            $('input:radio[name=radio_user_role][value='+category+']').prop('checked', true);
-        }
-        changeCategory(category,init);
-    }
+        function updateEmptyResultView(){
 
-    function addSelectedItems(){
+            $('#'+navigatorHolder).empty();
+            $('#'+resultHolder).empty();
 
-        var allVals = [];
-        $('[name=item]:checked').each(function () {
-            allVals.push($(this).val());
-        });
 
-        if(registerGetSelectedItem!=null){
             var category = $("input[name=radio_user_role]:checked").val();
-            registerGetSelectedItem(allVals, category);
+
+            var resultTable = "" ;
+            if(category == "users"){
+
+                resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
+                resultTable += '<tr>';
+                resultTable += '<th width="50px">Select</th>';
+                resultTable += '<th>UserName</th>';
+                resultTable += '</tr>';
+                resultTable += '</thead>';
+                resultTable += '</table>';
+                resultTable += '<table>';
+                resultTable += '<tr>';
+                resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.users'/></a></td>';
+                resultTable += '</tr>';
+                resultTable += '</table>';
+
+            }else if(category == "roles"){
+
+                resultTable = '<table class="styledLeft noBorders" id="userTable"><thead>';
+                resultTable += '<tr>';
+                resultTable += '<th width="50px">Select</th>';
+                resultTable += '<th>RoleName</th>';
+                resultTable += '</tr>';
+                resultTable += '</thead>';
+                resultTable += '</table>';
+                resultTable += '<table>';
+                resultTable += '<tr>';
+                resultTable += '<td colspan="2" align="left"><a class="icon-link"  style="background-image:url(images/add.png);margin-left:0" onclick="addSelectedItems();"><fmt:message key='workflow.template.button.add.roles'/></a></td>';
+                resultTable += '</tr>';
+                resultTable += '</table>';
+
+            }
+
+            $('#'+resultHolder).append(resultTable);
         }
-    }
+
+        function doPaginate(pageName, pageNumberParamaeterName, pageNumber){
+            if(registerNavigateEvent!=null){
+                registerNavigateEvent(pageName, pageNumberParamaeterName, pageNumber);
+                return;
+            }
+            search(pageNumber);
+
+        }
+
+        function changeCategory(category,init){
+
+            updateEmptyResultView();
+
+            if(category == "users"){
+                $("#id_claim_attribute").show();
+                $("#id_search_button").val('<fmt:message key="user.search"/>');
+                $("#id_pattern_category").html('<fmt:message key="list.users"/>');
+                $("#id_filter").attr('name','<%=UserAdminUIConstants.USER_LIST_FILTER%>');
 
 
-    function loadNavigator(numberOfPages, pageNumber , noOfPageLinksToDisplay){
+            }else{
+                $("#id_claim_attribute").hide();
+                $("#id_search_button").val('<fmt:message key="role.search"/>');
+                $("#id_pattern_category").html('<fmt:message key="list.roles"/>');
+                $("#id_filter").attr('name','<%=UserAdminUIConstants.ROLE_LIST_FILTER%>');
+            }
+
+
+        }
+
+        function loadCategory(category,init){
+
+            if(init){
+                $('input:radio[name=radio_user_role][value=roles]').prop('checked', true);
+            }else{
+                $('input:radio[name=radio_user_role][value='+category+']').prop('checked', true);
+            }
+            changeCategory(category,init);
+        }
+
+        function addSelectedItems(){
+
+            var allVals = [];
+            $('[name=item]:checked').each(function () {
+                allVals.push($(this).val());
+            });
+
+            if(registerGetSelectedItem!=null){
+                var category = $("input[name=radio_user_role]:checked").val();
+                registerGetSelectedItem(allVals, category);
+            }
+        }
+
+
+        function loadNavigator(numberOfPages, pageNumber , noOfPageLinksToDisplay){
 
             var next = "next" ;
             var prev = "prev" ;
@@ -569,53 +569,41 @@
             var11 = var11 + "</tr ></table > ";
             return var11 ;
 
-    }
+        }
 
 
 
-</script>
+    </script>
 
-<style>
-    .LargeHeader{
-        font-size: small;
-    }
+    <style>
+        .LargeHeader{
+            font-size: small;
+        }
 
-    h2.triggerIn {
-        border: solid 1px #c2c4c6;
-        -moz-box-shadow: 3px 3px 3px #888;
-        -webkit-box-shadow: 3px 3px 3px #888;
-        box-shadow: 3px 3px 3px #888;
-        padding: 0;
-        background-color: #e9e9e9;
-        background-repeat: no-repeat;
-        background-position: 5px center;
-        padding-left: 0px;
-        padding-bottom: 0px !important;
-        margin-bottom: 0px !important;
-        margin: 0;
-        height: 25px;
-    }
+        h2.triggerIn {
+            border: solid 1px #c2c4c6;
+            -moz-box-shadow: 3px 3px 3px #888;
+            -webkit-box-shadow: 3px 3px 3px #888;
+            box-shadow: 3px 3px 3px #888;
+            padding: 0;
+            background-color: #e9e9e9;
+            background-repeat: no-repeat;
+            background-position: 5px center;
+            padding-left: 0px;
+            padding-bottom: 0px !important;
+            margin-bottom: 0px !important;
+            margin: 0;
+            height: 25px;
+        }
 
 
-</style>
+    </style>
 
     <carbon:breadcrumb label="users"
                        resourceBundle="org.wso2.carbon.userstore.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
     <script type="text/javascript">
-
-
-
-        function deleteUser(user) {
-            function doDelete() {
-                var userName = user;
-                location.href = 'delete-finish.jsp?username=' + userName;
-            }
-
-            CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.user"/> \'" + user + "\'?", doDelete, null);
-        }
-
         <%if (showFilterMessage == true) {%>
         jQuery(document).ready(function () {
             CARBON.showInfoDialog('<fmt:message key="no.users.filtered"/>', null, null);
@@ -627,99 +615,99 @@
 
 
 
-        <div id="workArea" style="margin-left: 10px">
-            <form id="id_search" name="filterForm" method="post" onsubmit="search();return false">
+    <div id="workArea" style="margin-left: 10px">
+        <form id="id_search" name="filterForm" method="post" onsubmit="search();return false">
 
-                <h2  class="triggerIn" style="background-color: floralwhite;">
-                    <div class="LargeHeader">
-                        <input onclick="changeCategory('roles',false);" type="radio" id="id_radio_role" name="radio_user_role" value="roles" checked="checked"><label for="id_radio_role"><img  style="margin-top:  5px; margin-right:3px" src="images/user-roles.gif"><fmt:message key="role.search"/></label>
-                        <input onclick="changeCategory('users',false);" type="radio" id="id_radio_user" name="radio_user_role" value="users"><label for="id_radio_user"><img style="margin-top:  5px; margin-right:3px" src="images/users.gif"><fmt:message key="user.search"/></label>
-                    </div>
-                </h2>
+            <h2  class="triggerIn" style="background-color: floralwhite;">
+                <div class="LargeHeader">
+                    <input onclick="changeCategory('roles',false);" type="radio" id="id_radio_role" name="radio_user_role" value="roles" checked="checked"><label for="id_radio_role"><img  style="margin-top:  5px; margin-right:3px" src="images/user-roles.gif"><fmt:message key="role.search"/></label>
+                    <input onclick="changeCategory('users',false);" type="radio" id="id_radio_user" name="radio_user_role" value="users"><label for="id_radio_user"><img style="margin-top:  5px; margin-right:3px" src="images/users.gif"><fmt:message key="user.search"/></label>
+                </div>
+            </h2>
 
-                <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_1">
-                    <table>
-                        <tbody>
-                        <%
-                            if(domainNames != null && domainNames.length > 0){
-                        %>
-                        <tr>
-                            <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message key="select.domain.search"/></td>
-                            <td><select id="domain" name="domain">
-                                <%
-                                    for(String domainName : domainNames) {
-                                        if(selectedDomain.equals(domainName)) {
-                                %>
-                                <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
-                                    <%=Encode.forHtmlContent(domainName)%>
-                                </option>
-                                <%
-                                } else {
-                                %>
-                                <option value="<%=Encode.forHtmlAttribute(domainName)%>">
-                                    <%=Encode.forHtmlContent(domainName)%>
-                                </option>
-                                <%
-                                        }
+            <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="local_auth_head_dev_1">
+                <table>
+                    <tbody>
+                    <%
+                        if(domainNames != null && domainNames.length > 0){
+                    %>
+                    <tr>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message key="select.domain.search"/></td>
+                        <td><select id="domain" name="domain">
+                            <%
+                                for(String domainName : domainNames) {
+                                    if(selectedDomain.equals(domainName)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtmlContent(domainName)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                <%=Encode.forHtmlContent(domainName)%>
+                            </option>
+                            <%
                                     }
-                                %>
-                            </select>
-                            </td>
-                        </tr>
-                        <%
-                            }
-                        %>
+                                }
+                            %>
+                        </select>
+                        </td>
+                    </tr>
+                    <%
+                        }
+                    %>
 
-                        <tr>
-                            <td id="id_pattern_category" class="leftCol-big" style="padding-right: 0 !important;"><fmt:message key="list.users"/></td>
-                            <td>
-                                <input id="id_filter" type="text" name="<%=UserAdminUIConstants.USER_LIST_FILTER%>"
-                                       value="<%=Encode.forHtmlAttribute(filter)%>" label="<fmt:message
+                    <tr>
+                        <td id="id_pattern_category" class="leftCol-big" style="padding-right: 0 !important;"><fmt:message key="list.users"/></td>
+                        <td>
+                            <input id="id_filter" type="text" name="<%=UserAdminUIConstants.USER_LIST_FILTER%>"
+                                   value="<%=Encode.forHtmlAttribute(filter)%>" label="<fmt:message
                                        key="list.users"/>" black-list-patterns="xml-meta-exists"/>
 
-                                <input id="id_search_button" onclick="search();" class="button" type="button"
-                                       value="<fmt:message key="user.search"/>"/>
-                            </td>
-                        </tr>
-                        <tr id="id_claim_attribute">
-                            <td><fmt:message key="claim.uri"/></td>
-                            <td><select id="claimUri" name="claimUri">
-                                <option value="Select" selected="selected">Select</option>
-                                <%
-                                    if(claimUris != null){
+                            <input id="id_search_button" onclick="search();" class="button" type="button"
+                                   value="<fmt:message key="user.search"/>"/>
+                        </td>
+                    </tr>
+                    <tr id="id_claim_attribute">
+                        <td><fmt:message key="claim.uri"/></td>
+                        <td><select id="claimUri" name="claimUri">
+                            <option value="Select" selected="selected">Select</option>
+                            <%
+                                if(claimUris != null){
 
-                                        for(String claim : claimUris) {
-                                            if(claimUri != null && claim.equals(claimUri)) {
-                                %>
-                                <option selected="selected" value="<%=Encode.forHtmlAttribute(claim)%>">
-                                    <%=Encode.forHtmlContent(claim)%>
-                                </option>
-                                <%
-                                } else {
-                                %>
-                                <option value="<%=Encode.forHtmlAttribute(claim)%>"><%=Encode.forHtmlContent(claim)%>
-                                </option>
-                                <%
-                                            }
+                                    for(String claim : claimUris) {
+                                        if(claimUri != null && claim.equals(claimUri)) {
+                            %>
+                            <option selected="selected" value="<%=Encode.forHtmlAttribute(claim)%>">
+                                <%=Encode.forHtmlContent(claim)%>
+                            </option>
+                            <%
+                            } else {
+                            %>
+                            <option value="<%=Encode.forHtmlAttribute(claim)%>"><%=Encode.forHtmlContent(claim)%>
+                            </option>
+                            <%
                                         }
                                     }
-                                %>
-                            </select>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <div id="result">
+                                }
+                            %>
+                        </select>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div id="result">
 
-                    </div>
-                    <div id="navigator">
-
-                    </div>
                 </div>
+                <div id="navigator">
+
+                </div>
+            </div>
 
 
-            </form>
-            <p>&nbsp;</p>
+        </form>
+        <p>&nbsp;</p>
 
 
     </div>

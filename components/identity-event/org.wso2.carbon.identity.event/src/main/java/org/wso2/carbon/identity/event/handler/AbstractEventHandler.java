@@ -22,7 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
-import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler;
+import org.wso2.carbon.identity.core.handler.IdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
@@ -34,15 +35,11 @@ import org.wso2.carbon.identity.event.event.Event;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractEventHandler extends AbstractIdentityHandler {
+public abstract class AbstractEventHandler extends AbstractIdentityMessageHandler {
 
     protected ModuleConfiguration configs;
 
     private static final Log log = LogFactory.getLog(AbstractEventHandler.class);
-
-    public String getName() {
-        return this.getClass().getSimpleName();
-    }
 
     public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
 

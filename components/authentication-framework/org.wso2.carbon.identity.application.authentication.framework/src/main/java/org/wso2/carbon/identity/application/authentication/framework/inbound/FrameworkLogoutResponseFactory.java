@@ -18,12 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory {
+import javax.servlet.http.HttpServletResponse;
 
+public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory {
 
     @Override
     public String getName() {
-        return "FrameworkLogoutResponseFactory";
+        return null;
     }
 
     @Override
@@ -37,32 +38,19 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
     @Override
     public HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse) {
 
-
-        FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
-
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
-                new String[]{response.getAuthName()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
-                new String[]{response.getContextKey()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.CALL_BACK_PATH,
-                new String[]{response.getCallbackPath()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.RELYING_PARTY,
-                new String[]{response.getRelyingParty()});
-        responseBuilder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE,
-                new String[]{response.getAuthType()});
-        responseBuilder.setRedirectURL(response.getRedirectUrl());
-
+        create(responseBuilder, identityResponse);
         return responseBuilder;
     }
 
     @Override
-    public HttpIdentityResponse.HttpIdentityResponseBuilder create(
+    public void create(
             HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse) {
 
         FrameworkLogoutResponse response = (FrameworkLogoutResponse)identityResponse;
 
+        builder.setStatusCode(HttpServletResponse.SC_FOUND);
         builder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
                              new String[]{response.getAuthName()});
         builder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
@@ -75,6 +63,10 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
                              new String[]{response.getAuthType()});
         builder.setRedirectURL(response.getRedirectUrl());
 
-        return builder;
+    }
+
+    @Override
+    public int getPriority() {
+        return 0;
     }
 }

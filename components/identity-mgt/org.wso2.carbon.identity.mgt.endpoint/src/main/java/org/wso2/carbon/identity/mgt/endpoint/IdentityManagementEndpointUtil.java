@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.mgt.endpoint;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
 /**

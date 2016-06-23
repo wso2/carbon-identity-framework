@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -73,6 +74,8 @@ public class IdentityMgtConfig {
     private int authPolicyLockingTime;
     private int authPolicyPasswordExpireTime;
     private int notificationExpireTime;
+    private int notificationSendingThreadPoolSize;
+    private int notificationSendingTimeout;
     private boolean authPolicyAccountLockCheck;
     private boolean authPolicyAccountDisableCheck;
     private boolean authPolicyAccountExistCheck;
@@ -346,6 +349,20 @@ public class IdentityMgtConfig {
                 this.registryCleanUpPeriod = Long.parseLong(registryCleanUpPeriod);
             }
 
+            String tempNotificationSendingThreadPoolSize = properties
+                    .getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SENDING_THREAD_POOL_SIZE);
+
+            if (NumberUtils.isNumber(tempNotificationSendingThreadPoolSize)) {
+                notificationSendingThreadPoolSize = Integer.parseInt(tempNotificationSendingThreadPoolSize);
+            }
+
+            String tempNotificationSendingTimeout = properties
+                    .getProperty(IdentityMgtConstants.PropertyConfig.NOTIFICATION_SENDING_TIMEOUT);
+
+            if (NumberUtils.isNumber(tempNotificationSendingTimeout)) {
+                notificationSendingTimeout = Integer.parseInt(tempNotificationSendingTimeout);
+            }
+
             int i = 1;
             while (true) {
                 String module = properties.
@@ -537,6 +554,14 @@ public class IdentityMgtConfig {
 
     public int getNotificationExpireTime() {
         return notificationExpireTime;
+    }
+
+    public int getNotificationSendingThreadPoolSize() {
+        return notificationSendingThreadPoolSize;
+    }
+
+    public int getNotificationSendingTimeout() {
+        return notificationSendingTimeout;
     }
 
     public boolean isListenerEnable() {

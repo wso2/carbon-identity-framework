@@ -16,32 +16,69 @@
   ~ under the License.
   --%>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword" %>
+<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
+<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
+<%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest" %>
 <%
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+
+    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
+    PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
 
     String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
+    boolean isPasswordRecoveryEmailConfirmation =
+            Boolean.parseBoolean(request.getParameter("isPasswordRecoveryEmailConfirmation"));
+
+    Response resetPasswordResponse = null;
 
     String newPassword = request.getParameter("reset-password");
 
+    String userStoreDomain = Utils.getUserStoreDomainName(username);
+    String tenantDomain = MultitenantUtils.getTenantDomain(username);
+
     if (StringUtils.isNotBlank(newPassword)) {
-        VerificationBean verificationBean =
-                userInformationRecoveryClient.resetPassword(username, confirmationKey, newPassword);
-        if (verificationBean == null || !verificationBean.getVerified()) {
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg",
-                                 IdentityManagementEndpointUtil.getPrintableError("Failed to reset password.",
-                                                                                  "Missing confirmation code or invalid session. Cannot proceed further.",
-                                                                                  verificationBean));
-            request.getRequestDispatcher("error.jsp").forward(request, response);
-            return;
+        if (isPasswordRecoveryEmailConfirmation) {
+            User user = new User();
+            user.setUserName(username);
+            user.setTenantDomain(tenantDomain);
+            user.setUserStoreDomain(userStoreDomain);
+
+            ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
+            resetPasswordRequest.setUser(user);
+            resetPasswordRequest.setPassword(newPassword);
+            resetPasswordRequest.setCode(confirmationKey);
+
+            resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(resetPasswordRequest);
+
+            if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
+                    (Response.Status.OK.getStatusCode() != resetPasswordResponse.getStatus())) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg",
+                        IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_3 + "\t" +
+                                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_4);
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+        } else {
+            ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
+            User user = (User) session.getAttribute("user");
+
+            UserPassword userPassword = new UserPassword();
+            userPassword.setCode(challengeQuestionResponse.getCode());
+            userPassword.setUser(user);
+            userPassword.setPassword(newPassword);
+            pwRecoverySecurityQuestionClient.updatePassword(userPassword);
         }
 
     } else {

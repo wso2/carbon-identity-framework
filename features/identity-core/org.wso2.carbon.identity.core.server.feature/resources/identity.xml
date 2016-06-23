@@ -363,6 +363,26 @@
         </SCIMAuthenticators>
     </SCIM>
 
+    <Recovery>
+        <notification>
+            <password>
+                <enable>true</enable>
+            </password>
+            <username>
+                <enable>true</enable>
+            </username>
+            <internallyManage>true</internallyManage>
+        </notification>
+        <question>
+            <password>
+                <enable>true</enable>
+                <separator>!</separator>
+                <minAnswers>2</minAnswers>
+            </password>
+        </question>
+        <expiryTime>3</expiryTime>
+    </Recovery>
+
     <!--SessionContextCache>
         <Enable>true</Enable>
         <Capacity>100000</Capacity>
@@ -383,6 +403,9 @@
                        orderId="100" enable="false">
         <Property name="Data.Store">org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore</Property>
         </EventListener>
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
+                       name="org.wso2.carbon.identity.data.publisher.application.authentication.impl.DASAuthnDataPublisherImpl"
+                       orderId="10" enable="false"/>
     </EventListeners>
 
     <CacheConfig>

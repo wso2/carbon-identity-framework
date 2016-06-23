@@ -18,17 +18,37 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.exception;
 
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.base.IdentityException;
 
 public class AuthenticationFailedException extends IdentityException {
 
     private static final long serialVersionUID = -8680141408172156343L;
 
+    private AuthenticatedUser user;
+
     public AuthenticationFailedException(String message) {
         super(message);
     }
 
+    public AuthenticationFailedException(String message, AuthenticatedUser user) {
+
+        super(message);
+        this.user = user;
+    }
+
     public AuthenticationFailedException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public AuthenticationFailedException(String message, AuthenticatedUser user, Throwable cause) {
+
+        super(message, cause);
+        this.user = user;
+    }
+
+    public AuthenticatedUser getUser() {
+
+        return user;
     }
 }

@@ -26,7 +26,7 @@ public class LDAPServerManagerConstants {
 
     public static final String SERVICE_PASSWORD_REGEX_PROPERTY = "ServicePasswordJavaRegEx";
     public static final String SERVICE_PRINCIPLE_NAME_REGEX_PROPERTY = "ServiceNameJavaRegEx";
-    public static final String DEFAULT_PASSWORD_REGULAR_EXPRESSION = "[\\\\S]{5,30}";
+    public static final String DEFAULT_PASSWORD_REGULAR_EXPRESSION = "[\\S]{5,30}";
     public static final String DEFAULT_SERVICE_NAME_REGULAR_EXPRESSION = "[a-zA-Z\\d]{2,10}/[a-zA-Z]{2,30}";
     public static final String SERVER_PRINCIPAL_ATTRIBUTE_VALUE = "Service";
     public static final String SERVER_PRINCIPAL_ATTRIBUTE_NAME = "sn";

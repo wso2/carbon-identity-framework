@@ -21,16 +21,16 @@
            prefix="carbon" %>
 <%@ page import="org.apache.axis2.AxisFault" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.Association" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
+
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.Association" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -110,18 +110,48 @@
     <script type="text/javascript">
         function removeAssociation(id, name) {
             function doDelete() {
-                location.href = 'update-association-finish.jsp?<%=WorkflowUIConstants.PARAM_ACTION%>=' +
-                '<%=WorkflowUIConstants.ACTION_VALUE_DELETE%>&<%=WorkflowUIConstants.PARAM_ASSOCIATION_ID%>=' + id;
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'update-association-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
+                    },
+                    data: '<%=WorkflowUIConstants.PARAM_ACTION%>=' + '<%=WorkflowUIConstants.ACTION_VALUE_DELETE%>&' +
+                    '<%=WorkflowUIConstants.PARAM_ASSOCIATION_ID%>=' + id,
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("list-associations.jsp");
+                        }
+                    }
+                });
             }
+
             CARBON.showConfirmationDialog('<fmt:message key="confirmation.association.delete"/> ' + name + '?',
                     doDelete, null);
         }
 
         function changeState(id, name, action) {
             function onChangeState() {
-                location.href = 'update-association-finish.jsp?<%=WorkflowUIConstants.PARAM_ACTION%>=' +
-                                action + '&<%=WorkflowUIConstants.PARAM_ASSOCIATION_ID%>=' + id;
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'update-association-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
+                    },
+                    data: '<%=WorkflowUIConstants.PARAM_ACTION%>=' + action + '&' +
+                    '<%=WorkflowUIConstants.PARAM_ASSOCIATION_ID%>=' + id,
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("list-associations.jsp");
+                        }
+                    }
+                });
             }
+
             if(action == '<%=WorkflowUIConstants.ACTION_VALUE_ENABLE%>'){
                 CARBON.showConfirmationDialog('<fmt:message key="confirmation.association.enable"/> ',
                                               onChangeState, null);

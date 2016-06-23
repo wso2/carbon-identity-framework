@@ -58,6 +58,8 @@ public abstract class FrameworkConstants {
     public static final String BASIC_AUTHENTICATOR_CLASS = "BasicAuthenticator";
     public static final String LOCAL = "LOCAL";
     public static final String SHOW_AUTHFAILURE_RESON_CONFIG = "showAuthFailureReason";
+    public static final String AUTHENTICATED_USER = "AuthenticatedUser";
+    public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
 
     private FrameworkConstants() {
 
@@ -183,5 +185,12 @@ public abstract class FrameworkConstants {
 
         private RequestAttribute() {
         }
+    }
+
+    public static class PublisherParamNames {
+
+        public static final String USER = "user";
+        public static final String SESSION_ID = "sessionId";
+        public static final String IS_FEDERATED = "isFederated";
     }
 }

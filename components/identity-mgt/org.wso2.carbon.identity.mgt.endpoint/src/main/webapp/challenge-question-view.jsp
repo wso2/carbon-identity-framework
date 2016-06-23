@@ -19,6 +19,13 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+
+<%
+   ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
+%>
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
@@ -66,10 +73,7 @@
                     <div class="padding-double">
                         <form method="post" action="processsecurityquestions.do" id="securityQuestionForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label"><%=Encode.forHtml(IdentityManagementEndpointUtil
-                                                                                       .getStringValue(
-                                                                                               request.getAttribute(
-                                                                                                       "question")))%>
+                                <label class="control-label"><%=challengeQuestionResponse.getQuestion().getQuestion()%>
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">

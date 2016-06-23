@@ -191,7 +191,7 @@
 
         <div id="workArea">
             <form name="chgPassWdForm" method="post"
-                  onsubmit="return doValidation();" action="change-passwd-finish.jsp">
+                  onsubmit="return doValidation();" action="change-passwd-finish-ajaxprocessor.jsp">
                 <input type="hidden" id="pwd_regex" name="pwd_regex" value=<%=Encode.forHtmlAttribute(regEx)%>>
 
                 <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
