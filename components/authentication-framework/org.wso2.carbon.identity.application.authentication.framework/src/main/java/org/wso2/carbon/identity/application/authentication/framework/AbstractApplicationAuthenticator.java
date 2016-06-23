@@ -127,10 +127,18 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                                                   AuthenticatedUser user, boolean success) {
 
         if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+            boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-            paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, this instanceof
-                    FederatedApplicationAuthenticator);
+            if (isFederated) {
+                // Setting this value to authentication context in order to use in AuthenticationSuccess Event
+                context.setProperty(FrameworkConstants.PublisherParamNames.HAS_FEDERATED_STEP, true);
+                paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, true);
+            } else {
+                // Setting this value to authentication context in order to use in AuthenticationSuccess Event
+                context.setProperty(FrameworkConstants.PublisherParamNames.HAS_LOCAL_STEP, true);
+                paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, false);
+            }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (success) {
                 AuthnDataPublishHandlerManager.getInstance().publishAuthenticationStepSuccess(request, context,
@@ -142,7 +150,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             }
         }
     }
-
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
