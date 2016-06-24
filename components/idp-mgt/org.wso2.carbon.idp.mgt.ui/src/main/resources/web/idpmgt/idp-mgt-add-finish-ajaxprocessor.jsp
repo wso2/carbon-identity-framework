@@ -16,9 +16,11 @@
 ~ under the License.
 -->
 
-<%@page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.apache.axis2.context.ConfigurationContext"%>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -26,6 +28,12 @@
 <%@ page import="java.util.ResourceBundle" %>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     try {
@@ -34,14 +42,15 @@
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
-        String idPName = request.getParameter("idPName");
-        if(idPName != null && !idPName.isEmpty()){
-            client.deleteIdP(idPName);
-            String message = MessageFormat.format(resourceBundle.getString("success.deleting.idp"),null);
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
-        }
+
+        IdentityProvider identityProvider = IdPManagementUIUtil
+                .buildFederatedIdentityProvider(request, new StringBuilder());
+        client.addIdP(identityProvider);
+        String message = MessageFormat.format(resourceBundle.getString("success.adding.idp"),null);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
     } catch (Exception e) {
-        String message = e.getMessage(); //MessageFormat.format(resourceBundle.getString("error.deleting.idp"),new Object[]{e.getMessage()});
+        String message = MessageFormat.format(resourceBundle.getString("error.adding.idp"),
+                new Object[]{e.getMessage()});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
     } finally {
         session.removeAttribute("idpUniqueIdMap");

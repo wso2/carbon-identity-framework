@@ -294,7 +294,8 @@ jQuery(document).ready(function(){
             <fmt:message key='resident.idp'/>
         </h2>
         <div id="workArea">
-            <form id="idp-mgt-edit-local-form" name="idp-mgt-edit-local-form" method="post" action="idp-mgt-edit-finish-local.jsp">
+            <form id="idp-mgt-edit-local-form" name="idp-mgt-edit-local-form" method="post"
+                  action="idp-mgt-edit-finish-local-ajaxprocessor.jsp">
                 <div class="sectionSeperator "><fmt:message key='resident.realm.config'/></div>
                 <div class="sectionSub">
                     <table class="carbonFormTable">

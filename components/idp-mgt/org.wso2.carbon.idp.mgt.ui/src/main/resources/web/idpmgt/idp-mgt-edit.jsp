@@ -2924,7 +2924,7 @@ function doEditFinish() {
         jQuery(defId).removeAttr('disabled');
     }
     <% if(idPName == null || idPName.equals("")){ %>
-    jQuery('#idp-mgt-edit-form').attr('action', 'idp-mgt-add-finish.jsp');
+    jQuery('#idp-mgt-edit-form').attr('action', 'idp-mgt-add-finish-ajaxprocessor.jsp');
     <% } %>
     jQuery('#idp-mgt-edit-form').submit();
 }
@@ -3190,7 +3190,7 @@ function doValidation() {
 </h2>
 
 <div id="workArea">
-<form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post" action="idp-mgt-edit-finish.jsp"
+<form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post" action="idp-mgt-edit-finish-ajaxprocessor.jsp"
       enctype="multipart/form-data">
     <% if(idPName != null && idpUniqueIdMap.get(idPName) != null) { %>
         <input type="hidden" name="idpUUID" value="<%= Encode.forHtmlAttribute(idpUniqueIdMap.get(idPName).toString()) %>"/>
