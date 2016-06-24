@@ -97,17 +97,6 @@
         </repository>
 
         <repository>
-            <id>wso2.releases.kernel</id>
-            <name>WSO2 kernel internal Repository</name>
-            <url>http://maven.wso2.org/nexus/content/repositories/orgwso2carbon-1024/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>ignore</checksumPolicy>
-            </releases>
-        </repository>
-
-        <repository>
             <id>wso2.snapshots</id>
             <name>Apache Snapshot Repository</name>
             <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
