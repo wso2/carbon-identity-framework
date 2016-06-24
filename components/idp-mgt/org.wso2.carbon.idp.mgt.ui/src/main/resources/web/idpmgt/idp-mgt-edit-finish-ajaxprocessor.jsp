@@ -28,6 +28,12 @@
 <%@ page import="java.util.ResourceBundle" %>
 
 <%
+	String httpMethod = request.getMethod();
+	if (!"post".equalsIgnoreCase(httpMethod)) {
+		response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+		return;
+	}
+
 	String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     try {
