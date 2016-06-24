@@ -45,9 +45,9 @@ import java.util.Properties;
  * components.
  */
 @SuppressWarnings("unused")
-public class EventMgtConfigBuilder {
+public class IdentityEventConfigBuilder {
 
-    private static final Log log = LogFactory.getLog(EventMgtConfigBuilder.class);
+    private static final Log log = LogFactory.getLog(IdentityEventConfigBuilder.class);
     /**
      * All properties configured in msg-mgt.properties file
      */
@@ -61,14 +61,14 @@ public class EventMgtConfigBuilder {
      */
     private String threadPoolSize;
 
-    private static EventMgtConfigBuilder notificationMgtConfigBuilder;
+    private static IdentityEventConfigBuilder notificationMgtConfigBuilder;
 
     /**
      * Load properties file and set Module properties
      *
-     * @throws EventMgtException
+     * @throws IdentityEventException
      */
-    private EventMgtConfigBuilder() throws EventMgtException {
+    private IdentityEventConfigBuilder() throws IdentityEventException {
         notificationMgtConfigProperties = loadProperties();
         setThreadPoolSize();
         resolveSecrets();
@@ -76,9 +76,9 @@ public class EventMgtConfigBuilder {
         build();
     }
 
-    public static EventMgtConfigBuilder getInstance ()  throws EventMgtException {
+    public static IdentityEventConfigBuilder getInstance ()  throws IdentityEventException {
         if (notificationMgtConfigBuilder == null) {
-            return new EventMgtConfigBuilder();
+            return new IdentityEventConfigBuilder();
         }
         return notificationMgtConfigBuilder;
     }
@@ -94,14 +94,14 @@ public class EventMgtConfigBuilder {
      * Load properties which are defined in msg-mgt.properties file
      *
      * @return Set of properties which are defined in msg-mgt.properties file
-     * @throws EventMgtException
+     * @throws IdentityEventException
      */
-    private Properties loadProperties() throws EventMgtException {
+    private Properties loadProperties() throws IdentityEventException {
         Properties properties = new Properties();
         InputStream inStream = null;
 
         // Open the default configuration file in carbon conf directory path .
-        File MessageMgtPropertyFile = new File(IdentityUtil.getIdentityConfigDirPath(), EventMgtConstants.PropertyConfig
+        File MessageMgtPropertyFile = new File(IdentityUtil.getIdentityConfigDirPath(), IdentityEventConstants.PropertyConfig
                 .CONFIG_FILE_NAME);
 
         try {
@@ -135,7 +135,7 @@ public class EventMgtConfigBuilder {
      * Build and store per module configuration objects
      */
     private void build() {
-        Properties moduleNames = EventManagementUtils.getSubProperties("module.name", notificationMgtConfigProperties);
+        Properties moduleNames = IdentityEventUtils.getSubProperties("module.name", notificationMgtConfigProperties);
         Enumeration propertyNames = moduleNames.propertyNames();
         // Iterate through events and build event objects
         while (propertyNames.hasMoreElements()) {
@@ -167,7 +167,7 @@ public class EventMgtConfigBuilder {
      */
     private List<Subscription> buildSubscriptionList(String moduleName, Properties moduleProperties) {
         // Get subscribed events
-        Properties subscriptions = EventManagementUtils.getSubProperties(moduleName + "." +
+        Properties subscriptions = IdentityEventUtils.getSubProperties(moduleName + "." +
                 "subscription", moduleProperties);
 
         List<Subscription> subscriptionList = new ArrayList<Subscription>();
@@ -177,7 +177,7 @@ public class EventMgtConfigBuilder {
             String key = (String) propertyNames.nextElement();
             String subscriptionName = (String) subscriptions.remove(key);
             // Read all the event properties starting from the event prefix
-            Properties subscriptionProperties = EventManagementUtils.getPropertiesWithPrefix
+            Properties subscriptionProperties = IdentityEventUtils.getPropertiesWithPrefix
                     (moduleName + "." + "subscription" + "." + subscriptionName,
                             moduleProperties);
             Subscription subscription = new Subscription(subscriptionName, subscriptionProperties);
@@ -193,7 +193,7 @@ public class EventMgtConfigBuilder {
      * @return A set of properties which are defined for a particular module
      */
     private Properties getModuleProperties(String moduleName) {
-        return EventManagementUtils.getPropertiesWithPrefix(moduleName, notificationMgtConfigProperties);
+        return IdentityEventUtils.getPropertiesWithPrefix(moduleName, notificationMgtConfigProperties);
     }
 
     /**

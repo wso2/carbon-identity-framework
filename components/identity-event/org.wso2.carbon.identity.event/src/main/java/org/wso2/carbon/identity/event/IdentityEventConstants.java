@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.event;
 /**
  * Identity management related constants
  */
-public class EventMgtConstants {
+public class IdentityEventConstants {
 
-    private EventMgtConstants(){}
+    private IdentityEventConstants(){}
 
     public class PropertyConfig {
 

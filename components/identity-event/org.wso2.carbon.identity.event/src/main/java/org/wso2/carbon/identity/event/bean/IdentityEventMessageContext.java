@@ -9,9 +9,10 @@ public class IdentityEventMessageContext extends MessageContext{
 
     private Event event;
 
-    public IdentityEventMessageContext(Map parameters) {
-        super(parameters);
-        this.event = (Event)parameters.get("Event");
+    public IdentityEventMessageContext (Event event) {
+        super();
+        this.event = event;
+
     }
 
     public Event getEvent() {

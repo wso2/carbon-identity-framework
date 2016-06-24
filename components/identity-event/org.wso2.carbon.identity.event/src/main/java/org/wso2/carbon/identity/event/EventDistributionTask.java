@@ -20,15 +20,12 @@ package org.wso2.carbon.identity.event;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
-import org.wso2.carbon.identity.event.internal.EventMgtServiceDataHolder;
+import org.wso2.carbon.identity.event.internal.IdentityEventServiceDataHolder;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -63,7 +60,7 @@ public class EventDistributionTask implements Runnable {
     public EventDistributionTask(List<AbstractEventHandler> notificationSendingModules, int threadPoolSize) {
         this.notificationSendingModules = notificationSendingModules;
         this.eventQueue = new LinkedBlockingDeque<Event>();
-        EventMgtServiceDataHolder.getInstance().setThreadPool(Executors.newFixedThreadPool(threadPoolSize));
+        IdentityEventServiceDataHolder.getInstance().setThreadPool(Executors.newFixedThreadPool(threadPoolSize));
     }
 
     public void addEventToQueue(Event publisherEvent) {
@@ -77,9 +74,7 @@ public class EventDistributionTask implements Runnable {
         while (running) {
             try {
                 final Event event = eventQueue.take();
-                Map<String, Event> eventMap = new HashMap<>();
-                eventMap.put("Event", event);
-                IdentityEventMessageContext eventContext = new IdentityEventMessageContext(eventMap);
+                IdentityEventMessageContext eventContext = new IdentityEventMessageContext(event);
                 for (final AbstractEventHandler module : notificationSendingModules) {
                     // If the module is subscribed to the event, module will be executed.
                     if (module.isEnabled(eventContext)) {
@@ -93,15 +88,14 @@ public class EventDistributionTask implements Runnable {
                                 }
                                 try {
                                     module.handleEvent(event);
-                                } catch (EventMgtException e) {
+                                } catch (IdentityEventException e) {
                                     log.error("Error while invoking notification sending module " + module.
                                             getName(), e);
                                 }
                             }
                         };
-                        EventMgtServiceDataHolder.getInstance().getThreadPool().submit(msgSender);
+                        IdentityEventServiceDataHolder.getInstance().getThreadPool().submit(msgSender);
                     }
-//
                 }
             } catch (InterruptedException e) {
                 log.error("Error while picking up event from event queue", e);

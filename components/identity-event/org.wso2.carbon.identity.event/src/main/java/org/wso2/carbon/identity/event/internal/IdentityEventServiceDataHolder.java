@@ -20,17 +20,17 @@ package org.wso2.carbon.identity.event.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.event.services.EventMgtService;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.idp.mgt.IdpManager;
 
 import java.util.concurrent.ExecutorService;
 
-public class EventMgtServiceDataHolder {
+public class IdentityEventServiceDataHolder {
 
-    private static EventMgtServiceDataHolder instance = new EventMgtServiceDataHolder();
-    private static Log log = LogFactory.getLog(EventMgtServiceDataHolder.class);
+    private static IdentityEventServiceDataHolder instance = new IdentityEventServiceDataHolder();
+    private static Log log = LogFactory.getLog(IdentityEventServiceDataHolder.class);
     private IdpManager idpManager;
-    private EventMgtService eventMgtService;
+    private IdentityEventService eventMgtService;
     private ExecutorService threadPool;
 
     public ExecutorService getThreadPool() {
@@ -49,20 +49,20 @@ public class EventMgtServiceDataHolder {
         this.idpManager = idpManager;
     }
 
-    private EventMgtServiceDataHolder() {
+    private IdentityEventServiceDataHolder() {
 
     }
 
-    public static EventMgtServiceDataHolder getInstance() {
+    public static IdentityEventServiceDataHolder getInstance() {
 
         return instance;
     }
 
-    public EventMgtService getEventMgtService() {
+    public IdentityEventService getEventMgtService() {
         return eventMgtService;
     }
 
-    public void setEventMgtService(EventMgtService eventMgtService) {
+    public void setEventMgtService(IdentityEventService eventMgtService) {
         this.eventMgtService = eventMgtService;
     }
 }
