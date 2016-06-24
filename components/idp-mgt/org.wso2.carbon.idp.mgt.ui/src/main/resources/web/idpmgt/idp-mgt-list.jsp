@@ -44,27 +44,48 @@
 
 <script>
 
-    function editIdPName(obj){
-        location.href = "idp-mgt-edit-load.jsp?idPName=" + encodeURIComponent(jQuery(obj).parent().prev().prev().text());
+    function editIdPName(idpName){
+        location.href = "idp-mgt-edit-load.jsp?idPName=" + encodeURIComponent(idpName);
     }
-    function deleteIdPName(obj){
-        CARBON.showConfirmationDialog('Are you sure you want to delete "'  + jQuery(obj).parent().prev().prev().text() + '" IdP information?',
-                function (){
-                    location.href = "idp-mgt-delete-finish.jsp?idPName=" + encodeURIComponent(jQuery(obj).parent().prev().prev().text());
+    function deleteIdPName(idpName){
+        function doDelete() {
+            $.ajax({
+                type: 'POST',
+                url: 'idp-mgt-delete-finish-ajaxprocessor.jsp',
+                headers: {
+                    Accept: "text/html"
                 },
-                null);
+                data: 'idPName=' + encodeURIComponent(idpName),
+                async: false,
+                success: function (responseText, status) {
+                    if (status == "success") {
+                        location.assign("idp-mgt-list-load.jsp");
+                    }
+                }
+            });
+        }
+
+        CARBON.showConfirmationDialog('Are you sure you want to delete "'  +
+                idpName + '" IdP information?', doDelete, null);
     }
     
 
-    function enable(idpName) {
-        location.href = "idp-mgt-edit-finish.jsp?idPName="+idpName+"&enable=1";
+    function enableOrDisableIdP(idpName, indicator) {
+        $.ajax({
+            type: 'POST',
+            url: 'idp-mgt-edit-finish-ajaxprocessor.jsp',
+            headers: {
+                Accept: "text/html"
+            },
+            data: 'idPName=' + encodeURIComponent(idpName) + '&enable=' + indicator,
+            async: false,
+            success: function (responseText, status) {
+                if (status == "success") {
+                    location.assign("idp-mgt-list-load.jsp");
+                }
+            }
+        });
     }
-
-    function disable(idpName) {
-        location.href = "idp-mgt-edit-finish.jsp?idPName="+idpName+"&enable=0";
-    }
-
-
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
@@ -94,24 +115,24 @@
                                 <td>
                                  	<% if (enable) { %>
                     						<a title="<fmt:message key='disable.policy'/>"
-                       						onclick="disable('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>');return false;"
+                       						onclick="enableOrDisableIdP('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>', 0);return false;"
                        						href="#" style="background-image: url(images/disable.gif);" class="icon-link">
                         					<fmt:message key='disable.policy'/></a>
                     				<% } else { %>
                     						<a title="<fmt:message key='enable.policy'/>"
-                       						onclick="enable('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>');return false;"
+                       						onclick="enableOrDisableIdP('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>', 1);return false;"
                        						href="#" style="background-image: url(images/enable2.gif);" class="icon-link">
                        						 <fmt:message key='enable.policy'/></a>
                    				   <% } %>
                                     <a title="<fmt:message key='edit.idp.info'/>"
-                                       onclick="editIdPName(this);return false;"
+                                       onclick="editIdPName('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>');return false;"
                                        href="#"
                                        class="icon-link"
                                        style="background-image: url(images/edit.gif)">
                                        <fmt:message key='edit'/>
                                     </a>
                                     <a title="<fmt:message key='delete'/>"
-                                       onclick="deleteIdPName(this);return false;"
+                                       onclick="deleteIdPName('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>');return false;"
                                        href="#"
                                        class="icon-link"
                                        style="background-image: url(images/delete.gif)">
