@@ -18,11 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
-import org.apache.cxf.jaxrs.provider.json.JSONProvider;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
  */
