@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStoreFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
+import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
@@ -38,6 +39,11 @@ import org.wso2.carbon.user.core.service.RealmService;
  * cardinality="1..1" policy="dynamic"
  * bind="setRealmService"
  * unbind="unsetRealmService"
+ * @scr.reference name="claim.manager.listener.service"
+ * interface="org.wso2.carbon.user.core.listener.ClaimManagerListener"
+ * cardinality="0..n" policy="dynamic"
+ * bind="setClaimManagerListener"
+ * unbind="unsetClaimManagerListener" *
  */
 @SuppressWarnings("unused")
 public class IdentityClaimManagementServiceComponent {
@@ -95,6 +101,22 @@ public class IdentityClaimManagementServiceComponent {
         IdentityClaimManagementServiceDataHolder.getInstance().setRegistryService(null);
         if (log.isDebugEnabled()) {
             log.debug("RegistryService unset in Identity Claim Management bundle");
+        }
+    }
+
+    public static synchronized void setClaimManagerListener(ClaimManagerListener claimManagerListener) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().setClaimManagerListener(claimManagerListener);
+        if (log.isDebugEnabled()) {
+            log.debug("ClaimManagerListener set in Identity Claim Management bundle");
+        }
+    }
+
+    public static synchronized void unsetClaimManagerListener(ClaimManagerListener claimManagerListener) {
+
+        IdentityClaimManagementServiceDataHolder.getInstance().unsetClaimManagerListener(claimManagerListener);
+        if (log.isDebugEnabled()) {
+            log.debug("ClaimManagerListener unset in Identity Claim Management bundle");
         }
     }
 }

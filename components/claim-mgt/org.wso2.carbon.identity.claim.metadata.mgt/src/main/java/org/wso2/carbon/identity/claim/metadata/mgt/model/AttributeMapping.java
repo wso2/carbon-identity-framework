@@ -24,7 +24,7 @@ public class AttributeMapping {
     private String attributeName;
 
     public AttributeMapping(String userStoreDomain, String attributeName) {
-        this.userStoreDomain = userStoreDomain;
+        this.userStoreDomain = userStoreDomain.toUpperCase();
         this.attributeName = attributeName;
     }
 

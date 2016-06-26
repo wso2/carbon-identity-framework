@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.user.api.Claim;
@@ -34,6 +37,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +58,105 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
     DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
-        // TODO : PERSIST CLAIM CONFIG IN THE DATABASE
+        try {
+            if (claimDialectDAO.getClaimDialects(tenantId).size() == 0) {
+                init(claimConfig, tenantId);
+            }
+        } catch (ClaimMetadataException e) {
+            log.error("Error while retrieving claim dialects", e);
+        }
 
-        this.claimConfig = claimConfig;
         this.tenantId = tenantId;
+    }
+
+    private void init(ClaimConfig claimConfig, int tenantId) {
+
+        // Adding local claim dialect
+        try {
+            claimDialectDAO.addClaimDialect(new ClaimDialect(ClaimConstants.LOCAL_CLAIM_DIALECT_URI), tenantId);
+        } catch (ClaimMetadataException e) {
+            log.error("Error while adding claim dialect " + ClaimConstants.LOCAL_CLAIM_DIALECT_URI, e);
+        }
+
+
+        if (claimConfig.getClaims() != null) {
+
+            // Adding local claims
+            String primaryDomainName = null;
+            UserRealm realm;
+            try {
+                realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
+                        .getTenantUserRealm(tenantId);
+                primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
+                        (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            } catch (UserStoreException e) {
+                log.error("Error while retrieving primary userstore domain name", e);
+            }
+
+            for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
+                    .entrySet()) {
+
+                String claimURI = entry.getKey();
+                org.wso2.carbon.user.core.claim.ClaimMapping claimMapping = entry.getValue();
+                String claimDialectURI = claimMapping.getClaim().getDialectURI();
+
+                if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
+
+                    List<AttributeMapping> mappedAttributes = new ArrayList<>();
+                    mappedAttributes.add(new AttributeMapping(primaryDomainName, claimMapping.getMappedAttribute()));
+
+                    Map<String, String> claimProperties = claimConfig.getPropertyHolder().get(claimURI);
+
+                    LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
+
+                    try {
+                        localClaimDAO.addLocalClaim(localClaim, tenantId);
+                    } catch (ClaimMetadataException e) {
+                        log.error("Error while adding local claim " + claimURI, e);
+                    }
+
+                }
+            }
+
+            // Adding external dialects and claims
+            List<ClaimDialect> claimDialectList = new ArrayList<>();
+
+            for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
+                    .entrySet()) {
+
+                String claimURI = entry.getKey();
+                String claimDialectURI = entry.getValue().getClaim().getDialectURI();
+
+                if (!ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
+
+                    // Add external dialect
+                    if (claimDialectList.indexOf(claimDialectURI) == -1) {
+                        ClaimDialect claimDialect = new ClaimDialect(claimDialectURI);
+                        try {
+                            claimDialectDAO.addClaimDialect(claimDialect, tenantId);
+                            claimDialectList.add(claimDialect);
+                        } catch (ClaimMetadataException e) {
+                            log.error("Error while adding claim dialect " + claimDialectURI, e);
+                            continue;
+                        }
+                    }
+
+                    // Add external claim
+                    String mappedLocalClaimURI = claimConfig.getPropertyHolder().get(claimURI).get(ClaimConstants
+                            .MAPPED_LOCAL_CLAIM_PROPERTY);
+                    ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI);
+
+                    try {
+                        externalClaimDAO.addExternalClaim(externalClaim, tenantId);
+                    } catch (ClaimMetadataException e) {
+                        log.error("Error while adding external claim " + claimURI + " to dialect " + claimDialectURI,
+                                e);
+                    }
+
+                }
+            }
+        }
+
     }
 
     @Override

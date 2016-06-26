@@ -57,7 +57,7 @@ public class LocalClaim extends Claim {
 
     public String getMappedAttribute(String userStoreDomainName) {
         for (AttributeMapping mappedAttribute : this.getMappedAttributes()) {
-            if (mappedAttribute.getUserStoreDomain().equals(userStoreDomainName)) {
+            if (mappedAttribute.getUserStoreDomain().equals(userStoreDomainName.toUpperCase())) {
                 return mappedAttribute.getAttributeName();
             }
         }

@@ -19,7 +19,12 @@ package org.wso2.carbon.identity.claim.metadata.mgt.internal;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * This singleton data holder contains all the data required by the identity claim metadata OSGi bundle
@@ -32,6 +37,8 @@ public class IdentityClaimManagementServiceDataHolder {
     private BundleContext bundleContext;
     private RealmService realmService;
     private RegistryService registryService;
+    private static Map<Integer, ClaimManagerListener> claimManagerListeners = new TreeMap<Integer,
+            ClaimManagerListener>();
 
     private IdentityClaimManagementServiceDataHolder() {
 
@@ -71,5 +78,22 @@ public class IdentityClaimManagementServiceDataHolder {
 
     public RegistryService getRegistryService() {
         return registryService;
+    }
+
+    public static synchronized Collection<ClaimManagerListener> getClaimManagerListeners() {
+
+        return claimManagerListeners.values();
+    }
+
+    public synchronized void setClaimManagerListener(ClaimManagerListener claimManagerListener) {
+
+        claimManagerListeners.put(claimManagerListener.getExecutionOrderId(), claimManagerListener);
+    }
+
+    public synchronized void unsetClaimManagerListener(ClaimManagerListener claimManagerListener) {
+
+        if (claimManagerListener != null) {
+            claimManagerListeners.remove(claimManagerListener.getExecutionOrderId());
+        }
     }
 }
