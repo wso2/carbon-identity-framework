@@ -1,0 +1,150 @@
+<%--
+  ~ Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  --%>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
+           prefix="carbon" %>
+
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+
+
+<%@page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@page import="java.text.MessageFormat" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ExternalClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimPropertyDTO" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.AttributeMappingDTO" %>
+
+
+<%
+    String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+    ConfigurationContext configContext = (ConfigurationContext)
+            config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+    String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+
+    String localClaimURI = request.getParameter("localClaimURI");
+    String displayName = request.getParameter("displayName");
+    String description = request.getParameter("description");
+    String mappedAttribute = request.getParameter("mappedAttribute");
+    String regex = request.getParameter("regex");
+    String displayOrder = request.getParameter("displayOrder");
+    String supported = request.getParameter("supported");
+    String required = request.getParameter("required");
+    String readonly = request.getParameter("readonly");
+
+    List<AttributeMappingDTO> attributeMappings = new ArrayList();
+
+    AttributeMappingDTO attributeMapping = new AttributeMappingDTO();
+    attributeMapping.setUserStoreDomain("PRIMARY");
+    attributeMapping.setAttributeName(mappedAttribute);
+
+    attributeMappings.add(attributeMapping);
+
+
+    List<ClaimPropertyDTO> claimProperties = new ArrayList();
+
+    if (StringUtils.isNotBlank(displayName)) {
+        ClaimPropertyDTO dispalyNameProperty = new ClaimPropertyDTO();
+        dispalyNameProperty.setPropertyName("display.name");
+        dispalyNameProperty.setPropertyValue(displayName);
+        claimProperties.add(dispalyNameProperty);
+    }
+
+    if (StringUtils.isNotBlank(description)) {
+        ClaimPropertyDTO descriptionProperty = new ClaimPropertyDTO();
+        descriptionProperty.setPropertyName("description");
+        descriptionProperty.setPropertyValue(description);
+        claimProperties.add(descriptionProperty);
+    }
+
+    if (StringUtils.isNotBlank(regex)) {
+        ClaimPropertyDTO regexProperty = new ClaimPropertyDTO();
+        regexProperty.setPropertyName("regex");
+        regexProperty.setPropertyValue(regex);
+        claimProperties.add(regexProperty);
+    }
+
+    if (StringUtils.isNotBlank(displayOrder)) {
+        ClaimPropertyDTO dispalyOrderProperty = new ClaimPropertyDTO();
+        dispalyOrderProperty.setPropertyName("display.order");
+        dispalyOrderProperty.setPropertyValue(displayOrder);
+        claimProperties.add(dispalyOrderProperty);
+    }
+
+    if (StringUtils.isNotBlank(supported)) {
+        ClaimPropertyDTO supportedProperty = new ClaimPropertyDTO();
+        supportedProperty.setPropertyName("supported.by.default");
+        supportedProperty.setPropertyValue(supported);
+        claimProperties.add(supportedProperty);
+    }
+
+    if (StringUtils.isNotBlank(required)) {
+        ClaimPropertyDTO requiredProperty = new ClaimPropertyDTO();
+        requiredProperty.setPropertyName("required");
+        requiredProperty.setPropertyValue(required);
+        claimProperties.add(requiredProperty);
+    }
+
+    if (StringUtils.isNotBlank(readonly)) {
+        ClaimPropertyDTO readOnlyProperty = new ClaimPropertyDTO();
+        readOnlyProperty.setPropertyName("readonly");
+        readOnlyProperty.setPropertyValue(readonly);
+        claimProperties.add(readOnlyProperty);
+    }
+
+    LocalClaimDTO localClaim = new LocalClaimDTO();
+    localClaim.setLocalClaimURI(localClaimURI);
+
+    localClaim.setAttributeMappings(attributeMappings.toArray(new AttributeMappingDTO[0]));
+    localClaim.setClaimProperties(claimProperties.toArray(new ClaimPropertyDTO[0]));
+
+
+    String forwardTo = null;
+    try {
+
+        ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
+        client.updateLocalClaim(localClaim);
+        forwardTo = "list-local-claims.jsp?ordinal=1";
+
+    } catch (Exception e) {
+
+        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
+        String unformatted = resourceBundle.getString("error.adding.local.claim");
+        String message = MessageFormat.format(unformatted, new
+                Object[]{Encode.forHtmlContent(localClaimURI)});
+
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+        forwardTo = "update-local-claim.jsp?localClaimURI=" + Encode.forUriComponent(localClaimURI) + "&ordinal=1";
+    }
+%>
+<script type="text/javascript">
+    function forward() {
+        location.href = "<%=forwardTo%>";
+    }
+
+    forward();
+</script>
