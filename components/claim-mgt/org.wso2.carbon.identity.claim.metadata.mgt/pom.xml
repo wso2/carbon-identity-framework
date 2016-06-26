@@ -25,7 +25,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.claim.metatada.mgt</artifactId>
+    <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Identity Claim Metadata Management BE</name>
     <description>Advanced Claim metadata management for WSO2 Carbon</description>
@@ -70,19 +70,15 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>
-                            ${project.artifactId}
-                        </Bundle-SymbolicName>
-                        <Private-Package>
-                            org.wso2.carbon.identity.claim.metadata.mgt.internal
-                        </Private-Package>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Private-Package>org.wso2.carbon.identity.claim.metadata.mgt.internal</Private-Package>
                         <Import-Package>
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.core.util;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.registry.core.service;version="${carbon.kernel.registry.imp.pkg.version}",

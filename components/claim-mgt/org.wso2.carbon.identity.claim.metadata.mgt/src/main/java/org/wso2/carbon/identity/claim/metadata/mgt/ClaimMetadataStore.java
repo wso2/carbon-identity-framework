@@ -22,4 +22,21 @@ import org.wso2.carbon.user.core.claim.ClaimManager;
  * This interface used to expose claim metadata runtime functionalities as an OSGi Service.
  */
 public interface ClaimMetadataStore extends ClaimManager {
+
+    // convert local claim to external claim
+    // convert external claim to local claim
+
+    // convert local claim set to external claim set
+    // convert external claim set to local claim set
+
+    // convert local claim dialect to external claim dialect
+    // convert external claim dialect to local claim dialect
+
+    // get local claim property
+    // get local claim properties
+
+    // get external claim property
+    // get external claim properties
+
+    // get local claim mapped attribute
 }

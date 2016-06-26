@@ -50,9 +50,8 @@ public class ClaimMetadataStoreFactory implements ClaimManagerFactory {
     }
 
     @Override
-    public ClaimManager createClaimManager(int tenantId) {
-        ClaimMetadataStoreImpl identityClaimManager = new ClaimMetadataStoreImpl(claimConfig, tenantId);
-//        identityClaimManager.init(claimConfig, tenantId);
+    public synchronized ClaimManager createClaimManager(int tenantId) {
+        DefaultClaimMetadataStore identityClaimManager = new DefaultClaimMetadataStore(claimConfig, tenantId);
 
         return identityClaimManager;
     }

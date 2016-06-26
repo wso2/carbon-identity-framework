@@ -22,4 +22,6 @@ package org.wso2.carbon.identity.claim.metadata.mgt.util;
 public class ClaimConstants {
 
     public static final String LOCAL_CLAIM_DIALECT_URI = "http://wso2.org/claims";
+    public static final String DEFAULT_ATTRIBUTE = "default.attribute";
+    public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "mapped.local.claim";
 }
