@@ -51,9 +51,9 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String localClaimURI = request.getParameter("localClaimURI");
+    int numberOfAttributeMappings = Integer.parseInt(request.getParameter("number_of_AttributeMappings"));
     String displayName = request.getParameter("displayName");
     String description = request.getParameter("description");
-    String mappedAttribute = request.getParameter("mappedAttribute");
     String regex = request.getParameter("regex");
     String displayOrder = request.getParameter("displayOrder");
     String supported = request.getParameter("supported");
@@ -62,12 +62,20 @@
 
     List<AttributeMappingDTO> attributeMappings = new ArrayList();
 
-    AttributeMappingDTO attributeMapping = new AttributeMappingDTO();
-    attributeMapping.setUserStoreDomain("PRIMARY");
-    attributeMapping.setAttributeName(mappedAttribute);
+    for (int i = 0; i < numberOfAttributeMappings; i++) {
 
-    attributeMappings.add(attributeMapping);
+        String userStoreDomain = request.getParameter("userstore_" + i);
+        String mappedAttribute = request.getParameter("attribute_" + i);
 
+        if (StringUtils.isNotBlank(userStoreDomain) && StringUtils.isNotBlank(mappedAttribute)) {
+
+            AttributeMappingDTO attributeMapping = new AttributeMappingDTO();
+            attributeMapping.setUserStoreDomain(userStoreDomain);
+            attributeMapping.setAttributeName(mappedAttribute);
+
+            attributeMappings.add(attributeMapping);
+        }
+    }
 
     List<ClaimPropertyDTO> claimProperties = new ArrayList();
 

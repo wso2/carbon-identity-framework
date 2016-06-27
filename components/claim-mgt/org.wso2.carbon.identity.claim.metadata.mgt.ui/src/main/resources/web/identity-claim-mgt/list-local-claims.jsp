@@ -31,6 +31,8 @@
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimPropertyDTO" %>
 <%@ page import="java.util.Properties" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
 
 <%
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -220,6 +222,14 @@
                     AttributeMappingDTO[] attributeMappings = localClaim.getAttributeMappings();
                     ClaimPropertyDTO[] claimPropertyDTOs = localClaim.getClaimProperties();
 
+                    if (attributeMappings == null) {
+                        attributeMappings = new AttributeMappingDTO[0];
+                    }
+
+                    if (claimPropertyDTOs == null) {
+                        claimPropertyDTOs = new ClaimPropertyDTO[0];
+                    }
+
                     Properties claimProperties = new Properties();
                     for (int j = 0; j < claimPropertyDTOs.length; j++) {
                         claimProperties.put(claimPropertyDTOs[j].getPropertyName(),
@@ -237,11 +247,6 @@
                     String supportedByDefault = claimProperties.getProperty("supported.by.default");
                     String required = claimProperties.getProperty("required");
                     String readonly = claimProperties.getProperty("readonly");
-
-                    String attributeMapping = "no.attribute";
-                    if (attributeMapping.length() > 0) {
-                        attributeMapping = attributeMappings[0].getAttributeName();
-                    }
 
                     if (StringUtils.isNotBlank(displayName)) {%>
             <div class="trigger-title-container">
@@ -277,42 +282,43 @@
                         </td>
                     </tr>
 
-                    <%
-
-//                        if (claims[j].getMappedAttribute() != null && claims[j].getMappedAttribute().indexOf(";") <= 0) {
-//
-//                            ClaimAttributeDTO[] attrMap = claims[j].getMappedAttributes();
-//
-//                            if (attrMap != null) {
-//                                for (int x = 0; x < attrMap.length; x++) {
-//                                    String val = attrMap[x].getDomainName() + "/" + attrMap[x].getAttributeName();
-//                                    claims[j].setMappedAttribute(claims[j].getMappedAttribute() + ";"
-//                                                                 + val);
-//                                }
-//                            }
-//                        } else {
-//                            ClaimAttributeDTO[] attrMap = claims[j].getMappedAttributes();
-//                            if (attrMap != null) {
-//                                StringBuilder mappedAttributeWithDomain = new StringBuilder();
-//                                for (int x = 0; x < attrMap.length; x++) {
-//                                    mappedAttributeWithDomain.append(";");
-//                                    mappedAttributeWithDomain.append(attrMap[x].getDomainName());
-//                                    mappedAttributeWithDomain.append("/");
-//                                    mappedAttributeWithDomain.append(attrMap[x].getAttributeName());
-//                                }
-//                                String mappedAttribute = mappedAttributeWithDomain.toString();
-//                                if (StringUtils.isNotEmpty(mappedAttribute)) {
-//                                    mappedAttribute = mappedAttribute.substring(1);
-//                                    claims[j].setMappedAttribute(mappedAttribute);
-//                                }
-//                            }
-//                        }
-
-                    %>
-
                     <tr>
                         <td class="leftCol-small"><fmt:message key='mapped.attribute'/></td>
-                        <td class="leftCol-big"><%=Encode.forHtmlContent(attributeMapping)%>
+                        <td>
+                            <table class="styledLeft" id="attributeAddTable" >
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key='label.user.store.domain.name'/></th>
+                                    <th><fmt:message key='label.mapped.attribute'/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <%
+                                    for (int attributeCounter = 0; attributeCounter < attributeMappings.length; attributeCounter++) {
+                                        AttributeMappingDTO attributeMapping = attributeMappings[attributeCounter];
+                                        String userStoreDomainName = attributeMapping.getUserStoreDomain();
+                                        String attributeName = attributeMapping.getAttributeName();
+                                %>
+                                <tr>
+                                    <td class="leftCol-big">
+                                        <input style="width: 98%;" type="text"
+                                               value="<%=Encode.forHtmlAttribute(userStoreDomainName)%>"
+                                               id="userstore_<%=attributeCounter%>"
+                                               name="userstore_<%=attributeCounter%>" readonly/>
+                                    </td>
+                                    <td class="leftCol-big">
+                                        <input style="width: 98%;" type="text"
+                                               value="<%=Encode.forHtmlAttribute(attributeName)%>"
+                                               id="attribute_<%=attributeCounter%>"
+                                               name="attribute_<%=attributeCounter%>" readonly/>
+                                    </td>
+                                </tr>
+                                <%
+                                    }
+                                %>
+                                </tbody>
+                            </table>
+                            <div style="clear:both"/>
                         </td>
                     </tr>
 

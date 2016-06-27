@@ -56,12 +56,21 @@
     String required = null;
     String readonly = null;
 
-    String attributeMapping = "no.attribute";
+    AttributeMappingDTO[] attributeMappings = null;
 
     if (localClaim != null) {
 
-        AttributeMappingDTO[] attributeMappings = localClaim.getAttributeMappings();
+        attributeMappings = localClaim.getAttributeMappings();
         ClaimPropertyDTO[] claimPropertyDTOs = localClaim.getClaimProperties();
+
+        if (attributeMappings == null) {
+            attributeMappings = new AttributeMappingDTO[0];
+        }
+
+        if (claimPropertyDTOs == null) {
+            claimPropertyDTOs = new ClaimPropertyDTO[0];
+        }
+
 
         Properties claimProperties = new Properties();
         for (int j = 0; j < claimPropertyDTOs.length; j++) {
@@ -76,10 +85,6 @@
         supportedByDefault = claimProperties.getProperty("supported.by.default");
         required = claimProperties.getProperty("required");
         readonly = claimProperties.getProperty("readonly");
-
-        if (attributeMapping.length() > 0) {
-            attributeMapping = attributeMappings[0].getAttributeName();
-        }
 
     } else {
         String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
@@ -119,6 +124,32 @@
         <div id="workArea">
 
             <script type="text/javascript">
+
+                var attributeMappingRowID = <%=attributeMappings.length - 1%>;
+
+                jQuery(document).ready(function () {
+                    jQuery('#attributeAddLink').click(function(){
+                        attributeMappingRowID++;
+                        jQuery('#attributeAddTable').append(jQuery('<tr><td class="leftCol-big">' +
+                                '<input style="width: 98%;" type="text" id="userstore_'+ attributeMappingRowID +
+                                '" name="userstore_' + attributeMappingRowID + '"/></td>' +
+
+                                '<td class="leftCol-big">' +
+                                '<input style="width: 98%;" type="text" id="attribute_'+ attributeMappingRowID +
+                                '" name="attribute_' + attributeMappingRowID + '"/></td>' +
+
+                                '<td><a href="#" class="icon-link deleteLink" ' +
+                                'style="background-image:url(../identity-claim-mgt/images/delete.gif)"' +
+                                'onclick="deletePermissionRow(this);return false;">' +
+                                'Delete' +
+                                '</a></td></tr>'));
+                    })
+                });
+
+                function deletePermissionRow(obj){
+                    jQuery(obj).parent().parent().remove();
+                }
+
                 String.prototype.format = function (args) {
                     var str = this;
                     return str.replace(String.prototype.format.regex, function (item) {
@@ -198,14 +229,14 @@
                         return false;
                     }
 
-                    var value = document.getElementsByName("mappedAttribute")[0].value;
-                    if (value == '') {
-                        CARBON.showWarningDialog('<fmt:message key="attribute.is.required"/>');
-                        return false;
-                    } else if (value.length > 300) {
-                        CARBON.showWarningDialog('<fmt:message key="attr.id.is.too.long"/>');
-                        return false;
-                    }
+                    <%--var value = document.getElementsByName("mappedAttribute")[0].value;--%>
+                    <%--if (value == '') {--%>
+                        <%--CARBON.showWarningDialog('<fmt:message key="attribute.is.required"/>');--%>
+                        <%--return false;--%>
+                    <%--} else if (value.length > 300) {--%>
+                        <%--CARBON.showWarningDialog('<fmt:message key="attr.id.is.too.long"/>');--%>
+                        <%--return false;--%>
+                    <%--}--%>
 
                     var value = document.getElementsByName("displayOrder")[0].value;
                     if (value != '') {
@@ -234,36 +265,38 @@
                     }
 
                     //Mapped Attributes Validation
-                    var value = document.getElementsByName("mappedAttribute")[0].value;
-                    var mappedAttributes = value.split(";");
-                    var domainSeparator = "/";
-                    for (var i = 0; i < mappedAttributes.length; i++) {
-                        var index = mappedAttributes[i].indexOf(domainSeparator);
-                        if (index >= 0) { //has domain
-                            var lastIndex = mappedAttributes[i].lastIndexOf(domainSeparator);
-                            if (index == 0) {
-                                //domain separator cannot be the first letter of the mapped attribute
-                                var message = '<fmt:message key="attribute.domain.required"/>';
-                                message = message.format([mappedAttributes[i]]);
-                                CARBON.showWarningDialog(message);
-                                return false;
-                            }
-                            else if (index != lastIndex) {
-                                //mapped attribute cannot have duplicated domainSeparator
-                                var message = '<fmt:message key="attribute.domain.separator.duplicate"/>';
-                                message = message.format([mappedAttributes[i]]);
-                                CARBON.showWarningDialog(message);
-                                return false;
-                            } else if (index == (mappedAttributes[i].length - 1)) {
-                                //domain separator cannot be the last character of the mapped attribute
-                                var message = '<fmt:message key="attribute.domain.mapped.attribute.required"/>';
-                                message = message.format([mappedAttributes[i]]);
-                                CARBON.showWarningDialog(message);
-                                return false;
-                            }
-                        }
-                    }
+                    <%--var value = document.getElementsByName("mappedAttribute")[0].value;--%>
+                    <%--var mappedAttributes = value.split(";");--%>
+                    <%--var domainSeparator = "/";--%>
+                    <%--for (var i = 0; i < mappedAttributes.length; i++) {--%>
+                        <%--var index = mappedAttributes[i].indexOf(domainSeparator);--%>
+                        <%--if (index >= 0) { //has domain--%>
+                            <%--var lastIndex = mappedAttributes[i].lastIndexOf(domainSeparator);--%>
+                            <%--if (index == 0) {--%>
+                                <%--//domain separator cannot be the first letter of the mapped attribute--%>
+                                <%--var message = '<fmt:message key="attribute.domain.required"/>';--%>
+                                <%--message = message.format([mappedAttributes[i]]);--%>
+                                <%--CARBON.showWarningDialog(message);--%>
+                                <%--return false;--%>
+                            <%--}--%>
+                            <%--else if (index != lastIndex) {--%>
+                                <%--//mapped attribute cannot have duplicated domainSeparator--%>
+                                <%--var message = '<fmt:message key="attribute.domain.separator.duplicate"/>';--%>
+                                <%--message = message.format([mappedAttributes[i]]);--%>
+                                <%--CARBON.showWarningDialog(message);--%>
+                                <%--return false;--%>
+                            <%--} else if (index == (mappedAttributes[i].length - 1)) {--%>
+                                <%--//domain separator cannot be the last character of the mapped attribute--%>
+                                <%--var message = '<fmt:message key="attribute.domain.mapped.attribute.required"/>';--%>
+                                <%--message = message.format([mappedAttributes[i]]);--%>
+                                <%--CARBON.showWarningDialog(message);--%>
+                                <%--return false;--%>
+                            <%--}--%>
+                        <%--}--%>
+                    <%--}--%>
 
+                    var numberOfAttributeMappings = attributeMappingRowID + 1;
+                    document.getElementById('number_of_AttributeMappings').value=numberOfAttributeMappings;
 
                     document.updateclaim.submit();
                 }
@@ -289,7 +322,7 @@
 
                     <tr>
                         <td class="formRow">
-                            <table class="normal" cellspacing="0" style="width: 100%">
+                            <table class="styledLeft" cellspacing="0" style="width: 100%">
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='dialect.uri'/></td>
@@ -330,12 +363,53 @@
                                     <td class="leftCol-small"><fmt:message key='mapped.attribute'/><font
                                             class="required">*</font></td>
                                     <td class="leftCol-big">
-                                        <input type="text" name="mappedAttribute"  id="mappedAttribute"
-                                               value="<%=Encode.forHtmlAttribute(attributeMapping)%>"
-                                               class="text-box-big"/>
-                                        <div class="sectionHelp" style="display: block">
-                                            <fmt:message key='help.mapped.attribute'/>
-                                        </div>
+                                        <a id="attributeAddLink" class="icon-link"
+                                           style="background-image:url(images/add.gif);margin-left:0;"><fmt:message
+                                                key='button.add.attribute.mapping'/></a>
+                                        <div style="clear:both"></div>
+                                        <table class="styledLeft" id="attributeAddTable" >
+                                            <thead>
+                                            <tr>
+                                                <th><fmt:message key='label.user.store.domain.name'/></th>
+                                                <th><fmt:message key='label.mapped.attribute'/></th>
+                                                <th></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <%
+                                                for (int attributeCounter = 0; attributeCounter < attributeMappings.length; attributeCounter++) {
+                                                    AttributeMappingDTO attributeMapping = attributeMappings[attributeCounter];
+                                                    String userStoreDomainName = attributeMapping.getUserStoreDomain();
+                                                    String attributeName = attributeMapping.getAttributeName();
+                                            %>
+                                            <tr>
+                                                <td class="leftCol-big">
+                                                    <input style="width: 98%;" type="text"
+                                                           value="<%=Encode.forHtmlAttribute(userStoreDomainName)%>"
+                                                           id="userstore_<%=attributeCounter%>"
+                                                           name="userstore_<%=attributeCounter%>"/>
+                                                </td>
+                                                <td class="leftCol-big">
+                                                    <input style="width: 98%;" type="text"
+                                                           value="<%=Encode.forHtmlAttribute(attributeName)%>"
+                                                           id="attribute_<%=attributeCounter%>"
+                                                           name="attribute_<%=attributeCounter%>"/>
+                                                </td>
+                                                <td>
+                                                    <a href="#" class="icon-link deleteLink"
+                                                       style="background-image:url(../identity-claim-mgt/images/delete.gif);"
+                                                       onclick="deletePermissionRow(this);return false;"><fmt:message
+                                                            key='delete'/></a>
+                                                </td>
+                                            </tr>
+                                            <%
+                                                }
+                                            %>
+                                            </tbody>
+                                        </table>
+                                        <div style="clear:both"/>
+                                        <input type="hidden" name="number_of_AttributeMappings"
+                                               id="number_of_AttributeMappings" value="<%=attributeMappings.length%>">
                                     </td>
                                 </tr>
 
