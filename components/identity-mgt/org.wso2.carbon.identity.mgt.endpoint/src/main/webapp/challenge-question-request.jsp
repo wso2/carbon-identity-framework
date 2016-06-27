@@ -29,13 +29,13 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));

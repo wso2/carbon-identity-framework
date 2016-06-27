@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
 
+import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer;
 
 import javax.xml.bind.annotation.XmlAccessType;

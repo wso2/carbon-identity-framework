@@ -18,11 +18,11 @@
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest;
