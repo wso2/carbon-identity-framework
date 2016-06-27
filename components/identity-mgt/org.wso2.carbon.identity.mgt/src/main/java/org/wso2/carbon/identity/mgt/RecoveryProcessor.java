@@ -49,6 +49,8 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +69,8 @@ public class RecoveryProcessor {
     private final static String FIRST_NAME = "first-name";
     private final static String CONFIRMATION_CODE = "confirmation-code";
     private final static String TEMPORARY_PASSWORD = "temporary-password";
+    private static final String USE_HASHED_USERNAME_PROPERTY = "UserInfoRecovery.UseHashedUserNames";
+    private static final String USERNAME_HASH_ALG_PROPERTY = "UserInfoRecovery.UsernameHashAlg";
 
     /*
      *  Delimiter that will be used to store the registry resource entries. Must be valid characters.
@@ -125,17 +129,17 @@ public class RecoveryProcessor {
             }
 
         } catch (UserStoreException e) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("No Tenant domain for tenant id " + tenantId, e);
             }
         }
 
         NotificationDataDTO notificationData = new NotificationDataDTO();
-        if(MessageContext.getCurrentMessageContext() != null &&
+        if (MessageContext.getCurrentMessageContext() != null &&
                 MessageContext.getCurrentMessageContext().getProperty(
                         MessageContext.TRANSPORT_HEADERS) != null) {
             notificationData.setTransportHeaders(new HashMap(
-                    (Map)MessageContext.getCurrentMessageContext().getProperty(
+                    (Map) MessageContext.getCurrentMessageContext().getProperty(
                             MessageContext.TRANSPORT_HEADERS)));
         }
 
@@ -161,8 +165,9 @@ public class RecoveryProcessor {
         emailNotificationData.setTagData(TENANT_DOMAIN, domainName);
 
         if ((notificationAddress == null) || (notificationAddress.trim().length() < 0)) {
-            throw IdentityException.error("Notification sending failure. Notification address is not defined for user : "
-                    + userId);
+            throw IdentityException
+                    .error("Notification sending failure. Notification address is not defined for user : "
+                            + userId);
         }
         emailNotificationData.setSendTo(notificationAddress);
 
@@ -189,7 +194,7 @@ public class RecoveryProcessor {
                 try {
                     confirmationKey = getUserExternalCodeStr(internalCode);
                 } catch (Exception e) {
-                    throw IdentityException.error("Error while getting user's external code string.",e);
+                    throw IdentityException.error("Error while getting user's external code string.", e);
                 }
                 secretKey = UUIDGenerator.generateUUID();
                 emailNotificationData.setTagData(CONFIRMATION_CODE, confirmationKey);
@@ -214,10 +219,10 @@ public class RecoveryProcessor {
             } else if (IdentityMgtConstants.Notification.ACCOUNT_UNLOCK.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_UNLOCK);
                 persistData = false;
-            } else if(IdentityMgtConstants.Notification.ACCOUNT_ENABLE.equals(notification)) {
+            } else if (IdentityMgtConstants.Notification.ACCOUNT_ENABLE.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
                 persistData = false;
-            } else if(IdentityMgtConstants.Notification.ACCOUNT_DISABLE.equals(notification)) {
+            } else if (IdentityMgtConstants.Notification.ACCOUNT_DISABLE.equals(notification)) {
                 emailTemplate = config.getProperty(IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
                 persistData = false;
             } else if (IdentityMgtConstants.Notification.ACCOUNT_ID_RECOVERY.equals(notification)) {
@@ -247,7 +252,7 @@ public class RecoveryProcessor {
         try {
             emailNotification = NotificationBuilder.createNotification("EMAIL", emailTemplate, emailNotificationData);
         } catch (Exception e) {
-            throw IdentityException.error("Error when creating notification for user : "+ userId, e);
+            throw IdentityException.error("Error when creating notification for user : " + userId, e);
         }
 
         notificationData.setNotificationAddress(notificationAddress);
@@ -320,7 +325,8 @@ public class RecoveryProcessor {
      * @return
      * @throws IdentityException
      */
-    public VerificationBean verifyConfirmationCode(int sequence, String username, String code) throws IdentityException {
+    public VerificationBean verifyConfirmationCode(int sequence, String username, String code)
+            throws IdentityException {
 
         UserRecoveryDataDO dataDO = null;
         String internalCode = getUserInternalCodeStr(sequence, username, code);
@@ -355,7 +361,8 @@ public class RecoveryProcessor {
 
     }
 
-    public VerificationBean updateConfirmationCode(int sequence, String username, int tenantId) throws IdentityException {
+    public VerificationBean updateConfirmationCode(int sequence, String username, int tenantId)
+            throws IdentityException {
 
         String confirmationKey = generateUserCode(sequence, username);
         String secretKey = UUIDGenerator.generateUUID();
@@ -455,6 +462,7 @@ public class RecoveryProcessor {
     }
 
     public void createConfirmationCode(UserDTO userDTO, String code) throws IdentityException {
+
         String key = UUID.randomUUID().toString();
         UserRecoveryDataDO dataDO =
                 new UserRecoveryDataDO(userDTO.getUserId(), userDTO.getTenantId(), key, code);
@@ -464,6 +472,7 @@ public class RecoveryProcessor {
 
 
     public ChallengeQuestionProcessor getQuestionProcessor() {
+
         return questionProcessor;
     }
 
@@ -485,11 +494,11 @@ public class RecoveryProcessor {
         String userName = UserCoreUtil.removeDomainFromName(userId);
 
         NotificationDataDTO notificationData = new NotificationDataDTO();
-        if(MessageContext.getCurrentMessageContext() != null &&
+        if (MessageContext.getCurrentMessageContext() != null &&
                 MessageContext.getCurrentMessageContext().getProperty(
                         MessageContext.TRANSPORT_HEADERS) != null) {
             notificationData.setTransportHeaders(new HashMap(
-                    (Map)MessageContext.getCurrentMessageContext().getProperty(
+                    (Map) MessageContext.getCurrentMessageContext().getProperty(
                             MessageContext.TRANSPORT_HEADERS)));
         }
 
@@ -601,7 +610,7 @@ public class RecoveryProcessor {
      * @param username
      * @return
      */
-    private String generateUserCode(int sequence, String username) {
+    private String generateUserCode(int sequence, String username) throws IdentityException {
 
         String genCode = null;
 
@@ -610,7 +619,20 @@ public class RecoveryProcessor {
             StringBuilder userCode = new StringBuilder();
             userCode.append(sequence);
             userCode.append(REG_DELIMITER);
-            userCode.append(stripSpecialChars(username));
+
+            String useHashedUserName =
+                    IdentityMgtConfig.getInstance().getProperty(USE_HASHED_USERNAME_PROPERTY);
+            if (Boolean.parseBoolean(useHashedUserName)) {
+                String hashAlg = IdentityMgtConfig.getInstance().getProperty(USERNAME_HASH_ALG_PROPERTY);
+                try {
+                    userCode.append(hashString(username, hashAlg));
+                } catch (NoSuchAlgorithmException e) {
+                    throw IdentityException.error("Invalid hash algorithm " + hashAlg, e);
+                }
+            } else {
+                userCode.append(stripSpecialChars(username));
+            }
+
             userCode.append(REG_DELIMITER);
             userCode.append(UUID.randomUUID().toString());
 
@@ -630,7 +652,7 @@ public class RecoveryProcessor {
      * @param code     - user provided code
      * @return
      */
-    private String getUserInternalCodeStr(int sequence, String username, String code) {
+    private String getUserInternalCodeStr(int sequence, String username, String code) throws IdentityException {
 
         String searchCode = null;
 
@@ -639,7 +661,19 @@ public class RecoveryProcessor {
             StringBuilder userCode = new StringBuilder();
             userCode.append(sequence);
             userCode.append(REG_DELIMITER);
-            userCode.append(stripSpecialChars(username));
+            String useHashedUserName =
+                    IdentityMgtConfig.getInstance().getProperty(USE_HASHED_USERNAME_PROPERTY);
+            if (Boolean.parseBoolean(useHashedUserName)) {
+                String hashAlg = IdentityMgtConfig.getInstance().getProperty(USERNAME_HASH_ALG_PROPERTY);
+                try {
+                    userCode.append(hashString(username, hashAlg));
+                } catch (NoSuchAlgorithmException e) {
+                    throw IdentityException.error("Invalid hash algorithm " + hashAlg, e);
+                }
+            } else {
+                userCode.append(stripSpecialChars(username));
+            }
+
             userCode.append(REG_DELIMITER);
             userCode.append(code);
 
@@ -721,5 +755,17 @@ public class RecoveryProcessor {
         }
 
         return output.toString();
+    }
+
+    private String hashString(String userName, String alg) throws NoSuchAlgorithmException {
+
+        MessageDigest messageDigest = MessageDigest.getInstance(alg);
+        byte[] in = messageDigest.digest(userName.getBytes());
+        final StringBuilder builder = new StringBuilder();
+        for (byte b : in) {
+            builder.append(String.format("%02x", b));
+        }
+        return builder.toString();
+
     }
 }
