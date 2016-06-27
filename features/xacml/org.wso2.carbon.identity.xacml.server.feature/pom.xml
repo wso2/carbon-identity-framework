@@ -115,7 +115,8 @@
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.entitlement
                                 </bundleDef>
                                 <bundleDef>org.wso2.balana:org.wso2.balana</bundleDef>
-                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
+                                <bundleDef>org.wso2.orbit.org.opensaml:opensaml:${opensaml2.wso2.version}</bundleDef>
+                                <bundleDef>org.wso2.orbit.joda-time:joda-time:${jodatime.wso2.version}</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
