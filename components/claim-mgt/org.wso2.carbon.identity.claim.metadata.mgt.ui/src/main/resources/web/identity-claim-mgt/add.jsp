@@ -49,7 +49,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr class="tableEvenRow">
+                <tr class="tableOddRow">
                     <td style="width: 30px;">
                         <div style="height:30px;">
                             <a href="javascript:document.location.href='add-external-claim.jsp'"

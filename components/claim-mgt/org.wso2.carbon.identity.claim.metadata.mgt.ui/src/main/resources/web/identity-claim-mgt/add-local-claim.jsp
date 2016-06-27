@@ -99,13 +99,41 @@
 
                                 '<td><a href="#" class="icon-link deleteLink" ' +
                                 'style="background-image:url(../identity-claim-mgt/images/delete.gif)"' +
-                                'onclick="deletePermissionRow(this);return false;">' +
+                                'onclick="deleteAttributeRow(this);return false;">' +
                                 'Delete' +
                                 '</a></td></tr>'));
                     })
                 });
 
-                function deletePermissionRow(obj){
+                function deleteAttributeRow(obj){
+                    jQuery(obj).parent().parent().remove();
+                }
+
+                var claimPropertyRowID = -1;
+
+                jQuery(document).ready(function () {
+                    jQuery('#propertyAddLink').click(function(){
+                        claimPropertyRowID++;
+                        if (claimPropertyRowID == 0) {
+                            jQuery('#propertyAddTable').show();
+                        }
+                        jQuery('#propertyAddTable').append(jQuery('<tr><td class="leftCol-big">' +
+                                '<input style="width: 98%;" type="text" id="propertyName_'+ claimPropertyRowID +
+                                '" name="propertyName_' + claimPropertyRowID + '"/></td>' +
+
+                                '<td class="leftCol-big">' +
+                                '<input style="width: 98%;" type="text" id="propertyValue_'+ claimPropertyRowID +
+                                '" name="propertyValue_' + claimPropertyRowID + '"/></td>' +
+
+                                '<td><a href="#" class="icon-link deleteLink" ' +
+                                'style="background-image:url(../identity-claim-mgt/images/delete.gif)"' +
+                                'onclick="deletePropertyRow(this);return false;">' +
+                                'Delete' +
+                                '</a></td></tr>'));
+                    })
+                });
+
+                function deletePropertyRow(obj){
                     jQuery(obj).parent().parent().remove();
                 }
 
@@ -236,6 +264,9 @@
                     var numberOfAttributeMappings = attributeMappingRowID + 1;
                     document.getElementById('number_of_AttributeMappings').value=numberOfAttributeMappings;
 
+                    var numberOfClaimProperties = claimPropertyRowID + 1;
+                    document.getElementById('number_of_ClaimProperties').value=numberOfClaimProperties;
+
                     document.addclaim.submit();
                 }
 
@@ -304,7 +335,7 @@
                                            style="background-image:url(images/add.gif);margin-left:0;"><fmt:message
                                                 key='button.add.attribute.mapping'/></a>
                                         <div style="clear:both"></div>
-                                        <table class="styledLeft" id="attributeAddTable" >
+                                        <table class="styledLeft" id="attributeAddTable">
                                             <thead>
                                             <tr>
                                                 <th><fmt:message key='label.user.store.domain.name'/></th>
@@ -325,7 +356,7 @@
                                                 <td>
                                                     <a href="#" class="icon-link deleteLink"
                                                        style="background-image:url(../identity-claim-mgt/images/delete.gif);"
-                                                       onclick="deletePermissionRow(this);return false;"><fmt:message
+                                                       onclick="deleteAttributeRow(this);return false;"><fmt:message
                                                             key='delete'/></a>
                                                 </td>
                                             </tr>
@@ -333,7 +364,7 @@
                                         </table>
                                         <div style="clear:both"/>
                                         <input type="hidden" name="number_of_AttributeMappings"
-                                               id="number_of_AttributeMappings" value="1">
+                                               id="number_of_AttributeMappings" value="1"/>
                                     </td>
                                 </tr>
 
@@ -375,6 +406,30 @@
                                         <input type='hidden' name='readonlyhidden' id='readonlyhidden'/>
                                     </td>
                                 </tr>
+
+                                <tr>
+                                    <td class="leftCol-small"><fmt:message key='label.additional.properties'/></td>
+                                    <td class="leftCol-big">
+                                        <a id="propertyAddLink" class="icon-link"
+                                           style="background-image:url(images/add.gif);margin-left:0;"><fmt:message
+                                                key='button.add.claim.property'/></a>
+                                        <div style="clear:both"></div>
+                                        <table class="styledLeft" id="propertyAddTable" hidden="true">
+                                            <thead>
+                                            <tr>
+                                                <th><fmt:message key='label.claim.property.name'/></th>
+                                                <th><fmt:message key='label.claim.property.value'/></th>
+                                                <th></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                        <div style="clear:both"/>
+                                        <input type="hidden" name="number_of_ClaimProperties"
+                                               id="number_of_ClaimProperties" value="0"/>
+                                    </td>
+                                </tr>
                             </table>
                         </td>
                     </tr>
@@ -385,7 +440,6 @@
                                    onclick="javascript:document.location.href='add.jsp'"/>
                         </td>
                     </tr>
-
                     </tbody>
                 </table>
             </form>

@@ -33,6 +33,7 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Enumeration" %>
 
 <%
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -237,16 +238,46 @@
                     }
 
                     String displayName = localClaimURI;
-                    if (StringUtils.isNotBlank(claimProperties.getProperty("display.name"))) {
+                    if (claimProperties.containsKey("display.name")) {
                         displayName = claimProperties.getProperty("display.name");
+                        claimProperties.remove("display.name");
                     }
 
-                    String description = claimProperties.getProperty("description");
-                    String regex = claimProperties.getProperty("regex");
-                    String displayOrder = claimProperties.getProperty("display.order");
-                    String supportedByDefault = claimProperties.getProperty("supported.by.default");
-                    String required = claimProperties.getProperty("required");
-                    String readonly = claimProperties.getProperty("readonly");
+                    String description = null;
+                    if (claimProperties.containsKey("description")) {
+                        description = claimProperties.getProperty("description");
+                        claimProperties.remove("description");
+                    }
+
+                    String regex = null;
+                    if (claimProperties.containsKey("regex")) {
+                        regex = claimProperties.getProperty("regex");
+                        claimProperties.remove("regex");
+                    }
+
+                    String displayOrder = null;
+                    if (claimProperties.containsKey("display.order")) {
+                        displayOrder = claimProperties.getProperty("display.order");
+                        claimProperties.remove("display.order");
+                    }
+
+                    String supportedByDefault = null;
+                    if (claimProperties.containsKey("supported.by.default")) {
+                        supportedByDefault = claimProperties.getProperty("supported.by.default");
+                        claimProperties.remove("supported.by.default");
+                    }
+
+                    String required = null;
+                    if (claimProperties.containsKey("required")) {
+                        required = claimProperties.getProperty("required");
+                        claimProperties.remove("required");
+                    }
+
+                    String readonly = null;
+                    if (claimProperties.containsKey("readonly")) {
+                        readonly = claimProperties.getProperty("readonly");
+                        claimProperties.remove("readonly");
+                    }
 
                     if (StringUtils.isNotBlank(displayName)) {%>
             <div class="trigger-title-container">
@@ -285,7 +316,7 @@
                     <tr>
                         <td class="leftCol-small"><fmt:message key='mapped.attribute'/></td>
                         <td>
-                            <table class="styledLeft" id="attributeAddTable" >
+                            <table class="styledLeft" id="attributeAddTable">
                                 <thead>
                                 <tr>
                                     <th><fmt:message key='label.user.store.domain.name'/></th>
@@ -363,6 +394,56 @@
                         <td>false</td>
                         <%} %>
                     </tr>
+
+                    <%
+                        if (claimProperties.size() > 0) {
+                    %>
+                    <tr>
+                        <td class="leftCol-small"><fmt:message key='label.additional.properties'/></td>
+                        <td>
+                            <table class="styledLeft" id="propertyAddTable">
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key='label.claim.property.name'/></th>
+                                    <th><fmt:message key='label.claim.property.value'/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <%
+                                    Enumeration propertyNames = claimProperties.propertyNames();
+
+                                    int propertyCounter = -1;
+                                    while (propertyNames.hasMoreElements()) {
+                                        propertyCounter++;
+
+                                        String propertyName = (String) propertyNames.nextElement();
+                                        String propertyValue = claimProperties.getProperty(propertyName);
+                                %>
+                                <tr>
+                                    <td class="leftCol-big">
+                                        <input style="width: 98%;" type="text"
+                                               value="<%=Encode.forHtmlAttribute(propertyName)%>"
+                                               id="propertyName_<%=propertyCounter%>"
+                                               name="propertyName_<%=propertyCounter%>" readonly/>
+                                    </td>
+                                    <td class="leftCol-big">
+                                        <input style="width: 98%;" type="text"
+                                               value="<%=Encode.forHtmlAttribute(propertyValue)%>"
+                                               id="propertyValue_<%=propertyCounter%>"
+                                               name="propertyValue_<%=propertyCounter%>" readonly/>
+                                    </td>
+                                </tr>
+                                <%
+                                    }
+                                %>
+                                </tbody>
+                            </table>
+                            <div style="clear:both"/>
+                        </td>
+                    </tr>
+                    <%
+                        }
+                    %>
 
                     </tbody>
                 </table>

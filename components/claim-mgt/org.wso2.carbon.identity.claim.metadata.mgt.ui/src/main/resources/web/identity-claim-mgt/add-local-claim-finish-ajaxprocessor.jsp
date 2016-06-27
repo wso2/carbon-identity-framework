@@ -52,6 +52,7 @@
 
     String localClaimURI = request.getParameter("localClaimURI");
     int numberOfAttributeMappings = Integer.parseInt(request.getParameter("number_of_AttributeMappings"));
+    int numberOfClaimProperties = Integer.parseInt(request.getParameter("number_of_ClaimProperties"));
     String displayName = request.getParameter("displayName");
     String description = request.getParameter("description");
     String regex = request.getParameter("regex");
@@ -78,6 +79,21 @@
     }
 
     List<ClaimPropertyDTO> claimProperties = new ArrayList();
+
+    for (int i = 0; i < numberOfClaimProperties; i++) {
+
+        String propertyName = request.getParameter("propertyName_" + i);
+        String propertyValue = request.getParameter("propertyValue_" + i);
+
+        if (StringUtils.isNotBlank(propertyName)) {
+
+            ClaimPropertyDTO claimProperty = new ClaimPropertyDTO();
+            claimProperty.setPropertyName(propertyName);
+            claimProperty.setPropertyValue(propertyValue);
+
+            claimProperties.add(claimProperty);
+        }
+    }
 
     if (StringUtils.isNotBlank(displayName)) {
         ClaimPropertyDTO dispalyNameProperty = new ClaimPropertyDTO();
