@@ -53,8 +53,13 @@ public class IdentityRequest implements Serializable {
 
     public Enumeration<String> getHeaders(String name) {
         String headerValue = headers.get(name);
-        String[] multiValuedHeader = headerValue.split(",");
-        return Collections.enumeration(Arrays.asList(multiValuedHeader));
+
+        if (headerValue != null) {
+            String[] multiValuedHeader = headerValue.split(",");
+            return Collections.enumeration(Arrays.asList(multiValuedHeader));
+        } else {
+            return Collections.emptyEnumeration();
+        }
     }
 
     public Enumeration<String> getHeaderNames() {
