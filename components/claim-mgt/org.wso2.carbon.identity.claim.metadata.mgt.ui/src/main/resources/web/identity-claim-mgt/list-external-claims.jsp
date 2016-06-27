@@ -93,12 +93,28 @@
             };
             jQuery("a.trigger-title").click(triggerHandler);
         });
-        function removeItem(dialect, claim) {
-            CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message>' + claim + '<fmt:message key="remove.message2"/>',
-                    function () {
-                        location.href = "remove-external-claim.jsp?externalClaimDialectURI=" + dialect +
-                                "&externalClaimURI=" + claim;
-                    }, null);
+        function removeItem(externalClaimDialectURI, externalClaimURI) {
+            function doDelete() {
+                $.ajax({
+                    type: 'POST',
+                    url: 'remove-external-claim-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
+                    },
+                    data: 'externalClaimDialectURI=' + externalClaimDialectURI + '&externalClaimURI=' +
+                    externalClaimURI,
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("list-external-claims.jsp?externalClaimDialectURI=" +
+                                    externalClaimDialectURI + "&ordinal=1");
+                        }
+                    }
+                });
+            }
+
+            CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message>' + externalClaimURI +
+                    '<fmt:message key="remove.message2"/>', doDelete, null);
         }
     </script>
     <style type="text/css">

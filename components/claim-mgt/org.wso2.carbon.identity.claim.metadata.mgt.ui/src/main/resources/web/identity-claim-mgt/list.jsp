@@ -74,11 +74,27 @@
         <div id="workArea">
 
             <script type="text/javascript">
-                function removeItem(dialect) {
-                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + dialect + '<fmt:message key="remove.message2"/>',
-                            function () {
-                                location.href = "remove-dialect.jsp?externalClaimDialectURI=" + dialect;
-                            }, null);
+                function removeItem(externalClaimDialectURI) {
+
+                    function doDelete() {
+                        $.ajax({
+                            type: 'POST',
+                            url: 'remove-dialect-finish-ajaxprocessor.jsp',
+                            headers: {
+                                Accept: "text/html"
+                            },
+                            data: 'externalClaimDialectURI=' + externalClaimDialectURI,
+                            async: false,
+                            success: function (responseText, status) {
+                                if (status == "success") {
+                                    location.assign("list.jsp?region=region1&item=claim_mgt_menu&ordinal=0");
+                                }
+                            }
+                        });
+                    }
+
+                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + externalClaimDialectURI +
+                            '<fmt:message key="remove.message2"/>', doDelete, null);
                 }
             </script>
 

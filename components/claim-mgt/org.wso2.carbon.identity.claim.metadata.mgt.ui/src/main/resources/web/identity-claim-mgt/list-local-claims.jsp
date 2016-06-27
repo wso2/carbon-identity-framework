@@ -90,15 +90,30 @@
             };
             jQuery("a.trigger-title").click(triggerHandler);
         });
-        function removeItem(claim, length) {
-            if (length <= 1) {
+        function removeItem(localClaimURI, localClaimslength) {
+            if (localClaimslength <= 1) {
                 CARBON.showWarningDialog('<fmt:message key="cannot.remove.default.carbon.dialect.all.claims"/>');
                 return false;
             } else {
-                CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message>' + claim + '<fmt:message key="remove.message2"/>',
-                        function () {
-                            location.href = "remove-local-claim.jsp?localClaimURI=" + claim;
-                        }, null);
+                function doDelete() {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'remove-local-claim-finish-ajaxprocessor.jsp',
+                        headers: {
+                            Accept: "text/html"
+                        },
+                        data: 'localClaimURI=' + localClaimURI,
+                        async: false,
+                        success: function (responseText, status) {
+                            if (status == "success") {
+                                location.assign("list-local-claims.jsp?ordinal=1");
+                            }
+                        }
+                    });
+                }
+
+                CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message>' + localClaimURI +
+                        '<fmt:message key="remove.message2"/>', doDelete, null);
             }
         }
     </script>

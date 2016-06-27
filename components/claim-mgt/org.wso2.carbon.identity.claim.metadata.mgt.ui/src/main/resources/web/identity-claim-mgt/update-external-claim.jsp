@@ -102,12 +102,29 @@
                 String.prototype.format.regex = new RegExp("{-?[0-9]+}", "g");
 
 
-                function removeItem(dialect, claim) {
+                function removeItem(externalClaimDialectURI, externalClaimURI) {
 
-                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + claim + '<fmt:message key="remove.message2"/>',
-                            function () {
-                                location.href = "remove-external-claim.jsp?externalClaimDialectURI=" + dialect + "&externalClaimURI=" + claim;
-                            }, null);
+                    function doDelete() {
+                        $.ajax({
+                            type: 'POST',
+                            url: 'remove-external-claim-finish-ajaxprocessor.jsp',
+                            headers: {
+                                Accept: "text/html"
+                            },
+                            data: 'externalClaimDialectURI=' + externalClaimDialectURI + '&externalClaimURI=' +
+                            externalClaimURI,
+                            async: false,
+                            success: function (responseText, status) {
+                                if (status == "success") {
+                                    location.assign("list-external-claims.jsp?externalClaimDialectURI=" +
+                                            externalClaimDialectURI + "&ordinal=1");
+                                }
+                            }
+                        });
+                    }
+
+                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + externalClaimURI +
+                            '<fmt:message key="remove.message2"/>', doDelete, null);
                 }
 
                 function validate() {
@@ -144,7 +161,7 @@
                 </a>
             </div>
 
-            <form name="updateclaim" action="update-external-claim-submit.jsp" method="post">
+            <form name="updateclaim" action="update-external-claim-finish-ajaxprocessor.jsp" method="post">
                 <table style="width: 100%" class="styledLeft">
 
                     <thead>

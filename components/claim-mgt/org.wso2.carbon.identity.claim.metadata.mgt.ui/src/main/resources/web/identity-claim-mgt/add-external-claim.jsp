@@ -139,7 +139,7 @@
 
             </script>
 
-            <form name="addclaim" action="add-external-claim-submit.jsp" method="post">
+            <form name="addclaim" action="add-external-claim-finish-ajaxprocessor.jsp" method="post">
                 <table style="width: 100%" class="styledLeft">
 
                     <thead>

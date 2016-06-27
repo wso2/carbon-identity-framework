@@ -39,6 +39,12 @@
 
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext = (ConfigurationContext)
             config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
@@ -125,7 +131,7 @@
     try {
 
         ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
-        client.addLocalClaim(localClaim);
+        client.updateLocalClaim(localClaim);
         forwardTo = "list-local-claims.jsp?ordinal=1";
 
     } catch (Exception e) {
@@ -138,9 +144,7 @@
                 Object[]{Encode.forHtmlContent(localClaimURI)});
 
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        forwardTo = "add-local-claim.jsp?localClaimURI=" + Encode.forUriComponent(localClaimURI) +
-                "&ordinal=2";
-
+        forwardTo = "update-local-claim.jsp?localClaimURI=" + Encode.forUriComponent(localClaimURI) + "&ordinal=1";
     }
 %>
 <script type="text/javascript">
