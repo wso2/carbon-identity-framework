@@ -26,7 +26,7 @@
 
 <%
    ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
-   ErrorResponse errorResponse = (ErrorResponse)session.getAttribute("errorResponse");
+   ErrorResponse errorResponse = (ErrorResponse)request.getAttribute("errorResponse");
 %>
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
