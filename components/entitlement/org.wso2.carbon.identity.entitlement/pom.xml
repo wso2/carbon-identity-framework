@@ -142,7 +142,7 @@
                             org.xml.sax,
                             org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
-                            org.joda.time; version="${opensaml2.wso2.osgi.version.range}",
+                            org.joda.time; version="${joda.wso2.osgi.version.range}",
 
                             org.apache.xerces.util; resolution:=optional,
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
