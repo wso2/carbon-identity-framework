@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.apache.commons.lang.StringUtils;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,7 +56,7 @@ public class IdentityRequest implements Serializable {
     public Enumeration<String> getHeaders(String name) {
         String headerValue = headers.get(name);
 
-        if (headerValue != null) {
+        if (StringUtils.isNotBlank(headerValue)) {
             String[] multiValuedHeader = headerValue.split(",");
             return Collections.enumeration(Arrays.asList(multiValuedHeader));
         } else {
