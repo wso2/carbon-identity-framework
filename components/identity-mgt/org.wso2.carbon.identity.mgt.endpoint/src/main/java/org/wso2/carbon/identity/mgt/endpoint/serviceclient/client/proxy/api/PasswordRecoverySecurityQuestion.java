@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api;
 
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
+import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest;
