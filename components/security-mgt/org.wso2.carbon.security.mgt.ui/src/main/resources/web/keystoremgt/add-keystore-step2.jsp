@@ -34,6 +34,7 @@
 <%@ page import="java.util.List" %>
 <%@page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <script type="text/javascript" src="../securityconfig/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
@@ -143,7 +144,7 @@
     <div id="middle">
         <h2><fmt:message key="add.new.keystore"/></h2>
         <div id="workArea">
-            <form method="post" action="add-keystore-finish-ajaxprocessor.jsp" name="keystoreFinish">
+            <form method="post" action="add-keystore-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>" name="keystoreFinish">
                 <h3><fmt:message key="step.2.specify.private.key.password"/></h3>
                 <input type="hidden" name="keyStoreName" value="<%=Encode.forHtmlAttribute(fileName)%>"/>
                 <input type="hidden" name="addKeystore" value="true"/>
