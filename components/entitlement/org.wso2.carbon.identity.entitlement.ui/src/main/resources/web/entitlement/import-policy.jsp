@@ -18,7 +18,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon"%>
-
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@ page import="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyConstants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <jsp:include page="../resources/resources-i18n-ajaxprocessor.jsp"/>
@@ -63,7 +63,7 @@
                         policy = document.importPolicy.policyFromFileSystem.value;
                     } else {
                         policy = document.importPolicy.policyFromRegistry.value;
-                        document.importPolicy.action = "import-policy-submit-ajaxprocessor.jsp";
+                        document.importPolicy.action = "import-policy-submit-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>";
                     }
 
                     if (policy == '') {

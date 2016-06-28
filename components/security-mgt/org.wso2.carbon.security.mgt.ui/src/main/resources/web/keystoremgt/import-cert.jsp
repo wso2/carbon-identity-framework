@@ -17,6 +17,7 @@
 -->
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.security.mgt.stub.keystore.xsd.CertData" %>
@@ -24,6 +25,7 @@
 <%@page import="org.wso2.carbon.security.ui.client.KeyStoreAdminClient" %>
 <%@page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+
 
 <%@page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@ page import="org.owasp.encoder.Encode" %>
@@ -79,7 +81,7 @@
         <h2><fmt:message key="import.certificates.to"/><%= " " + Encode.forHtml(keyStore) %></h2>
         <div id="workArea">
             <form method="post" name="certForm" enctype="multipart/form-data"
-                  action="import-cert-finish-ajaxprocessor.jsp">
+                  action="import-cert-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>">
                 <table class="styledLeft">
                     <thead>
                     <tr>
