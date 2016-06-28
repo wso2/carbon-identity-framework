@@ -132,8 +132,10 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         }
         authenticationRequest.setRelyingParty(getRelyingPartyId());
         authenticationRequest.setType(getName());
-        authenticationRequest.setPassiveAuth((Boolean)context.getParameter(InboundConstants.PassiveAuth));
-        authenticationRequest.setForceAuth((Boolean) context.getParameter(InboundConstants.ForceAuth));
+        authenticationRequest.setPassiveAuth(Boolean.parseBoolean(
+                String.valueOf(context.getParameter(InboundConstants.PassiveAuth))));
+        authenticationRequest.setForceAuth(Boolean.parseBoolean(
+                String.valueOf(context.getParameter(InboundConstants.ForceAuth))));
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
                                                                             StandardCharsets.UTF_8.name()));
