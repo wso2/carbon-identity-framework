@@ -34,6 +34,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Enumeration" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.utils.ClaimConstants" %>
 
 <%
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -211,7 +212,7 @@
 
     </style>
     <div id="middle">
-        <h2><fmt:message key='available.claims.for'/><%=Encode.forHtml(UserCoreConstants.DEFAULT_CARBON_DIALECT)%></h2>
+        <h2><fmt:message key='available.claims.for'/> <%=Encode.forHtml(UserCoreConstants.DEFAULT_CARBON_DIALECT)%></h2>
 
         <div id="workArea">
 
@@ -238,45 +239,45 @@
                     }
 
                     String displayName = localClaimURI;
-                    if (claimProperties.containsKey("display.name")) {
-                        displayName = claimProperties.getProperty("display.name");
-                        claimProperties.remove("display.name");
+                    if (claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
+                        displayName = claimProperties.getProperty(ClaimConstants.DISPLAY_NAME_PROPERTY);
+                        claimProperties.remove(ClaimConstants.DISPLAY_NAME_PROPERTY);
                     }
 
                     String description = null;
-                    if (claimProperties.containsKey("description")) {
-                        description = claimProperties.getProperty("description");
-                        claimProperties.remove("description");
+                    if (claimProperties.containsKey(ClaimConstants.DESCRIPTION_PROPERTY)) {
+                        description = claimProperties.getProperty(ClaimConstants.DESCRIPTION_PROPERTY);
+                        claimProperties.remove(ClaimConstants.DESCRIPTION_PROPERTY);
                     }
 
                     String regex = null;
-                    if (claimProperties.containsKey("regex")) {
-                        regex = claimProperties.getProperty("regex");
-                        claimProperties.remove("regex");
+                    if (claimProperties.containsKey(ClaimConstants.REGULAR_EXPRESSION_PROPERTY)) {
+                        regex = claimProperties.getProperty(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
+                        claimProperties.remove(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
                     }
 
                     String displayOrder = null;
-                    if (claimProperties.containsKey("display.order")) {
-                        displayOrder = claimProperties.getProperty("display.order");
-                        claimProperties.remove("display.order");
+                    if (claimProperties.containsKey(ClaimConstants.DISPLAY_ORDER_PROPERTY)) {
+                        displayOrder = claimProperties.getProperty(ClaimConstants.DISPLAY_ORDER_PROPERTY);
+                        claimProperties.remove(ClaimConstants.DISPLAY_ORDER_PROPERTY);
                     }
 
                     String supportedByDefault = null;
-                    if (claimProperties.containsKey("supported.by.default")) {
-                        supportedByDefault = claimProperties.getProperty("supported.by.default");
-                        claimProperties.remove("supported.by.default");
+                    if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+                        supportedByDefault = claimProperties.getProperty(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
+                        claimProperties.remove(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
                     }
 
                     String required = null;
-                    if (claimProperties.containsKey("required")) {
-                        required = claimProperties.getProperty("required");
-                        claimProperties.remove("required");
+                    if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+                        required = claimProperties.getProperty(ClaimConstants.REQUIRED_PROPERTY);
+                        claimProperties.remove(ClaimConstants.REQUIRED_PROPERTY);
                     }
 
                     String readonly = null;
-                    if (claimProperties.containsKey("readonly")) {
-                        readonly = claimProperties.getProperty("readonly");
-                        claimProperties.remove("readonly");
+                    if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+                        readonly = claimProperties.getProperty(ClaimConstants.READ_ONLY_PROPERTY);
+                        claimProperties.remove(ClaimConstants.READ_ONLY_PROPERTY);
                     }
 
                     if (StringUtils.isNotBlank(displayName)) {%>
@@ -370,7 +371,7 @@
                     </tr>
                     <tr>
                         <td class="leftCol-small"><fmt:message key='supported.by.default'/></td>
-                        <%if (Boolean.getBoolean(supportedByDefault)) { %>
+                        <%if (Boolean.parseBoolean(supportedByDefault)) { %>
                         <td>true</td>
                         <% } else { %>
                         <td>false</td>
@@ -379,7 +380,7 @@
 
                     <tr>
                         <td class="leftCol-small"><fmt:message key='required'/></td>
-                        <%if (Boolean.getBoolean(required)) { %>
+                        <%if (Boolean.parseBoolean(required)) { %>
                         <td>true</td>
                         <% } else { %>
                         <td>false</td>
@@ -388,7 +389,7 @@
 
                     <tr>
                         <td class="leftCol-small"><fmt:message key='readonly'/></td>
-                        <%if (Boolean.getBoolean(readonly)) { %>
+                        <%if (Boolean.parseBoolean(readonly)) { %>
                         <td>true</td>
                         <% } else { %>
                         <td>false</td>

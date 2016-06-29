@@ -77,7 +77,7 @@
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
 
     <div id="middle">
-        <h2><fmt:message key='claim.management'/></h2>
+        <h2><fmt:message key='update.external.title'/> <%=Encode.forHtml(externalClaimURI)%></h2>
 
         <div id="workArea">
 
@@ -157,7 +157,7 @@
                    style="background-image:url(../identity-claim-mgt/images/delete.gif);"
                    onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimDialectURI))%>',
                            '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimURI))%>');return
-                           false;"><fmt:message key='delete'/>
+                           false;"><fmt:message key='delete.external.claim'/>
                 </a>
             </div>
 
@@ -173,7 +173,7 @@
                     <tbody>
                     <tr>
                         <td class="formRow">
-                            <table class="normal" cellspacing="0" style="width: 100%">
+                            <table class="styledLeft" cellspacing="0" style="width: 100%">
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='dialect.uri'/></td>

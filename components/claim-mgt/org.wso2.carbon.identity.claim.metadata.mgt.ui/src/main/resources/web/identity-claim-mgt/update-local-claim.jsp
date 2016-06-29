@@ -28,6 +28,7 @@
 <%@ page import="java.util.Properties" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="java.util.Enumeration" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.utils.ClaimConstants" %>
 
 <style>
     .sectionHelp {
@@ -82,39 +83,40 @@
                     claimPropertyDTOs[j].getPropertyValue());
         }
 
-        if (claimProperties.containsKey("display.name")) {
-            displayName = claimProperties.getProperty("display.name");
-            claimProperties.remove("display.name");
+
+        if (claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
+            displayName = claimProperties.getProperty(ClaimConstants.DISPLAY_NAME_PROPERTY);
+            claimProperties.remove(ClaimConstants.DISPLAY_NAME_PROPERTY);
         }
 
-        if (claimProperties.containsKey("description")) {
-            description = claimProperties.getProperty("description");
-            claimProperties.remove("description");
+        if (claimProperties.containsKey(ClaimConstants.DESCRIPTION_PROPERTY)) {
+            description = claimProperties.getProperty(ClaimConstants.DESCRIPTION_PROPERTY);
+            claimProperties.remove(ClaimConstants.DESCRIPTION_PROPERTY);
         }
 
-        if (claimProperties.containsKey("regex")) {
-            regex = claimProperties.getProperty("regex");
-            claimProperties.remove("regex");
+        if (claimProperties.containsKey(ClaimConstants.REGULAR_EXPRESSION_PROPERTY)) {
+            regex = claimProperties.getProperty(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
+            claimProperties.remove(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
         }
 
-        if (claimProperties.containsKey("display.order")) {
-            displayOrder = claimProperties.getProperty("display.order");
-            claimProperties.remove("display.order");
+        if (claimProperties.containsKey(ClaimConstants.DISPLAY_ORDER_PROPERTY)) {
+            displayOrder = claimProperties.getProperty(ClaimConstants.DISPLAY_ORDER_PROPERTY);
+            claimProperties.remove(ClaimConstants.DISPLAY_ORDER_PROPERTY);
         }
 
-        if (claimProperties.containsKey("supported.by.default")) {
-            supportedByDefault = claimProperties.getProperty("supported.by.default");
-            claimProperties.remove("supported.by.default");
+        if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+            supportedByDefault = claimProperties.getProperty(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
+            claimProperties.remove(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
         }
 
-        if (claimProperties.containsKey("required")) {
-            required = claimProperties.getProperty("required");
-            claimProperties.remove("required");
+        if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+            required = claimProperties.getProperty(ClaimConstants.REQUIRED_PROPERTY);
+            claimProperties.remove(ClaimConstants.REQUIRED_PROPERTY);
         }
 
-        if (claimProperties.containsKey("readonly")) {
-            readonly = claimProperties.getProperty("readonly");
-            claimProperties.remove("readonly");
+        if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+            readonly = claimProperties.getProperty(ClaimConstants.READ_ONLY_PROPERTY);
+            claimProperties.remove(ClaimConstants.READ_ONLY_PROPERTY);
         }
 
     } else {
@@ -150,7 +152,7 @@
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
 
     <div id="middle">
-        <h2><fmt:message key='claim.management'/></h2>
+        <h2><fmt:message key='update.local.title'/> <%=Encode.forHtml(localClaimURI)%></h2>
 
         <div id="workArea">
 
@@ -369,7 +371,7 @@
                style="background-image:url(../identity-claim-mgt/images/delete.gif);"
                onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(localClaimURI))%>',
                        '<%=Encode.forJavaScriptAttribute(String.valueOf(localClaims.length))%>');return
-                       false;"><fmt:message key='delete'/>
+                       false;"><fmt:message key='delete.local.claim'/>
             </a>
 
             <form name="updateclaim" action="update-local-claim-finish-ajaxprocessor.jsp" method="post">
@@ -500,7 +502,7 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='supported.by.default'/></td>
-                                    <%if (Boolean.getBoolean(supportedByDefault)) { %>
+                                    <%if (Boolean.parseBoolean(supportedByDefault)) { %>
                                     <td class="leftCol-big">
                                         <input type='checkbox' name='supported' id='supported' checked='checked'
                                                onclick="setType('supported','supportedhidden')"/>
@@ -517,7 +519,7 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='required'/></td>
-                                    <%if (Boolean.getBoolean(required)) { %>
+                                    <%if (Boolean.parseBoolean(required)) { %>
                                     <td class="leftCol-big">
                                         <input type='checkbox' name='required' id='required' checked='checked'
                                                onclick="setType('required','requiredhidden')"/>
@@ -534,7 +536,7 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='readonly'/></td>
-                                    <%if (Boolean.getBoolean(readonly)) { %>
+                                    <%if (Boolean.parseBoolean(readonly)) { %>
                                     <td>
                                         <input type='checkbox' name='readonly' id='readonly' checked='checked'
                                                onclick="setType('readonly','readonlyhidden')"/>

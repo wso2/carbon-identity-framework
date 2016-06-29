@@ -36,6 +36,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.AttributeMappingDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.utils.ClaimConstants" %>
 
 
 <%
@@ -57,9 +58,9 @@
     String description = request.getParameter("description");
     String regex = request.getParameter("regex");
     String displayOrder = request.getParameter("displayOrder");
-    String supported = request.getParameter("supported");
-    String required = request.getParameter("required");
-    String readonly = request.getParameter("readonly");
+    String supported = request.getParameter("supportedhidden");
+    String required = request.getParameter("requiredhidden");
+    String readonly = request.getParameter("readonlyhidden");
 
     List<AttributeMappingDTO> attributeMappings = new ArrayList();
 
@@ -97,49 +98,49 @@
 
     if (StringUtils.isNotBlank(displayName)) {
         ClaimPropertyDTO dispalyNameProperty = new ClaimPropertyDTO();
-        dispalyNameProperty.setPropertyName("display.name");
+        dispalyNameProperty.setPropertyName(ClaimConstants.DISPLAY_NAME_PROPERTY);
         dispalyNameProperty.setPropertyValue(displayName);
         claimProperties.add(dispalyNameProperty);
     }
 
     if (StringUtils.isNotBlank(description)) {
         ClaimPropertyDTO descriptionProperty = new ClaimPropertyDTO();
-        descriptionProperty.setPropertyName("description");
+        descriptionProperty.setPropertyName(ClaimConstants.DESCRIPTION_PROPERTY);
         descriptionProperty.setPropertyValue(description);
         claimProperties.add(descriptionProperty);
     }
 
     if (StringUtils.isNotBlank(regex)) {
         ClaimPropertyDTO regexProperty = new ClaimPropertyDTO();
-        regexProperty.setPropertyName("regex");
+        regexProperty.setPropertyName(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
         regexProperty.setPropertyValue(regex);
         claimProperties.add(regexProperty);
     }
 
     if (StringUtils.isNotBlank(displayOrder)) {
         ClaimPropertyDTO dispalyOrderProperty = new ClaimPropertyDTO();
-        dispalyOrderProperty.setPropertyName("display.order");
+        dispalyOrderProperty.setPropertyName(ClaimConstants.DISPLAY_ORDER_PROPERTY);
         dispalyOrderProperty.setPropertyValue(displayOrder);
         claimProperties.add(dispalyOrderProperty);
     }
 
     if (StringUtils.isNotBlank(supported)) {
         ClaimPropertyDTO supportedProperty = new ClaimPropertyDTO();
-        supportedProperty.setPropertyName("supported.by.default");
+        supportedProperty.setPropertyName(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
         supportedProperty.setPropertyValue(supported);
         claimProperties.add(supportedProperty);
     }
 
     if (StringUtils.isNotBlank(required)) {
         ClaimPropertyDTO requiredProperty = new ClaimPropertyDTO();
-        requiredProperty.setPropertyName("required");
+        requiredProperty.setPropertyName(ClaimConstants.REQUIRED_PROPERTY);
         requiredProperty.setPropertyValue(required);
         claimProperties.add(requiredProperty);
     }
 
     if (StringUtils.isNotBlank(readonly)) {
         ClaimPropertyDTO readOnlyProperty = new ClaimPropertyDTO();
-        readOnlyProperty.setPropertyName("readonly");
+        readOnlyProperty.setPropertyName(ClaimConstants.READ_ONLY_PROPERTY);
         readOnlyProperty.setPropertyValue(readonly);
         claimProperties.add(readOnlyProperty);
     }

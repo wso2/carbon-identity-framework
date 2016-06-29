@@ -208,7 +208,7 @@
 
     </style>
     <div id="middle">
-        <h2><fmt:message key='available.claims.for'/><%=Encode.forHtml(externalClaimDialectURI)%></h2>
+        <h2><fmt:message key='available.claims.for'/> <%=Encode.forHtml(externalClaimDialectURI)%></h2>
 
         <div id="workArea">
 
