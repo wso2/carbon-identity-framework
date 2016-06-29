@@ -19,9 +19,13 @@ package org.wso2.carbon.identity.core.persistence.registry;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.registry.core.Resource;
 
+
 public interface RegistryResourceMgtService {
 
     /**
+     * Retrieve a registry resource from tenant registry based on locale.
+     * (In cases where the multiple resources of the same type exists for different locales like email templates,
+     * challenge questions etc.)
      *
      * @param path
      * @param tenantDomain
@@ -34,6 +38,9 @@ public interface RegistryResourceMgtService {
                                  String locale) throws IdentityRuntimeException;
 
     /**
+     * Add a registry resource into a tenant registry based on locale.
+     * (In cases where the multiple resources of the same type exists for different locales like email templates,
+     * challenge questions etc.)
      *
      * @param identityResource
      * @param path
@@ -46,7 +53,21 @@ public interface RegistryResourceMgtService {
                              String tenantDomain,
                              String locale) throws IdentityRuntimeException;
 
+
     /**
+     * Remove a registry resource from a tenant registry based on locale.
+     *
+     * @param path
+     * @param tenantDomain
+     * @param locale
+     * @throws IdentityRuntimeException
+     */
+    void deleteIdentityResource(String path,
+                                String tenantDomain,
+                                String locale) throws IdentityRuntimeException;
+
+    /**
+     * Get a registry resource from a tenant registry.
      *
      * @param path
      * @param tenantDomain
@@ -57,6 +78,7 @@ public interface RegistryResourceMgtService {
                                  String tenantDomain) throws IdentityRuntimeException;
 
     /**
+     * Add a registry resource to a tenant registry
      *
      * @param identityResource
      * @param path
@@ -68,6 +90,7 @@ public interface RegistryResourceMgtService {
                              String tenantDomain) throws IdentityRuntimeException;
 
     /**
+     * Remove a registry resource from a tenant registry.
      *
      * @param path
      * @param tenantDomain
@@ -75,5 +98,6 @@ public interface RegistryResourceMgtService {
      */
     void deleteIdentityResource(String path,
                                 String tenantDomain) throws IdentityRuntimeException;
+
 
 }
