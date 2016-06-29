@@ -30,21 +30,7 @@
 <%@ page import="java.net.URL" %>
 
 
-<% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
-<form action="login.do?<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>" method="post" id="resendForm">
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-            <input id="id_resend_username" value="<%=Encode.forHtml(request.getParameter("failedUsername"))%>" readonly="true" name="resend_username" type="text" class="form-control" tabindex="0"
-                   placeholder="Username">
-        </div>
-        <br>
 
-        <div>
-            <button class="btn btn-primary go-btn uppercase" type="submit">Resend Conformation Email</button>
-        </div>
-    </div>
-</form>
-<%}%>
 <%
     String resendUsername = request.getParameter("resend_username");
     if (StringUtils.isNotBlank(resendUsername)) {
@@ -54,9 +40,6 @@
         SelfRegistrationRequest selfRegistrationRequest = new SelfRegistrationRequest();
         User user = new User();
         user.setUserName(resendUsername);
-        //TODO:Have to remove these after rest api complete.
-        user.setUserStoreDomain("PRIMARY");
-        user.setTenantDomain("carbon.super");
         selfRegistrationRequest.setUser(user);
 
         List<JSONProvider> providers = new ArrayList<JSONProvider>();
@@ -199,6 +182,12 @@
                 }
             }
         %>
+        <br/>
+        <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
+        Not received confirmation email ?
+        <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">Re-Send</a>
+
+        <%}%>
     </div>
 
     <div class="clearfix"></div>
