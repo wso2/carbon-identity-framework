@@ -52,6 +52,10 @@
        <param-name>IdentityManagementEndpointContextURL</param-name>
        <param-value>https://localhost:9443/accountrecoveryendpoint</param-value>
    </context-param-->
+    <context-param>
+       <param-name>AccountRecoveryRESTEndpointURL</param-name>
+       <param-value>https://localhost:9443/account-recovery</param-value>
+   </context-param>
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
     <filter>
         <filter-name>AuthenticationEndpointFilter</filter-name>

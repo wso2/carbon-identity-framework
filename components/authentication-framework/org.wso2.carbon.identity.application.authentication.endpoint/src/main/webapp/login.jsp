@@ -26,6 +26,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityCoreConstants" %>
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
@@ -47,6 +48,10 @@
         }
 
         String errorMessage = "Authentication Failed! Please Retry";
+        String errorCode = "";
+        if(request.getParameter(Constants.ERROR_CODE)!=null){
+            errorCode = request.getParameter(Constants.ERROR_CODE) ;
+        }
         String loginFailed = "false";
 
         if (Boolean.parseBoolean(request.getParameter(Constants.AUTH_FAILURE))) {
