@@ -54,6 +54,7 @@
     String userInfoUrl = null;
     String passiveSTSUrl = null;
     String passivestsIdPEntityId = null;
+    String oidcIdpEntityId = null;
     String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
@@ -85,6 +86,7 @@
             oauth1AccessTokenUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.OAuth10A.OAUTH1_ACCESS_TOKEN_URL).getValue();
         } else if(IdentityApplicationConstants.Authenticator.OIDC.NAME.equals(federatedAuthenticator.getName())){
+            oidcIdpEntityId = IdPManagementUIUtil.getProperty(properties, "IdPEntityId").getValue();
             authzUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL).getValue();
             tokenUrl = IdPManagementUIUtil.getProperty(properties,
@@ -453,6 +455,17 @@ jQuery(document).ready(function(){
             		<div class="toggle_container sectionSub" style="margin-bottom:10px;display:none" id="oidcconfig">
 
                     <table class="carbonFormTable">
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:</td>
+                            <td>
+                                <input id="oidcIdPEntityId" name="oidcIdPEntityId" type="text"
+                                       value="<%=Encode.forHtmlAttribute(oidcIdpEntityId)%>"/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='idp.entity.id.help'/>
+                                </div>
+                            </td>
+                        </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(authzUrl)%></td>
