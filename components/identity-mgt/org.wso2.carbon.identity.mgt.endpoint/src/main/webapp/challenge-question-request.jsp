@@ -29,18 +29,23 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
     PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
+    ErrorResponse errorResponse = (ErrorResponse)session.getAttribute("errorResponse");
     ChallengeQuestion[] challengeQuestions = null;
+
+    if(errorResponse != null) {
+        username = ((User)session.getAttribute("user")).getUserName();
+    }
     if (StringUtils.isNotBlank(username)) {
         if (Boolean.parseBoolean(application.getInitParameter(
                 IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
@@ -54,9 +59,9 @@
                 session.setAttribute("challengeQuestionsResponse", challengeQuestionsResponse);
                 challengeQuestions = challengeQuestionsResponse.getQuestion();
             } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
-                ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
+                ErrorResponse errorResponseFetchChallengeQuestions = responseJAXRS.readEntity(ErrorResponse.class);
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg", errorResponse.getMessage());
+                request.setAttribute("errorMsg", errorResponseFetchChallengeQuestions.getMessage());
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
@@ -111,6 +116,15 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
+             <%
+                if(errorResponse != null) {
+             %>
+                <div class="alert alert-danger" id="server-error-msg">
+                    <%=errorResponse.getMessage()%>
+                </div>
+             <%
+                }
+             %>
                 <div class="clearfix"></div>
                 <div class="boarder-all ">
 

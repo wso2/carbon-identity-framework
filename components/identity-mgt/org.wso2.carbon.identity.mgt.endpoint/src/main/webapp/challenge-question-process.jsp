@@ -26,7 +26,6 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
@@ -34,6 +33,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 
 <%
     String userName = request.getParameter("username");
@@ -93,9 +93,8 @@
             }
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
             ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg", errorResponse.getMessage());
-            request.getRequestDispatcher("error.jsp").forward(request, response);
+            request.setAttribute("errorResponse", errorResponse);
+            request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
             return;
         }
     } else if(Boolean.parseBoolean(application.getInitParameter(
@@ -129,9 +128,8 @@
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
             ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg", errorResponse.getMessage());
-            request.getRequestDispatcher("error.jsp").forward(request, response);
+            request.setAttribute("errorResponse", errorResponse);
+            request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
             return;
         }
     }
