@@ -16,12 +16,24 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
+import org.wso2.carbon.user.core.UserCoreConstants;
+
 /**
  * Holds the claim metadata related constants
  */
 public class ClaimConstants {
 
-    public static final String LOCAL_CLAIM_DIALECT_URI = "http://wso2.org/claims";
-    public static final String DEFAULT_ATTRIBUTE = "default.attribute";
-    public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "mapped.local.claim";
+    public static final String LOCAL_CLAIM_DIALECT_URI = UserCoreConstants.DEFAULT_CARBON_DIALECT;
+
+    public static final String DISPLAY_NAME_PROPERTY = "DisplayName";
+    public static final String ATTRIBUTE_ID_PROPERTY = "AttributeID";
+    public static final String DESCRIPTION_PROPERTY = "Description";
+    public static final String REQUIRED_PROPERTY = "Required";
+    public static final String DISPLAY_ORDER_PROPERTY = "DisplayOrder";
+    public static final String SUPPORTED_BY_DEFAULT_PROPERTY = "SupportedByDefault";
+    public static final String REGULAR_EXPRESSION_PROPERTY = "RegEx";
+    public static final String READ_ONLY_PROPERTY = "ReadOnly";
+
+    public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
+    public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
 }

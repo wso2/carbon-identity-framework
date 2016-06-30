@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimMetadataUtils;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
@@ -38,7 +39,6 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +56,12 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     ClaimConfig claimConfig;
     int tenantId;
 
-    DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
+    public static DefaultClaimMetadataStore getInstance(int tenantId) {
+        ClaimConfig claimConfig = new ClaimConfig();
+        return new DefaultClaimMetadataStore(claimConfig, tenantId);
+    }
+
+    public DefaultClaimMetadataStore(ClaimConfig claimConfig, int tenantId) {
 
         try {
             if (claimDialectDAO.getClaimDialects(tenantId).size() == 0) {
@@ -233,7 +238,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         mappedAttribute = localClaim.getMappedAttribute(primaryDomainName);
                     }
 
-                    if (StringUtils.isNotBlank(mappedAttribute)) {
+                    if (StringUtils.isBlank(mappedAttribute)) {
                         throw new IllegalStateException("Cannot find suitable mapped attribute for local claim " +
                                 claimURI);
                     }
@@ -243,7 +248,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
 
 
-            throw new IllegalStateException("Invalid local claim URI : " + claimURI);
+//            throw new IllegalStateException("Invalid local claim URI : " + claimURI);
+
+            return null;
 
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(e.getMessage(), e);
@@ -254,72 +261,126 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     @Deprecated
     public String getAttributeName(String claimURI) throws UserStoreException {
 
-//        UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
-//                .getTenantUserRealm(tenantId);
-//        String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
-//                (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-//        return getAttributeName(primaryDomainName, claimURI);
-
-        Thread.dumpStack();
-        throw new UnsupportedOperationException("Deprecated operation in ClaimMetadataStore");
+        UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
+                .getTenantUserRealm(tenantId);
+        String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
+                (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        return getAttributeName(primaryDomainName, claimURI);
     }
 
     @Override
     @Deprecated
     public Claim getClaim(String claimURI) throws UserStoreException {
+        try {
+            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
 
-        Thread.dumpStack();
-//        throw new UnsupportedOperationException("Deprecated operation in ClaimMetadataStore");
+            for (LocalClaim localClaim : localClaims) {
+                if (localClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
+                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                    return claimMapping.getClaim();
+                }
+            }
 
-        // TODO : Less Important -> Only one usage in AUSM getUserClaimValues() to get display name property
-        // TODO : displayTag = claimManager.getClaim(entry.getKey()).getDisplayTag();
-        return new Claim();
+            return null;
+        } catch (ClaimMetadataException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
     }
 
     @Override
     @Deprecated
     public ClaimMapping getClaimMapping(String claimURI) throws UserStoreException {
+        try {
+            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
 
-        Thread.dumpStack();
-        throw new UnsupportedOperationException("Deprecated operation in ClaimMetadataStore");
+            for (LocalClaim localClaim : localClaims) {
+                if (localClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
+                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                    return claimMapping;
+                }
+            }
+
+            return null;
+        } catch (ClaimMetadataException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
     }
 
     @Override
     @Deprecated
     public ClaimMapping[] getAllClaimMappings(String dialectUri) throws UserStoreException {
-        Thread.dumpStack();
-        throw new UnsupportedOperationException("Deprecated operation in ClaimMetadataStore");
+
+        if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(dialectUri)) {
+            try {
+                List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+
+                List<ClaimMapping> claimMappings = new ArrayList<>();
+
+                for (LocalClaim localClaim : localClaims) {
+                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                    claimMappings.add(claimMapping);
+                }
+
+                return claimMappings.toArray(new ClaimMapping[0]);
+            } catch (ClaimMetadataException e) {
+                throw new UserStoreException(e.getMessage(), e);
+            }
+        } else {
+            try {
+                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(dialectUri, this.tenantId);
+                List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+
+                List<ClaimMapping> claimMappings = new ArrayList<>();
+
+                for (ExternalClaim externalClaim : externalClaims) {
+                    ClaimMapping claimMapping = ClaimMetadataUtils.convertExternalClaimToClaimMapping(externalClaim,
+                            localClaims);
+                    claimMappings.add(claimMapping);
+                }
+
+                return claimMappings.toArray(new ClaimMapping[0]);
+            } catch (ClaimMetadataException e) {
+                throw new UserStoreException(e.getMessage(), e);
+            }
+
+        }
     }
 
     @Override
     @Deprecated
     public ClaimMapping[] getAllClaimMappings() throws UserStoreException {
 
-        Thread.dumpStack();
-//        throw new UnsupportedOperationException("Deprecated operation in ClaimMetadataStore");
+        try {
+            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
 
-        // TODO : Update profile management feature and remove this
-        return new ClaimMapping[0];
+            List<ClaimMapping> claimMappings = new ArrayList<>();
+
+            for (LocalClaim localClaim : localClaims) {
+                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                claimMappings.add(claimMapping);
+            }
+
+            return claimMappings.toArray(new ClaimMapping[0]);
+        } catch (ClaimMetadataException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
     }
 
     @Override
     @Deprecated
     public void addNewClaimMapping(ClaimMapping claimMapping) throws UserStoreException {
-        Thread.dumpStack();
         throw new UnsupportedOperationException("ClaimMetadataStore does not supports management operations");
     }
 
     @Override
     @Deprecated
     public void deleteClaimMapping(ClaimMapping claimMapping) throws UserStoreException {
-        Thread.dumpStack();
         throw new UnsupportedOperationException("ClaimMetadataStore does not supports management operations");
     }
 
     @Override
     @Deprecated
     public void updateClaimMapping(ClaimMapping claimMapping) throws UserStoreException {
-        Thread.dumpStack();
         throw new UnsupportedOperationException("ClaimMetadataStore does not supports management operations");
     }
 
@@ -327,21 +388,45 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     @Deprecated
     public ClaimMapping[] getAllSupportClaimMappingsByDefault() throws UserStoreException {
 
-        Thread.dumpStack();
-//        throw new UnsupportedOperationException("ClaimMetadataStore does not supports management operations");
+        try {
+            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
 
-        // TODO : Update profile management feature and remove this
-        log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> getAllSupportClaimMappingsByDefault()");
-        Map<String, org.wso2.carbon.user.core.claim.ClaimMapping> claimMappingMap = claimConfig.getClaims();
+            List<ClaimMapping> claimMappings = new ArrayList<>();
 
-        Collection<org.wso2.carbon.user.core.claim.ClaimMapping> claimMappingSet = claimMappingMap.values();
-        return claimMappingSet.toArray(new org.wso2.carbon.user.core.claim.ClaimMapping[claimMappingSet.size()]);
+            for (LocalClaim localClaim : localClaims) {
+                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+
+                if (claimMapping.getClaim().isSupportedByDefault()) {
+                    claimMappings.add(claimMapping);
+                }
+            }
+
+            return claimMappings.toArray(new ClaimMapping[0]);
+        } catch (ClaimMetadataException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
     }
 
     @Override
     @Deprecated
     public ClaimMapping[] getAllRequiredClaimMappings() throws UserStoreException {
-        Thread.dumpStack();
-        throw new UnsupportedOperationException("ClaimMetadataStore does not supports management operations");
+
+        try {
+            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
+
+            List<ClaimMapping> claimMappings = new ArrayList<>();
+
+            for (LocalClaim localClaim : localClaims) {
+                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+
+                if (claimMapping.getClaim().isRequired()) {
+                    claimMappings.add(claimMapping);
+                }
+            }
+
+            return claimMappings.toArray(new ClaimMapping[0]);
+        } catch (ClaimMetadataException e) {
+            throw new UserStoreException(e.getMessage(), e);
+        }
     }
 }

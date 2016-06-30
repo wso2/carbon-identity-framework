@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.user.core.claim.Claim;
+import org.wso2.carbon.user.core.claim.ClaimMapping;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -177,5 +179,71 @@ public class ClaimMetadataUtils {
                 .getExternalClaimURI(), externalClaimDTO.getMappedLocalClaimURI());
 
         return externalClaim;
+    }
+
+    public static ClaimMapping convertLocalClaimToClaimMapping(LocalClaim localClaim) {
+
+        ClaimMapping claimMapping = new ClaimMapping();
+
+        Claim claim = new Claim();
+        claim.setClaimUri(localClaim.getClaimURI());
+        claim.setDialectURI(localClaim.getClaimDialectURI());
+
+        Map<String, String> claimProperties = localClaim.getClaimProperties();
+
+        if (claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
+            claim.setDisplayTag(claimProperties.get(ClaimConstants.DISPLAY_NAME_PROPERTY));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.DESCRIPTION_PROPERTY)) {
+            claim.setDescription(claimProperties.get(ClaimConstants.DESCRIPTION_PROPERTY));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.REGULAR_EXPRESSION_PROPERTY)) {
+            claim.setRegEx(claimProperties.get(ClaimConstants.REGULAR_EXPRESSION_PROPERTY));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.DISPLAY_ORDER_PROPERTY)) {
+            claim.setDisplayOrder(Integer.parseInt(claimProperties.get(ClaimConstants.DISPLAY_ORDER_PROPERTY)));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+            claim.setSupportedByDefault(Boolean.parseBoolean(claimProperties.get(ClaimConstants
+                    .SUPPORTED_BY_DEFAULT_PROPERTY)));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+            claim.setRequired(Boolean.parseBoolean(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY)));
+        }
+
+        if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+            claim.setReadOnly(Boolean.parseBoolean(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY)));
+        }
+
+        claimMapping.setClaim(claim);
+
+        List<AttributeMapping> mappedAttributes = localClaim.getMappedAttributes();
+        for (AttributeMapping attributeMapping : mappedAttributes) {
+            claimMapping.setMappedAttribute(attributeMapping.getUserStoreDomain(), attributeMapping.getAttributeName());
+        }
+
+        return claimMapping;
+    }
+
+    public static ClaimMapping convertExternalClaimToClaimMapping(ExternalClaim externalClaim, List<LocalClaim>
+            localClaims) {
+
+        ClaimMapping claimMapping = new ClaimMapping();
+
+        for (LocalClaim localClaim : localClaims) {
+            if (externalClaim.getMappedLocalClaim().equalsIgnoreCase(localClaim.getClaimURI())) {
+                claimMapping = convertLocalClaimToClaimMapping(localClaim);
+                break;
+            }
+        }
+
+        claimMapping.getClaim().setDialectURI(externalClaim.getClaimDialectURI());
+        claimMapping.getClaim().setClaimUri(externalClaim.getClaimURI());
+        return claimMapping;
     }
 }
