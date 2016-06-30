@@ -16,15 +16,61 @@
   ~ under the License.
   --%>
 
+<%@ page import="org.apache.cxf.jaxrs.client.JAXRSClientFactory" %>
+<%@ page import="org.apache.cxf.jaxrs.provider.json.JSONProvider" %>
+<%@ page import="org.apache.http.HttpStatus" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.SelfRegistrationRequest" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.User" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="java.net.HttpURLConnection" %>
 <%@ page import="java.net.URL" %>
+
+
+
+<%
+    String resendUsername = request.getParameter("resend_username");
+    if (StringUtils.isNotBlank(resendUsername)) {
+
+        String url = config.getServletContext().getInitParameter(Constants.ACCOUNT_RECOVERY_REST_ENDPOINT_URL);
+
+        SelfRegistrationRequest selfRegistrationRequest = new SelfRegistrationRequest();
+        User user = new User();
+        user.setUserName(resendUsername);
+        selfRegistrationRequest.setUser(user);
+
+        List<JSONProvider> providers = new ArrayList<JSONProvider>();
+        JSONProvider jsonProvider = new JSONProvider();
+        jsonProvider.setDropRootElement(true);
+        jsonProvider.setIgnoreNamespaces(true);
+        jsonProvider.setValidateOutput(true);
+        jsonProvider.setSupportUnwrapped(true);
+        providers.add(jsonProvider);
+
+        SelfUserRegistrationResource selfUserRegistrationResource = JAXRSClientFactory
+                .create(url, SelfUserRegistrationResource.class, providers);
+        Response selfRegistrationResponse = selfUserRegistrationResource.regenerateCode(selfRegistrationRequest);
+        if (selfRegistrationResponse != null &&  selfRegistrationResponse.getStatus() == HttpStatus.SC_OK) {
+%>
+<div class="alert alert-info"><%= Encode.forHtml(resourceBundle.getString(Constants.ACCOUNT_RESEND_SUCCESS_RESOURCE)) %>
+</div>
+<%
+} else {
+%>
+<div class="alert alert-danger"><%= Encode.forHtml(resourceBundle.getString(Constants.ACCOUNT_RESEND_FAIL_RESOURCE))  %>
+</div>
+<%
+        }
+    }
+%>
+
 
 <%
     String type = request.getParameter("type");
     if ("samlsso".equals(type)) {
-
 %>
 <form action="/samlsso" method="post" id="loginForm">
     <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
@@ -45,7 +91,8 @@
     %>
 
     <% if (Boolean.parseBoolean(loginFailed)) { %>
-    <div class="alert alert-danger" id="error-msg"><%= Encode.forHtml(errorMessage) %></div>
+    <div class="alert alert-danger" id="error-msg"><%= Encode.forHtml(errorMessage) %>
+    </div>
     <%}else if((Boolean.TRUE.toString()).equals(request.getParameter("authz_failure"))){%>
     <div class="alert alert-danger" id="error-msg">You are not authorized to login
     </div>
@@ -135,8 +182,13 @@
                 }
             }
         %>
+        <br/>
+        <% if (Boolean.parseBoolean(loginFailed) && errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE) && request.getParameter("resend_username") == null) { %>
+        Not received confirmation email ?
+        <a id="registerLink" href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">Re-Send</a>
+
+        <%}%>
     </div>
+
     <div class="clearfix"></div>
 </form>
-
-

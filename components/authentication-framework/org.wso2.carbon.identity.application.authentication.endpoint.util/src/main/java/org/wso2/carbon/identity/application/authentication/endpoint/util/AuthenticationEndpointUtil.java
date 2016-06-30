@@ -61,4 +61,29 @@ public class AuthenticationEndpointUtil {
         }
         return redirectUrl;
     }
+
+    /**
+     * Cleaning the queryString.
+     *
+     * @param queryString           query string of the incoming request
+     * @return redirect url of the custom page configuration
+     */
+    public static String cleanErrorMessages(String queryString) {
+        StringBuilder cleanedQueryString = new StringBuilder();
+        if(queryString != null){
+            String[] split = queryString.split("&");
+            for (int i = 0; i < split.length ; i++) {
+                String query = split[i];
+                if(!query.startsWith(Constants.AUTH_FAILURE) && !query.startsWith(Constants.ERROR_CODE)){
+                    cleanedQueryString.append(query);
+                    cleanedQueryString.append("&");
+                }
+            }
+            if(cleanedQueryString.length()>0 && cleanedQueryString.charAt(cleanedQueryString.length() - 1)=='&'){
+               return cleanedQueryString.substring(0,cleanedQueryString.length()-1);
+            }
+        }
+        return cleanedQueryString.toString();
+    }
+
 }
