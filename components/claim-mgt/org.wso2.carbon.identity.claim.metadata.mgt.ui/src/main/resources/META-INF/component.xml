@@ -22,7 +22,7 @@
             <parent-menu>identity_menu</parent-menu>
             <link>#</link>
             <region>region1</region>
-            <order>10</order>
+            <order>3</order>
             <style-class>manage</style-class>
 		    <icon>../identity-claim-mgt/images/claims.gif</icon>
 		    <require-permission>/permission/admin/configure/security</require-permission>
