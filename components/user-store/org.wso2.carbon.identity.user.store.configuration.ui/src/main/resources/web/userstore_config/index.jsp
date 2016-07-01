@@ -131,7 +131,7 @@
 //                jQuery('.valueCell a').each(function () {
 //                    orderList.push($(this).html().trim());
 //                });
-                document.userStoreForm.action = "remove-userstore.jsp?checkedList=" + checkedList;
+                document.userStoreForm.action = "remove-userstore-ajaxprocessor.jsp?checkedList=" + checkedList;
                 document.userStoreForm.submit();
             });
         }
@@ -144,16 +144,23 @@
 
     }
 
-    function enable(domain) {
-        location.href = "enable-disable-userstores.jsp?domain=" + domain + "&action=enable";
+    function enableDisableDomain(domain, action) {
 
+        $.ajax({
+            type: 'POST',
+            url: 'enable-disable-userstores-ajaxprocessor.jsp',
+            headers: {
+                Accept: "text/html"
+            },
+            data: 'domain=' + domain + '&action=' + action,
+            async: false,
+            success: function (responseText, status) {
+                if (status == "success") {
+                    location.assign("index.jsp?region=region1&item=userstores_mgt_menu");
+                }
+            }
+        });
     }
-
-    function disable(domain) {
-        location.href = "enable-disable-userstores.jsp?domain=" + domain + "&action=disable";
-
-    }
-
 </script>
 
 
@@ -234,12 +241,14 @@
                             <fmt:message key='edit.userstore'/></a>
                         <% if (!isDisabled) { %>
                         <a title="<fmt:message key='disable.userstore'/>"
-                           onclick="disable('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>');return false;"
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'disable');
+                                   return false;"
                            href="#" style="background-image: url(images/disable.gif);" class="icon-link">
                             <fmt:message key='disable.userstore'/></a>
                         <% } else { %>
                         <a title="<fmt:message key='enable.userstore'/>"
-                           onclick="enable('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>');return false;"
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'enable');
+                                   return false;"
                            href="#" style="background-image: url(images/enable.gif);" class="icon-link">
                             <fmt:message key='enable.userstore'/></a>
                         <%

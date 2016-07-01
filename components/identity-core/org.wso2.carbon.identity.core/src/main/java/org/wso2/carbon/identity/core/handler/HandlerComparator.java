@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.core.handler;
 
-import org.wso2.carbon.identity.core.bean.context.MessageContext;
-
 import java.util.Comparator;
 
 /*
@@ -27,18 +25,12 @@ import java.util.Comparator;
  */
 public class HandlerComparator implements Comparator<IdentityHandler>  {
 
-    private MessageContext messageContext = null;
-
-    public HandlerComparator(MessageContext messageContext){
-        this.messageContext = messageContext;
-    }
-
     @Override
     public int compare(IdentityHandler o1, IdentityHandler o2) {
 
-        if (o1.getPriority(messageContext) > o2.getPriority(messageContext)) {
+        if (o1.getPriority() > o2.getPriority()) {
             return 1;
-        } else if (o1.getPriority(messageContext) == o2.getPriority(messageContext)) {
+        } else if (o1.getPriority() == o2.getPriority()) {
             return 0;
         } else {
             return -1;

@@ -263,7 +263,7 @@
                               page="add-step2.jsp" pageNumberParameterName="pageNumber"
                               parameters="<%="username=" + Encode.forHtmlAttribute(userName)%>"/>
 
-            <form method="post" action="add-finish.jsp" onsubmit="return doValidation();" name="edit_users"
+            <form method="post" action="add-finish-ajaxprocessor.jsp" onsubmit="return doValidation();" name="edit_users"
                   id="edit_users">
                 <table class="styledLeft">
                     <thead>

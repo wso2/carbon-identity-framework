@@ -154,7 +154,7 @@
     <div id="middle">
         <h2>Add Challenge Questions</h2>
 
-            <form id="questionForm" name="questionForm" method="post" action="challenges-mgt-finish.jsp">
+            <form id="questionForm" name="questionForm" method="post" action="challenges-mgt-finish-ajaxprocessor.jsp">
             <div id="workArea">
             <table class="normal">
 

@@ -153,11 +153,6 @@
         location.href = "show-subscriber-status.jsp?subscriberId=" + subscriber;
     }
 
-
-    function deleteSubscriber(subscriber) {
-        location.href = "policy-publish.jsp?delete=" + subscriber;
-    }
-
     function publishToSubscriber() {
         var selected = false;
 
@@ -180,27 +175,16 @@
         }
         if (allSubscribersSelected) {
             CARBON.showConfirmationDialog("<fmt:message key="publish.to.all.subscribersList.prompt"/>", function () {
-                document.policyForm.action = "publish-finish.jsp";
+                document.policyForm.action = "publish-finish-ajaxprocessor.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         } else {
             CARBON.showConfirmationDialog("<fmt:message key="publish.selected.subscriber.prompt"/>", function () {
-                document.policyForm.action = "publish-finish.jsp";
+                document.policyForm.action = "publish-finish-ajaxprocessor.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         }
 
-    }
-
-    function publishToAll() {
-        if (document.policyForm.subscribers == null) {
-            CARBON.showWarningDialog('<fmt:message key="no.subscriber.to.be.published"/>');
-            return;
-        } else {
-            CARBON.showConfirmationDialog("<fmt:message key="publish.to.all.subscribersList.prompt"/>", function () {
-                location.href = "publish-finish.jsp?publishToAllSubscribers=true";
-            });
-        }
     }
 
     function resetVars() {
@@ -237,14 +221,14 @@
         }
         if (allSubscribersSelected) {
             CARBON.showConfirmationDialog("<fmt:message key="delete.all.subscribers.prompt"/>", function () {
-                document.policyForm.action = "remove-subscriber.jsp";
+                document.policyForm.action = "remove-subscriber-ajaxprocessor.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         } else {
             CARBON.showConfirmationDialog("<fmt:message key="delete.subscribers.on.page.prompt"/>", function () {
-                document.policyForm.action = "remove-subscriber.jsp";
+                document.policyForm.action = "remove-subscriber-ajaxprocessor.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         }
     }
 

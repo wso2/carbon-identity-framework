@@ -95,17 +95,43 @@
 
 
     function clearCache() {
-        CARBON.showConfirmationDialog("<fmt:message key='cache.clear.message'/>",
-                function() {
-                    location.href = "clear-cache.jsp";
-                }, null);
+        function doClearCache() {
+            $.ajax({
+                type: 'POST',
+                url: 'clear-cache-ajaxprocessor.jsp',
+                headers: {
+                    Accept: "text/html"
+                },
+                async: false,
+                success: function (responseText, status) {
+                    if (status == "success") {
+                        location.assign("pdp-manage.jsp?region=region1&item=policy_menu");
+                    }
+                }
+            });
+        }
+
+        CARBON.showConfirmationDialog("<fmt:message key='cache.clear.message'/>", doClearCache, null);
     }
 
     function clearAttributeCache() {
-        CARBON.showConfirmationDialog("<fmt:message key='attribute.cache.clear.message'/>",
-                function() {
-                    location.href = "clear-attribute-cache.jsp";
-                }, null);
+        function doClearCache() {
+            $.ajax({
+                type: 'POST',
+                url: 'clear-attribute-cache-ajaxprocessor.jsp',
+                headers: {
+                    Accept: "text/html"
+                },
+                async: false,
+                success: function (responseText, status) {
+                    if (status == "success") {
+                        location.assign("pdp-manage.jsp?region=region1&item=policy_menu");
+                    }
+                }
+            });
+        }
+
+        CARBON.showConfirmationDialog("<fmt:message key='attribute.cache.clear.message'/>", doClearCache, null);
     }
     
 </script>

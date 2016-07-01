@@ -183,7 +183,7 @@
 
             <div id="treeDiv1"></div>
         </div>
-        <form name="permissionForm" method="post" action="add-finish.jsp" onsubmit="setFieldsOnSubmit()">
+        <form name="permissionForm" method="post" action="add-finish-ajaxprocessor.jsp" onsubmit="setFieldsOnSubmit()">
             <span id="permissions"></span>
             <table>
                 <tr>

@@ -26,6 +26,7 @@
 <%@page import="org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimMapping" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.Property" %>
@@ -2924,7 +2925,7 @@ function doEditFinish() {
         jQuery(defId).removeAttr('disabled');
     }
     <% if(idPName == null || idPName.equals("")){ %>
-    jQuery('#idp-mgt-edit-form').attr('action', 'idp-mgt-add-finish.jsp');
+    jQuery('#idp-mgt-edit-form').attr('action', 'idp-mgt-add-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>');
     <% } %>
     jQuery('#idp-mgt-edit-form').submit();
 }
@@ -3190,7 +3191,7 @@ function doValidation() {
 </h2>
 
 <div id="workArea">
-<form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post" action="idp-mgt-edit-finish.jsp"
+<form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post" action="idp-mgt-edit-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>"
       enctype="multipart/form-data">
     <% if(idPName != null && idpUniqueIdMap.get(idPName) != null) { %>
         <input type="hidden" name="idpUUID" value="<%= Encode.forHtmlAttribute(idpUniqueIdMap.get(idPName).toString()) %>"/>

@@ -85,6 +85,13 @@ public class IdentityDBInitializer {
                             "the database.";
                     throw IdentityRuntimeException.error(msg);
                 }
+                if (type != null && type.equals("mysql")) {
+                    int databaseMajorVersion = metaData.getDatabaseMajorVersion();
+                    int databaseMinorVersion = metaData.getDatabaseMinorVersion();
+                    if (databaseMajorVersion == 5 && databaseMinorVersion >= 7) {
+                        type = type + "-5.7+";
+                    }
+                }
             }
         } catch (SQLException e) {
             String msg = "Failed to create identity database." + e.getMessage();

@@ -365,7 +365,7 @@
             </form>
             <p>&nbsp;</p>
 
-            <form method="post" action="edit-user-roles-finish.jsp?pageNumber=<%=pageNumber%>"
+            <form method="post" action="edit-user-roles-finish-ajaxprocessor.jsp?pageNumber=<%=pageNumber%>"
                   onsubmit="return doValidation();"
                   name="edit_users" id="edit_users">
                 <input type="hidden" id="username" name="username" value="<%=Encode.forHtmlAttribute(userName)%>"/>

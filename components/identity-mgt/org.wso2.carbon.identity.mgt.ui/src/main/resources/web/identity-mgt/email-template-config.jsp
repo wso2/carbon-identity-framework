@@ -130,7 +130,7 @@
 			<fmt:message key="email.template.heading" />
 		</h2>
 		<div id="workArea">
-			<form action="email-template-config-finish.jsp?userName=<%=Encode.forUriComponent(username)%>" method="post">
+			<form action="email-template-config-finish-ajaxprocessor.jsp?userName=<%=Encode.forUriComponent(username)%>" method="post">
 				<div class="sectionSeperator">
 					<fmt:message key="email.template.set" />
 					</div>

@@ -325,18 +325,19 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         String emailTemplate = null;
                         int tenantId = userStoreManager.getTenantId();
                         String firstName = null;
+                        String userStoreDomain = userStoreManager.getRealmConfiguration()
+                                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                        String domainSpecificUserName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
+
                         try {
-                            firstName =
-                                    Utils.getClaimFromUserStoreManager(userName, tenantId,
-                                            "http://wso2.org/claims/givenname");
+                            firstName = Utils.getClaimFromUserStoreManager(domainSpecificUserName, tenantId,
+                                    UserCoreConstants.ClaimTypeURIs.GIVEN_NAME);
                         } catch (IdentityException e2) {
                             throw new UserStoreException("Could not load user given name", e2);
                         }
 
-                        String userStoreDomain = userStoreManager.getRealmConfiguration()
-                                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
                         String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
-
+                        
                         emailNotificationData.setTagData("first-name", firstName);
                         emailNotificationData.setTagData("user-name", userName);
                         emailNotificationData.setTagData("otp-password", password);
@@ -889,7 +890,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
-        IdentityUtil.clearIdentityErrorMsg();
         String accountLocked = claims.get(UserIdentityDataStore.ACCOUNT_LOCK);
         boolean isAccountLocked = false;
 
@@ -914,10 +914,12 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     isAccountDisabled = wasAccountDisabled;
                 }
                 if (isAccountLocked) {
+                    IdentityUtil.clearIdentityErrorMsg();
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
                             .ErrorCode.USER_IS_LOCKED);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                 } else if (isAccountDisabled) {
+                    IdentityUtil.clearIdentityErrorMsg();
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
