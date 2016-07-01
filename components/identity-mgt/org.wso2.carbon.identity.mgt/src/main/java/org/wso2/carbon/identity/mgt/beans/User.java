@@ -15,7 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans;
+
+package org.wso2.carbon.identity.mgt.beans;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -29,9 +30,9 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class User implements Serializable {
 
-    protected String tenantDomain;
-    protected String userStoreDomain;
-    protected String userName;
+    private String tenantDomain;
+    private String userStoreDomain;
+    private String userName;
 
     public User() {
     }

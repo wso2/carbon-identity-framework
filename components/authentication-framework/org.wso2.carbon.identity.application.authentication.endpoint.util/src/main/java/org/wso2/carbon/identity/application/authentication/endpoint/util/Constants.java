@@ -23,11 +23,19 @@ public class Constants {
     public static final String SESSION_DATA_KEY = "sessionDataKey";
     public static final String SESSION_DATA_KEY_CONSENT = "sessionDataKeyConsent";
     public static final String AUTH_FAILURE = "authFailure";
+    public static final String ERROR_CODE = "errorCode";
     public static final String AUTH_FAILURE_MSG = "authFailureMsg";
     public static final String STATUS = "status";
     public static final String STATUS_MSG = "statusMsg";
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
+    public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL" ;
+
+
+    public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success" ;
+    public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail" ;
+
+
 
     public static final String HTTPS_URL = "https://";
     public static final String HOST = "identity.server.host";
@@ -35,6 +43,7 @@ public class Constants {
     public static final String PORT = "identity.server.port";
     public static final String SERVICES_URL = "identity.server.serviceURL";
     public static final String DASHBOARD_RELYING_PARTY = "wso2.my.dashboard";
+
 
     private Constants() {
     }

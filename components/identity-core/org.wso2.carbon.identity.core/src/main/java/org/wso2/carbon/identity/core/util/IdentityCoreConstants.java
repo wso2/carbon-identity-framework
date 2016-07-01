@@ -48,6 +48,7 @@ public class IdentityCoreConstants {
 
     //UserCoreConstants class define the rest of the relevant error codes.
     public static final String USER_ACCOUNT_DISABLED_ERROR_CODE = "17004";
+    public static final String USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE = "17005";
 
     private IdentityCoreConstants(){
     }

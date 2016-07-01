@@ -22,13 +22,13 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword" %>
 <%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 <%
 
     UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();

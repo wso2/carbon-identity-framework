@@ -75,6 +75,8 @@ public class IdentityProviderManager implements IdpManager {
 
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
 
+    private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
+
     private IdentityProviderManager() {
 
     }
@@ -339,6 +341,13 @@ public class IdentityProviderManager implements IdpManager {
         }
         propertiesList = new ArrayList<Property>(Arrays.asList(oidcFedAuthn.getProperties()));
         if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                OPENID_IDP_ENTITY_ID) == null) {
+            Property idPEntityIdProp = new Property();
+            idPEntityIdProp.setName(OPENID_IDP_ENTITY_ID);
+            idPEntityIdProp.setValue(getOIDCResidentIdPEntityId());
+            propertiesList.add(idPEntityIdProp);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL) == null) {
             Property authzUrlProp = new Property();
             authzUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
@@ -555,7 +564,13 @@ public class IdentityProviderManager implements IdpManager {
         }
         idpPropertiesResidentAuthenticatorConfig.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
 
+        Property oidcProperty = new Property();
+        oidcProperty.setName(OPENID_IDP_ENTITY_ID);
+        oidcProperty.setValue(getOIDCResidentIdPEntityId());
 
+        FederatedAuthenticatorConfig oidcAuthenticationConfig = new FederatedAuthenticatorConfig();
+        oidcAuthenticationConfig.setProperties(new Property[]{oidcProperty});
+        oidcAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
 
         Property passiveStsProperty = new Property();
         passiveStsProperty.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_ENTITY_ID);
@@ -565,9 +580,8 @@ public class IdentityProviderManager implements IdpManager {
         passiveStsAuthenticationConfig.setProperties(new Property[] { passiveStsProperty });
         passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
 
-
-        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = { saml2SSOResidentAuthenticatorConfig,
-                idpPropertiesResidentAuthenticatorConfig, passiveStsAuthenticationConfig };
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
+                idpPropertiesResidentAuthenticatorConfig, passiveStsAuthenticationConfig, oidcAuthenticationConfig};
         identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
                 .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
@@ -1468,6 +1482,14 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return true;
+    }
+
+    private String getOIDCResidentIdPEntityId() {
+        String OIDCEntityId = IdentityUtil.getProperty("OAuth.OpenIDConnect.IDTokenIssuerID");
+        if (StringUtils.isBlank(OIDCEntityId)) {
+            OIDCEntityId = "localhost";
+        }
+        return OIDCEntityId;
     }
 
 

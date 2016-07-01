@@ -18,6 +18,7 @@
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@page import="org.apache.commons.collections.CollectionUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
@@ -92,7 +93,7 @@
         <h2><fmt:message key="bulk.import.user"/></h2>
 
         <div id="workArea">
-            <form method="post" action="bulk-import-finish-ajaxprocessor.jsp" name="dataForm"
+            <form method="post" action="bulk-import-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>" name="dataForm"
                   enctype="multipart/form-data" onsubmit="return doValidation();">
                 <table class="styledLeft" id="userAdd" width="60%">
                     <thead>

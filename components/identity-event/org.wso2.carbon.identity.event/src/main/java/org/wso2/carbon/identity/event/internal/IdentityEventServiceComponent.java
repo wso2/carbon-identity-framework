@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.core.handler.MessageHandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.IdentityEventConfigBuilder;
@@ -33,6 +34,7 @@ import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -96,6 +98,9 @@ public class IdentityEventServiceComponent {
         String handlerName = eventHandler.getName();
         eventHandler.init(IdentityEventConfigBuilder.getInstance().getModuleConfigurations(handlerName));
         eventHandlerList.add(eventHandler);
+
+        MessageHandlerComparator messageHandlerComparator = new MessageHandlerComparator(null);
+        Collections.sort(eventHandlerList, messageHandlerComparator);
     }
 
     protected void unRegisterEventHandler(AbstractEventHandler eventHandler) {

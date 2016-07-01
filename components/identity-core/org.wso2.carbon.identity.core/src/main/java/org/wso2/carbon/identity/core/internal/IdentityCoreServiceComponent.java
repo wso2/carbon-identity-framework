@@ -19,12 +19,15 @@ package org.wso2.carbon.identity.core.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.identity.core.persistence.UmPersistenceManager;
+import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtService;
+import org.wso2.carbon.identity.core.persistence.registry.RegistryResourceMgtServiceImpl;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEventImpl;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -151,6 +154,17 @@ public class IdentityCoreServiceComponent {
                 KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID).getPrimaryKeyStore();
             } catch (Exception e) {
                 log.error("Error while initializing primary key store.", e);
+            }
+
+            // register identity registry resource management service
+            ServiceRegistration registryServiceSR =
+                    ctxt.getBundleContext().registerService(RegistryResourceMgtService.class.getName(),
+                            new RegistryResourceMgtServiceImpl(), null);
+
+            if (registryServiceSR != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Identity Registry Management Service registered successfully.");
+                }
             }
 
             // Register initialize service To guarantee the activation order. Component which is referring this
