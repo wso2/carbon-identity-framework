@@ -76,10 +76,10 @@ public class PasswordRecoverySecurityQuestionClient {
         return response;
     }
 
-    public Response verifyUserChallengeAnswerAtOnce(VerifyAllAnswerRequest verifyAllAnswerRequest) {
-        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = JAXRSClientFactory
-                .create(url, PasswordRecoverySecurityQuestion.class,
-                        IdentityManagementServiceUtil.getInstance().getJSONProvider());
+    public Response verifyUserChallengeAnswerAtOnce(VerifyAllAnswerRequest verifyAllAnswerRequest, Map<String, String> headers) {
+        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = create(url,
+                PasswordRecoverySecurityQuestion.class,
+                IdentityManagementServiceUtil.getInstance().getJSONProvider(), null, headers);
         Response response = passwordRecoverySecurityQuestion.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
         return response;
     }

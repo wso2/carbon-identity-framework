@@ -17,30 +17,23 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.ChallengeQuestionIdsDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesCollectionDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
+<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
     PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-    ErrorResponse errorResponse = (ErrorResponse)session.getAttribute("errorResponse");
+    ErrorResponse errorResponse = (ErrorResponse)request.getAttribute("errorResponse");
     ChallengeQuestion[] challengeQuestions = null;
 
     if(errorResponse != null) {
@@ -58,6 +51,12 @@
                 ChallengeQuestionsResponse challengeQuestionsResponse = responseJAXRS.readEntity(ChallengeQuestionsResponse.class);
                 session.setAttribute("challengeQuestionsResponse", challengeQuestionsResponse);
                 challengeQuestions = challengeQuestionsResponse.getQuestion();
+                if(((ResponseImpl)responseJAXRS).getHeaders().containsKey("reCaptcha") &&
+                        Boolean.parseBoolean((String) ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptcha").get(0))) {
+                    request.setAttribute("reCaptcha", "true");
+                    request.setAttribute("reCaptchaKey", ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptchaKey").get(0));
+                    request.setAttribute("reCaptchaAPI", ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptchaAPI").get(0));
+                }
             } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
                 ErrorResponse errorResponseFetchChallengeQuestions = responseJAXRS.readEntity(ErrorResponse.class);
                 request.setAttribute("error", true);
@@ -74,6 +73,11 @@
         request.setAttribute("errorMsg", "Username is missing.");
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
+    }
+
+    boolean reCpatchaEnabled = false;
+    if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
+        reCpatchaEnabled = true;
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -92,6 +96,14 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+
+        <%
+            if (reCpatchaEnabled) {
+        %>
+        <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
     </head>
 
     <body>
@@ -148,7 +160,17 @@
                                     }
                                 }
                             %>
-
+                            <%
+                                if (reCpatchaEnabled) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <div class="g-recaptcha"
+                                     data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                </div>
+                            </div>
+                            <%
+                                }
+                            %>
                             <div class="form-actions">
                                 <button id="answerSubmit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"

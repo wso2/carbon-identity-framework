@@ -135,8 +135,13 @@
         verifyAllAnswerRequest.setCode(code);
         verifyAllAnswerRequest.setUser(user);
         verifyAllAnswerRequest.setAnswers(userChallengeAnswers);
+        Map<String, String> headers = new HashMap<String, String>();
+        if (request.getParameter("g-recaptcha-response") != null) {
+            headers.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+        }
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-        Response responseJAXRS = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
+        Response responseJAXRS =
+                pwRecoverySecurityQuestionClient.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest, headers);
         int statusCode = responseJAXRS.getStatus();
         if(Response.Status.OK.getStatusCode() == statusCode) {
             ChallengeQuestionResponse challengeQuestionResponse1 = responseJAXRS.readEntity(ChallengeQuestionResponse.class);
@@ -144,6 +149,13 @@
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
             ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
+            if ("20008".equals(errorResponse.getCode()) &&
+                    ((ResponseImpl) responseJAXRS).getHeaders().containsKey("reCaptcha") &&
+                    "conditional".equalsIgnoreCase((String) ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptcha").get(0))) {
+                request.setAttribute("reCaptcha", "true");
+                request.setAttribute("reCaptchaKey", ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptchaKey").get(0));
+                request.setAttribute("reCaptchaAPI", ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptchaAPI").get(0));
+            }
             request.setAttribute("errorResponse", errorResponse);
             request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
             return;
