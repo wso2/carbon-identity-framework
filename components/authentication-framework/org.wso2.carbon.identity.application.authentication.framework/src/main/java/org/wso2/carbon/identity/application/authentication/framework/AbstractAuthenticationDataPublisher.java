@@ -40,6 +40,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
 
     private static final Log log = LogFactory.getLog(AbstractAuthenticationDataPublisher.class);
     public static final String UNKNOWN = "unknown";
+    public static final String USER_AGENT = "User-Agent";
     // HTTP headers which may contain IP address of the client in the order of priority
     private static final String[] HEADERS_WITH_IP = {
             "X-Forwarded-For",
@@ -84,9 +85,9 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
         if (isFederatedObj != null) {
             boolean isFederated = (Boolean) isFederatedObj;
-            if(isFederated) {
+            if (isFederated) {
                 authenticationData.setIdentityProviderType(FrameworkConstants.FEDERATED_IDP_NAME);
-            }  else {
+            } else {
                 authenticationData.setIdentityProviderType(FrameworkConstants.LOCAL_IDP_NAME);
             }
         }
@@ -136,9 +137,9 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         Object isFederatedObj = params.get(FrameworkConstants.PublisherParamNames.IS_FEDERATED);
         if (isFederatedObj != null) {
             boolean isFederated = (Boolean) isFederatedObj;
-            if(isFederated) {
+            if (isFederated) {
                 authenticationData.setIdentityProviderType(FrameworkConstants.FEDERATED_IDP_NAME);
-            }  else {
+            } else {
                 authenticationData.setIdentityProviderType(FrameworkConstants.LOCAL_IDP_NAME);
             }
         }
@@ -289,6 +290,7 @@ public abstract class AbstractAuthenticationDataPublisher extends AbstractIdenti
         sessionData.setUpdatedTimestamp(createdTime);
         sessionData.setTerminationTimestamp(terminationTime);
         sessionData.setRemoteIP(getClientIpAddress(request));
+        sessionData.setUserAgent(request.getHeader(USER_AGENT));
 
         doPublishSessionCreation(sessionData);
     }
