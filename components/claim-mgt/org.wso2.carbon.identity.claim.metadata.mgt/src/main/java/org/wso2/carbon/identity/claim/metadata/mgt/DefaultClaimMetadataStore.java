@@ -39,8 +39,10 @@ import org.wso2.carbon.user.core.claim.inmemory.ClaimConfig;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStore} interface.
@@ -98,6 +100,10 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 log.error("Error while retrieving primary userstore domain name", e);
             }
 
+
+            // Adding external dialects and claims
+            Set<String> claimDialectList = new HashSet<>();
+
             for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
                     .entrySet()) {
 
@@ -111,6 +117,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                     mappedAttributes.add(new AttributeMapping(primaryDomainName, claimMapping.getMappedAttribute()));
 
                     Map<String, String> claimProperties = claimConfig.getPropertyHolder().get(claimURI);
+                    claimProperties.remove(ClaimConstants.DISPLAY_NAME_PROPERTY);
+                    claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
+                    claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
 
                     LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
 
@@ -120,11 +129,23 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         log.error("Error while adding local claim " + claimURI, e);
                     }
 
+                } else {
+                    claimDialectList.add(claimDialectURI);
                 }
             }
 
-            // Adding external dialects and claims
-            List<ClaimDialect> claimDialectList = new ArrayList<>();
+            // Add external claim dialects
+            for (String claimDialectURI : claimDialectList) {
+
+                ClaimDialect claimDialect = new ClaimDialect(claimDialectURI);
+                try {
+                    claimDialectDAO.addClaimDialect(claimDialect, tenantId);
+                } catch (ClaimMetadataException e) {
+                    log.error("Error while adding claim dialect " + claimDialectURI, e);
+                    continue;
+                }
+
+            }
 
             for (Map.Entry<String, org.wso2.carbon.user.core.claim.ClaimMapping> entry : claimConfig.getClaims()
                     .entrySet()) {
@@ -134,19 +155,6 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
                 if (!ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialectURI)) {
 
-                    // Add external dialect
-                    if (claimDialectList.indexOf(claimDialectURI) == -1) {
-                        ClaimDialect claimDialect = new ClaimDialect(claimDialectURI);
-                        try {
-                            claimDialectDAO.addClaimDialect(claimDialect, tenantId);
-                            claimDialectList.add(claimDialect);
-                        } catch (ClaimMetadataException e) {
-                            log.error("Error while adding claim dialect " + claimDialectURI, e);
-                            continue;
-                        }
-                    }
-
-                    // Add external claim
                     String mappedLocalClaimURI = claimConfig.getPropertyHolder().get(claimURI).get(ClaimConstants
                             .MAPPED_LOCAL_CLAIM_PROPERTY);
                     ExternalClaim externalClaim = new ExternalClaim(claimDialectURI, claimURI, mappedLocalClaimURI);
@@ -250,6 +258,51 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
 //            throw new IllegalStateException("Invalid local claim URI : " + claimURI);
 
+            // For backward compatibility
+            List<ClaimDialect> claimDialects = claimDialectDAO.getClaimDialects(tenantId);
+
+            for (ClaimDialect claimDialect : claimDialects) {
+                if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialect.getClaimDialectURI())) {
+                    continue;
+                }
+
+                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(claimDialect
+                        .getClaimDialectURI(), tenantId);
+
+                for (ExternalClaim externalClaim : externalClaims) {
+                    if (externalClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
+
+                        for (LocalClaim localClaim : localClaimList) {
+                            if (localClaim.getClaimURI().equalsIgnoreCase(externalClaim.getMappedLocalClaim())) {
+                                String mappedAttribute = localClaim.getMappedAttribute(domainName);
+
+                                if (StringUtils.isBlank(mappedAttribute)) {
+                                    mappedAttribute = localClaim.getClaimProperty(ClaimConstants.DEFAULT_ATTRIBUTE);
+                                }
+
+                                if (StringUtils.isBlank(mappedAttribute)) {
+                                    UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance()
+                                            .getRealmService().getTenantUserRealm(tenantId);
+                                    String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
+                                            (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                                    mappedAttribute = localClaim.getMappedAttribute(primaryDomainName);
+                                }
+
+                                if (StringUtils.isBlank(mappedAttribute)) {
+                                    throw new IllegalStateException("Cannot find suitable mapped attribute for local " +
+                                            "claim " + claimURI);
+                                }
+
+                                return mappedAttribute;
+
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            log.error("Returning NULL for getAttributeName() for domain : " + domainName + ", claim URI : " + claimURI);
             return null;
 
         } catch (ClaimMetadataException e) {
@@ -281,6 +334,30 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 }
             }
 
+            // For backward compatibility
+            List<ClaimDialect> claimDialects = claimDialectDAO.getClaimDialects(tenantId);
+
+            for (ClaimDialect claimDialect : claimDialects) {
+                if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialect.getClaimDialectURI())) {
+                    continue;
+                }
+
+                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(claimDialect
+                        .getClaimDialectURI(), tenantId);
+
+                for (ExternalClaim externalClaim : externalClaims) {
+                    if (externalClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
+
+                        for (LocalClaim localClaim : localClaims) {
+                            ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                            return claimMapping.getClaim();
+                        }
+
+                    }
+                }
+            }
+
+            log.error("Returning NULL for getClaim() for claim URI : " + claimURI);
             return null;
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(e.getMessage(), e);
@@ -300,6 +377,33 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 }
             }
 
+            // For backward compatibility
+            List<ClaimDialect> claimDialects = claimDialectDAO.getClaimDialects(tenantId);
+
+            for (ClaimDialect claimDialect : claimDialects) {
+                if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(claimDialect.getClaimDialectURI())) {
+                    continue;
+                }
+
+                List<ExternalClaim> externalClaims = externalClaimDAO.getExternalClaims(claimDialect
+                        .getClaimDialectURI(), tenantId);
+
+                for (ExternalClaim externalClaim : externalClaims) {
+                    if (externalClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
+
+                        for (LocalClaim localClaim : localClaims) {
+                            if (localClaim.getClaimURI().equalsIgnoreCase(externalClaim.getMappedLocalClaim())) {
+                                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping
+                                        (localClaim);
+                                return claimMapping;
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            log.error("Returning NULL for getClaimMapping() for claim URI : " + claimURI);
             return null;
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(e.getMessage(), e);

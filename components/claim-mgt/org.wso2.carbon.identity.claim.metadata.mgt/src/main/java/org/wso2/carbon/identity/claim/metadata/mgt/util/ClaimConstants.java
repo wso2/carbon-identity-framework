@@ -33,6 +33,7 @@ public class ClaimConstants {
     public static final String SUPPORTED_BY_DEFAULT_PROPERTY = "SupportedByDefault";
     public static final String REGULAR_EXPRESSION_PROPERTY = "RegEx";
     public static final String READ_ONLY_PROPERTY = "ReadOnly";
+    public static final String CLAIM_URI_PROPERTY = "ClaimURI";
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
