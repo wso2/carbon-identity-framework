@@ -75,6 +75,7 @@ public class IdentityManagementServiceUtil {
         jsonProvider.setIgnoreNamespaces(true);
         jsonProvider.setValidateOutput(true);
         jsonProvider.setSupportUnwrapped(true);
+        jsonProvider.setSerializeAsArray(true);
         providers.add(jsonProvider);
 
         try {

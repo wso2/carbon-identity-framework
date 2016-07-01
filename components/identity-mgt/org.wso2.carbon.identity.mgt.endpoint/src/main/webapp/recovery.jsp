@@ -29,7 +29,10 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserClaim" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ConfirmSelfRegistrationRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 
 <%
     UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
@@ -43,6 +46,17 @@
     // Common parameters for password recovery with email and self registration with email
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmationKey");
+
+    UserRegistrationClient userRegistrationClient = new UserRegistrationClient();
+    ConfirmSelfRegistrationRequest confirmSelfRegistrationRequest = new ConfirmSelfRegistrationRequest();
+    confirmSelfRegistrationRequest.setCode(confirmationKey);
+    User user = new User();
+    user.setUserName(username);
+    confirmSelfRegistrationRequest.setUser(user);
+
+    Response response1 = userRegistrationClient.confirmUser(confirmSelfRegistrationRequest);
+
+
 
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
