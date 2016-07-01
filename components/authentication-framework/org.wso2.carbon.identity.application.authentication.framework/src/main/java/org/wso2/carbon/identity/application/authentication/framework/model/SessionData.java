@@ -2,15 +2,16 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 
 public class SessionData {
 
-    String user;
-    String userStoreDomain;
-    String tenantDomain;
-    String sessionId;
-    long createdTimestamp;
-    long updatedTimestamp;
-    long terminationTimestamp;
-    boolean isRememberMe;
-    String remoteIP;
+    private String user;
+    private String userStoreDomain;
+    private String tenantDomain;
+    private String sessionId;
+    private long createdTimestamp;
+    private long updatedTimestamp;
+    private long terminationTimestamp;
+    private boolean isRememberMe;
+    private String remoteIP;
+    private String userAgent;
 
     public String getUser() {
         return user;
@@ -83,4 +84,13 @@ public class SessionData {
     public void setRemoteIP(String remoteIP) {
         this.remoteIP = remoteIP;
     }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
 }
