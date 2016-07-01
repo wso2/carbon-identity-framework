@@ -17,23 +17,21 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
+<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
+<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.Map" %>
 
 <%
     String userName = request.getParameter("username");
@@ -49,7 +47,13 @@
         if(Response.Status.OK.getStatusCode() == status) {
             ChallengeQuestionResponse challengeQuestionResponse = responseJAXRS.readEntity(ChallengeQuestionResponse.class);
             session.setAttribute("challengeQuestionResponse", challengeQuestionResponse);
-            request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+            if(((ResponseImpl)responseJAXRS).getHeaders().containsKey("reCaptcha") &&
+                    Boolean.parseBoolean((String) ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptcha").get(0))) {
+                request.setAttribute("reCaptcha", "true");
+                request.setAttribute("reCaptchaKey", ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptchaKey").get(0));
+                request.setAttribute("reCaptchaAPI", ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptchaAPI").get(0));
+            }
+            request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == status || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == status) {
             ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
             request.setAttribute("error", true);
@@ -80,21 +84,33 @@
 
         verifyAnswerRequest.setAnswer(userChallengeAnswer);
         PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-        Response responseJAXRS = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest);
+
+        Map<String, String> headers = new HashMap<String, String>();
+        if (request.getParameter("g-recaptcha-response") != null) {
+            headers.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+        }
+        Response responseJAXRS = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest, headers);
         int statusCode = responseJAXRS.getStatus();
         if(Response.Status.OK.getStatusCode() == statusCode) {
             ChallengeQuestionResponse challengeQuestionResponse1 = responseJAXRS.readEntity(ChallengeQuestionResponse.class);
             String status = challengeQuestionResponse1.getStatus();
             session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
             if("INCOMPLETE".equals(status)) {
-                request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+                request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
             }else if("COMPLETE".equals(status)) {
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
             }
         } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
             ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
+            if ("20008".equals(errorResponse.getCode()) &&
+                    ((ResponseImpl) responseJAXRS).getHeaders().containsKey("reCaptcha") &&
+                    "conditional".equalsIgnoreCase((String) ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptcha").get(0))) {
+                request.setAttribute("reCaptcha", "true");
+                request.setAttribute("reCaptchaKey", ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptchaKey").get(0));
+                request.setAttribute("reCaptchaAPI", ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptchaAPI").get(0));
+            }
             request.setAttribute("errorResponse", errorResponse);
-            request.getRequestDispatcher("challenge-question-view.jsp").forward(request, response);
+            request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
             return;
         }
     } else if(Boolean.parseBoolean(application.getInitParameter(

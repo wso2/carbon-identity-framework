@@ -55,6 +55,12 @@
         }
     }
 %>
+    <%
+        boolean reCpatchaEnabled = false;
+        if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String)request.getAttribute("reCaptcha"))) {
+            reCpatchaEnabled = true;
+        }
+    %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
     <head>
@@ -71,6 +77,15 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+
+        <%
+            if (reCpatchaEnabled) {
+        %>
+        <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
+
     </head>
 
     <body>
@@ -188,6 +203,17 @@
                                     }
                                 }
                             %>
+    <%
+        if (reCpatchaEnabled) {
+    %>
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+        <div class="g-recaptcha"
+             data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+        </div>
+    </div>
+    <%
+        }
+    %>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input id="isSelfRegistrationWithVerification" type="hidden"

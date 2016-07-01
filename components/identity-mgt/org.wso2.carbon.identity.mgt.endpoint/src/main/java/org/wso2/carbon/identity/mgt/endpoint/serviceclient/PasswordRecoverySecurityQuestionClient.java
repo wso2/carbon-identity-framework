@@ -17,19 +17,22 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 
+import org.apache.cxf.Bus;
+import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.PasswordRecoverySecurityQuestion;
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse;
 
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * REST client for password reset with security question
@@ -49,10 +52,10 @@ public class PasswordRecoverySecurityQuestionClient {
         return response;
     }
 
-    public Response verifyUserChallengeAnswer(VerifyAnswerRequest verifyAnswerRequest) {
-        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = JAXRSClientFactory
-                .create(url, PasswordRecoverySecurityQuestion.class,
-                        IdentityManagementServiceUtil.getInstance().getJSONProvider());
+    public Response verifyUserChallengeAnswer(VerifyAnswerRequest verifyAnswerRequest, Map<String, String> headers) {
+        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = create(url,
+                PasswordRecoverySecurityQuestion.class,
+                IdentityManagementServiceUtil.getInstance().getJSONProvider(), null, headers);
         Response response = passwordRecoverySecurityQuestion.verifyUserChallengeAnswer(verifyAnswerRequest);
         return response;
     }
@@ -79,6 +82,32 @@ public class PasswordRecoverySecurityQuestionClient {
                         IdentityManagementServiceUtil.getInstance().getJSONProvider());
         Response response = passwordRecoverySecurityQuestion.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
         return response;
+    }
+
+    public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation, Map<String, String> headers) {
+        JAXRSClientFactoryBean bean = getBean(baseAddress, cls, configLocation, headers);
+        bean.setProviders(providers);
+        return bean.create(cls, new Object[0]);
+    }
+
+    private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation, Map<String, String> headers) {
+        JAXRSClientFactoryBean bean = getBean(baseAddress, configLocation, headers);
+        bean.setServiceClass(cls);
+        return bean;
+    }
+
+    static JAXRSClientFactoryBean getBean(String baseAddress, String configLocation, Map<String, String> headers) {
+        JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
+        if (configLocation != null) {
+            SpringBusFactory bf = new SpringBusFactory();
+            Bus bus = bf.createBus(configLocation);
+            bean.setBus(bus);
+        }
+        bean.setAddress(baseAddress);
+        if (headers != null && !headers.isEmpty()) {
+            bean.setHeaders(headers);
+        }
+        return bean;
     }
 
 }
