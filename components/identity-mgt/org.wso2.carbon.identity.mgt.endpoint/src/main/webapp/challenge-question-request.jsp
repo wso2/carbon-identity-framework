@@ -75,9 +75,9 @@
         return;
     }
 
-    boolean reCpatchaEnabled = false;
+    boolean reCaptchaEnabled = false;
     if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
-        reCpatchaEnabled = true;
+        reCaptchaEnabled = true;
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -98,7 +98,7 @@
         <![endif]-->
 
         <%
-            if (reCpatchaEnabled) {
+            if (reCaptchaEnabled) {
         %>
         <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
         <%
@@ -161,7 +161,7 @@
                                 }
                             %>
                             <%
-                                if (reCpatchaEnabled) {
+                                if (reCaptchaEnabled) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <div class="g-recaptcha"

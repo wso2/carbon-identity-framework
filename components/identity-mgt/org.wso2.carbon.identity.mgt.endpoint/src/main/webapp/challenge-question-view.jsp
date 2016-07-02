@@ -24,9 +24,9 @@
 <%
     ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
     ErrorResponse errorResponse = (ErrorResponse) request.getAttribute("errorResponse");
-    boolean reCpatchaEnabled = false;
+    boolean reCaptchaEnabled = false;
     if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
-        reCpatchaEnabled = true;
+        reCaptchaEnabled = true;
     }
 %>
 
@@ -48,7 +48,7 @@
         <![endif]-->
 
         <%
-            if (reCpatchaEnabled) {
+            if (reCaptchaEnabled) {
         %>
         <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
         <%
@@ -106,7 +106,7 @@
                                        value="<%=Encode.forHtmlAttribute(request.getParameter("step"))%>"/>
                             </div>
                             <%
-                                if (reCpatchaEnabled) {
+                                if (reCaptchaEnabled) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <div class="g-recaptcha"
