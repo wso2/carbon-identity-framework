@@ -23,6 +23,7 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswerRequest;
@@ -53,7 +54,7 @@ public class PasswordRecoverySecurityQuestionClient {
     }
 
     public Response verifyUserChallengeAnswer(VerifyAnswerRequest verifyAnswerRequest, Map<String, String> headers) {
-        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = create(url,
+        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = IdentityManagementEndpointUtil.create(url,
                 PasswordRecoverySecurityQuestion.class,
                 IdentityManagementServiceUtil.getInstance().getJSONProvider(), null, headers);
         Response response = passwordRecoverySecurityQuestion.verifyUserChallengeAnswer(verifyAnswerRequest);
@@ -77,37 +78,13 @@ public class PasswordRecoverySecurityQuestionClient {
     }
 
     public Response verifyUserChallengeAnswerAtOnce(VerifyAllAnswerRequest verifyAllAnswerRequest, Map<String, String> headers) {
-        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = create(url,
+        PasswordRecoverySecurityQuestion passwordRecoverySecurityQuestion = IdentityManagementEndpointUtil.create(url,
                 PasswordRecoverySecurityQuestion.class,
                 IdentityManagementServiceUtil.getInstance().getJSONProvider(), null, headers);
         Response response = passwordRecoverySecurityQuestion.verifyUserChallengeAnswerAtOnce(verifyAllAnswerRequest);
         return response;
     }
 
-    public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation, Map<String, String> headers) {
-        JAXRSClientFactoryBean bean = getBean(baseAddress, cls, configLocation, headers);
-        bean.setProviders(providers);
-        return bean.create(cls, new Object[0]);
-    }
 
-    private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation, Map<String, String> headers) {
-        JAXRSClientFactoryBean bean = getBean(baseAddress, configLocation, headers);
-        bean.setServiceClass(cls);
-        return bean;
-    }
-
-    static JAXRSClientFactoryBean getBean(String baseAddress, String configLocation, Map<String, String> headers) {
-        JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
-        if (configLocation != null) {
-            SpringBusFactory bf = new SpringBusFactory();
-            Bus bus = bf.createBus(configLocation);
-            bean.setBus(bus);
-        }
-        bean.setAddress(baseAddress);
-        if (headers != null && !headers.isEmpty()) {
-            bean.setHeaders(headers);
-        }
-        return bean;
-    }
 
 }

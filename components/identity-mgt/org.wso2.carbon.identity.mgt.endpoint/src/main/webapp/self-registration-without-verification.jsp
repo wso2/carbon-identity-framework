@@ -23,6 +23,7 @@
 <%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
+<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -44,16 +45,21 @@
         String claimsContent = responseForAllClaims.readEntity(String.class);
         Gson gson = new Gson();
         claims = gson.fromJson(claimsContent, Claim[].class);
-
+    }
+    if(((ResponseImpl)responseForAllClaims).getHeaders().containsKey("reCaptcha") &&
+            Boolean.parseBoolean((String) ((ResponseImpl)responseForAllClaims).getHeaders().get("reCaptcha").get(0))) {
+        request.setAttribute("reCaptcha", "true");
+        request.setAttribute("reCaptchaKey", ((ResponseImpl)responseForAllClaims).getHeaders().get("reCaptchaKey").get(0));
+        request.setAttribute("reCaptchaAPI", ((ResponseImpl)responseForAllClaims).getHeaders().get("reCaptchaAPI").get(0));
     }
 
 %>
-    <%
-        boolean reCpatchaEnabled = false;
-        if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String)request.getAttribute("reCaptcha"))) {
-            reCpatchaEnabled = true;
-        }
-    %>
+<%
+    boolean reCaptchaEnabled = false;
+    if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
+        reCaptchaEnabled = true;
+    }
+%>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
     <head>
@@ -72,7 +78,7 @@
         <![endif]-->
 
         <%
-            if (reCpatchaEnabled) {
+            if (reCaptchaEnabled) {
         %>
         <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
         <%
@@ -189,17 +195,17 @@
                                     }
                                 }
                             %>
-    <%
-        if (reCpatchaEnabled) {
-    %>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <div class="g-recaptcha"
-             data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
-        </div>
-    </div>
-    <%
-        }
-    %>
+                            <%
+                                if (reCaptchaEnabled) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <div class="g-recaptcha"
+                                     data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                </div>
+                            </div>
+                            <%
+                                }
+                            %>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <input id="isSelfRegistrationWithVerification" type="hidden"

@@ -27,6 +27,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.Map" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -126,8 +128,11 @@
             selfRegistrationRequest.setClaims(userClaimList.toArray(new Claim[userClaimList.size()]));
             selfRegistrationRequest.setUser(user);
             selfRegistrationRequest.setPassword(password);
-
-            userRegistrationClient.registerUser(selfRegistrationRequest);
+            Map<String, String> headers = new HashMap<String, String>();
+            if (request.getParameter("g-recaptcha-response") != null) {
+                headers.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+            }
+            userRegistrationClient.registerUser(selfRegistrationRequest, headers);
         } catch (Exception e) {
             request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
         }
