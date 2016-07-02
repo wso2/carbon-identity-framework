@@ -38,6 +38,11 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.claim.mgt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity</groupId>
+            <artifactId>org.wso2.carbon.identity.claim.metadata.mgt</artifactId>
+            <version>${identity.framework.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -89,6 +94,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.claim.mgt</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.claim.metadata.mgt</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
