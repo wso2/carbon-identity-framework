@@ -17,7 +17,8 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api;
 
-import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserClaim;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim;
+import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -42,6 +43,6 @@ public interface UsernameRecoveryNotification {
 
     @PUT
     @Path("/notify")
-    public Response sendUsernameRecoveryNotification(UserClaim[] userClaims, @QueryParam("tenantDomain") String tenantDomain);
+    public Response sendUsernameRecoveryNotification(Claim[] userClaims, @QueryParam("tenantDomain") String tenantDomain);
 
 }

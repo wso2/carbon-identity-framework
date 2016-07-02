@@ -18,16 +18,53 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationAdminServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
-<%@ page import="org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationClient" %>
+<%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.SelfRegistrationRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
+
+
+<fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WSO2 Identity Server</title>
+
+        <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
+        <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/Roboto.css" rel="stylesheet">
+        <link href="css/custom-common.css" rel="stylesheet">
+
+        <!--[if lt IE 9]>
+        <script src="js/html5shiv.min.js"></script>
+        <script src="js/respond.min.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+
+    <!-- header -->
+    <header class="header header-default">
+        <div class="container-fluid"><br></div>
+        <div class="container-fluid">
+            <div class="pull-left brand float-remove-xs text-center-xs">
+                <a href="#">
+                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+
+                    <h1><em>Identity Server</em></h1>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- page content -->
+    <div class="container-fluid body-wrapper">
 
 <%
     boolean isSelfRegistrationWithVerification =
@@ -60,64 +97,65 @@
 
     session.setAttribute("username", username);
 
-    if (isSelfRegistrationWithVerification) {
-        UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+    String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
+    String tenantDomain = MultitenantUtils.getTenantDomain(username);
 
-        UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
-                IdentityManagementEndpointConstants.WSO2_DIALECT);
 
-        List<UserIdentityClaimDTO> claimDTOList = new ArrayList<UserIdentityClaimDTO>();
+    UserRegistrationClient userRegistrationClient = new UserRegistrationClient();
+    Response responseForAllClaims = userRegistrationClient.getAllClaims(tenantDomain);
 
-        for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-            if (StringUtils.isNotBlank(request.getParameter(claimDTO.getClaimUri()))) {
-                claimDTO.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
-                claimDTOList.add(claimDTO);
+    User user = new User();
+    user.setUserName(tenantAwareUsername);
+    user.setTenantDomain(tenantDomain);
+
+    List<Claim> userClaimList = new ArrayList<Claim>();
+    if(responseForAllClaims != null && Response.Status.OK.getStatusCode() == responseForAllClaims.getStatus()){
+        try {
+            String claimsContent = responseForAllClaims.readEntity(String.class);
+            Gson gson = new Gson();
+            Claim[] claims = gson.fromJson(claimsContent, Claim[].class);
+            for (Claim claim : claims){
+                if (StringUtils.isNotBlank(request.getParameter(claim.getClaimUri()))) {
+                    Claim userClaim = new Claim();
+                    userClaim.setClaimUri(claim.getClaimUri());
+                    userClaim.setValue(request.getParameter(claim.getClaimUri()));
+                    userClaimList.add(userClaim);
+                }
             }
+            SelfRegistrationRequest selfRegistrationRequest =  new SelfRegistrationRequest();
+            selfRegistrationRequest.setClaims(userClaimList.toArray(new Claim[userClaimList.size()]));
+            selfRegistrationRequest.setUser(user);
+            selfRegistrationRequest.setPassword(password);
+
+            userRegistrationClient.registerUser(selfRegistrationRequest);
+        } catch (Exception e) {
+            request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
         }
 
-        UserIdentityClaimDTO[] claimDTOArray = new UserIdentityClaimDTO[claimDTOList.size()];
-        VerificationBean verificationBean =
-                userInformationRecoveryClient.registerUser(MultitenantUtils.getTenantAwareUsername(username),
-                                                           password,
-                                                           claimDTOList.toArray(claimDTOArray), "default",
-                                                           MultitenantUtils.getTenantDomain(username));
-
-        if (verificationBean == null || !verificationBean.getVerified()) {
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg",
-                                 IdentityManagementEndpointUtil.getPrintableError("Failed to register user " +
-                                                                                  username + ".", null,
-                                                                                  verificationBean));
-            request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
-            return;
-        }
-
-        request.getRequestDispatcher("self-registration-with-verification-notify.jsp").forward(request, response);
-    } else {
-        UserRegistrationAdminServiceClient registrationClient = new UserRegistrationAdminServiceClient();
-
-        if (registrationClient.isUserExist(username)) {
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg", "User already exists.");
-            request.getRequestDispatcher("self-registration-without-verification.jsp").forward(request, response);
-            return;
-        }
-
-        UserFieldDTO[] userFieldDTOs = registrationClient.readUserFieldsForUserRegistration(
-                IdentityManagementEndpointConstants.WSO2_DIALECT);
-
-        List<UserFieldDTO> userFieldDTOList = new ArrayList<UserFieldDTO>();
-
-        for (UserFieldDTO userFieldDTO : userFieldDTOs) {
-            if (StringUtils.isNotBlank(request.getParameter(userFieldDTO.getClaimUri()))) {
-                userFieldDTO.setFieldValue(request.getParameter(userFieldDTO.getClaimUri()));
-                userFieldDTOList.add(userFieldDTO);
-            }
-        }
-
-        char[] passwordCharArray = password.toCharArray();
-        registrationClient.addUser(username, passwordCharArray, userFieldDTOList);
-        request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
+    }else{
+        request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
     }
+
 %>
+        <div class="alert alert-info">Registration Done.</div>
+    </div>
+
+
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container-fluid">
+            <p>WSO2 Identity Server | &copy;
+                <script>document.write(new Date().getFullYear());</script>
+                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> Inc</a>. All Rights Reserved.
+            </p>
+        </div>
+    </footer>
+
+    <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+    <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+
+
+    </body>
+    </html>
+</fmt:bundle>
 
