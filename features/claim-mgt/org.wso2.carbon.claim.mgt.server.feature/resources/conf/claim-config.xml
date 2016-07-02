@@ -170,12 +170,18 @@
 				<AttributeID>cn</AttributeID>
 				<Description>Full Name</Description>
 		    </Claim>
-            <Claim>
-                <ClaimURI>http://wso2.org/claims/username</ClaimURI>
-                <DisplayName>Username</DisplayName>
-                <AttributeID>uid</AttributeID>
-                <Description>Username</Description>
-            </Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/username</ClaimURI>
+				<DisplayName>Username</DisplayName>
+				<AttributeID>uid</AttributeID>
+				<Description>Username</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/failedPasswordRecoveryAttempts</ClaimURI>
+				<DisplayName>Failed Password Recovery Attempts</DisplayName>
+				<AttributeID>postalCode</AttributeID>
+				<Description>Number of consecutive failed attempts done for password recovery</Description>
+			</Claim>
 
 
 		    <Claim>
