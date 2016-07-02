@@ -19,41 +19,34 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationAdminServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationClient" %>
+<%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
 
-    UserRegistrationAdminServiceClient registrationClient = new UserRegistrationAdminServiceClient();
 
-    boolean isFirstNameInClaims = false;
-    boolean isFirstNameRequired = false;
-    boolean isLastNameInClaims = false;
-    boolean isLastNameRequired = false;
-    boolean isEmailInClaims = false;
-    boolean isEmailRequired = false;
+    boolean isFirstNameInClaims = true;
+    boolean isFirstNameRequired = true;
+    boolean isLastNameInClaims = true;
+    boolean isLastNameRequired = true;
+    boolean isEmailInClaims = true;
+    boolean isEmailRequired = true;
 
-    UserFieldDTO[] userFields =
-            registrationClient.readUserFieldsForUserRegistration(IdentityManagementEndpointConstants.WSO2_DIALECT);
-    for (UserFieldDTO userFieldDTO : userFields) {
-        if (StringUtils.equals(userFieldDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
-            isFirstNameInClaims = true;
-            isFirstNameRequired = userFieldDTO.getRequired();
-        }
-        if (StringUtils.equals(userFieldDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)) {
-            isLastNameInClaims = true;
-            isLastNameRequired = userFieldDTO.getRequired();
-        }
-        if (StringUtils.equals(userFieldDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
-            isEmailInClaims = true;
-            isEmailRequired = userFieldDTO.getRequired();
-        }
+    Claim[] claims = new Claim[0];
+
+    UserRegistrationClient userRegistrationClient = new UserRegistrationClient();
+    Response responseForAllClaims = userRegistrationClient.getAllClaims(null);
+    if(responseForAllClaims != null && Response.Status.OK.getStatusCode() == responseForAllClaims.getStatus()) {
+        String claimsContent = responseForAllClaims.readEntity(String.class);
+        Gson gson = new Gson();
+        claims = gson.fromJson(claimsContent, Claim[].class);
+
     }
+
 %>
     <%
         boolean reCpatchaEnabled = false;
@@ -169,35 +162,28 @@
                             <% if (isEmailInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <label class="control-label">Email</label>
-                                <input type="email" name="Email" data-claim-uri="http://wso2.org/claims/emailaddress"
+                                <input type="email" name="http://wso2.org/claims/emailaddress" data-claim-uri="http://wso2.org/claims/emailaddress"
                                        class="form-control" data-validate="email"
                                     <% if (isEmailRequired) {%> required <%}%>>
                             </div>
                             <%}%>
 
-                            <% for (UserFieldDTO userFieldDTO : userFields) {
-                                if (userFieldDTO.getSupportedByDefault() &&
-                                    !StringUtils.equals(userFieldDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
-                                    !StringUtils.equals(userFieldDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
-                                    !StringUtils.equals(userFieldDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
-                                    !StringUtils.equals(userFieldDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
-                                    !StringUtils.equals(userFieldDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
-                                    !StringUtils.equals(userFieldDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
+                            <% for (Claim claim : claims) {
+                                if (!StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
+                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
+                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
+                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
+                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
+                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <label <% if (userFieldDTO.getRequired()) {%> class="control-label" <%}%>><%= Encode
-                                        .forHtmlContent(userFieldDTO.getFieldName()) %>
+                                <label <% if (claim.isRequired()) {%> class="control-label" <%}%>><%= Encode
+                                        .forHtmlContent(claim.getDisplayTag()) %>
                                 </label>
-                                <input name="<%= Encode.forHtmlAttribute(userFieldDTO.getFieldName()) %>"
-                                       data-claim-uri="<%= Encode.forHtmlAttribute(userFieldDTO.getClaimUri()) %>"
+                                <input name="<%= Encode.forHtmlAttribute(claim.getClaimUri()) %>"
+                                       data-claim-uri="<%= Encode.forHtmlAttribute(claim.getClaimUri()) %>"
                                        class="form-control"
-                                    <% if (userFieldDTO.getRequired()) {%> required <%}%>>
+                                    <% if (claim.isRequired()) {%> required <%}%>>
                             </div>
                             <%
                                     }
