@@ -111,11 +111,11 @@
             (request.getParameter("sessionDataKey"))%>'/>
     </div>
     <%
-        if (reCpatchaEnabled) {
+        if (reCaptchaEnabled) {
     %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <div class="g-recaptcha"
-             data-sitekey="<%=Encode.forHtmlContent(request.getParameter("reCapatchaKey"))%>">
+             data-sitekey="<%=Encode.forHtmlContent(request.getParameter("reCaptchaKey"))%>">
         </div>
     </div>
     <%

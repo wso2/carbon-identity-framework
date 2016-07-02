@@ -76,9 +76,9 @@
 
     %>
     <%
-        boolean reCpatchaEnabled = false;
+        boolean reCaptchaEnabled = false;
         if (request.getParameter("reCaptcha") != null && "TRUE".equalsIgnoreCase(request.getParameter("reCaptcha"))) {
-            reCpatchaEnabled = true;
+            reCaptchaEnabled = true;
         }
     %>
     <html>
@@ -98,7 +98,7 @@
         <![endif]-->
 
         <%
-            if (reCpatchaEnabled) {
+            if (reCaptchaEnabled) {
         %>
         <script src='<%=
         (request.getParameter("reCaptchaAPI"))%>'></script>
@@ -312,7 +312,7 @@
             });
 
             <%
-            if(reCpatchaEnabled) {
+            if(reCaptchaEnabled) {
             %>
             var error_msg = $("#error-msg");
             $("#loginForm").submit(function (e) {
