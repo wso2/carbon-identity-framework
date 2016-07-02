@@ -20,7 +20,13 @@ package org.wso2.carbon.identity.mgt.endpoint;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.cxf.Bus;
+import org.apache.cxf.bus.spring.SpringBusFactory;
+import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class defines utility methods used within this web application.
@@ -146,5 +152,31 @@ public class IdentityManagementEndpointUtil {
         }
 
         return ArrayUtils.EMPTY_STRING_ARRAY;
+    }
+
+    public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation, Map<String, String> headers) {
+        JAXRSClientFactoryBean bean = getBean(baseAddress, cls, configLocation, headers);
+        bean.setProviders(providers);
+        return bean.create(cls, new Object[0]);
+    }
+
+    private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation, Map<String, String> headers) {
+        JAXRSClientFactoryBean bean = getBean(baseAddress, configLocation, headers);
+        bean.setServiceClass(cls);
+        return bean;
+    }
+
+    static JAXRSClientFactoryBean getBean(String baseAddress, String configLocation, Map<String, String> headers) {
+        JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
+        if (configLocation != null) {
+            SpringBusFactory bf = new SpringBusFactory();
+            Bus bus = bf.createBus(configLocation);
+            bean.setBus(bus);
+        }
+        bean.setAddress(baseAddress);
+        if (headers != null && !headers.isEmpty()) {
+            bean.setHeaders(headers);
+        }
+        return bean;
     }
 }

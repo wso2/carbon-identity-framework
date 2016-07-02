@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ConfirmSelfRegistrationRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.SelfRegistrationRequest;
@@ -11,6 +12,7 @@ import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.Pass
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.SelfUserRegistrationResource;
 
 import javax.ws.rs.core.Response;
+import java.util.Map;
 
 public class UserRegistrationClient {
     StringBuilder builder = new StringBuilder();
@@ -25,10 +27,10 @@ public class UserRegistrationClient {
         Response responseObj = notificationUsernameRecoveryResource.getAllLocalSupportedClaims();
         return responseObj;
     }
-    public Response registerUser(SelfRegistrationRequest registrationRequest) {
-        SelfUserRegistrationResource selfUserRegistrationResource = JAXRSClientFactory
+    public Response registerUser(SelfRegistrationRequest registrationRequest, Map<String, String> headers) {
+        SelfUserRegistrationResource selfUserRegistrationResource = IdentityManagementEndpointUtil
                 .create(url, SelfUserRegistrationResource.class,
-                        IdentityManagementServiceUtil.getInstance().getJSONProvider());
+                        IdentityManagementServiceUtil.getInstance().getJSONProvider(), null, headers);
         Response responseObj = selfUserRegistrationResource.registerUser(registrationRequest);
         return responseObj;
     }

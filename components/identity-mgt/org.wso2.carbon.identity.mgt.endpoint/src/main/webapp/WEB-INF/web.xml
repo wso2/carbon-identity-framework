@@ -62,6 +62,12 @@
     </servlet>
 
     <servlet>
+        <servlet-name>viewsecurityquestions.do</servlet-name>
+        <jsp-file>/challenge-question-view.jsp</jsp-file>
+    </servlet>
+
+
+    <servlet>
         <servlet-name>confirmrecovery.do</servlet-name>
         <jsp-file>/password-recovery-confirm.jsp</jsp-file>
     </servlet>
@@ -120,6 +126,12 @@
         <servlet-name>processsecurityquestions.do</servlet-name>
         <url-pattern>/processsecurityquestions.do</url-pattern>
     </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>viewsecurityquestions.do</servlet-name>
+        <url-pattern>/viewsecurityquestions.do</url-pattern>
+    </servlet-mapping>
+
 
     <servlet-mapping>
         <servlet-name>confirmrecovery.do</servlet-name>
