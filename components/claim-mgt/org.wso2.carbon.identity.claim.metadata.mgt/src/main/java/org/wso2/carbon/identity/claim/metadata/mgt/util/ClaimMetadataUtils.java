@@ -208,16 +208,30 @@ public class ClaimMetadataUtils {
         }
 
         if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
-            claim.setSupportedByDefault(Boolean.parseBoolean(claimProperties.get(ClaimConstants
-                    .SUPPORTED_BY_DEFAULT_PROPERTY)));
+            if ("false".equalsIgnoreCase(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
+                claim.setSupportedByDefault(Boolean.FALSE);
+
+            } else {
+                claim.setSupportedByDefault(Boolean.TRUE);
+            }
         }
 
         if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
-            claim.setRequired(Boolean.parseBoolean(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY)));
+            if ("false".equalsIgnoreCase(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
+                claim.setSupportedByDefault(Boolean.FALSE);
+
+            } else {
+                claim.setSupportedByDefault(Boolean.TRUE);
+            }
         }
 
         if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
-            claim.setReadOnly(Boolean.parseBoolean(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY)));
+            if ("false".equalsIgnoreCase(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
+                claim.setSupportedByDefault(Boolean.FALSE);
+
+            } else {
+                claim.setSupportedByDefault(Boolean.TRUE);
+            }
         }
 
         claimMapping.setClaim(claim);
