@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.AuthnDataPublishHandlerManager;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -276,7 +277,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
-                publishSessionUpdate(commonAuthCookie, request, context, sessionContext, sequenceConfig.getAuthenticatedUser());
+                FrameworkUtils.publishSessionEvent(commonAuthCookie, request, context, sessionContext, sequenceConfig
+                        .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
 
             } else {
                 sessionContext = new SessionContext();
@@ -290,7 +292,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
-                publishSessionCreation(sessionKey, request, context, sessionContext, sequenceConfig.getAuthenticatedUser());
+                FrameworkUtils.publishSessionEvent(sessionKey, request, context, sessionContext, sequenceConfig
+                        .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
 
             if (authenticatedUserTenantDomain == null) {
@@ -341,42 +344,18 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
-        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+
+        AuthenticationDataPublisher authenticationDataPublisherHandler = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherHandlerManager();
+        if (authenticationDataPublisherHandler != null) {
             Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            AuthnDataPublishHandlerManager.getInstance().publishAuthenticationSuccess(request, context,
+            authenticationDataPublisherHandler.publishAuthenticationSuccess(request, context,
                     unmodifiableParamMap);
+
         }
     }
-
-
-    private void publishSessionCreation(String sessionId, HttpServletRequest request, AuthenticationContext context,
-                                        SessionContext sessionContext, AuthenticatedUser user) {
-
-        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
-            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            AuthnDataPublishHandlerManager.getInstance().publishSessionCreation(request, context, sessionContext,
-                    unmodifiableParamMap);
-        }
-    }
-
-    private void publishSessionUpdate(String sessionId, HttpServletRequest request, AuthenticationContext context,
-                                      SessionContext sessionContext, AuthenticatedUser user) {
-
-        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
-            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            AuthnDataPublishHandlerManager.getInstance().publishSessionUpdate(request, context, sessionContext,
-                    unmodifiableParamMap);
-        }
-    }
-
 
 
     /**

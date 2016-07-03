@@ -26,6 +26,7 @@ import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
@@ -93,6 +94,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1181,6 +1183,28 @@ public class FrameworkUtils {
         }
 
         return queryAppendedUrl;
+    }
+
+    public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
+            context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+        AuthenticationDataPublisher authenticationDataPublisherHandler = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherHandlerManager();
+        if (authenticationDataPublisherHandler != null) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            if (FrameworkConstants.AnalyticsAttributes.SESSION_CREATE.equalsIgnoreCase(status)) {
+                authenticationDataPublisherHandler.publishSessionCreation(request, context, sessionContext,
+                        unmodifiableParamMap);
+            } else if (FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE.equalsIgnoreCase(status)) {
+                authenticationDataPublisherHandler.publishSessionUpdate(request, context, sessionContext,
+                        unmodifiableParamMap);
+            } else if (FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE.equalsIgnoreCase(status)) {
+                authenticationDataPublisherHandler.publishSessionTermination(request, context, sessionContext,
+                        unmodifiableParamMap);
+            }
+        }
     }
 }
 
