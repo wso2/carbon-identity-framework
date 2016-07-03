@@ -1048,7 +1048,7 @@
 				<Required />
 				<SupportedByDefault />
                 <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:scim:schemas:core:1.0:phoneNumbers.mobile</ClaimURI>
