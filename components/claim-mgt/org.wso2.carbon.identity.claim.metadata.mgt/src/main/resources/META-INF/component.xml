@@ -18,60 +18,24 @@
 
     <ManagementPermissions>
         <ManagementPermission>
-            <DisplayName>Workflow Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Workflows</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/definition</ResourceId>
+            <DisplayName>Claim Metadata Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/claim/metadata</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/definition/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claim/metadata/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/definition/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claim/metadata/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/definition/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claim/metadata/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/definition/delete</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Associations</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/association</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/association/create</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/association/view</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/association/update</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/association/delete</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Monitor</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/monitor</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/monitor/view</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/workflow/monitor/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claim/metadata/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 

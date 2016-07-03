@@ -28,7 +28,7 @@
         </parameter>
     </service>
     <!-- Change permissions -->
-    <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claim/meta</parameter>
+    <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claim/metadata</parameter>
     <parameter name="adminService" locked="true">true</parameter>
     <parameter name="hiddenService" locked="true">true</parameter>
 </serviceGroup>
