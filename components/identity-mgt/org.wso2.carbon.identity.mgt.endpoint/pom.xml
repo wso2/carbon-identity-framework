@@ -37,6 +37,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-bundle</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.securevault</groupId>
@@ -123,7 +124,7 @@
                     <webResources>
                         <resource>
                             <!-- this is relative to the pom.xml directory -->
-                            <directory>src/main/webapp</directory>
+                            <directory>src/main/resources/</directory>
                         </resource>
                     </webResources>
                     <warName>accountrecoveryendpoint</warName>
