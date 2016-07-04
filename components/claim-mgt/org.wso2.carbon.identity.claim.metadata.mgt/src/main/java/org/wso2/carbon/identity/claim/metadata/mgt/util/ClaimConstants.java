@@ -25,6 +25,7 @@ public class ClaimConstants {
 
     public static final String LOCAL_CLAIM_DIALECT_URI = UserCoreConstants.DEFAULT_CARBON_DIALECT;
 
+    public static final String DIALECT_PROPERTY = "Dialect";
     public static final String DISPLAY_NAME_PROPERTY = "DisplayName";
     public static final String ATTRIBUTE_ID_PROPERTY = "AttributeID";
     public static final String DESCRIPTION_PROPERTY = "Description";

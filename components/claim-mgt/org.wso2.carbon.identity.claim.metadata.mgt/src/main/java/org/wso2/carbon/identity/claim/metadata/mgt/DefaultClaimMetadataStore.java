@@ -117,6 +117,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                     mappedAttributes.add(new AttributeMapping(primaryDomainName, claimMapping.getMappedAttribute()));
 
                     Map<String, String> claimProperties = claimConfig.getPropertyHolder().get(claimURI);
+                    claimProperties.remove(ClaimConstants.DIALECT_PROPERTY);
                     claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
                     claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
 
