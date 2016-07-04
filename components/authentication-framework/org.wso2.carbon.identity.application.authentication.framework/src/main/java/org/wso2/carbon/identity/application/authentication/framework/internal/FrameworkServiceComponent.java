@@ -24,9 +24,9 @@ import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -54,7 +55,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import javax.servlet.Servlet;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -92,7 +92,7 @@ import java.util.List;
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
  * unbind="removeHttpIdentityResponseFactory"
  * @scr.reference name="identity.authentication.data.publisher"
- * interface="org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher"
+ * interface="org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher"
  * cardinality="0..n" policy="dynamic" bind="setAuthenticationDataPublisher"
  * unbind="unsetAuthenticationDataPublisher"
  */
@@ -361,11 +361,17 @@ public class FrameworkServiceComponent {
          is started */
     }
 
-    protected void setAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
-        FrameworkServiceDataHolder.getInstance().getDataPublishers().add(publisher);
+    protected void setAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
+        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_HANDLER.equalsIgnoreCase(publisher.getName())
+                && publisher.isEnabled(null)) {
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherHandlerManager(publisher);
+        }
     }
 
-    protected void unsetAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
-        FrameworkServiceDataHolder.getInstance().getDataPublishers().remove(publisher);
+    protected void unsetAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
+        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_HANDLER.equalsIgnoreCase(publisher.getName())
+                && publisher.isEnabled(null)) {
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherHandlerManager(null);
+        }
     }
 }
