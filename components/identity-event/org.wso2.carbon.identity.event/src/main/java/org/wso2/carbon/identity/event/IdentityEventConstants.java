@@ -61,6 +61,10 @@ public class IdentityEventConstants {
         public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
         public static final String POST_DELETE_USER= "POST_DELETE_USER";
         public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
+        public static final String PRE_GET_USER_CLAIM= "PRE_GET_USER_CLAIM";
+        public static final String PRE_GET_USER_CLAIMS= "PRE_GET_USER_CLAIMS";
+        public static final String POST_GET_USER_CLAIMS= "POST_GET_USER_CLAIMS";
+        public static final String POST_GET_USER_CLAIM= "POST_GET_USER_CLAIM";
         public static final String POST_SET_USER_CLAIM= "POST_SET_USER_CLAIM";
         public static final String PRE_DELETE_USER_CLAIMS= "PRE_DELETE_USER_CLAIMS";
         public static final String POST_DELETE_USER_CLAIMS= "POST_DELETE_USER_CLAIMS";
