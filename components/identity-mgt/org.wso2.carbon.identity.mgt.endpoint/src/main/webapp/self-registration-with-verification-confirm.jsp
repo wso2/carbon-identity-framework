@@ -55,8 +55,6 @@
         ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
         errorMsg = errorResponse.getMessage() ;
     }
-
-
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>

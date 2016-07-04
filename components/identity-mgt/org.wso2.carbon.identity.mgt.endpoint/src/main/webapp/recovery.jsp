@@ -47,16 +47,6 @@
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmationKey");
 
-    UserRegistrationClient userRegistrationClient = new UserRegistrationClient();
-    ConfirmSelfRegistrationRequest confirmSelfRegistrationRequest = new ConfirmSelfRegistrationRequest();
-    confirmSelfRegistrationRequest.setCode(confirmationKey);
-    User user = new User();
-    user.setUserName(username);
-    confirmSelfRegistrationRequest.setUser(user);
-
-    Response response1 = userRegistrationClient.confirmUser(confirmSelfRegistrationRequest);
-
-
 
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
@@ -72,24 +62,7 @@
 
     VerificationBean verificationBean = null;
 
-    if (isUserRegistrationEmailConfirmation) {
-        // Self Registration Account Confirmation Scenario
-        verificationBean = userInformationRecoveryClient.confirmUserSelfRegistration(username, confirmationKey,
-                captchaInfoBean, MultitenantUtils.getTenantDomain(username));
-
-        if (verificationBean != null && verificationBean.getVerified()) {
-            request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
-        } else {
-            request.setAttribute("username", username);
-            request.setAttribute("confirmationKey", confirmationKey);
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg",
-                    IdentityManagementEndpointUtil.getPrintableError("Invalid information provided.",
-                            "Either the user not found or captcha answer is incorrect.",
-                            verificationBean));
-            request.getRequestDispatcher("confirmregistration.do").forward(request, response);
-        }
-    } else if (isUsernameRecovery) {
+   if (isUsernameRecovery) {
         // Username Recovery Scenario
         UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
                 IdentityManagementEndpointConstants.WSO2_DIALECT);
