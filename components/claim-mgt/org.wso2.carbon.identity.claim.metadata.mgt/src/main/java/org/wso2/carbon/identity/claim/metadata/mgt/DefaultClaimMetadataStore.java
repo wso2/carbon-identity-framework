@@ -121,6 +121,10 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                     claimProperties.remove(ClaimConstants.CLAIM_URI_PROPERTY);
                     claimProperties.remove(ClaimConstants.ATTRIBUTE_ID_PROPERTY);
 
+                    if (!claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
+                        claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
+                    }
+
                     LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
 
                     try {
