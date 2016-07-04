@@ -122,6 +122,8 @@
         dispalyOrderProperty.setPropertyName(ClaimConstants.DISPLAY_ORDER_PROPERTY);
         dispalyOrderProperty.setPropertyValue(displayOrder);
         claimProperties.add(dispalyOrderProperty);
+    } else {
+        displayOrder = "0";
     }
 
     if (StringUtils.isNotBlank(supported)) {

@@ -260,6 +260,8 @@
                     if (claimProperties.containsKey(ClaimConstants.DISPLAY_ORDER_PROPERTY)) {
                         displayOrder = claimProperties.getProperty(ClaimConstants.DISPLAY_ORDER_PROPERTY);
                         claimProperties.remove(ClaimConstants.DISPLAY_ORDER_PROPERTY);
+                    } else {
+                        displayOrder = "0";
                     }
 
                     String supportedByDefault = null;
