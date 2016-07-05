@@ -31,13 +31,13 @@ function getPattern(pattern) {
     var regex;
     switch (pattern) {
         case "digits-only":
-            regex = /^[0-9]+/;
+            regex = /^[0-9]+$/;
             break;
         case "alphabetic-only":
-            regex = /^[a-zA-Z]+/;
+            regex = /^[a-zA-Z]+$/;
             break;
         case "alphanumerics-only":
-            regex = /^[a-zA-Z0-9]+/;
+            regex = /^[a-zA-Z0-9]+$/;
             break;
         case "url":
             regex = /^(([^:/?#]+):)?(([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
@@ -68,6 +68,9 @@ function getPattern(pattern) {
             break;
         case "ftp-url":
             regex = /^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
+            break;
+        case "registry-invalid-chars-exists":
+            regex = /[~!@#;%^*()+={}|<>\\"'/,]+/;
             break;
         default:
             regex = new RegExp(pattern);
