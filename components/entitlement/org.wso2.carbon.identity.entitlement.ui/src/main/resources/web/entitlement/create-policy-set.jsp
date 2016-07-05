@@ -288,7 +288,7 @@
     function submitForm() {
         preSubmit();
         if (doValidationPolicyNameOnly()) {
-            document.dataForm.action = "update-policy-set.jsp?nextPage=finish-policy-set";
+            document.dataForm.action = "update-policy-set.jsp?action=complete";
             document.dataForm.submit();
         }
     }
@@ -330,7 +330,7 @@
 
     function deletePolicyRef(policyId) {
         preSubmit();
-        document.dataForm.action = "update-policy-set.jsp?delete=true&policyRefId=" + policyId;
+        document.dataForm.action = "update-policy-set.jsp?action=delete&policyRefId=" + policyId;
         document.dataForm.submit();
     }
 
@@ -359,7 +359,7 @@
     function selectAttributesForTarget(index) {
         preSubmit();
         if (doValidationPolicyNameOnly()) {
-            document.dataForm.action = "update-policy-set.jsp?nextPage=select-attribute&targetRowIndex="
+            document.dataForm.action = "update-policy-set.jsp?action=selectAttribute&targetRowIndex="
                     + index;
             document.dataForm.submit();
         }
@@ -395,7 +395,7 @@
     function searchServices() {
         preSubmit();
         if (doValidationPolicyNameOnly()) {
-            document.dataForm.action = "update-policy-set.jsp?nextPage=create-policy-set";
+            document.dataForm.action = "update-policy-set.jsp?action=search";
             document.dataForm.submit();
         }
     }
@@ -404,7 +404,7 @@
     function doPaginate(page, pageNumberParameterName, pageNumber){
         preSubmit();
         if (doValidationPolicyNameOnly()) {
-            document.dataForm.action =  "update-policy-set.jsp?nextPage=create-policy-set&" +
+            document.dataForm.action =  "update-policy-set.jsp?action=paginate&" +
                     pageNumberParameterName + "=" + pageNumber + "&";
             document.dataForm.submit();
         }
@@ -428,7 +428,7 @@
 
         if (doValidationPolicyNameOnly()) {
             document.dataForm.action = "update-policy-set.jsp?policyRefId=" + policyId +
-                    "&policyType=" + policyType + "&nextPage=create-policy-set";
+                    "&policyType=" + policyType + "&action=add";
             document.dataForm.submit();
         }
     }

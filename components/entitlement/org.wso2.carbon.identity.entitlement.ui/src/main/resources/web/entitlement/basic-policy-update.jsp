@@ -28,15 +28,11 @@
     BasicTargetDTO basicTargetDTO = new BasicTargetDTO();
     entitlementPolicyBean.setRuleElementOrder(null);
 
-    String policyName = request.getParameter("policyName");
-    String algorithmName = request.getParameter("algorithmName");
-    String policyDescription = request.getParameter("policyDescription");
+    String action = request.getParameter("action");
 
     String category = request.getParameter("category");
     String ruleElementOrder = request.getParameter("ruleElementOrder");
     String updateRule = request.getParameter("updateRule");
-    String nextPage = request.getParameter("nextPage");
-    String returnPage = request.getParameter("returnPage");
     // rules
     String ruleId = request.getParameter("ruleId");
     String ruleEffect = request.getParameter("ruleEffect");
@@ -272,8 +268,6 @@
     }
 
     entitlementPolicyBean.setBasicTargetDTO(basicTargetDTO);
-    
-    String forwardTo;
 
     if(ruleElementOrder != null && ruleElementOrder.trim().length() > 0){
         if(basicRuleDTO.isCompletedRule() && !"true".equals(updateRule)){
@@ -284,15 +278,26 @@
         }
     }
 
-    if(completedRule != null && completedRule.equals("true")){
-        forwardTo = nextPage + ".jsp?";
-    } else {
-        forwardTo = nextPage + ".jsp?ruleId=" + Encode.forUriComponent(ruleId);
-        if(category != null && category.trim().length() > 0){
+    String forwardTo = "basic-policy-editor.jsp";
+    if ("completePolicy".equals(action)) {
+        forwardTo = "basic-policy-finish.jsp";
+    } else if ("updateRule".equals(action) || "addRule".equals(action) || "cancelRule".equals(action) ||
+               "editRule".equals(action)) {
+        forwardTo = "basic-policy-editor.jsp";
+    } else if ("deleteRule".equals(action)) {
+        forwardTo = "delete-rule-entry.jsp";
+    } else if ("selectAttributes".equals(action)) {
+        forwardTo = "select-attribute-values.jsp";
+    }
+
+    if (completedRule == null || !Boolean.parseBoolean(completedRule)) {
+        forwardTo = forwardTo + "?ruleId=" + Encode.forUriComponent(ruleId);
+        if (category != null && category.trim().length() > 0) {
             forwardTo = forwardTo + "&category=" + Encode.forUriComponent(category);
         }
-        if(returnPage != null && returnPage.trim().length() > 0){
-            forwardTo = forwardTo + "&returnPage=" + Encode.forUriComponent(returnPage);
+
+        if ("deleteRule".equals(action)) {
+            forwardTo = forwardTo + "&initiatedFrom=basic-policy-editor";
         }
     }
 
