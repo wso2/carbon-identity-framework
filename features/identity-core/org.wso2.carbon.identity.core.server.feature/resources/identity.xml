@@ -309,6 +309,7 @@
         <UseAuthenticatedUserDomainCrypto>false</UseAuthenticatedUserDomainCrypto>
         <SAMLDefaultSigningAlgorithmURI>http://www.w3.org/2000/09/xmldsig#rsa-sha1</SAMLDefaultSigningAlgorithmURI>
         <SAMLDefaultDigestAlgorithmURI>http://www.w3.org/2000/09/xmldsig#sha1</SAMLDefaultDigestAlgorithmURI>
+        <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
     </SSOService>
 
     <SecurityTokenService>
