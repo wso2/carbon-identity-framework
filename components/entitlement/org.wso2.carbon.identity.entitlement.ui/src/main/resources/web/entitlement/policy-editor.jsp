@@ -450,7 +450,7 @@ function submitForm() {
     if (doValidationPolicyNameOnly()) {
         preSubmit();
         document.getElementsByName("ruleId")[0].value = "";
-        document.dataForm.action = "update-rule.jsp?nextPage=finish&ruleId=";
+        document.dataForm.action = "update-rule.jsp?action=completePolicy&ruleId=";
         document.dataForm.submit();
     }
 }
@@ -508,7 +508,7 @@ function doValidationPolicyNameOnly() {
 function doUpdate() {
     preSubmit();
     if (doValidation()) {
-        document.dataForm.action = "update-rule.jsp?nextPage=policy-editor&completedRule=true&updateRule=true";
+        document.dataForm.action = "update-rule.jsp?action=updateRule&completedRule=true&updateRule=true";
         document.dataForm.submit();
     }
 }
@@ -516,7 +516,7 @@ function doUpdate() {
 function doCancelRule() {
     preSubmit();
     document.getElementsByName("ruleId")[0].value = "";
-    document.dataForm.action =  "update-rule.jsp?nextPage=policy-editor&ruleId=";
+    document.dataForm.action =  "update-rule.jsp?action=cancelRule&ruleId=";
     document.dataForm.submit();
 
   //  location.href = "policy-editor.jsp";
@@ -524,20 +524,20 @@ function doCancelRule() {
 
 function deleteRule(ruleId) {
     preSubmit();
-    document.dataForm.action = "update-rule.jsp?nextPage=delete-rule-entry&ruleId=" + ruleId;
+    document.dataForm.action = "update-rule.jsp?action=deleteRule&ruleId=" + ruleId;
     document.dataForm.submit();
 }
 
 function editRule(ruleId) {
     preSubmit();
-    document.dataForm.action = "update-rule.jsp?nextPage=policy-editor&editRule=true&ruleId=" + ruleId;
+    document.dataForm.action = "update-rule.jsp?action=editRule&editRule=true&ruleId=" + ruleId;
     document.dataForm.submit();
 }
 
 function doAdd() {
     preSubmit();
     if (doValidation()) {
-        document.dataForm.action = "update-rule.jsp?nextPage=policy-editor&completedRule=true";
+        document.dataForm.action = "update-rule.jsp?action=addRule&completedRule=true";
         document.dataForm.submit();
     }
 }
@@ -545,7 +545,7 @@ function doAdd() {
 function selectAttributesForRule(index) {
     preSubmit();
     if (doValidationPolicyNameOnly()) {
-        document.dataForm.action = "update-rule.jsp?nextPage=select-attribute&updateRule=true&ruleRowIndex="
+        document.dataForm.action = "update-rule.jsp?action=selectAttribute&updateRule=true&ruleRowIndex="
                 + index ;
         document.dataForm.submit();
     }
@@ -554,7 +554,7 @@ function selectAttributesForRule(index) {
 function selectAttributesForRuleTarget(index) {
     preSubmit();
     if (doValidationPolicyNameOnly()) {
-        document.dataForm.action = "update-rule.jsp?nextPage=select-attribute&updateRule=true&targetRuleRowIndex="
+        document.dataForm.action = "update-rule.jsp?action=selectAttribute&updateRule=true&targetRuleRowIndex="
                 + index;
         document.dataForm.submit();
     }
@@ -600,7 +600,7 @@ function preSubmit(){
     function selectAttributesForTarget(index) {
         preSubmit();
         if (doValidationPolicyNameOnly()) {
-            document.dataForm.action = "update-rule.jsp?nextPage=select-attribute&ruleId=&targetRowIndex="
+            document.dataForm.action = "update-rule.jsp?action=selectAttribute&ruleId=&targetRowIndex="
                     + index;
             document.dataForm.submit();
         }

@@ -37,7 +37,6 @@
 	ConfigurationContext configContext = (ConfigurationContext) config.getServletContext().
                                         getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
 	String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-	String forwardTo = "index";
     String policy = "";
 	String policyId = null;
     String BUNDLE = "org.wso2.carbon.identity.entitlement.ui.i18n.Resources";
@@ -83,7 +82,7 @@
         <textarea id="txtPolicy" rows="50" cols="50"><%=Encode.forHtmlContent(policy)%>
         </textarea>
         <input type="hidden" name="callbackURL"
-               value="../entitlement/update-policy-submit.jsp?forwardTo=<%=Encode.forUriComponent(forwardTo)%>&policyid=<%=Encode.forUriComponent(policyId)%>"/>
+               value="../entitlement/update-policy-submit.jsp?policyid=<%=Encode.forUriComponent(policyId)%>"/>
        </form>
     </div> 
     

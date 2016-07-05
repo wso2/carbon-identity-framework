@@ -40,8 +40,7 @@
     TargetDTO targetDTO = new TargetDTO();
     entitlementPolicyBean.setPolicyReferenceOrder(null);
 
-    String nextPage = request.getParameter("nextPage");
-    String delete = request.getParameter("delete");
+    String action = request.getParameter("action");
     String policyRefId = request.getParameter("policyRefId");
     String policySearchString = request.getParameter("policySearchString");
     if(policyRefId != null && policyRefId.trim().length() > 0){
@@ -187,30 +186,44 @@
     }
     entitlementPolicyBean.setObligationDTOs(obligationDTOs);
 
-    String forwardTo = nextPage + ".jsp";
     if(policyReferenceOrder != null && policyReferenceOrder.trim().length() > 0){
-        if(policyRefId != null && policyRefId.trim().length() > 0 && !"true".equals(delete)){
+        if (policyRefId != null && policyRefId.trim().length() > 0 && !"delete".equals(action)) {
             entitlementPolicyBean.setPolicyReferenceOrder(policyReferenceOrder + "," + policyRefId);
         } else {
             entitlementPolicyBean.setPolicyReferenceOrder(policyReferenceOrder);
         }
     }
 
-    if("true".equals(delete)){
+    String forwardTo = "create-policy-set.jsp";
+    if ("complete".equals(action)) {
+        forwardTo = "finish-policy-set.jsp";
+    } else if ("delete".equals(action)) {
         forwardTo = "delete-policy-entry.jsp";
         if(policyRefId != null && policyRefId.trim().length() > 0){
             forwardTo = forwardTo + "?policyRefId=" + Encode.forUriComponent(policyRefId);
         }
-    } else if(categoryType != null && categoryType.trim().length() > 0){
-        forwardTo = forwardTo + "?category=" + categoryType + "&returnPage=create-policy-set";
-        if(selectedAttributeDataType != null && selectedAttributeDataType.trim().length() > 0){
-            forwardTo = forwardTo + "&selectedAttributeDataType=" + Encode.forUriComponent(selectedAttributeDataType);
+    } else if ("selectAttribute".equals(action)) {
+        forwardTo = "select-attribute.jsp";
+    } else if ("search".equals(action) || "paginate".equals(action) || "add".equals(action)) {
+        forwardTo = "create-policy-set.jsp";
+    }
+
+    if (!"delete".equals(action)) {
+        if (categoryType != null && categoryType.trim().length() > 0) {
+            forwardTo = forwardTo + "?category=" + categoryType;
+            if (selectedAttributeDataType != null && selectedAttributeDataType.trim().length() > 0) {
+                forwardTo =
+                        forwardTo + "&selectedAttributeDataType=" + Encode.forUriComponent(selectedAttributeDataType);
+            }
+            if (selectedAttributeId != null && selectedAttributeId.trim().length() > 0) {
+                forwardTo = forwardTo + "&selectedAttributeId=" + Encode.forUriComponent(selectedAttributeId);
+            }
+            if ("selectAttribute".equals(action)) {
+                forwardTo = forwardTo + "&initiatedFrom=create-policy-set";
+            }
+        } else if (policySearchString != null && policySearchString.trim().length() > 0) {
+            forwardTo = forwardTo + "?policySearchString=" + Encode.forUriComponent(policySearchString);
         }
-        if(selectedAttributeId != null && selectedAttributeId.trim().length() > 0){
-            forwardTo = forwardTo + "&selectedAttributeId=" + Encode.forUriComponent(selectedAttributeId);
-        }
-    } else if(policySearchString != null && policySearchString.trim().length() > 0){
-        forwardTo = forwardTo + "?policySearchString=" + Encode.forUriComponent(policySearchString);
     }
 %>
 
