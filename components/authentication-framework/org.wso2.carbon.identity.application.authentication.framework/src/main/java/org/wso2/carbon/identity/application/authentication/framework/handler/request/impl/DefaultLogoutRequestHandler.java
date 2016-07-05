@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -150,8 +151,15 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         FrameworkConstants.AUDIT_MESSAGE,
                         sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
                         "Logout", idpName, auditData, FrameworkConstants.AUDIT_SUCCESS));
-                // Retrieve session information from cache in order to publish event
-                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
+
+            }
+        }
+
+        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherHandlerManager() != null &&
+                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherHandlerManager().isEnabled(context)) {
+            // Retrieve session information from cache in order to publish event
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
+            if (sessionContext != null && sequenceConfig != null) {
                 FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                         sessionContext, sequenceConfig.getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes
                                 .SESSION_TERMINATE);
