@@ -92,7 +92,6 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String ruleId = request.getParameter("ruleId");
-    String returnPage = request.getParameter("returnPage");
     selectedFinderModule = request.getParameter("finderModule");
     if(selectedFinderModule == null || selectedFinderModule.trim().length() < 1){
         selectedFinderModule = EntitlementPolicyConstants.DEFAULT_META_DATA_MODULE_NAME;
@@ -248,14 +247,14 @@
                 createInputs(paths[i].name);
             }
         }
-        document.attributeValueForm.action = "<%=Encode.forJavaScriptBlock(returnPage)%>?category="
+        document.attributeValueForm.action = "basic-policy-editor.jsp?category="
                 + '<%=Encode.forUriComponent(category)%>' +"&ruleId=" + '<%=Encode.forUriComponent(ruleId)%>' ;
         document.attributeValueForm.submit();
     }
 
     function doCancel(){
         preSubmit();
-        document.attributeValueForm.action = "<%=Encode.forJavaScriptBlock(returnPage)%>?ruleId=" + '<%=Encode.forUriComponent(ruleId)%>';
+        document.attributeValueForm.action = "basic-policy-editor.jsp?ruleId=" + '<%=Encode.forUriComponent(ruleId)%>';
         document.attributeValueForm.submit();
     }
 
@@ -278,7 +277,7 @@
 
     function preSubmit(){
 
-        jQuery('#attributeValueTable > tbody:last').append('<tr><td><input type="hidden" name="category" id="category" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(category))%>" /><input type="hidden" name="ruleId" id="ruleId" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(ruleId))%>" /><input type="hidden" name="returnPage" id="returnPage" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(returnPage))%>" /></td></tr>') ;
+        jQuery('#attributeValueTable > tbody:last').append('<tr><td><input type="hidden" name="category" id="category" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(category))%>" /><input type="hidden" name="ruleId" id="ruleId" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(ruleId))%>" /><td></tr>') ;
 
     }
 
