@@ -322,6 +322,8 @@ public class IdentityConstants {
         public static final String WSO2_CARBON_STS = "wso2carbon-sts";
         public static final String PSTS_IDENTITY_PROVIDER_URL = "PassiveSTS.IdentityProviderURL";
         public static final String STS_IDENTITY_PROVIDER_URL = "SecurityTokenService.IdentityProviderURL";
+        public static final String PASSIVE_STS_SLO_HOST_NAME_VERIFICATION_ENABLED =
+                "PassiveSTS.SLOHostNameVerificationEnabled";
     }
 
     /**
