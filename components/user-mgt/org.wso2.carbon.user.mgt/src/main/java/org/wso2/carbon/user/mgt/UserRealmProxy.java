@@ -177,10 +177,10 @@ public class UserRealmProxy {
             for (String user : users) {
                 flaggedNames[i] = new FlaggedName();
                 //check if display name present
-                int index = user.indexOf("|");
+                int index = user.indexOf(UserCoreConstants.NAME_COMBINER);
                 if (index > 0) { //if display name is appended
                     flaggedNames[i].setItemName(user.substring(0, index));
-                    flaggedNames[i].setItemDisplayName(user.substring(index + 1));
+                    flaggedNames[i].setItemDisplayName(user.substring(index + UserCoreConstants.NAME_COMBINER.length()));
                 } else {
                     //if only user name is present
                     flaggedNames[i].setItemName(user);
