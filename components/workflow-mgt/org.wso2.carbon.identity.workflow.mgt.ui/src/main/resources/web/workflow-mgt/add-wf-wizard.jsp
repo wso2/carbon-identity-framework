@@ -19,21 +19,19 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
-<%@ page import="java.util.HashMap" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowAdminServiceClient" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="java.util.UUID" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.util.WorkflowUIUtil" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowWizard" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityValidationUtil" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowWizard" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="java.util.UUID" %>
 
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
@@ -50,8 +48,9 @@
 
     String requestPath = "list-workflows";
     //'path' parameter to use to track parent wizard path if this wizard trigger by another wizard
-    if(request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH) != null &&
-       !request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH).isEmpty()){
+    if (StringUtils.isNotBlank(request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH)) && IdentityValidationUtil
+            .isValidOverBlackListPatterns(request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH),
+                                          IdentityValidationUtil.ValidatorPattern.URI_RESERVED_EXISTS.name())) {
         requestPath = request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH);
     }
 
