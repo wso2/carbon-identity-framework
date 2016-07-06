@@ -88,7 +88,6 @@
                     for (int j = 0; j < userFields.length; j++) {
                         if ((ACCOUNT_DISABLED_CLAIM_URI.equals(userFields[j].getClaimUri()))) {
                             String claimValue = userFields[j].getFieldValue();
-                            System.out.println(claimValue);
                             if (Boolean.parseBoolean(claimValue)) {
                                 accountDisabled = true;
                                 break;
