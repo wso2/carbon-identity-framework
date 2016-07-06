@@ -61,6 +61,7 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -808,5 +809,34 @@ public class IdentityUtil {
             }
         }
         return queryString.toString();
+    }
+
+    /**
+     * Get client IP address from the http request
+     *
+     * @param request http servlet request
+     * @return IP address of the initial client
+     */
+    public static String getClientIpAddress(HttpServletRequest request) {
+        for (String header : IdentityConstants.HEADERS_WITH_IP) {
+            String ip = request.getHeader(header);
+            if (ip != null && ip.length() != 0 && !IdentityConstants.UNKNOWN.equalsIgnoreCase(ip)) {
+                return getFirstIP(ip);
+            }
+        }
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * Get the first IP from a comma separated list of IPs
+     *
+     * @param commaSeparatedIPs String which contains comma+space separated IPs
+     * @return First IP
+     */
+    public static String getFirstIP(String commaSeparatedIPs) {
+        if (StringUtils.isNotEmpty(commaSeparatedIPs) && commaSeparatedIPs.contains(",")) {
+            return commaSeparatedIPs.split(",")[0];
+        }
+        return commaSeparatedIPs;
     }
 }
