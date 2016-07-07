@@ -362,16 +362,16 @@ public class FrameworkServiceComponent {
     }
 
     protected void setAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
-        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_HANDLER.equalsIgnoreCase(publisher.getName())
+        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_PROXY.equalsIgnoreCase(publisher.getName())
                 && publisher.isEnabled(null)) {
-            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherHandlerManager(publisher);
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(publisher);
         }
     }
 
     protected void unsetAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
-        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_HANDLER.equalsIgnoreCase(publisher.getName())
+        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_PROXY.equalsIgnoreCase(publisher.getName())
                 && publisher.isEnabled(null)) {
-            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherHandlerManager(null);
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
         }
     }
 }
