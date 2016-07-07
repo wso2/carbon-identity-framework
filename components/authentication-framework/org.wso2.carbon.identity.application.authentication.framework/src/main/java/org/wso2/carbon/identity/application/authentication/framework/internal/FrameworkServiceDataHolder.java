@@ -42,7 +42,7 @@ public class FrameworkServiceDataHolder {
     private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
-    private AuthenticationDataPublisher authnDataPublisherHandlerManager = null;
+    private AuthenticationDataPublisher authnDataPublisherProxy = null;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -109,12 +109,12 @@ public class FrameworkServiceDataHolder {
         return httpIdentityResponseFactories;
     }
 
-    public AuthenticationDataPublisher getAuthnDataPublisherHandlerManager() {
-        return authnDataPublisherHandlerManager;
+    public AuthenticationDataPublisher getAuthnDataPublisherProxy() {
+        return authnDataPublisherProxy;
     }
 
-    public void setAuthnDataPublisherHandlerManager(AuthenticationDataPublisher authnDataPublisherHandlerManager) {
-        this.authnDataPublisherHandlerManager = authnDataPublisherHandlerManager;
+    public void setAuthnDataPublisherProxy(AuthenticationDataPublisher authnDataPublisherProxy) {
+        this.authnDataPublisherProxy = authnDataPublisherProxy;
     }
 
 }

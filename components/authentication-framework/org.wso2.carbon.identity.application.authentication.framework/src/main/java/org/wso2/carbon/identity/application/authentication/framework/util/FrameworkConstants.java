@@ -199,7 +199,7 @@ public abstract class FrameworkConstants {
         public static final String IS_FEDERATED = "isFederated";
         public static final String HAS_FEDERATED_STEP = "hasFederatedStep";
         public static final String HAS_LOCAL_STEP = "hasLocalStep";
-        public static final String AUTHN_DATA_PUBLISHER_HANDLER = "AuthnDataPublishHandlerManager";
+        public static final String AUTHN_DATA_PUBLISHER_PROXY = "AuthnDataPublisherProxy";
         public static final String SESSION_CREATE = "sessionCreated";
         public static final String SESSION_UPDATE = "sessionUpdated";
         public static final String SESSION_TERMINATE = "sessionTerminated";

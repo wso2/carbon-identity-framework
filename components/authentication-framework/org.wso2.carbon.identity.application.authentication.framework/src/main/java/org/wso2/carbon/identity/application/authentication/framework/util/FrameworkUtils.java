@@ -1187,21 +1187,21 @@ public class FrameworkUtils {
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
             context, SessionContext sessionContext, AuthenticatedUser user, String status) {
-        AuthenticationDataPublisher authenticationDataPublisherHandler = FrameworkServiceDataHolder.getInstance()
-                .getAuthnDataPublisherHandlerManager();
-        if (authenticationDataPublisherHandler != null) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (FrameworkConstants.AnalyticsAttributes.SESSION_CREATE.equalsIgnoreCase(status)) {
-                authenticationDataPublisherHandler.publishSessionCreation(request, context, sessionContext,
+                authnDataPublisherProxy.publishSessionCreation(request, context, sessionContext,
                         unmodifiableParamMap);
             } else if (FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE.equalsIgnoreCase(status)) {
-                authenticationDataPublisherHandler.publishSessionUpdate(request, context, sessionContext,
+                authnDataPublisherProxy.publishSessionUpdate(request, context, sessionContext,
                         unmodifiableParamMap);
             } else if (FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE.equalsIgnoreCase(status)) {
-                authenticationDataPublisherHandler.publishSessionTermination(request, context, sessionContext,
+                authnDataPublisherProxy.publishSessionTermination(request, context, sessionContext,
                         unmodifiableParamMap);
             }
         }
