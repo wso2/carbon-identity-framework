@@ -54,11 +54,14 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
         }
         List<Subscription> subscriptionList = notificationMgtConfigBuilder.getModuleConfigurations(moduleName)
                 .getSubscriptions();
-        for (Subscription subscription : subscriptionList) {
-            if (subscription.getSubscriptionName().equals(eventName)) {
-                return true;
+        if (subscriptionList != null) {
+            for (Subscription subscription : subscriptionList) {
+                if (subscription.getSubscriptionName().equals(eventName)) {
+                    return true;
+                }
             }
         }
+
         return false;
     }
 
