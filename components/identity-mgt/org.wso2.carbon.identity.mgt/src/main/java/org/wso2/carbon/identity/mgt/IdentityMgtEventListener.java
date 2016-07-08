@@ -86,6 +86,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     private static final String DO_PRE_AUTHENTICATE = "doPreAuthenticate";
     private static final String DO_POST_AUTHENTICATE = "doPostAuthenticate";
     private static final String DO_POST_ADD_USER = "doPostAddUser";
+    private static final String DO_PRE_SET_USER_CLAIM_VALUE = "doPreSetUserClaimValue";
     private static final String DO_PRE_SET_USER_CLAIM_VALUES = "doPreSetUserClaimValues";
     private static final String DO_PRE_UPDATE_CREDENTIAL_BY_ADMIN = "doPreUpdateCredentialByAdmin";
     private static final String DO_PRE_UPDATE_CREDENTIAL = "doPreUpdateCredential";
@@ -867,10 +868,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
 
         try {
 
-            if (IdentityUtil.threadLocalProperties.get().containsKey(DO_PRE_SET_USER_CLAIM_VALUES)) {
+            if (IdentityUtil.threadLocalProperties.get().containsKey(DO_PRE_SET_USER_CLAIM_VALUE)) {
                 return true;
             }
-            IdentityUtil.threadLocalProperties.get().put(DO_PRE_SET_USER_CLAIM_VALUES, true);
+            IdentityUtil.threadLocalProperties.get().put(DO_PRE_SET_USER_CLAIM_VALUE, true);
 
             UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
             UserIdentityClaimsDO userIdentityClaimsDO = identityDataStore.load(userName, userStoreManager);
@@ -940,7 +941,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             // Identity claim is stored. No need to process after that.
             return false;
         } finally {
-            IdentityUtil.threadLocalProperties.get().remove(DO_PRE_SET_USER_CLAIM_VALUES);
+            IdentityUtil.threadLocalProperties.get().remove(DO_PRE_SET_USER_CLAIM_VALUE);
         }
     }
 
