@@ -194,7 +194,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     }
 
                     //If account is disabled, user should not be able to log in
-                    if (userIdentityDTO.getIsAccountDisabled()) {
+                    if (userIdentityDTO.isAccountDisabled()) {
                         IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                                 IdentityCoreConstants.USER_ACCOUNT_DISABLED);
                         IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
@@ -703,7 +703,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+                boolean isAccountDisabled = identityDTO.isAccountDisabled();
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
@@ -781,7 +781,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+                boolean isAccountDisabled = identityDTO.isAccountDisabled();
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
@@ -879,7 +879,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 userIdentityClaimsDO = new UserIdentityClaimsDO(userName);
             }
 
-            if (userIdentityClaimsDO.getIsAccountDisabled() &&
+            if (userIdentityClaimsDO.isAccountDisabled() &&
                     !UserIdentityDataStore.ACCOUNT_DISABLED.equals(claimURI)) {
                 log.warn("Updating claim of a disabled user account is not permitted.");
                 throw new UserStoreException("User account is disabled, can't update a claim without enabling it " +
@@ -895,7 +895,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     IdentityUtil.setIdentityErrorMsg(new IdentityErrorMsgContext(IdentityCoreConstants
                             .USER_ACCOUNT_DISABLED_ERROR_CODE));
                 }
-                if (userIdentityClaimsDO.getIsAccountDisabled() == accountDisabled) {
+                if (userIdentityClaimsDO.isAccountDisabled() == accountDisabled) {
                     //No status change. No need to process after that.
                     if (userIdentityClaimsDO.getUserDataMap().containsKey(UserIdentityDataStore.ACCOUNT_DISABLED)) {
                         return false;
@@ -973,7 +973,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                Boolean wasAccountDisabled = identityDTO.getIsAccountDisabled();
+                Boolean wasAccountDisabled = identityDTO.isAccountDisabled();
                 String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
                 boolean isAccountDisabled = false;
                 if (StringUtils.isNotEmpty(accountDisabled)) {

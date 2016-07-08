@@ -45,7 +45,7 @@ public class UserIdentityClaimsDO implements Serializable {
     private long lastFailAttemptTime;
     private int failedAttempts;
     private boolean accountLock;
-    private boolean isAccountDisabled;
+    private boolean accountDisabled;
     private boolean passwordChangeRequired;
     private boolean oneTimeLogin;
     private Map<String, String> userIdentityDataMap = new HashMap<String, String>();
@@ -269,12 +269,12 @@ public class UserIdentityClaimsDO implements Serializable {
         this.confirmationCode = confirmationCode;
     }
 
-    public Boolean getIsAccountDisabled() {
-        return isAccountDisabled;
+    public Boolean isAccountDisabled() {
+        return accountDisabled;
     }
 
-    public void setAccountDisabled(boolean isAccountDisabled) {
-        this.isAccountDisabled = isAccountDisabled;
+    public void setAccountDisabled(boolean accountDisabled) {
+        this.accountDisabled = accountDisabled;
     }
 
     /**
