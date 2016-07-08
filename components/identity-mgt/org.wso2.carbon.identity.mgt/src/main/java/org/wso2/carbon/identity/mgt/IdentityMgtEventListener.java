@@ -1202,4 +1202,20 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             log.error("Email notification sending failed for user:" + userName + " for " + notification);
         }
     }
+
+    @Override
+    public boolean doPostDeleteUserClaimValues(String userName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        //TODO : Delete identity claims from identity store.
+        return true;
+    }
+
+    @Override
+    public boolean doPostDeleteUserClaimValue(String userName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        //TODO : Delete identity claim from identity store.
+        return true;
+    }
 }
