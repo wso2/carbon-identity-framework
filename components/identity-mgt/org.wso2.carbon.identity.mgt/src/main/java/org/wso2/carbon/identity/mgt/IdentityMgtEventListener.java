@@ -86,6 +86,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     private static final String DO_PRE_AUTHENTICATE = "doPreAuthenticate";
     private static final String DO_POST_AUTHENTICATE = "doPostAuthenticate";
     private static final String DO_POST_ADD_USER = "doPostAddUser";
+    private static final String DO_PRE_SET_USER_CLAIM_VALUE = "doPreSetUserClaimValue";
     private static final String DO_PRE_SET_USER_CLAIM_VALUES = "doPreSetUserClaimValues";
     private static final String DO_PRE_UPDATE_CREDENTIAL_BY_ADMIN = "doPreUpdateCredentialByAdmin";
     private static final String DO_PRE_UPDATE_CREDENTIAL = "doPreUpdateCredential";
@@ -193,7 +194,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     }
 
                     //If account is disabled, user should not be able to log in
-                    if (userIdentityDTO.getIsAccountDisabled()) {
+                    if (userIdentityDTO.isAccountDisabled()) {
                         IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                                 IdentityCoreConstants.USER_ACCOUNT_DISABLED);
                         IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
@@ -325,16 +326,24 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         String emailTemplate = null;
                         int tenantId = userStoreManager.getTenantId();
                         String firstName = null;
+                        String userStoreDomain = userStoreManager.getRealmConfiguration()
+                                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                        String domainSpecificUserName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
+
                         try {
-                            firstName =
-                                    Utils.getClaimFromUserStoreManager(userName, tenantId,
-                                            "http://wso2.org/claims/givenname");
+                            firstName = Utils.getClaimFromUserStoreManager(domainSpecificUserName, tenantId,
+                                    UserCoreConstants.ClaimTypeURIs.GIVEN_NAME);
                         } catch (IdentityException e2) {
                             throw new UserStoreException("Could not load user given name", e2);
                         }
+
+                        String tenantDomain = IdentityTenantUtil.getTenantDomain(userStoreManager.getTenantId());
+
                         emailNotificationData.setTagData("first-name", firstName);
                         emailNotificationData.setTagData("user-name", userName);
                         emailNotificationData.setTagData("otp-password", password);
+                        emailNotificationData.setTagData("userstore-domain", userStoreDomain);
+                        emailNotificationData.setTagData("tenant-domain", tenantDomain);
 
                         emailNotificationData.setSendTo(email);
 
@@ -694,7 +703,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+                boolean isAccountDisabled = identityDTO.isAccountDisabled();
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
@@ -772,7 +781,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                boolean isAccountDisabled = identityDTO.getIsAccountDisabled();
+                boolean isAccountDisabled = identityDTO.isAccountDisabled();
 
                 if (isAccountDisabled) {
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
@@ -849,23 +858,90 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
      * Other claims are skipped to the set or update.
      */
     @Override
-    public boolean doPreSetUserClaimValue(String userName, String claimURI, String claimValue,
-                                          String profileName, UserStoreManager userStoreManager)
-            throws UserStoreException {
-        if (!isEnable()) {
+    public boolean doPreSetUserClaimValue(String userName, String claimURI, String claimValue, String profileName,
+                                          UserStoreManager userStoreManager) throws UserStoreException {
+
+        if (!isEnable() || StringUtils.isBlank(claimURI) ||
+                !claimURI.startsWith(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
             return true;
         }
 
-        IdentityMgtConfig config = IdentityMgtConfig.getInstance();
+        try {
 
-        // security questions and identity claims are updated at the identity store
-        if (claimURI.contains(UserCoreConstants.ClaimTypeURIs.CHALLENGE_QUESTION_URI) ||
-                claimURI.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
-//			  the whole listner to return and fail adding the cliam in doSetUserClaim
-            return true;
-        } else {
-            // a simple user claim. add it to the user store
-            return true;
+            if (IdentityUtil.threadLocalProperties.get().containsKey(DO_PRE_SET_USER_CLAIM_VALUE)) {
+                return true;
+            }
+            IdentityUtil.threadLocalProperties.get().put(DO_PRE_SET_USER_CLAIM_VALUE, true);
+
+            UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
+            UserIdentityClaimsDO userIdentityClaimsDO = identityDataStore.load(userName, userStoreManager);
+            if (userIdentityClaimsDO == null) {
+                userIdentityClaimsDO = new UserIdentityClaimsDO(userName);
+            }
+
+            if (userIdentityClaimsDO.isAccountDisabled() &&
+                    !UserIdentityDataStore.ACCOUNT_DISABLED.equals(claimURI)) {
+                log.warn("Updating claim of a disabled user account is not permitted.");
+                throw new UserStoreException("User account is disabled, can't update a claim without enabling it " +
+                        "first.");
+            }
+
+            boolean sendNotification = false;
+            String notificationType = null;
+            if (UserIdentityDataStore.ACCOUNT_DISABLED.equals(claimURI)) {
+                boolean accountDisabled = Boolean.parseBoolean(claimValue);
+                if (accountDisabled) {
+                    IdentityUtil.clearIdentityErrorMsg();
+                    IdentityUtil.setIdentityErrorMsg(new IdentityErrorMsgContext(IdentityCoreConstants
+                            .USER_ACCOUNT_DISABLED_ERROR_CODE));
+                }
+                if (userIdentityClaimsDO.isAccountDisabled() == accountDisabled) {
+                    //No status change. No need to process after that.
+                    if (userIdentityClaimsDO.getUserDataMap().containsKey(UserIdentityDataStore.ACCOUNT_DISABLED)) {
+                        return false;
+                    }
+                } else {
+                    sendNotification = true;
+                    if (accountDisabled) {
+                        notificationType = IdentityMgtConstants.Notification.ACCOUNT_DISABLE;
+                    } else {
+                        notificationType = IdentityMgtConstants.Notification.ACCOUNT_ENABLE;
+                    }
+                }
+            } else if (UserIdentityDataStore.ACCOUNT_LOCK.equals(claimURI)) {
+                boolean accountLocked = Boolean.parseBoolean(claimValue);
+                if (accountLocked) {
+                    IdentityUtil.clearIdentityErrorMsg();
+                    IdentityUtil.setIdentityErrorMsg(new IdentityErrorMsgContext(UserCoreConstants.ErrorCode
+                            .USER_IS_LOCKED));
+                }
+                if (userIdentityClaimsDO.isAccountLocked() == accountLocked) {
+                    //No status change. No need to process after that.
+                    if (userIdentityClaimsDO.getUserDataMap().containsKey(UserIdentityDataStore.ACCOUNT_LOCK)) {
+                        return false;
+                    }
+                }
+            }
+
+            userIdentityClaimsDO.setUserIdentityDataClaim(claimURI, claimValue);
+            try {
+                identityDataStore.store(userIdentityClaimsDO, userStoreManager);
+            } catch (IdentityException e) {
+                throw new UserStoreException("Error occurred while saving identity claims for user : " + userName, e);
+            }
+
+            if (sendNotification) {
+                String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants
+                        .RealmConfig.PROPERTY_DOMAIN_NAME);
+
+                sendEmail(IdentityUtil.addDomainToName(userName, domainName), userStoreManager.getTenantId(),
+                        notificationType);
+            }
+
+            // Identity claim is stored. No need to process after that.
+            return false;
+        } finally {
+            IdentityUtil.threadLocalProperties.get().remove(DO_PRE_SET_USER_CLAIM_VALUE);
         }
     }
 
@@ -882,7 +958,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
-        IdentityUtil.clearIdentityErrorMsg();
         String accountLocked = claims.get(UserIdentityDataStore.ACCOUNT_LOCK);
         boolean isAccountLocked = false;
 
@@ -898,7 +973,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
-                Boolean wasAccountDisabled = identityDTO.getIsAccountDisabled();
+                Boolean wasAccountDisabled = identityDTO.isAccountDisabled();
                 String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
                 boolean isAccountDisabled = false;
                 if (StringUtils.isNotEmpty(accountDisabled)) {
@@ -907,10 +982,12 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     isAccountDisabled = wasAccountDisabled;
                 }
                 if (isAccountLocked) {
+                    IdentityUtil.clearIdentityErrorMsg();
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
                             .ErrorCode.USER_IS_LOCKED);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                 } else if (isAccountDisabled) {
+                    IdentityUtil.clearIdentityErrorMsg();
                     IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
@@ -1063,9 +1140,29 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
      * Returning the user identity data as a claim
      */
     @Override
-    public boolean doPostGetUserClaimValue(String userName, String claim, List<String> claimValue,
-                                           String profileName, UserStoreManager storeManager)
+    public boolean doPostGetUserClaimValue(String userName, String claimURI, List<String> claimValue,
+                                           String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
+
+        if (!isEnable() || StringUtils.isBlank(claimURI) ||
+                !claimURI.startsWith(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
+            return true;
+        }
+
+        UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
+        UserIdentityClaimsDO userIdentityClaimsDO = identityDataStore.load(userName, userStoreManager);
+
+        // TODO: provide default claim value from here, when listener is enabled.
+        if (userIdentityClaimsDO == null) {
+            return true;
+        }
+
+        if (userIdentityClaimsDO.getUserDataMap().containsKey(claimURI)) {
+            if (!claimValue.isEmpty()) {
+                claimValue.clear();
+            }
+            claimValue.add(userIdentityClaimsDO.getUserDataMap().get(claimURI));
+        }
 
         return true;
     }
@@ -1104,5 +1201,21 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             //proceed with the rest of the flow even if the email is not sent
             log.error("Email notification sending failed for user:" + userName + " for " + notification);
         }
+    }
+
+    @Override
+    public boolean doPostDeleteUserClaimValues(String userName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        //TODO : Delete identity claims from identity store.
+        return true;
+    }
+
+    @Override
+    public boolean doPostDeleteUserClaimValue(String userName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        //TODO : Delete identity claim from identity store.
+        return true;
     }
 }

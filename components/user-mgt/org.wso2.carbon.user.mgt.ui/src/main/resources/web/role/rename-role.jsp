@@ -132,7 +132,6 @@
                     }
                 }
 
-                //location.href = 'rename-role-finish.jsp?oldRoleName='+oldRoleName+'&newRoleName='+newRoleName;
                 $("#renameRoleForm").submit();
             }
         }
@@ -144,7 +143,7 @@
         <h2><fmt:message key="rename.user.role"/></h2>
 
         <div id="workArea">
-            <form action="rename-role-finish.jsp" method="post" id="renameRoleForm">
+            <form action="rename-role-finish-ajaxprocessor.jsp" method="post" id="renameRoleForm">
 
                 <input type="hidden" id="role_regex" name="role_regex" value=<%=Encode.forHtmlAttribute(regEx)%>>
                 <input type="hidden" id="oldRoleName" name="oldRoleName" value=<%=Encode.forHtmlAttribute(roleName)%>>

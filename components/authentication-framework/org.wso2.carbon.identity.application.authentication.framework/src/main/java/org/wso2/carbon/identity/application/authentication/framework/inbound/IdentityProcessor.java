@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -35,10 +36,11 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class IdentityProcessor {
+public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
     private static Log log = LogFactory.getLog(IdentityProcessor.class);
 
@@ -88,13 +90,6 @@ public abstract class IdentityProcessor {
             throws FrameworkException;
 
     /**
-     * Returns the unique name of the request IdentityProcessor
-     *
-     * @return name
-     */
-    public abstract String getName();
-
-    /**
      * Get callback path
      *
      * @param context IdentityMessageContext
@@ -108,13 +103,6 @@ public abstract class IdentityProcessor {
      * @return Relying party unique ID
      */
     public abstract String getRelyingPartyId();
-
-    /**
-     * Get priority
-     *
-     * @return priority
-     */
-    public abstract int getPriority();
 
     /**
      * Tells if this processor can handle this IdentityRequest
@@ -133,35 +121,31 @@ public abstract class IdentityProcessor {
     protected FrameworkLoginResponse.FrameworkLoginResponseBuilder buildResponseForFrameworkLogin(
             IdentityMessageContext context) {
 
-        String sessionDataKey = UUIDGenerator.generateUUID();
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         IdentityRequest identityRequest = context.getRequest();
-
         Map<String, String[]> parameterMap = identityRequest.getParameterMap();
 
-        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
-        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
-
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.appendRequestQueryParams(parameterMap);
-
         for (Object entry : identityRequest.getHeaderMap().keySet()) {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
-
         authenticationRequest.setRelyingParty(getRelyingPartyId());
         authenticationRequest.setType(getName());
-        authenticationRequest.setPassiveAuth((Boolean)context.getParameter(InboundConstants.PassiveAuth));
-        authenticationRequest.setForceAuth((Boolean) context.getParameter(InboundConstants.ForceAuth));
+        authenticationRequest.setPassiveAuth(Boolean.parseBoolean(
+                String.valueOf(context.getParameter(InboundConstants.PassiveAuth))));
+        authenticationRequest.setForceAuth(Boolean.parseBoolean(
+                String.valueOf(context.getParameter(InboundConstants.ForceAuth))));
         try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
+            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
+                                                                            StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
             throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
                     getCallbackPath(context), e);
         }
 
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
+        String sessionDataKey = UUIDGenerator.generateUUID();
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
         InboundUtil.addContextToCache(sessionDataKey, context);
@@ -188,27 +172,20 @@ public abstract class IdentityProcessor {
     protected FrameworkLogoutResponse.FrameworkLogoutResponseBuilder buildResponseForFrameworkLogout(
             IdentityMessageContext context) {
 
-        String sessionDataKey = UUIDGenerator.generateUUID();
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         IdentityRequest identityRequest = context.getRequest();
-
         Map<String, String[]> parameterMap = identityRequest.getParameterMap();
 
-        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
-        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
-
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.appendRequestQueryParams(parameterMap);
-
         for (Object entry : identityRequest.getHeaderMap().keySet()) {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
-
         authenticationRequest.setRelyingParty(getRelyingPartyId());
         authenticationRequest.setType(getName());
         try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
+            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
+                                                                            StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
             throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
                     getCallbackPath(context), e);
@@ -217,6 +194,7 @@ public abstract class IdentityProcessor {
                 new String[]{"true"});
 
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
+        String sessionDataKey = UUIDGenerator.generateUUID();
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
         InboundUtil.addContextToCache(sessionDataKey, context);
@@ -271,11 +249,13 @@ public abstract class IdentityProcessor {
      * AuthenticationResult to message context if found in AuthenticationResultCache
      *
      * @param context IdentityMessageContext
+     * @param identityRequest Current IdentityRequest object
      * @return AuthenticationResult
      */
-    protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context) {
+    protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context,
+                                                                     IdentityRequest identityRequest) {
 
-        String sessionDataKey = context.getRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        String sessionDataKey = identityRequest.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
         if(entry != null) {

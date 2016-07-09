@@ -28,7 +28,6 @@
     if("true".equals(withPDP)){
         evaluatedWithPDP = true; 
     }
-    String forwardTo = request.getParameter("forwardTo");
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext =
             (ConfigurationContext) config.getServletContext().
@@ -141,18 +140,11 @@
 
         session.setAttribute("txtRequest", requestString);
         session.setAttribute("txtResponse", resp);
-    	if (forwardTo == null) {
-            CarbonUIMessage.sendCarbonUIMessage(responseValue, CarbonUIMessage.INFO, request);
-            forwardTo = "create-evaluation-request.jsp";
-    	} else {
-            forwardTo = "eval-policy.jsp?isResponse=true";
-        }
+
+        CarbonUIMessage.sendCarbonUIMessage(responseValue, CarbonUIMessage.INFO, request);
     } catch (Exception e) {
     	String message = resourceBundle.getString("invalid.request");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        if (forwardTo == null) {
-            forwardTo = "create-evaluation-request.jsp";
-     	}       
     }
 %>
 
@@ -166,14 +158,13 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <script
-	type="text/javascript">
+        type="text/javascript">
     function forward() {
-        location.href = "<%=Encode.forJavaScriptBlock(forwardTo)%>";
-	}
+        location.href = "create-evaluation-request.jsp";
+    }
 </script>
 
 <script type="text/javascript">
-	forward();
+    forward();
 </script>

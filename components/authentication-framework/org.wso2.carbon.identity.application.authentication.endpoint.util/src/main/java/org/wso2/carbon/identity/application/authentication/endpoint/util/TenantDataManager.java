@@ -100,6 +100,7 @@ public class TenantDataManager {
                     prop.load(inputStream);
                 }
 
+
                 if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
 
 		        usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
@@ -117,7 +118,6 @@ public class TenantDataManager {
 		            TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
 		                    .TLS_PROTOCOL));
 		        }
-
 		        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
 		            TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
 		                    .KEY_MANAGER_TYPE));
@@ -256,7 +256,7 @@ public class TenantDataManager {
 
                 InputSource inputSource = new InputSource(new StringReader(xmlString));
 
-                DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilder();
+                DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
 
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc = builder.parse(inputSource);

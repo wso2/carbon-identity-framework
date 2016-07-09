@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
@@ -151,14 +152,21 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         long rememberMeSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getRememberMeTimeout(tenantDomain));
 
         long currentTime = System.currentTimeMillis();
-        long lastAccessedTime = cacheEntry.getAccessedTime();
+        Long createdTime = cacheEntry.getAccessedTime();
+
+        if (cacheEntry.getContext() != null) {
+            Object createdTimestampObj = cacheEntry.getContext().getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+            if (createdTimestampObj != null) {
+                createdTime = (Long) createdTimestampObj;
+            }
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Context ID : " + contextId + " :: rememberMeSessionTimeOut : " + rememberMeSessionTimeOut
-                    + ", currentTime : " + currentTime + ", lastAccessedTime : " + lastAccessedTime);
+                    + ", currentTime : " + currentTime + ", created time : " + createdTime);
         }
 
-        if (currentTime - lastAccessedTime > rememberMeSessionTimeOut) {
+        if (currentTime - createdTime > rememberMeSessionTimeOut) {
             if (log.isDebugEnabled()) {
                 log.debug("Context ID : " + contextId + " :: Remember me session expiry");
             }

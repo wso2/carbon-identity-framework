@@ -73,7 +73,7 @@
 <script
 	type="text/javascript">
     function forward() {
-        location.href = "<%=forwardTo%>";
+        location.href = "index.jsp";
 	}
 </script>
 

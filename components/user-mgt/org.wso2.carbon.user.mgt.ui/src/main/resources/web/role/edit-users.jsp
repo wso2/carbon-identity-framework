@@ -345,7 +345,7 @@
             </form>
             <p>&nbsp;</p>
 
-            <form method="post" action="edit-users-finish.jsp?" onsubmit="return doValidation();"
+            <form method="post" action="edit-users-finish-ajaxprocessor.jsp" onsubmit="return doValidation();"
                   name="edit_users" id="edit_users">
                 <input type="hidden" id="roleName" name="roleName" value="<%=Encode.forHtmlAttribute(roleName)%>"/>
                 <input type="hidden" id="logout" name="logout" value="false"/>

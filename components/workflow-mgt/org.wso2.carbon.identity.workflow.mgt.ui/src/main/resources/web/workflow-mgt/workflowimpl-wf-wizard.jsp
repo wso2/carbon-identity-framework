@@ -19,29 +19,30 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityValidationUtil" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.bean.metadata.type.InputType" %>
+
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.WorkflowAdminServiceWorkflowException" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.bean.Parameter" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowImpl" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowWizard" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.InputData" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.Item" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.MapType" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.ParameterMetaData" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.util.WorkflowUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.bean.Parameter" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.ParameterMetaData" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.InputData" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.MapType" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.bean.Item" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.bean.metadata.type.InputType" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowImpl" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowWizard" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.WorkflowAdminServiceWorkflowException" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.util.WorkflowUIUtil" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 
 
 <%
@@ -52,7 +53,9 @@
 
     String requestPath = "list-workflows";
     //'path' parameter to use to track parent wizard path if this wizard trigger by another wizard
-    if(request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH) != null && !request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH).isEmpty()){
+    if (StringUtils.isNotBlank(request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH)) && IdentityValidationUtil
+            .isValidOverBlackListPatterns(request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH),
+                                          IdentityValidationUtil.ValidatorPattern.URI_RESERVED_EXISTS.name())) {
         requestPath = request.getParameter(WorkflowUIConstants.PARAM_REQUEST_PATH);
     }
 
@@ -327,7 +330,7 @@
              <%
                 if(workflowImpl!=null && workflowImpl.getWorkflowImplId() != null ){
             %>
-                <form method="post" name="serviceAdd" id="id_nextwizard" action="finish-wf-wizard.jsp">
+                <form method="post" name="serviceAdd" id="id_nextwizard" action="finish-wf-wizard-ajaxprocessor.jsp">
                     <input type="hidden" name="<%=WorkflowUIConstants.PARAM_PAGE_REQUEST_TOKEN%>" value="<%=Encode.forHtmlAttribute(requestToken)%>"/>
                     <input type="hidden" name="<%=WorkflowUIConstants.PARAM_REQUEST_PATH%>" value="<%=Encode.forHtmlAttribute(requestPath)%>"/>
                     <input type="hidden" name="<%=WorkflowUIConstants.PARAM_ACTION%>" value="<%=WorkflowUIConstants.ACTION_VALUE_ADD%>">

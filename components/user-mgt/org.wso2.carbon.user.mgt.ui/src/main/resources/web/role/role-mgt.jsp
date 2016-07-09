@@ -207,7 +207,7 @@
                     UserManagementWorkflowServiceClient(cookie, backendServerURL, configContext);
             countableUserStores = countClient.getCountableUserStores();
 
-            if(countableUserStores != null && countableUserStores.size() > 0) {
+            if (countableUserStores != null && countableUserStores.size() > 0) {
                 countableUserStores.add(UserAdminUIConstants.ALL_DOMAINS);
                 countableUserStores.add(UserAdminUIConstants.INTERNAL_DOMAIN);
                 countableUserStores.add(UserAdminUIConstants.APPLICATION_DOMAIN);
@@ -341,8 +341,22 @@
         function deleteUserGroup(role) {
             function doDelete(){
                 var roleName = role;
-                location.href = 'delete-role.jsp?roleName=' + roleName +'&userType=internal';
+                $.ajax({
+                    type: 'POST',
+                    url: 'delete-finish-ajaxprocessor.jsp',
+                    headers: {
+                        Accept: "text/html"
+                    },
+                    data: 'roleName=' + roleName + '&userType=internal',
+                    async: false,
+                    success: function (responseText, status) {
+                        if (status == "success") {
+                            location.assign("role-mgt.jsp");
+                        }
+                    }
+                });
             }
+
             CARBON.showConfirmationDialog('<fmt:message key="confirm.delete.role"/> ' + role + '?', doDelete, null);
         }
 

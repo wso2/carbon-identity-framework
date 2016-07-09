@@ -61,7 +61,7 @@ public class PolicyReader implements ErrorHandler {
 
         this.policyFinder = policyFinder;
         // create the factory
-        DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilder();
+        DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
         factory.setIgnoringComments(true);
         // now use the factory to create the document builder
         try {

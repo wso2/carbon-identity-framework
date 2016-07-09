@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.core.handler;
 
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 /**
  * This interface needs to be implemented by any identity extension handler.
@@ -29,10 +28,9 @@ public abstract class ExtensionHandler extends AbstractIdentityHandler {
     /**
      * Handles the request
      *
-     * @param messageContext The runtime message context
      * @return {@code HandlerReturnStatus}
-     * @throws org.wso2.carbon.identity.base.IdentityRuntimeException
+     * @throws .IdentityException
      */
-    public abstract ExtHandlerReturnStatus handle(MessageContext messageContext) throws IdentityException;
+    public abstract ExtHandlerReturnStatus handle() throws IdentityException;
 
 }

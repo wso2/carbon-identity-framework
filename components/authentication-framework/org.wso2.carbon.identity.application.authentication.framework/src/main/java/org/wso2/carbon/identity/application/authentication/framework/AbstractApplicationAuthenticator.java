@@ -127,27 +127,31 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
                                                   AuthenticatedUser user, boolean success) {
 
-        List<AbstractAuthenticationDataPublisher> dataPublishers = FrameworkServiceDataHolder.getInstance().getDataPublishers();
-
-        if (dataPublishers.size() > 0) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            if (isFederated) {
+                // Setting this value to authentication context in order to use in AuthenticationSuccess Event
+                context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
+            } else {
+                // Setting this value to authentication context in order to use in AuthenticationSuccess Event
+                context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_LOCAL_STEP, true);
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, false);
+            }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (success) {
-                for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                    if (publisher.isEnabled(null)) {
-                        publisher.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
-                    }
-                }
+                authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
+                        unmodifiableParamMap);
+
             } else {
-                for (AbstractAuthenticationDataPublisher publisher : dataPublishers) {
-                    if (publisher.isEnabled(null)) {
-                        publisher.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
-                    }
-                }
+                authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
+                        unmodifiableParamMap);
             }
         }
-
     }
 
     protected void initiateAuthenticationRequest(HttpServletRequest request,

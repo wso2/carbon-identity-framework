@@ -34,6 +34,7 @@
         import="java.io.IOException" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <jsp:useBean id="entitlementPolicyBean" type="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean"
              class="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean" scope="session"/>
 <jsp:setProperty name="entitlementPolicyBean" property="*" />
@@ -94,10 +95,14 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String ruleId = request.getParameter("ruleId");
-    String returnPage = request.getParameter("returnPage");
-    if(returnPage == null || returnPage.trim().length() == 0){
+    String initiatedPage = request.getParameter("initiatedFrom");
+    String returnPage;
+    if (StringUtils.equals("create-policy-set", initiatedPage)) {
+        returnPage = "create-policy-set.jsp";
+    } else {
         returnPage = "policy-editor.jsp";
     }
+
     selectedFinderModule = request.getParameter("finderModule");
     if(selectedFinderModule == null || selectedFinderModule.trim().length() < 1){
         selectedFinderModule = EntitlementPolicyConstants.DEFAULT_META_DATA_MODULE_NAME;

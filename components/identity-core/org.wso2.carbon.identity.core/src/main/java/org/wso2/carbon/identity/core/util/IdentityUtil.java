@@ -61,6 +61,7 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -71,6 +72,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -394,7 +396,7 @@ public class IdentityUtil {
     public static XMLObject unmarshall(String xmlString) throws IdentityException {
 
         try {
-            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilder();
+            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilderFactory();
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes(Charsets.UTF_8)));
             Element element = document.getDocumentElement();
@@ -412,7 +414,7 @@ public class IdentityUtil {
      *
      * @return DocumentBuilderFactory instance
      */
-    public static DocumentBuilderFactory getSecuredDocumentBuilder() {
+    public static DocumentBuilderFactory getSecuredDocumentBuilderFactory() {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
@@ -778,28 +780,63 @@ public class IdentityUtil {
      */
     public static String getHostName() {
 
-        return ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+        String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+        if (hostName == null) {
+            try {
+                hostName = NetworkUtils.getLocalHostname();
+            } catch (SocketException e) {
+                throw IdentityRuntimeException.error("Error while trying to read hostname.", e);
+            }
+        }
+        return hostName;
     }
 
-    public static String buildQueryString(Map<String,String[]> parameterMap) throws UnsupportedEncodingException {
+    public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
 
         StringBuilder queryString = new StringBuilder("?");
         boolean isFirst = true;
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-            for(String paramValue:entry.getValue()) {
+            for(String paramValue : entry.getValue()) {
                 if (isFirst) {
-                    queryString.append(entry.getKey());
-                    queryString.append("=");
-                    queryString.append(paramValue);
                     isFirst = false;
+                } else {
+                    queryString.append("&");
                 }
-                queryString.append("&");
-                queryString.append(entry.getKey());
+                queryString.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.name()));
                 queryString.append("=");
-                queryString.append(paramValue);
+                queryString.append(URLEncoder.encode(paramValue, StandardCharsets.UTF_8.name()));
 
             }
         }
-        return URLEncoder.encode(queryString.toString(), "UTF-8");
+        return queryString.toString();
+    }
+
+    /**
+     * Get client IP address from the http request
+     *
+     * @param request http servlet request
+     * @return IP address of the initial client
+     */
+    public static String getClientIpAddress(HttpServletRequest request) {
+        for (String header : IdentityConstants.HEADERS_WITH_IP) {
+            String ip = request.getHeader(header);
+            if (ip != null && ip.length() != 0 && !IdentityConstants.UNKNOWN.equalsIgnoreCase(ip)) {
+                return getFirstIP(ip);
+            }
+        }
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * Get the first IP from a comma separated list of IPs
+     *
+     * @param commaSeparatedIPs String which contains comma+space separated IPs
+     * @return First IP
+     */
+    public static String getFirstIP(String commaSeparatedIPs) {
+        if (StringUtils.isNotEmpty(commaSeparatedIPs) && commaSeparatedIPs.contains(",")) {
+            return commaSeparatedIPs.split(",")[0];
+        }
+        return commaSeparatedIPs;
     }
 }

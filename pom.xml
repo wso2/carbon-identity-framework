@@ -516,6 +516,12 @@
             </dependency>
 
             <dependency>
+                <groupId>org.wso2.orbit.joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda.wso2.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.wso2.carbon.commons</groupId>
                 <artifactId>org.wso2.carbon.wsdl2form</artifactId>
                 <version>${carbon.commons.version}</version>
@@ -1331,7 +1337,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.4.5</carbon.kernel.version>
+        <carbon.kernel.version>4.4.6</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
 
@@ -1393,7 +1399,7 @@
         <derby.version>10.4.2.0</derby.version>
         <activation.version>1.1</activation.version>
         <javamail.version>1.4</javamail.version>
-        <wss4j.version>1.5.11.wso2v13</wss4j.version>
+        <wss4j.version>1.5.11.wso2v14</wss4j.version>
         <wss4j.xml.security.imp.pkg.version.range>[1.4.2.patched,2.0.0)</wss4j.xml.security.imp.pkg.version.range>
         <wss4j.ws.security.imp.pkg.version.range>[1.5.11,2.0.0)</wss4j.ws.security.imp.pkg.version.range>
         <wsdl4j.wso2.version>1.6.2.wso2v4</wsdl4j.wso2.version>
@@ -1439,9 +1445,8 @@
         <orbit.version.maven-scm>1.7.0.wso2v1</orbit.version.maven-scm>
 
         <!-- Rampart -->
-        <rampart.wso2.version>1.6.1.wso2v20</rampart.wso2.version>
+        <rampart.wso2.version>1.6.1.wso2v21</rampart.wso2.version>
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
-        <rampart.mar.version>1.6.1.wso2v19</rampart.mar.version>
 
         <!-- Equinox -->
         <version.equinox.osgi.services>3.3.100.v20130513-1956</version.equinox.osgi.services>
@@ -1475,8 +1480,12 @@
         <log4j.version>1.2.13</log4j.version>
         <orbit.version.commons.fileuploader>1.2.0.wso2v1</orbit.version.commons.fileuploader>
         <opensaml.version>2.6.4</opensaml.version>
-        <opensaml2.wso2.version>2.6.4.wso2v2</opensaml2.wso2.version>
+        <opensaml2.wso2.version>2.6.4.wso2v3</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
+        <joda.version>2.8.2</joda.version>
+        <joda.wso2.version>2.8.2.wso2v1</joda.wso2.version>
+        <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
+
         <commons-codec.version>1.4.0.wso2v1</commons-codec.version>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
 
@@ -1494,12 +1503,12 @@
         <google.step2.wso2.version>1.0.wso2v2</google.step2.wso2.version>
         <google.guice.wso2.version>3.0.wso2v1</google.guice.wso2.version>
         <google.guice.imp.pkg.version.range>[1.3.0,2.0.0)</google.guice.imp.pkg.version.range>
-        <charon.wso2.version.identity>2.0.5</charon.wso2.version.identity>
+        <charon.wso2.version.identity>2.0.6</charon.wso2.version.identity>
         <charon.core.imp.pkg.version.range>[2.0.1,3.0.0)</charon.core.imp.pkg.version.range>
         <openid4java.version>1.0.0</openid4java.version>
         <openid4java.wso2.version>1.0.0.wso2v2</openid4java.wso2.version>
         <openid4java.wso2.osgi.version.range>[1.0.0,2.0.0)</openid4java.wso2.osgi.version.range>
-        <balana.version>1.0.3</balana.version>
+        <balana.version>1.0.4</balana.version>
         <balana.imp.pkg.version.range>[1.0.1,2.0.0)</balana.imp.pkg.version.range>
         <gdata-core.wso2.version>1.47.0.wso2v1</gdata-core.wso2.version>
         <gdata-core.imp.pkg.version.range>[1.47.0.wso2v1,2.0.0)</gdata-core.imp.pkg.version.range>

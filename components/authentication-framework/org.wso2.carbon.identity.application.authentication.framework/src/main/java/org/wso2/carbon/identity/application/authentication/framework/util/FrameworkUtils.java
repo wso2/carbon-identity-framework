@@ -26,6 +26,7 @@ import org.wso2.carbon.claim.mgt.ClaimManagementException;
 import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
@@ -93,6 +94,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -483,8 +485,8 @@ public class FrameworkUtils {
 
         IdentityCookieConfig commonAuthIdCookieConfig = IdentityUtil.getIdentityCookieConfig(FrameworkConstants.COMMONAUTH_COOKIE);
 
-        if (commonAuthIdCookieConfig != null)   {
-            if (commonAuthIdCookieConfig.getDomain() != null)   {
+        if (commonAuthIdCookieConfig != null) {
+            if (commonAuthIdCookieConfig.getDomain() != null) {
                 cookieBuilder.setDomain(commonAuthIdCookieConfig.getDomain());
             }
 
@@ -492,26 +494,36 @@ public class FrameworkUtils {
                 cookieBuilder.setPath(commonAuthIdCookieConfig.getPath());
             }
 
-            if (commonAuthIdCookieConfig.getComment() != null)  {
+            if (commonAuthIdCookieConfig.getComment() != null) {
                 cookieBuilder.setComment(commonAuthIdCookieConfig.getComment());
             }
 
-            if (commonAuthIdCookieConfig.getMaxAge() > 0)   {
+            if (commonAuthIdCookieConfig.getMaxAge() > 0) {
                 cookieBuilder.setMaxAge(commonAuthIdCookieConfig.getMaxAge());
             } else if (age != null) {
                 cookieBuilder.setMaxAge(age);
             }
 
-            if (commonAuthIdCookieConfig.getVersion() > 0)  {
+            if (commonAuthIdCookieConfig.getVersion() > 0) {
                 cookieBuilder.setVersion(commonAuthIdCookieConfig.getVersion());
             }
 
-            if (commonAuthIdCookieConfig.isHttpOnly())  {
+            if (commonAuthIdCookieConfig.isHttpOnly()) {
                 cookieBuilder.setHttpOnly(commonAuthIdCookieConfig.isHttpOnly());
             }
 
-            if (commonAuthIdCookieConfig.isSecure())    {
+            if (commonAuthIdCookieConfig.isSecure()) {
                 cookieBuilder.setSecure(commonAuthIdCookieConfig.isSecure());
+            }
+
+        } else {
+
+            cookieBuilder.setSecure(true);
+            cookieBuilder.setHttpOnly(true);
+            cookieBuilder.setPath("/");
+
+            if (age != null) {
+                cookieBuilder.setMaxAge(age);
             }
         }
 
@@ -1156,6 +1168,28 @@ public class FrameworkUtils {
         }
 
         return queryAppendedUrl;
+    }
+
+    public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
+            context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            if (FrameworkConstants.AnalyticsAttributes.SESSION_CREATE.equalsIgnoreCase(status)) {
+                authnDataPublisherProxy.publishSessionCreation(request, context, sessionContext,
+                        unmodifiableParamMap);
+            } else if (FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE.equalsIgnoreCase(status)) {
+                authnDataPublisherProxy.publishSessionUpdate(request, context, sessionContext,
+                        unmodifiableParamMap);
+            } else if (FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE.equalsIgnoreCase(status)) {
+                authnDataPublisherProxy.publishSessionTermination(request, context, sessionContext,
+                        unmodifiableParamMap);
+            }
+        }
     }
 }
 

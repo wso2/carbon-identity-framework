@@ -74,7 +74,6 @@ import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -337,7 +336,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
 
         try {
             doBootstrap();
-            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilder();
+            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
 
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes()));

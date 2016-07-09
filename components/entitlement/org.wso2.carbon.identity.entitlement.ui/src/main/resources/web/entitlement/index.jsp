@@ -130,11 +130,7 @@
 <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
 <script type="text/javascript">
 
-    var allPolicesSelected = false;        
-
-    function removePolicies() {
-        location.href = "remove-policy.jsp";
-    }
+    var allPolicesSelected = false;
 
     function edit(policy) {
         location.href = "edit-policy.jsp?policyid=" + policy;
@@ -170,14 +166,14 @@
         }
         if (allPolicesSelected) {
             CARBON.showConfirmationDialog("<fmt:message key="delete.all.policies.prompt"/>",function() {
-                document.policyForm.action = "remove-policy.jsp";
+                document.policyForm.action = "remove-policy-ajaxprocessor.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         } else {
             CARBON.showConfirmationDialog("<fmt:message key="delete.services.on.page.prompt"/>",function() {
-                document.policyForm.action = "remove-policy.jsp";
+                document.policyForm.action = "remove-policy-ajaxprocessor.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         }
     }
 
@@ -200,12 +196,12 @@
             CARBON.showConfirmationDialog("<fmt:message key="publish.all.policies.prompt"/>",function() {
                 document.policyForm.action = "start-publish.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         } else {
             CARBON.showConfirmationDialog("<fmt:message key="publish.services.on.page.prompt"/>",function() {
                 document.policyForm.action = "start-publish.jsp";
                 document.policyForm.submit();
-            });
+            }, null);
         }
     }
 
