@@ -39,7 +39,7 @@ public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
     }
 
     @Override
-    public HttpIdentityResponse.HttpIdentityResponseBuilder create(
+    public void create(
             HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse) {
 
         FrameworkLoginResponse response = (FrameworkLoginResponse)identityResponse;
@@ -57,6 +57,10 @@ public class FrameworkLoginResponseFactory extends HttpIdentityResponseFactory {
                              new String[]{response.getAuthType()});
         builder.setRedirectURL(response.getRedirectUrl());
 
-        return builder;
+    }
+
+    @Override
+    public int getPriority() {
+        return 0;
     }
 }

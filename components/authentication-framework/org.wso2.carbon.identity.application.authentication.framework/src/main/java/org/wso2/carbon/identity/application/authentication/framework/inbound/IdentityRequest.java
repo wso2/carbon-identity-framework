@@ -157,6 +157,15 @@ public class IdentityRequest implements Serializable {
         this.contentType = builder.contentType;
     }
 
+    public String getBrowserCookieValue() {
+        String cookieValue = null;
+        Cookie cookie = this.getCookieMap().get(IdentityRequestConstants.BROWSER_COOKIE);
+        if (cookie != null) {
+            cookieValue = cookie.getValue();
+        }
+        return cookieValue;
+    }
+
     public static class IdentityRequestBuilder {
 
         private HttpServletRequest request;
@@ -183,6 +192,14 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder() {
 
+        }
+
+        public HttpServletRequest getRequest() {
+            return request;
+        }
+
+        public HttpServletResponse getResponse() {
+            return response;
         }
 
         public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {
@@ -324,5 +341,9 @@ public class IdentityRequest implements Serializable {
         }
 
 
+    }
+
+    public static class IdentityRequestConstants {
+        public static final String BROWSER_COOKIE = "SIOWTOSW";
     }
 }

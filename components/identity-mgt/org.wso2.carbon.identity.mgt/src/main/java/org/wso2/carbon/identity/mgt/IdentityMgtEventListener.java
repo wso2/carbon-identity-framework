@@ -535,7 +535,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         Iterator<Entry<String, String>> it = claims.entrySet().iterator();
         while (it.hasNext()) {
 
-            Map.Entry<String, String> claim = it.next();
+            Entry<String, String> claim = it.next();
 
             if (claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.CHALLENGE_QUESTION_URI) ||
                     claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
@@ -1008,7 +1008,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 Iterator<Entry<String, String>> it = claims.entrySet().iterator();
                 while (it.hasNext()) {
 
-                    Map.Entry<String, String> claim = it.next();
+                    Entry<String, String> claim = it.next();
 
                     if (claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.CHALLENGE_QUESTION_URI)
                             || claim.getKey().contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {

@@ -39,14 +39,14 @@ public class IdentityManagementAdminClient {
     protected UserIdentityManagementAdminServiceStub stub = null;
 
     public IdentityManagementAdminClient(String cookie, String url, ConfigurationContext configContext)
-            throws java.lang.Exception {
+            throws Exception {
         try {
             stub = new UserIdentityManagementAdminServiceStub(configContext, url + "UserIdentityManagementAdminService");
             ServiceClient client = stub._getServiceClient();
             Options option = client.getOptions();
             option.setManageSession(true);
             option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, cookie);
-        } catch (java.lang.Exception e) {
+        } catch (Exception e) {
             handleException(e.getMessage(), e);
         }
     }

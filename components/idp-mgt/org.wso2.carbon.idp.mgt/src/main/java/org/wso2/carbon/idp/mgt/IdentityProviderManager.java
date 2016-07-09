@@ -67,7 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class IdentityProviderManager implements IdpManagerService {
+public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);
 
