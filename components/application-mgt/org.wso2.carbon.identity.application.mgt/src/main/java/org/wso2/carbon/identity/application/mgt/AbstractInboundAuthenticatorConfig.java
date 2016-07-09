@@ -20,33 +20,66 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.identity.application.common.model.Property;
 
 /**
- *
- *
+ * To get the unique key, either we have to set a value to AuthKey or
+ * set a key to relying party and read through the property or
+ * get the sp name as the key.
  */
 public abstract class AbstractInboundAuthenticatorConfig {
 
     /**
-     * Get Name
+     * Get AuthKey. This is already deprecated and still implemented here to make this backward compatible.
+     *
      * @return name
      */
-    public abstract String getAuthKey();
+    @Deprecated
+    public String getAuthKey() {
+        return null;
+    }
 
     /**
      * Get Type
+     *
      * @return type
      */
     public abstract String getName();
 
     /**
      * Get friendly name
+     *
      * @return friendly name
      */
     public abstract String getFriendlyName();
 
     /**
      * Get configurations
+     *
      * @return property array
      */
     public abstract Property[] getConfigurationProperties();
 
+    /**
+     * Relying party key.
+     *
+     * @return name
+     */
+    public String getRelyingPartyKey() {
+        return null;
+    }
+
+    /**
+     * Check whether the RelyingPartyKey is configured with the UI properties.
+     *
+     * @return
+     */
+    public boolean isReplyingPartyKeyConfigured() {
+        Property[] configurationProperties = getConfigurationProperties();
+        if (configurationProperties != null) {
+            for (Property property : configurationProperties) {
+                if (property != null && property.getName() != null && property.getName().equals(getRelyingPartyKey())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
