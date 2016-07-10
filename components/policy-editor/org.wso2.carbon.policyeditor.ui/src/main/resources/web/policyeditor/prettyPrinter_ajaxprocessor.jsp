@@ -1,6 +1,5 @@
 <%@ page import="org.wso2.carbon.utils.xml.XMLPrettyPrinter" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="java.io.InputStream" %>
 <%
     String rawXML = request.getParameter("xmlString");
@@ -15,4 +14,4 @@
         rawXML = rawXML.substring(1);
     }
 %>
-<%=Encode.forHtml(rawXML)%>
+<%=rawXML%>
