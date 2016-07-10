@@ -17,9 +17,9 @@
  -->
  <%@ page import="org.owasp.encoder.Encode" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
-<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
-	prefix="carbon"%>
-<%@ page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon"%>
+<%@ taglib prefix="csrf" uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" %>
+<%@ page import="org.owasp.encoder.Encode"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
 <%@ page import="org.wso2.carbon.identity.entitlement.stub.dto.PolicyDTO"%>
 <%@ page import="org.wso2.carbon.identity.entitlement.ui.client.EntitlementPolicyAdminServiceClient"%>
@@ -29,9 +29,9 @@
 <jsp:include page="../highlighter/header.jsp"/>
 
 <%@page import="org.wso2.carbon.utils.ServerConstants"%>
-<jsp:include page="../dialog/display_messages.jsp"/>
 <%@ page import="java.text.MessageFormat"%>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%
 	String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
 	ConfigurationContext configContext = (ConfigurationContext) config.getServletContext().
@@ -83,10 +83,11 @@
         </textarea>
         <input type="hidden" name="callbackURL"
                value="../entitlement/update-policy-submit.jsp?policyid=<%=Encode.forUriComponent(policyId)%>"/>
-       </form>
-    </div> 
-    
-    <script type="text/javascript">
+        <input type="hidden" name="<csrf:tokenname/>" value="<csrf:tokenvalue/>"/>
+    </form>
+</div>
+
+<script type="text/javascript">
     // Handling the browser back button for Firefox. The IE back button is handled form the policy editor index.jsp page
     if (document.frmPolicyData.visited.value == "")
     {
