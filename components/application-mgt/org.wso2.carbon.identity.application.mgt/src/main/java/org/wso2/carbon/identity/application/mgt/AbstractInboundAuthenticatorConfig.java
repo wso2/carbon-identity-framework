@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 
 /**
@@ -71,11 +72,12 @@ public abstract class AbstractInboundAuthenticatorConfig {
      *
      * @return
      */
-    public boolean isReplyingPartyKeyConfigured() {
+    public boolean isRelyingPartyKeyConfigured() {
         Property[] configurationProperties = getConfigurationProperties();
         if (configurationProperties != null) {
             for (Property property : configurationProperties) {
-                if (property != null && property.getName() != null && property.getName().equals(getRelyingPartyKey())) {
+                if (property != null && StringUtils.isNotBlank(property.getName()) && property.getName().equals
+                        (getRelyingPartyKey())) {
                     return true;
                 }
             }
