@@ -1,8 +1,13 @@
 <%@ page import="org.wso2.carbon.utils.xml.XMLPrettyPrinter" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="java.io.InputStream" %>
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String rawXML = request.getParameter("xmlString");
     rawXML = rawXML.replaceAll("\n|\\r|\\f", "");
     //Tabs should not be replaced with empty strings. They should be replaced
@@ -15,4 +20,4 @@
         rawXML = rawXML.substring(1);
     }
 %>
-<%=Encode.forHtml(rawXML)%>
+<%=rawXML%>
