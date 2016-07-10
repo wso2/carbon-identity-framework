@@ -466,9 +466,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     private List<Property> filterEmptyProperties(Property[] propertiesArray){
         List<Property> propertyArrayList = new ArrayList<>();
-        for(Property property:propertiesArray){
-            if(property!=null && StringUtils.isNotBlank(property.getValue())){
-                propertyArrayList.add(property);
+        if(ArrayUtils.isNotEmpty(propertiesArray)) {
+            for (Property property : propertiesArray) {
+                if (property != null && StringUtils.isNotBlank(property.getValue())) {
+                    propertyArrayList.add(property);
+                }
             }
         }
         return propertyArrayList ;
@@ -542,7 +544,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 }
                 if (StringUtils.isBlank(authKey)) {
                     String applicationName = getApplicationName(applicationId, connection);
-                    if (applicationName != null) {
+                    if (StringUtils.isNotBlank(applicationName)) {
                         authKey = applicationName;
                     }
                 }
@@ -578,7 +580,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
             inboundAuthReqConfigPrepStmt.executeBatch();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Error occurred while updating the Inbound Authentication Request Configuration.", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(inboundAuthReqConfigPrepStmt);
         }
@@ -1601,13 +1603,17 @@ public class ApplicationDAOImpl implements ApplicationDAO {
      */
     private void mergedPropertiesMetaData(Property[] sources, Property[] destinations) {
         Map<String, Property> destinationMap = new HashMap<>();
-        for (Property destination : destinations) {
-            destinationMap.put(destination.getName(), destination);
+        if (ArrayUtils.isNotEmpty(destinations)) {
+            for (Property destination : destinations) {
+                destinationMap.put(destination.getName(), destination);
+            }
         }
-        for (Property source : sources) {
-            Property property = destinationMap.get(source.getName());
-            if (property == null) {
-                destinationMap.put(source.getName(), source);
+        if (ArrayUtils.isNotEmpty(sources)) {
+            for (Property source : sources) {
+                Property property = destinationMap.get(source.getName());
+                if (property == null) {
+                    destinationMap.put(source.getName(), source);
+                }
             }
         }
     }
@@ -1703,7 +1709,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     Property property = destinationMap.get(source.getName());
                     if (property == null) {
                         if (isCustomInboundAuthType(inboundAuthenticationRequestConfig.getInboundAuthType())) {
-                            if (inboundAuthenticatorConfig.isReplyingPartyKeyConfigured()) {
+                            if (inboundAuthenticatorConfig.isRelyingPartyKeyConfigured()) {
                                 if (inboundAuthenticatorConfig.getAuthKey() == null &&
                                     inboundAuthenticatorConfig.getRelyingPartyKey().equals(source.getName())) {
                                     source.setValue(inboundAuthenticationRequestConfig.getInboundAuthKey());
@@ -1724,7 +1730,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = entry.getValue();
             InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig =
                     new InboundAuthenticationRequestConfig();
-            if (!inboundAuthenticatorConfig.isReplyingPartyKeyConfigured() &&
+            if (!inboundAuthenticatorConfig.isRelyingPartyKeyConfigured() &&
                 StringUtils.isNotBlank(inboundAuthenticatorConfig.getAuthKey())) {
                 inboundAuthenticationRequestConfig.setInboundAuthKey(inboundAuthenticatorConfig.getAuthKey());
             }
