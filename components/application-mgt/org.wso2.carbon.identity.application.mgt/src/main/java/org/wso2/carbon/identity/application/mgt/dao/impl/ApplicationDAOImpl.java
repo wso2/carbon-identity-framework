@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -102,7 +103,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         standardInboundAuthTypes = new ArrayList<String>();
         standardInboundAuthTypes.add("oauth2");
         standardInboundAuthTypes.add("wstrust");
-        standardInboundAuthTypes.add("samlsso");
         standardInboundAuthTypes.add("openid");
         standardInboundAuthTypes.add("passivests");
     }
@@ -495,8 +495,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 return;
             }
 
-            inboundAuthReqConfigPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.STORE_CLIENT_INFO);
+            inboundAuthReqConfigPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.STORE_CLIENT_INFO);
             InboundAuthenticationRequestConfig[] authRequests = inBoundAuthenticationConfig
                     .getInboundAuthenticationRequestConfigs();
 
@@ -511,6 +510,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 List<Property> propertyArrayList = new ArrayList<>();
 
                 String authKey = null;
+                String inboundConfigType = IdentityApplicationConstants.Authenticator.CUSTOM_AUTHENTICATOR;
                 if (standardInboundAuthTypes.contains(authRequest.getInboundAuthType())) {
                     authKey = authRequest.getInboundAuthKey();
                     propertyArrayList = filterEmptyProperties(propertiesArray);
@@ -547,6 +547,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         authKey = applicationName;
                     }
                 }
+                if (StringUtils.isNotBlank(authRequest.getInboundConfigType())) {
+                    inboundConfigType = authRequest.getInboundConfigType();
+                }
                 if (!propertyArrayList.isEmpty()) {
                     for (Property prop : propertyArrayList) {
                         inboundAuthReqConfigPrepStmt.setInt(1, tenantID);
@@ -555,6 +558,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         inboundAuthReqConfigPrepStmt.setString(4,prop.getName());
                         inboundAuthReqConfigPrepStmt.setString(5,prop.getValue());
                         inboundAuthReqConfigPrepStmt.setInt(6, applicationId);
+                        inboundAuthReqConfigPrepStmt.setString(7, inboundConfigType);
                         inboundAuthReqConfigPrepStmt.addBatch();
                     }
                 } else {
@@ -564,6 +568,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     inboundAuthReqConfigPrepStmt.setString(4, null);
                     inboundAuthReqConfigPrepStmt.setString(5, null);
                     inboundAuthReqConfigPrepStmt.setInt(6, applicationId);
+                    inboundAuthReqConfigPrepStmt.setString(7, inboundConfigType);
                     inboundAuthReqConfigPrepStmt.addBatch();
                 }
 
@@ -1650,6 +1655,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 String authType = resultSet.getString(2);
                 String propName = resultSet.getString(3);
                 String propValue = resultSet.getString(4);
+                String uiType = resultSet.getString(5);
 
                 String mapKey = authType + ":" + authKey;
 
@@ -1659,10 +1665,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 }
                 inboundAuthRequest.setInboundAuthKey(authKey);
                 inboundAuthRequest.setInboundAuthType(authType);
+                inboundAuthRequest.setInboundConfigType(uiType);
 
                 boolean isCustomAuthenticator = isCustomInboundAuthType(authType);
                 AbstractInboundAuthenticatorConfig customAuthenticator = ApplicationManagementServiceComponentHolder
-                        .getInboundAuthenticatorConfig(authType);
+                        .getInboundAuthenticatorConfig(authType + ":" + uiType);
                 if (isCustomAuthenticator && customAuthenticator != null) {
                     inboundAuthRequest.setFriendlyName(customAuthenticator.getFriendlyName());
                 }
@@ -1670,16 +1677,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     Property prop = new Property();
                     prop.setName(propName);
                     prop.setValue(propValue);
-                    if (isCustomAuthenticator) {
-                        if (customAuthenticator != null) {
-                            Property mappedProperty = getMappedProperty(customAuthenticator, propName);
-                            if (mappedProperty != null) {
-                                prop.setDisplayName(mappedProperty.getDisplayName());
-                            }
+                    if (isCustomAuthenticator && customAuthenticator != null) {
+                        Property mappedProperty = getMappedProperty(customAuthenticator, propName);
+                        if (mappedProperty != null) {
+                            prop.setDisplayName(mappedProperty.getDisplayName());
                         }
                     }
-                    inboundAuthRequest.setProperties((ApplicationMgtUtil.concatArrays(
-                            new Property[]{prop}, inboundAuthRequest.getProperties())));
+                    inboundAuthRequest.setProperties((ApplicationMgtUtil.concatArrays(new Property[]{prop},
+                            inboundAuthRequest.getProperties())));
                 }
                 inboundAuthenticationRequestConfigMap.put(mapKey, inboundAuthRequest);
             }
@@ -1687,14 +1692,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(getClientInfo);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
         }
-        Map<String, AbstractInboundAuthenticatorConfig> allCustomAuthenticators =
-                new HashMap<>(ApplicationManagementServiceComponentHolder
-                                      .getAllInboundAuthenticatorConfig());
+        Map<String, AbstractInboundAuthenticatorConfig> allCustomAuthenticators = new HashMap<>
+                (ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig());
         for (Map.Entry<String, InboundAuthenticationRequestConfig> entry : inboundAuthenticationRequestConfigMap
                 .entrySet()) {
             InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = entry.getValue();
-            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig =
-                    allCustomAuthenticators.remove(inboundAuthenticationRequestConfig.getInboundAuthType());
+            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = allCustomAuthenticators.remove
+                    (inboundAuthenticationRequestConfig.getInboundAuthType() + ":" +
+                            inboundAuthenticationRequestConfig.getInboundConfigType());
             if (inboundAuthenticatorConfig != null && inboundAuthenticationRequestConfig != null) {
                 Property[] sources = inboundAuthenticatorConfig.getConfigurationProperties();
                 Property[] destinations = inboundAuthenticationRequestConfig.getProperties();
@@ -1720,8 +1725,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         .setProperties(destinationMap.values().toArray(new Property[destinationMap.size()]));
             }
         }
-        List<InboundAuthenticationRequestConfig> returnList =
-                new ArrayList<>(inboundAuthenticationRequestConfigMap.values());
+        List<InboundAuthenticationRequestConfig> returnList = new ArrayList<>(inboundAuthenticationRequestConfigMap
+                .values());
 
         for (Map.Entry<String, AbstractInboundAuthenticatorConfig> entry : allCustomAuthenticators.entrySet()) {
             AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = entry.getValue();
@@ -1738,9 +1743,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             returnList.add(inboundAuthenticationRequestConfig);
         }
         InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
-        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(returnList
-                                                                                   .toArray(new InboundAuthenticationRequestConfig[returnList
-                                                                                           .size()]));
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(returnList.toArray(new
+                InboundAuthenticationRequestConfig[returnList.size()]));
         return inboundAuthenticationConfig;
     }
 
