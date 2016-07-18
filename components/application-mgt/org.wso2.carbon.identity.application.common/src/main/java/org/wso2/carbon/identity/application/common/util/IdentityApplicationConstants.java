@@ -85,7 +85,6 @@ public class IdentityApplicationConstants {
 
     public static class Authenticator {
 
-        public static final String CUSTOM_AUTHENTICATOR = "custom";
         public static class OpenID {
 
             public static final String NAME = "openid";
