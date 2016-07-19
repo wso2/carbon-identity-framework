@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -601,7 +602,7 @@ public class FrameworkUtils {
      * @param sessionContext
      */
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
-        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(DigestUtils.sha256Hex(key));
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
 
         Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
@@ -629,7 +630,7 @@ public class FrameworkUtils {
     public static SessionContext getSessionContextFromCache(String key) {
 
         SessionContext sessionContext = null;
-        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(DigestUtils.sha256Hex(key));
         Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
 
         if (cacheEntryObj != null) {

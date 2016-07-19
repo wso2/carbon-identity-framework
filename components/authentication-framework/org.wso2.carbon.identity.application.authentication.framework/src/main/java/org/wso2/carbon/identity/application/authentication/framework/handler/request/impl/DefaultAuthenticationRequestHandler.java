@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -276,8 +277,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
+                String hashedCommonAuthCookie = DigestUtils.sha256Hex(commonAuthCookie);
                 FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
-                FrameworkUtils.publishSessionEvent(commonAuthCookie, request, context, sessionContext, sequenceConfig
+                FrameworkUtils.publishSessionEvent(hashedCommonAuthCookie, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
 
             } else {
