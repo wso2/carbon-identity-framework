@@ -97,29 +97,59 @@
             <artifactId>jackson-jaxrs-json-provider</artifactId>
             <version>2.5.4</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.cxf/cxf-rt-frontend-jaxrs -->
         <!--<dependency>-->
-        <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--<artifactId>jackson-core</artifactId>-->
-        <!--<version>${com.fasterxml.jackson.version}</version>-->
-        <!--<scope>provided</scope>-->
+            <!--<groupId>org.apache.cxf</groupId>-->
+            <!--<artifactId>cxf-rt-frontend-jaxrs</artifactId>-->
+            <!--<version>2.7.8</version>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--<artifactId>jackson-annotations</artifactId>-->
-        <!--<version>${com.fasterxml.jackson.annotation.version}</version>-->
-        <!--<scope>provided</scope>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--<artifactId>jackson-databind</artifactId>-->
-        <!--<version>${com.fasterxml.jackson.annotation.version}</version>-->
-        <!--<scope>provided</scope>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>com.fasterxml.jackson.jaxrs</groupId>-->
-        <!--<artifactId>jackson-jaxrs-json-endpoint</artifactId>-->
-        <!--<version>${com.fasterxml.jackson.version}</version>-->
-        <!--</dependency>-->
+        <!-- CXF -->
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+            <version>2.7.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+            <version>2.7.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${org.slf4j.verison}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${org.slf4j.verison}</version>
+        </dependency>
+
+        <!-- SWAGGER -->
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-jaxrs</artifactId>
+            <version>1.5.8</version>
+
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>swagger-ui</artifactId>
+            <version>2.1.4</version>
+
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.wordnik/swagger-jaxrs_2.10 -->
+        <dependency>
+            <groupId>com.wordnik</groupId>
+            <artifactId>swagger-jaxrs_2.10</artifactId>
+            <version>1.3.13</version>
+        </dependency>
+
+
+
+
     </dependencies>
 
     <build>
