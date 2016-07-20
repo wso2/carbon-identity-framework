@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.balana.ParsingException;
@@ -37,17 +39,29 @@ import javax.ws.rs.core.MediaType;
  * </p>
  */
 @Path("/")
+@Api(value = "/", description = "User REST for Integration Testing")
 public class DecisionResource extends AbstractResource {
     private static Log log = LogFactory.getLog(DecisionResource.class);
+
+    @GET
+    @Path("home")
+    @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    @Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    public HomeResponseModel getHome(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                          @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
+                          @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization){
+        return new HomeResponseModel();
+    }
 
     /**
      * API endpoint for evaluating XACML XML policies
      * @return XML Policy result String
      */
     @POST
-    @Path("by-xacml")
-    @Produces(MediaType.APPLICATION_XML)
-    @Consumes(MediaType.APPLICATION_XML)
+    @Path("pdp")
+    @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    @Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    @ApiOperation(value = "Get user details", response = String.class)
     public String getDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                               @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                               @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
