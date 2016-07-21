@@ -225,4 +225,14 @@ public class AuthenticatedUser extends User {
     public void setFederatedIdPName(String federatedIdPName) {
         this.federatedIdPName = federatedIdPName;
     }
+
+    @Override
+    public String toString() {
+
+        if (isFederatedUser && StringUtils.isBlank(userName)) {
+            //username,userstore domain may be null for federated users
+            return authenticatedSubjectIdentifier;
+        }
+        return super.toString();
+    }
 }
