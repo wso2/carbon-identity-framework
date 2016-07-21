@@ -197,6 +197,7 @@ public abstract class FrameworkConstants {
         public static final String USER = "user";
         public static final String SESSION_ID = "sessionId";
         public static final String IS_FEDERATED = "isFederated";
+        public static final String IS_INITIAL_LOGIN = "isInitialLogin";
         public static final String HAS_FEDERATED_STEP = "hasFederatedStep";
         public static final String HAS_LOCAL_STEP = "hasLocalStep";
         public static final String AUTHN_DATA_PUBLISHER_PROXY = "AuthnDataPublisherProxy";
