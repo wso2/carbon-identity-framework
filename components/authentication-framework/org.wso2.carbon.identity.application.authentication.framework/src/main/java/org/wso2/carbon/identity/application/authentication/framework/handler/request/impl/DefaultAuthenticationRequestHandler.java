@@ -282,6 +282,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             } else {
                 sessionContext = new SessionContext();
+                // To identify first login
+                context.setProperty(FrameworkConstants.AnalyticsAttributes.IS_INITIAL_LOGIN, true);
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                                                                sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
