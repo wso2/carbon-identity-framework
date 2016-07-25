@@ -18,11 +18,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateQuestionResponse" %>
 
 <%
-    ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
+    InitiateQuestionResponse initiateQuestionResponse = (InitiateQuestionResponse)
+            session.getAttribute("initiateChallengeQuestionResponse");
     ErrorResponse errorResponse = (ErrorResponse) request.getAttribute("errorResponse");
     boolean reCaptchaEnabled = false;
     if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
@@ -93,7 +94,7 @@
                     <div class="padding-double">
                         <form method="post" action="processsecurityquestions.do" id="securityQuestionForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label"><%=challengeQuestionResponse.getQuestion().getQuestion()%>
+                                <label class="control-label"><%=initiateQuestionResponse.getQuestion().getQuestion()%>
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">

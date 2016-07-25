@@ -17,20 +17,18 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RecoveryInitiatingRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 
 <%
 
-
-    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
 
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
 
@@ -38,18 +36,20 @@
     String tenantDomain = MultitenantUtils.getTenantDomain(username);
 
     User user = new User();
-    user.setUserName(username);
+    user.setUsername(username);
     user.setTenantDomain(tenantDomain);
-    user.setUserStoreDomain(userStoreDomain);
+    user.setRealm(userStoreDomain);
 
-    Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendPasswordRecoveryNotification(user);
+    NotificationApi notificationApi = new NotificationApi();
 
-    if ((sendNotificationResponse == null) || (StringUtils.isBlank(Integer.toString(sendNotificationResponse.getStatus()))) ||
-            (Response.Status.OK.getStatusCode() != sendNotificationResponse.getStatus())) {
+    RecoveryInitiatingRequest recoveryInitiatingRequest = new RecoveryInitiatingRequest();
+    recoveryInitiatingRequest.setUser(user);
+
+    try {
+        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null);
+    } catch (ApiException e) {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-            IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_1 + "\t" +
-                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_2);
+        request.setAttribute("errorMsg", e.getMessage());
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }

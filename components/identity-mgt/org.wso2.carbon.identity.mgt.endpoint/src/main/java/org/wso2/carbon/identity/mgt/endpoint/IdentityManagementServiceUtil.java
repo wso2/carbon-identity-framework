@@ -25,8 +25,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
-import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.securevault.SecretResolver;
@@ -223,8 +223,8 @@ public class IdentityManagementServiceUtil {
                 .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(userName));
 
         User user = new User();
-        user.setUserName(userNameWithoutTenantDomainAndUserStoreDomain);
-        user.setUserStoreDomain(userStoreDomain);
+        user.setUsername(userNameWithoutTenantDomainAndUserStoreDomain);
+        user.setRealm(userStoreDomain);
         user.setTenantDomain(tenantDomain);
 
         return user;

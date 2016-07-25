@@ -19,67 +19,35 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ResetPasswordRequest" %>
 
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword" %>
-<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
-<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 <%
 
-    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
-    PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-
-    String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
-    boolean isPasswordRecoveryEmailConfirmation =
-            Boolean.parseBoolean(request.getParameter("isPasswordRecoveryEmailConfirmation"));
-
-    Response resetPasswordResponse = null;
 
     String newPassword = request.getParameter("reset-password");
 
-    String userStoreDomain = Utils.getUserStoreDomainName(username);
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
-
     if (StringUtils.isNotBlank(newPassword)) {
-        if (isPasswordRecoveryEmailConfirmation) {
-            User user = new User();
-            user.setUserName(username);
-            user.setTenantDomain(tenantDomain);
-            user.setUserStoreDomain(userStoreDomain);
 
-            ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
-            resetPasswordRequest.setUser(user);
-            resetPasswordRequest.setPassword(newPassword);
-            resetPasswordRequest.setCode(confirmationKey);
+        NotificationApi notificationApi = new NotificationApi();
 
-            resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(resetPasswordRequest);
+        ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
 
-            if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
-                    (Response.Status.OK.getStatusCode() != resetPasswordResponse.getStatus())) {
-                request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                        IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_3 + "\t" +
-                                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_4);
-                request.getRequestDispatcher("error.jsp").forward(request, response);
-                return;
-            }
-        } else {
-            ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
-            User user = (User) session.getAttribute("user");
+        resetPasswordRequest.setKey(confirmationKey);
+        resetPasswordRequest.setPassword(newPassword);
 
-            UserPassword userPassword = new UserPassword();
-            userPassword.setCode(challengeQuestionResponse.getCode());
-            userPassword.setUser(user);
-            userPassword.setPassword(newPassword);
-            pwRecoverySecurityQuestionClient.updatePassword(userPassword);
+        try {
+            notificationApi.setPasswordPost(resetPasswordRequest);
+        } catch (ApiException e) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", e.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
         }
+
 
     } else {
         request.setAttribute("error", true);
