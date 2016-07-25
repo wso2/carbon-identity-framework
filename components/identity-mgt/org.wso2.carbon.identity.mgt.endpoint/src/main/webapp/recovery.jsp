@@ -96,6 +96,7 @@
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else {
             request.setAttribute("username", username);
+            session.setAttribute("username", username);
 
             if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.EMAIL.equals(recoveryOption)) {
                 request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);

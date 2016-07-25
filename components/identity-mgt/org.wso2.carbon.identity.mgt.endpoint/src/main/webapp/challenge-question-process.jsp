@@ -17,6 +17,7 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
@@ -90,52 +91,18 @@
             }
 
         } catch (ApiException e) {
+            RetryError retryError = new Gson().fromJson(e.getMessage(), RetryError.class);
+            if (retryError != null && "20008".equals(retryError.getCode())) {
+                request.setAttribute("errorResponse", retryError);
+                request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
+                return;
+            }
             request.setAttribute("error", true);
             request.setAttribute("errorMsg", e.getMessage());
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
 
-//        VerifyAnswerRequest verifyAnswerRequest = new VerifyAnswerRequest();
-//
-////        verifyAnswerRequest.setUser(user);
-//        verifyAnswerRequest.setCode(code);
-//
-//        UserChallengeAnswer userChallengeAnswer = new UserChallengeAnswer();
-//        userChallengeAnswer.setQuestion(challengeQuestion);
-//        userChallengeAnswer.setAnswer(securityQuestionAnswer);
-//
-//        verifyAnswerRequest.setAnswer(userChallengeAnswer);
-//        PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-//
-//        Map<String, String> headers = new HashMap<String, String>();
-//        if (request.getParameter("g-recaptcha-response") != null) {
-//            headers.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
-//        }
-//        Response responseJAXRS = pwRecoverySecurityQuestionClient.verifyUserChallengeAnswer(verifyAnswerRequest, headers);
-//        int statusCode = responseJAXRS.getStatus();
-//        if (Response.Status.OK.getStatusCode() == statusCode) {
-//            ChallengeQuestionResponse challengeQuestionResponse1 = responseJAXRS.readEntity(ChallengeQuestionResponse.class);
-//            String status = challengeQuestionResponse1.getStatus();
-//            session.setAttribute("challengeQuestionResponse", challengeQuestionResponse1);
-//            if ("INCOMPLETE".equals(status)) {
-//                request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
-//            } else if ("COMPLETE".equals(status)) {
-//                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
-//            }
-//        } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
-//            ErrorResponse errorResponse = responseJAXRS.readEntity(ErrorResponse.class);
-//            if ("20008".equals(errorResponse.getCode()) &&
-//                    ((ResponseImpl) responseJAXRS).getHeaders().containsKey("reCaptcha") &&
-//                    "conditional".equalsIgnoreCase((String) ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptcha").get(0))) {
-//                request.setAttribute("reCaptcha", "true");
-//                request.setAttribute("reCaptchaKey", ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptchaKey").get(0));
-//                request.setAttribute("reCaptchaAPI", ((ResponseImpl) responseJAXRS).getHeaders().get("reCaptchaAPI").get(0));
-//            }
-//            request.setAttribute("errorResponse", errorResponse);
-//            request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
-//            return;
-//        }
     } else if (Boolean.parseBoolean(application.getInitParameter(IdentityManagementEndpointConstants
             .ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
 
@@ -175,6 +142,12 @@
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
 
         } catch (ApiException e) {
+            RetryError retryError = new Gson().fromJson(e.getMessage(), RetryError.class);
+            if (retryError != null && "20008".equals(retryError.getCode())) {
+                request.setAttribute("errorResponse", retryError);
+                request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
+                return;
+            }
             request.setAttribute("error", true);
             request.setAttribute("errorMsg", e.getMessage());
             request.getRequestDispatcher("error.jsp").forward(request, response);
