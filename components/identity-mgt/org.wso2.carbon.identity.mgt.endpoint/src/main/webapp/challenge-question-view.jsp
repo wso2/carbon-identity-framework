@@ -18,13 +18,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
 
 <%
     InitiateQuestionResponse initiateQuestionResponse = (InitiateQuestionResponse)
             session.getAttribute("initiateChallengeQuestionResponse");
-    ErrorResponse errorResponse = (ErrorResponse) request.getAttribute("errorResponse");
+    RetryError errorResponse = (RetryError) request.getAttribute("errorResponse");
     boolean reCaptchaEnabled = false;
     if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
         reCaptchaEnabled = true;
@@ -83,7 +83,7 @@
                     if (errorResponse != null) {
                 %>
                 <div class="alert alert-danger" id="server-error-msg">
-                    <%=errorResponse.getMessage()%>
+                    <%=errorResponse.getDescription()%>
                 </div>
                 <%
                     }

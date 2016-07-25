@@ -27,16 +27,16 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateAllQuestionResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Question" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    ErrorResponse errorResponse = (ErrorResponse) request.getAttribute("errorResponse");
+    RetryError errorResponse = (RetryError) request.getAttribute("errorResponse");
     List<Question> challengeQuestions = null;
 
     if (errorResponse != null) {
-        username = ((User) session.getAttribute("user")).getUsername();
+        username = (String) session.getAttribute("username");
     }
     if (StringUtils.isNotBlank(username)) {
         if (Boolean.parseBoolean(application.getInitParameter(
@@ -135,7 +135,7 @@
                     if (errorResponse != null) {
                 %>
                 <div class="alert alert-danger" id="server-error-msg">
-                    <%=errorResponse.getMessage()%>
+                    <%=errorResponse.getDescription()%>
                 </div>
                 <%
                     }
