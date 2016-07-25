@@ -18,12 +18,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
 
 <%
-    ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
-    ErrorResponse errorResponse = (ErrorResponse) request.getAttribute("errorResponse");
+    InitiateQuestionResponse initiateQuestionResponse = (InitiateQuestionResponse)
+            session.getAttribute("initiateChallengeQuestionResponse");
+    RetryError errorResponse = (RetryError) request.getAttribute("errorResponse");
     boolean reCaptchaEnabled = false;
     if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
         reCaptchaEnabled = true;
@@ -82,7 +83,7 @@
                     if (errorResponse != null) {
                 %>
                 <div class="alert alert-danger" id="server-error-msg">
-                    <%=errorResponse.getMessage()%>
+                    <%=errorResponse.getDescription()%>
                 </div>
                 <%
                     }
@@ -93,7 +94,7 @@
                     <div class="padding-double">
                         <form method="post" action="processsecurityquestions.do" id="securityQuestionForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label"><%=challengeQuestionResponse.getQuestion().getQuestion()%>
+                                <label class="control-label"><%=initiateQuestionResponse.getQuestion().getQuestion()%>
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">

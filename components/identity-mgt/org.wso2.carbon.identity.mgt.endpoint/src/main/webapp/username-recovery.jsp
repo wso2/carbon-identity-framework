@@ -19,12 +19,12 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
+<%@ page import="java.util.List" %>
 
 <%
     if (!Boolean.parseBoolean(application.getInitParameter(
@@ -39,31 +39,38 @@
     boolean isFirstNameInClaims = false;
     boolean isLastNameInClaims = false;
     boolean isEmailInClaims = false;
+    List<Claim> claims;
+    UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
+    try {
+        claims = usernameRecoveryApi.claimsGet(null);
+    } catch (ApiException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", e.getMessage());
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
 
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+    if (claims == null || claims.size() == 0) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", "No recovery supported claims found");
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
 
-    UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient
-            .getUserIdentitySupportedClaims(IdentityManagementEndpointConstants.WSO2_DIALECT);
-
-    for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-        if (StringUtils.equals(claimDTO.getClaimUri(),
+    for (Claim claim : claims) {
+        if (StringUtils.equals(claim.getUri(),
                 IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
             isFirstNameInClaims = true;
         }
-        if (StringUtils.equals(claimDTO.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)) {
+        if (StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)) {
             isLastNameInClaims = true;
         }
-        if (StringUtils.equals(claimDTO.getClaimUri(),
+        if (StringUtils.equals(claim.getUri(),
                 IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
             isEmailInClaims = true;
         }
     }
 
-    CaptchaInfoBean captchaInfoBean = userInformationRecoveryClient.generateCaptcha();
-
-    String captchaImagePath = captchaInfoBean.getImagePath();
-    String captchaImageUrl = IdentityUtil.getServerURL(null, false, false) + "/" + captchaImagePath;
-    String captchaKey = captchaInfoBean.getSecretKey();
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
@@ -123,45 +130,46 @@
                     <div class="padding-double">
                         <form method="post" action="verify.do" id="recoverDetailsForm">
                             <% if (isFirstNameInClaims) { %>
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 ">
                                 <label class="control-label">First Name</label>
                                 <input id="first-name" type="text" name="http://wso2.org/claims/givenname"
-                                       class="form-control"
-                                       required>
+                                       class="form-control">
                             </div>
                             <%}%>
 
                             <% if (isLastNameInClaims) { %>
-                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 ">
                                 <label class="control-label">Last Name</label>
                                 <input id="last-name" type="text" name="http://wso2.org/claims/lastname"
-                                       class="form-control required"
-                                       required>
+                                       class="form-control ">
                             </div>
                             <%}%>
 
                             <% if (isEmailInClaims) { %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 ">
                                 <label class="control-label">Email</label>
                                 <input id="email" type="email" name="http://wso2.org/claims/emailaddress"
                                        class="form-control"
-                                       data-validate="email" required>
+                                       data-validate="email">
                             </div>
                             <%}%>
 
-                            <% for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-                                if (claimDTO.getRequired() &&
-                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                            <td>&nbsp;&nbsp;</td>
+                            <input type="hidden" , id="isUsernameRecovery" , name="isUsernameRecovery" value="true">
+
+                            <% for (Claim claim : claims) {
+                                if (claim.getRequired() &&
+                                        !StringUtils.equals(claim.getUri(),
                                                 IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
-                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                        !StringUtils.equals(claim.getUri(),
                                                 IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
-                                        !StringUtils.equals(claimDTO.getClaimUri(),
+                                        !StringUtils.equals(claim.getUri(),
                                                 IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label"><%= Encode.forHtmlContent(claimDTO.getDisplayName())%>
+                                <label class="control-label"><%= Encode.forHtmlContent(claim.getDisplayName())%>
                                 </label>
-                                <input type="text" name="<%= Encode.forHtmlAttribute(claimDTO.getClaimUri()) %>"
+                                <input type="text" name="<%= Encode.forHtmlAttribute(claim.getUri()) %>"
                                        class="form-control"/>
                             </div>
                             <%
@@ -169,24 +177,6 @@
                                 }
                             %>
 
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <img src="<%=Encode.forHtmlAttribute(captchaImageUrl)%>"
-                                     alt='If you can not see the captcha image please refresh the page or click the link again.'/>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label">Enter Captcha Text</label>
-                                <input id="captchaAnswer" name="captchaAnswer" type="text" class="form-control"
-                                       required>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input id="confirmationKey" type="hidden" name="captchaKey"
-                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
-                                <input id="captchaImagePath" type="hidden" name="captchaImagePath"
-                                       value="<%=Encode.forHtmlAttribute(captchaImagePath)%>"/>
-                                <input id="captchaKey" type="hidden" name="captchaKey"
-                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
-                                <input id="isUsernameRecovery" type="hidden" name="isUsernameRecovery" value="true"/>
-                            </div>
 
                             <div class="form-actions">
                                 <table width="100%" class="styledLeft">
@@ -202,6 +192,7 @@
                                         <td>
                                             <button id="recoveryCancel"
                                                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
+                                                    type="button"
                                                     onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
                                                         application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>';">
                                                 Cancel

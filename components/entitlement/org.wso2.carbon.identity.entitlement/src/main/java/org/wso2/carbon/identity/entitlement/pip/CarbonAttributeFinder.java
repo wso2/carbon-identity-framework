@@ -24,9 +24,11 @@ import org.wso2.balana.ParsingException;
 import org.wso2.balana.attr.AttributeValue;
 import org.wso2.balana.attr.BagAttribute;
 import org.wso2.balana.cond.EvaluationResult;
+import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.ctx.EvaluationCtx;
 import org.wso2.balana.ctx.Status;
 import org.wso2.balana.finder.AttributeFinderModule;
+import org.wso2.balana.xacml3.Attributes;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.cache.PIPAttributeCache;
@@ -164,11 +166,11 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
 
                 if (attributeFinderCache != null && !pipAttributeFinder.overrideDefaultCache()) {
 
-                    key = attributeType.toString() + attributeId.toString() + category.toString() +
-                          encodeContext(context);
+                    key = "[" + attributeType.toString() + "][" + attributeId.toString() + "][" + category.toString() +
+                            "][" + encodeContext(context) + "]";
 
                     if (issuer != null) {
-                        key += issuer;
+                        key += "[" + issuer + "]";
                     }
 
                     if (key != null) {
@@ -288,6 +290,19 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
     private String encodeContext(EvaluationCtx evaluationCtx) throws TransformerException {
         OutputStream stream = new ByteArrayOutputStream();
         evaluationCtx.getRequestCtx().encode(stream);
-        return stream.toString();
+        String rowContext = stream.toString();
+        String contextWithAttributeValues = rowContext + "][";
+
+        StringBuilder builder = new StringBuilder();
+        for (Attributes attributes : evaluationCtx.getRequestCtx().getAttributesSet()) {
+            builder.append("<Attributes ").append(">");
+            for (Attribute attribute : attributes.getAttributes()) {
+                attribute.encode(builder);
+            }
+            builder.append("</Attributes>");
+        }
+        contextWithAttributeValues += builder.toString();
+
+        return contextWithAttributeValues;
     }
 }

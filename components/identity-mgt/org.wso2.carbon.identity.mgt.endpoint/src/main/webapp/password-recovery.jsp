@@ -94,11 +94,11 @@
                             <%
                                 if (isEmailNotificationEnabled) {
                             %>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                            <div class="form-group">
                                 <input type="radio" name="recoveryOption" value="EMAIL" checked/>
                                 Recover with Email
                             </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                            <div class="form-group">
                                 <input type="radio" name="recoveryOption" value="SECURITY_QUESTIONS"/>
                                 Recover with Security Questions
                             </div>

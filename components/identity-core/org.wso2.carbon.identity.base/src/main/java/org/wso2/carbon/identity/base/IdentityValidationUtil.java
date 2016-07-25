@@ -37,10 +37,10 @@ public class IdentityValidationUtil {
      * Defines a predefined set of pattern list
      */
     public static enum ValidatorPattern {
-        DIGITS_ONLY("^[0-9]+"),
-        ALPHABETIC_ONLY("^[a-zA-Z]+"),
-        ALPHANUMERICS_ONLY("^[a-zA-Z0-9]+"),
-        URL("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"),
+        DIGITS_ONLY("^[0-9]+$"),
+        ALPHABETIC_ONLY("^[a-zA-Z]+$"),
+        ALPHANUMERICS_ONLY("^[a-zA-Z0-9]+$"),
+        URL("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
         EMAIL("^\\s*?(.+)@(.+?)\\s*$"),
         WHITESPACE_EXISTS(".*\\s+.*"),
         URI_RESERVED_EXISTS(".*[:/\\?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+.*"),
@@ -48,9 +48,10 @@ public class IdentityValidationUtil {
         HTML_META_EXISTS(".*[&<>\"'/]+.*"),
         XML_META_EXISTS(".*[&<>\"']+.*"),
         REGEX_META_EXISTS(".*[\\\\\\^\\$\\.\\|\\?\\*\\+\\(\\)\\[\\{]+.*"),
-        HTTP_URL("^(http:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"),
-        HTTPS_URL("^(https:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"),
-        FTP_URL("^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
+        HTTP_URL("^(http:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        HTTPS_URL("^(https:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        FTP_URL("^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        REGISTRY_INVALID_CHARS_EXISTS("[~!@#;%^*()+={}|<>\\\\\"'/,]+");
 
         private String regex;
 
@@ -143,7 +144,7 @@ public class IdentityValidationUtil {
         }
 
         return isValidOverWhiteListPatterns(input, whiteListPatterns) ||
-               isValidOverBlackListPatterns(input, blackListPatterns);
+                isValidOverBlackListPatterns(input, blackListPatterns);
 
     }
 

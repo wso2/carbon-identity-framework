@@ -289,9 +289,22 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                             FrameworkUtils.startTenantFlow(context.getTenantDomain());
                             associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
                                                                                   originalExternalIdpSubjectValueForThisStep);
-                            stepConfig.getAuthenticatedUser().setUserName(associatedID);
-                            stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
-                            stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
+                            if (StringUtils.isNotBlank(associatedID)) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
+                                            " has an associated account as " + associatedID + ". Hence continuing as " +
+                                            associatedID);
+                                }
+                                stepConfig.getAuthenticatedUser().setUserName(associatedID);
+                                stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
+                                stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
+                            } else {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
+                                            " doesn't have an associated" +
+                                            " account. Hence continuing as the same user.");
+                                }
+                            }
                         } catch (UserProfileException e) {
                             throw new FrameworkException("Error while getting associated local user ID for "
                                     + originalExternalIdpSubjectValueForThisStep, e);
