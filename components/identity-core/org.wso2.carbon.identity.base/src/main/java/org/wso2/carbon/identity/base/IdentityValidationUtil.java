@@ -32,6 +32,7 @@ public class IdentityValidationUtil {
     private static final String msgSection3 =
             "contains illegal characters matching one of the black list patterns [ %s ]";
     private static final String msgSection4 = " or ";
+    private static final String PATTERN_NOT_REGISTERED = "No regex pattern registered for the provided key : %s";
 
     /**
      * Defines a predefined set of pattern list
@@ -76,6 +77,8 @@ public class IdentityValidationUtil {
      * @param input             input
      * @param whiteListPatterns a String array of white list pattern keys
      * @return true if matches with any of the white list patterns
+     * @throws IdentityValidationException if a white list pattern key provided does not correspond to a registered
+     *                                     regex.
      */
     public static boolean isValidOverWhiteListPatterns(String input, String... whiteListPatterns) {
         if (ArrayUtils.isEmpty(whiteListPatterns)) {
@@ -85,6 +88,8 @@ public class IdentityValidationUtil {
         if (StringUtils.isEmpty(input)) {
             return true;
         }
+
+        validatePatternKeys(whiteListPatterns);
 
         boolean isValid = false;
         for (String key : whiteListPatterns) {
@@ -105,6 +110,8 @@ public class IdentityValidationUtil {
      * @param input             input
      * @param blackListPatterns a String array of black list pattern keys
      * @return true if does not match with any of the black list patterns
+     * @throws IdentityValidationException if a black list pattern key provided does not correspond to a registered
+     *                                     regex.
      */
     public static boolean isValidOverBlackListPatterns(String input, String... blackListPatterns) {
         if (ArrayUtils.isEmpty(blackListPatterns)) {
@@ -114,6 +121,8 @@ public class IdentityValidationUtil {
         if (StringUtils.isEmpty(input)) {
             return true;
         }
+
+        validatePatternKeys(blackListPatterns);
 
         boolean isValid = false;
         for (String key : blackListPatterns) {
@@ -250,5 +259,18 @@ public class IdentityValidationUtil {
         }
 
         return patternString.toString();
+    }
+
+    /**
+     * Check if all provided patterns keys have a corresponding regex registered.
+     *
+     * @param patterns array of pattern keys to be checked
+     */
+    private static void validatePatternKeys(String[] patterns) {
+        for (String key : patterns) {
+            if (!patternExists(key)) {
+                throw new IllegalArgumentException(String.format(PATTERN_NOT_REGISTERED, key));
+            }
+        }
     }
 }
