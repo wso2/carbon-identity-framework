@@ -19,54 +19,57 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SecurityQuestionApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateAllQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Question" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
+<%@ page import="java.util.List" %>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-    ErrorResponse errorResponse = (ErrorResponse)request.getAttribute("errorResponse");
-    ChallengeQuestion[] challengeQuestions = null;
+    ErrorResponse errorResponse = (ErrorResponse) request.getAttribute("errorResponse");
+    List<Question> challengeQuestions = null;
 
-    if(errorResponse != null) {
-        username = ((User)session.getAttribute("user")).getUserName();
+    if (errorResponse != null) {
+        username = ((User) session.getAttribute("user")).getUsername();
     }
     if (StringUtils.isNotBlank(username)) {
         if (Boolean.parseBoolean(application.getInitParameter(
                 IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
             User user = IdentityManagementServiceUtil.getInstance().getUser(username);
-            session.setAttribute("user", user);
-            Response responseJAXRS = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestionAtOnce(user);
 
-            int statusCode = responseJAXRS.getStatus();
-            if(Response.Status.OK.getStatusCode() == statusCode) {
-                ChallengeQuestionsResponse challengeQuestionsResponse = responseJAXRS.readEntity(ChallengeQuestionsResponse.class);
-                session.setAttribute("challengeQuestionsResponse", challengeQuestionsResponse);
-                challengeQuestions = challengeQuestionsResponse.getQuestion();
-                if(((ResponseImpl)responseJAXRS).getHeaders().containsKey("reCaptcha") &&
-                        Boolean.parseBoolean((String) ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptcha").get(0))) {
-                    request.setAttribute("reCaptcha", "true");
-                    request.setAttribute("reCaptchaKey", ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptchaKey").get(0));
-                    request.setAttribute("reCaptchaAPI", ((ResponseImpl)responseJAXRS).getHeaders().get("reCaptchaAPI").get(0));
+            try {
+                SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
+                InitiateAllQuestionResponse initiateAllQuestionResponse = securityQuestionApi.securityQuestionsGet(user.getUsername(),
+                        user.getRealm(), user.getTenantDomain());
+                session.setAttribute("initiateAllQuestionResponse", initiateAllQuestionResponse);
+
+                challengeQuestions = initiateAllQuestionResponse.getQuestions();
+            } catch (ApiException e) {
+                if (e.getCode() == 204) {
+
+                    //No questions found
+                    request.setAttribute("error", true);
+                    request.setAttribute("errorMsg",
+                            "No Security Questions Found to recover password. Please contact your system Administrator");
+                    request.getRequestDispatcher("error.jsp").forward(request, response);
+                    return;
+
                 }
-            } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
-                ErrorResponse errorResponseFetchChallengeQuestions = responseJAXRS.readEntity(ErrorResponse.class);
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg", errorResponseFetchChallengeQuestions.getMessage());
+                request.setAttribute("errorMsg", e.getMessage());
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
+
         } else {
             request.getRequestDispatcher("challenge-question-process.jsp?username=" + username).forward(request,
-                            response);
+                    response);
         }
     } else {
         request.setAttribute("error", true);
@@ -128,15 +131,15 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-             <%
-                if(errorResponse != null) {
-             %>
+                <%
+                    if (errorResponse != null) {
+                %>
                 <div class="alert alert-danger" id="server-error-msg">
                     <%=errorResponse.getMessage()%>
                 </div>
-             <%
-                }
-             %>
+                <%
+                    }
+                %>
                 <div class="clearfix"></div>
                 <div class="boarder-all ">
 
@@ -145,14 +148,15 @@
                             <%
                                 int count = 0;
                                 if (challengeQuestions != null) {
-                                    for (ChallengeQuestion challengeQuestion : challengeQuestions) {
+                                    for (Question challengeQuestion : challengeQuestions) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <label class="control-label"><%=Encode.forHtml(challengeQuestion.getQuestion())%>
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input name="<%=Encode.forHtmlAttribute(challengeQuestion.getQuestionSetId())%>" type="text"
+                                <input name="<%=Encode.forHtmlAttribute(challengeQuestion.getQuestionSetId())%>"
+                                       type="text"
                                        class="form-control"
                                        tabindex="0" autocomplete="off" required/>
                             </div>

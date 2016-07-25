@@ -18,24 +18,15 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 
 <%
-    String username = request.getParameter("username");
-    String userStoreDomain = request.getParameter("userstoredomain");
-    String tenantDomain = request.getParameter("tenantdomain");
     String confirmationKey = request.getParameter("confirmation");
-
-    String fullQualifiedUsername = IdentityManagementEndpointUtil.getFullQualifiedUsername(username, tenantDomain,
-                                                                                          userStoreDomain);
-    if (StringUtils.isNotBlank(fullQualifiedUsername) && StringUtils.isNotBlank(confirmationKey)) {
-        request.getSession().setAttribute("username", fullQualifiedUsername);
+    if ( StringUtils.isNotBlank(confirmationKey)) {
         request.getSession().setAttribute("confirmationKey", confirmationKey);
         request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-                             "Cannot process the email notification confirmation. Either the username or confirmation code is missing.");
+        request.setAttribute("errorMsg", "Cannot process the email notification confirmation. confirmation code is missing.");
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
