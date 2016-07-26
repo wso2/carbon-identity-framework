@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -244,7 +245,8 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                 Cookie cookie = FrameworkUtils.getAuthCookie(request);
 
                 if (cookie != null) {
-                    context.setSessionIdentifier(cookie.getValue());
+                    String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
+                    context.setSessionIdentifier(sessionContextKey);
                 }
 
                 return context;
@@ -316,12 +318,14 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                           + " cookie is available with the value: " + cookie.getValue());
             }
 
+            String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
+
             // get the authentication details from the cache
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(cookie
-                                                                                              .getValue());
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
 
             if (sessionContext != null) {
-                context.setSessionIdentifier(cookie.getValue());
+
+                context.setSessionIdentifier(sessionContextKey);
                 String appName = sequenceConfig.getApplicationConfig().getApplicationName();
 
                 if (log.isDebugEnabled()) {

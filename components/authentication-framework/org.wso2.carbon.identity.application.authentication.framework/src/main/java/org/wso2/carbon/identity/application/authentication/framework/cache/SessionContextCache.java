@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.cache;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -91,6 +92,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     }
 
     public void clearCacheEntry(SessionContextCacheKey key) {
+
         super.clearCacheEntry(key);
         SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
     }
