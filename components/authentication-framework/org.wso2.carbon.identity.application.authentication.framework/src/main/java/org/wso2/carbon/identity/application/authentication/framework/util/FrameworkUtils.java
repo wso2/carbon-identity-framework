@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -602,7 +601,7 @@ public class FrameworkUtils {
      * @param sessionContext
      */
     public static void addSessionContextToCache(String key, SessionContext sessionContext) {
-        SessionContextCacheKey cacheKey = new SessionContextCacheKey(DigestUtils.sha256Hex(key));
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
 
         Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
@@ -630,7 +629,7 @@ public class FrameworkUtils {
     public static SessionContext getSessionContextFromCache(String key) {
 
         SessionContext sessionContext = null;
-        SessionContextCacheKey cacheKey = new SessionContextCacheKey(DigestUtils.sha256Hex(key));
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
         Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
 
         if (cacheEntryObj != null) {
@@ -1173,13 +1172,12 @@ public class FrameworkUtils {
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
             context, SessionContext sessionContext, AuthenticatedUser user, String status) {
-        String hashedCommonAuthCookie = DigestUtils.sha256Hex(sessionId);
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
-            paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, hashedCommonAuthCookie);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (FrameworkConstants.AnalyticsAttributes.SESSION_CREATE.equalsIgnoreCase(status)) {
                 authnDataPublisherProxy.publishSessionCreation(request, context, sessionContext,

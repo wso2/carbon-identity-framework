@@ -263,10 +263,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
+            String sessionContextKey = null;
             if (FrameworkUtils.getAuthCookie(request) != null) {
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
+                sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
                 if (commonAuthCookie != null) {
-                    sessionContext = FrameworkUtils.getSessionContextFromCache(commonAuthCookie);
+                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
                 }
             }
 
@@ -278,7 +280,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
-                FrameworkUtils.publishSessionEvent(commonAuthCookie, request, context, sessionContext, sequenceConfig
+                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
 
             } else {
@@ -288,12 +290,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
                 sessionContext.setRememberMe(context.isRememberMe());
                 String sessionKey = UUIDGenerator.generateUUID();
+                sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext);
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
                 setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
-                FrameworkUtils.publishSessionEvent(sessionKey, request, context, sessionContext, sequenceConfig
+                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
 
