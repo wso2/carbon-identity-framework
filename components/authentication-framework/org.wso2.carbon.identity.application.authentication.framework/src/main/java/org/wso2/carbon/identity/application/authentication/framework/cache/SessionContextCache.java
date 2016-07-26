@@ -93,12 +93,8 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     public void clearCacheEntry(SessionContextCacheKey key) {
 
-        SessionContextCacheKey sessionContextCacheKey =
-                new SessionContextCacheKey(key.getContextId());
-
-        super.clearCacheEntry(sessionContextCacheKey);
-        SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
-                SESSION_CONTEXT_CACHE_NAME);
+        super.clearCacheEntry(key);
+        SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
     }
 
     /**

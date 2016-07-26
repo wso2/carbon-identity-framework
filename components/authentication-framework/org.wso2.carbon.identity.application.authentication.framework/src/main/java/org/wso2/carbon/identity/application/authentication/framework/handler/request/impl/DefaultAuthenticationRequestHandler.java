@@ -265,9 +265,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             String commonAuthCookie = null;
             String sessionContextKey = null;
             if (FrameworkUtils.getAuthCookie(request) != null) {
+
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
-                sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
+
                 if (commonAuthCookie != null) {
+                    sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
                     sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
                 }
             }
@@ -279,7 +281,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
-                FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
 
