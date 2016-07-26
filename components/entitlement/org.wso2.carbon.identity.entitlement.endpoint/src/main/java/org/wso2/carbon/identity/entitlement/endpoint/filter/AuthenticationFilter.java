@@ -28,7 +28,7 @@ import org.apache.cxf.message.Message;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
-import org.wso2.charon.core.exceptions.UnauthorizedException;
+import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
 
 import javax.ws.rs.core.Response;
 
@@ -38,7 +38,7 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
 
     @Override
     public Response handleRequest(Message message, ClassResourceInfo classResourceInfo) {
-
+        System.out.println("Enter quthentication");
         // reset anything set on provisioning thread local.
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
 
@@ -46,12 +46,15 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
             log.debug("Authenticating Entitlement Endpoint request..");
         }
         EntitlementAuthenticatorRegistry entitlementAuthRegistry = EntitlementAuthenticatorRegistry.getInstance();
+        System.out.println("Entitlement reg : " + entitlementAuthRegistry);
         if (entitlementAuthRegistry != null) {
             EntitlementAuthenticationHandler entitlementAuthHandler = entitlementAuthRegistry.getAuthenticator(
                     message, classResourceInfo);
+            System.out.println("Entitlement auth hanle : " + entitlementAuthHandler);
             boolean isAuthenticated = false;
             if (entitlementAuthHandler != null) {
                 isAuthenticated = entitlementAuthHandler.isAuthenticated(message, classResourceInfo);
+                System.out.println(isAuthenticated);
                 if (isAuthenticated) {
                     return null;
                 }
@@ -60,7 +63,10 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
         //if null response is not returned(i.e:message continues its way to the resource), return error & terminate.
         UnauthorizedException unauthorizedException = new UnauthorizedException(
                 "Authentication failed for this resource.");
-        return null;
+        Response.ResponseBuilder responseBuilder = Response.status(unauthorizedException.getCode());
+        responseBuilder.entity(unauthorizedException.getDescription());
+
+        return responseBuilder.build();
     }
 
     // To clear the ThreadLocalProvisioningServiceProvider in a non faulty case

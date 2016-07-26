@@ -57,10 +57,12 @@ public class ApplicationInitializer implements ServletContextListener {
 
     private void initEntitlementAuthenticatorRegistry() {
         EntitlementAuthenticatorRegistry entitlementAuthRegistry = EntitlementAuthenticatorRegistry.getInstance();
+
         if (entitlementAuthRegistry != null) {
             //set authenticators after building auth config
             EntitlementAuthConfigReader configReader = new EntitlementAuthConfigReader();
             List<EntitlementAuthenticationHandler> entitlementAuthenticators = configReader.buildEntitlementAuthenticators();
+
             if (entitlementAuthenticators != null && !entitlementAuthenticators.isEmpty()) {
                 for (EntitlementAuthenticationHandler entitlementAuthenticator : entitlementAuthenticators) {
                     entitlementAuthRegistry.setAuthenticator(entitlementAuthenticator);
