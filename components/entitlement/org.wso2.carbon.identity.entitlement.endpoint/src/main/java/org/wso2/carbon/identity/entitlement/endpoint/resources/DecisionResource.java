@@ -18,15 +18,19 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.balana.ParsingException;
+import org.wso2.balana.ctx.xacml3.RequestCtx;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.EntitledResultSetDTO;
 import org.wso2.carbon.identity.entitlement.endpoint.resources.models.*;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
+import org.wso2.carbon.identity.entitlement.endpoint.util.JSONRequestParser;
 import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 import org.wso2.carbon.identity.entitlement.policy.search.PolicySearch;
 
@@ -42,6 +46,7 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/", description = "User REST for Integration Testing")
 public class DecisionResource extends AbstractResource {
     private static Log log = LogFactory.getLog(DecisionResource.class);
+    private static Gson gson = new Gson();
 
     @GET
     @Path("home")
@@ -65,6 +70,7 @@ public class DecisionResource extends AbstractResource {
     public String getDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                               @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                               @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+                              @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
                               String xacmlRequest) {
 
         if(log.isDebugEnabled()) {
@@ -72,6 +78,12 @@ public class DecisionResource extends AbstractResource {
         }
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
         try {
+            if(contentType.equals(EntitlementEndpointConstants.APPLICATION_XML)){
+                return entitlementEngine.evaluate(xacmlRequest);
+            }else if(contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)){
+                RequestCtx requestCtx = JSONRequestParser.parse(xacmlRequest);
+                return entitlementEngine.evaluateByContext(requestCtx).encode();
+            }
             return entitlementEngine.evaluate(xacmlRequest);
         } catch (ParsingException e) {
             log.error("Error occurred while evaluating XACML request", e);
