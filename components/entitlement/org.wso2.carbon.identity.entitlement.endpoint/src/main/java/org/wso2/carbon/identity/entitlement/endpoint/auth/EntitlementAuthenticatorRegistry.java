@@ -36,7 +36,6 @@ public class EntitlementAuthenticatorRegistry {
 
     /**
      * Initialize the EntitlementAuthenticatorRegistry Singleton
-     * Removed certain redundancies in singleton creation
      *
      * @return
      */
@@ -45,6 +44,8 @@ public class EntitlementAuthenticatorRegistry {
             synchronized (EntitlementAuthenticatorRegistry.class) {
                 if (EntitlementAuthRegistry == null) {
                     EntitlementAuthRegistry = new EntitlementAuthenticatorRegistry();
+                    return EntitlementAuthRegistry;
+                }else{
                     return EntitlementAuthRegistry;
                 }
             }
