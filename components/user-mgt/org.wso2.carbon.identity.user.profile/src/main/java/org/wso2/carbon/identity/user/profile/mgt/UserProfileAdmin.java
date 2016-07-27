@@ -40,7 +40,6 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.profile.ProfileConfiguration;
 import org.wso2.carbon.user.core.profile.ProfileConfigurationManager;
 import org.wso2.carbon.utils.ServerConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -568,8 +567,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         PreparedStatement prepStmt = null;
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
-                                                                          .getUsername());
+        String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String domainName = getDomainName(tenantAwareUsername);
         tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
 
@@ -642,8 +640,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = null;
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
-                                                                          .getUsername());
+        String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String domainName = getDomainName(tenantAwareUsername);
         tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
         List<AssociatedAccountDTO> associatedIDs = new ArrayList<AssociatedAccountDTO>();
@@ -681,8 +678,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         PreparedStatement prepStmt = null;
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
-                                                                          .getUsername());
+        String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
         String domainName = getDomainName(tenantAwareUsername);
         tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
 
