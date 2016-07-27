@@ -26,7 +26,7 @@
             org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService
 		</parameter>
         <parameter name="adminService" locked="true">true</parameter>
-        <parameter name="hiddenService" locked="false">false</parameter>
+        <parameter name="hiddenService" locked="true">true</parameter>
         <parameter name="AuthorizationAction" locked="true">/permission/admin</parameter>
 	</service>
 
