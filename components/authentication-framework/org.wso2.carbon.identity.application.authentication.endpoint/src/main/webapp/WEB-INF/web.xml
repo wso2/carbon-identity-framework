@@ -58,6 +58,12 @@
    </context-param>
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
 
+    <!--Display scopes in the consent page.-->
+    <context-param>
+        <param-name>displayScopes</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
     <filter>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
