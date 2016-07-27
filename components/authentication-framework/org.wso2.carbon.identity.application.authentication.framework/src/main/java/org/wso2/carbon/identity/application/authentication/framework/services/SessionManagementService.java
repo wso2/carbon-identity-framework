@@ -27,15 +27,15 @@ public class SessionManagementService extends AbstractAdmin {
 
     private static Log log = LogFactory.getLog(SessionManagementService.class);
 
-    public String removeSession(String sessionId) {
+    public boolean removeSession(String sessionId) {
 
         if (StringUtils.isBlank(sessionId)) {
-            return "Invalid Session ID";
+            return false;
         }
 
         SessionContextCache.getInstance().clearCacheEntry(sessionId);
 
-        return "Session Termination Successful";
+        return true;
 
     }
 }
