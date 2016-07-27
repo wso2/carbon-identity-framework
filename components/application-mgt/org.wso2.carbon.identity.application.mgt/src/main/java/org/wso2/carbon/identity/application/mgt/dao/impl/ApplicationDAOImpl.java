@@ -516,9 +516,16 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     authKey = authRequest.getInboundAuthKey();
                     propertyArrayList = filterEmptyProperties(propertiesArray);
                 } else {
+                    String configType="";
+                    for (Property prop : propertiesArray) {
+                        if (StringUtils.equals(prop.getName(), ApplicationConstants.WELLKNOWN_APPLICATION_TYPE)) {
+                            configType = prop.getValue();
+                            break;
+                        }
+                    }
                     AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig =
-                            ApplicationManagementServiceComponentHolder
-                                    .getInboundAuthenticatorConfig(authRequest.getInboundAuthType());
+                            ApplicationManagementServiceComponentHolder.getInboundAuthenticatorConfig(authRequest
+                                    .getInboundAuthType() + ":" + configType);
                     if (inboundAuthenticatorConfig != null &&
                         StringUtils.isNotBlank(inboundAuthenticatorConfig.getAuthKey())) {
                         authKey = inboundAuthenticatorConfig.getAuthKey();
@@ -1632,11 +1639,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
         Map<String, InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigMap =
                 new HashMap<String, InboundAuthenticationRequestConfig>();
-
         PreparedStatement getClientInfo = null;
         ResultSet resultSet = null;
-
+        String wellKnownApplicationType = getConfigTypeFromProperties(applicationId, connection, tenantID);
         try {
+            // INBOUND_AUTH_KEY, INBOUND_AUTH_TYPE, PROP_NAME, PROP_VALUE
             getClientInfo = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_CLIENTS_INFO_BY_APP_ID);
 
@@ -1665,7 +1672,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                 boolean isCustomAuthenticator = isCustomInboundAuthType(authType);
                 AbstractInboundAuthenticatorConfig customAuthenticator = ApplicationManagementServiceComponentHolder
-                        .getInboundAuthenticatorConfig(authType);
+                        .getInboundAuthenticatorConfig(authType + ":" + wellKnownApplicationType);
                 if (isCustomAuthenticator && customAuthenticator != null) {
                     inboundAuthRequest.setFriendlyName(customAuthenticator.getFriendlyName());
                 }
@@ -1690,14 +1697,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(getClientInfo);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
         }
-        Map<String, AbstractInboundAuthenticatorConfig> allCustomAuthenticators =
-                new HashMap<>(ApplicationManagementServiceComponentHolder
-                                      .getAllInboundAuthenticatorConfig());
+        Map<String, AbstractInboundAuthenticatorConfig> allCustomAuthenticators = new HashMap<>
+                (ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig());
         for (Map.Entry<String, InboundAuthenticationRequestConfig> entry : inboundAuthenticationRequestConfigMap
                 .entrySet()) {
             InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = entry.getValue();
-            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig =
-                    allCustomAuthenticators.remove(inboundAuthenticationRequestConfig.getInboundAuthType());
+            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = allCustomAuthenticators.remove
+                    (inboundAuthenticationRequestConfig.getInboundAuthType() + ":" + wellKnownApplicationType);
             if (inboundAuthenticatorConfig != null && inboundAuthenticationRequestConfig != null) {
                 Property[] sources = inboundAuthenticatorConfig.getConfigurationProperties();
                 Property[] destinations = inboundAuthenticationRequestConfig.getProperties();
@@ -1741,10 +1747,34 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             returnList.add(inboundAuthenticationRequestConfig);
         }
         InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
-        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(returnList
-                                                                                   .toArray(new InboundAuthenticationRequestConfig[returnList
-                                                                                           .size()]));
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(returnList.toArray(new
+                InboundAuthenticationRequestConfig[returnList.size()]));
         return inboundAuthenticationConfig;
+    }
+
+    private String getConfigTypeFromProperties(int applicationId, Connection connection, int tenantID) throws SQLException{
+        PreparedStatement getClientInfo = null;
+        ResultSet resultSet = null;
+        try {
+            getClientInfo = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_CLIENTS_INFO_BY_APP_ID);
+
+            getClientInfo.setInt(1, applicationId);
+            getClientInfo.setInt(2, tenantID);
+            resultSet = getClientInfo.executeQuery();
+            while (resultSet.next()){
+                String propName = resultSet.getString(3);
+                String propValue = resultSet.getString(4);
+                if(StringUtils.equals(propName,ApplicationConstants.WELLKNOWN_APPLICATION_TYPE)){
+                    return propValue;
+                }
+            }
+
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(getClientInfo);
+            IdentityApplicationManagementUtil.closeResultSet(resultSet);
+        }
+        return ApplicationConstants.STANDARD_APPLICATION;
     }
 
     /**

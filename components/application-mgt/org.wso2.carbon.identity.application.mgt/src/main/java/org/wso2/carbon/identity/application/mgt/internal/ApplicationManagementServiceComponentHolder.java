@@ -47,7 +47,8 @@ public class ApplicationManagementServiceComponentHolder {
      * @param inboundAuthenticator
      */
     public static void addInboundAuthenticatorConfig(AbstractInboundAuthenticatorConfig inboundAuthenticator) {
-        inboundAuthenticatorConfigs.put(inboundAuthenticator.getName(), inboundAuthenticator);
+        inboundAuthenticatorConfigs.put(inboundAuthenticator.getName() + ":" + inboundAuthenticator.getConfigName()
+                , inboundAuthenticator);
     }
 
     /**
