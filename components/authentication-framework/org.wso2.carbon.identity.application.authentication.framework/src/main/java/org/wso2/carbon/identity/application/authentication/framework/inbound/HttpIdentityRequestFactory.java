@@ -91,8 +91,10 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
         }
         builder.setParameters(request.getParameterMap());
         Cookie[] cookies = request.getCookies();
-        for(Cookie cookie:cookies) {
-            builder.addCookie(cookie.getName(), cookie);
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                builder.addCookie(cookie.getName(), cookie);
+            }
         }
         String requestURI = request.getRequestURI();
         Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
