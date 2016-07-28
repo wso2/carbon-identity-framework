@@ -39,6 +39,7 @@ import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.profile.ProfileConfiguration;
 import org.wso2.carbon.user.core.profile.ProfileConfigurationManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.ServerConstants;
 
 import javax.servlet.http.HttpServletRequest;
@@ -568,8 +569,8 @@ public class UserProfileAdmin extends AbstractAdmin {
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String domainName = getDomainName(tenantAwareUsername);
-        tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
+        String userStoreDomainName = getDomainName(tenantAwareUsername);
+        String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
         try {
             sql = "INSERT INTO IDN_ASSOCIATED_ID (TENANT_ID, IDP_ID, IDP_USER_ID, DOMAIN_NAME, USER_NAME) " +
@@ -580,8 +581,8 @@ public class UserProfileAdmin extends AbstractAdmin {
             prepStmt.setString(2, idpID);
             prepStmt.setInt(3, tenantID);
             prepStmt.setString(4, associatedID);
-            prepStmt.setString(5, domainName);
-            prepStmt.setString(6, tenantAwareUsername);
+            prepStmt.setString(5, userStoreDomainName);
+            prepStmt.setString(6, username);
 
 
             prepStmt.execute();
@@ -641,8 +642,8 @@ public class UserProfileAdmin extends AbstractAdmin {
         ResultSet resultSet;
         String sql = null;
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String domainName = getDomainName(tenantAwareUsername);
-        tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
+        String userStoreDomainName = getDomainName(tenantAwareUsername);
+        String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
         List<AssociatedAccountDTO> associatedIDs = new ArrayList<AssociatedAccountDTO>();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
@@ -651,8 +652,8 @@ public class UserProfileAdmin extends AbstractAdmin {
                   "WHERE IDN_ASSOCIATED_ID.TENANT_ID = ? AND USER_NAME = ? AND DOMAIN_NAME = ?";
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, tenantID);
-            prepStmt.setString(2, tenantAwareUsername);
-            prepStmt.setString(3, domainName);
+            prepStmt.setString(2, username);
+            prepStmt.setString(3, userStoreDomainName);
 
             resultSet = prepStmt.executeQuery();
             connection.commit();
@@ -679,8 +680,8 @@ public class UserProfileAdmin extends AbstractAdmin {
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String domainName = getDomainName(tenantAwareUsername);
-        tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
+        String userStoreDomainName = getDomainName(tenantAwareUsername);
+        String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
         try {
 
@@ -691,8 +692,8 @@ public class UserProfileAdmin extends AbstractAdmin {
             prepStmt.setString(2, idpID);
             prepStmt.setInt(3, tenantID);
             prepStmt.setString(4, associatedID);
-            prepStmt.setString(5, tenantAwareUsername);
-            prepStmt.setString(6, domainName);
+            prepStmt.setString(5, username);
+            prepStmt.setString(6, userStoreDomainName);
 
             prepStmt.executeUpdate();
             connection.commit();
@@ -712,13 +713,4 @@ public class UserProfileAdmin extends AbstractAdmin {
         }
         return username.substring(0, index);
     }
-
-    private static String getUsernameWithoutDomain(String username) {
-        int index = username.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
-        if (index < 0) {
-            return username;
-        }
-        return username.substring(index + 1, username.length());
-    }
-
 }
