@@ -106,13 +106,20 @@ public class DefaultStepHandler implements StepHandler {
             stepConfig.setCompleted(true);
             return;
         } else {
+            long authTime = 0;
             if (StringUtils.isNotEmpty(request.getParameter(FrameworkConstants.RequestParams.MAX_AGE)) && StringUtils.
                     isNotEmpty(context.getSessionIdentifier())) {
-                long max_age = Long.parseLong((String) request.getParameter(FrameworkConstants.RequestParams.MAX_AGE));
-                long auth_time = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
-                        .getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
+                long maxAge = Long.parseLong((String) request.getParameter(FrameworkConstants.RequestParams.MAX_AGE));
+                if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                        .getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                            .getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
+                } else {
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                            .getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString());
+                }
                 long current_time = System.currentTimeMillis();
-                if (max_age < current_time - auth_time / 1000) {
+                if (maxAge < (current_time - authTime) / 1000) {
                     context.setForceAuthenticate(true);
                 }
             }
