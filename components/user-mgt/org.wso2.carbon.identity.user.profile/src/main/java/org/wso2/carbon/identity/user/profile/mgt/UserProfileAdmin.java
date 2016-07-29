@@ -29,6 +29,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -569,7 +570,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String userStoreDomainName = getDomainName(tenantAwareUsername);
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
         String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
         try {
@@ -642,7 +643,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         ResultSet resultSet;
         String sql = null;
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String userStoreDomainName = getDomainName(tenantAwareUsername);
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
         String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
         List<AssociatedAccountDTO> associatedIDs = new ArrayList<AssociatedAccountDTO>();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -680,7 +681,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        String userStoreDomainName = getDomainName(tenantAwareUsername);
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
         String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
         try {
@@ -706,11 +707,4 @@ public class UserProfileAdmin extends AbstractAdmin {
 
     }
 
-    private static String getDomainName(String username) {
-        int index = username.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
-        if (index < 0) {
-            return "PRIMARY";
-        }
-        return username.substring(0, index);
-    }
 }
