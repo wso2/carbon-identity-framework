@@ -296,6 +296,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String sessionKey = UUIDGenerator.generateUUID();
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
+                long updatedSessionTime = System.currentTimeMillis();
+                sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
                 setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);

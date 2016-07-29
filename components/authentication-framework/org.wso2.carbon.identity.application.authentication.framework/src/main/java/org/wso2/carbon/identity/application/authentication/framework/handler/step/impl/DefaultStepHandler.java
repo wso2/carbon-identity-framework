@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.step.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -104,6 +105,17 @@ public class DefaultStepHandler implements StepHandler {
 
             stepConfig.setCompleted(true);
             return;
+        } else {
+            if (StringUtils.isNotEmpty(request.getParameter(FrameworkConstants.RequestParams.MAX_AGE)) && StringUtils.
+                    isNotEmpty(context.getSessionIdentifier())) {
+                long max_age = Long.parseLong((String) request.getParameter(FrameworkConstants.RequestParams.MAX_AGE));
+                long auth_time = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                        .getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
+                long current_time = System.currentTimeMillis();
+                if (max_age < current_time - auth_time / 1000) {
+                    context.setForceAuthenticate(true);
+                }
+            }
         }
 
         // if Request has fidp param and if this is the first step
