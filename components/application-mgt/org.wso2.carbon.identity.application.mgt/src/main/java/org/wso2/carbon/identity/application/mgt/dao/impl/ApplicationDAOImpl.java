@@ -1742,10 +1742,10 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return inboundAuthenticationConfig;
     }
 
-    private String getConfigTypeFromSPProperties(List<ServiceProviderProperty> spProperties) throws SQLException{
+    private String getConfigTypeFromSPProperties(List<ServiceProviderProperty> spProperties) throws SQLException {
 
-        for(ServiceProviderProperty spProp : spProperties){
-            if(StringUtils.equals(spProp.getName(),ApplicationConstants.WELLKNOWN_APPLICATION_TYPE)){
+        for (ServiceProviderProperty spProp : spProperties) {
+            if (StringUtils.equals(spProp.getName(), ApplicationConstants.WELLKNOWN_APPLICATION_TYPE)) {
                 return spProp.getValue();
             }
         }
