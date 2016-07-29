@@ -43,12 +43,7 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
-import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
-import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.*;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -106,6 +101,8 @@ public class IdentityUtil {
             HashMap<>();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap<>();
     private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
+    private static Map<ResourceAccessControlConfig.ResourceKey, ResourceAccessControlConfig>
+            resourceAccessControlConfigHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -174,6 +171,15 @@ public class IdentityUtil {
         return identityCookiesConfigurationHolder.get(cookieName);
     }
 
+    /**
+     * Get the resource access configs.
+     * @return
+     */
+    public static Map<ResourceAccessControlConfig.ResourceKey, ResourceAccessControlConfig>
+                                                                            getResourceAccessControlConfigHolder() {
+        return resourceAccessControlConfigHolder;
+    }
+
     public static Map<String, IdentityCookieConfig> getIdentityCookiesConfigurationHolder() {
         return identityCookiesConfigurationHolder;
     }
@@ -183,6 +189,7 @@ public class IdentityUtil {
         eventListenerConfiguration = IdentityConfigParser.getInstance().getEventListenerConfiguration();
         identityCacheConfigurationHolder = IdentityConfigParser.getInstance().getIdentityCacheConfigurationHolder();
         identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
+        resourceAccessControlConfigHolder = IdentityConfigParser.getResourceAccessControlConfigHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
