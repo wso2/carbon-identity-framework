@@ -500,9 +500,8 @@ public class DefaultStepHandler implements StepHandler {
 
         } catch (InvalidCredentialsException e) {
             if (log.isDebugEnabled()) {
-                log.debug("InvalidCredentialsException", e);
+                log.debug("A login attempt was failed due to invalid credentials", e);
             }
-            log.warn("A login attempt was failed due to invalid credentials");
             context.setRequestAuthenticated(false);
         } catch (AuthenticationFailedException e) {
             log.error(e.getMessage(), e);
