@@ -280,7 +280,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                                                                sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                 long updatedSessionTime = System.currentTimeMillis();
-                sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
+                if(!context.isPreviousAuthTime()) {
+                    sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
+                }
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);

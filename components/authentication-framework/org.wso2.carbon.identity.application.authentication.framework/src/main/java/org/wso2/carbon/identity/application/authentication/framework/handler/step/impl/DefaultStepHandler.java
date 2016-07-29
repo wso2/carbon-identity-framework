@@ -121,6 +121,8 @@ public class DefaultStepHandler implements StepHandler {
                 long current_time = System.currentTimeMillis();
                 if (maxAge < (current_time - authTime) / 1000) {
                     context.setForceAuthenticate(true);
+                } else {
+                    context.setPreviousAuthTime(true);
                 }
             }
         }
