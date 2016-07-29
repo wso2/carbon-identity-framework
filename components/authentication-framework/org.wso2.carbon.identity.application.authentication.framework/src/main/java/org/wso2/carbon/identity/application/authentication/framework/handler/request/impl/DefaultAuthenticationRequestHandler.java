@@ -290,14 +290,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // To identify first login
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.IS_INITIAL_LOGIN, true);
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
-                                                               sequenceConfig);
+                        sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
                 sessionContext.setRememberMe(context.isRememberMe());
                 String sessionKey = UUIDGenerator.generateUUID();
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                long updatedSessionTime = System.currentTimeMillis();
-                sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
                 setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
@@ -305,6 +303,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
+            long updatedSessionTime = System.currentTimeMillis();
+            sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
 
             if (authenticatedUserTenantDomain == null) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
