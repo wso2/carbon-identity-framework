@@ -333,6 +333,32 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             updateInboundProvisioningConfiguration(applicationId,
                                                    serviceProvider.getInboundProvisioningConfig(), connection);
 
+            for (InboundAuthenticationRequestConfig authenRqstConfig : serviceProvider.getInboundAuthenticationConfig
+                    ().getInboundAuthenticationRequestConfigs()) {
+                if (!standardInboundAuthTypes.contains(authenRqstConfig.getInboundAuthType()) && StringUtils.equals
+                        (getConfigTypeFromSPProperties(getServicePropertiesBySpId(connection, applicationId)),
+                                ApplicationConstants.STANDARD_APPLICATION)) {
+                    for (Property prop : authenRqstConfig.getProperties()) {
+                        if (StringUtils.equals(prop.getName(), ApplicationConstants.WELLKNOWN_APPLICATION_TYPE)) {
+                            ServiceProviderProperty spProperty = new ServiceProviderProperty();
+                            spProperty.setName(ApplicationConstants.WELLKNOWN_APPLICATION_TYPE);
+                            spProperty.setValue(prop.getValue());
+                            spProperty.setDisplayName(ApplicationConstants.WELLKNOWN_APPLICATION_TYPE);
+                            serviceProvider.setSpProperties((ServiceProviderProperty[]) ArrayUtils.add(serviceProvider
+                                    .getSpProperties(), spProperty));
+                            log.info("The Service Provider " + serviceProvider.getApplicationName() + "includes a " +
+                                    "custom " + "authenticator with type " + authenRqstConfig.getInboundAuthType() +
+                                    ".\nService " + "Providers with custom authenticators can only have one inbound " +
+                                    "authenticator configured.");
+                            break;
+                        }
+                    }
+                }
+            }
+            if (serviceProvider.getSpProperties() != null) {
+                updateServiceProviderProperties(connection, applicationId,
+                        Arrays.asList(serviceProvider.getSpProperties()), tenantID);
+            }
             // delete all in-bound authentication requests.
             deleteInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), connection);
 
@@ -364,11 +390,6 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     serviceProvider.getPermissionAndRoleConfig(), connection);
             deleteAssignedPermissions(connection, serviceProvider.getApplicationName(),
                     serviceProvider.getPermissionAndRoleConfig().getPermissions());
-
-            if (serviceProvider.getSpProperties() != null) {
-                updateServiceProviderProperties(connection, applicationId,
-                                                Arrays.asList(serviceProvider.getSpProperties()), tenantID);
-            }
 
             if (!connection.getAutoCommit()) {
                 connection.commit();
