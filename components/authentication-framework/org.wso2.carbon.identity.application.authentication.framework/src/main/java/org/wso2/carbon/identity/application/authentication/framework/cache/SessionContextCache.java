@@ -97,6 +97,15 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
     }
 
+    public void clearCacheEntry(String sessionContextKey) {
+
+        SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionContextKey);
+        super.clearCacheEntry(sessionContextCacheKey);
+        SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
+                SESSION_CONTEXT_CACHE_NAME);
+
+    }
+
     /**
      * Check whether the given session context is valid according to idle session timeout restrictions.
      *
