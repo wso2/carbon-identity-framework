@@ -1713,31 +1713,31 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         for (Map.Entry<String, InboundAuthenticationRequestConfig> entry : inboundAuthenticationRequestConfigMap
                 .entrySet()) {
             InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = entry.getValue();
-            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = allCustomAuthenticators.remove
-                    (wellKnownApplicationType);
-            if (inboundAuthenticatorConfig != null && inboundAuthenticationRequestConfig != null) {
-                Property[] sources = inboundAuthenticatorConfig.getConfigurationProperties();
-                Property[] destinations = inboundAuthenticationRequestConfig.getProperties();
-                Map<String, Property> destinationMap = new HashMap<>();
-                for (Property destination : destinations) {
-                    destinationMap.put(destination.getName(), destination);
-                }
-                for (Property source : sources) {
-                    Property property = destinationMap.get(source.getName());
-                    if (property == null) {
-                        if (isCustomInboundAuthType(inboundAuthenticationRequestConfig.getInboundAuthType())) {
+            if (isCustomInboundAuthType(inboundAuthenticationRequestConfig.getInboundAuthType())) {
+                AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = allCustomAuthenticators.remove
+                        (wellKnownApplicationType);
+                if (inboundAuthenticatorConfig != null && inboundAuthenticationRequestConfig != null) {
+                    Property[] sources = inboundAuthenticatorConfig.getConfigurationProperties();
+                    Property[] destinations = inboundAuthenticationRequestConfig.getProperties();
+                    Map<String, Property> destinationMap = new HashMap<>();
+                    for (Property destination : destinations) {
+                        destinationMap.put(destination.getName(), destination);
+                    }
+                    for (Property source : sources) {
+                        Property property = destinationMap.get(source.getName());
+                        if (property == null) {
                             if (inboundAuthenticatorConfig.isRelyingPartyKeyConfigured()) {
                                 if (inboundAuthenticatorConfig.getAuthKey() == null &&
-                                    inboundAuthenticatorConfig.getRelyingPartyKey().equals(source.getName())) {
+                                        inboundAuthenticatorConfig.getRelyingPartyKey().equals(source.getName())) {
                                     source.setValue(inboundAuthenticationRequestConfig.getInboundAuthKey());
                                 }
                             }
+                            destinationMap.put(source.getName(), source);
                         }
-                        destinationMap.put(source.getName(), source);
                     }
+                    inboundAuthenticationRequestConfig
+                            .setProperties(destinationMap.values().toArray(new Property[destinationMap.size()]));
                 }
-                inboundAuthenticationRequestConfig
-                        .setProperties(destinationMap.values().toArray(new Property[destinationMap.size()]));
             }
         }
         List<InboundAuthenticationRequestConfig> returnList =
