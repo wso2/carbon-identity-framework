@@ -152,7 +152,8 @@ public class SecurityQuestionApi {
    * @return InitiateQuestionResponse
    * @throws ApiException if fails to make API call
    */
-  public InitiateQuestionResponse validateAnswerPost(AnswerVerificationRequest answerVerificationRequest) throws ApiException {
+  public InitiateQuestionResponse validateAnswerPost(AnswerVerificationRequest answerVerificationRequest,
+                                                     Map<String, String> localVarHeaderParams) throws ApiException {
     Object localVarPostBody = answerVerificationRequest;
     
     // verify the required parameter 'answerVerificationRequest' is set
@@ -165,7 +166,6 @@ public class SecurityQuestionApi {
 
     // query params
     List<Pair> localVarQueryParams = new ArrayList<Pair>();
-    Map<String, String> localVarHeaderParams = new HashMap<String, String>();
     Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
 
