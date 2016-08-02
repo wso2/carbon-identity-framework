@@ -66,6 +66,21 @@ public interface RegistryResourceMgtService {
                                 String tenantDomain,
                                 String locale) throws IdentityRuntimeException;
 
+
+    /**
+     * Check whether a resource in a specific locale exists in the tenant registry.
+     *
+     * @param path
+     * @param tenantDomain
+     * @param locale
+     * @return
+     * @throws IdentityRuntimeException
+     */
+    boolean isResourceExists(String path,
+                             String tenantDomain,
+                             String locale) throws IdentityRuntimeException;
+
+
     /**
      * Get a registry resource from a tenant registry.
      *
@@ -98,6 +113,18 @@ public interface RegistryResourceMgtService {
      */
     void deleteIdentityResource(String path,
                                 String tenantDomain) throws IdentityRuntimeException;
+
+
+    /**
+     * Check whether a resource exists in the given path in the tenant registry.
+     *
+     * @param path
+     * @param tenantDomain
+     * @return
+     * @throws IdentityRuntimeException
+     */
+    boolean isResourceExists(String path,
+                             String tenantDomain) throws IdentityRuntimeException;
 
 
 }

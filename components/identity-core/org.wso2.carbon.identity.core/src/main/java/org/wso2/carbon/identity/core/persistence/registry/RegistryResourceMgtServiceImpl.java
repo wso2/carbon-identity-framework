@@ -41,11 +41,15 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     private static final String EN_US = "en_us";
     private static final String BLACKLIST_REGEX = ".*[/\\\\<>`\"].*";
 
+    private static final String ERROR_GET_RESOURCE = "Error retrieving registry resource from %s for tenant %s.";
+    private static final String ERROR_PUT_RESOURCE = "Error persisting registry resource of %s tenant at %s";
+    private static final String ERROR_DELETE_RESOURCE = "Error deleting registry resource of tenant : %s at %s.";
+
+
     @Override
     public Resource getIdentityResource(String path,
                                         String tenantDomain,
                                         String locale) throws IdentityRuntimeException {
-        locale = validateLocale(locale);
         path = getRegistryPath(path, locale);
         return getIdentityResource(path, tenantDomain);
     }
@@ -55,7 +59,6 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
                                     String path,
                                     String tenantDomain,
                                     String locale) throws IdentityRuntimeException {
-        locale = validateLocale(locale);
         path = getRegistryPath(path, locale);
         putIdentityResource(identityResource, path, tenantDomain);
     }
@@ -64,9 +67,14 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     public void deleteIdentityResource(String path,
                                        String tenantDomain,
                                        String locale) throws IdentityRuntimeException {
-        locale = validateLocale(locale);
         path = getRegistryPath(path, locale);
         deleteIdentityResource(path, tenantDomain);
+    }
+
+    @Override
+    public boolean isResourceExists(String path, String tenantDomain, String locale) throws IdentityRuntimeException {
+        path = getRegistryPath(path, locale);
+        return isResourceExists(path, tenantDomain);
     }
 
     @Override
@@ -82,9 +90,8 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             }
             return resource;
         } catch (RegistryException e) {
-            String errorMsg = String.format(
-                    "Error retrieving registry resource from %s for tenant %s.", path, tenantDomain);
-            throw getIdentityRunTimeException(errorMsg, e);
+            String errorMsg = String.format(ERROR_GET_RESOURCE, path, tenantDomain);
+            throw buildIdentityRuntimeException(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -104,10 +111,8 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
                 log.debug(msg);
             }
         } catch (RegistryException e) {
-            String errorMsg = String.format(
-                    "Error persisting registry resource of %s tenant at %s", tenantDomain, path);
-            log.error(errorMsg);
-            throw getIdentityRunTimeException(errorMsg, e);
+            String errorMsg = String.format(ERROR_PUT_RESOURCE, tenantDomain, path);
+            throw buildIdentityRuntimeException(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -124,22 +129,36 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
                 String errorMsg = String.format(
                         "Resource does not exist at %s in %s tenant domain.", path, tenantDomain);
                 log.error(errorMsg);
-                throw getIdentityRunTimeException(errorMsg, null);
+                throw buildIdentityRuntimeException(errorMsg, null);
             }
         } catch (RegistryException e) {
-            String errorMsg = String.format(
-                    "Error deleting registry resource of tenant : %s at %s.", tenantDomain, path);
-            throw getIdentityRunTimeException(errorMsg, e);
+            String errorMsg = String.format(ERROR_DELETE_RESOURCE, tenantDomain, path);
+            throw buildIdentityRuntimeException(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
     }
 
-    private IdentityRuntimeException getIdentityRunTimeException(String errorDescription, Throwable throwable) {
+    @Override
+    public boolean isResourceExists(String path, String tenantDomain) throws IdentityRuntimeException {
+        startTenantFlow(tenantDomain);
+        try {
+            Registry registry = getRegistryForTenant(tenantDomain);
+            return registry.resourceExists(path);
+        } catch (RegistryException e) {
+            String errorMsg = "Error when checking for resource existence at %s in %s tenant domain.";
+            throw buildIdentityRuntimeException(String.format(errorMsg, path, tenantDomain), e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    private IdentityRuntimeException buildIdentityRuntimeException(String errorDescription, Throwable throwable) {
         ErrorInfoBuilder errorInfoBuilder = new ErrorInfoBuilder(errorDescription);
         if (throwable != null) {
             errorInfoBuilder.cause(throwable);
         }
+        log.error(errorDescription);
         return IdentityRuntimeException.error(errorInfoBuilder.build());
     }
 
@@ -159,6 +178,7 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
      * @return
      */
     private String getRegistryPath(String path, String locale) {
+        locale = validateLocale(locale);
         path = path + RegistryConstants.PATH_SEPARATOR + locale;
         return path;
     }
@@ -176,7 +196,7 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
      * @return
      * @throws IllegalArgumentException
      */
-    private String validateLocale(String locale) throws IllegalArgumentException {
+    private String validateLocale(String locale) {
         String localeString = StringUtils.isBlank(locale) ? EN_US : locale.toLowerCase();
 
         if (localeString.matches(BLACKLIST_REGEX)) {
