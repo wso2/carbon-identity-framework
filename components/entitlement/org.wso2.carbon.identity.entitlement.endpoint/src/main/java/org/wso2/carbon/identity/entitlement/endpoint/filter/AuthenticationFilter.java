@@ -38,7 +38,7 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
 
     @Override
     public Response handleRequest(Message message, ClassResourceInfo classResourceInfo) {
-        System.out.println("Enter quthentication");
+
         // reset anything set on provisioning thread local.
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
 
@@ -46,15 +46,15 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
             log.debug("Authenticating Entitlement Endpoint request..");
         }
         EntitlementAuthenticatorRegistry entitlementAuthRegistry = EntitlementAuthenticatorRegistry.getInstance();
-        System.out.println("Entitlement reg : " + entitlementAuthRegistry);
+
         if (entitlementAuthRegistry != null) {
             EntitlementAuthenticationHandler entitlementAuthHandler = entitlementAuthRegistry.getAuthenticator(
                     message, classResourceInfo);
-            System.out.println("Entitlement auth hanle : " + entitlementAuthHandler);
+
             boolean isAuthenticated = false;
             if (entitlementAuthHandler != null) {
                 isAuthenticated = entitlementAuthHandler.isAuthenticated(message, classResourceInfo);
-                System.out.println(isAuthenticated);
+
                 if (isAuthenticated) {
                     return null;
                 }

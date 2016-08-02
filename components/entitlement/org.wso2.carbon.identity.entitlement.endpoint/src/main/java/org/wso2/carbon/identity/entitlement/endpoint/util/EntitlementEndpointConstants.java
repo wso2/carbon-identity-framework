@@ -129,4 +129,23 @@ public class EntitlementEndpointConstants {
     public static final String XPATH_VERSION = "XPathVersion";
     public static final String MULTI_REQUESTS = "MultiRequests";
     public static final String REFERENCE_ID = "ReferenceId";
+
+
+    public static final String RESPONSE = "Response";
+
+    public static final String DECISION = "Decision";
+    public static final String STATUS = "Status";
+    public static final String OBLIGATIONS = "Obligations";
+    public static final String ASSOCIATED_ADVICE = "AssociatedAdvice";
+
+    public static final String STATUS_MESSAGE = "StatusMessage";
+    public static final String STATUS_DETAIL = "StatusDetail";
+    public static final String STATUS_CODE = "StatusCode";
+    public static final String MISSING_ATTRIBUTE_DETAILS = "MissingAttributeDetail";
+
+    public static final String STATUS_CODE_VALUE = "Value";
+
+    public static final String OBLIGATION_OR_ADVICE_ID = "Id";
+    public static final String ATTRIBUTE_ASSIGNMENTS = "AttributeAssignments";
+
 }

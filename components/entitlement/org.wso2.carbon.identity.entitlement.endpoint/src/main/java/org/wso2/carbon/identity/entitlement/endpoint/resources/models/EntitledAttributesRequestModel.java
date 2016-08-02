@@ -18,10 +18,19 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources.models;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
+        "subjectName",
+        "resourceName",
+        "subjectId",
+        "action",
+        "enableChildSearch"
+})
+@JsonPropertyOrder({
         "subjectName",
         "resourceName",
         "subjectId",

@@ -1,5 +1,9 @@
 package org.wso2.carbon.identity.entitlement.endpoint.exception;
 
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.annotation.*;
+
 /**
  * Created by manujith on 7/20/16.
  */
@@ -50,5 +54,47 @@ public abstract class AbstractEntitlementException extends Exception{
 
     public void setCode(int code) {
         this.code = code;
+    }
+
+    public ExceptionBean getExceptioBean(){
+        return new ExceptionBean(code,description);
+    }
+}
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {
+        "code",
+        "message"
+})
+@XmlRootElement(name = "Error")
+class ExceptionBean{
+    @XmlElement
+    private int code;
+    @XmlElement
+    private String message;
+
+    public ExceptionBean(){
+        //No-arg default constructor needed for JAXB
+    }
+
+    public ExceptionBean(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

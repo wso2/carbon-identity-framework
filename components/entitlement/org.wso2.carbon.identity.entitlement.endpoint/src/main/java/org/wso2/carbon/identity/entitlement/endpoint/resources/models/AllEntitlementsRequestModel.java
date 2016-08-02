@@ -18,12 +18,17 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources.models;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.wso2.carbon.identity.entitlement.dto.AttributeDTO;
 
 import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
+        "identifier",
+        "givenAttributes"
+})
+@JsonPropertyOrder({
         "identifier",
         "givenAttributes"
 })

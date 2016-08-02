@@ -25,12 +25,15 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.balana.ParsingException;
+import org.wso2.balana.ctx.ResponseCtx;
 import org.wso2.balana.ctx.xacml3.RequestCtx;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.EntitledResultSetDTO;
+import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseException;
 import org.wso2.carbon.identity.entitlement.endpoint.resources.models.*;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 import org.wso2.carbon.identity.entitlement.endpoint.util.JSONRequestParser;
+import org.wso2.carbon.identity.entitlement.endpoint.util.JSONResponseWriter;
 import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 import org.wso2.carbon.identity.entitlement.policy.search.PolicySearch;
 
@@ -71,27 +74,21 @@ public class DecisionResource extends AbstractResource {
                               @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                               @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
                               @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
-                              String xacmlRequest) {
+                              String xacmlRequest) throws Exception{
 
         if(log.isDebugEnabled()) {
             log.debug("recieved :" + xacmlRequest);
         }
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
-        try {
-            if(contentType.equals(EntitlementEndpointConstants.APPLICATION_XML)){
-                return entitlementEngine.evaluate(xacmlRequest);
-            }else if(contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)){
-                RequestCtx requestCtx = JSONRequestParser.parse(xacmlRequest);
-                return entitlementEngine.evaluateByContext(requestCtx).encode();
-            }
+
+        if(contentType.equals(EntitlementEndpointConstants.APPLICATION_XML)){
             return entitlementEngine.evaluate(xacmlRequest);
-        } catch (ParsingException e) {
-            log.error("Error occurred while evaluating XACML request", e);
-            return "Error occurred while evaluating XACML request";
-        } catch (Exception e) {
-            log.error("Parse Error occurred while evaluating XACML request", e);
-            return "Error occurred while evaluating XACML request";
+        }else if(contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)){
+            RequestCtx requestCtx = JSONRequestParser.parse(xacmlRequest);
+            ResponseCtx responseCtx = entitlementEngine.evaluateByContext(requestCtx);
+            return gson.toJson(JSONResponseWriter.write(responseCtx));
         }
+        return entitlementEngine.evaluate(xacmlRequest);
 
     }
 
@@ -106,19 +103,13 @@ public class DecisionResource extends AbstractResource {
     public String getDecisionByAttributes(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                           @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                           @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
-                                          DecisionRequestModel request) {
+                                          DecisionRequestModel request) throws Exception{
 
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
-        try {
-            return entitlementEngine.evaluate(request.getSubject(), request.getResource(),
+
+        return entitlementEngine.evaluate(request.getSubject(), request.getResource(),
                     request.getAction(), request.getEnvironment());
-        } catch (ParsingException e) {
-            log.error("Error occurred while evaluating XACML request", e);
-            return "Error occurred while evaluating XACML request";
-        } catch (Exception e) {
-            log.error("Parse Error occurred while evaluating XACML request", e);
-            return "Error occurred while evaluating XACML request";
-        }
+
 
     }
 
@@ -134,20 +125,13 @@ public class DecisionResource extends AbstractResource {
     public boolean getBooleanDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                       @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                       @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
-                                      DecisionRequestModel request) {
+                                      DecisionRequestModel request) throws Exception{
 
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
-        try {
-            String response = entitlementEngine.evaluate(request.getSubject(), request.getResource(),
-                    request.getAction(), null);
-            return response.contains("Permit");
-        } catch (ParsingException e) {
-            log.error("Error occurred while evaluating XACML request", e);
-            return false;
-        } catch (Exception e) {
-            log.error("Parse Error occurred while evaluating XACML request", e);
-            return false;
-        }
+
+        String response = entitlementEngine.evaluate(request.getSubject(), request.getResource(),
+                request.getAction(), null);
+        return response.contains("Permit");
 
     }
 
@@ -162,26 +146,21 @@ public class DecisionResource extends AbstractResource {
     public EntitledAttributesResponseModel getEntitledAttributes(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                                                  @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                                                  @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
-                                                                 EntitledAttributesRequestModel request) {
+                                                                 EntitledAttributesRequestModel request) throws Exception {
 
         if (request.getSubjectName() == null) {
             log.error("Invalid input data - either the user name or role name should be non-null");
-            return null;
-        }
-
-        try {
-            PolicySearch policySearch = EntitlementEngine.getInstance().getPolicySearch();
-            EntitledResultSetDTO resultsSet = policySearch.getEntitledAttributes(request.getSubjectName(), request.getResourceName(),
-                    request.getSubjectId(), request.getAction(), request.isEnableChildSearch());
-            EntitledAttributesResponseModel response = new EntitledAttributesResponseModel();
-            response.setEntitledResultSetDTO(resultsSet);
-            return response;
-        } catch (EntitlementException e) {
-            log.error("Error occured while retrieving entitled attributes");
-            return null;
+            throw new RequestParseException(40022,
+                                "Invalid input data - either the user name or role name should be non-null");
         }
 
 
+        PolicySearch policySearch = EntitlementEngine.getInstance().getPolicySearch();
+        EntitledResultSetDTO resultsSet = policySearch.getEntitledAttributes(request.getSubjectName(), request.getResourceName(),
+                request.getSubjectId(), request.getAction(), request.isEnableChildSearch());
+        EntitledAttributesResponseModel response = new EntitledAttributesResponseModel();
+        response.setEntitledResultSetDTO(resultsSet);
+        return response;
     }
 
     /**
@@ -205,6 +184,7 @@ public class DecisionResource extends AbstractResource {
         }
 
         PolicySearch policySearch = EntitlementEngine.getInstance().getPolicySearch();
+
         EntitledResultSetDTO resultSet = policySearch.getEntitledAttributes(request.getIdentifier(), request.getGivenAttributes());
         AllEntitlementsResponseModel response = new AllEntitlementsResponseModel();
         response.setEntitledResultSetDTO(resultSet);

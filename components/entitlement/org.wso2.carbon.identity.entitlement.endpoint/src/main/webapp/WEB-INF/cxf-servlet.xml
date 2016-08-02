@@ -32,7 +32,8 @@
 
         <jaxrs:providers>
             <ref bean="authenticationFilter"/>
-            <!--<ref bean="jacksonJsonProvider"/>-->
+            <ref bean="jacksonJsonProvider"/>
+            <ref bean="exceptionMapper" />
         </jaxrs:providers>
 
         <!--<jaxrs:features>-->
@@ -46,8 +47,11 @@
     <bean id="authenticationFilter" class="org.wso2.carbon.identity.entitlement.endpoint.filter.AuthenticationFilter">
         <!-- authorization bean properties -->
     </bean>
+    <bean id="exceptionMapper"
+          class="org.wso2.carbon.identity.entitlement.endpoint.filter.EntitlementExceptionMapper" />
     <bean id="jacksonJsonProvider"
           class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
+
 
     <!--<bean id="swagger2Feature" class="org.apache.cxf.jaxrs.swagger.SwaggerFeature" />-->
 
