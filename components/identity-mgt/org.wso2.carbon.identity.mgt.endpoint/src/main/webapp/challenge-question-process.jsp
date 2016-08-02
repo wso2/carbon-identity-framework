@@ -27,6 +27,8 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
 
 <%
     String userName = request.getParameter("username");
@@ -41,7 +43,7 @@
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
                     securityQuestionApi.securityQuestionGet(user.getUsername(), user.getRealm(), user.getTenantDomain());
-
+            IdentityManagementEndpointUtil.addReCaptchaHeaders(request, initiateQuestionResponse.getResponseHeaders());
             session.setAttribute("initiateChallengeQuestionResponse", initiateQuestionResponse);
             request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
         } catch (ApiException e) {
@@ -52,6 +54,7 @@
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
+            IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
             request.setAttribute("error", true);
             request.setAttribute("errorMsg", e.getMessage());
             request.getRequestDispatcher("error.jsp").forward(request, response);
@@ -75,12 +78,15 @@
         answerVerificationRequest.setKey(challengeQuestionResponse.getKey());
         answerVerificationRequest.setAnswers(securityAnswers);
 
+        Map<String, String> requestHeaders = new HashedMap();
+        if(request.getParameter("g-recaptcha-response") != null) {
+            requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+        }
 
         try {
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
-                    securityQuestionApi.validateAnswerPost(answerVerificationRequest);
-
+                    securityQuestionApi.validateAnswerPost(answerVerificationRequest, requestHeaders);
 
             if ("validate-answer".equalsIgnoreCase(initiateQuestionResponse.getLink().getRel())) {
                 session.setAttribute("initiateChallengeQuestionResponse", initiateQuestionResponse);
@@ -93,6 +99,7 @@
         } catch (ApiException e) {
             RetryError retryError = new Gson().fromJson(e.getMessage(), RetryError.class);
             if (retryError != null && "20008".equals(retryError.getCode())) {
+                IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
                 request.setAttribute("errorResponse", retryError);
                 request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
                 return;
@@ -122,9 +129,9 @@
 
         }
 
-        Map<String, String> headers = new HashMap<String, String>();
-        if (request.getParameter("g-recaptcha-response") != null) {
-            headers.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+        Map<String, String> requestHeaders = new HashedMap();
+        if(request.getParameter("g-recaptcha-response") != null) {
+            requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
         }
 
 
@@ -136,7 +143,7 @@
         try {
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
-                    securityQuestionApi.validateAnswerPost(answerVerificationRequest);
+                    securityQuestionApi.validateAnswerPost(answerVerificationRequest, requestHeaders);
 
             session.setAttribute("confirmationKey", initiateQuestionResponse.getKey());
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);

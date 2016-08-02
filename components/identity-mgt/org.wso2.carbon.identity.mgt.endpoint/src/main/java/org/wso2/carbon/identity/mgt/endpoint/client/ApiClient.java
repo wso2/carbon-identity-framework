@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-//import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -34,6 +33,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateQuestionResponse;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.ResponseWithHeaders;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status.Family;
@@ -42,8 +43,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TimeZone;
+
+//import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public class ApiClient {
     private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
@@ -489,8 +498,13 @@ public class ApiClient {
         } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
             if (returnType == null)
                 return null;
-            else
-                return response.getEntity(returnType);
+            else {
+                T t = response.getEntity(returnType);
+                if (t instanceof ResponseWithHeaders) {
+                    ((ResponseWithHeaders)t).setResponseHeaders(response.getHeaders());
+                }
+                return t;
+            }
         } else {
             String message = "error";
             String respBody = null;
