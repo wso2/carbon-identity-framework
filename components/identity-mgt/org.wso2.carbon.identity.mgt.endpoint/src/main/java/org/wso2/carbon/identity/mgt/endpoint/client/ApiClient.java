@@ -34,6 +34,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status.Family;
@@ -47,7 +49,9 @@ import java.util.Map.Entry;
 
 public class ApiClient {
     private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
-    private String basePath = "https://localhost:9443/api/identity/recovery/v0.9";
+    private String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                    "api/identity/recovery/v0.9");
     private boolean debugging = false;
     private int connectionTimeout = 0;
 

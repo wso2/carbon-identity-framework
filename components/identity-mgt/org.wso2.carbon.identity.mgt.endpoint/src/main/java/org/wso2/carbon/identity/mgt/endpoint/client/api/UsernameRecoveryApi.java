@@ -21,6 +21,8 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.client.Configuration;
@@ -36,6 +38,9 @@ import java.util.Map;
 public class UsernameRecoveryApi {
   private ApiClient apiClient;
 
+  String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+          .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                  "api/identity/recovery/v0.9");
   public UsernameRecoveryApi() {
     this(Configuration.getDefaultApiClient());
   }
@@ -61,7 +66,9 @@ public class UsernameRecoveryApi {
    */
   public List<Claim> claimsGet(String tenantDomain) throws ApiException {
     Object localVarPostBody = null;
-    
+
+    apiClient.setBasePath(basePath);
+
     // create path and map variables
     String localVarPath = "/claims".replaceAll("\\{format\\}","json");
 
@@ -104,7 +111,9 @@ public class UsernameRecoveryApi {
     if (claim == null) {
       throw new ApiException(400, "Missing the required parameter 'claim' when calling recoverUsernamePost");
     }
-    
+
+    apiClient.setBasePath(basePath);
+
     // create path and map variables
     String localVarPath = "/recover-username/".replaceAll("\\{format\\}","json");
 

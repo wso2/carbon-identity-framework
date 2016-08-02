@@ -18,17 +18,18 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SelfRegisterApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.SelfRegistrationUser" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.SelfUserRegistrationRequest" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.List" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationClient" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.SelfRegistrationRequest" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
 <%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -68,80 +69,90 @@
     <!-- page content -->
     <div class="container-fluid body-wrapper">
 
-<%
-    boolean isSelfRegistrationWithVerification =
-            Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
+        <%
+            boolean isSelfRegistrationWithVerification =
+                    Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
 
-    String username = request.getParameter("username");
-    String password = request.getParameter("password");
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
 
-    if (StringUtils.isBlank(username)) {
-        request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-                             "Username cannot be empty.");
-        if (isSelfRegistrationWithVerification) {
-            request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
-        } else {
-            request.getRequestDispatcher("self-registration-without-verification.jsp").forward(request, response);
-        }
-    }
-
-    if (StringUtils.isBlank(password)) {
-        request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-                             "Password cannot be empty.");
-        if (isSelfRegistrationWithVerification) {
-            request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
-        } else {
-            request.getRequestDispatcher("self-registration-without-verification.jsp").forward(request, response);
-        }
-    }
-
-    session.setAttribute("username", username);
-
-    String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
-
-
-    UserRegistrationClient userRegistrationClient = new UserRegistrationClient();
-    Response responseForAllClaims = userRegistrationClient.getAllClaims(tenantDomain);
-
-    User user = new User();
-    user.setUserName(tenantAwareUsername);
-    user.setTenantDomain(tenantDomain);
-
-    List<Claim> userClaimList = new ArrayList<Claim>();
-    if(responseForAllClaims != null && Response.Status.OK.getStatusCode() == responseForAllClaims.getStatus()){
-        try {
-            String claimsContent = responseForAllClaims.readEntity(String.class);
-            Gson gson = new Gson();
-            Claim[] claims = gson.fromJson(claimsContent, Claim[].class);
-            for (Claim claim : claims){
-                if (StringUtils.isNotBlank(request.getParameter(claim.getClaimUri()))) {
-                    Claim userClaim = new Claim();
-                    userClaim.setClaimUri(claim.getClaimUri());
-                    userClaim.setValue(request.getParameter(claim.getClaimUri()));
-                    userClaimList.add(userClaim);
+            if (StringUtils.isBlank(username)) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg",
+                        "Username cannot be empty.");
+                if (isSelfRegistrationWithVerification) {
+                    request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
+                } else {
+                    request.getRequestDispatcher("self-registration-without-verification.jsp").forward(request, response);
                 }
             }
-            SelfRegistrationRequest selfRegistrationRequest =  new SelfRegistrationRequest();
-            selfRegistrationRequest.setClaims(userClaimList.toArray(new Claim[userClaimList.size()]));
-            selfRegistrationRequest.setUser(user);
-            selfRegistrationRequest.setPassword(password);
-            Map<String, String> headers = new HashMap<String, String>();
-            if (request.getParameter("g-recaptcha-response") != null) {
-                headers.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+
+            if (StringUtils.isBlank(password)) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg",
+                        "Password cannot be empty.");
+                if (isSelfRegistrationWithVerification) {
+                    request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
+                } else {
+                    request.getRequestDispatcher("self-registration-without-verification.jsp").forward(request, response);
+                }
             }
-            userRegistrationClient.registerUser(selfRegistrationRequest, headers);
-        } catch (Exception e) {
-            request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
-        }
 
-    }else{
-        request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
-    }
+            session.setAttribute("username", username);
 
-%>
+
+            User user = IdentityManagementServiceUtil.getInstance().getUser(username);
+
+
+            Claim[] claims = new Claim[0];
+
+            List<Claim> claimsList;
+            UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
+            try {
+                claimsList = usernameRecoveryApi.claimsGet(null);
+                if (claimsList != null) {
+                    claims = claimsList.toArray(new Claim[claimsList.size()]);
+                }
+            } catch (ApiException e) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", e.getMessage());
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+
+
+            List<Claim> userClaimList = new ArrayList<Claim>();
+            try {
+
+                for (Claim claim : claims) {
+                    if (StringUtils.isNotBlank(request.getParameter(claim.getUri()))) {
+                        Claim userClaim = new Claim();
+                        userClaim.setUri(claim.getUri());
+                        userClaim.setValue(request.getParameter(claim.getUri()));
+                        userClaimList.add(userClaim);
+                    }
+                }
+
+                SelfRegistrationUser selfRegistrationUser = new SelfRegistrationUser();
+                selfRegistrationUser.setUsername(user.getUsername());
+                selfRegistrationUser.setTenantDomain(user.getTenantDomain());
+                selfRegistrationUser.setRealm(user.getRealm());
+                selfRegistrationUser.setPassword(password);
+                selfRegistrationUser.setClaims(userClaimList);
+
+                SelfUserRegistrationRequest selfUserRegistrationRequest = new SelfUserRegistrationRequest();
+                selfUserRegistrationRequest.setUser(selfRegistrationUser);
+
+
+                SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
+                selfRegisterApi.mePostCall(selfUserRegistrationRequest);
+
+            } catch (Exception e) {
+                request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
+            }
+
+
+        %>
         <div class="alert alert-info">Registration Done.</div>
     </div>
 

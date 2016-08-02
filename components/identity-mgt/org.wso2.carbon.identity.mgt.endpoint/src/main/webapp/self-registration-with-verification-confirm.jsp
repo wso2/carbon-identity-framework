@@ -25,6 +25,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
 <%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SelfRegisterApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.CodeValidationRequest" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -35,25 +37,20 @@
     String confirmationKey = request.getParameter("confirmation");
 
     if (StringUtils.isBlank(username) || StringUtils.isBlank(confirmationKey)) {
-        username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
         confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
     }
-
-    UserRegistrationClient userRegistrationClient = new UserRegistrationClient();
-    ConfirmSelfRegistrationRequest confirmSelfRegistrationRequest = new ConfirmSelfRegistrationRequest();
-    confirmSelfRegistrationRequest.setCode(confirmationKey);
-    User user = new User();
-    user.setUserName(username);
-    confirmSelfRegistrationRequest.setUser(user);
-
-    Response response1 = userRegistrationClient.confirmUser(confirmSelfRegistrationRequest);
     String message = "" ;
-    if(Response.Status.OK.getStatusCode() == response1.getStatus()){
+
+    try {
+        SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
+        CodeValidationRequest validationRequest = new CodeValidationRequest();
+        validationRequest.setCode(confirmationKey);
+
+        selfRegisterApi.validateCodePostCall(validationRequest);
         message = "Successfully Confirmed." ;
-    }else{
+    } catch (Exception e) {
         error = true ;
-        ErrorResponse errorResponse = response1.readEntity(ErrorResponse.class);
-        errorMsg = errorResponse.getMessage() ;
+        errorMsg = e.getMessage() ;
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
