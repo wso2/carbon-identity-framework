@@ -18,8 +18,12 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources.models;
 
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonValueInstantiator;
 import org.wso2.carbon.identity.entitlement.dto.EntitledResultSetDTO;
 
+import javax.validation.constraints.Null;
 import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -30,7 +34,9 @@ import javax.xml.bind.annotation.*;
  * Model class representing the Entitled Attributes Response
  */
 @XmlRootElement(name = "EntitledAttributesResponse")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EntitledAttributesResponseModel {
+
     @XmlElement(required = true)
     private EntitledResultSetDTO entitledResultSetDTO;
 

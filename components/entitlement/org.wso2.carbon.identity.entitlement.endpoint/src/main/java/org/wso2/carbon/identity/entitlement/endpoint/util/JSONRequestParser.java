@@ -10,7 +10,7 @@ import org.wso2.balana.attr.AttributeValue;
 import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.ctx.xacml3.RequestCtx;
 import org.wso2.balana.xacml3.*;
-import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseExceptionAbstract;
+import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseException;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,7 +27,7 @@ import java.util.*;
 public class JSONRequestParser {
     private static Gson gson = new Gson();
 
-    public static RequestCtx parse(String jsonRequest) throws JsonParseException, RequestParseExceptionAbstract,
+    public static RequestCtx parse(String jsonRequest) throws JsonParseException, RequestParseException,
                                                               UnknownIdentifierException{
         JsonObject requestObject = null;
         Set<Attributes> categories = new HashSet<>();
@@ -156,7 +156,7 @@ public class JSONRequestParser {
                         Set<RequestReference> requestReferences = new HashSet<>();
 
                         if(jsonRequestReferences.isEmpty()){
-                            throw new RequestParseExceptionAbstract("MultiRequest should contain at least one "+
+                            throw new RequestParseException("MultiRequest should contain at least one "+
                                                                     "Reference Request");
                         }
 
@@ -189,7 +189,7 @@ public class JSONRequestParser {
         return requestCtx;
     }
 
-    public static Attribute jsonObjectToAttribute(JsonObject jsonObject) throws RequestParseExceptionAbstract,
+    public static Attribute jsonObjectToAttribute(JsonObject jsonObject) throws RequestParseException,
                                                                                 UnknownIdentifierException{
         URI id = null;
         URI type = stringAttributeToURI(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING);
@@ -249,11 +249,11 @@ public class JSONRequestParser {
         }
 
         if(id == null){
-            throw new RequestParseExceptionAbstract("Attribute Id should be set");
+            throw new RequestParseException("Attribute Id should be set");
         }
 
         if(attributeValues.isEmpty()){
-            throw new RequestParseExceptionAbstract("Attribute should have at least one value");
+            throw new RequestParseException("Attribute should have at least one value");
         }
 
         return new Attribute(id, type,issuer,null,attributeValues,includeInResult,
@@ -421,7 +421,7 @@ public class JSONRequestParser {
         return URI.create(uriName);
     }
 
-    public static String stringContentToXMLContent(String content) throws RequestParseExceptionAbstract {
+    public static String stringContentToXMLContent(String content) throws RequestParseException {
         if(content.startsWith("<")){
             //todo : check if GSON automatically unescape the string
             return content;
