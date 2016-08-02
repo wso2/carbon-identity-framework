@@ -26,19 +26,16 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
 <%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.user.core.util.UserCoreUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 
 <%
 
 
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
 
-    String userStoreDomain = Utils.getUserStoreDomainName(username);
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
-
-    User user = new User();
-    user.setUsername(username);
-    user.setTenantDomain(tenantDomain);
-    user.setRealm(userStoreDomain);
+    User user = IdentityManagementServiceUtil.getInstance().getUser(username);
 
     NotificationApi notificationApi = new NotificationApi();
 
