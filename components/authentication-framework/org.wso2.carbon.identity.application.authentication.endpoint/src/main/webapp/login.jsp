@@ -213,8 +213,9 @@
                                                 <input id="domainName" class="form-control" type="text"
                                                        placeholder="Domain Name">
                                             </div>
-                                            <button class="btn btn-primary go-btn" onclick="javascript: myFunction('idp2',
-                                                           'openid','domainName')">Go</button>
+                                            <input type="button" class="btn btn-primary go-btn"
+                                                   onClick="javascript: myFunction('<%=idpName%>','<%=idpEntry.getValue()%>','domainName')"
+                                                   value="Go"/>
                                         </form>
 
                                     </div>

@@ -24,28 +24,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
-import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.*;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Stack;
+import java.io.*;
+import java.util.*;
 
 public class IdentityConfigParser {
 
@@ -53,6 +40,7 @@ public class IdentityConfigParser {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
+    private static Map<ResourceAccessControlConfig.ResourceKey, ResourceAccessControlConfig> resourceAccessControlConfigHolder = new HashMap<>();
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -96,6 +84,15 @@ public class IdentityConfigParser {
 
     public static Map<String, IdentityCookieConfig> getIdentityCookieConfigurationHolder() {
         return identityCookieConfigurationHolder;
+    }
+
+    /**
+     * Get resources access configs.
+     *
+     * @return
+     */
+    public static Map<ResourceAccessControlConfig.ResourceKey, ResourceAccessControlConfig> getResourceAccessControlConfigHolder() {
+        return resourceAccessControlConfigHolder;
     }
 
     /**
@@ -160,6 +157,7 @@ public class IdentityConfigParser {
             Stack<String> nameStack = new Stack<String>();
             secretResolver = SecretResolverFactory.create(rootElement, true);
             readChildElements(rootElement, nameStack);
+            buildResourceAccessControlData();
             buildEventListenerData();
             buildCacheConfig();
             buildCookieConfig();
@@ -173,6 +171,63 @@ public class IdentityConfigParser {
                 }
             } catch (IOException e) {
                 log.error("Error closing the input stream for identity.xml", e);
+            }
+        }
+    }
+
+
+    /**
+     * Build rest api resource control config.
+     */
+    private void buildResourceAccessControlData() {
+
+        OMElement resourceAccessControl = this.getConfigElement(IdentityConstants.RESOURCE_ACCESS_CONTROL_ELE);
+        if (resourceAccessControl != null) {
+
+            Iterator<OMElement> resources = resourceAccessControl.getChildrenWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.RESOURCE_ELE));
+            if (resources != null) {
+
+                while (resources.hasNext()) {
+                    OMElement resource = resources.next();
+                    ResourceAccessControlConfig resourceAccessControlConfig = new ResourceAccessControlConfig();
+
+                    String context = resource.getAttributeValue(new QName(IdentityConstants.RESOURCE_CONTEXT_ATTR));
+                    String httpMethod = resource.getAttributeValue(
+                            new QName(IdentityConstants.RESOURCE_HTTP_METHOD_ATTR));
+                    String isSecured = resource.getAttributeValue(new QName(IdentityConstants.RESOURCE_SECURED_ATTR));
+
+                    StringBuilder permissionBuilder = new StringBuilder();
+                    Iterator<OMElement> permissionsIterator = resource.getChildrenWithName(
+                            new QName(IdentityConstants.RESOURCE_PERMISSION_ELE));
+                    if (permissionsIterator != null) {
+                        while (permissionsIterator.hasNext()) {
+                            OMElement permissionElement = permissionsIterator.next();
+                            String permission = permissionElement.getText();
+                            if (StringUtils.isNotEmpty(permissionBuilder.toString()) &&
+                                    StringUtils.isNotEmpty(permission)) {
+                                permissionBuilder.append(",");
+                            }
+                            if (StringUtils.isNotEmpty(permission)) {
+                                permissionBuilder.append(permission);
+                            }
+                        }
+                    }
+
+                    resourceAccessControlConfig.setContext(context);
+                    resourceAccessControlConfig.setHttpMethod(httpMethod);
+                    if (StringUtils.isNotEmpty(isSecured) && (Boolean.TRUE.toString().equals(isSecured) ||
+                            Boolean.FALSE.toString().equals(isSecured))) {
+                        resourceAccessControlConfig.setIsSecured(Boolean.parseBoolean(isSecured));
+                    }
+                    resourceAccessControlConfig.setPermissions(permissionBuilder.toString());
+
+                    ResourceAccessControlConfig.ResourceKey resourceKey = new ResourceAccessControlConfig.ResourceKey();
+                    resourceKey.setContext(context);
+                    resourceKey.setHttpMethod(httpMethod);
+
+                    resourceAccessControlConfigHolder.put(resourceKey, resourceAccessControlConfig);
+                }
             }
         }
     }

@@ -440,4 +440,12 @@
     <!--Cookies>
         <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
     </Cookies-->
+
+
+    <ResourceAccessControl>
+        <Resource context="/api/identity/*" secured="true" http-method="all">
+            <Permissions>/permission/admin/login</Permissions>
+        </Resource>
+    </ResourceAccessControl>
+
 </Server>
