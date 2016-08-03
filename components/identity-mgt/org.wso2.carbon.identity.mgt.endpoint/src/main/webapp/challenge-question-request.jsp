@@ -47,6 +47,7 @@
                 SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
                 InitiateAllQuestionResponse initiateAllQuestionResponse = securityQuestionApi.securityQuestionsGet(user.getUsername(),
                         user.getRealm(), user.getTenantDomain());
+                IdentityManagementEndpointUtil.addReCaptchaHeaders(request, initiateAllQuestionResponse.getResponseHeaders());
                 session.setAttribute("initiateAllQuestionResponse", initiateAllQuestionResponse);
 
                 challengeQuestions = initiateAllQuestionResponse.getQuestions();
@@ -61,6 +62,7 @@
                     return;
 
                 }
+                IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg", e.getMessage());
                 request.getRequestDispatcher("error.jsp").forward(request, response);

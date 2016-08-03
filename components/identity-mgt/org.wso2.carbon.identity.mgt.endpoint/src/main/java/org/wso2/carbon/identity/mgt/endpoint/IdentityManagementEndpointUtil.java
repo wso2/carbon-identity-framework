@@ -25,6 +25,7 @@ import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
@@ -178,5 +179,13 @@ public class IdentityManagementEndpointUtil {
             bean.setHeaders(headers);
         }
         return bean;
+    }
+
+    public static void addReCaptchaHeaders(HttpServletRequest request, Map<String, List<String>> headers) {
+        if (headers != null && headers.get("reCaptcha") != null) {
+            request.setAttribute("reCaptcha", Boolean.TRUE.toString());
+            request.setAttribute("reCaptchaAPI", headers.get("reCaptchaAPI").get(0));
+            request.setAttribute("reCaptchaKey", headers.get("reCaptchaKey").get(0));
+        }
     }
 }
