@@ -122,15 +122,6 @@ public class IdentityConstants {
     public final static String COOKIE_SECURE = "secure";
     public final static String COOKIE_HTTP_ONLY = "httpOnly";
 
-
-    //Resource Access Control Constants
-    public final static String RESOURCE_ACCESS_CONTROL_ELE = "ResourceAccessControl" ;
-    public final static String RESOURCE_ELE = "Resource" ;
-    public final static String RESOURCE_CONTEXT_ATTR = "context" ;
-    public final static String RESOURCE_SECURED_ATTR = "secured" ;
-    public final static String RESOURCE_HTTP_METHOD_ATTR = "http-method" ;
-    public final static String RESOURCE_PERMISSION_ELE = "Permissions" ;
-
     // HTTP headers which may contain IP address of the client in the order of priority
     public static final String[] HEADERS_WITH_IP = {
             "X-Forwarded-For",

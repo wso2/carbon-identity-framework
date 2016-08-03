@@ -40,7 +40,6 @@ public class IdentityConfigParser {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
-    private static Map<ResourceAccessControlConfig.ResourceKey, ResourceAccessControlConfig> resourceAccessControlConfigHolder = new HashMap<>();
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -86,14 +85,6 @@ public class IdentityConfigParser {
         return identityCookieConfigurationHolder;
     }
 
-    /**
-     * Get resources access configs.
-     *
-     * @return
-     */
-    public static Map<ResourceAccessControlConfig.ResourceKey, ResourceAccessControlConfig> getResourceAccessControlConfigHolder() {
-        return resourceAccessControlConfigHolder;
-    }
 
     /**
      * @return
@@ -106,16 +97,16 @@ public class IdentityConfigParser {
 
         String warningMessage = "";
         try {
-            if (configFilePath != null) {
+            if ( configFilePath != null ) {
                 File identityConfigXml = new File(configFilePath);
-                if (identityConfigXml.exists()) {
+                if ( identityConfigXml.exists() ) {
                     inStream = new FileInputStream(identityConfigXml);
                 }
             } else {
 
                 File identityConfigXml = new File(IdentityUtil.getIdentityConfigDirPath(),
                         IdentityCoreConstants.IDENTITY_CONFIG);
-                if (identityConfigXml.exists()) {
+                if ( identityConfigXml.exists() ) {
                     inStream = new FileInputStream(identityConfigXml);
                 }
                 /*Following seems a wrong use of a class inside internal package (IdentityCoreServiceComponent),
@@ -144,9 +135,9 @@ public class IdentityConfigParser {
                 }*/
             }
 
-            if (inStream == null) {
+            if ( inStream == null ) {
                 String message = "Identity configuration not found. Cause - " + warningMessage;
-                if (log.isDebugEnabled()) {
+                if ( log.isDebugEnabled() ) {
                     log.debug(message);
                 }
                 throw new FileNotFoundException(message);
@@ -157,77 +148,19 @@ public class IdentityConfigParser {
             Stack<String> nameStack = new Stack<String>();
             secretResolver = SecretResolverFactory.create(rootElement, true);
             readChildElements(rootElement, nameStack);
-            buildResourceAccessControlData();
             buildEventListenerData();
             buildCacheConfig();
             buildCookieConfig();
 
-        } catch (IOException|XMLStreamException e) {
+        } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
         } finally {
             try {
-                if (inStream != null) {
+                if ( inStream != null ) {
                     inStream.close();
                 }
-            } catch (IOException e) {
+            } catch ( IOException e ) {
                 log.error("Error closing the input stream for identity.xml", e);
-            }
-        }
-    }
-
-
-    /**
-     * Build rest api resource control config.
-     */
-    private void buildResourceAccessControlData() {
-
-        OMElement resourceAccessControl = this.getConfigElement(IdentityConstants.RESOURCE_ACCESS_CONTROL_ELE);
-        if (resourceAccessControl != null) {
-
-            Iterator<OMElement> resources = resourceAccessControl.getChildrenWithName(
-                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.RESOURCE_ELE));
-            if (resources != null) {
-
-                while (resources.hasNext()) {
-                    OMElement resource = resources.next();
-                    ResourceAccessControlConfig resourceAccessControlConfig = new ResourceAccessControlConfig();
-
-                    String context = resource.getAttributeValue(new QName(IdentityConstants.RESOURCE_CONTEXT_ATTR));
-                    String httpMethod = resource.getAttributeValue(
-                            new QName(IdentityConstants.RESOURCE_HTTP_METHOD_ATTR));
-                    String isSecured = resource.getAttributeValue(new QName(IdentityConstants.RESOURCE_SECURED_ATTR));
-
-                    StringBuilder permissionBuilder = new StringBuilder();
-                    Iterator<OMElement> permissionsIterator = resource.getChildrenWithName(
-                            new QName(IdentityConstants.RESOURCE_PERMISSION_ELE));
-                    if (permissionsIterator != null) {
-                        while (permissionsIterator.hasNext()) {
-                            OMElement permissionElement = permissionsIterator.next();
-                            String permission = permissionElement.getText();
-                            if (StringUtils.isNotEmpty(permissionBuilder.toString()) &&
-                                    StringUtils.isNotEmpty(permission)) {
-                                permissionBuilder.append(",");
-                            }
-                            if (StringUtils.isNotEmpty(permission)) {
-                                permissionBuilder.append(permission);
-                            }
-                        }
-                    }
-
-                    resourceAccessControlConfig.setContext(context);
-                    resourceAccessControlConfig.setHttpMethod(httpMethod);
-                    if (StringUtils.isNotEmpty(isSecured) && (Boolean.TRUE.toString().equals(isSecured) ||
-                            Boolean.FALSE.toString().equals(isSecured))) {
-                        resourceAccessControlConfig.setIsSecured(Boolean.parseBoolean(isSecured));
-                    }
-                    resourceAccessControlConfig.setPermissions(permissionBuilder.toString());
-
-                    ResourceAccessControlConfig.ResourceKey resourceKey = new ResourceAccessControlConfig.ResourceKey();
-                    resourceKey.setContext(context);
-                    resourceKey.setHttpMethod(httpMethod);
-
-                    resourceAccessControlConfigHolder.put(resourceKey, resourceAccessControlConfig);
-                }
             }
         }
     }

@@ -443,9 +443,9 @@
 
 
     <ResourceAccessControl>
-        <Resource context="/api/identity/*" secured="true" http-method="all">
+        <!--Resource context="/api/identity/*" secured="true" http-method="all">
             <Permissions>/permission/admin/login</Permissions>
-        </Resource>
+        </Resource-->
     </ResourceAccessControl>
 
 </Server>
