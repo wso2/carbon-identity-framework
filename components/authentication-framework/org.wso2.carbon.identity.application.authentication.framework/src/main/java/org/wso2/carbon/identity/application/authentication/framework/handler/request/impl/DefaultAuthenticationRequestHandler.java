@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -262,10 +263,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
+            String sessionContextKey = null;
             if (FrameworkUtils.getAuthCookie(request) != null) {
+
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
+
                 if (commonAuthCookie != null) {
-                    sessionContext = FrameworkUtils.getSessionContextFromCache(commonAuthCookie);
+                    sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
+                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
                 }
             }
 
@@ -276,8 +281,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
-                FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
-                FrameworkUtils.publishSessionEvent(commonAuthCookie, request, context, sessionContext, sequenceConfig
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
+                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
 
             } else {
@@ -289,12 +294,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
                 sessionContext.setRememberMe(context.isRememberMe());
                 String sessionKey = UUIDGenerator.generateUUID();
+                sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext);
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
                 setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
-                FrameworkUtils.publishSessionEvent(sessionKey, request, context, sessionContext, sequenceConfig
+                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
 
@@ -318,6 +324,18 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_SUCCESS));
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
+        } else {
+            String auditData = "\"" + "ContextIdentifier" + "\" : \"" + context.getContextIdentifier()
+                    + "\",\"" + "ServiceProviderName" + "\" : \"" + context.getServiceProviderName()
+                    + "\",\"" + "RequestType" + "\" : \"" + context.getRequestType()
+                    + "\",\"" + "RelyingParty" + "\" : \"" + context.getRelyingParty()
+                    + "\"";
+
+            AUDIT_LOG.info(String.format(
+                    FrameworkConstants.AUDIT_MESSAGE,
+                    null,
+                    "Login",
+                    "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_FAILED));
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other

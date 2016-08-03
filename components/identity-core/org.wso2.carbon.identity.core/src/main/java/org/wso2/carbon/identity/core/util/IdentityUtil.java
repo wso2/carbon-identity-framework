@@ -43,12 +43,7 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
-import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
-import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.*;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -173,6 +168,8 @@ public class IdentityUtil {
     public static IdentityCookieConfig getIdentityCookieConfig(String cookieName)   {
         return identityCookiesConfigurationHolder.get(cookieName);
     }
+
+
 
     public static Map<String, IdentityCookieConfig> getIdentityCookiesConfigurationHolder() {
         return identityCookiesConfigurationHolder;

@@ -21,6 +21,8 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.client.Configuration;
@@ -37,6 +39,9 @@ import java.util.Map;
 public class NotificationApi {
     private ApiClient apiClient;
 
+    String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                    "api/identity/recovery/v0.9");
     public NotificationApi() {
         this(Configuration.getDefaultApiClient());
     }
@@ -69,6 +74,8 @@ public class NotificationApi {
         if (recoveryInitiatingRequest == null) {
             throw new ApiException(400, "Missing the required parameter 'recoveryInitiatingRequest' when calling recoverPasswordPost");
         }
+
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/recover-password".replaceAll("\\{format\\}", "json");
@@ -115,6 +122,8 @@ public class NotificationApi {
             throw new ApiException(400, "Missing the required parameter 'claim' when calling recoverUsernamePost");
         }
 
+        apiClient.setBasePath(basePath);
+
         // create path and map variables
         String localVarPath = "/recover-username/".replaceAll("\\{format\\}", "json");
 
@@ -156,6 +165,8 @@ public class NotificationApi {
         if (resetPasswordRequest == null) {
             throw new ApiException(400, "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
         }
+
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/set-password".replaceAll("\\{format\\}", "json");

@@ -24,28 +24,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
-import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.*;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Stack;
+import java.io.*;
+import java.util.*;
 
 public class IdentityConfigParser {
 
@@ -98,6 +85,7 @@ public class IdentityConfigParser {
         return identityCookieConfigurationHolder;
     }
 
+
     /**
      * @return
      * @throws XMLStreamException
@@ -109,16 +97,16 @@ public class IdentityConfigParser {
 
         String warningMessage = "";
         try {
-            if (configFilePath != null) {
+            if ( configFilePath != null ) {
                 File identityConfigXml = new File(configFilePath);
-                if (identityConfigXml.exists()) {
+                if ( identityConfigXml.exists() ) {
                     inStream = new FileInputStream(identityConfigXml);
                 }
             } else {
 
                 File identityConfigXml = new File(IdentityUtil.getIdentityConfigDirPath(),
                         IdentityCoreConstants.IDENTITY_CONFIG);
-                if (identityConfigXml.exists()) {
+                if ( identityConfigXml.exists() ) {
                     inStream = new FileInputStream(identityConfigXml);
                 }
                 /*Following seems a wrong use of a class inside internal package (IdentityCoreServiceComponent),
@@ -147,9 +135,9 @@ public class IdentityConfigParser {
                 }*/
             }
 
-            if (inStream == null) {
+            if ( inStream == null ) {
                 String message = "Identity configuration not found. Cause - " + warningMessage;
-                if (log.isDebugEnabled()) {
+                if ( log.isDebugEnabled() ) {
                     log.debug(message);
                 }
                 throw new FileNotFoundException(message);
@@ -164,14 +152,14 @@ public class IdentityConfigParser {
             buildCacheConfig();
             buildCookieConfig();
 
-        } catch (IOException|XMLStreamException e) {
+        } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
         } finally {
             try {
-                if (inStream != null) {
+                if ( inStream != null ) {
                     inStream.close();
                 }
-            } catch (IOException e) {
+            } catch ( IOException e ) {
                 log.error("Error closing the input stream for identity.xml", e);
             }
         }

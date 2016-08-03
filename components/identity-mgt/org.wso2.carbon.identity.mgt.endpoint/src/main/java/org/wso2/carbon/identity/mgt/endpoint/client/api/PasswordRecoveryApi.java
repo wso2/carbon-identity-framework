@@ -21,6 +21,8 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.client.Configuration;
@@ -34,6 +36,10 @@ import java.util.Map;
 
 public class PasswordRecoveryApi {
   private ApiClient apiClient;
+
+  String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+          .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                  "api/identity/recovery/v0.9");
 
   public PasswordRecoveryApi() {
     this(Configuration.getDefaultApiClient());
@@ -67,7 +73,9 @@ public class PasswordRecoveryApi {
     if (recoveryInitiatingRequest == null) {
       throw new ApiException(400, "Missing the required parameter 'recoveryInitiatingRequest' when calling recoverPasswordPost");
     }
-    
+
+    apiClient.setBasePath(basePath);
+
     // create path and map variables
     String localVarPath = "/recover-password".replaceAll("\\{format\\}","json");
 
@@ -112,7 +120,9 @@ public class PasswordRecoveryApi {
     if (username == null) {
       throw new ApiException(400, "Missing the required parameter 'username' when calling securityQuestionGet");
     }
-    
+
+    apiClient.setBasePath(basePath);
+
     // create path and map variables
     String localVarPath = "/security-question".replaceAll("\\{format\\}","json");
 
@@ -158,7 +168,9 @@ public class PasswordRecoveryApi {
     if (username == null) {
       throw new ApiException(400, "Missing the required parameter 'username' when calling securityQuestionsGet");
     }
-    
+
+    apiClient.setBasePath(basePath);
+
     // create path and map variables
     String localVarPath = "/security-questions".replaceAll("\\{format\\}","json");
 
@@ -201,7 +213,9 @@ public class PasswordRecoveryApi {
     if (resetPasswordRequest == null) {
       throw new ApiException(400, "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
     }
-    
+
+    apiClient.setBasePath(basePath);
+
     // create path and map variables
     String localVarPath = "/set-password".replaceAll("\\{format\\}","json");
 
@@ -242,7 +256,9 @@ public class PasswordRecoveryApi {
     if (answerVerificationRequest == null) {
       throw new ApiException(400, "Missing the required parameter 'answerVerificationRequest' when calling validateAnswerPost");
     }
-    
+
+    apiClient.setBasePath(basePath);
+
     // create path and map variables
     String localVarPath = "/validate-answer".replaceAll("\\{format\\}","json");
 

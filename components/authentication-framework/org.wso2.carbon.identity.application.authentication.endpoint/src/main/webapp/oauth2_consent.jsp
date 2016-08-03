@@ -21,6 +21,8 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
     String app = request.getParameter("application");
+    String scopeString = request.getParameter("scope");
+    boolean displayScopes = Boolean.parseBoolean(getServletContext().getInitParameter("displayScopes"));
 %>
 
 <html>
@@ -93,6 +95,26 @@
                                 <p><strong>
                                     <%=Encode.forHtml(request.getParameter("application"))%>
                                 </strong> requests access to your profile information </p>
+                                <%
+                                    if (displayScopes && scopeString != null) {
+                                %>
+                                <ul>
+                                <%
+                                        String[] scopes = scopeString.split(" ");
+                                        for (String scopeID : scopes) {
+
+                                            if ("openid".equals(scopeID)) {
+                                                continue;
+                                            }
+                                %>
+                                        <li><%=Encode.forHtml(scopeID)%></li>
+                                <%
+                                        }
+                                %>
+                                </ul>
+                                <%
+                                    }
+                                %>
                             </div>
                             <table width="100%" class="styledLeft">
                                 <tbody>

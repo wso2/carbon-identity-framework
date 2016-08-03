@@ -18,18 +18,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationClient" %>
-<%@ page import="javax.ws.rs.core.Response" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim" %>
-<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -44,44 +40,19 @@
 
     Claim[] claims = new Claim[0];
 
-    UserRegistrationClient userRegistrationClient = new UserRegistrationClient();
-    Response responseForAllClaims = userRegistrationClient.getAllClaims(null);
-    if(responseForAllClaims != null && Response.Status.OK.getStatusCode() == responseForAllClaims.getStatus()) {
-        String claimsContent = responseForAllClaims.readEntity(String.class);
-        Gson gson = new Gson();
-        claims = gson.fromJson(claimsContent, Claim[].class);
-
-    }
-    if(((ResponseImpl)responseForAllClaims).getHeaders().containsKey("reCaptcha") &&
-            Boolean.parseBoolean((String) ((ResponseImpl)responseForAllClaims).getHeaders().get("reCaptcha").get(0))) {
-        request.setAttribute("reCaptcha", "true");
-        request.setAttribute("reCaptchaKey", ((ResponseImpl)responseForAllClaims).getHeaders().get("reCaptchaKey").get(0));
-        request.setAttribute("reCaptchaAPI", ((ResponseImpl)responseForAllClaims).getHeaders().get("reCaptchaAPI").get(0));
-    }
-
-/*
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
-
-    UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient
-            .getUserIdentitySupportedClaims(IdentityManagementEndpointConstants.WSO2_DIALECT);
-
-    for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-        if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
-            isFirstNameInClaims = true;
-            isFirstNameRequired = claimDTO.getRequired();
+    List<Claim> claimsList;
+    UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
+    try {
+        claimsList = usernameRecoveryApi.claimsGet(null);
+        if (claimsList != null) {
+            claims = claimsList.toArray(new Claim[claimsList.size()]);
         }
-        if (StringUtils.equals(claimDTO.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)) {
-            isLastNameInClaims = true;
-            isLastNameRequired = claimDTO.getRequired();
-        }
-        if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
-            isEmailInClaims = true;
-            isEmailRequired = claimDTO.getRequired();
-        }
+    } catch (ApiException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", e.getMessage());
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
     }
-    */
 %>
 <%
     boolean reCaptchaEnabled = false;
@@ -202,20 +173,21 @@
                             <%}%>
 
                             <% for (Claim claim : claims) {
-                                if (!StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
-                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
-                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
-                                    !StringUtils.equals(claim.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
+                                if (!StringUtils.equals(claim.getUri(),
+                                        IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label <% if (claim.isRequired()) {%> class="control-label" <%}%>>
-                                    <%= Encode.forHtmlContent(claim.getDisplayTag())%>
+                                <label <% if (claim.getRequired()) {%> class="control-label" <%}%>>
+                                    <%= Encode.forHtmlContent(claim.getDisplayName())%>
                                 </label>
-                                <input type="text" name="<%= Encode.forHtmlAttribute(claim.getClaimUri()) %>"
+                                <input type="text" name="<%= Encode.forHtmlAttribute(claim.getUri()) %>"
                                        class="form-control"
-                                        <% if (claim.isRequired()) {%> required <%}%>>
+                                        <% if (claim.getRequired()) {%> required <%}%>>
                             </div>
                             <%
                                     }
