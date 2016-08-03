@@ -107,9 +107,9 @@ public class DefaultStepHandler implements StepHandler {
             return;
         } else {
             long authTime = 0;
-            if (StringUtils.isNotEmpty(request.getParameter(FrameworkConstants.RequestParams.MAX_AGE)) && StringUtils.
-                    isNotEmpty(context.getSessionIdentifier())) {
-                long maxAge = Long.parseLong((String) request.getParameter(FrameworkConstants.RequestParams.MAX_AGE));
+            String max_age = request.getParameter(FrameworkConstants.RequestParams.MAX_AGE);
+            if (StringUtils.isNotBlank(max_age) && StringUtils.isNotBlank(context.getSessionIdentifier())) {
+                long maxAge = Long.parseLong((max_age));
                 if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
                         .getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
                     authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
