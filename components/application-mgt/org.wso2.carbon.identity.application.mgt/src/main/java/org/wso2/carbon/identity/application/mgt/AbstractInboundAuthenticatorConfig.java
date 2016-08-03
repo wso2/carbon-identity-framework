@@ -45,6 +45,13 @@ public abstract class AbstractInboundAuthenticatorConfig {
     public abstract String getName();
 
     /**
+     * Get Config Name
+     *
+     * @return config name.
+     */
+    public abstract String getConfigName();
+
+    /**
      * Get friendly name
      *
      * @return friendly name

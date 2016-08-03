@@ -127,8 +127,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.appendRequestQueryParams(parameterMap);
         for (Object entry : identityRequest.getHeaderMap().keySet()) {
-            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
-                    ((Map.Entry<String, String>)entry).getValue());
+            authenticationRequest.addHeader((String) entry, identityRequest.getHeaderMap().get(entry));
         }
         authenticationRequest.setRelyingParty(getRelyingPartyId());
         authenticationRequest.setType(getName());
