@@ -30,7 +30,7 @@ import java.util.Objects;
 /**
  * InitiateAllQuestionResponse
  */
-public class InitiateAllQuestionResponse {
+public class InitiateAllQuestionResponse extends ResponseWithHeaders  {
 
     private String key = null;
     private List<Question> questions = new ArrayList<Question>();

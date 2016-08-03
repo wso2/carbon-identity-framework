@@ -22,13 +22,15 @@ package org.wso2.carbon.identity.mgt.endpoint.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
 /**
  * InitiateQuestionResponse
  */
-public class InitiateQuestionResponse   {
+public class InitiateQuestionResponse extends ResponseWithHeaders {
   
   private String key = null;
   private Question question = null;
