@@ -1710,16 +1710,16 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
         Map<String, AbstractInboundAuthenticatorConfig> allCustomAuthenticators = new HashMap<>
                 (ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig());
-        AbstractInboundAuthenticatorConfig inboundAuthenConfig = allCustomAuthenticators.remove
-                (wellKnownApplicationType);
+        AbstractInboundAuthenticatorConfig inboundAuthenConfig = allCustomAuthenticators.get(wellKnownApplicationType);
         //based on assumption that a service provider can have only one custom authenticator configured
-        if(inboundAuthenConfig != null) {
+        if (inboundAuthenConfig != null) {
             for (Map.Entry<String, InboundAuthenticationRequestConfig> entry : inboundAuthenticationRequestConfigMap
                     .entrySet()) {
                 InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = entry.getValue();
                 if (inboundAuthenticationRequestConfig != null && StringUtils.equals(inboundAuthenConfig
                         .getName(), inboundAuthenticationRequestConfig.getInboundAuthType()) &&
                         isCustomInboundAuthType(inboundAuthenticationRequestConfig.getInboundAuthType())) {
+                    allCustomAuthenticators.remove(wellKnownApplicationType);
                     Property[] sources = inboundAuthenConfig.getConfigurationProperties();
                     Property[] destinations = inboundAuthenticationRequestConfig.getProperties();
                     Map<String, Property> destinationMap = new HashMap<>();
