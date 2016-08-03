@@ -28,16 +28,6 @@ import org.wso2.carbon.identity.application.common.model.Property;
 public abstract class AbstractInboundAuthenticatorConfig {
 
     /**
-     * Get AuthKey. This is already deprecated and still implemented here to make this backward compatible.
-     *
-     * @return name
-     */
-    @Deprecated
-    public String getAuthKey() {
-        return null;
-    }
-
-    /**
      * Get Type
      *
      * @return type
@@ -83,8 +73,8 @@ public abstract class AbstractInboundAuthenticatorConfig {
         Property[] configurationProperties = getConfigurationProperties();
         if (configurationProperties != null) {
             for (Property property : configurationProperties) {
-                if (property != null && StringUtils.isNotBlank(property.getName()) && property.getName().equals
-                        (getRelyingPartyKey())) {
+                if (property != null && StringUtils.isNotBlank(property.getName()) && StringUtils.equals(property
+                        .getName(), (getRelyingPartyKey()))) {
                     return true;
                 }
             }
