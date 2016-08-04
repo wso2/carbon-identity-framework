@@ -253,6 +253,10 @@ public class IdentityConstants {
         //PassiveSTS
         public static final String PASSIVE_STS_RETRY = "PassiveSTS.RetryURL";
 
+        // Server Synchronization Tolerance Configurations
+        public static final String CLOCK_SKEW = "ClockSkew";
+        public static final String CLOCK_SKEW_DEFAULT = "300";
+
     }
 
     /**

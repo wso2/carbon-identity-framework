@@ -448,4 +448,7 @@
         </Resource-->
     </ResourceAccessControl>
 
+
+    <!-- Server Synchronization Tolerance Configuration in seconds -->
+    <ClockSkew>300</ClockSkew>
 </Server>
