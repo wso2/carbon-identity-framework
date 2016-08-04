@@ -150,6 +150,10 @@ public class IdentityApplicationConstants {
             public static final String IDENTITY_PROVIDER_URL = "IdentityProviderUrl";
             public static final String IDENTITY_PROVIDER_ENTITY_ID = "IdPEntityId";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
+            public static final String IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION =
+                    "isEnablePassiveSTSAssertionSignatureValidation";
+            public static final String IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION =
+                    "isEnablePassiveSTSAssertionAudienceValidation";
 
             private PassiveSTS() {
                 throw new AssertionError("Must not initiate an object of PassiveSTS class");

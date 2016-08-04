@@ -1225,7 +1225,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(passiveSTSAuthnConfig);
         }
 
-        Property[] properties = new Property[4];
+        Property[] properties = new Property[6];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.REALM_ID);
         property.setValue(paramMap.get("passiveSTSRealm"));
@@ -1237,11 +1237,31 @@ public class IdPManagementUIUtil {
         properties[1] = property;
 
         property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS);
+        property.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IS_USER_ID_IN_CLAIMS);
         properties[2] = property;
         if ("1".equals(paramMap.get("passive_sts_user_id_location"))) {
             property.setValue("true");
             ;
+        } else {
+            property.setValue("false");
+        }
+
+        property = new Property();
+        property.setName(
+                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
+        properties[3] = property;
+        if ("on".equals(paramMap.get("isEnablePassiveSTSAssertionSignatureValidation"))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+
+        property = new Property();
+        property.setName(
+                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION);
+        properties[4] = property;
+        if ("on".equals(paramMap.get("isEnablePassiveSTSAssertionAudienceValidation"))) {
+            property.setValue("true");
         } else {
             property.setValue("false");
         }
@@ -1253,7 +1273,7 @@ public class IdPManagementUIUtil {
                 && paramMap.get("passiveSTSQueryParam").trim().length() > 0) {
             property.setValue(paramMap.get("passiveSTSQueryParam"));
         }
-        properties[3] = property;
+        properties[5] = property;
 
         passiveSTSAuthnConfig.setProperties(properties);
 
