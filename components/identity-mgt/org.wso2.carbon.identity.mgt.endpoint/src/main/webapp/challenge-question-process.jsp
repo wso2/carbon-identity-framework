@@ -86,7 +86,7 @@
         try {
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
-                    securityQuestionApi.validateAnswerPost(answerVerificationRequest, requestHeaders);
+                    securityQuestionApi.validateAnswerPost(answerVerificationRequest);
 
             if ("validate-answer".equalsIgnoreCase(initiateQuestionResponse.getLink().getRel())) {
                 session.setAttribute("initiateChallengeQuestionResponse", initiateQuestionResponse);
@@ -143,7 +143,7 @@
         try {
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
-                    securityQuestionApi.validateAnswerPost(answerVerificationRequest, requestHeaders);
+                    securityQuestionApi.validateAnswerPost(answerVerificationRequest);
 
             session.setAttribute("confirmationKey", initiateQuestionResponse.getKey());
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
