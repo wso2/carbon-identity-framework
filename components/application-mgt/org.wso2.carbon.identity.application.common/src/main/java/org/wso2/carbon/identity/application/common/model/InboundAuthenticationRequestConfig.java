@@ -35,7 +35,6 @@ public class InboundAuthenticationRequestConfig implements Serializable {
 
     private String inboundAuthKey;
     private String inboundAuthType;
-    private String inboundConfigType;
     private String friendlyName;
     private Property[] properties = new Property[0];
 
@@ -63,8 +62,6 @@ public class InboundAuthenticationRequestConfig implements Serializable {
                 inboundAuthenticationRequestConfig.setInboundAuthKey(member.getText());
             } else if ("InboundAuthType".equalsIgnoreCase(member.getLocalName())) {
                 inboundAuthenticationRequestConfig.setInboundAuthType(member.getText());
-            } else if ("InboundConfigType".equalsIgnoreCase(member.getLocalName())) {
-                inboundAuthenticationRequestConfig.setInboundConfigType(member.getText());
             } else if ("friendlyName".equalsIgnoreCase(member.getLocalName())) {
                 inboundAuthenticationRequestConfig.setFriendlyName(member.getText());
             } else if ("Properties".equalsIgnoreCase(member.getLocalName())) {
@@ -115,22 +112,6 @@ public class InboundAuthenticationRequestConfig implements Serializable {
      */
     public void setInboundAuthType(String inboundAuthType) {
         this.inboundAuthType = inboundAuthType;
-    }
-
-    /**
-     *
-     * @return inboundUIType
-     */
-    public String getInboundConfigType() {
-        return inboundConfigType;
-    }
-
-    /**
-     * Sets the UIType of the inbound authentication config.
-     * @param inboundConfigType
-     */
-    public void setInboundConfigType(String inboundConfigType) {
-        this.inboundConfigType = inboundConfigType;
     }
 
     /**
