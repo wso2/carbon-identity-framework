@@ -30,6 +30,8 @@ public class ApplicationConstants {
     public static final String LOCAL_IDP_NAME = "LOCAL";
     public static final String LOCAL_SP = "wso2carbon-local-sp";
     public static final String LOCAL_IDP_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
+    public static final String CUSTOM_APP = "custom";
+    public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
 
     public static final String AUTH_TYPE_DEFAULT = "default";
     public static final String AUTH_TYPE_LOCAL = "local";
