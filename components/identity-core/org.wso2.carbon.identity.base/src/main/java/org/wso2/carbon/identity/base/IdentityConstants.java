@@ -217,6 +217,7 @@ public class IdentityConstants {
         public final static String SAMLSSO = "samlsso";
         public final static String ENTITY_ID = "SSOService.EntityID";
         public final static String SSO_IDP_URL = "SSOService.IdentityProviderURL";
+        public final static String SSO_IDP_CLOUD_URL = "SSOService.CloudIdentityProviderURL";
         public final static String DEFAULT_LOGOUT_ENDPOINT = "SSOService.DefaultLogoutEndpoint";
         public final static String NOTIFICATION_ENDPOINT = "SSOService.NotificationEndpoint";
         public final static String SSO_ATTRIB_CLAIM_DIALECT = "SSOService.AttributesClaimDialect";
@@ -228,6 +229,8 @@ public class IdentityConstants {
         public static final String SSO_DEFAULT_SIGNING_ALGORITHM = "SSOService.SAMLDefaultSigningAlgorithmURI";
         public static final String SSO_DEFAULT_DIGEST_ALGORITHM = "SSOService.SAMLDefaultDigestAlgorithmURI";
         public static final String SLO_HOST_NAME_VERIFICATION_ENABLED = "SSOService.SLOHostNameVerificationEnabled";
+        public static final String HIDDEN_FIELDS = "hiddenFields";
+        public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
