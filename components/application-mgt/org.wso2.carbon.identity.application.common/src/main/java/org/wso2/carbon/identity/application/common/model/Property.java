@@ -36,6 +36,7 @@ public class Property implements Serializable {
     private String description;
     private String type;
     private int displayOrder;
+    private boolean isAdvanced;
 
     public Property() {
 
@@ -82,6 +83,10 @@ public class Property implements Serializable {
                 property.setDisplayOrder(Integer.parseInt(element.getText()));
             } else if ("Type".equals(elementName)) {
                 property.setType(element.getText());
+            } else if ("IsAdvanced".equals(elementName)) {
+                if (element.getText() != null && element.getText().trim().length() > 0) {
+                    property.setAdvanced(Boolean.parseBoolean(element.getText()));
+                }
             }
         }
 
@@ -206,6 +211,14 @@ public class Property implements Serializable {
 
     public void setDisplayOrder(int displayOrder) {
         this.displayOrder = displayOrder;
+    }
+
+    public boolean isAdvanced() {
+        return isAdvanced;
+    }
+
+    public void setAdvanced(boolean isAdvanced) {
+        this.isAdvanced = isAdvanced;
     }
 
     @Override
