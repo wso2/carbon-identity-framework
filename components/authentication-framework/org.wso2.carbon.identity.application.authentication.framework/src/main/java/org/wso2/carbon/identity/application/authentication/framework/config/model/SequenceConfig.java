@@ -139,4 +139,27 @@ public class SequenceConfig implements Serializable {
             AuthenticatorConfig authenticatedReqPathAuthenticator) {
         this.authenticatedReqPathAuthenticator = authenticatedReqPathAuthenticator;
     }
+
+    /**
+     * This method will clone current class objects
+     * This method is to solve the issue - multiple requests for same user/SP
+     *
+     * @return SequenceConfig object
+     */
+    public SequenceConfig cloneObject() {
+        SequenceConfig sequenceConfig = new SequenceConfig();
+        sequenceConfig.setName(this.getName());
+        sequenceConfig.setForceAuthn(this.isForceAuthn());
+        sequenceConfig.setCheckAuthn(this.isCheckAuthn());
+        sequenceConfig.setApplicationId(this.getApplicationId());
+        sequenceConfig.setStepMap(this.getStepMap());
+        sequenceConfig.setReqPathAuthenticators(this.getReqPathAuthenticators());
+        sequenceConfig.setApplicationConfig(this.getApplicationConfig());
+        sequenceConfig.setCompleted(this.isCompleted());
+        sequenceConfig.setAuthenticatedUser(this.getAuthenticatedUser());
+        sequenceConfig.setAuthenticatedIdPs(this.getAuthenticatedIdPs());
+        sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
+        return sequenceConfig;
+    }
+
 }
