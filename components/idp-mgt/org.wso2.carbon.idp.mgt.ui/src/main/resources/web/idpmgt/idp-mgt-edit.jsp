@@ -122,6 +122,8 @@
     String passiveSTSRealm = null;
     String passiveSTSUrl = null;
     boolean isPassiveSTSUserIdInClaims = false;
+    boolean isEnablePassiveSTSAssertionSignatureValidation = true;
+    boolean isEnablePassiveSTSAssertionAudienceValidation = true;
     String[] userStoreDomains = null;
     boolean isFBAuthEnabled = false;
     boolean isFBAuthDefault = false;
@@ -369,6 +371,20 @@
                             IdentityApplicationConstants.Authenticator.PassiveSTS.IS_USER_ID_IN_CLAIMS);
                     if (isPassiveSTSUserIdInClaimsProp != null) {
                         isPassiveSTSUserIdInClaims = Boolean.parseBoolean(isPassiveSTSUserIdInClaimsProp.getValue());
+                    }
+                    Property isEnableAssertionSignatureValidationProp =
+                            IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                                                            IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
+                    if (isEnableAssertionSignatureValidationProp != null) {
+                        isEnablePassiveSTSAssertionSignatureValidation =
+                                Boolean.parseBoolean(isEnableAssertionSignatureValidationProp.getValue());
+                    }
+                    Property isEnableAssertionAudienceValidationProp =
+                            IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                                                            IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION);
+                    if (isEnableAssertionAudienceValidationProp != null) {
+                        isEnablePassiveSTSAssertionAudienceValidation =
+                                Boolean.parseBoolean(isEnableAssertionAudienceValidationProp.getValue());
                     }
 
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
@@ -1096,6 +1112,20 @@
     }
     if(StringUtils.isBlank(passiveSTSUrl)){
         passiveSTSUrl = StringUtils.EMPTY;
+    }
+
+    String enablePassiveSTSAssertionSignatureValidationChecked = "";
+    if (identityProvider != null) {
+        if (isEnablePassiveSTSAssertionSignatureValidation) {
+            enablePassiveSTSAssertionSignatureValidationChecked = "checked=\'checked\'";
+        }
+    }
+
+    String enablePassiveSTSAssertionAudienceValidationChecked = "";
+    if (identityProvider != null) {
+        if (isEnablePassiveSTSAssertionAudienceValidation) {
+            enablePassiveSTSAssertionAudienceValidationChecked = "checked=\'checked\'";
+        }
     }
 
     String fbAuthEnabledChecked = "";
@@ -4476,10 +4506,42 @@ function doValidation() {
             </td>
         </tr>
         <tr>
+            <td class="leftCol-med labelField">
+                <label for="enablePassiveSTSAssertionSignatureValidation">
+                    <fmt:message key='passive.sts.enable.assertion.signature.validation'/>
+                </label>
+            </td>
+            <td>
+                <div class="sectionCheckbox">
+                    <input id="isEnablePassiveSTSAssertionSignatureValidation"
+                           name="isEnablePassiveSTSAssertionSignatureValidation"
+                           type="checkbox" <%=enablePassiveSTSAssertionSignatureValidationChecked%>/>
+                                <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='passive.sts.enable.assertion.signature.validation.help'/>
+                                </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="leftCol-med labelField">
+                <label for="enablePassiveSTSAssertionAudienceValidation">
+                    <fmt:message key='passive.sts.enable.assertion.audience.validation'/>
+                </label>
+            </td>
+            <td>
+                <div class="sectionCheckbox">
+                    <input id="isEnablePassiveSTSAssertionAudienceValidation" name="isEnablePassiveSTSAssertionAudienceValidation"
+                           type="checkbox" <%=enablePassiveSTSAssertionAudienceValidationChecked%>/>
+                                <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='passive.sts.enable.assertion.audience.validation.help'/>
+                                </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
             <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
             <td>
-                <input id="passiveSTSQueryParam" name="passiveSTSQueryParam" type="text"
-                       value=<%=Encode.forHtmlAttribute(passiveSTSQueryParam)%>>
+                <input id="passiveSTSQueryParam" name="passiveSTSQueryParam" type="text" value="<%=Encode.forHtml(passiveSTSQueryParam)%>" />
 
                 <div class="sectionHelp">
                     <fmt:message key='query.param.help'/>

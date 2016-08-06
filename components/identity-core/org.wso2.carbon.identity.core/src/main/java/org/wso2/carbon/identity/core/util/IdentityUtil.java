@@ -836,4 +836,18 @@ public class IdentityUtil {
         }
         return commaSeparatedIPs;
     }
+
+    /**
+     * Get the server synchronization tolerance value in seconds
+     *
+     * @return clock skew in seconds
+     */
+    public static int getClockSkewInSeconds() {
+
+        String clockSkewConfigValue = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLOCK_SKEW);
+        if (StringUtils.isBlank(clockSkewConfigValue) || !StringUtils.isNumeric(clockSkewConfigValue)) {
+            clockSkewConfigValue = IdentityConstants.ServerConfig.CLOCK_SKEW_DEFAULT;
+        }
+        return Integer.parseInt(clockSkewConfigValue);
+    }
 }
