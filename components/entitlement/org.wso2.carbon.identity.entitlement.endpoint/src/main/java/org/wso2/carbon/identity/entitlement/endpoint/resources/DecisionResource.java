@@ -41,9 +41,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 /**
- * <p>
- *     Entry point class for the REST API end points
- * </p>
+ *  Entry point class for the REST API end points
  */
 @Path("/")
 @Api(value = "/", description = "User REST for Integration Testing")
@@ -51,6 +49,11 @@ public class DecisionResource extends AbstractResource {
     private static Log log = LogFactory.getLog(DecisionResource.class);
     private static Gson gson = new Gson();
 
+    /**
+     * API endpoint for populating accessible service methods
+     * Complying to XACML 3.0 REST profile
+     * @return <code>{@link HomeResponseModel}</code> with all necessary resource links
+     */
     @GET
     @Path("home")
     @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})

@@ -18,37 +18,25 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources.models;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement(name = "link")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {
-    "link"
-})
 /**
- * Model Class representing a Resource accesible by thr service
+ * Model class representing the link of a <code>{@link ResourceModel}</code>
  */
-@XmlRootElement(name = "resource")
-public class ResourceModel {
+public class LinkModel{
     @XmlAttribute
-    private String rel;
+    private String href;
 
-    private LinkModel link;
-
-    public String getRel() {
-        return rel;
+    public String getHref() {
+        return href;
     }
 
-    public void setRel(String rel) {
-        this.rel = rel;
-    }
-
-    public LinkModel getLink() {
-        return link;
-    }
-
-    public void setLink(LinkModel link) {
-        this.link = link;
+    public void setHref(String href) {
+        this.href = href;
     }
 }
-
-

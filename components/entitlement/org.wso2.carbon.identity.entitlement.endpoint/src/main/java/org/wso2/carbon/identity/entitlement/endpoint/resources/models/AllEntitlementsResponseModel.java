@@ -26,10 +26,11 @@ import javax.xml.bind.annotation.*;
 @XmlType(propOrder = {
         "entitledResultSetDTO"
 })
+
+@XmlRootElement(name = "AllEntitlementsResponse")
 /**
  * Model Class representing Entitlements/All response
  */
-@XmlRootElement(name = "AllEntitlementsResponse")
 public class AllEntitlementsResponseModel {
     @XmlElement(required = true)
     private EntitledResultSetDTO entitledResultSetDTO;

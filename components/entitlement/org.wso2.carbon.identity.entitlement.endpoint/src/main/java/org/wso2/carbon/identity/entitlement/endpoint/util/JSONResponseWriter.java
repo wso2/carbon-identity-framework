@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.entitlement.endpoint.util;
 
 import com.google.gson.*;
@@ -15,12 +33,19 @@ import org.wso2.balana.xacml3.Obligation;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.ResponseWriteException;
 
 /**
- * Created by manujith on 8/1/16.
  * Converts ReponseCtx to JSON object
  * according to the XACML JSON Profile
  */
 public class JSONResponseWriter {
     private static Gson gson = new Gson();
+
+    /**
+     * Returns <code>JsonObject</code> created by parsing the contents of a given
+     * Balana <code>{@link ResponseCtx}</code>
+     * @param response <code>{@link ResponseCtx}</code>
+     * @return <code>{@link JsonObject}</code> with parsed properties
+     * @throws ResponseWriteException <code>{@link ResponseWriteException}</code>
+     */
     public static JsonObject write(ResponseCtx response) throws ResponseWriteException{
         JsonObject responseWrap = new JsonObject();
 
@@ -44,6 +69,12 @@ public class JSONResponseWriter {
         return responseWrap;
     }
 
+    /**
+     * Private method to convert a given Balana <code>{@link AbstractResult}</code> to a <code>{@link JsonObject}</code>
+     * @param result <code>{@link AbstractResult}</code>
+     * @return <code>{@link JsonObject}</code>
+     * @throws ResponseWriteException <code>{@link ResponseWriteException}</code>
+     */
     private static JsonObject abstractResultToJSONObject(AbstractResult result) throws ResponseWriteException{
         JsonObject jsonResult = new JsonObject();
 
@@ -92,6 +123,11 @@ public class JSONResponseWriter {
         return jsonResult;
     }
 
+    /**
+     * Private method to convert Balana <code>{@link Status}</code> to <code>{@link JsonObject}</code>
+     * @param status <code>{@link Status}</code>
+     * @return <code>{@link JsonObject}</code>
+     */
     private static JsonObject statusToJSONObject(Status status){
         JsonObject jsonStatus = new JsonObject();
 
@@ -111,6 +147,11 @@ public class JSONResponseWriter {
         return jsonStatus;
     }
 
+    /**
+     * Private method to convert Balana <code>{@link Obligation}</code> to <code>{@link JsonObject}</code>
+     * @param obligation <code>{@link Obligation}</code>
+     * @return <code>{@link JsonObject}</code>
+     */
     private static JsonObject obligationToJsonObject(Obligation obligation){
         JsonObject jsonObligation = new JsonObject();
 
@@ -127,6 +168,11 @@ public class JSONResponseWriter {
         return jsonObligation;
     }
 
+    /**
+     * Private method to convert Balana <code>{@link Advice}</code> to <code>{@link JsonObject}</code>
+     * @param advice <code>{@link Advice}</code>
+     * @return <code>{@link JsonObject}</code>
+     */
     private static JsonObject adviceToJsonObject(Advice advice){
         JsonObject jsonAdvice = new JsonObject();
 
@@ -140,6 +186,11 @@ public class JSONResponseWriter {
         return jsonAdvice;
     }
 
+    /**
+     * Private method to convert a given Balana <code>{@link AttributeAssignment}</code> to <code>{@link JsonObject}</code>
+     * @param attributeAssignment <code>{@link AttributeAssignment}</code>
+     * @return <code>{@link JsonObject}</code>
+     */
     private static JsonObject attributeAssignmentToJsonObject(AttributeAssignment attributeAssignment){
         JsonObject jsonAa = new JsonObject();
         jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID,attributeAssignment.getAttributeId()
