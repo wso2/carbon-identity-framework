@@ -28,18 +28,34 @@
     <jaxrs:server id="decisionResource" address="/Decision">
         <jaxrs:serviceBeans>
             <ref bean="decisionBean"/>
+            <ref bean="swaggerResource" />
         </jaxrs:serviceBeans>
 
         <jaxrs:providers>
             <ref bean="authenticationFilter"/>
             <ref bean="jacksonJsonProvider"/>
-            <ref bean="exceptionMapper" />
+            <ref bean="exceptionMapper"/>
+
+            <ref bean="swaggerWriter" />
         </jaxrs:providers>
 
         <!--<jaxrs:features>-->
-            <!--<ref bean="swagger2Feature" />-->
+        <!--<ref bean="swagger2Feature" />-->
         <!--</jaxrs:features>-->
 
+    </jaxrs:server>
+
+    <jaxrs:server id="swaggerR" address="/api">
+        <jaxrs:serviceBeans>
+            <ref bean="swaggerResource" />
+        </jaxrs:serviceBeans>
+
+        <jaxrs:providers>
+            <ref bean="jacksonJsonProvider"/>
+            <ref bean="exceptionMapper"/>
+
+            <ref bean="swaggerWriter" />
+        </jaxrs:providers>
     </jaxrs:server>
 
     <bean id="decisionBean" class="org.wso2.carbon.identity.entitlement.endpoint.resources.DecisionResource"/>
@@ -48,27 +64,28 @@
         <!-- authorization bean properties -->
     </bean>
     <bean id="exceptionMapper"
-          class="org.wso2.carbon.identity.entitlement.endpoint.filter.EntitlementExceptionMapper" />
+          class="org.wso2.carbon.identity.entitlement.endpoint.filter.EntitlementExceptionMapper"/>
     <bean id="jacksonJsonProvider"
           class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
 
+    <!-- Swagger writers -->
+    <bean id="swaggerWriter" class="io.swagger.jaxrs.listing.SwaggerSerializers" />
+    <!-- Swagger API listing resource -->
+    <bean id="swaggerResource" class="io.swagger.jaxrs.listing.ApiListingResource" />
 
-    <!--<bean id="swagger2Feature" class="org.apache.cxf.jaxrs.swagger.SwaggerFeature" />-->
 
-    <!--<bean id="swaggerConfig" class="com.wordnik.swagger.jaxrs.config.BeanConfig">-->
-        <!--<property name="resourcePackage" value="org.wso2.carbon.identity.entitlement.endpoint.resources.DecisionResource"/>-->
-        <!--<property name="version" value="1.0.0"/>-->
-        <!--<property name="basePath" value="http://localhost:8002/api"/>-->
-        <!--<property name="title" value="Petstore sample app"/>-->
-        <!--<property name="description" value="This is a app."/>-->
-        <!--<property name="contact" value="api...@wordnik.com"/>-->
-        <!--<property name="license" value="Apache 2.0 License"/>-->
-        <!--<property name="licenseUrl" value="http://www.apache.org/licenses/LICENSE-2.0.html"/>-->
-        <!--<property name="scan" value="true"/>-->
-    <!--</bean>-->
-
-    <!--<bean id="apiListingResourceJSON" class="io.swagger.jaxrs.listing.ApiListingResource"/>-->
-    <!--<bean id="apiDeclarationProvider" class="io.swagger.jaxrs.listing.ApiListingResource"/>-->
+    <bean id="swaggerConfig" class="io.swagger.jaxrs.config.BeanConfig">
+        <property name="resourcePackage" value="org.wso2.carbon.identity.entitlement.endpoint.resources"/>
+        <property name="version" value="1.0.0"/>
+        <property name="host" value="localhost:9443"/>
+        <property name="basePath" value="/wso2-entitlement/entitlement/Decision"/>
+        <property name="title" value="WSO2 Entitlement Endpoint"/>
+        <property name="description" value="Access Entitlement Service through REST methods"/>
+        <property name="contact" value="dev@wso2.org"/>
+        <property name="license" value="Apache 2.0"/>
+        <property name="licenseUrl" value="http://www.apache.org/licenses/LICENSE-2.0.html"/>
+        <property name="scan" value="true"/>
+    </bean>
 
     <bean id="ClearThreadLocalInterceptor"
           class="org.wso2.carbon.identity.entitlement.endpoint.util.ClearThreadLocalInterceptor"/>

@@ -28,7 +28,7 @@ import java.util.List;
 
 /**
  * <p>
- *     Initiating authenticator classes
+ * Initiating authenticator classes
  * </p>
  */
 public class EntitlementAuthConfigReader {

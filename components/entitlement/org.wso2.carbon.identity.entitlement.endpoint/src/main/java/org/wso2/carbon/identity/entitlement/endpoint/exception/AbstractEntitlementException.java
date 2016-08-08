@@ -24,37 +24,43 @@ import javax.xml.bind.annotation.*;
  * Abstract class for custom exceptions thrown from Entitlement Endpoint
  * Concrete excpetions will be implemented from this class
  */
-public abstract class AbstractEntitlementException extends Exception{
+public abstract class AbstractEntitlementException extends Exception {
     //Custom exception detail
     protected String description;
     //Error code described under the Errors section in User Documentation
     protected int code;
-    public AbstractEntitlementException(){
+
+    public AbstractEntitlementException() {
         this.code = -1;
         this.description = null;
     }
-    public  AbstractEntitlementException(int code){
+
+    public AbstractEntitlementException(int code) {
         this.code = code;
         this.description = null;
     }
-    public AbstractEntitlementException(int code,String s){
+
+    public AbstractEntitlementException(int code, String s) {
         super(s);
         this.code = code;
         this.description = s;
     }
-    public AbstractEntitlementException(String s){
+
+    public AbstractEntitlementException(String s) {
         super(s);
         this.code = -1;
         this.description = s;
     }
-    public AbstractEntitlementException(int code, String s, Exception e){
-        super(s,e);
+
+    public AbstractEntitlementException(int code, String s, Exception e) {
+        super(s, e);
         this.code = code;
         this.description = s;
 
     }
-    public AbstractEntitlementException(String s, Exception e){
-        super(s,e);
+
+    public AbstractEntitlementException(String s, Exception e) {
+        super(s, e);
         this.code = -1;
         this.description = s;
     }
@@ -75,8 +81,8 @@ public abstract class AbstractEntitlementException extends Exception{
         this.code = code;
     }
 
-    public ExceptionBean getExceptioBean(){
-        return new ExceptionBean(code,description);
+    public ExceptionBean getExceptioBean() {
+        return new ExceptionBean(code, description);
     }
 }
 
@@ -91,7 +97,7 @@ public abstract class AbstractEntitlementException extends Exception{
  * When an exception occurs, the ExceptionMapper will catch it
  * and an ExceptionBean object will be created according to the exception caught.
  */
-class ExceptionBean{
+class ExceptionBean {
     //Corresponds to error code in AbstractException
     @XmlElement
     private int code;
@@ -99,7 +105,7 @@ class ExceptionBean{
     @XmlElement
     private String message;
 
-    public ExceptionBean(){
+    public ExceptionBean() {
         //No-arg default constructor needed for JAXB
     }
 

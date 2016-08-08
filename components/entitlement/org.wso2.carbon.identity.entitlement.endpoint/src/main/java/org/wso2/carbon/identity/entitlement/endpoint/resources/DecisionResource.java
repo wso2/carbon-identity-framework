@@ -19,15 +19,12 @@
 package org.wso2.carbon.identity.entitlement.endpoint.resources;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.balana.ParsingException;
 import org.wso2.balana.ctx.ResponseCtx;
 import org.wso2.balana.ctx.xacml3.RequestCtx;
-import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.dto.EntitledResultSetDTO;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseException;
 import org.wso2.carbon.identity.entitlement.endpoint.resources.models.*;
@@ -41,7 +38,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 /**
- *  Entry point class for the REST API end points
+ * Entry point class for the REST API end points
  */
 @Path("/")
 @Api(value = "/", description = "User REST for Integration Testing")
@@ -52,41 +49,43 @@ public class DecisionResource extends AbstractResource {
     /**
      * API endpoint for populating accessible service methods
      * Complying to XACML 3.0 REST profile
+     *
      * @return <code>{@link HomeResponseModel}</code> with all necessary resource links
      */
     @GET
     @Path("home")
-    @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
-    @Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public HomeResponseModel getHome(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
-                          @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
-                          @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization){
+                                     @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
+                                     @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization) {
         return new HomeResponseModel();
     }
 
     /**
      * API endpoint for evaluating XACML XML policies
+     *
      * @return XML Policy result String
      */
     @POST
     @Path("pdp")
-    @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
-    @Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ApiOperation(value = "Get user details", response = String.class)
     public String getDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                               @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                               @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
                               @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
-                              String xacmlRequest) throws Exception{
+                              String xacmlRequest) throws Exception {
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("recieved :" + xacmlRequest);
         }
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
 
-        if(contentType.equals(EntitlementEndpointConstants.APPLICATION_XML)){
+        if (contentType.equals(EntitlementEndpointConstants.APPLICATION_XML)) {
             return entitlementEngine.evaluate(xacmlRequest);
-        }else if(contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)){
+        } else if (contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)) {
             RequestCtx requestCtx = JSONRequestParser.parse(xacmlRequest);
             ResponseCtx responseCtx = entitlementEngine.evaluateByContext(requestCtx);
             return gson.toJson(JSONResponseWriter.write(responseCtx));
@@ -97,6 +96,7 @@ public class DecisionResource extends AbstractResource {
 
     /**
      * API endpoint for evaluating policy by attributes as queries
+     *
      * @return XML Policy result string
      */
     @POST
@@ -106,18 +106,19 @@ public class DecisionResource extends AbstractResource {
     public String getDecisionByAttributes(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                           @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                           @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
-                                          DecisionRequestModel request) throws Exception{
+                                          DecisionRequestModel request) throws Exception {
 
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
 
         return entitlementEngine.evaluate(request.getSubject(), request.getResource(),
-                    request.getAction(), request.getEnvironment());
+                request.getAction(), request.getEnvironment());
 
 
     }
 
     /**
-     *API endpoint evaluating policy by using attributes as queries and return if true or false
+     * API endpoint evaluating policy by using attributes as queries and return if true or false
+     *
      * @return Boolean
      */
 
@@ -128,7 +129,7 @@ public class DecisionResource extends AbstractResource {
     public boolean getBooleanDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                       @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                       @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
-                                      DecisionRequestModel request) throws Exception{
+                                      DecisionRequestModel request) throws Exception {
 
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
 
@@ -140,6 +141,7 @@ public class DecisionResource extends AbstractResource {
 
     /**
      * API endpoint for returning entitled attributes for a give set of parameters
+     *
      * @return EntitledAttributesResponse object
      */
     @POST
@@ -154,7 +156,7 @@ public class DecisionResource extends AbstractResource {
         if (request.getSubjectName() == null) {
             log.error("Invalid input data - either the user name or role name should be non-null");
             throw new RequestParseException(40022,
-                                "Invalid input data - either the user name or role name should be non-null");
+                    "Invalid input data - either the user name or role name should be non-null");
         }
 
 
@@ -168,6 +170,7 @@ public class DecisionResource extends AbstractResource {
 
     /**
      * API endpoint for returning all entitlements for a given set of parameters
+     *
      * @return AllEntitlementResponseModel object
      */
     @POST
@@ -179,7 +182,7 @@ public class DecisionResource extends AbstractResource {
                                                            @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
                                                            AllEntitlementsRequestModel request) {
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug(request.getGivenAttributes()[0].getAttributeId());
             log.debug(request.getGivenAttributes()[0].getAttributeDataType());
             log.debug(request.getGivenAttributes()[0].getAttributeValue());

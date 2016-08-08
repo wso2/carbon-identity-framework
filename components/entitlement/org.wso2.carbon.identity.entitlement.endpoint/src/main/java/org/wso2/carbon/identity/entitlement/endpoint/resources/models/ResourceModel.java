@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
-    "link"
+        "link"
 })
 /**
  * Model Class representing a Resource accesible by thr service

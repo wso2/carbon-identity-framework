@@ -23,10 +23,11 @@ package org.wso2.carbon.identity.entitlement.endpoint.exception;
  * Corresponds to an error occrured in Authentication
  */
 public class UnauthorizedException extends AbstractEntitlementException {
-    public UnauthorizedException(){
+    public UnauthorizedException() {
         super(40010);
     }
-    public UnauthorizedException(String message){
-        super(401,message);
+
+    public UnauthorizedException(String message) {
+        super(401, message);
     }
 }

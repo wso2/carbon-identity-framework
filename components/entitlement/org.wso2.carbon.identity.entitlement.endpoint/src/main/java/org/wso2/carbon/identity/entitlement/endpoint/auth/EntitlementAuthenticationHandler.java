@@ -34,12 +34,12 @@ public interface EntitlementAuthenticationHandler {
      *
      * @return
      */
-    public int getPriority();
+    int getPriority();
 
     /**
      * Sets the priority of the particular authentication handler implementation.
      */
-    public void setPriority(int priority);
+    void setPriority(int priority);
 
     /**
      * To check whether the given handler can authenticate the request by looking at the message,
@@ -49,7 +49,7 @@ public interface EntitlementAuthenticationHandler {
      * @param classResourceInfo
      * @return
      */
-    public boolean canHandle(Message message, ClassResourceInfo classResourceInfo);
+    boolean canHandle(Message message, ClassResourceInfo classResourceInfo);
 
     /**
      * If the authenticator can handle the request, decide whether the request is authenticated.
@@ -58,13 +58,13 @@ public interface EntitlementAuthenticationHandler {
      * @param classResourceInfo
      * @return
      */
-    public boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo);
+    boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo);
 
     /**
      * To set the properties specific to each authenticator
      *
      * @param authenticatorProperties
      */
-    public void setProperties(Map<String, String> authenticatorProperties);
+    void setProperties(Map<String, String> authenticatorProperties);
 
 }

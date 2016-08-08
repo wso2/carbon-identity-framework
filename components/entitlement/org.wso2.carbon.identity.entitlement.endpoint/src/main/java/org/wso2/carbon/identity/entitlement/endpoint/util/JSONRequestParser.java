@@ -46,14 +46,15 @@ public class JSONRequestParser {
 
     /**
      * Static method that will convert a XACML JSON Request to a <code>{@link RequestCtx}</code> instance
+     *
      * @param jsonRequest <code>String</code> with JSON request
      * @return <code>{@link RequestCtx}</code> instance that can be used to evaluate on Balana
-     * @throws JsonParseException <code>{@link JsonParseException}</code>
-     * @throws RequestParseException <code>{@link RequestParseException}</code>
+     * @throws JsonParseException         <code>{@link JsonParseException}</code>
+     * @throws RequestParseException      <code>{@link RequestParseException}</code>
      * @throws UnknownIdentifierException <code>{@link UnknownIdentifierException}</code>
      */
     public static RequestCtx parse(String jsonRequest) throws JsonParseException, RequestParseException,
-                                                              UnknownIdentifierException{
+            UnknownIdentifierException {
         JsonObject requestObject = null;
         Set<Attributes> categories = new HashSet<>();
         boolean returnPolicyIdList = false;
@@ -64,18 +65,18 @@ public class JSONRequestParser {
         try {
             requestObject = gson.fromJson(jsonRequest, JsonObject.class);
             requestObject = requestObject.get("Request").getAsJsonObject();
-        }catch(Exception e){
+        } catch (Exception e) {
             throw new JsonParseException("Error in JSON Request String");
         }
 
 
-        Set<Map.Entry<String,JsonElement>> jsonAttributes = requestObject.entrySet();
+        Set<Map.Entry<String, JsonElement>> jsonAttributes = requestObject.entrySet();
 
-        for(Map.Entry<String, JsonElement> jsonAttribute : jsonAttributes){
+        for (Map.Entry<String, JsonElement> jsonAttribute : jsonAttributes) {
 
 
-            if(jsonAttribute.getValue().isJsonPrimitive()){
-                switch(jsonAttribute.getKey()) {
+            if (jsonAttribute.getValue().isJsonPrimitive()) {
+                switch (jsonAttribute.getKey()) {
                     case XACMLConstants.RETURN_POLICY_LIST:
                         if (jsonAttribute.getValue().getAsBoolean() == true) {
                             returnPolicyIdList = true;
@@ -93,7 +94,7 @@ public class JSONRequestParser {
                         requestDefaults = new RequestDefaults(xPathVersion);
                         break;
                 }
-            }else if(jsonAttribute.getValue().isJsonObject()){
+            } else if (jsonAttribute.getValue().isJsonObject()) {
                 URI category = null;
                 Node content = null;
                 Set<Attribute> attributes = null;
@@ -101,16 +102,16 @@ public class JSONRequestParser {
 
                 JsonObject jsonCategory = jsonAttribute.getValue().getAsJsonObject();
 
-                switch(jsonAttribute.getKey()){
+                switch (jsonAttribute.getKey()) {
 
                     //For a custom Category
                     //Or a Category with long identifier
                     case EntitlementEndpointConstants.CATEGORY_DEFAULT:
 
-                        if(jsonCategory.has(EntitlementEndpointConstants.CATEGORY_ID)){
+                        if (jsonCategory.has(EntitlementEndpointConstants.CATEGORY_ID)) {
                             category = stringCateogryToURI(jsonCategory
-                                                            .get(EntitlementEndpointConstants.CATEGORY_ID)
-                                                            .getAsString());
+                                    .get(EntitlementEndpointConstants.CATEGORY_ID)
+                                    .getAsString());
                         }
 
                     case EntitlementEndpointConstants.CATEGORY_RESOURCE:
@@ -122,23 +123,23 @@ public class JSONRequestParser {
                     case EntitlementEndpointConstants.CATEGORY_CODEBASE:
                     case EntitlementEndpointConstants.CATEGORY_REQUESTING_MACHINE:
 
-                        if(category == null){
+                        if (category == null) {
                             category = stringCateogryToURI(jsonAttribute.getKey());
                         }
 
-                        if(jsonCategory.has(EntitlementEndpointConstants.ID)){
+                        if (jsonCategory.has(EntitlementEndpointConstants.ID)) {
                             id = jsonCategory.get(EntitlementEndpointConstants.ID).getAsString();
                         }
 
-                        if(jsonCategory.has(EntitlementEndpointConstants.CONTENT)){
+                        if (jsonCategory.has(EntitlementEndpointConstants.CONTENT)) {
 
                             ByteArrayInputStream inputStream;
                             DocumentBuilderFactory dbf;
                             Document doc = null;
 
                             String xmlContent = stringContentToXMLContent(jsonCategory
-                                                                    .get(EntitlementEndpointConstants.CONTENT)
-                                                                    .getAsString());
+                                    .get(EntitlementEndpointConstants.CONTENT)
+                                    .getAsString());
                             inputStream = new ByteArrayInputStream(xmlContent.getBytes());
                             dbf = DocumentBuilderFactory.newInstance();
                             dbf.setNamespaceAware(true);
@@ -156,18 +157,18 @@ public class JSONRequestParser {
                                 }
                             }
 
-                            if(doc != null){
+                            if (doc != null) {
                                 content = doc;
                             }
 
                         }
 
                         //add all category attributes
-                        if(jsonCategory.has(EntitlementEndpointConstants.ATTRIBUTE)){
-                            if(jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE).isJsonArray()){
+                        if (jsonCategory.has(EntitlementEndpointConstants.ATTRIBUTE)) {
+                            if (jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE).isJsonArray()) {
                                 attributes = new HashSet<>();
-                                for(JsonElement jsonElement : jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE)
-                                                                         .getAsJsonArray()){
+                                for (JsonElement jsonElement : jsonCategory.get(EntitlementEndpointConstants.ATTRIBUTE)
+                                        .getAsJsonArray()) {
                                     attributes.add(jsonObjectToAttribute(jsonElement.getAsJsonObject()));
 
                                 }
@@ -177,17 +178,17 @@ public class JSONRequestParser {
                         break;
 
                     case EntitlementEndpointConstants.MULTI_REQUESTS:
-                        Set<Map.Entry<String,JsonElement>> jsonRequestReferences = jsonCategory.entrySet();
+                        Set<Map.Entry<String, JsonElement>> jsonRequestReferences = jsonCategory.entrySet();
                         Set<RequestReference> requestReferences = new HashSet<>();
 
-                        if(jsonRequestReferences.isEmpty()){
-                            throw new RequestParseException("MultiRequest should contain at least one "+
-                                                                    "Reference Request");
+                        if (jsonRequestReferences.isEmpty()) {
+                            throw new RequestParseException("MultiRequest should contain at least one " +
+                                    "Reference Request");
                         }
 
-                        for(Map.Entry<String,JsonElement> jsonRequstReference : jsonRequestReferences){
+                        for (Map.Entry<String, JsonElement> jsonRequstReference : jsonRequestReferences) {
                             requestReferences.add(jsonObjectToRequestReference(jsonRequstReference.getValue()
-                                                                                            .getAsJsonObject()));
+                                    .getAsJsonObject()));
                         }
 
                         //multiRequests = new MultiRequests(requestReferences);
@@ -200,40 +201,40 @@ public class JSONRequestParser {
                 }
 
                 //Build the Attributes object using above values
-                Attributes attributesObj = new Attributes(category,content,attributes,id);
+                Attributes attributesObj = new Attributes(category, content, attributes, id);
                 categories.add(attributesObj);
             }
-
 
 
         }
 
 
-        RequestCtx requestCtx = new RequestCtx(null,categories,returnPolicyIdList,combinedDecision,
-                                                    multiRequests, requestDefaults);
+        RequestCtx requestCtx = new RequestCtx(null, categories, returnPolicyIdList, combinedDecision,
+                multiRequests, requestDefaults);
         return requestCtx;
     }
 
     /**
      * Private methods used by the parser to convert a given <code>{@link JsonObject}</code>
      * to a Balana <code>{@link Attribute}</code>
+     *
      * @param jsonObject <code>{@link JsonObject}</code> representing the Attributes
      * @return <code>{@link Attribute}</code>
      * @throws RequestParseException
      * @throws UnknownIdentifierException
      */
     private static Attribute jsonObjectToAttribute(JsonObject jsonObject) throws RequestParseException,
-                                                                                UnknownIdentifierException{
+            UnknownIdentifierException {
         URI id = null;
         URI type = stringAttributeToURI(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING);
         boolean includeInResult = false;
         String issuer = null;
         List<AttributeValue> attributeValues = new ArrayList<>();
 
-        Set<Map.Entry<String,JsonElement>> properties = jsonObject.entrySet();
-        for(Map.Entry<String,JsonElement> property : properties){
-            if(property.getValue().isJsonPrimitive()){
-                switch(property.getKey()){
+        Set<Map.Entry<String, JsonElement>> properties = jsonObject.entrySet();
+        for (Map.Entry<String, JsonElement> property : properties) {
+            if (property.getValue().isJsonPrimitive()) {
+                switch (property.getKey()) {
                     case EntitlementEndpointConstants.ATTRIBUTE_ID:
                         id = stringAttributeToURI(property.getValue().getAsString());
                         break;
@@ -252,25 +253,25 @@ public class JSONRequestParser {
 
                     case EntitlementEndpointConstants.ATTRIBUTE_VALUE:
                         URI dataType = stringAttributeToURI(
-                                          jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
+                                jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
 
                         //If a recognizable data type is given, it should replace the above
-                        if(type.equals(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING)
-                                    && dataType != null){
+                        if (type.equals(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING)
+                                && dataType != null) {
                             type = dataType;
                         }
 
-                        attributeValues.add(getAttributeValue(property.getValue().getAsString(),dataType,type));
+                        attributeValues.add(getAttributeValue(property.getValue().getAsString(), dataType, type));
                 }
-            }else if(property.getValue().isJsonArray()){
-                if(property.getKey().equals(EntitlementEndpointConstants.ATTRIBUTE_VALUE)){
+            } else if (property.getValue().isJsonArray()) {
+                if (property.getKey().equals(EntitlementEndpointConstants.ATTRIBUTE_VALUE)) {
                     JsonArray valueArray = property.getValue().getAsJsonArray();
-                    for(JsonElement value : valueArray){
-                        if(value.isJsonPrimitive()){
+                    for (JsonElement value : valueArray) {
+                        if (value.isJsonPrimitive()) {
                             //check if each value's data type can be determined
                             URI dataType = stringAttributeToURI(
-                                             jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
-                            attributeValues.add(getAttributeValue(property.getValue().getAsString(),dataType,type));
+                                    jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
+                            attributeValues.add(getAttributeValue(property.getValue().getAsString(), dataType, type));
                         }
                     }
                 }
@@ -281,39 +282,40 @@ public class JSONRequestParser {
             }
         }
 
-        if(id == null){
+        if (id == null) {
             throw new RequestParseException("Attribute Id should be set");
         }
 
-        if(attributeValues.isEmpty()){
+        if (attributeValues.isEmpty()) {
             throw new RequestParseException("Attribute should have at least one value");
         }
 
-        return new Attribute(id, type,issuer,null,attributeValues,includeInResult,
-                                                            XACMLConstants.XACML_VERSION_3_0);
+        return new Attribute(id, type, issuer, null, attributeValues, includeInResult,
+                XACMLConstants.XACML_VERSION_3_0);
     }
 
     /**
      * Private methods constructing a Balana <code>{@link AttributeValue}</code> from given parameters
-     * @param value <code>String</code> with the actual value of the Attribute
-     * @param dataType <code>URI</code> of the DataType of the value
+     *
+     * @param value          <code>String</code> with the actual value of the Attribute
+     * @param dataType       <code>URI</code> of the DataType of the value
      * @param parentDataType <code>URI</code> of the DataType of <code>{@link Attribute}</code> this belongs to
      * @return <code>{@link AttributeValue}</code>
      * @throws UnknownIdentifierException
      */
-    private static AttributeValue getAttributeValue(String value,URI dataType,URI parentDataType)
-                                throws UnknownIdentifierException{
+    private static AttributeValue getAttributeValue(String value, URI dataType, URI parentDataType)
+            throws UnknownIdentifierException {
         URI type = dataType;
         AttributeValue attributeValue = null;
 
         //check if dataType attribute is set, if not use the parent data type
-        if(dataType == null){
+        if (dataType == null) {
             type = parentDataType;
         }
 
-        try{
-            attributeValue  = Balana.getInstance().getAttributeFactory().createValue(type,value);
-        }catch(Exception e){
+        try {
+            attributeValue = Balana.getInstance().getAttributeFactory().createValue(type, value);
+        } catch (Exception e) {
             throw new UnknownIdentifierException();
         }
         return attributeValue;
@@ -321,16 +323,17 @@ public class JSONRequestParser {
 
     /**
      * Private method to convert a given <code>{@link JsonObject}</code> to a Balana <code>{@link RequestReference}</code>
+     *
      * @param jsonRequestReference <code>{@link JsonObject}</code>
      * @return <code>{@link RequestReference}</code>
      */
-    private static RequestReference jsonObjectToRequestReference(JsonObject jsonRequestReference){
+    private static RequestReference jsonObjectToRequestReference(JsonObject jsonRequestReference) {
         RequestReference requestReference = new RequestReference();
         Set<AttributesReference> attributesReferences = new HashSet<>();
 
-        if(jsonRequestReference.has(EntitlementEndpointConstants.REFERENCE_ID)){
+        if (jsonRequestReference.has(EntitlementEndpointConstants.REFERENCE_ID)) {
             JsonArray referenceIds = jsonRequestReference.get(EntitlementEndpointConstants.REFERENCE_ID).getAsJsonArray();
-            for(JsonElement reference : referenceIds){
+            for (JsonElement reference : referenceIds) {
                 AttributesReference attributesReference = new AttributesReference();
                 attributesReference.setId(reference.getAsString());
                 attributesReferences.add(attributesReference);
@@ -342,13 +345,14 @@ public class JSONRequestParser {
 
     /**
      * Convert a given String category to it's full name URI
+     *
      * @param category <code>String</code> with shorthand or fullname URI
      * @return <code>URI</code>
      */
-    private static URI stringCateogryToURI(String category){
+    private static URI stringCateogryToURI(String category) {
         URI uri = null;
         String uriName = category;
-        switch(category){
+        switch (category) {
             case EntitlementEndpointConstants.CATEGORY_RESOURCE:
                 uriName = EntitlementEndpointConstants.CATEGORY_RESOURCE_URI;
                 break;
@@ -382,20 +386,21 @@ public class JSONRequestParser {
     /**
      * Converts a given <code>{@link JsonElement}</code> to a <code>String</code> DataType
      * Predicted based on XACML 3.0 JSON profile
+     *
      * @param element
      * @return
      */
-    private static String jsonElementToDataType(JsonPrimitive element){
-        if(element.isString()){
+    private static String jsonElementToDataType(JsonPrimitive element) {
+        if (element.isString()) {
             return EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING;
-        }else if(element.isBoolean()){
+        } else if (element.isBoolean()) {
             return EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_BOOLEAN;
-        }else if(element.isNumber()){
+        } else if (element.isNumber()) {
             double n1 = element.getAsDouble();
             int n2 = element.getAsInt();
-            if(Math.ceil(n1) == n2){
+            if (Math.ceil(n1) == n2) {
                 return EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_INTEGER;
-            }else{
+            } else {
                 return EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_DOUBLE;
             }
         }
@@ -406,12 +411,13 @@ public class JSONRequestParser {
 
     /**
      * Converts a given String attribute to the corresponsing <code>URI</code>
+     *
      * @param attribute <code>String</code>
      * @return <code>URI</code>
      */
-    private static URI stringAttributeToURI(String attribute){
+    private static URI stringAttributeToURI(String attribute) {
         String uriName = attribute;
-        switch(attribute){
+        switch (attribute) {
             case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING_SHORT:
                 uriName = EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING;
                 break;
@@ -485,15 +491,16 @@ public class JSONRequestParser {
 
     /**
      * Converts a given XML / Base64 encoded XML content to String XML content
+     *
      * @param content XML or Base64 encoded XML
      * @return <code>String</code> with only XML
      * @throws RequestParseException
      */
     private static String stringContentToXMLContent(String content) throws RequestParseException {
-        if(content.startsWith("<")){
+        if (content.startsWith("<")) {
             //todo : check if GSON automatically unescape the string
             return content;
-        }else{
+        } else {
             //do base64 decoding
             return new String(DatatypeConverter.parseBase64Binary(content));
         }
