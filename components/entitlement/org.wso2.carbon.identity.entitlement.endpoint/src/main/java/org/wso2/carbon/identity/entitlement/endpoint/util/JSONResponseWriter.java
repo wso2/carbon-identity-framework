@@ -18,12 +18,11 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.util;
 
-import com.google.gson.*;
-import org.w3c.dom.Attr;
-import org.wso2.balana.Balana;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.wso2.balana.ObligationResult;
-import org.wso2.balana.attr.AttributeFactory;
-import org.wso2.balana.attr.AttributeValue;
 import org.wso2.balana.ctx.AbstractResult;
 import org.wso2.balana.ctx.AttributeAssignment;
 import org.wso2.balana.ctx.ResponseCtx;
@@ -42,11 +41,12 @@ public class JSONResponseWriter {
     /**
      * Returns <code>JsonObject</code> created by parsing the contents of a given
      * Balana <code>{@link ResponseCtx}</code>
+     *
      * @param response <code>{@link ResponseCtx}</code>
      * @return <code>{@link JsonObject}</code> with parsed properties
      * @throws ResponseWriteException <code>{@link ResponseWriteException}</code>
      */
-    public static JsonObject write(ResponseCtx response) throws ResponseWriteException{
+    public static JsonObject write(ResponseCtx response) throws ResponseWriteException {
         JsonObject responseWrap = new JsonObject();
 
         //JsonObject jsonResponse = new JsonObject();
@@ -55,65 +55,66 @@ public class JSONResponseWriter {
         //Loop all AbstractResult objects in ResponseCtx and add them as
         //Requests to JSON Response
         //There should be at least 1 request
-        if(response.getResults().size() < 1){
-            throw new ResponseWriteException(40032,"XACML response should contain at least 1 Result");
+        if (response.getResults().size() < 1) {
+            throw new ResponseWriteException(40032, "XACML response should contain at least 1 Result");
         }
 
-        for(AbstractResult result: response.getResults()){
+        for (AbstractResult result : response.getResults()) {
             results.add(abstractResultToJSONObject(result));
         }
 
 
-        responseWrap.add(EntitlementEndpointConstants.RESPONSE,results);
+        responseWrap.add(EntitlementEndpointConstants.RESPONSE, results);
 
         return responseWrap;
     }
 
     /**
      * Private method to convert a given Balana <code>{@link AbstractResult}</code> to a <code>{@link JsonObject}</code>
+     *
      * @param result <code>{@link AbstractResult}</code>
      * @return <code>{@link JsonObject}</code>
      * @throws ResponseWriteException <code>{@link ResponseWriteException}</code>
      */
-    private static JsonObject abstractResultToJSONObject(AbstractResult result) throws ResponseWriteException{
+    private static JsonObject abstractResultToJSONObject(AbstractResult result) throws ResponseWriteException {
         JsonObject jsonResult = new JsonObject();
 
         //Decision property is mandatory, if not set throw error
-        if(result.getDecision() == -1){
-            throw new ResponseWriteException(40031,"XACML Result should contain the Decision");
+        if (result.getDecision() == -1) {
+            throw new ResponseWriteException(40031, "XACML Result should contain the Decision");
         }
         jsonResult.addProperty(EntitlementEndpointConstants.DECISION,
-                               AbstractResult.DECISIONS[result.getDecision()]);
+                AbstractResult.DECISIONS[result.getDecision()]);
 
         //If Status object is present, convert it
-        if(result.getStatus() != null){
-            jsonResult.add(EntitlementEndpointConstants.STATUS,statusToJSONObject(result.getStatus()));
+        if (result.getStatus() != null) {
+            jsonResult.add(EntitlementEndpointConstants.STATUS, statusToJSONObject(result.getStatus()));
         }
 
         //If Obligations are present
-        if(result.getObligations() != null && !result.getObligations().isEmpty()){
+        if (result.getObligations() != null && !result.getObligations().isEmpty()) {
             //can only get ObligationResult objects from balana
             JsonArray obligations = new JsonArray();
-            for(ObligationResult obligation : result.getObligations()){
-                if(obligation instanceof Obligation){
-                    obligations.add(obligationToJsonObject((Obligation)obligation));
-                }else {
+            for (ObligationResult obligation : result.getObligations()) {
+                if (obligation instanceof Obligation) {
+                    obligations.add(obligationToJsonObject((Obligation) obligation));
+                } else {
                     obligations.add(new JsonPrimitive(obligation.encode()));
                 }
             }
 
-            jsonResult.add(EntitlementEndpointConstants.OBLIGATIONS,obligations);
+            jsonResult.add(EntitlementEndpointConstants.OBLIGATIONS, obligations);
         }
 
         //Do the same with attributes
-        if(result.getAdvices() != null && !result.getAdvices().isEmpty()){
+        if (result.getAdvices() != null && !result.getAdvices().isEmpty()) {
             //can only get ObligationResult objects from balana
             JsonArray advices = new JsonArray();
-            for(Advice advice : result.getAdvices()){
+            for (Advice advice : result.getAdvices()) {
                 advices.add(adviceToJsonObject(advice));
             }
 
-            jsonResult.add(EntitlementEndpointConstants.ASSOCIATED_ADVICE,advices);
+            jsonResult.add(EntitlementEndpointConstants.ASSOCIATED_ADVICE, advices);
         }
 
         /**
@@ -125,23 +126,24 @@ public class JSONResponseWriter {
 
     /**
      * Private method to convert Balana <code>{@link Status}</code> to <code>{@link JsonObject}</code>
+     *
      * @param status <code>{@link Status}</code>
      * @return <code>{@link JsonObject}</code>
      */
-    private static JsonObject statusToJSONObject(Status status){
+    private static JsonObject statusToJSONObject(Status status) {
         JsonObject jsonStatus = new JsonObject();
 
         jsonStatus.addProperty(EntitlementEndpointConstants.STATUS_MESSAGE, status.getMessage());
 
-        if(status.getCode().size() > 0) {
+        if (status.getCode().size() > 0) {
             JsonObject statusCode = new JsonObject();
             statusCode.addProperty(EntitlementEndpointConstants.STATUS_CODE_VALUE, status.getCode().get(0));
 
             jsonStatus.add(EntitlementEndpointConstants.STATUS_CODE, statusCode);
         }
 
-        if(status.getDetail() != null){
-            jsonStatus.addProperty(EntitlementEndpointConstants.STATUS_DETAIL,status.getDetail().getEncoded());
+        if (status.getDetail() != null) {
+            jsonStatus.addProperty(EntitlementEndpointConstants.STATUS_DETAIL, status.getDetail().getEncoded());
         }
 
         return jsonStatus;
@@ -149,10 +151,11 @@ public class JSONResponseWriter {
 
     /**
      * Private method to convert Balana <code>{@link Obligation}</code> to <code>{@link JsonObject}</code>
+     *
      * @param obligation <code>{@link Obligation}</code>
      * @return <code>{@link JsonObject}</code>
      */
-    private static JsonObject obligationToJsonObject(Obligation obligation){
+    private static JsonObject obligationToJsonObject(Obligation obligation) {
         JsonObject jsonObligation = new JsonObject();
 
         /**
@@ -160,7 +163,7 @@ public class JSONResponseWriter {
          */
         //jsonObligation.addProperty(EntitlementEndpointConstants.OBLIGATION_OR_ADVICE_ID,obligation);
         JsonArray attributeAssignments = new JsonArray();
-        for(AttributeAssignment aa : obligation.getAssignments()){
+        for (AttributeAssignment aa : obligation.getAssignments()) {
             attributeAssignments.add(attributeAssignmentToJsonObject(aa));
         }
         jsonObligation.add(EntitlementEndpointConstants.ATTRIBUTE_ASSIGNMENTS, attributeAssignments);
@@ -170,15 +173,16 @@ public class JSONResponseWriter {
 
     /**
      * Private method to convert Balana <code>{@link Advice}</code> to <code>{@link JsonObject}</code>
+     *
      * @param advice <code>{@link Advice}</code>
      * @return <code>{@link JsonObject}</code>
      */
-    private static JsonObject adviceToJsonObject(Advice advice){
+    private static JsonObject adviceToJsonObject(Advice advice) {
         JsonObject jsonAdvice = new JsonObject();
 
-        jsonAdvice.addProperty(EntitlementEndpointConstants.OBLIGATION_OR_ADVICE_ID,advice.getAdviceId().toString());
+        jsonAdvice.addProperty(EntitlementEndpointConstants.OBLIGATION_OR_ADVICE_ID, advice.getAdviceId().toString());
         JsonArray attributeAssignments = new JsonArray();
-        for(AttributeAssignment aa : advice.getAssignments()){
+        for (AttributeAssignment aa : advice.getAssignments()) {
             attributeAssignments.add(attributeAssignmentToJsonObject(aa));
         }
         jsonAdvice.add(EntitlementEndpointConstants.ATTRIBUTE_ASSIGNMENTS, attributeAssignments);
@@ -188,26 +192,27 @@ public class JSONResponseWriter {
 
     /**
      * Private method to convert a given Balana <code>{@link AttributeAssignment}</code> to <code>{@link JsonObject}</code>
+     *
      * @param attributeAssignment <code>{@link AttributeAssignment}</code>
      * @return <code>{@link JsonObject}</code>
      */
-    private static JsonObject attributeAssignmentToJsonObject(AttributeAssignment attributeAssignment){
+    private static JsonObject attributeAssignmentToJsonObject(AttributeAssignment attributeAssignment) {
         JsonObject jsonAa = new JsonObject();
-        jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID,attributeAssignment.getAttributeId()
-                                                                                        .toString());
-        jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ISSUER,attributeAssignment.getIssuer());
+        jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ID, attributeAssignment.getAttributeId()
+                .toString());
+        jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_ISSUER, attributeAssignment.getIssuer());
         jsonAa.addProperty(EntitlementEndpointConstants.CATEGORY_DEFAULT, attributeAssignment.getCategory()
-                                                                                              .toString());
+                .toString());
 
         //try to get the attribute value and type by using json
         try {
             JsonObject attributeValue = gson.fromJson(gson.toJson(attributeAssignment), JsonObject.class);
             jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
-                               attributeValue.get("value").getAsString());
+                    attributeValue.get("value").getAsString());
             jsonAa.addProperty(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE,
-                                attributeValue.get("identifier").getAsString());
+                    attributeValue.get("identifier").getAsString());
 
-        }catch(Exception e){
+        } catch (Exception e) {
             return null;
         }
 

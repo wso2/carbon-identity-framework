@@ -45,7 +45,7 @@ public class EntitlementAuthenticatorRegistry {
                 if (EntitlementAuthRegistry == null) {
                     EntitlementAuthRegistry = new EntitlementAuthenticatorRegistry();
                     return EntitlementAuthRegistry;
-                }else{
+                } else {
                     return EntitlementAuthRegistry;
                 }
             }

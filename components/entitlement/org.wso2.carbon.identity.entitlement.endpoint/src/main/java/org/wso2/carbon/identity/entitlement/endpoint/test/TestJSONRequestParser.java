@@ -19,9 +19,6 @@
 package org.wso2.carbon.identity.entitlement.endpoint.test;
 
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.wso2.balana.Balana;
 import org.wso2.balana.XACMLConstants;
 import org.wso2.balana.attr.AttributeValue;
 import org.wso2.balana.attr.StringAttribute;
@@ -30,13 +27,7 @@ import org.wso2.balana.ctx.xacml3.RequestCtx;
 import org.wso2.balana.xacml3.Attributes;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 import org.wso2.carbon.identity.entitlement.endpoint.util.JSONRequestParser;
-import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
-import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,22 +41,22 @@ import java.util.Set;
 
 public class TestJSONRequestParser {
     @Test
-    public void testParse(){
+    public void testParse() {
         AttributeValue attributeValue = new StringAttribute("http://127.0.0.1");
         List<AttributeValue> attributeValues = new ArrayList<>();
         attributeValues.add(attributeValue);
 
-        Attribute attribute  = new Attribute(URI.create("urn:oasis:names:tc:xacml:1.0:resource:resource-id"),
-                                    null,null,null,attributeValues,false, XACMLConstants.XACML_VERSION_3_0);
+        Attribute attribute = new Attribute(URI.create("urn:oasis:names:tc:xacml:1.0:resource:resource-id"),
+                null, null, null, attributeValues, false, XACMLConstants.XACML_VERSION_3_0);
         Set<Attribute> attributeSet = new HashSet<>();
         attributeSet.add(attribute);
 
         Attributes category = new Attributes(URI.create(EntitlementEndpointConstants.CATEGORY_RESOURCE_URI),
-                                             attributeSet);
+                attributeSet);
         Set<Attributes> categories = new HashSet<>();
         categories.add(category);
 
-        RequestCtx requestCtx = new RequestCtx(categories,null);
+        RequestCtx requestCtx = new RequestCtx(categories, null);
 
 
         String jsonRequest = "{\n" +
@@ -95,7 +86,7 @@ public class TestJSONRequestParser {
         try {
             RequestCtx requestCtx1 = JSONRequestParser.parse(jsonRequest);
             System.out.println("test");
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

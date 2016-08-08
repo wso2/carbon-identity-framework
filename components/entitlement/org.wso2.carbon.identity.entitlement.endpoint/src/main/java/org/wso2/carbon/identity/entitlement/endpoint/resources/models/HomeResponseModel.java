@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources.models;
 
-import org.wso2.carbon.identity.entitlement.dto.EntitledResultSetDTO;
-
-import javax.ws.rs.core.Link;
 import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +36,7 @@ public class HomeResponseModel {
 
     private List<ResourceModel> resources = new ArrayList<>();
 
-    public HomeResponseModel(){
+    public HomeResponseModel() {
         LinkModel linkModel = new LinkModel();
         linkModel.setHref("/pdp");
 

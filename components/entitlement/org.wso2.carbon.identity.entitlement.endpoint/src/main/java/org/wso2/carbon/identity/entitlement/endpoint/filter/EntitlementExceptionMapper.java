@@ -41,13 +41,13 @@ public class EntitlementExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception e) {
         //If the exception occurred was a known EntitlementEndpoint exception
-        if(e instanceof AbstractEntitlementException){
-            AbstractEntitlementException entitlementException = (AbstractEntitlementException)e;
+        if (e instanceof AbstractEntitlementException) {
+            AbstractEntitlementException entitlementException = (AbstractEntitlementException) e;
             return Response.status(Response.Status.OK).entity(entitlementException.getExceptioBean())
-                                                      .build();
+                    .build();
         }
         //Any unknown exception occurred
         return Response.status(Response.Status.OK).entity(new RequestParseException().getExceptioBean())
-                                                  .build();
+                .build();
     }
 }

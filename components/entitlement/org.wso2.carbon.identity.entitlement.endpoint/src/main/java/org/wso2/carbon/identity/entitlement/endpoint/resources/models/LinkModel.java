@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Model class representing the link of a <code>{@link ResourceModel}</code>
  */
-public class LinkModel{
+public class LinkModel {
     @XmlAttribute
     private String href;
 

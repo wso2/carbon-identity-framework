@@ -22,14 +22,19 @@ package org.wso2.carbon.identity.entitlement.endpoint.exception;
  * Corresponds to an error occurred in processing a response
  */
 public class ResponseWriteException extends AbstractEntitlementException {
-    public ResponseWriteException(){
-        super(40030,"Error in Response");
+    public ResponseWriteException() {
+        super(40030, "Error in Response");
     }
-    public ResponseWriteException(String s){
-        super(40020,s);
+
+    public ResponseWriteException(String s) {
+        super(40020, s);
     }
-    public ResponseWriteException(int c,String s){ super(c,s); }
-    public ResponseWriteException(String s, Exception e){
-        super(s,e);
+
+    public ResponseWriteException(int c, String s) {
+        super(c, s);
+    }
+
+    public ResponseWriteException(String s, Exception e) {
+        super(s, e);
     }
 }

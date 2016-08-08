@@ -33,12 +33,28 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- SWAGGER FILTER -->
+    <filter>
+        <filter-name>ApiOriginFilter</filter-name>
+        <filter-class>org.wso2.carbon.identity.entitlement.endpoint.filter.ApiOriginFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>ApiOriginFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <servlet>
         <servlet-name>EntitlementServlet</servlet-name>
         <display-name>EntitlementServlet</display-name>
         <description>Entitlement Endpoints</description>
         <servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
+
+        <!-- set the base path for the swagger application -->
+        <init-param>
+            <param-name>swagger.api.basepath</param-name>
+            <param-value>https://localhost:9443/wso2-entitlement/entitlement</param-value>
+        </init-param>
     </servlet>
 
     <servlet-mapping>
