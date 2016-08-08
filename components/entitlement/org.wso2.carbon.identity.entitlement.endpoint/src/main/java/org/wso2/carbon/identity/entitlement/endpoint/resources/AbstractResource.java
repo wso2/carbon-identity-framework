@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.entitlement.endpoint.resources;
 
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 
+/**
+ * Abstract class for service resource
+ */
 public class AbstractResource {
     public String identifyOutputFormat(String format) {
         if (format == null || ("*/*").equals(format) || ((format != null) && (format.startsWith(EntitlementEndpointConstants.APPLICATION_JSON)))) {

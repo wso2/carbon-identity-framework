@@ -32,10 +32,10 @@ import javax.xml.bind.annotation.*;
         "identifier",
         "givenAttributes"
 })
-/**
- * Model class representing Entitlements/All Requesssst
- */
 @XmlRootElement(name = "AllEntitlementsRequest")
+/**
+ * Model class representing AllEntitlements Request
+ */
 public class AllEntitlementsRequestModel {
     @XmlElement(required = false)
     private String identifier;

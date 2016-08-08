@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.entitlement.endpoint.util;
 
 import com.google.gson.*;
@@ -20,13 +38,20 @@ import java.net.URI;
 import java.util.*;
 
 /**
- * Created by manujith on 7/20/16.
  * This class will deal with parsing a given JSON String to a
  * RequestCtx object, so that it can be evaluated by the engine.
  */
 public class JSONRequestParser {
     private static Gson gson = new Gson();
 
+    /**
+     * Static method that will convert a XACML JSON Request to a <code>{@link RequestCtx}</code> instance
+     * @param jsonRequest <code>String</code> with JSON request
+     * @return <code>{@link RequestCtx}</code> instance that can be used to evaluate on Balana
+     * @throws JsonParseException <code>{@link JsonParseException}</code>
+     * @throws RequestParseException <code>{@link RequestParseException}</code>
+     * @throws UnknownIdentifierException <code>{@link UnknownIdentifierException}</code>
+     */
     public static RequestCtx parse(String jsonRequest) throws JsonParseException, RequestParseException,
                                                               UnknownIdentifierException{
         JsonObject requestObject = null;
@@ -189,7 +214,15 @@ public class JSONRequestParser {
         return requestCtx;
     }
 
-    public static Attribute jsonObjectToAttribute(JsonObject jsonObject) throws RequestParseException,
+    /**
+     * Private methods used by the parser to convert a given <code>{@link JsonObject}</code>
+     * to a Balana <code>{@link Attribute}</code>
+     * @param jsonObject <code>{@link JsonObject}</code> representing the Attributes
+     * @return <code>{@link Attribute}</code>
+     * @throws RequestParseException
+     * @throws UnknownIdentifierException
+     */
+    private static Attribute jsonObjectToAttribute(JsonObject jsonObject) throws RequestParseException,
                                                                                 UnknownIdentifierException{
         URI id = null;
         URI type = stringAttributeToURI(EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING);
@@ -260,7 +293,15 @@ public class JSONRequestParser {
                                                             XACMLConstants.XACML_VERSION_3_0);
     }
 
-    public static AttributeValue getAttributeValue(String value,URI dataType,URI parentDataType)
+    /**
+     * Private methods constructing a Balana <code>{@link AttributeValue}</code> from given parameters
+     * @param value <code>String</code> with the actual value of the Attribute
+     * @param dataType <code>URI</code> of the DataType of the value
+     * @param parentDataType <code>URI</code> of the DataType of <code>{@link Attribute}</code> this belongs to
+     * @return <code>{@link AttributeValue}</code>
+     * @throws UnknownIdentifierException
+     */
+    private static AttributeValue getAttributeValue(String value,URI dataType,URI parentDataType)
                                 throws UnknownIdentifierException{
         URI type = dataType;
         AttributeValue attributeValue = null;
@@ -278,7 +319,12 @@ public class JSONRequestParser {
         return attributeValue;
     }
 
-    public static RequestReference jsonObjectToRequestReference(JsonObject jsonRequestReference){
+    /**
+     * Private method to convert a given <code>{@link JsonObject}</code> to a Balana <code>{@link RequestReference}</code>
+     * @param jsonRequestReference <code>{@link JsonObject}</code>
+     * @return <code>{@link RequestReference}</code>
+     */
+    private static RequestReference jsonObjectToRequestReference(JsonObject jsonRequestReference){
         RequestReference requestReference = new RequestReference();
         Set<AttributesReference> attributesReferences = new HashSet<>();
 
@@ -294,7 +340,12 @@ public class JSONRequestParser {
         return requestReference;
     }
 
-    public static URI stringCateogryToURI(String category){
+    /**
+     * Convert a given String category to it's full name URI
+     * @param category <code>String</code> with shorthand or fullname URI
+     * @return <code>URI</code>
+     */
+    private static URI stringCateogryToURI(String category){
         URI uri = null;
         String uriName = category;
         switch(category){
@@ -328,7 +379,13 @@ public class JSONRequestParser {
         return uri;
     }
 
-    public static String jsonElementToDataType(JsonPrimitive element){
+    /**
+     * Converts a given <code>{@link JsonElement}</code> to a <code>String</code> DataType
+     * Predicted based on XACML 3.0 JSON profile
+     * @param element
+     * @return
+     */
+    private static String jsonElementToDataType(JsonPrimitive element){
         if(element.isString()){
             return EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING;
         }else if(element.isBoolean()){
@@ -347,7 +404,12 @@ public class JSONRequestParser {
     }
 
 
-    public static URI stringAttributeToURI(String attribute){
+    /**
+     * Converts a given String attribute to the corresponsing <code>URI</code>
+     * @param attribute <code>String</code>
+     * @return <code>URI</code>
+     */
+    private static URI stringAttributeToURI(String attribute){
         String uriName = attribute;
         switch(attribute){
             case EntitlementEndpointConstants.ATTRIBUTE_DATA_TYPE_STRING_SHORT:
@@ -421,7 +483,13 @@ public class JSONRequestParser {
         return URI.create(uriName);
     }
 
-    public static String stringContentToXMLContent(String content) throws RequestParseException {
+    /**
+     * Converts a given XML / Base64 encoded XML content to String XML content
+     * @param content XML or Base64 encoded XML
+     * @return <code>String</code> with only XML
+     * @throws RequestParseException
+     */
+    private static String stringContentToXMLContent(String content) throws RequestParseException {
         if(content.startsWith("<")){
             //todo : check if GSON automatically unescape the string
             return content;
