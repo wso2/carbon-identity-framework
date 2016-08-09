@@ -17,13 +17,6 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-
 <%
-    if (Boolean.parseBoolean(application.getInitParameter(
-            IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION))) {
-        request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
-    } else {
-        request.getRequestDispatcher("self-registration-without-verification.jsp").forward(request, response);
-    }
+    request.getRequestDispatcher("self-registration-with-verification.jsp").forward(request, response);
 %>

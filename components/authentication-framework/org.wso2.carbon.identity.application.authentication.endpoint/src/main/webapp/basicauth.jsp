@@ -28,7 +28,7 @@
 <%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="java.net.HttpURLConnection" %>
 <%@ page import="java.net.URL" %>
-
+<%@ page import="java.net.URLEncoder" %>
 
 
 <%
@@ -170,7 +170,17 @@
     <%
         }
 
-        url = new URL(identityMgtEndpointContext + "/register.do");
+
+        String scheme = request.getScheme();
+        String serverName = request.getServerName();
+        int serverPort = request.getServerPort();
+        String uri = (String) request.getAttribute("javax.servlet.forward.request_uri");
+        String prmstr = (String) request.getAttribute("javax.servlet.forward.query_string");
+        String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
+        String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
+
+        url = new URL(identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute
+                (urlEncodedURL ));
         httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setRequestMethod("HEAD");
         httpURLConnection.connect();

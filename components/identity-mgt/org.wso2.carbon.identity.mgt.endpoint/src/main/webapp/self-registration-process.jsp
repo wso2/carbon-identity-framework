@@ -22,14 +22,12 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SelfRegisterApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.SelfRegistrationUser" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.SelfUserRegistrationRequest" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="java.net.URLEncoder" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -75,6 +73,7 @@
 
             String username = request.getParameter("username");
             String password = request.getParameter("password");
+            String callback = request.getParameter("callback");
 
             if (StringUtils.isBlank(username)) {
                 request.setAttribute("error", true);
@@ -140,12 +139,21 @@
                 selfRegistrationUser.setPassword(password);
                 selfRegistrationUser.setClaims(userClaimList);
 
+                List<Property> properties = new ArrayList<Property>();
+                Property sessionKey = new Property();
+                sessionKey.setKey("callback");
+                sessionKey.setValue(URLEncoder.encode(callback, "UTF-8"));
+                properties.add(sessionKey);
+
+
                 SelfUserRegistrationRequest selfUserRegistrationRequest = new SelfUserRegistrationRequest();
                 selfUserRegistrationRequest.setUser(selfRegistrationUser);
-
+                selfUserRegistrationRequest.setProperties(properties);
 
                 SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
                 selfRegisterApi.mePostCall(selfUserRegistrationRequest);
+                request.setAttribute("callback", callback);
+                request.getRequestDispatcher("self-registration-complete.jsp").forward(request, response);
 
             } catch (Exception e) {
                 request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
@@ -153,7 +161,6 @@
 
 
         %>
-        <div class="alert alert-info">Registration Done.</div>
     </div>
 
 
