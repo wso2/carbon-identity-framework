@@ -20,11 +20,6 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserRegistrationClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ConfirmSelfRegistrationRequest" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.User" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SelfRegisterApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.CodeValidationRequest" %>
 
@@ -35,6 +30,8 @@
 
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmation");
+    String callback = request.getParameter("callback");
+
 
     if (StringUtils.isBlank(username) || StringUtils.isBlank(confirmationKey)) {
         confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
@@ -47,7 +44,10 @@
         validationRequest.setCode(confirmationKey);
 
         selfRegisterApi.validateCodePostCall(validationRequest);
-        message = "Successfully Confirmed." ;
+
+        request.setAttribute("callback", callback);
+        request.setAttribute("confirm", "true");
+        request.getRequestDispatcher("self-registration-complete.jsp").forward(request,response);
     } catch (Exception e) {
         error = true ;
         errorMsg = e.getMessage() ;

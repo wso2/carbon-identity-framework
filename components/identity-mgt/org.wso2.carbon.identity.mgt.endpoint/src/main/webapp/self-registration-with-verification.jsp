@@ -170,9 +170,20 @@
                                        data-validate="email"
                                     <% if (isEmailRequired) {%> required <%}%>>
                             </div>
-                            <%}%>
+                            <%
+                                }
 
-                            <% for (Claim claim : claims) {
+                                String callback = Encode.forHtmlAttribute
+                                        (request.getParameter("callback"));
+                                if (callback != null) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                            </div>
+                            <%
+                                }
+
+                                for (Claim claim : claims) {
                                 if (!StringUtils.equals(claim.getUri(),
                                         IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
                                     !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&

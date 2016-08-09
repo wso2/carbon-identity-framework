@@ -17,56 +17,17 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserIdentityManagementAdminServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-
+<%@ page import="java.net.URLDecoder" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%
-    if (session.getAttribute("username") != null) {
-        boolean skip = Boolean.parseBoolean(request.getParameter("skip"));
-        if (!skip) {
-            UserIdentityManagementAdminServiceClient userIdentityManagementAdminServiceClient = new
-                    UserIdentityManagementAdminServiceClient();
-            Set<String> challengeQuestionSet =
-                    (Set<String>) session.getAttribute("challengeQuestionSet");
-            if (challengeQuestionSet != null) {
-                UserChallengesDTO[] userChallengesDTOs = new UserChallengesDTO[challengeQuestionSet.size()];
+    boolean isEmailNotificationEnabled = false;
 
-                int count = 0;
-                for (String setId : challengeQuestionSet) {
-                    String question = request.getParameter("Q-" + setId);
-                    String answer = request.getParameter("A-" + setId);
+    String callback = (String) request.getAttribute("callback");
+    String confirm = (String) request.getAttribute("confirm");
 
-                    if (StringUtils.isBlank(answer)) {
-                        request.setAttribute("error", true);
-                        request.setAttribute("errorMsg",
-                                             "Please answer each question. None of the answers can be empty.");
-                        request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
-                        return;
-                    }
-
-                    UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
-                    userChallengesDTO.setId(setId);
-                    userChallengesDTO.setQuestion(question);
-                    userChallengesDTO.setAnswer(answer);
-                    userChallengesDTOs[count++] = userChallengesDTO;
-                }
-                userIdentityManagementAdminServiceClient.setChallengeQuestionsOfUser(
-                        IdentityManagementEndpointUtil.getStringValue(session.getAttribute("username")),
-                        userChallengesDTOs);
-            }
-        }
-    } else {
-        request.setAttribute("error", true);
-        request.setAttribute("errorMsg", "Registered user not found in session.");
-        request.getRequestDispatcher("error.jsp").forward(request, response);
-    }
-
-    session.invalidate();
+    isEmailNotificationEnabled = Boolean.parseBoolean(application.getInitParameter(
+            IdentityManagementEndpointConstants.ConfigConstants.ENABLE_EMAIL_NOTIFICATION));
 %>
 <html>
 <head>
@@ -84,7 +45,20 @@
                     <h4 class="modal-title">Information</h4>
                 </div>
                 <div class="modal-body">
-                    <p>User details successfully submitted</p>
+                    <% if (StringUtils.isNotBlank(confirm) && confirm.equals("true")) {%>
+                    <p>Successfully confirmed</p>
+                    <%
+                    } else {
+                        if (isEmailNotificationEnabled) {
+                    %>
+                    <p>Confirmation link has been sent to your email</p>
+                    <% } else {%>
+                    <p>User registration completed successfully</p>
+                    <%
+                            }
+                        }
+                    %>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -100,8 +74,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
-                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>";
+            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
         })
     });
 </script>
