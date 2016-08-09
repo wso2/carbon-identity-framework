@@ -125,6 +125,7 @@ public class DefaultStepHandler implements StepHandler {
                     context.setPreviousAuthTime(true);
                 }
             }
+        }
 
         // if Request has fidp param and if this is the first step
         if (fidp != null && stepConfig.getOrder() == 1) {
