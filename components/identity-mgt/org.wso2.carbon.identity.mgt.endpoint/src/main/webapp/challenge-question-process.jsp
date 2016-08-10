@@ -34,6 +34,10 @@
     String userName = request.getParameter("username");
     String securityQuestionAnswer = request.getParameter("securityQuestionAnswer");
 
+    if ( request.getParameter("callback") != null) {
+        session.setAttribute("callback", request.getParameter("callback"));
+    }
+
     if (userName != null) {
         //Initiate Challenge Question flow with one by one questions
 
@@ -93,6 +97,8 @@
                 request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
             } else if ("set-password".equalsIgnoreCase(initiateQuestionResponse.getLink().getRel())) {
                 session.setAttribute("confirmationKey", initiateQuestionResponse.getKey());
+                request.setAttribute("callback", session.getAttribute("callback"));
+                session.removeAttribute("callback");
                 request.getRequestDispatcher("password-reset.jsp").forward(request, response);
             }
 

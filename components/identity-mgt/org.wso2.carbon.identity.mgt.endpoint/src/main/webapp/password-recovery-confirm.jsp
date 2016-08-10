@@ -21,8 +21,11 @@
 
 <%
     String confirmationKey = request.getParameter("confirmation");
+    String callback = request.getParameter("callback");
+
     if ( StringUtils.isNotBlank(confirmationKey)) {
         request.getSession().setAttribute("confirmationKey", confirmationKey);
+        request.setAttribute("callback", callback);
         request.getRequestDispatcher("passwordreset.do").forward(request, response);
     } else {
         request.setAttribute("error", true);

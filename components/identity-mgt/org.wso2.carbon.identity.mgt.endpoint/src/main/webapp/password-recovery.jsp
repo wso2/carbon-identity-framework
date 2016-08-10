@@ -112,6 +112,17 @@
                                 }
                             %>
 
+                            <%
+                                String callback = Encode.forHtmlAttribute
+                                        (request.getParameter("callback"));
+                                if (callback != null) {
+                            %>
+                            <div>
+                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                            </div>
+                            <%
+                                }
+                            %>
                             <div class="form-actions">
                                 <table width="100%" class="styledLeft">
                                     <tbody>
