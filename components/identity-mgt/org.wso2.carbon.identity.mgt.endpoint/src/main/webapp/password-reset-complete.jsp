@@ -21,12 +21,13 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ResetPasswordRequest" %>
 <%@ page import="java.net.URLDecoder" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Property" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.net.URLEncoder" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
 
@@ -58,8 +59,14 @@
         try {
             notificationApi.setPasswordPost(resetPasswordRequest);
         } catch (ApiException e) {
+
+            Error error = new Gson().fromJson(e.getMessage(), Error.class);
             request.setAttribute("error", true);
-            request.setAttribute("errorMsg", e.getMessage());
+            if (error != null) {
+                request.setAttribute("errorMsg", error.getDescription());
+                request.setAttribute("errorCode", error.getCode());
+            }
+
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }

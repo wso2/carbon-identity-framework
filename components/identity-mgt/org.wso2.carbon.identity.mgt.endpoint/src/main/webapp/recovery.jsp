@@ -21,10 +21,11 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.UserClaim" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
 
@@ -49,8 +50,13 @@
         try {
             claims = usernameRecoveryApi.claimsGet(null);
         } catch (ApiException e) {
+
+            Error error = new Gson().fromJson(e.getMessage(), Error.class);
             request.setAttribute("error", true);
-            request.setAttribute("errorMsg", e.getMessage());
+            if (error != null) {
+                request.setAttribute("errorMsg", error.getDescription());
+                request.setAttribute("errorCode", error.getCode());
+            }
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
@@ -84,8 +90,13 @@
                 request.getRequestDispatcher("recoverusername.do").forward(request, response);
                 return;
             }
+
+            Error error = new Gson().fromJson(e.getMessage(), Error.class);
             request.setAttribute("error", true);
-            request.setAttribute("errorMsg", e.getMessage());
+            if (error != null) {
+                request.setAttribute("errorMsg", error.getDescription());
+                request.setAttribute("errorCode", error.getCode());
+            }
             request.getRequestDispatcher("recoverusername.do").forward(request, response);
             return;
         }

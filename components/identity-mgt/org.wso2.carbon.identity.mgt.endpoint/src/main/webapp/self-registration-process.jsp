@@ -28,6 +28,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="java.net.URLEncoder" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -113,8 +115,13 @@
                     claims = claimsList.toArray(new Claim[claimsList.size()]);
                 }
             } catch (ApiException e) {
+                Error error = new Gson().fromJson(e.getMessage(), Error.class);
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg", e.getMessage());
+                if (error != null) {
+                    request.setAttribute("errorMsg", error.getDescription());
+                    request.setAttribute("errorCode", error.getCode());
+                }
+
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
@@ -156,7 +163,13 @@
                 request.getRequestDispatcher("self-registration-complete.jsp").forward(request, response);
 
             } catch (Exception e) {
-                request.getRequestDispatcher("error.jsp?errorMsg=Error occured while registering the user.").forward(request, response);
+                Error error = new Gson().fromJson(e.getMessage(), Error.class);
+                request.setAttribute("error", true);
+                if (error != null) {
+                    request.setAttribute("errorMsg", error.getDescription());
+                    request.setAttribute("errorCode", error.getCode());
+                }
+                request.getRequestDispatcher("error.jsp").forward(request, response);
             }
 
 

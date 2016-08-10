@@ -30,6 +30,7 @@
     } else {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg", "Cannot process the email notification confirmation. confirmation code is missing.");
+        request.setAttribute("errorCode", "18001");
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }

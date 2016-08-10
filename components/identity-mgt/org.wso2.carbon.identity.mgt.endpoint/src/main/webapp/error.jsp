@@ -18,15 +18,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page isErrorPage="true" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <%
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
+    String errorCode = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorCode"));
     if (StringUtils.isBlank(errorMsg)) {
         errorMsg = "Server failed to respond.";
     }
+
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
     <html>
@@ -68,9 +70,17 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <div class="alert alert-danger" id="server-error-msg">
-                    <%= Encode.forHtmlContent(errorMsg) %>
+                <div class="alert alert-danger" id="server-error-code">
+                    <% if (StringUtils.isNotBlank(errorCode)) {%>
+
+                    <b>Code    : </b><%= Encode.forHtmlContent(errorCode) %>
+                    <% }%>
+
+                    </br>
+
+                    <b>Message :</b><%= Encode.forHtmlContent(errorMsg) %>
                 </div>
+
             </div>
         </div>
         <!-- /content/body -->

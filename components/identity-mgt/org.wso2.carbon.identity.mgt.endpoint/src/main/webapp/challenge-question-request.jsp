@@ -24,11 +24,10 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SecurityQuestionApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateAllQuestionResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Question" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
 <%@ page import="java.util.List" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
@@ -58,13 +57,18 @@
                     request.setAttribute("error", true);
                     request.setAttribute("errorMsg",
                             "No Security Questions Found to recover password. Please contact your system Administrator");
+                    request.setAttribute("errorCode", "18017");
                     request.getRequestDispatcher("error.jsp").forward(request, response);
                     return;
 
                 }
                 IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
+                Error error = new Gson().fromJson(e.getMessage(), Error.class);
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg", e.getMessage());
+                if (error != null) {
+                    request.setAttribute("errorMsg", error.getDescription());
+                    request.setAttribute("errorCode", error.getCode());
+                }
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
