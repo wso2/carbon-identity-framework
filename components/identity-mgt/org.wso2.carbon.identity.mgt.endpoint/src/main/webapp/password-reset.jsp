@@ -23,6 +23,8 @@
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
+    String callback = (String) request.getAttribute("callback");
+
 %>
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -86,6 +88,16 @@
                                 <input id="reset-password" name="reset-password" type="password"
                                        class="form-control" required="">
                             </div>
+
+                            <%
+                                if (callback != null) {
+                            %>
+                            <div>
+                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                            </div>
+                            <%
+                                }
+                            %>
 
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <label class="control-label">Confirm Password</label>

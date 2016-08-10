@@ -22,6 +22,11 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ResetPasswordRequest" %>
+<%@ page import="java.net.URLDecoder" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Property" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.net.URLEncoder" %>
 
 <%
 
@@ -29,15 +34,26 @@
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
 
     String newPassword = request.getParameter("reset-password");
+    String callback = request.getParameter("callback");
+
 
     if (StringUtils.isNotBlank(newPassword)) {
 
         NotificationApi notificationApi = new NotificationApi();
 
         ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
+        List<Property> properties = new ArrayList<Property>();
+        if (callback != null) {
+            Property property = new Property();
+            property.setKey("callback");
+            property.setValue(URLEncoder.encode(callback, "UTF-8"));
+            properties.add(property);
+        }
+
 
         resetPasswordRequest.setKey(confirmationKey);
         resetPasswordRequest.setPassword(newPassword);
+        resetPasswordRequest.setProperties(properties);
 
         try {
             notificationApi.setPasswordPost(resetPasswordRequest);
@@ -91,8 +107,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
-                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>";
+            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
         })
     });
 </script>

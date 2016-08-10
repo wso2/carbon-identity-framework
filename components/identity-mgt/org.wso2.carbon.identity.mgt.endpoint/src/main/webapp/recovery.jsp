@@ -36,7 +36,7 @@
     // Common parameters for password recovery with email and self registration with email
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmationKey");
-
+    String callback = request.getParameter("callback");
 
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
@@ -75,6 +75,7 @@
 
         try {
             usernameRecoveryApi.recoverUsernamePost(claimDTOList, null, null);
+            request.setAttribute("callback", callback);
             request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
         } catch (ApiException e) {
             if (e.getCode() == 204) {
@@ -93,15 +94,18 @@
         if (isPasswordRecoveryEmailConfirmation) {
             session.setAttribute("username", username);
             session.setAttribute("confirmationKey", confirmationKey);
+            request.setAttribute("callback", callback);
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else {
             request.setAttribute("username", username);
             session.setAttribute("username", username);
 
             if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.EMAIL.equals(recoveryOption)) {
+                request.setAttribute("callback", callback);
                 request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);
             } else if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.SECURITY_QUESTIONS
                     .equals(recoveryOption)) {
+                request.setAttribute("callback", callback);
                 request.getRequestDispatcher("challenge-question-request.jsp?username=" + username).forward(request,
                         response);
             } else {

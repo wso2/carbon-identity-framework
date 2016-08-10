@@ -145,7 +145,18 @@
                             </div>
                             <%}%>
 
-                            <% if (isEmailInClaims) { %>
+                            <%
+                                String callback = Encode.forHtmlAttribute
+                                        (request.getParameter("callback"));
+                                if (callback != null) {
+                            %>
+                            <div>
+                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                            </div>
+                            <%
+                                }
+
+                             if (isEmailInClaims) { %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 ">
                                 <label class="control-label">Email</label>
                                 <input id="email" type="email" name="http://wso2.org/claims/emailaddress"
