@@ -29,6 +29,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
     String userName = request.getParameter("username");
@@ -55,12 +56,17 @@
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg",
                         "No Security Questions Found to recover password. Please contact your system Administrator");
+                request.setAttribute("errorCode", "18017");
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
             IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
+            Error error = new Gson().fromJson(e.getMessage(), Error.class);
             request.setAttribute("error", true);
-            request.setAttribute("errorMsg", e.getMessage());
+            if (error != null) {
+                request.setAttribute("errorMsg", error.getDescription());
+                request.setAttribute("errorCode", error.getCode());
+            }
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
@@ -110,8 +116,13 @@
                 request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
                 return;
             }
+
             request.setAttribute("error", true);
-            request.setAttribute("errorMsg", e.getMessage());
+            if (retryError != null) {
+                request.setAttribute("errorMsg", retryError.getDescription());
+                request.setAttribute("errorCode", retryError.getCode());
+            }
+
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
@@ -161,8 +172,13 @@
                 request.getRequestDispatcher("challenge-question-request.jsp").forward(request, response);
                 return;
             }
+
             request.setAttribute("error", true);
-            request.setAttribute("errorMsg", e.getMessage());
+            if (retryError != null) {
+                request.setAttribute("errorMsg", retryError.getDescription());
+                request.setAttribute("errorCode", retryError.getCode());
+            }
+
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }

@@ -21,7 +21,9 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SelfRegisterApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.CodeValidationRequest" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -49,8 +51,16 @@
         request.setAttribute("confirm", "true");
         request.getRequestDispatcher("self-registration-complete.jsp").forward(request,response);
     } catch (Exception e) {
-        error = true ;
-        errorMsg = e.getMessage() ;
+
+        Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
+        request.setAttribute("error", true);
+        if (errorD != null) {
+            errorMsg = errorD.getDescription();
+            request.setAttribute("errorMsg", errorD.getDescription());
+            request.setAttribute("errorCode", errorD.getCode());
+        } else {
+            errorMsg = e.getMessage();
+        }
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">

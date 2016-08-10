@@ -25,7 +25,9 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
 <%@ page import="java.util.List" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -48,8 +50,13 @@
             claims = claimsList.toArray(new Claim[claimsList.size()]);
         }
     } catch (ApiException e) {
+        Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg", e.getMessage());
+        if (errorD != null) {
+            request.setAttribute("errorMsg", errorD.getDescription());
+            request.setAttribute("errorCode", errorD.getCode());
+        }
+
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
