@@ -138,6 +138,15 @@
     </div>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <%
+
+            String scheme = request.getScheme();
+            String serverName = request.getServerName();
+            int serverPort = request.getServerPort();
+            String uri = (String) request.getAttribute("javax.servlet.forward.request_uri");
+            String prmstr = (String) request.getAttribute("javax.servlet.forward.query_string");
+            String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
+            String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
+
             if (request.getParameter("relyingParty").equals("wso2.my.dashboard")) {
                 String identityMgtEndpointContext =
                         application.getInitParameter("IdentityManagementEndpointContextURL");
@@ -148,7 +157,8 @@
                 URL url = null;
                 HttpURLConnection httpURLConnection = null;
 
-                url = new URL(identityMgtEndpointContext + "/recoverpassword.do");
+                url = new URL(identityMgtEndpointContext + "/recoverpassword.do?callback="+Encode.forHtmlAttribute
+                        (urlEncodedURL ));
                 httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestMethod("HEAD");
                 httpURLConnection.connect();
@@ -159,7 +169,8 @@
     <%
         }
 
-        url = new URL(identityMgtEndpointContext + "/recoverusername.do");
+        url = new URL(identityMgtEndpointContext + "/recoverusername.do?callback="+Encode.forHtmlAttribute
+                (urlEncodedURL ));
         httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setRequestMethod("HEAD");
         httpURLConnection.connect();
@@ -171,13 +182,7 @@
         }
 
 
-        String scheme = request.getScheme();
-        String serverName = request.getServerName();
-        int serverPort = request.getServerPort();
-        String uri = (String) request.getAttribute("javax.servlet.forward.request_uri");
-        String prmstr = (String) request.getAttribute("javax.servlet.forward.query_string");
-        String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
-        String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, "UTF-8");
+
 
         url = new URL(identityMgtEndpointContext + "/register.do?callback="+Encode.forHtmlAttribute
                 (urlEncodedURL ));
