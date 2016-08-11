@@ -662,7 +662,7 @@
                         <%if (!data.getShared()) { %>
 
                         <% if (!data.getItemName().equals(userRealmInfo.getAdminRole()) && !data.getItemName().equals(userRealmInfo.getEveryOneRole()) && data.getEditable()) {%>
-                        <a href="#" onclick="deleteUserGroup('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(roleName))%>')"
+                        <a href="#" onclick="deleteUserGroup('<%=Encode.forJavaScriptAttribute(roleName)%>')"
                            class="icon-link" style="background-image:url(images/delete.gif);"><fmt:message
                                 key="delete"/></a>
                         <% }
