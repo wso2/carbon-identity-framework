@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -292,7 +293,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
                 FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext);
 
-                setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
+                String applicationTenantDomain = context.getTenantDomain();
+                if (StringUtils.isEmpty(applicationTenantDomain)) {
+                    applicationTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                }
+                setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
                 FrameworkUtils.publishSessionEvent(sessionKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
