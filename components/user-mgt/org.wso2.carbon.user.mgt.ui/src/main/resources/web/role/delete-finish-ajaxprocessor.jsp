@@ -40,7 +40,9 @@
         UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
         client.deleteRole(roleName);
         session.removeAttribute(UserAdminUIConstants.ROLE_LIST_CACHE);
-        session.removeAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED);        
+        session.removeAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED);
+        String message = MessageFormat.format(resourceBundle.getString("role.delete"), roleName);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
         forwardTo = "role-mgt.jsp";
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("role.cannot.delete"),

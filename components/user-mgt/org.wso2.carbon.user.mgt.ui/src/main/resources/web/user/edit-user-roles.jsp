@@ -374,7 +374,7 @@
                         </td>
                         <td>
                             <input class="button" type="submit"
-                                   value="<fmt:message key="user.search"/>"/>
+                                   value="<fmt:message key="role.search"/>"/>
                         </td>
                     </tr>
                 </table>

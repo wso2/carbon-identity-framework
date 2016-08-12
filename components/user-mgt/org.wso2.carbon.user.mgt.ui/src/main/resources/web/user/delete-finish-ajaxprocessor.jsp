@@ -46,6 +46,8 @@
         client.deleteUser(username);
         session.removeAttribute(UserAdminUIConstants.USER_LIST_CACHE);
         session.removeAttribute(UserAdminUIConstants.USER_LIST_CACHE_EXCEEDED);
+        String message = MessageFormat.format(resourceBundle.getString("user.delete"), username);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
         forwardTo = "user-mgt.jsp?ordinal=1";
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("user.cannot.delete"),
