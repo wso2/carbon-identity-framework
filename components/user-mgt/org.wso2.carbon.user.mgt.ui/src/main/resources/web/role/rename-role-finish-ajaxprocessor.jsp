@@ -57,6 +57,8 @@
         session.removeAttribute("roleBean");
         session.removeAttribute(UserAdminUIConstants.ROLE_LIST_CACHE);
         session.removeAttribute(UserAdminUIConstants.ROLE_LIST_CACHE_EXCEEDED);
+        String message = MessageFormat.format(resourceBundle.getString("role.update"), oldRoleName);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("role.cannot.add"),
                 new Object[] { newRoleName, e.getMessage() });
