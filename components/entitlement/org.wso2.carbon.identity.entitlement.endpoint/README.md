@@ -5,6 +5,12 @@ This is a REST implementation of the WSO2 IS Entitlement Service, done as a part
 
 The code is still in early stages, and I would highly appreciate if you could carry out tests and provide feedback / issues / comments on it.
 
+Design and implementation
+-------------------------
+
+Design and implementation details of the endpoint is available at [http://manzzup.blogspot.com/2016/08/gsoc-2016-rest-implementation-for-wso2.html](http://manzzup.blogspot.com/2016/08/gsoc-2016-rest-implementation-for-wso2.html)
+
+
 Procedure
 --------
 
