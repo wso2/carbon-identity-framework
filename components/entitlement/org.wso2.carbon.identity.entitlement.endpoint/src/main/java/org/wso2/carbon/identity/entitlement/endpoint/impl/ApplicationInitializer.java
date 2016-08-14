@@ -20,11 +20,17 @@ package org.wso2.carbon.identity.entitlement.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.entitlement.endpoint.auth.*;
+
+import org.wso2.carbon.identity.entitlement.endpoint.auth.BasicAuthHandler;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.OAuthHandler;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthConfigReader;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.util.List;
+
 
 /**
  * This performs one-time initialization tasks at the application startup.

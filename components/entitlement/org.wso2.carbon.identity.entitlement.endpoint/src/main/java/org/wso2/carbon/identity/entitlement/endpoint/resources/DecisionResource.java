@@ -41,7 +41,7 @@ import javax.ws.rs.core.MediaType;
  * Entry point class for the REST API end points
  */
 @Path("/")
-@Api(value = "/", description = "User REST for Integration Testing")
+@Api(value = "/", description = "Evaluate XACML 3.0 Policies")
 public class DecisionResource extends AbstractResource {
     private static Log log = LogFactory.getLog(DecisionResource.class);
     private static Gson gson = new Gson();
@@ -56,6 +56,8 @@ public class DecisionResource extends AbstractResource {
     @Path("home")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @ApiOperation(value = "Get API resource list according to XACML 3.0 Specification",
+                  response = HomeResponseModel.class)
     public HomeResponseModel getHome(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                      @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                      @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization) {
@@ -71,7 +73,7 @@ public class DecisionResource extends AbstractResource {
     @Path("pdp")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    @ApiOperation(value = "Get user details", response = String.class)
+    @ApiOperation(value = "Get response by evaluating JSON/XML XACML request", response = String.class)
     public String getDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                               @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                               @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
@@ -103,6 +105,7 @@ public class DecisionResource extends AbstractResource {
     @Path("by-attrib")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Get response by evaluating attributes", response = String.class)
     public String getDecisionByAttributes(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                           @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                           @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
@@ -126,6 +129,7 @@ public class DecisionResource extends AbstractResource {
     @Path("by-attrib-boolean")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Get boolean response by evaluating attributes", response = String.class)
     public boolean getBooleanDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                       @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                       @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
@@ -148,6 +152,8 @@ public class DecisionResource extends AbstractResource {
     @Path("entitled-attribs")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Get entitled attributes for a given set of parameters",
+                  response = EntitledAttributesResponseModel.class)
     public EntitledAttributesResponseModel getEntitledAttributes(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                                                  @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                                                  @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
@@ -177,6 +183,8 @@ public class DecisionResource extends AbstractResource {
     @Path("entitlements-all")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @ApiOperation(value = "Get all entitlements for a given sset of parameters",
+                  response = AllEntitlementsResponseModel.class)
     public AllEntitlementsResponseModel getAllEntitlements(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
                                                            @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
                                                            @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,

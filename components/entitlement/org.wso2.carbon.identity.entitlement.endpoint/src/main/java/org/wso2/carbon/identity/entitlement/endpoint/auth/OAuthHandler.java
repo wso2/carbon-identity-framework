@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.message.Message;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 import org.wso2.carbon.identity.oauth2.OAuth2TokenValidationService;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2ClientApplicationDTO;
@@ -40,11 +41,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * This is the default oAuth authentication handler for Entitlement REST Endpoints
+ * This is the default oAuthHandler for Entitlement REST Endpoints
  */
 public class OAuthHandler implements EntitlementAuthenticationHandler {
 
-    private static Log log = LogFactory.getLog(BasicAuthHandler.class);
+    private static Log log = LogFactory.getLog(OAuthHandler.class);
     /* constants specific to this authenticator */
     private static final String BEARER_AUTH_HEADER = "Bearer";
     private static final String LOCAL_PREFIX = "local";
@@ -119,21 +120,12 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
                     String userName = validationResponse.getAuthorizedUser();
                     authzHeaders.set(0, userName);
 
-                    // setup thread local variable to be consumed by the provisioning framework.
-                    RealmService realmService = (RealmService) PrivilegedCarbonContext
-                            .getThreadLocalCarbonContext().getOSGiService(RealmService.class);
+                    //Removed code related to provisioning framework
 
-                    PrivilegedCarbonContext.startTenantFlow();
-                    PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-                    String tenantDomain = MultitenantUtils.getTenantDomain(userName);
-                    carbonContext.setUsername(MultitenantUtils.getTenantAwareUsername(userName));
-                    carbonContext.setTenantId(realmService.getTenantManager().getTenantId(tenantDomain));
-                    carbonContext.setTenantDomain(tenantDomain);
                     return true;
                 }
             } catch (Exception e) {
-                String error = "Error in validating OAuth access token.";
-                log.error(error, e);
+                log.error("Error in validating OAuth access token.", e);
             }
         }
         return false;
@@ -206,9 +198,9 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
             appDTO.setAccessTokenValidationResponse(validationDto);
             return appDTO;
         } catch (AxisFault axisFault) {
-            throw axisFault;
+            throw new UnauthorizedException("AxisFault Exception in authentication");
         } catch (Exception exception) {
-            throw exception;
+            throw new UnauthorizedException("Authentication Exception");
         }
     }
 }
