@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.framework.authentication.processor.handler.auth
 
 
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
+import org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.internal.FrameworkServiceDataHolder;
@@ -49,9 +50,9 @@ public class HandlerManager {
     }
 
 
-    private AbstractIdentityHandler getHandler(List<? extends AbstractIdentityHandler > abstractIdentityHandlers, AuthenticationContext authenticationContext){
+    private AbstractIdentityMessageHandler getHandler(List<? extends AbstractIdentityMessageHandler > abstractIdentityHandlers, AuthenticationContext authenticationContext){
         if(abstractIdentityHandlers != null){
-            for(AbstractIdentityHandler abstractIdentityHandler: abstractIdentityHandlers){
+            for(AbstractIdentityMessageHandler abstractIdentityHandler: abstractIdentityHandlers){
                 if(abstractIdentityHandler.canHandle(authenticationContext)){
                     return abstractIdentityHandler ;
                 }

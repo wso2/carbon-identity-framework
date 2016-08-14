@@ -16,7 +16,7 @@ public class RequestPathHandler extends FrameworkHandler {
         return null;
     }
 
-    public AuthenticationResponse handleStepAuthentication(AuthenticationContext authenticationContext)
+    public AuthenticationResponse handleRequestPathAuthentication(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
         AuthenticationResponse authenticationResponse = null;
         AbstractSequence sequence = authenticationContext.getSequence();

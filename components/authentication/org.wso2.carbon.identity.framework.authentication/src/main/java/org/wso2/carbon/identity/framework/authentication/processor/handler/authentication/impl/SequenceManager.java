@@ -32,7 +32,7 @@ public class SequenceManager extends FrameworkHandler {
             throws AuthenticationHandlerException {
         RequestPathHandler requestPathHandler =
                 HandlerManager.getInstance().getRequestPathHandler(authenticationContext);
-        return requestPathHandler.handleStepAuthentication(authenticationContext);
+        return requestPathHandler.handleRequestPathAuthentication(authenticationContext);
     }
 
 
