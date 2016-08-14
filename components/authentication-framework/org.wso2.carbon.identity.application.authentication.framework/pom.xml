@@ -100,11 +100,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-<<<<<<< 46309db81d04b686a577da2d5daa12f7874e006b
                 <version>1.9.0</version>
-=======
-		<version>1.8.0</version>
->>>>>>> Adding repo to components
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
