@@ -1,0 +1,5 @@
+{
+  "action":"read",
+  "resource":"foo",
+  "subject" : "admin"
+}

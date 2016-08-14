@@ -1,0 +1,17 @@
+<Request xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" CombinedDecision="false" ReturnPolicyIdList="false">
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action">
+   <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" IncludeInResult="false">
+       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
+   </Attribute>
+</Attributes>
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource">
+   <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" IncludeInResult="false">
+       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">http://127.0.0.1/service/very_secure/</AttributeValue>
+   </Attribute>
+</Attributes>
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:group">
+   <Attribute AttributeId="group" IncludeInResult="false">
+       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">admin</AttributeValue>
+   </Attribute>
+</Attributes>
+</Request>

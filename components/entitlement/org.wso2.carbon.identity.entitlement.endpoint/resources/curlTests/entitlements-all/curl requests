@@ -1,0 +1,1 @@
+curl -v -k --user admin:admin -X POST -d "@jsonreq4" -H "Content-Type:application/json" -H "Accept:application/json" https://localhost:9443/wso2-entitlement/entitlement/Decision/entitlements-all

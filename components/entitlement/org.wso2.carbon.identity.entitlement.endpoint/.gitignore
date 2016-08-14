@@ -1,0 +1,9 @@
+.idea
+org.wso2.carbon.identity.entitlement.endpoint.iml
+*.class
+.classpath
+.settings
+.project
+*.iml
+*.iws
+*.ipr
