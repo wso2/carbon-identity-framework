@@ -100,7 +100,11 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
+<<<<<<< HEAD
                 <version>1.9.0</version>
+=======
+		<version>1.8.0</version>
+>>>>>>> 62a6d059bb60e69e46f00f1bc811478cc99d5459
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
