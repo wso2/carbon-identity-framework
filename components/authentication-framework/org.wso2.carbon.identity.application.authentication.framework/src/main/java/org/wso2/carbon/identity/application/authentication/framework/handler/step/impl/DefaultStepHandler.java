@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.step.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -104,6 +105,26 @@ public class DefaultStepHandler implements StepHandler {
 
             stepConfig.setCompleted(true);
             return;
+        } else {
+            long authTime = 0;
+            String max_age = request.getParameter(FrameworkConstants.RequestParams.MAX_AGE);
+            if (StringUtils.isNotBlank(max_age) && StringUtils.isNotBlank(context.getSessionIdentifier())) {
+                long maxAge = Long.parseLong((max_age));
+                if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                        .getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                            .getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
+                } else {
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                            .getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString());
+                }
+                long current_time = System.currentTimeMillis();
+                if (maxAge < (current_time - authTime) / 1000) {
+                    context.setForceAuthenticate(true);
+                } else {
+                    context.setPreviousAuthTime(true);
+                }
+            }
         }
 
         // if Request has fidp param and if this is the first step
