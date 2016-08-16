@@ -239,7 +239,7 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     public boolean doPostUpdateUserListOfRole(String roleName, String[] deletedUsers, String[] newUsers,
                                               UserStoreManager userStoreManager) throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Clearing entitlement cache on post update role operation for role " +
+            log.debug("Clearing entitlement cache on post update user operation for role " +
                     roleName);
         }
         clearCarbonAttributeCache();
@@ -259,7 +259,7 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     public boolean doPostUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles,
                                               UserStoreManager userStoreManager) throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Clearing entitlement cache on post update role operation for role " +
+            log.debug("Clearing entitlement cache on post update role operation for user " +
                     userName);
         }
         clearCarbonAttributeCache();
