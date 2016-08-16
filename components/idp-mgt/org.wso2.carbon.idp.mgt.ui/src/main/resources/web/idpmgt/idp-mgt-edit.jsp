@@ -135,6 +135,7 @@
     String fbAuthnEndpoint = null;
     String fbOauth2TokenEndpoint = null;
     String fbUserInfoEndpoint = null;
+    String fbCallBackUrl = null;
 
     // To check for existence of authenticator bundles
     boolean isOpenidAuthenticatorActive = false;
@@ -352,6 +353,12 @@
                                     IdentityApplicationConstants.Authenticator.Facebook.USER_INFO_ENDPOINT);
                     if (fbUserInfoEndpointProp != null) {
                         fbUserInfoEndpoint = fbUserInfoEndpointProp.getValue();
+                    }
+                    Property fbCallBackUrlProp = IdPManagementUIUtil
+                            .getProperty(fedAuthnConfig.getProperties(),
+                                    IdentityApplicationConstants.Authenticator.Facebook.CALLBACK_URL);
+                    if (fbCallBackUrlProp != null) {
+                        fbCallBackUrl = fbCallBackUrlProp.getValue();
                     }
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME)) {
                     isPassivestsAuthenticatorActive = true;
@@ -1156,6 +1163,9 @@
     }
     if (fbUserInfoFields == null) {
         fbUserInfoFields = "";
+    }
+    if (fbCallBackUrl == null) {
+        fbCallBackUrl = "";
     }
     String fbUserIdInClaims = "";
     if (identityProvider != null) {
@@ -4638,6 +4648,17 @@ function doValidation() {
 
                 <div class="sectionHelp">
                     <fmt:message key='fbauth.user.information.fields.help'/>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="leftCol-med labelField"><fmt:message key='fbauth.callback.url.fields'/>:</td>
+            <td>
+                <input id="fbCallBackUrl" name="fbCallBackUrl" type="text"
+                       value="<%=Encode.forHtmlAttribute(fbCallBackUrl)%>"/>
+
+                <div class="sectionHelp">
+                    <fmt:message key='fbauth.callback.url.fields.help'/>
                 </div>
             </td>
         </tr>
