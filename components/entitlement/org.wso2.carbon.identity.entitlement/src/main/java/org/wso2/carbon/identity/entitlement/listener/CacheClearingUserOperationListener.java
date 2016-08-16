@@ -229,6 +229,46 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     }
 
     /**
+     * @param roleName         Role to be updated with users.
+     * @param deletedUsers     Users removed from the particular role.
+     * @param newUsers         New users added to the particular role.
+     * @param userStoreManager UserStoreManager instance got called.
+     * @return Always returns true since no major effect on further procedure.
+     * @throws org.wso2.carbon.user.core.UserStoreException
+     */
+    public boolean doPostUpdateUserListOfRole(String roleName, String[] deletedUsers, String[] newUsers,
+                                              UserStoreManager userStoreManager) throws UserStoreException {
+        if (log.isDebugEnabled()) {
+            log.debug("Clearing entitlement cache on post update role operation for role " +
+                    roleName);
+        }
+        clearCarbonAttributeCache();
+        // Always returns true since cache clearing failure does not make an effect on subsequent
+        // User Operation Listeners
+        return true;
+    }
+
+    /**
+     * @param userName         User name to be updated.
+     * @param deletedRoles     Roles removed from the particular user.
+     * @param newRoles         New roles added to the particular user.
+     * @param userStoreManager UserStoreManager instance got called
+     * @return Always returns true since no major effect on further procedure.
+     * @throws org.wso2.carbon.user.core.UserStoreException
+     */
+    public boolean doPostUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles,
+                                              UserStoreManager userStoreManager) throws UserStoreException {
+        if (log.isDebugEnabled()) {
+            log.debug("Clearing entitlement cache on post update role operation for role " +
+                    userName);
+        }
+        clearCarbonAttributeCache();
+        // Always returns true since cache clearing failure does not make an effect on subsequent
+        // User Operation Listeners
+        return true;
+    }
+
+    /**
      * this method is responsible for clearing all 3 major caches of entitlement engine
      * including  PIP_ATTRIBUTE_CACHE , PDP_DECISION_INVALIDATION_CACHE, ENTITLEMENT_POLICY_INVALIDATION_CACHE
      */
