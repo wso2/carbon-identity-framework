@@ -170,6 +170,7 @@ public class IdentityApplicationConstants {
             public static final String AUTH_ENDPOINT = "AuthnEndpoint";
             public static final String AUTH_TOKEN_ENDPOINT = "AuthTokenEndpoint";
             public static final String USER_INFO_ENDPOINT = "UserInfoEndpoint";
+            public static final String CALLBACK_URL = "callBackUrl";
             private Facebook() {
                 throw new AssertionError("Must not initiate an object of Facebook class");
             }
