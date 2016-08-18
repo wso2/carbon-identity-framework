@@ -72,16 +72,19 @@
 
     <script type="text/javascript">
 
-        function validateString(fld1name, regString) {
+        function validateElement(fld1, regString) {
             var errorMessage = "";
-            if (regString != "null" && !fld1name.match(new RegExp(regString))) {
+            if (regString != "null" && !fld1.value.match(new RegExp(regString))) {
                 errorMessage = "No conformance";
                 return errorMessage;
-            } else if (regString != "null" && fld1name == "") {
+            } else if (regString != "null" && fld1.value == "") {
+                return errorMessage;
+            } else if (fld1.value == fld1.defaultValue) {
+                errorMessage = "Role name not changed";
                 return errorMessage;
             }
 
-            if (fld1name == '') {
+            if (fld1.value == '') {
                 errorMessage = "Empty string";
                 return errorMessage;
             }
@@ -93,7 +96,7 @@
             var fld = document.getElementById("roleName");
             var roleRegEx = document.getElementById("role_regex").value;
 
-            var reason = validateString(fld.value, roleRegEx);
+            var reason = validateElement(fld, roleRegEx);
             if (reason != "") {
                 if (reason == "No conformance") {
                     CARBON.showWarningDialog("<fmt:message key="enter.role.name.not.conforming"/>");
@@ -101,6 +104,8 @@
                     CARBON.showWarningDialog("<fmt:message key="enter.role.name.empty"/>");
                 } else if (reason == "Domain") {
                     CARBON.showWarningDialog("<fmt:message key="rename.role.name.domain"/>");
+                } else if (reason == "Role name not changed") {
+                    CARBON.showWarningDialog("<fmt:message key="enter.role.name.not.changed"/>");
                 }
                 return false;
             }
