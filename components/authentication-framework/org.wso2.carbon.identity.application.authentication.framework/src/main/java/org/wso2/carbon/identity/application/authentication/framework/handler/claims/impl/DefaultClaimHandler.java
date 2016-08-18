@@ -186,10 +186,6 @@ public class DefaultClaimHandler implements ClaimHandler {
         filterSPClaims(spRequestedClaimMappings, localUnfilteredClaims, spUnfilteredClaims, spFilteredClaims,
                        localToSPClaimMappings);
 
-        if(spRequestedClaimMappings.isEmpty()) {
-            spFilteredClaims = spUnfilteredClaims;
-        }
-
         // set all service provider mapped unfiltered remote claims as a property
         context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, spUnfilteredClaims);
 

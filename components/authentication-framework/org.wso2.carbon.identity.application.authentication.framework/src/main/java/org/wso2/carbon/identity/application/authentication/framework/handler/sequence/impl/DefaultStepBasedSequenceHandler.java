@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -411,9 +410,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // finding attributes.
 
                         // if no requested claims are selected, send all local mapped claim values or idp claim values
-                        Map<String, String> requestedClaimMapping = context.getSequenceConfig().getApplicationConfig().
-                                getRequestedClaimMappings();
-                        if (MapUtils.isEmpty(requestedClaimMapping) && MapUtils.isEmpty(mappedAttrs)) {
+                        if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
+                                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
 
                             if (localClaimValues != null && !localClaimValues.isEmpty()) {
                                 mappedAttrs = localClaimValues;
