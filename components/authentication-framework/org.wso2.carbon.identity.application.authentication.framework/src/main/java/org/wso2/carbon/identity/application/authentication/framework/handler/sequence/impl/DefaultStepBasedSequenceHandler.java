@@ -411,7 +411,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                         // if no requested claims are selected, send all local mapped claim values or idp claim values
                         if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
-                                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
+                            context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
 
                             if (localClaimValues != null && !localClaimValues.isEmpty()) {
                                 mappedAttrs = localClaimValues;
