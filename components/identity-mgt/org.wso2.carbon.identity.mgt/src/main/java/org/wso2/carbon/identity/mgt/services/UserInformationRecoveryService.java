@@ -805,13 +805,13 @@ public class UserInformationRecoveryService {
         RealmService realmService = IdentityMgtServiceComponent.getRealmService();
         int tenantId;
 
-        try {
-            if (StringUtils.isBlank(tenantDomain)) {
-                String msg = "Tenant Domain is not in the request";
-                log.error(msg);
-                throw new IdentityMgtServiceException(msg);
-            }
+        if (StringUtils.isBlank(tenantDomain)) {
+            String msg = "Tenant Domain is not in the request";
+            log.error(msg);
+            throw new IdentityMgtServiceException(msg);
+        }
 
+        try {
             tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
             if (realmService.getTenantUserRealm(tenantId) != null) {
                 userStoreManager = (org.wso2.carbon.user.core.UserStoreManager) realmService
