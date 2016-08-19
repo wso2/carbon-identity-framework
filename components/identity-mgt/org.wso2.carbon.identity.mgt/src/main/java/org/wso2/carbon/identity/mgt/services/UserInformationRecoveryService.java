@@ -895,6 +895,9 @@ public class UserInformationRecoveryService {
             }
         } catch (UserStoreException | IdentityException e) {
             vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, userName);
+            if (vBean.getError() == null) {
+                vBean = handleError("Error while validating confirmation code for user : " + userName, e);
+            }
             //Rollback if user exists
             try {
                 if (!e.getMessage().contains(IdentityCoreConstants.EXISTING_USER) && userStoreManager.isExistingUser(userName)) {
@@ -902,6 +905,9 @@ public class UserInformationRecoveryService {
                 }
             } catch (UserStoreException e1) {
                 vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e1, userName);
+                if (vBean.getError() == null) {
+                    vBean = handleError("Error while validating confirmation code for user : " + userName, e);
+                }
             }
 
             return vBean;
@@ -1012,6 +1018,9 @@ public class UserInformationRecoveryService {
                 }
             } catch (IdentityException e) {
                 vBean = UserIdentityManagementUtil.getCustomErrorMessagesWhenRegistering(e, userName);
+                if (vBean.getError() == null) {
+                    vBean = handleError("Error while validating confirmation code for user : " + userName, e);
+                }
                 return vBean;
             }
         } finally {
