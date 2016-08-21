@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.test;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.Test;
 import org.wso2.balana.XACMLConstants;
 import org.wso2.balana.attr.AttributeValue;
@@ -40,6 +42,8 @@ import java.util.Set;
 
 
 public class TestJSONRequestParser {
+    private static Log log = LogFactory.getLog(TestJSONRequestParser.class);
+
     @Test
     public void testParse() {
         AttributeValue attributeValue = new StringAttribute("http://127.0.0.1");
@@ -85,9 +89,10 @@ public class TestJSONRequestParser {
 
         try {
             RequestCtx requestCtx1 = JSONRequestParser.parse(jsonRequest);
-            System.out.println("test");
         } catch (Exception e) {
-            e.printStackTrace();
+            if(log.isDebugEnabled()){
+                log.error("Exception in JSON Parser Test");
+            }
         }
 
 

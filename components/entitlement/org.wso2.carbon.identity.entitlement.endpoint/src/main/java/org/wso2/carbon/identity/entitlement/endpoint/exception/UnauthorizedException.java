@@ -18,16 +18,18 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.exception;
 
+import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
+
 /**
  * Concrete exception class extending AnstractEntitlementExcetion
  * Corresponds to an error occrured in Authentication
  */
 public class UnauthorizedException extends AbstractEntitlementException {
     public UnauthorizedException() {
-        super(40010);
+        super(EntitlementEndpointConstants.ERROR_UNAUTHORIZED_CODE);
     }
 
     public UnauthorizedException(String message) {
-        super(401, message);
+        super(EntitlementEndpointConstants.ERROR_UNAUTHORIZED_CODE, message);
     }
 }

@@ -23,7 +23,7 @@
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>entitlement</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>5.0.9-SNAPSHOT</version>
+        <version>5.5.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.entitlement.provider</artifactId>
@@ -56,13 +56,13 @@
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.oauth.stub</artifactId>
-            <version>${project.version}</version>
+            <version>${org.wso2.carbon.identity.oauth.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.oauth</artifactId>
-            <version>${project.version}</version>
+            <version>${org.wso2.carbon.identity.oauth.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -76,38 +76,42 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.wso2.charon</groupId>
-            <artifactId>org.wso2.charon.core</artifactId>
-            <version>${charon.wso2.version.identity}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
-            <version>5.0.9-SNAPSHOT</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.5.4</version>
+            <version>${com.fasterxml.core.version2}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${com.fasterxml.core.version2}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${com.fasterxml.core.version2}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>2.5.4</version>
+            <version>${com.fasterxml.core.version2}</version>
         </dependency>
 
         <!-- CXF -->
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>2.7.8</version>
+            <version>${org.apache.cxf.cxf-rt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
-            <version>2.7.8</version>
+            <version>${org.apache.cxf.cxf-rt.version}</version>
         </dependency>
 
         <dependency>
@@ -123,21 +127,15 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http-jetty</artifactId>
-            <version>2.7.15</version>
+            <version>${org.apache.cxf.cxf-rt-transports-jetty.version}</version>
         </dependency>
 
         <!-- SWAGGER -->
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-jaxrs</artifactId>
-            <version>1.5.8</version>
-
+            <version>${io.swagger.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.webjars</groupId>-->
-            <!--<artifactId>swagger-ui</artifactId>-->
-            <!--<version>2.1.4</version>-->
-        <!--</dependency>-->
 
         <!-- GSON -->
         <dependency>
@@ -175,6 +173,14 @@
             </plugin>
         </plugins>
     </build>
+
+    <properties>
+        <org.wso2.carbon.identity.oauth.version>5.2.0-SNAPSHOT</org.wso2.carbon.identity.oauth.version>
+        <com.fasterxml.core.version2>2.5.4</com.fasterxml.core.version2>
+        <org.apache.cxf.cxf-rt.version>2.7.8</org.apache.cxf.cxf-rt.version>
+        <org.apache.cxf.cxf-rt-transports-jetty.version>2.7.15</org.apache.cxf.cxf-rt-transports-jetty.version>
+        <io.swagger.version>1.5.8</io.swagger.version>
+    </properties>
 
 
 </project>

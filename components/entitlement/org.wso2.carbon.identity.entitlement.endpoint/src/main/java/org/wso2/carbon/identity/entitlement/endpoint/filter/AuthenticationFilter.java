@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
+import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 
 import javax.ws.rs.core.Response;
 
@@ -62,7 +63,7 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
         }
         //if null response is not returned(i.e:message continues its way to the resource), return error & terminate.
         UnauthorizedException unauthorizedException = new UnauthorizedException(
-                "Authentication failed for this resource.");
+                EntitlementEndpointConstants.ERROR_UNAUTHORIZED_MESSAGE);
         Response.ResponseBuilder responseBuilder = Response.status(unauthorizedException.getCode());
         responseBuilder.entity(unauthorizedException.getDescription());
 

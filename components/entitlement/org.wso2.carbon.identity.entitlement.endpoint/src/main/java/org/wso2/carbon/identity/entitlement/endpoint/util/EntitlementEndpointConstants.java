@@ -148,4 +148,14 @@ public class EntitlementEndpointConstants {
     public static final String OBLIGATION_OR_ADVICE_ID = "Id";
     public static final String ATTRIBUTE_ASSIGNMENTS = "AttributeAssignments";
 
+    //Error codes and responses
+    public static final int ERROR_UNAUTHORIZED_CODE = 40010;
+    public static final String ERROR_UNAUTHORIZED_MESSAGE = "Authentication failed for this resource.";
+
+    public static final int ERROR_REQUEST_PARSE_CODE = 40020;
+    public static final String ERROR_REQUEST_PARSE_MESSAGE = "Request Parse Exception.";
+
+    public static final int ERROR_RESPONSE_READ_CODE = 40030;
+    public static final String ERROR_RESPONSE_READ_MESSAGE = "Error in Response.";
+
 }

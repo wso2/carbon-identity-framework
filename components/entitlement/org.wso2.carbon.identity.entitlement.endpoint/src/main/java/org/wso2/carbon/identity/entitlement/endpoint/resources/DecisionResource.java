@@ -19,13 +19,13 @@
 package org.wso2.carbon.identity.entitlement.endpoint.resources;
 
 import com.google.gson.Gson;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.balana.ctx.ResponseCtx;
 import org.wso2.balana.ctx.xacml3.RequestCtx;
 import org.wso2.carbon.identity.entitlement.dto.EntitledResultSetDTO;
+import org.wso2.carbon.identity.entitlement.endpoint.exception.ExceptionBean;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseException;
 import org.wso2.carbon.identity.entitlement.endpoint.resources.models.*;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
@@ -57,10 +57,20 @@ public class DecisionResource extends AbstractResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ApiOperation(value = "Get API resource list according to XACML 3.0 Specification",
-                  response = HomeResponseModel.class)
-    public HomeResponseModel getHome(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                  httpMethod = "GET")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Method call success", response = HomeResponseModel.class),
+        @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_UNAUTHORIZED_MESSAGE,
+                                   response = ExceptionBean.class)
+    })
+    public HomeResponseModel getHome(@ApiParam(value="Request Media Type", required = true)
+                                     @HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                                     @ApiParam(value="Authentication Type", required = true)
                                      @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
-                                     @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization) {
+                                     @ApiParam(value="Add HTTP Basic Authorization", required = true)
+                                     @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+                                     @ApiParam(value="Response Media Type", required = true)
+                                     @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType) {
         return new HomeResponseModel();
     }
 
@@ -74,25 +84,38 @@ public class DecisionResource extends AbstractResource {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @ApiOperation(value = "Get response by evaluating JSON/XML XACML request", response = String.class)
-    public String getDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
-                              @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
-                              @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
-                              @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
-                              String xacmlRequest) throws Exception {
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "XACML JSON/XML Response"),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_UNAUTHORIZED_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40020, message = EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_RESPONSE_READ_MESSAGE,
+                    response = ExceptionBean.class)
+    })
+    public String getDecision(@ApiParam(value="Request Media Type", required = true)
+                                  @HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                              @ApiParam(value="Authentication Type", required = true)
+                                  @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
+                              @ApiParam(value="Add HTTP Basic Authorization", required = true)
+                                  @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+                              @ApiParam(value="Response Media Type", required = true)
+                                  @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
+                              @ApiParam(value="XACML JSON/XML Request", required = true)
+                                  String xacmlRequest) throws Exception {
 
         if (log.isDebugEnabled()) {
             log.debug("recieved :" + xacmlRequest);
         }
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
 
-        if (contentType.equals(EntitlementEndpointConstants.APPLICATION_XML)) {
-            return entitlementEngine.evaluate(xacmlRequest);
-        } else if (contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)) {
+        if (contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)) {
             RequestCtx requestCtx = JSONRequestParser.parse(xacmlRequest);
             ResponseCtx responseCtx = entitlementEngine.evaluateByContext(requestCtx);
             return gson.toJson(JSONResponseWriter.write(responseCtx));
+        }else{
+            return entitlementEngine.evaluate(xacmlRequest);
         }
-        return entitlementEngine.evaluate(xacmlRequest);
 
     }
 
@@ -106,9 +129,24 @@ public class DecisionResource extends AbstractResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get response by evaluating attributes", response = String.class)
-    public String getDecisionByAttributes(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
-                                          @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
-                                          @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "XACML JSON/XML Response"),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_UNAUTHORIZED_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40020, message = EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_RESPONSE_READ_MESSAGE,
+                    response = ExceptionBean.class)
+    })
+    public String getDecisionByAttributes(@ApiParam(value="Request Media Type", required = true)
+                                              @HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                                          @ApiParam(value="Authentication Type", required = true)
+                                              @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
+                                          @ApiParam(value="Add HTTP Basic Authorization", required = true)
+                                              @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+                                          @ApiParam(value="Response Media Type", required = true)
+                                              @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
+                                          @ApiParam(value="Decision Request Model", required = true)
                                           DecisionRequestModel request) throws Exception {
 
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
@@ -129,10 +167,25 @@ public class DecisionResource extends AbstractResource {
     @Path("by-attrib-boolean")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get boolean response by evaluating attributes", response = String.class)
-    public boolean getBooleanDecision(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
-                                      @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
-                                      @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+    @ApiOperation(value = "Get boolean response by evaluating attributes", response = Boolean.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Boolean response"),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_UNAUTHORIZED_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40020, message = EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_RESPONSE_READ_MESSAGE,
+                    response = ExceptionBean.class)
+    })
+    public boolean getBooleanDecision(@ApiParam(value="Request Media Type", required = true)
+                                          @HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                                      @ApiParam(value="Authentication Type", required = true)
+                                          @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
+                                      @ApiParam(value="Add HTTP Basic Authorization", required = true)
+                                          @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+                                      @ApiParam(value="Response Media Type", required = true)
+                                          @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
+                                      @ApiParam(value="Decision Request Model", required = true)
                                       DecisionRequestModel request) throws Exception {
 
         EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
@@ -154,9 +207,25 @@ public class DecisionResource extends AbstractResource {
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @ApiOperation(value = "Get entitled attributes for a given set of parameters",
                   response = EntitledAttributesResponseModel.class)
-    public EntitledAttributesResponseModel getEntitledAttributes(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
-                                                                 @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
-                                                                 @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Entitled Attributes response",
+                    response = EntitledAttributesResponseModel.class),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_UNAUTHORIZED_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40020, message = EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_RESPONSE_READ_MESSAGE,
+                    response = ExceptionBean.class)
+    })
+    public EntitledAttributesResponseModel getEntitledAttributes(@ApiParam(value="Request Media Type", required = true)
+                                                                     @HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                                                                 @ApiParam(value="Authentication Type", required = true)
+                                                                     @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
+                                                                 @ApiParam(value="Add HTTP Basic Authorization", required = true)
+                                                                     @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+                                                                 @ApiParam(value="Response Media Type", required = true)
+                                                                     @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
+                                                                 @ApiParam(value="Entitled Attributes Model", required = true)
                                                                  EntitledAttributesRequestModel request) throws Exception {
 
         if (request.getSubjectName() == null) {
@@ -183,11 +252,27 @@ public class DecisionResource extends AbstractResource {
     @Path("entitlements-all")
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @ApiOperation(value = "Get all entitlements for a given sset of parameters",
+    @ApiOperation(value = "Get all entitlements for a given set of parameters",
                   response = AllEntitlementsResponseModel.class)
-    public AllEntitlementsResponseModel getAllEntitlements(@HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
-                                                           @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
-                                                           @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "All Entitlements response",
+                    response = AllEntitlementsResponseModel.class),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_UNAUTHORIZED_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40020, message = EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE,
+                    response = ExceptionBean.class),
+            @ApiResponse(code = 40010, message = EntitlementEndpointConstants.ERROR_RESPONSE_READ_MESSAGE,
+                    response = ExceptionBean.class)
+    })
+    public AllEntitlementsResponseModel getAllEntitlements(@ApiParam(value="Request Media Type", required = true)
+                                                               @HeaderParam(EntitlementEndpointConstants.ACCEPT_HEADER) String format,
+                                                           @ApiParam(value="Authentication Type", required = true)
+                                                               @HeaderParam(EntitlementEndpointConstants.AUTHENTICATION_TYPE_HEADER) String authMechanism,
+                                                           @ApiParam(value="Add HTTP Basic Authorization", required = true)
+                                                               @HeaderParam(EntitlementEndpointConstants.AUTHORIZATION_HEADER) String authorization,
+                                                           @ApiParam(value="Response Media Type", required = true)
+                                                               @HeaderParam(EntitlementEndpointConstants.CONTENT_TYPE_HEADER) String contentType,
+                                                           @ApiParam(value="All Entitlements Model", required = true)
                                                            AllEntitlementsRequestModel request) {
 
         if (log.isDebugEnabled()) {

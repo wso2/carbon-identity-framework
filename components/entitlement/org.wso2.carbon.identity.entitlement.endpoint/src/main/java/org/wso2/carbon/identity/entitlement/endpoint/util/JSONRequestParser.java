@@ -18,7 +18,12 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.util;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonPrimitive;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.wso2.balana.Balana;
@@ -147,13 +152,12 @@ public class JSONRequestParser {
                             try {
                                 doc = dbf.newDocumentBuilder().parse(inputStream);
                             } catch (Exception e) {
-                                System.err.println("DOM of request element can not be created from String");
-
+                                throw new JsonParseException("DOM of request element can not be created from String");
                             } finally {
                                 try {
                                     inputStream.close();
                                 } catch (IOException e) {
-                                    System.err.println("Error in closing input stream of XACML response");
+                                    throw new JsonParseException("DOM of request element can not be created from String");
                                 }
                             }
 

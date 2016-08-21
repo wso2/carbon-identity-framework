@@ -17,24 +17,27 @@
  */
 package org.wso2.carbon.identity.entitlement.endpoint.exception;
 
+import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
+
 /**
  * Concrete exception class extending AnstractEntitlementExcetion
  * Corresponds to an error occurred in processing a response
  */
 public class ResponseWriteException extends AbstractEntitlementException {
     public ResponseWriteException() {
-        super(40030, "Error in Response");
+        super(EntitlementEndpointConstants.ERROR_RESPONSE_READ_CODE,
+                EntitlementEndpointConstants.ERROR_RESPONSE_READ_MESSAGE);
     }
 
-    public ResponseWriteException(String s) {
-        super(40020, s);
+    public ResponseWriteException(String description) {
+        super(EntitlementEndpointConstants.ERROR_RESPONSE_READ_CODE, description);
     }
 
-    public ResponseWriteException(int c, String s) {
-        super(c, s);
+    public ResponseWriteException(int code, String description) {
+        super(code, description);
     }
 
-    public ResponseWriteException(String s, Exception e) {
-        super(s, e);
+    public ResponseWriteException(String description, Exception exception) {
+        super(description, exception);
     }
 }

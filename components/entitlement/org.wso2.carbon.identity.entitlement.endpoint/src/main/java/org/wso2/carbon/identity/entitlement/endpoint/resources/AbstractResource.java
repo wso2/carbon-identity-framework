@@ -25,7 +25,8 @@ import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointCon
  */
 public class AbstractResource {
     public String identifyOutputFormat(String format) {
-        if (format == null || ("*/*").equals(format) || ((format != null) && (format.startsWith(EntitlementEndpointConstants.APPLICATION_JSON)))) {
+        if (format == null || ("*/*").equals(format)
+                || format.startsWith(EntitlementEndpointConstants.APPLICATION_JSON)) {
             return EntitlementEndpointConstants.APPLICATION_JSON;
         } else {
             return format;
@@ -33,8 +34,8 @@ public class AbstractResource {
     }
 
     public String identifyInputFormat(String format) {
-        if (format == null || ("*/*").equals(format) ||
-                ((format != null) && (format.startsWith(EntitlementEndpointConstants.APPLICATION_JSON)))) {
+        if (format == null || ("*/*").equals(format)
+                || format.startsWith(EntitlementEndpointConstants.APPLICATION_JSON)) {
             return EntitlementEndpointConstants.APPLICATION_JSON;
         } else {
             return format;

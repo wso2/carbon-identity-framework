@@ -24,13 +24,12 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.message.Message;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import org.wso2.charon.core.exceptions.InternalServerException;
-import org.wso2.charon.core.exceptions.UnauthorizedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,7 +139,7 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                         }
                     } else {
                         log.error("Error in getting Realm Service for user: " + userName);
-                        InternalServerException internalServerException = new InternalServerException(
+                        UnauthorizedException internalServerException = new UnauthorizedException(
                                 "Internal server error while authenticating the user: "
                                         + tenantLessUserName + "@" + tenantDomain);
                         log.error(internalServerException.getDescription());
@@ -148,7 +147,7 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                     }
 
                 } catch (UserStoreException e) {
-                    InternalServerException internalServerException = new InternalServerException(
+                    UnauthorizedException internalServerException = new UnauthorizedException(
                             "Internal server error while authenticating the user.");
                     log.error(internalServerException.getDescription(), e);
                     return false;

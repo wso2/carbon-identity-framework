@@ -17,24 +17,27 @@
  */
 package org.wso2.carbon.identity.entitlement.endpoint.exception;
 
+import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
+
 /**
  * Concrete exception class extending AnstractEntitlementExcetion
  * Corresponds to an error occurred in processing a request
  */
 public class RequestParseException extends AbstractEntitlementException {
     public RequestParseException() {
-        super(40020, "Error in request");
+        super(EntitlementEndpointConstants.ERROR_REQUEST_PARSE_CODE,
+              EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE);
     }
 
-    public RequestParseException(String s) {
-        super(40020, s);
+    public RequestParseException(String description) {
+        super(EntitlementEndpointConstants.ERROR_REQUEST_PARSE_CODE, description);
     }
 
-    public RequestParseException(int c, String s) {
-        super(c, s);
+    public RequestParseException(int code, String description) {
+        super(code, description);
     }
 
-    public RequestParseException(String s, Exception e) {
-        super(s, e);
+    public RequestParseException(String description, Exception exception) {
+        super(description, exception);
     }
 }

@@ -40,29 +40,29 @@ public abstract class AbstractEntitlementException extends Exception {
         this.description = null;
     }
 
-    public AbstractEntitlementException(int code, String s) {
-        super(s);
+    public AbstractEntitlementException(int code, String description) {
+        super(description);
         this.code = code;
-        this.description = s;
+        this.description = description;
     }
 
-    public AbstractEntitlementException(String s) {
-        super(s);
+    public AbstractEntitlementException(String description) {
+        super(description);
         this.code = -1;
-        this.description = s;
+        this.description = description;
     }
 
-    public AbstractEntitlementException(int code, String s, Exception e) {
-        super(s, e);
+    public AbstractEntitlementException(int code, String description, Exception exception) {
+        super(description, exception);
         this.code = code;
-        this.description = s;
+        this.description = description;
 
     }
 
-    public AbstractEntitlementException(String s, Exception e) {
-        super(s, e);
+    public AbstractEntitlementException(String description, Exception exception) {
+        super(description, exception);
         this.code = -1;
-        this.description = s;
+        this.description = description;
     }
 
     public String getDescription() {
@@ -86,47 +86,3 @@ public abstract class AbstractEntitlementException extends Exception {
     }
 }
 
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {
-        "code",
-        "message"
-})
-@XmlRootElement(name = "Error")
-/**
- * Java Bean Class to be used as a response object for the service.
- * When an exception occurs, the ExceptionMapper will catch it
- * and an ExceptionBean object will be created according to the exception caught.
- */
-class ExceptionBean {
-    //Corresponds to error code in AbstractException
-    @XmlElement
-    private int code;
-    //Corresponds to error message in AbstractException
-    @XmlElement
-    private String message;
-
-    public ExceptionBean() {
-        //No-arg default constructor needed for JAXB
-    }
-
-    public ExceptionBean(int code, String message) {
-        this.code = code;
-        this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-}
