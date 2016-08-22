@@ -57,4 +57,27 @@
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
     </menus>
+
+    <ManagementPermissions>
+        <ManagementPermission>
+            <DisplayName>Identity Provider Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/idpmgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/idpmgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/idpmgt/delete</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/idpmgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/idpmgt/create</ResourceId>
+        </ManagementPermission>
+    </ManagementPermissions>
 </component>
