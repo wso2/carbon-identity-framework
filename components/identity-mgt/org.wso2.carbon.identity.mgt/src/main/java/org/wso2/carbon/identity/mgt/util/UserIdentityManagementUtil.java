@@ -70,7 +70,6 @@ public class UserIdentityManagementUtil {
     private static final String INVALID_USER_NAME = "InvalidUserName";
     private static final String PASSWORD_POLICY_VIOLATION = "Password at least should have";;
 
-    private static VerificationBean vBean = new VerificationBean();
     private static ChallengeQuestionIdsDTO idsDTO = new ChallengeQuestionIdsDTO();
     private static UserChallengesDTO userChallengesDTO = new UserChallengesDTO();
     private static Log log = LogFactory.getLog(UserIdentityManagementUtil.class);
@@ -630,6 +629,8 @@ public class UserIdentityManagementUtil {
     }
 
     public static VerificationBean getCustomErrorMessagesWhenRegistering(Exception e, String userName) {
+
+        VerificationBean vBean = new VerificationBean();
         if (e.getMessage() != null) {
             if (e.getMessage().contains(PASSWORD_INVALID)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_INVALID_CREDENTIALS +
@@ -687,6 +688,8 @@ public class UserIdentityManagementUtil {
     }
 
     public static VerificationBean getCustomErrorMessagesToVerifyCode(IdentityException e, String userName) {
+
+        VerificationBean vBean = new VerificationBean();
         if (e.getMessage() != null) {
             if (e.getMessage().contains(VerificationBean.ERROR_CODE_EXPIRED_CODE)) {
                 vBean = handleError(VerificationBean.ERROR_CODE_EXPIRED_CODE + " The code is " + "expired", e);
