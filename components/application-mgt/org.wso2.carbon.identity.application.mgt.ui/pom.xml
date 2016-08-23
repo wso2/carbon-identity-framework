@@ -94,7 +94,7 @@
                             org.wso2.carbon.identity.application.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.model.xsd; version="${carbon.identity.package.import.version.range}",
 
-                            org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
 
                             org.wso2.carbon.identity.application.common.xsd;
                             version="${carbon.identity.package.import.version.range}",
