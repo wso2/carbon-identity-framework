@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.ui.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
 /**
@@ -29,6 +30,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
  * policy="dynamic" bind="setConfigurationContextService"
  * unbind="unsetConfigurationContextService"
+ * @scr.reference name="identityCoreInitializedEventService"
+ * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
+ * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
  */
 public class ApplicationMgtUIServiceComponent {
 
@@ -58,6 +62,16 @@ public class ApplicationMgtUIServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService Instance was unset.");
         }
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+                 /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+                /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
     }
 
 }

@@ -66,6 +66,26 @@
             <DisplayName>Applications</DisplayName>
             <ResourceId>/permission/applications</ResourceId>
         </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Application Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/delete</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/create</ResourceId>
+        </ManagementPermission>
     </ManagementPermissions>
     <!-- framework-configuration>
         <bypass>
