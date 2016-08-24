@@ -121,7 +121,7 @@ public class PolicyReader implements ErrorHandler {
      * Reads policy target from the policy
      *
      * @param policy policy as a String
-     * @return target as PolicyTarget object
+     * @return target as PolicyTPolicyReaderarget object
      */
     public PolicyTarget getTarget(String policy) {
         InputStream stream = null;
