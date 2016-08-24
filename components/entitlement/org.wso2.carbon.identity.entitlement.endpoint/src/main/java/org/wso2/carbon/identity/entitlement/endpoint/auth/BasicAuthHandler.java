@@ -87,7 +87,6 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
 
     public boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo) {
         // extract authorization header and authenticate.
-
         // get the map of protocol headers
         Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
         // get the value for Authorization Header
@@ -124,44 +123,38 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                             // authentication success. set the username for authorization header and
                             // proceed the REST call
                             authzHeaders.set(0, userName);
-                            PrivilegedCarbonContext.startTenantFlow();
-                            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-                            carbonContext.setUsername(tenantLessUserName);
-                            carbonContext.setTenantId(tenantId);
-                            carbonContext.setTenantDomain(tenantDomain);
                             return true;
                         } else {
-                            UnauthorizedException unauthorizedException = new UnauthorizedException(
-                                    "Authentication failed for the user: " + tenantLessUserName
-                                            + "@" + tenantDomain);
-                            log.error(unauthorizedException.getDescription());
+                            if(log.isDebugEnabled()){
+                                log.error("Authentication failed for the user: " + tenantLessUserName
+                                        + "@" + tenantDomain);
+                            }
                             return false;
                         }
                     } else {
-                        log.error("Error in getting Realm Service for user: " + userName);
-                        UnauthorizedException internalServerException = new UnauthorizedException(
-                                "Internal server error while authenticating the user: "
-                                        + tenantLessUserName + "@" + tenantDomain);
-                        log.error(internalServerException.getDescription());
+                        if(log.isDebugEnabled()) {
+                            log.error("Error in getting Realm Service for user: " + userName);
+                        }
                         return false;
                     }
-
                 } catch (UserStoreException e) {
-                    UnauthorizedException internalServerException = new UnauthorizedException(
-                            "Internal server error while authenticating the user.");
-                    log.error(internalServerException.getDescription(), e);
+                    if(log.isDebugEnabled()) {
+                        log.error("Internal server error while authenticating the user.");
+                    }
                     return false;
                 }
             } else {
-                UnauthorizedException unauthorizedException = new UnauthorizedException(
-                        "Authentication required for this resource. Username or password not provided.");
-                log.error(unauthorizedException.getDescription());
+                if(log.isDebugEnabled()){
+                    log.error("Authentication required for this resource. " +
+                                "Username or password not provided.");
+                }
                 return false;
             }
         } else {
-            UnauthorizedException unauthorizedException = new UnauthorizedException(
-                    "Authentication required for this resource. Authorization header not present in the request.");
-            log.error(unauthorizedException.getDescription());
+            if(log.isDebugEnabled()){
+                log.error("Authentication required for this resource. " +
+                          "Authorization header not present in the request.");
+            }
             return false;
         }
 

@@ -90,7 +90,7 @@ public class TestJSONRequestParser {
         try {
             RequestCtx requestCtx1 = JSONRequestParser.parse(jsonRequest);
         } catch (Exception e) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.error("Exception in JSON Parser Test");
             }
         }

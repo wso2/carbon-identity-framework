@@ -24,7 +24,6 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
@@ -32,16 +31,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Scanner;
 
-public class TestService extends Assert{
+public class TestService extends Assert {
     private final static String ENDPOINT_ADDRESS = "https://localhost:9443/wso2-entitlement/entitlement/Decision";
     private final static String WADL_ADDRESS = ENDPOINT_ADDRESS + "?_wadl";
     private static Log log = LogFactory.getLog(TestService.class);
 
-    TestService(){
+    TestService() {
         System.setProperty("javax.net.ssl.trustStore", "/home/manujith/Apps/wso2is-5.1.0/repository/resources/security/client-truststore.jks");
     }
 
-    private static boolean waitForWADL(){
+    private static boolean waitForWADL() {
         WebClient client = WebClient.create(WADL_ADDRESS);
         // wait for 20 secs or so
         for (int i = 0; i < 20; i++) {
@@ -51,20 +50,20 @@ public class TestService extends Assert{
                 if (response.getStatus() == 200) {
                     return true;
                 }
-            }catch(Exception e){
+            } catch (Exception e) {
                 return false;
             }
         }
         // no WADL is available yet - throw an exception or give tests a chance to run anyway
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.error("Service offline");
         }
         return false;
     }
 
-    private String readReource(String path){
+    private String readReource(String path) {
         StringBuilder result = new StringBuilder("");
-        try{
+        try {
             //Get file from resources folder
             ClassLoader classLoader = getClass().getClassLoader();
             URI filepath = new URI(classLoader.getResource(path).toString());
@@ -81,27 +80,27 @@ public class TestService extends Assert{
             scanner.close();
 
         } catch (IOException e) {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.error("IO Exception in reading test case");
             }
-        } catch(URISyntaxException e){
-            if(log.isDebugEnabled()){
+        } catch (URISyntaxException e) {
+            if (log.isDebugEnabled()) {
                 log.error("IO Exception in reading test case");
             }
         }
 
-        return result.toString().replaceAll("\\n\\r|\\n|\\r|\\t|\\s{2,}","").replaceAll(": ",":");
+        return result.toString().replaceAll("\\n\\r|\\n|\\r|\\t|\\s{2,}", "").replaceAll(": ", ":");
     }
 
     @Test
-    public void testHomeXML(){
-        if(!waitForWADL()){
+    public void testHomeXML() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/xml");
         client.accept("application/xml");
 
@@ -112,18 +111,18 @@ public class TestService extends Assert{
 
         String webRespose = client.get(String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testHomeJSON(){
-        if(!waitForWADL()){
+    public void testHomeJSON() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/json");
         client.accept("application/json");
 
@@ -134,251 +133,240 @@ public class TestService extends Assert{
 
         String webRespose = client.get(String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testPdpXML(){
-        if(!waitForWADL()){
+    public void testPdpXML() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/xml");
         client.accept("application/xml");
 
         client.path("pdp");
-
 
 
         String request = readReource("xml/request-pdp-1.xml");
         String response = readReource("xml/response-pdp-1.xml");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testPdpJSON(){
-        if(!waitForWADL()){
+    public void testPdpJSON() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/json");
         client.accept("application/json");
 
         client.path("pdp");
 
 
-
         String request = readReource("json/request-pdp-1.json");
         String response = readReource("json/response-pdp-1.json");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testGetDecisionByAttributesXML(){
-        if(!waitForWADL()){
+    public void testGetDecisionByAttributesXML() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/xml");
         client.accept("application/xml");
 
         client.path("by-attrib");
-
 
 
         String request = readReource("xml/request-by-attrib-1.xml");
         String response = readReource("xml/response-by-attrib-1.xml");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testGetDecisionByAttributesJSON(){
-        if(!waitForWADL()){
+    public void testGetDecisionByAttributesJSON() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/json");
         client.accept("application/xml");
 
         client.path("by-attrib");
 
 
-
         String request = readReource("json/request-by-attrib-1.json");
         String response = readReource("json/response-by-attrib-1.xml");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testGetDecisionByAttributesBooleanXML(){
-        if(!waitForWADL()){
+    public void testGetDecisionByAttributesBooleanXML() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/xml");
         client.accept("application/xml");
 
         client.path("by-attrib-boolean");
-
 
 
         String request = readReource("xml/request-by-attrib-bool-1.xml");
         String response = readReource("xml/response-by-attrib-bool-1.xml");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testGetDecisionByAttributesBooleanJSON(){
-        if(!waitForWADL()){
+    public void testGetDecisionByAttributesBooleanJSON() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/json");
         client.accept("application/json");
 
         client.path("by-attrib-boolean");
 
 
-
         String request = readReource("json/request-by-attrib-bool-1.json");
         String response = readReource("json/response-by-attrib-bool-1.json");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testEntitledAttributesXML(){
-        if(!waitForWADL()){
+    public void testEntitledAttributesXML() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/xml");
         client.accept("application/xml");
 
         client.path("entitled-attribs");
 
 
-
         String request = readReource("xml/request-entitled-attribs-1.xml");
         String response = readReource("xml/response-entitled-attribs-1.xml");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testEntitledAttributesJSON(){
-        if(!waitForWADL()){
+    public void testEntitledAttributesJSON() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/json");
         client.accept("application/json");
 
         client.path("entitled-attribs");
-
 
 
         String request = readReource("json/request-entitled-attribs-1.json");
         String response = readReource("json/response-entitled-attribs-1.json");
 
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testAllEntitlementsXML(){
-        if(!waitForWADL()){
+    public void testAllEntitlementsXML() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/xml");
         client.accept("application/xml");
 
         client.path("entitlements-all");
 
 
-
         String request = readReource("xml/request-all-entitlements-1.xml");
         String response = readReource("xml/response-all-entitlements-1.xml");
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
 
     @Test
-    public void testAllEntitlementsJSON(){
-        if(!waitForWADL()){
+    public void testAllEntitlementsJSON() {
+        if (!waitForWADL()) {
             return;
         }
 
         WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 
-        client.header("Authorization","Basic YWRtaW46YWRtaW4=");
+        client.header("Authorization", "Basic YWRtaW46YWRtaW4=");
         client.type("application/json");
         client.accept("application/json");
 
         client.path("entitlements-all");
 
 
-
         String request = readReource("json/request-all-entitlements-1.json");
         String response = readReource("json/response-all-entitlements-1.json");
 
 
-        String webRespose = client.post(request,String.class);
+        String webRespose = client.post(request, String.class);
 
-        assertEquals(response,webRespose);
+        assertEquals(response, webRespose);
     }
-
 
 
 }

@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointCon
 public class RequestParseException extends AbstractEntitlementException {
     public RequestParseException() {
         super(EntitlementEndpointConstants.ERROR_REQUEST_PARSE_CODE,
-              EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE);
+                EntitlementEndpointConstants.ERROR_REQUEST_PARSE_MESSAGE);
     }
 
     public RequestParseException(String description) {

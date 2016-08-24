@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.exception;
 
-import javax.xml.bind.annotation.*;
-
 /**
  * Abstract class for custom exceptions thrown from Entitlement Endpoint
  * Concrete excpetions will be implemented from this class

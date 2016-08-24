@@ -25,15 +25,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.message.Message;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 import org.wso2.carbon.identity.oauth2.OAuth2TokenValidationService;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2ClientApplicationDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationRequestDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
-import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,13 +116,12 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
                 if (validationResponse != null && validationResponse.isValid()) {
                     String userName = validationResponse.getAuthorizedUser();
                     authzHeaders.set(0, userName);
-
-                    //Removed code related to provisioning framework
-
                     return true;
                 }
             } catch (Exception e) {
-                log.error("Error in validating OAuth access token.", e);
+                if(log.isDebugEnabled()) {
+                    log.error("Error in validating OAuth access token.", e);
+                }
             }
         }
         return false;
@@ -198,8 +194,14 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
             appDTO.setAccessTokenValidationResponse(validationDto);
             return appDTO;
         } catch (AxisFault axisFault) {
+            if(log.isDebugEnabled()){
+                log.error("AxisFault Exception in authentication");
+            }
             throw new UnauthorizedException("AxisFault Exception in authentication");
         } catch (Exception exception) {
+            if(log.isDebugEnabled()){
+                log.error("Authentication Exception");
+            }
             throw new UnauthorizedException("Authentication Exception");
         }
     }

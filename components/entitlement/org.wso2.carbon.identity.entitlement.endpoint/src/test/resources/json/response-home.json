@@ -1,11 +1,11 @@
 {
-  "xmlns":"http://ietf.org/ns/home-documents",
-  "resources":[
+  "xmlns": "http://ietf.org/ns/home-documents",
+  "resources": [
     {
-      "link":{
-        "href":"/pdp"
+      "link": {
+        "href": "/pdp"
       },
-      "rel":"http://docs.oasis-open.org/ns/xacml/relation/pdp"
+      "rel": "http://docs.oasis-open.org/ns/xacml/relation/pdp"
     }
   ]
 }

@@ -62,8 +62,6 @@ public class JSONResponseWriter {
         for (AbstractResult result : response.getResults()) {
             results.add(abstractResultToJSONObject(result));
         }
-
-
         responseWrap.add(EntitlementEndpointConstants.RESPONSE, results);
 
         return responseWrap;
@@ -141,11 +139,9 @@ public class JSONResponseWriter {
 
             jsonStatus.add(EntitlementEndpointConstants.STATUS_CODE, statusCode);
         }
-
         if (status.getDetail() != null) {
             jsonStatus.addProperty(EntitlementEndpointConstants.STATUS_DETAIL, status.getDetail().getEncoded());
         }
-
         return jsonStatus;
     }
 

@@ -43,11 +43,13 @@ public class EntitlementExceptionMapper implements ExceptionMapper<Exception> {
         //If the exception occurred was a known EntitlementEndpoint exception
         if (e instanceof AbstractEntitlementException) {
             AbstractEntitlementException entitlementException = (AbstractEntitlementException) e;
-            return Response.status(Response.Status.OK).entity(entitlementException.getExceptioBean())
-                    .build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                           .entity(entitlementException.getExceptioBean())
+                           .build();
         }
-        //Any unknown exception occurred
-        return Response.status(Response.Status.OK).entity(new RequestParseException().getExceptioBean())
-                .build();
+        //Any unknown exception occurred, return status 500
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                       .entity(new RequestParseException().getExceptioBean())
+                       .build();
     }
 }

@@ -28,7 +28,7 @@
     <jaxrs:server id="decisionResource" address="/Decision">
         <jaxrs:serviceBeans>
             <ref bean="decisionBean"/>
-            <ref bean="swaggerResource" />
+            <ref bean="swaggerResource"/>
         </jaxrs:serviceBeans>
 
         <jaxrs:providers>
@@ -36,7 +36,7 @@
             <ref bean="jacksonJsonProvider"/>
             <ref bean="exceptionMapper"/>
 
-            <ref bean="swaggerWriter" />
+            <ref bean="swaggerWriter"/>
         </jaxrs:providers>
 
         <!--<jaxrs:features>-->
@@ -47,14 +47,14 @@
 
     <jaxrs:server id="swaggerR" address="/api">
         <jaxrs:serviceBeans>
-            <ref bean="swaggerResource" />
+            <ref bean="swaggerResource"/>
         </jaxrs:serviceBeans>
 
         <jaxrs:providers>
             <ref bean="jacksonJsonProvider"/>
             <ref bean="exceptionMapper"/>
 
-            <ref bean="swaggerWriter" />
+            <ref bean="swaggerWriter"/>
         </jaxrs:providers>
     </jaxrs:server>
 
@@ -69,9 +69,9 @@
           class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
 
     <!-- Swagger writers -->
-    <bean id="swaggerWriter" class="io.swagger.jaxrs.listing.SwaggerSerializers" />
+    <bean id="swaggerWriter" class="io.swagger.jaxrs.listing.SwaggerSerializers"/>
     <!-- Swagger API listing resource -->
-    <bean id="swaggerResource" class="io.swagger.jaxrs.listing.ApiListingResource" />
+    <bean id="swaggerResource" class="io.swagger.jaxrs.listing.ApiListingResource"/>
 
 
     <bean id="swaggerConfig" class="io.swagger.jaxrs.config.BeanConfig">

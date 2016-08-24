@@ -52,7 +52,9 @@ public class OAuthServiceClient {
             stub = new OAuth2TokenValidationServiceStub(configCtx, serviceURL);
             CarbonUtils.setBasicAccessSecurityHeaders(username, password, true, stub._getServiceClient());
         } catch (AxisFault e) {
-            log.error("Error initializing OAuth2 Client");
+            if(log.isDebugEnabled()) {
+                log.error("Error initializing OAuth2 Client");
+            }
             throw new Exception("Error initializing OAuth Client", e);
         }
     }
@@ -75,7 +77,9 @@ public class OAuthServiceClient {
         try {
             return stub.validate(oauthReq);
         } catch (RemoteException e) {
-            log.error("Error while validating OAuth2 request");
+            if(log.isDebugEnabled()) {
+                log.error("Error while validating OAuth2 request");
+            }
             throw new Exception("Error while validating OAuth2 request", e);
         }
     }
@@ -96,7 +100,9 @@ public class OAuthServiceClient {
         try {
             return stub.findOAuthConsumerIfTokenIsValid(oauthReq);
         } catch (RemoteException e) {
-            log.error("Error while validating OAuth2 request");
+            if(log.isDebugEnabled()) {
+                log.error("Error while validating OAuth2 request");
+            }
             throw new Exception("Error while validating OAuth2 request", e);
         }
     }

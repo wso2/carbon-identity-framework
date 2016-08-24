@@ -20,12 +20,11 @@ package org.wso2.carbon.identity.entitlement.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.wso2.carbon.identity.entitlement.endpoint.auth.BasicAuthHandler;
-import org.wso2.carbon.identity.entitlement.endpoint.auth.OAuthHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthConfigReader;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
+import org.wso2.carbon.identity.entitlement.endpoint.auth.OAuthHandler;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -48,8 +47,10 @@ public class ApplicationInitializer implements ServletContextListener {
             //Initialize Authentication Registry
             initEntitlementAuthenticatorRegistry();
         } catch (Exception e) {
-            logger.error("Error in initializing the Authentocators at the initialization of " +
-                    "Entitlement webapp", e);
+            if(logger.isDebugEnabled()) {
+                logger.error("Error in initializing the Authentocators at the initialization of " +
+                        "Entitlement webapp", e);
+            }
         }
     }
 
@@ -64,13 +65,13 @@ public class ApplicationInitializer implements ServletContextListener {
         if (entitlementAuthRegistry != null) {
             //set authenticators after building auth config
             EntitlementAuthConfigReader configReader = new EntitlementAuthConfigReader();
-            List<EntitlementAuthenticationHandler> entitlementAuthenticators = configReader.buildEntitlementAuthenticators();
+            List<EntitlementAuthenticationHandler> entitlementAuthenticators
+                                                    = configReader.buildEntitlementAuthenticators();
 
             if (entitlementAuthenticators != null && !entitlementAuthenticators.isEmpty()) {
                 for (EntitlementAuthenticationHandler entitlementAuthenticator : entitlementAuthenticators) {
                     entitlementAuthRegistry.setAuthenticator(entitlementAuthenticator);
                 }
-
             } else {
                 //initialize default basic auth authenticator & OAuth authenticator and set it in the auth registry.
                 BasicAuthHandler basicAuthHandler = new BasicAuthHandler();

@@ -19,10 +19,10 @@
 package org.wso2.carbon.identity.entitlement.endpoint.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -32,7 +32,11 @@ import org.wso2.balana.XACMLConstants;
 import org.wso2.balana.attr.AttributeValue;
 import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.ctx.xacml3.RequestCtx;
-import org.wso2.balana.xacml3.*;
+import org.wso2.balana.xacml3.Attributes;
+import org.wso2.balana.xacml3.AttributesReference;
+import org.wso2.balana.xacml3.MultiRequests;
+import org.wso2.balana.xacml3.RequestDefaults;
+import org.wso2.balana.xacml3.RequestReference;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseException;
 
 import javax.xml.bind.DatatypeConverter;
@@ -40,7 +44,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class will deal with parsing a given JSON String to a
@@ -74,12 +82,9 @@ public class JSONRequestParser {
             throw new JsonParseException("Error in JSON Request String");
         }
 
-
         Set<Map.Entry<String, JsonElement>> jsonAttributes = requestObject.entrySet();
 
         for (Map.Entry<String, JsonElement> jsonAttribute : jsonAttributes) {
-
-
             if (jsonAttribute.getValue().isJsonPrimitive()) {
                 switch (jsonAttribute.getKey()) {
                     case XACMLConstants.RETURN_POLICY_LIST:
@@ -112,13 +117,11 @@ public class JSONRequestParser {
                     //For a custom Category
                     //Or a Category with long identifier
                     case EntitlementEndpointConstants.CATEGORY_DEFAULT:
-
                         if (jsonCategory.has(EntitlementEndpointConstants.CATEGORY_ID)) {
                             category = stringCateogryToURI(jsonCategory
                                     .get(EntitlementEndpointConstants.CATEGORY_ID)
                                     .getAsString());
                         }
-
                     case EntitlementEndpointConstants.CATEGORY_RESOURCE:
                     case EntitlementEndpointConstants.CATEGORY_ACTION:
                     case EntitlementEndpointConstants.CATEGORY_ENVIRONMENT:
@@ -131,13 +134,10 @@ public class JSONRequestParser {
                         if (category == null) {
                             category = stringCateogryToURI(jsonAttribute.getKey());
                         }
-
                         if (jsonCategory.has(EntitlementEndpointConstants.ID)) {
                             id = jsonCategory.get(EntitlementEndpointConstants.ID).getAsString();
                         }
-
                         if (jsonCategory.has(EntitlementEndpointConstants.CONTENT)) {
-
                             ByteArrayInputStream inputStream;
                             DocumentBuilderFactory dbf;
                             Document doc = null;
@@ -160,11 +160,9 @@ public class JSONRequestParser {
                                     throw new JsonParseException("DOM of request element can not be created from String");
                                 }
                             }
-
                             if (doc != null) {
                                 content = doc;
                             }
-
                         }
 
                         //add all category attributes
@@ -178,7 +176,6 @@ public class JSONRequestParser {
                                 }
                             }
                         }
-
                         break;
 
                     case EntitlementEndpointConstants.MULTI_REQUESTS:
@@ -189,7 +186,6 @@ public class JSONRequestParser {
                             throw new RequestParseException("MultiRequest should contain at least one " +
                                     "Reference Request");
                         }
-
                         for (Map.Entry<String, JsonElement> jsonRequstReference : jsonRequestReferences) {
                             requestReferences.add(jsonObjectToRequestReference(jsonRequstReference.getValue()
                                     .getAsJsonObject()));
@@ -203,7 +199,6 @@ public class JSONRequestParser {
                         break;
 
                 }
-
                 //Build the Attributes object using above values
                 Attributes attributesObj = new Attributes(category, content, attributes, id);
                 categories.add(attributesObj);
