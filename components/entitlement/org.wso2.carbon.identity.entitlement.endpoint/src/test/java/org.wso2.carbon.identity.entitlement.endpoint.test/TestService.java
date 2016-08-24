@@ -106,11 +106,9 @@ public class TestService extends Assert {
 
         client.path("home");
 
-
         String response = readReource("xml/response-home.xml");
 
         String webRespose = client.get(String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -128,11 +126,9 @@ public class TestService extends Assert {
 
         client.path("home");
 
-
         String response = readReource("json/response-home.json");
 
         String webRespose = client.get(String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -150,12 +146,10 @@ public class TestService extends Assert {
 
         client.path("pdp");
 
-
         String request = readReource("xml/request-pdp-1.xml");
         String response = readReource("xml/response-pdp-1.xml");
 
         String webRespose = client.post(request, String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -173,12 +167,10 @@ public class TestService extends Assert {
 
         client.path("pdp");
 
-
         String request = readReource("json/request-pdp-1.json");
         String response = readReource("json/response-pdp-1.json");
 
         String webRespose = client.post(request, String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -195,7 +187,6 @@ public class TestService extends Assert {
         client.accept("application/xml");
 
         client.path("by-attrib");
-
 
         String request = readReource("xml/request-by-attrib-1.xml");
         String response = readReource("xml/response-by-attrib-1.xml");
@@ -219,7 +210,6 @@ public class TestService extends Assert {
 
         client.path("by-attrib");
 
-
         String request = readReource("json/request-by-attrib-1.json");
         String response = readReource("json/response-by-attrib-1.xml");
 
@@ -241,7 +231,6 @@ public class TestService extends Assert {
         client.accept("application/xml");
 
         client.path("by-attrib-boolean");
-
 
         String request = readReource("xml/request-by-attrib-bool-1.xml");
         String response = readReource("xml/response-by-attrib-bool-1.xml");
@@ -265,12 +254,10 @@ public class TestService extends Assert {
 
         client.path("by-attrib-boolean");
 
-
         String request = readReource("json/request-by-attrib-bool-1.json");
         String response = readReource("json/response-by-attrib-bool-1.json");
 
         String webRespose = client.post(request, String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -288,12 +275,10 @@ public class TestService extends Assert {
 
         client.path("entitled-attribs");
 
-
         String request = readReource("xml/request-entitled-attribs-1.xml");
         String response = readReource("xml/response-entitled-attribs-1.xml");
 
         String webRespose = client.post(request, String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -311,13 +296,10 @@ public class TestService extends Assert {
 
         client.path("entitled-attribs");
 
-
         String request = readReource("json/request-entitled-attribs-1.json");
         String response = readReource("json/response-entitled-attribs-1.json");
 
-
         String webRespose = client.post(request, String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -335,12 +317,10 @@ public class TestService extends Assert {
 
         client.path("entitlements-all");
 
-
         String request = readReource("xml/request-all-entitlements-1.xml");
         String response = readReource("xml/response-all-entitlements-1.xml");
 
         String webRespose = client.post(request, String.class);
-
         assertEquals(response, webRespose);
     }
 
@@ -358,13 +338,10 @@ public class TestService extends Assert {
 
         client.path("entitlements-all");
 
-
         String request = readReource("json/request-all-entitlements-1.json");
         String response = readReource("json/response-all-entitlements-1.json");
 
-
         String webRespose = client.post(request, String.class);
-
         assertEquals(response, webRespose);
     }
 
