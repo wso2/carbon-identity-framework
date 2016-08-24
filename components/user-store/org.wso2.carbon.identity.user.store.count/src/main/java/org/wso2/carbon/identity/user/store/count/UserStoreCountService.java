@@ -51,8 +51,8 @@ public class UserStoreCountService {
             if (counter != null) {
                 try {
                     count = counter.countUsers(filter);
-                } catch (UserStoreCounterException e){
-                    log.error(e);
+                } catch (UserStoreCounterException e) {
+                    log.error("Error while getting user count from user store domain : " + userStoreDomain, e);
                 }
             } else {
                 //no action
@@ -82,8 +82,8 @@ public class UserStoreCountService {
             if (counter != null) {
                 try {
                     count = counter.countRoles(filter);
-                } catch (UserStoreCounterException e){
-                    log.error(e);
+                } catch (UserStoreCounterException e) {
+                    log.error("Error while getting role count from user store domain : " + userStoreDomain, e);
                 }
             } else {
                 //no action
@@ -119,8 +119,8 @@ public class UserStoreCountService {
             if (counter != null) {
                 try {
                     count = counter.countClaim(claimURI, valueFilter);
-                } catch (UserStoreCounterException e){
-                    log.error(e);
+                } catch (UserStoreCounterException e) {
+                    log.error("Error while getting user count with claim : "+claimURI+" from user store domain : " + userStoreDomain, e);
                 }
             } else {
                 //no action
