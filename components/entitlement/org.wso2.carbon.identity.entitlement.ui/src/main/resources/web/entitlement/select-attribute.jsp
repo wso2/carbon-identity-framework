@@ -285,7 +285,7 @@
 
     function preSubmit(){
 
-        jQuery('#attributeValueTable > tbody:last').append('<tr><td><input type="hidden" name="category" id="category" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(category))%>" /><input type="hidden" name="ruleId" id="ruleId" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(ruleId))%>" /><input type="hidden" name="returnPage" id="returnPage" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(returnPage))%>" /></td></tr>') ;
+        jQuery('#attributeValueTable > tbody:last').append('<tr><td><input type="hidden" name="category" id="category" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(category))%>" /><input type="hidden" name="ruleId" id="ruleId" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(ruleId))%>" /><input type="hidden" name="initiatedFrom" id="initiatedFrom" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(initiatedPage))%>" /></td></tr>') ;
 
     }
 
