@@ -20,10 +20,15 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="java.net.URLDecoder" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%
     boolean isEmailNotificationEnabled = false;
 
     String callback = (String) request.getAttribute("callback");
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
     String confirm = (String) request.getAttribute("confirm");
 
     isEmailNotificationEnabled = Boolean.parseBoolean(application.getInitParameter(
