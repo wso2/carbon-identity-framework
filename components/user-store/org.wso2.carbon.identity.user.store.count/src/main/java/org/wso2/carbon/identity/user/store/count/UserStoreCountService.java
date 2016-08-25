@@ -120,7 +120,7 @@ public class UserStoreCountService {
                 try {
                     count = counter.countClaim(claimURI, valueFilter);
                 } catch (UserStoreCounterException e) {
-                    log.error("Error while getting user count with claim : "+claimURI+" from user store domain : " + userStoreDomain, e);
+                    log.error("Error while getting user count with claim : " + claimURI + " from user store domain : " + userStoreDomain, e);
                 }
             } else {
                 //no action
