@@ -131,6 +131,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         context.setRequestAuthenticated(true);
                     } else {
                         context.getSequenceConfig().setCompleted(true);
+                        resetAuthenticationContext(context);
+                        continue;
                     }
                 }
 
