@@ -1419,10 +1419,10 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                     Property[] properties = customAuthenticator.getProperties();
 									for (Property prop : properties) {
 										String propName = "custom_auth_prop_name_" + type + "_" + prop.getName();
-										String hideenProp = StringUtils.equals(prop.getType(),"hidden") ? prop.getType() : "";
+										String hiddenProp = StringUtils.equals(prop.getType(),"hidden") ? prop.getType() : "";
 								%>
 
-                                <tr <%=hideenProp%>>
+                                <tr <%=hiddenProp%>>
                                     <td style="width:15%" class="leftCol-med labelField">
                                         <%=prop.getDisplayName() + ":"%>
                                     </td>
