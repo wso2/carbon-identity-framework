@@ -52,6 +52,7 @@ public class IdentityConfigParser {
     private static Map<String, Object> configuration = new HashMap<String, Object>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
+    public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
@@ -267,6 +268,11 @@ public class IdentityConfigParser {
                             String capacity = cache.getAttributeValue(new QName(IdentityConstants.CACHE_CAPACITY));
                             if (StringUtils.isNotBlank(capacity)) {
                                 identityCacheConfig.setCapacity(Integer.parseInt(capacity));
+                            }
+
+                            String isDistributedCache = cache.getAttributeValue(new QName(IS_DISTRIBUTED_CACHE));
+                            if (StringUtils.isNotBlank(isDistributedCache)) {
+                                identityCacheConfig.setDistributed(Boolean.parseBoolean(isDistributedCache));
                             }
 
                             // Add the config to container
