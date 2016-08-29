@@ -25,7 +25,32 @@
         <parameter name="ServiceClass">
             org.wso2.carbon.identity.user.store.count.UserStoreCountService
         </parameter>
-        <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/</parameter>
+        <operation name="countUsers">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/configure/security/usermgt/
+            </parameter>
+        </operation>
+        <operation name="countUsersInDomain">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/configure/security/usermgt/
+            </parameter>
+        </operation>
+        <operation name="countClaim">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/configure/security/usermgt/
+            </parameter>
+        </operation>
+        <operation name="countByClaimInDomain">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/configure/security/usermgt/
+            </parameter>
+        </operation>
+        <operation name="getCountEnabledUserStores">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/configure/security/usermgt/
+            </parameter>
+        </operation>
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/configure/security/</parameter>
     </service>
 
     <parameter name="adminService" locked="false">true</parameter>
