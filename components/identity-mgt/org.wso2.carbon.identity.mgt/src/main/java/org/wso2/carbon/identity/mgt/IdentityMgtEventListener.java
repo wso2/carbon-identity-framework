@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.mail.Notification;
 import org.wso2.carbon.identity.mgt.mail.NotificationBuilder;
 import org.wso2.carbon.identity.mgt.mail.NotificationData;
+import org.wso2.carbon.identity.mgt.mail.TransportHeader;
 import org.wso2.carbon.identity.mgt.policy.PolicyRegistry;
 import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
 import org.wso2.carbon.identity.mgt.store.UserIdentityDataStore;
@@ -316,9 +317,21 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         if (MessageContext.getCurrentMessageContext() != null &&
                                 MessageContext.getCurrentMessageContext().getProperty(
                                         MessageContext.TRANSPORT_HEADERS) != null) {
-                            notificationData.setTransportHeaders(new HashMap(
-                                    (Map) MessageContext.getCurrentMessageContext().getProperty(
-                                            MessageContext.TRANSPORT_HEADERS)));
+                            Map transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
+                                    .getProperty(MessageContext.TRANSPORT_HEADERS);
+                            if (transportHeaderMap != null && transportHeaderMap.size() != 0) {
+                                Iterator<Map.Entry> entries = transportHeaderMap.entrySet().iterator();
+                                TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
+                                int i = 0;
+                                while (entries.hasNext()) {
+                                    TransportHeader transportHeader = new TransportHeader();
+                                    transportHeader.setHeaderName((String) entries.next().getKey());
+                                    transportHeader.setHeaderValue((String) entries.next().getKey());
+                                    transportHeadersArray[i] = transportHeader;
+                                    ++i;
+                                }
+                                notificationData.setTransportHeaders(transportHeadersArray);
+                            }
                         }
 
                         NotificationData emailNotificationData = new NotificationData();
