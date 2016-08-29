@@ -681,10 +681,10 @@
 				<SupportedByDefault />
 			</Claim>
             <Claim>
-				<ClaimURI>urn:scim:schemas:core:1.0:local</ClaimURI>
-				<DisplayName>Local</DisplayName>
-				<AttributeID>local</AttributeID>
-				<Description>Local</Description>
+                <ClaimURI>urn:scim:schemas:core:1.0:locale</ClaimURI>
+                <DisplayName>Locality</DisplayName>
+                <AttributeID>localityName</AttributeID>
+                <Description>Locality</Description>
 				<DisplayOrder>2</DisplayOrder>
 				<Required />
 				<SupportedByDefault />

@@ -61,6 +61,7 @@ public abstract class FrameworkConstants {
     public static final String SHOW_AUTHFAILURE_RESON_CONFIG = "showAuthFailureReason";
     public static final String AUTHENTICATED_USER = "AuthenticatedUser";
     public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
+    public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
 
     private FrameworkConstants() {
 
@@ -152,6 +153,7 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATOR = "authenticator";
         public static final String FLOW_STATUS = "authenticatorFlowStatus";
         public static final String TO_COMMONAUTH = "tocommonauth";
+        public static final String MAX_AGE = "max_age";
 
         private RequestParams() {
         }

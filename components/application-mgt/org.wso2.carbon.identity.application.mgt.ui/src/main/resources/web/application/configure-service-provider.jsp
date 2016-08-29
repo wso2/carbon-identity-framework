@@ -39,6 +39,7 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -1416,12 +1417,12 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 <%
 
                                     Property[] properties = customAuthenticator.getProperties();
-                                    for (Property prop : properties) {
-                                        String propName = "custom_auth_prop_name_" + type + "_" + prop.getName();
+									for (Property prop : properties) {
+										String propName = "custom_auth_prop_name_" + type + "_" + prop.getName();
+										String hiddenProp = StringUtils.equals(prop.getType(),"hidden") ? prop.getType() : "";
+								%>
 
-                                %>
-
-                                <tr>
+                                <tr <%=hiddenProp%>>
                                     <td style="width:15%" class="leftCol-med labelField">
                                         <%=prop.getDisplayName() + ":"%>
                                     </td>

@@ -126,7 +126,7 @@ public class PAPPolicyReader implements ErrorHandler {
     /**
      * Reads policy target from the policy
      *
-     * @param policy policy as a String
+     * @param policy policy as a StringPolicyReader
      * @return target as PolicyTarget object
      */
     public PolicyTarget getTarget(String policy) {

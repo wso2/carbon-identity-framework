@@ -20,9 +20,12 @@ package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -104,7 +107,7 @@ public class User implements Serializable {
      * @param userStoreDomain user store domain of the user
      */
     public void setUserStoreDomain(String userStoreDomain) {
-        this.userStoreDomain = userStoreDomain;
+        this.userStoreDomain = userStoreDomain.toUpperCase();
     }
 
     /**
@@ -146,6 +149,37 @@ public class User implements Serializable {
 
         return true;
     }
+
+    /**
+     * Returns a User object constructed from fully qualified username
+     *
+     * @param username Fully qualified username
+     * @return User object
+     * @throws IllegalArgumentException
+     */
+    public static User getUserFromUserName(String username) {
+
+        User user = new User();
+        if (StringUtils.isNotBlank(username)) {
+            String tenantDomain = MultitenantUtils.getTenantDomain(username);
+            String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
+            String tenantAwareUsernameWithNoUserDomain = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
+            String userStoreDomain = IdentityUtil.extractDomainFromName(username).toUpperCase();
+            user.setUserName(tenantAwareUsernameWithNoUserDomain);
+            if (StringUtils.isNotEmpty(tenantDomain)) {
+                user.setTenantDomain(tenantDomain);
+            } else {
+                user.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            }
+            if (StringUtils.isNotEmpty(userStoreDomain)) {
+                user.setUserStoreDomain(userStoreDomain);
+            } else {
+                user.setTenantDomain(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+            }
+        }
+        return user;
+    }
+
 
     @Override
     public int hashCode() {
