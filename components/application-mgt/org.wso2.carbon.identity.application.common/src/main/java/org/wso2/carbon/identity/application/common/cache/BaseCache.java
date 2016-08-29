@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.cache;
 
 import org.wso2.carbon.caching.impl.CacheImpl;
+import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.listener.AbstractCacheListener;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -47,6 +48,10 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
 
     public BaseCache(String cacheName) {
         this.cacheName = cacheName;
+        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
+        if (identityCacheConfig != null && !identityCacheConfig.isDistributed()) {
+            this.cacheName = CachingConstants.LOCAL_CACHE_PREFIX + cacheName;
+        }
     }
 
     private Cache<K, V> getBaseCache() {
