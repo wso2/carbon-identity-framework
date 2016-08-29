@@ -163,8 +163,8 @@ function isValidConfirmationDialog(validationObj, msg, handleYes, handleNo, clos
     var whiteListPatterns = validationObj['whiteListPatterns'];
     var blackListPatterns = validationObj['blackListPatterns'];
 
-    var message = msg.replace('{0}', label).replace('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
-        .replace('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
+    var message = msg.replaceAll('{0}', label).replaceAll('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
+        .replaceAll('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
 
     CARBON.showConfirmationDialog(message, handleYes, handleNo, closeCallback);
     return false;
@@ -186,8 +186,8 @@ function isValid(validationObj, msg) {
     var whiteListPatterns = validationObj['whiteListPatterns'];
     var blackListPatterns = validationObj['blackListPatterns'];
 
-    var message = msg.replace('{0}', label).replace('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
-        .replace('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
+    var message = msg.replaceAll('{0}', label).replaceAll('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
+        .replaceAll('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
 
     CARBON.showErrorDialog(message);
     return false;
@@ -344,3 +344,18 @@ function doValidateForm(form, msg) {
 
     return isValid(validateForm(form), msg);
 }
+
+/**
+ * Util function to escape regex special characters
+ * @param str
+ * @returns {void|string|XML}
+ */
+function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
+String.prototype.replaceAll = function (find, replace) {
+    var str = this;
+    return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+};
+
