@@ -993,7 +993,7 @@
         }
     }
 
-    String enableAssertionSigningChecked = "";
+    String enableAssertionSigningChecked = "checked=\'checked\'";
     if (identityProvider != null) {
         if (isEnableAssertionSigning) {
             enableAssertionSigningChecked = "checked=\'checked\'";
@@ -1039,21 +1039,21 @@
         authnContextComparisonDropdownDisabled = "disabled=\'disabled\'";
     }
 
-    String includeNameIdPolicyChecked="";
+    String includeNameIdPolicyChecked = "checked=\'checked\'";
     if(identityProvider != null){
         if(includeNameIdPolicy){
             includeNameIdPolicyChecked = "checked=\'checked\'";
         }
     }
 
-    String includeCertChecked = "";
+    String includeCertChecked = "checked=\'checked\'";
     if(identityProvider != null){
         if(includeCert){
             includeCertChecked = "checked=\'checked\'";
         }
     }
 
-    String includeProtocolBindingChecked = "";
+    String includeProtocolBindingChecked = "checked=\'checked\'";
     if(identityProvider != null){
         if(includeProtocolBinding){
             includeProtocolBindingChecked = "checked=\'checked\'";
