@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -303,7 +304,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
-                setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
+                String applicationTenantDomain = context.getTenantDomain();
+                if (StringUtils.isEmpty(applicationTenantDomain)) {
+                    applicationTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                }
+                setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
