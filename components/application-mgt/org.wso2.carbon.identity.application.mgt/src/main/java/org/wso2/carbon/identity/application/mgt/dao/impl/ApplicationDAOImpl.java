@@ -50,7 +50,6 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -511,7 +510,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 List<Property> propertyArrayList = new ArrayList<>();
 
                 String authKey = null;
-                String inboundConfigType = ApplicationConstants.CUSTOM_APP;
+                String inboundConfigType = ApplicationConstants.STANDARD_APPLICATION;
                 if (standardInboundAuthTypes.contains(authRequest.getInboundAuthType())) {
                     authKey = authRequest.getInboundAuthKey();
                     propertyArrayList = filterEmptyProperties(propertiesArray);
