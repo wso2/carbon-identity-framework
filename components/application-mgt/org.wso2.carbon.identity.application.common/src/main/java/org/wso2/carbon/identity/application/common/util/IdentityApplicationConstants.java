@@ -118,6 +118,7 @@ public class IdentityApplicationConstants {
             public static final String SIGNATURE_ALGORITHM_POST = "SignatureAlgorithmPost";
             public static final String DIGEST_ALGORITHM = "DigestAlgorithm";
             public static final String INCLUDE_NAME_ID_POLICY = "IncludeNameIDPolicy";
+            public static final String NAME_ID_TYPE = "NameIDType";
             public static final String INCLUDE_AUTHN_CONTEXT = "IncludeAuthnContext";
             public static final String INCLUDE_CERT = "IncludeCert";
             public static final String INCLUDE_PROTOCOL_BINDING = "IncludeProtocolBinding";
