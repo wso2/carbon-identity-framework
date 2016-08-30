@@ -140,16 +140,15 @@ public class RecoveryProcessor {
         if (MessageContext.getCurrentMessageContext() != null &&
                 MessageContext.getCurrentMessageContext().getProperty(
                         MessageContext.TRANSPORT_HEADERS) != null) {
-            Map transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
+            Map<String, String> transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
                     .getProperty(MessageContext.TRANSPORT_HEADERS);
             if (transportHeaderMap != null && transportHeaderMap.size() != 0) {
-                Iterator<Map.Entry> entries = transportHeaderMap.entrySet().iterator();
                 TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
                 int i = 0;
-                while (entries.hasNext()) {
+                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
                     TransportHeader transportHeader = new TransportHeader();
-                    transportHeader.setHeaderName((String) entries.next().getKey());
-                    transportHeader.setHeaderValue((String) entries.next().getKey());
+                    transportHeader.setHeaderName(entry.getKey());
+                    transportHeader.setHeaderValue(entry.getValue());
                     transportHeadersArray[i] = transportHeader;
                     ++i;
                 }
@@ -511,16 +510,15 @@ public class RecoveryProcessor {
         if (MessageContext.getCurrentMessageContext() != null &&
                 MessageContext.getCurrentMessageContext().getProperty(
                         MessageContext.TRANSPORT_HEADERS) != null) {
-            Map transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
+            Map<String, String> transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
                     .getProperty(MessageContext.TRANSPORT_HEADERS);
             if (transportHeaderMap != null && transportHeaderMap.size() != 0) {
-                Iterator<Map.Entry> entries = transportHeaderMap.entrySet().iterator();
                 TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
                 int i = 0;
-                while (entries.hasNext()) {
+                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
                     TransportHeader transportHeader = new TransportHeader();
-                    transportHeader.setHeaderName((String) entries.next().getKey());
-                    transportHeader.setHeaderValue((String) entries.next().getKey());
+                    transportHeader.setHeaderName(entry.getKey());
+                    transportHeader.setHeaderValue(entry.getValue());
                     transportHeadersArray[i] = transportHeader;
                     ++i;
                 }
