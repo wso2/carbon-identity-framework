@@ -37,6 +37,12 @@ public class OpenIDSQLQueries {
                                                 "SET TRUSTED_ALWAYS = ?, LAST_VISIT = ?, VISIT_COUNT = ?, DEFAULT_PROFILE_NAME = ? " +
                                                 "WHERE USER_NAME = ? AND TENANT_ID = ? AND RP_URL = ?";
 
+    public static final String DELETE_USER_RPS = "DELETE FROM IDN_OPENID_USER_RPS WHERE USER_NAME = ? AND " +
+            "RP_URL = ?";
+
+    public static final String DELETE_USER_RPS_IN_TENANT = "DELETE FROM IDN_OPENID_USER_RPS WHERE USER_NAME = ? AND " +
+            "TENANT_ID=? AND RP_URL = ?";
+
     public static final String LOAD_USER_RP =
             "SELECT " + "USER_NAME, TENANT_ID, RP_URL, TRUSTED_ALWAYS, LAST_VISIT, VISIT_COUNT, DEFAULT_PROFILE_NAME " +
             "FROM IDN_OPENID_USER_RPS " + "WHERE USER_NAME = ? AND TENANT_ID = ? AND RP_URL = ?";
