@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.mgt;
 
 import org.apache.axis2.context.MessageContext;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -317,16 +318,15 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         if (MessageContext.getCurrentMessageContext() != null &&
                                 MessageContext.getCurrentMessageContext().getProperty(
                                         MessageContext.TRANSPORT_HEADERS) != null) {
-                            Map transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
+                            Map<String, String> transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
                                     .getProperty(MessageContext.TRANSPORT_HEADERS);
-                            if (transportHeaderMap != null && transportHeaderMap.size() != 0) {
-                                Iterator<Map.Entry> entries = transportHeaderMap.entrySet().iterator();
+                            if (MapUtils.isNotEmpty(transportHeaderMap)) {
                                 TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
                                 int i = 0;
-                                while (entries.hasNext()) {
+                                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
                                     TransportHeader transportHeader = new TransportHeader();
-                                    transportHeader.setHeaderName((String) entries.next().getKey());
-                                    transportHeader.setHeaderValue((String) entries.next().getKey());
+                                    transportHeader.setHeaderName(entry.getKey());
+                                    transportHeader.setHeaderValue(entry.getValue());
                                     transportHeadersArray[i] = transportHeader;
                                     ++i;
                                 }
