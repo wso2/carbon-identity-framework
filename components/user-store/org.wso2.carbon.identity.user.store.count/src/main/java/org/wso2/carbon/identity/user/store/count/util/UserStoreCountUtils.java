@@ -43,6 +43,8 @@ import java.util.Set;
  */
 public class UserStoreCountUtils {
     public static final String countRetrieverClass = "CountRetrieverClass";
+    public static final String DISABLED = "Disabled";
+    public static final String DOMAIN_NAME= "DomainName";
     private static Log log = LogFactory.getLog(UserStoreCountUtils.class);
 
     /**
@@ -92,9 +94,11 @@ public class UserStoreCountUtils {
             realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
 
             while (realmConfiguration != null) {
-                if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
-                    userStoreList.add(realmConfiguration
-                            .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                if (!Boolean.valueOf(realmConfiguration.getUserStoreProperty(UserStoreCountUtils.DISABLED))) {
+                    if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
+                        userStoreList.add(realmConfiguration
+                                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                    }
                 }
                 realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
             }

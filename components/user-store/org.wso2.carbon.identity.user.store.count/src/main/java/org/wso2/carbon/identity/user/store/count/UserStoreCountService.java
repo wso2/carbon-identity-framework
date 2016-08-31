@@ -19,12 +19,16 @@ package org.wso2.carbon.identity.user.store.count;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
 
 import java.util.Set;
+
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
@@ -139,7 +143,11 @@ public class UserStoreCountService {
      * @return the number of users matching the filter only within this user store domain
      */
     public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
-        UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+
+        UserStoreCountRetriever counter = null;
+        if (isUserStoreEnabled(domain)) {
+            counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+        }
         if (counter != null) {
             return counter.countUsers(filter);
         } else {
@@ -196,6 +204,35 @@ public class UserStoreCountService {
         Set<String> domains = UserStoreCountUtils.getCountEnabledUserStores();
         return domains.toArray(new String[domains.size()]);
 
+    }
+
+    private boolean isUserStoreEnabled(String domain) throws UserStoreCounterException {
+
+        RealmConfiguration secondaryRealmConfiguration = null;
+        boolean disabled = false;
+        UserStoreCountRetriever counter = null;
+        try {
+            secondaryRealmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                    getRealmConfiguration().getSecondaryRealmConfig();
+
+            if (secondaryRealmConfiguration == null) {
+                return false;
+            }
+            do {
+                String userStoreDomain =
+                        secondaryRealmConfiguration.getUserStoreProperty(UserStoreCountUtils.DOMAIN_NAME);
+                if (domain.equals(userStoreDomain)) {
+                    disabled =
+                            Boolean.valueOf(secondaryRealmConfiguration.getUserStoreProperty(UserStoreCountUtils.DISABLED));
+                    break;
+                }
+                secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
+            } while (secondaryRealmConfiguration != null);
+
+        } catch (UserStoreException e) {
+            throw new UserStoreCounterException("Error occurred while getting Secondary Realm Configuration", e);
+        }
+        return !disabled;
     }
 
 }
