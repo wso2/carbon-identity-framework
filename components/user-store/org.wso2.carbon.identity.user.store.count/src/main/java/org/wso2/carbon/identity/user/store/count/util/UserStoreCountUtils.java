@@ -92,9 +92,12 @@ public class UserStoreCountUtils {
             realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
 
             while (realmConfiguration != null) {
-                if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
-                    userStoreList.add(realmConfiguration
-                            .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                if (!Boolean.valueOf(realmConfiguration.getUserStoreProperty(
+                        UserCoreConstants.RealmConfig.USER_STORE_DISABLED))) {
+                    if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
+                        userStoreList.add(realmConfiguration
+                                .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                    }
                 }
                 realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
             }
@@ -205,5 +208,34 @@ public class UserStoreCountUtils {
     public static Long getApplicationRoleCount(String filter) throws UserStoreCounterException {
         return getInternalCounterInstance()
                 .countRoles(InternalStoreCountConstants.APPLICATION_DOMAIN + "%" + filter);
+    }
+
+    public static boolean isUserStoreEnabled(String domain) throws UserStoreCounterException {
+
+        RealmConfiguration secondaryRealmConfiguration = null;
+        boolean enabled = false;
+        UserStoreCountRetriever counter = null;
+        try {
+            secondaryRealmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                    getRealmConfiguration().getSecondaryRealmConfig();
+
+            if (secondaryRealmConfiguration == null) {
+                return false;
+            }
+            do {
+                String userStoreDomain =
+                        secondaryRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+                if (domain.equals(userStoreDomain)) {
+                    enabled =
+                            !Boolean.valueOf(secondaryRealmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.USER_STORE_DISABLED));
+                    break;
+                }
+                secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
+            } while (secondaryRealmConfiguration != null);
+
+        } catch (UserStoreException e) {
+            throw new UserStoreCounterException("Error occurred while getting Secondary Realm Configuration", e);
+        }
+        return enabled;
     }
 }
