@@ -892,23 +892,23 @@
             url += '&messageID=<%=messageID%>';
             <%}%>
 
-			$.ajax({
+            $.ajax({
                 type: "POST",
                 url: url,
                 data: data,
                 dataType: "text",
                 context: document.body
-				}).done(function(msg) {
-					var successMsg  =  new RegExp("true");
-		        	if (msg.search(successMsg)==-1) //if match failed
-		        	{
-		        		CARBON.showErrorDialog(msg);
-		        	} else {
-		        		CARBON.showInfoDialog("Connection is healthy");
-		        	}
-				}).fail(function(){
-					CARBON.showErrorDialog("Error while testing the connection");
-				});
+            }).done(function (msg) {
+                var successMsg = new RegExp("true");
+                if (msg.search(successMsg) == -1) //if match failed
+                {
+                    CARBON.showErrorDialog(msg);
+                } else {
+                    CARBON.showInfoDialog("Connection is healthy");
+                }
+            }).fail(function () {
+                CARBON.showErrorDialog("Error while testing the connection");
+            });
 		}
 		
 		
