@@ -145,7 +145,7 @@ public class UserStoreCountService {
     public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
 
         UserStoreCountRetriever counter = null;
-        if (isUserStoreEnabled(domain)) {
+        if (UserStoreCountUtils.isUserStoreEnabled(domain)) {
             counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
         }
         if (counter != null) {
@@ -204,35 +204,6 @@ public class UserStoreCountService {
         Set<String> domains = UserStoreCountUtils.getCountEnabledUserStores();
         return domains.toArray(new String[domains.size()]);
 
-    }
-
-    private boolean isUserStoreEnabled(String domain) throws UserStoreCounterException {
-
-        RealmConfiguration secondaryRealmConfiguration = null;
-        boolean disabled = false;
-        UserStoreCountRetriever counter = null;
-        try {
-            secondaryRealmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
-                    getRealmConfiguration().getSecondaryRealmConfig();
-
-            if (secondaryRealmConfiguration == null) {
-                return false;
-            }
-            do {
-                String userStoreDomain =
-                        secondaryRealmConfiguration.getUserStoreProperty(UserStoreCountUtils.DOMAIN_NAME);
-                if (domain.equals(userStoreDomain)) {
-                    disabled =
-                            Boolean.valueOf(secondaryRealmConfiguration.getUserStoreProperty(UserStoreCountUtils.DISABLED));
-                    break;
-                }
-                secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
-            } while (secondaryRealmConfiguration != null);
-
-        } catch (UserStoreException e) {
-            throw new UserStoreCounterException("Error occurred while getting Secondary Realm Configuration", e);
-        }
-        return !disabled;
     }
 
 }
