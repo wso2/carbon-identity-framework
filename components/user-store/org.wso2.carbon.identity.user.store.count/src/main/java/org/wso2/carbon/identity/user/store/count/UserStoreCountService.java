@@ -139,7 +139,11 @@ public class UserStoreCountService {
      * @return the number of users matching the filter only within this user store domain
      */
     public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
-        UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+
+        UserStoreCountRetriever counter = null;
+        if (UserStoreCountUtils.isUserStoreEnabled(domain)) {
+            counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+        }
         if (counter != null) {
             return counter.countUsers(filter);
         } else {
