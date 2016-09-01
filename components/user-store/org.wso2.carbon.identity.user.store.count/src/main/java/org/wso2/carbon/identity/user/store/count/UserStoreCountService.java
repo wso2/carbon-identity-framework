@@ -19,12 +19,16 @@ package org.wso2.carbon.identity.user.store.count;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
 
 import java.util.Set;
+
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
@@ -139,7 +143,11 @@ public class UserStoreCountService {
      * @return the number of users matching the filter only within this user store domain
      */
     public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
-        UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+
+        UserStoreCountRetriever counter = null;
+        if (UserStoreCountUtils.isUserStoreEnabled(domain)) {
+            counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+        }
         if (counter != null) {
             return counter.countUsers(filter);
         } else {
