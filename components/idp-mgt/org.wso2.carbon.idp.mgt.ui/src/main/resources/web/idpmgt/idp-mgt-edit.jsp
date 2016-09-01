@@ -381,7 +381,7 @@
                     }
                     Property isEnableAssertionSignatureValidationProp =
                             IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                                    IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
+                                                            IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
                     if (isEnableAssertionSignatureValidationProp != null) {
                         isEnablePassiveSTSAssertionSignatureValidation =
                                 Boolean.parseBoolean(isEnableAssertionSignatureValidationProp.getValue());
