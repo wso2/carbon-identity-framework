@@ -881,8 +881,8 @@
             var connectionPassword = document.getElementById("propertyValue_3").value;
             var driverName = document.getElementById("propertyValue_4").value;
 
-			var url = 'validateconnection-ajaxprocessor.jsp?' +
-                    '&domainName=' + encodeURIComponent(domainName) +
+            var url = 'validateconnection-ajaxprocessor.jsp?';
+            var data = '&domainName=' + encodeURIComponent(domainName) +
                     '&driverName=' + encodeURIComponent(driverName) +
                     '&connectionURL=' + encodeURIComponent(connectionURL) +
                     '&username=' + encodeURIComponent(username) +
@@ -891,21 +891,24 @@
             <%if(messageID != null && !"".equals(messageID)) {%>
             url += '&messageID=<%=messageID%>';
             <%}%>
-		
-			$.ajax({
-				  url: url,
-				  context: document.body
-				}).done(function(msg) {
-					var successMsg  =  new RegExp("true");
-		        	if (msg.search(successMsg)==-1) //if match failed
-		        	{
-		        		CARBON.showErrorDialog(msg);
-		        	} else {
-		        		CARBON.showInfoDialog("Connection is healthy");
-		        	}
-				}).fail(function(){
-					CARBON.showErrorDialog("Error while testing the connection");
-				});
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: data,
+                dataType: "text",
+                context: document.body
+            }).done(function (msg) {
+                var successMsg = new RegExp("true");
+                if (msg.search(successMsg) == -1) //if match failed
+                {
+                    CARBON.showErrorDialog(msg);
+                } else {
+                    CARBON.showInfoDialog("Connection is healthy");
+                }
+            }).fail(function () {
+                CARBON.showErrorDialog("Error while testing the connection");
+            });
 		}
 		
 		
