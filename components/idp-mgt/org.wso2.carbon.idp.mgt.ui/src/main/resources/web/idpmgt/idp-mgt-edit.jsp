@@ -4357,7 +4357,7 @@ function doValidation() {
             <td class="leftCol-med labelField"><fmt:message key='client.secret'/>:<span class="required">*</span></td>
             <td>
                 <div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105, 125);" class="leftCol-med">
-                    <input id="clientSecret" name="clientSecret" type="password" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
+                    <input id="clientSecret" autocomplete="false" name="clientSecret" type="password" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
                            style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
 	                            <span id="showHideButtonIdOauth" style=" float: right; padding-right: 5px;">
 	                        		<a style="margin-top: 5px;" class="showHideBtn"
