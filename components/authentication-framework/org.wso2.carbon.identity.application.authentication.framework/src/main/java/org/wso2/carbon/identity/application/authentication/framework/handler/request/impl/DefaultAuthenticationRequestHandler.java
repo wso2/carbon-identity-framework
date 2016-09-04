@@ -316,35 +316,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (authenticatedUserTenantDomain == null) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
-
-            String auditData = "\"" + "ContextIdentifier" + "\" : \"" + context.getContextIdentifier()
-                               + "\",\"" + "AuthenticatedUser" + "\" : \"" + sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier()
-                               + "\",\"" + "AuthenticatedUserTenantDomain" + "\" : \"" + authenticatedUserTenantDomain
-                               + "\",\"" + "ServiceProviderName" + "\" : \"" + context.getServiceProviderName()
-                               + "\",\"" + "RequestType" + "\" : \"" + context.getRequestType()
-                               + "\",\"" + "RelyingParty" + "\" : \"" + context.getRelyingParty()
-                               + "\",\"" + "AuthenticatedIdPs" + "\" : \"" + sequenceConfig.getAuthenticatedIdPs()
-                               + "\"";
-
-            AUDIT_LOG.info(String.format(
-                    FrameworkConstants.AUDIT_MESSAGE,
-                    sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
-                    "Login",
-                    "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_SUCCESS));
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
-        } else {
-            String auditData = "\"" + "ContextIdentifier" + "\" : \"" + context.getContextIdentifier()
-                    + "\",\"" + "ServiceProviderName" + "\" : \"" + context.getServiceProviderName()
-                    + "\",\"" + "RequestType" + "\" : \"" + context.getRequestType()
-                    + "\",\"" + "RelyingParty" + "\" : \"" + context.getRelyingParty()
-                    + "\"";
-
-            AUDIT_LOG.info(String.format(
-                    FrameworkConstants.AUDIT_MESSAGE,
-                    null,
-                    "Login",
-                    "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_FAILED));
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
