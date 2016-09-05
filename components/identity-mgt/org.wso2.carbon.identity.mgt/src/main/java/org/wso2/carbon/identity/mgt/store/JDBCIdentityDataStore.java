@@ -28,7 +28,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -61,15 +60,14 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
         userName = UserCoreUtil.addDomainToName(userName, domainName);
         userIdentityDTO.setUserName(userName);
 
-        super.store(userIdentityDTO, userStoreManager);
-
-        int tenantId = MultitenantConstants.SUPER_TENANT_ID;
+        int tenantId;
         try {
             tenantId = userStoreManager.getTenantId();
         } catch (UserStoreException e) {
-            log.error("Error while getting tenant Id.", e);
+            throw IdentityException.error("Error while getting tenant Id.", e);
         }
-
+        userIdentityDTO.setTenantId(tenantId);
+        super.store(userIdentityDTO, userStoreManager);
 
         Map<String, String> data = userIdentityDTO.getUserDataMap();
 
