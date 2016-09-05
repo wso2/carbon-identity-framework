@@ -288,6 +288,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 UserIdentityClaimsDO userIdentityDTO = module.load(userName, userStoreManager);
                 if (userIdentityDTO == null) {
                     userIdentityDTO = new UserIdentityClaimsDO(userName);
+                    userIdentityDTO.setTenantId(userStoreManager.getTenantId());
                 }
 
                 boolean userOTPEnabled = userIdentityDTO.getOneTimeLogin();
@@ -557,6 +558,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
 
         UserIdentityClaimsDO identityDTO = new UserIdentityClaimsDO(userName, userDataMap);
+        identityDTO.setTenantId(userStoreManager.getTenantId());
         // adding dto to thread local to be read again from the doPostAddUser method
         IdentityUtil.threadLocalProperties.get().put(USER_IDENTITY_DO, identityDTO);
         return true;
@@ -985,6 +987,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
+                if (identityDTO== null) {
+                    identityDTO = new UserIdentityClaimsDO(userName);
+                    identityDTO.setTenantId(userStoreManager.getTenantId());
+                }
                 Boolean wasAccountDisabled = identityDTO.isAccountDisabled();
                 String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
                 boolean isAccountDisabled = false;
@@ -1005,9 +1011,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                 } else {
                     // do nothing
-                }
-                if (identityDTO == null) {
-                    identityDTO = new UserIdentityClaimsDO(userName);
                 }
 
                 //account is already disabled and trying to update the claims without enabling it

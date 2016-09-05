@@ -31,7 +31,6 @@ import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
-import javax.cache.Cache;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +58,14 @@ public class UserStoreBasedIdentityDataStore extends InMemoryIdentityDataStore {
 
         UserIdentityClaimsDO newIdentityClaimDO = new UserIdentityClaimsDO(userIdentityDTO.getUserName(),
                 userIdentityDTO.getUserDataMap());
+        int tenantId;
+        try {
+            tenantId = userStoreManager.getTenantId();
+        } catch (UserStoreException e) {
+            throw IdentityException.error("Error while getting tenant Id.", e);
+        }
+
+        newIdentityClaimDO.setTenantId(tenantId);
         super.store(newIdentityClaimDO, userStoreManager);
 
         if (userIdentityDTO.getUserName() == null) {
