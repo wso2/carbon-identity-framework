@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ApplicationConfig implements Serializable {
+public class ApplicationConfig implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 8082478632322393384L;
 
@@ -235,5 +235,20 @@ public class ApplicationConfig implements Serializable {
 
     public void setUseUserstoreDomainInLocalSubjectIdentifier(boolean useUserstoreDomainInLocalSubjectIdentifier) {
         this.useUserstoreDomainInLocalSubjectIdentifier = useUserstoreDomainInLocalSubjectIdentifier;
+    }
+
+    /**
+     * This method will clone current class objects
+     * This method is to solve the issue - multiple requests for same user/SP
+     *
+     * @return Object object
+     */
+    public Object clone() throws CloneNotSupportedException {
+        ApplicationConfig applicationConfig = (ApplicationConfig) super.clone();
+        applicationConfig.claimMappings.putAll(this.claimMappings);
+        applicationConfig.roleMappings.putAll(this.roleMappings);
+        applicationConfig.requestedClaims.putAll(this.requestedClaims);
+        applicationConfig.permissions = this.permissions.clone();
+        return applicationConfig;
     }
 }
