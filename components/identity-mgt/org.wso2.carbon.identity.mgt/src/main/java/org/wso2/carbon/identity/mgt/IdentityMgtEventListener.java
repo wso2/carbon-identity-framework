@@ -974,11 +974,13 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     String usernameWithDomain = IdentityUtil.addDomainToName(userName, domainName);
 
                     //case of enabling a disabled user account
-                    if (wasAccountDisabled && !isAccountDisabled) {
+                    if (wasAccountDisabled && !isAccountDisabled
+                            && IdentityMgtConfig.getInstance().isAccountEnableNotificationSending()) {
                         sendEmail(usernameWithDomain, tenantId, IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
 
                         //case of disabling an enabled account
-                    } else if (!wasAccountDisabled && isAccountDisabled) {
+                    } else if (!wasAccountDisabled && isAccountDisabled
+                            && IdentityMgtConfig.getInstance().isAccountDisableNotificationSending()) {
                         sendEmail(usernameWithDomain, tenantId, IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
                     }
 
