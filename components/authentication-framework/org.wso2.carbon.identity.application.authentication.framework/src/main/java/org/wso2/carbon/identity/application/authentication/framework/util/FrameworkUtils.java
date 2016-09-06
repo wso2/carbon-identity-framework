@@ -613,7 +613,6 @@ public class FrameworkUtils {
             }
         }
         Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, null);
         if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());

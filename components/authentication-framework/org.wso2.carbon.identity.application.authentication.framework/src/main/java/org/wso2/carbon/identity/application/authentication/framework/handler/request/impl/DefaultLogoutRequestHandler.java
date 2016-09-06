@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -131,37 +132,20 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     log.error("Exception while getting IdP by name", e);
                 }
             }
-            if (sequenceConfig != null && sequenceConfig.getAuthenticatedUser() != null) {
-                String auditData = "\"" + "ContextIdentifier" + "\" : \"" + context.getContextIdentifier()
-                        + "\",\"" + "LoggedOutUser" + "\" : \"" + sequenceConfig.getAuthenticatedUser().
-                        getAuthenticatedSubjectIdentifier()
-                        + "\",\"" + "LoggedOutUserTenantDomain" + "\" : \"" + sequenceConfig.
-                        getAuthenticatedUser().getTenantDomain()
-                        + "\",\"" + "ServiceProviderName" + "\" : \"" + context.getServiceProviderName()
-                        + "\",\"" + "RequestType" + "\" : \"" + context.getRequestType()
-                        + "\",\"" + "RelyingParty" + "\" : \"" + context.getRelyingParty()
-                        + "\",\"" + "AuthenticatedIdPs" + "\" : \"" + sequenceConfig.getAuthenticatedIdPs()
-                        + "\"";
-
-                String idpName = null;
-                if (externalIdPConfig != null) {
-                    idpName = externalIdPConfig.getName();
-                }
-                AUDIT_LOG.info(String.format(
-                        FrameworkConstants.AUDIT_MESSAGE,
-                        sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
-                        "Logout", idpName, auditData, FrameworkConstants.AUDIT_SUCCESS));
-
-            }
         }
 
         if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
                 FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context)) {
             // Retrieve session information from cache in order to publish event
             SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
-            if (sessionContext != null && sequenceConfig != null) {
+            if (sessionContext != null) {
+                Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+                AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+                if (authenticatedUserObj != null) {
+                    authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+                }
                 FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
-                        sessionContext, sequenceConfig.getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes
+                        sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
                                 .SESSION_TERMINATE);
             }
         }
@@ -170,8 +154,6 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier());
         // remove the cookie
         FrameworkUtils.removeAuthCookie(request, response);
-
-
 
         try {
             sendResponse(request, response, context, true);
