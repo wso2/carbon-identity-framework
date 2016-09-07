@@ -55,9 +55,8 @@ public class TestService extends Assert {
             }
         }
         // no WADL is available yet - throw an exception or give tests a chance to run anyway
-        if (log.isDebugEnabled()) {
-            log.error("Service offline");
-        }
+        log.error("Service offline");
+
         return false;
     }
 
@@ -80,13 +79,9 @@ public class TestService extends Assert {
             scanner.close();
 
         } catch (IOException e) {
-            if (log.isDebugEnabled()) {
-                log.error("IO Exception in reading test case");
-            }
+            log.error("IO Exception in reading test case");
         } catch (URISyntaxException e) {
-            if (log.isDebugEnabled()) {
-                log.error("IO Exception in reading test case");
-            }
+            log.error("IO Exception in reading test case");
         }
 
         return result.toString().replaceAll("\\n\\r|\\n|\\r|\\t|\\s{2,}", "").replaceAll(": ", ":");

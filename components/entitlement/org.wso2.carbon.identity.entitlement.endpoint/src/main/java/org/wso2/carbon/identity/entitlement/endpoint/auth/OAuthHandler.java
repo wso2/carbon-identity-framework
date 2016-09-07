@@ -119,9 +119,7 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
                     return true;
                 }
             } catch (Exception e) {
-                if(log.isDebugEnabled()) {
-                    log.error("Error in validating OAuth access token.", e);
-                }
+                log.error("Error in validating OAuth access token.", e);
             }
         }
         return false;
@@ -194,14 +192,10 @@ public class OAuthHandler implements EntitlementAuthenticationHandler {
             appDTO.setAccessTokenValidationResponse(validationDto);
             return appDTO;
         } catch (AxisFault axisFault) {
-            if(log.isDebugEnabled()){
-                log.error("AxisFault Exception in authentication");
-            }
+            log.error("AxisFault Exception in authentication");
             throw new UnauthorizedException("AxisFault Exception in authentication");
         } catch (Exception exception) {
-            if(log.isDebugEnabled()){
-                log.error("Authentication Exception");
-            }
+            log.error("Authentication Exception");
             throw new UnauthorizedException("Authentication Exception");
         }
     }

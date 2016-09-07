@@ -47,10 +47,8 @@ public class ApplicationInitializer implements ServletContextListener {
             //Initialize Authentication Registry
             initEntitlementAuthenticatorRegistry();
         } catch (Exception e) {
-            if(logger.isDebugEnabled()) {
-                logger.error("Error in initializing the Authentocators at the initialization of " +
+            logger.error("Error in initializing the Authentocators at the initialization of " +
                         "Entitlement webapp", e);
-            }
         }
     }
 

@@ -125,36 +125,26 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
                             authzHeaders.set(0, userName);
                             return true;
                         } else {
-                            if(log.isDebugEnabled()){
-                                log.error("Authentication failed for the user: " + tenantLessUserName
-                                        + "@" + tenantDomain);
-                            }
+                            log.error("Authentication failed for the user: " + tenantLessUserName
+                                    + "@" + tenantDomain);
                             return false;
                         }
                     } else {
-                        if(log.isDebugEnabled()) {
-                            log.error("Error in getting Realm Service for user: " + userName);
-                        }
+                        log.error("Error in getting Realm Service for user: " + userName);
                         return false;
                     }
                 } catch (UserStoreException e) {
-                    if(log.isDebugEnabled()) {
-                        log.error("Internal server error while authenticating the user.");
-                    }
+                    log.error("Internal server error while authenticating the user.");
                     return false;
                 }
             } else {
-                if(log.isDebugEnabled()){
-                    log.error("Authentication required for this resource. " +
+                log.error("Authentication required for this resource. " +
                                 "Username or password not provided.");
-                }
                 return false;
             }
         } else {
-            if(log.isDebugEnabled()){
-                log.error("Authentication required for this resource. " +
+            log.error("Authentication required for this resource. " +
                           "Authorization header not present in the request.");
-            }
             return false;
         }
 
