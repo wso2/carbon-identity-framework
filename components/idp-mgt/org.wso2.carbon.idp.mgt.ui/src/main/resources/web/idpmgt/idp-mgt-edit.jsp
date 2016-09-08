@@ -737,7 +737,7 @@
             Property[] scimProperties = scim.getProvisioningProperties();
             if (scimProperties != null && scimProperties.length > 0) {
                 for (Property scimProperty : scimProperties) {
-
+                    //This is a safety to check to avoid NPE
                     if (scimProperty == null) {
                         continue;
                     }
