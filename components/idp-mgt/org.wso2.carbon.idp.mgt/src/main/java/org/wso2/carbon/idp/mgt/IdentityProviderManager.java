@@ -114,6 +114,8 @@ public class IdentityProviderManager implements IdpManagerService {
         String oauth2TokenEPUrl = null;
         String oauth2RevokeEPUrl = null;
         String oauth2UserInfoEPUrl = null;
+        String oidcCheckSessionEPUrl = null;
+        String oidcLogoutEPUrl = null;
         String passiveStsUrl = null;
         String stsUrl = null;
         String scimUserEndpoint = null;
@@ -128,6 +130,8 @@ public class IdentityProviderManager implements IdpManagerService {
         oauth2AuthzEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_AUTHZ_EP_URL);
         oauth2TokenEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_TOKEN_EP_URL);
         oauth2UserInfoEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL);
+        oidcCheckSessionEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL);
+        oidcLogoutEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL);
         passiveStsUrl = IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL);
         stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
         scimUserEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
@@ -172,6 +176,14 @@ public class IdentityProviderManager implements IdpManagerService {
 
         if (StringUtils.isBlank(oauth2UserInfoEPUrl)) {
             oauth2UserInfoEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.USERINFO, true, false);
+        }
+
+        if (StringUtils.isBlank(oidcCheckSessionEPUrl)) {
+            oidcCheckSessionEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.CHECK_SESSION, true, false);
+        }
+
+        if (StringUtils.isBlank(oidcLogoutEPUrl)) {
+            oidcLogoutEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.LOGOUT, true, false);
         }
 
         if (StringUtils.isBlank(passiveStsUrl)) {
@@ -376,6 +388,20 @@ public class IdentityProviderManager implements IdpManagerService {
             userInfoUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL);
             userInfoUrlProp.setValue(oauth2UserInfoEPUrl);
             propertiesList.add(userInfoUrlProp);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL) == null) {
+            Property checkSessionUrlProp = new Property();
+            checkSessionUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL);
+            checkSessionUrlProp.setValue(oidcCheckSessionEPUrl);
+            propertiesList.add(checkSessionUrlProp);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL) == null) {
+            Property logoutUrlProp = new Property();
+            logoutUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
+            logoutUrlProp.setValue(oidcLogoutEPUrl);
+            propertiesList.add(logoutUrlProp);
         }
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(oidcFedAuthn);

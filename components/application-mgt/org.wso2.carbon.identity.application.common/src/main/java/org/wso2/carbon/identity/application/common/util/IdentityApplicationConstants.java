@@ -141,6 +141,8 @@ public class IdentityApplicationConstants {
 
             public static final String NAME = "openidconnect";
             public static final String USER_INFO_URL = "UserInfoUrl";
+            public static final String OIDC_CHECK_SESSION_URL = "OIDCCheckSessionEPUrl";
+            public static final String OIDC_LOGOUT_URL = "OIDCLogoutEPUrl";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
         }
 
