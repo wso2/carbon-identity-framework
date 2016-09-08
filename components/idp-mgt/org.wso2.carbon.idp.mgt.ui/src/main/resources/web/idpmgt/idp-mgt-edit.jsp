@@ -737,6 +737,10 @@
             Property[] scimProperties = scim.getProvisioningProperties();
             if (scimProperties != null && scimProperties.length > 0) {
                 for (Property scimProperty : scimProperties) {
+
+                    if (scimProperty == null) {
+                        continue;
+                    }
                     if ("scim-username".equals(scimProperty.getName())) {
                         scimUserName = scimProperty.getValue();
                     } else if ("scim-password".equals(scimProperty.getName())) {
