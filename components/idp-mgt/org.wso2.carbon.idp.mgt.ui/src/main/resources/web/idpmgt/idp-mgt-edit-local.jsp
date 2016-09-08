@@ -52,6 +52,8 @@
     String tokenUrl = null;
     String revokeUrl = null;
     String userInfoUrl = null;
+    String oidcCheckSessionEndpoint = null;
+    String oidcLogoutEndpoint = null;
     String passiveSTSUrl = null;
     String passivestsIdPEntityId = null;
     String oidcIdpEntityId = null;
@@ -95,6 +97,10 @@
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL).getValue();
             userInfoUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL).getValue();
+            oidcCheckSessionEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL).getValue();
+            oidcLogoutEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL).getValue();
         } else if(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME.equals(federatedAuthenticator.getName())){
             passiveSTSUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL).getValue();
@@ -481,6 +487,14 @@ jQuery(document).ready(function(){
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='user.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(userInfoUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='checksession.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oidcCheckSessionEndpoint)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oidcLogoutEndpoint)%></td>
                         </tr>
                     </table>
                     </div>
