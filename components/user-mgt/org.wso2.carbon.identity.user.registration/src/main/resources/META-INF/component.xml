@@ -20,23 +20,23 @@
     <ManagementPermissions>
         <ManagementPermission>
             <DisplayName>User Registration Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-registration</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userregistration</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-registration/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userregistration/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-registration/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userregistration/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-registration/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userregistration/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-registration/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userregistration/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 

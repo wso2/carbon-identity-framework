@@ -16,7 +16,7 @@
    under the License.
   -->
 <component xmlns="http://products.wso2.org/carbon">
-        <!-- sample menu configuration -->
+    <!-- sample menu configuration -->
     <menus>
         <menu>
             <id>user_mgt_menu</id>
@@ -27,8 +27,8 @@
             <region>region1</region>
             <order>1</order>
             <style-class>manage</style-class>
-		    <icon>../userstore/images/user-store.gif</icon>
-		    <require-permission>/permission/admin/manage/identity/user-mgt</require-permission>
+            <icon>../userstore/images/user-store.gif</icon>
+            <require-permission>/permission/admin/manage/identity/usermgt</require-permission>
         </menu>
 
         <menu>
@@ -41,7 +41,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../userstore/images/add.gif</icon>
-            <require-permission>/permission/admin/manage/identity/user-mgt</require-permission>
+            <require-permission>/permission/admin/manage/identity/usermgt</require-permission>
         </menu>
 
         <menu>
@@ -54,7 +54,7 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../userstore/images/list.gif</icon>
-            <require-permission>/permission/admin/manage/identity/user-mgt</require-permission>
+            <require-permission>/permission/admin/manage/identity/usermgt</require-permission>
         </menu>
     </menus>
 
@@ -66,44 +66,44 @@
 
         <ManagementPermission>
             <DisplayName>User Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-mgt</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/usermgt</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-mgt/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/usermgt/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-mgt/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/usermgt/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-mgt/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/usermgt/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-mgt/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/usermgt/delete</ResourceId>
         </ManagementPermission>
 
         <ManagementPermission>
             <DisplayName>Role Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/role-mgt</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/rolemgt</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/role-mgt/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/rolemgt/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/role-mgt/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/rolemgt/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/role-mgt/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/rolemgt/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/role-mgt/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/rolemgt/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 

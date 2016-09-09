@@ -20,23 +20,23 @@
     <ManagementPermissions>
         <ManagementPermission>
             <DisplayName>User Profile Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-profile</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userprofile</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-profile/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userprofile/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-profile/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userprofile/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-profile/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userprofile/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/user-profile/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userprofile/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 

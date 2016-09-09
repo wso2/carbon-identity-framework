@@ -27,37 +27,38 @@
         <parameter name="ServiceClass">org.wso2.carbon.identity.user.registration.UserRegistrationService</parameter>
 
         <operation name="getPasswordRegularExpressions">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-registration/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userregistration/view
             </parameter>
         </operation>
 
         <operation name="readUserFieldsForUserRegistration">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-registration/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userregistration/view
             </parameter>
         </operation>
 
         <operation name="addUser">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-registration/create
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/userregistration/create
             </parameter>
         </operation>
 
         <operation name="isAddUserEnabled">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-registration/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userregistration/view
             </parameter>
         </operation>
 
         <operation name="isAddUserWithOpenIDEnabled">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-registration/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userregistration/view
             </parameter>
         </operation>
 
         <operation name="isAddUserWithInfoCardEnabled">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-registration/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userregistration/view
             </parameter>
         </operation>
 
         <operation name="isUserExist">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-registration/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userregistration/view
             </parameter>
         </operation>
     </service>
