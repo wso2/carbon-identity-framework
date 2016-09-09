@@ -70,3 +70,4 @@
             <ResourceId>/permission/admin/manage/identity/rolemgt/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
+ </component>
