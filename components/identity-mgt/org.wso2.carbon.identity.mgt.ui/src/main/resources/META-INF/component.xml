@@ -19,56 +19,7 @@
   -->
 
 <component xmlns="http://products.wso2.org/carbon">
-    <framework-configuration>
-            <bypass>
-                <authentication>
-                    <link>../identity-mgt/forgot_root.jsp</link>
-                    <link>../identity-mgt/forgot_password_step2.jsp</link>
-                    <link>../identity-mgt/forgot_password_step1.jsp</link>
-                    <link>../identity-mgt/forgot_password_secret_questions_step1.jsp</link>
-                    <link>../identity-mgt/forgot_password_secret_questions_step2.jsp</link>
-                    <link>../identity-mgt/forgot_password_secret_questions_final.jsp</link>
-                    <link>../identity-mgt/forgot_password_send_email.jsp</link>
-                    <link>../identity-mgt/update_credential.jsp</link>
-                    <link>../identity-mgt/update_credential_final.jsp</link>
-                    <link>../identity-mgt/expired_reset_link.jsp</link>
-                    <link>../identity-mgt/forgot_accountId.jsp</link>
-                    <link>../identity-mgt/forgot_accountId_finish.jsp</link>
-                    <link>../identity-mgt/success_unlock.jsp</link>
-                    <link>../identity-mgt/success_update.jsp</link>
-                    <link>../identity-mgt/unlock_account.jsp</link>
-                    <link>../identity-mgt/fail_user_verification.jsp</link>
-                    <link>../identity-mgt/fail_unlock.jsp</link>
-                    <link>../identity-mgt/fail_password_reset.jsp</link>
-                </authentication>
-            </bypass>
-    </framework-configuration>
-        <!-- sample menu configuration -->
     <menus>
-        <!--menu>
-            <id>account_recovery_menu</id>
-            <i18n-key>account.recovery</i18n-key>
-            <i18n-bundle>org.wso2.carbon.identity.mgt.ui.i18n.Resources</i18n-bundle>
-            <parent-menu>my_identity_menu</parent-menu>
-            <link>../identity-mgt/account-recovery.jsp</link>
-            <region>region5</region>
-            <order>7</order>
-            <style-class>manage</style-class>
-            <icon>../identity-mgt/images/keys.gif</icon>
-            <require-permission>/permission/admin/login</require-permission>
-        </menu-->
-        <!--<menu>-->
-            <!--<id>identity_emailtemplate_menu</id>-->
-            <!--<i18n-key>identity_emailtemplate</i18n-key>-->
-            <!--<i18n-bundle>org.wso2.carbon.identity.mgt.ui.i18n.Resources</i18n-bundle>-->
-            <!--<parent-menu>configure_menu</parent-menu>-->
-            <!--<link>../identity-mgt/email-template-config.jsp</link>-->
-            <!--<region>region1</region>-->
-            <!--<order>15</order>-->
-            <!--<style-class>manage</style-class>-->
-		    <!--<icon>../identity-mgt/images/email-template.png</icon>-->
-		    <!--<require-permission>/permission/admin/configure/security</require-permission>-->
-        <!--</menu>-->
         <menu>
             <id>identity_security_questions_menu</id>
             <i18n-key>manage.challenge.questions</i18n-key>
@@ -79,7 +30,30 @@
             <order>16</order>
             <style-class>manage</style-class>
             <icon>../identity-mgt/images/keys.gif</icon>
-            <require-permission>/permission/admin</require-permission>
+            <require-permission>/permission/admin/manage/identity/identitymgt</require-permission>
         </menu>
     </menus>
+
+    <ManagementPermissions>
+        <ManagementPermission>
+            <DisplayName>Identity Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/identitymgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/identitymgt/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/identitymgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/identitymgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/identitymgt/delete</ResourceId>
+        </ManagementPermission>
+    </ManagementPermissions>
 </component>
