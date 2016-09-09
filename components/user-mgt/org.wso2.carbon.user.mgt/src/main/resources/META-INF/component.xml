@@ -36,6 +36,10 @@
             <ResourceId>/permission/admin/manage/identity/usermgt/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
+            <DisplayName>List</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/usermgt/list</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
             <DisplayName>Update</DisplayName>
             <ResourceId>/permission/admin/manage/identity/usermgt/update</ResourceId>
         </ManagementPermission>
