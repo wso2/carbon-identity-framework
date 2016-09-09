@@ -28,7 +28,7 @@
             <order>1</order>
             <style-class>manage</style-class>
 		    <icon>../userstore/images/user-store.gif</icon>
-		    <require-permission>/permission/admin/login</require-permission>
+		    <require-permission>/permission/admin/manage/identity/user-mgt</require-permission>
         </menu>
 
         <menu>
@@ -41,7 +41,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../userstore/images/add.gif</icon>
-            <require-permission>/permission/admin/configure/security/usermgt/users</require-permission>
+            <require-permission>/permission/admin/manage/identity/user-mgt</require-permission>
         </menu>
 
         <menu>
@@ -54,9 +54,59 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../userstore/images/list.gif</icon>
-            <require-permission>/permission/admin/login</require-permission>
+            <require-permission>/permission/admin/manage/identity/user-mgt</require-permission>
         </menu>
     </menus>
+
+    <ManagementPermissions>
+        <ManagementPermission>
+            <DisplayName>Identity</DisplayName>
+            <ResourceId>/permission/admin/manage/identity</ResourceId>
+        </ManagementPermission>
+
+        <ManagementPermission>
+            <DisplayName>User Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user-mgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user-mgt/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user-mgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user-mgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/user-mgt/delete</ResourceId>
+        </ManagementPermission>
+
+        <ManagementPermission>
+            <DisplayName>Role Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/role-mgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/role-mgt/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/role-mgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/role-mgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/role-mgt/delete</ResourceId>
+        </ManagementPermission>
+    </ManagementPermissions>
+
     <framework-configuration>
         <bypass>
             <tiles>
