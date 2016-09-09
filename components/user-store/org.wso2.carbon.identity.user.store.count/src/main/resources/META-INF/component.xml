@@ -20,7 +20,7 @@
 <component xmlns="http://products.wso2.org/carbon">
     <ManagementPermissions>
         <ManagementPermission>
-            <DisplayName>User Store Management</DisplayName>
+            <DisplayName>User Store Count Management</DisplayName>
             <ResourceId>/permission/admin/manage/identity/userstore</ResourceId>
         </ManagementPermission>
 
