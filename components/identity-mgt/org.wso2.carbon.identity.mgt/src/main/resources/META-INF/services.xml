@@ -78,27 +78,27 @@
             </parameter>
         </operation>
         <operation name="isReadOnlyUserStore">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
             </parameter>
         </operation>
         <operation name="deleteUser">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/delete
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/delete
             </parameter>
         </operation>
         <operation name="lockUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
             </parameter>
         </operation>
         <operation name="unlockUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
             </parameter>
         </operation>
         <operation name="disableUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
             </parameter>
         </operation>
         <operation name="enableUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
             </parameter>
         </operation>
         <operation name="resetUserPassword">
