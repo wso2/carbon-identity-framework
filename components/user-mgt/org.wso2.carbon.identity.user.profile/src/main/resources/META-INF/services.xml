@@ -53,17 +53,17 @@
         </operation>
 
         <operation name="isAddProfileEnabled">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/view
             </parameter>
         </operation>
 
         <operation name="isAddProfileEnabledForDomain">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/view
             </parameter>
         </operation>
 
         <operation name="isReadOnlyUserStore">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/view
             </parameter>
         </operation>
 
