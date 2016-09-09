@@ -26,6 +26,59 @@
         <parameter name="ServiceClass" locked="false">
             org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin
         </parameter>
+
+        <operation name="associateID">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/create</parameter>
+        </operation>
+
+        <operation name="deleteUserProfile">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/delete</parameter>
+        </operation>
+
+        <operation name="getAssociatedIDs">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/view</parameter>
+        </operation>
+
+        <operation name="getNameAssociatedWith">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/view</parameter>
+        </operation>
+
+        <operation name="getProfileFieldsForInternalStore">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/view</parameter>
+        </operation>
+
+        <operation name="isAddProfileEnabled">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-store/view</parameter>
+        </operation>
+
+        <operation name="isAddProfileEnabledForDomain">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-store/view</parameter>
+        </operation>
+
+        <operation name="isReadOnlyUserStore">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-store/view</parameter>
+        </operation>
+
+        <operation name="removeAssociateID">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/delete</parameter>
+        </operation>
+
+        <operation name="setUserProfile">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/update</parameter>
+        </operation>
+
+        <operation name="getUserProfiles">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/view</parameter>
+        </operation>
+
+        <operation name="getUserProfile">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/user-profile/view</parameter>
+        </operation>
+
+        <operation name="getInstance">
+            <parameter name="AuthorizationAction" locked="true">false
+            </parameter>
+        </operation>
     </service>
 
     <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter> 
