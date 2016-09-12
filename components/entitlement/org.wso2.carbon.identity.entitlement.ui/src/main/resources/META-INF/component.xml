@@ -28,7 +28,7 @@
             <order>60</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policy.gif</icon>
-            <require-permission>/permission/admin/configure/entitlement/policy/view</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
         </menu>
 		<menu>         
             <id>policy_pap_menu</id>
@@ -40,7 +40,7 @@
             <order>5</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policies.gif</icon>
-            <require-permission>/permission/admin/configure/entitlement/policy/view</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
         </menu>
         <menu>
             <id>policy_publish_menu</id>
@@ -52,7 +52,7 @@
             <order>9</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/publish.gif</icon>
-            <require-permission>/permission/admin/configure/entitlement/policy/publish</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
         </menu>
 
         <!--  PDP -->
@@ -66,7 +66,7 @@
             <order>70</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policy.gif</icon>
-            <require-permission>/permission/admin/configure/entitlement/pdp/view</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pdp</require-permission>
         </menu>
         <menu>
             <id>pdp_policy_menu</id>
@@ -78,7 +78,7 @@
             <order>6</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policies.gif</icon>
-            <require-permission>/permission/admin/configure/entitlement/pdp/view</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pdp</require-permission>
         </menu>
 		<menu>
             <id>pdp_config_menu</id>
@@ -90,7 +90,7 @@
             <order>7</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/config.gif</icon>
-            <require-permission>/permission/admin/configure/entitlement/pdp/view</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pdp</require-permission>
         </menu>
          <menu>
             <id>policy_search_menu</id>
@@ -102,7 +102,7 @@
             <order>10</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/search-top.png</icon>
-            <require-permission>/permission/admin/configure</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
         </menu>
 
         <!--  Tools -->
@@ -116,7 +116,7 @@
             <order>4</order>
             <style-class>tools</style-class>
             <icon>../entitlement/images/policy.gif</icon>
-            <require-permission>/permission/admin/configure</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pep</require-permission>
         </menu>
         <menu>         
             <id>policy_tryit_menu</id>
@@ -128,7 +128,7 @@
             <order>5</order>
             <style-class>tools</style-class>
             <icon>../entitlement/images/evaluate.png</icon>
-            <require-permission>/permission/admin/configure</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
         </menu>
        
 	</menus>
@@ -145,71 +145,19 @@
     <ManagementPermissions>
         <ManagementPermission>
             <DisplayName>Entitlement</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
-            <DisplayName>Policy</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy</ResourceId>
+            <DisplayName>Entitlement Policy Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/policy</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/view</ResourceId>
+            <DisplayName>Entitlement PDP Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pdp</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
-            <DisplayName>Publish</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/publish</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Manage</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Add</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/add</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Edit</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/edit</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/delete</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Rollback</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/rollback</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Demote</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/demote</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Order</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/order</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Enable/Disable</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/enable</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Test</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/policy/manage/test</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>PDP</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/pdp</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Manage</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/pdp/manage</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/configure/entitlement/pdp/view</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>PEP</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/pep</ResourceId>
+            <DisplayName>Entitlement PEP Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pep</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 
