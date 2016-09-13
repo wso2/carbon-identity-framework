@@ -24,7 +24,7 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
 /**
- * @scr.component name="org.wso2.carbon.identity.idp.mgt.ui" immediate="true"
+ * @scr.component name="org.wso2.carbon.user.mgt.ui" immediate="true"
  * @scr.reference name="identityCoreInitializedEventService"
  * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
  * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
@@ -36,13 +36,13 @@ public class UserMgtUIServiceComponent {
 
     protected void activate(ComponentContext context) {
         if (log.isDebugEnabled()) {
-            log.debug("Identity Provider Management UI bundle activated!");
+            log.debug("User Management UI bundle activated!");
         }
     }
 
     protected void deactivate(ComponentContext context) {
         if (log.isDebugEnabled()) {
-            log.debug("Identity Provider Management UI bundle is deactivated");
+            log.debug("User Management UI bundle is deactivated");
         }
     }
 

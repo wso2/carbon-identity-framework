@@ -19,6 +19,11 @@
 
     <ManagementPermissions>
         <ManagementPermission>
+            <DisplayName>Identity</DisplayName>
+            <ResourceId>/permission/admin/manage/identity</ResourceId>
+        </ManagementPermission>
+
+        <ManagementPermission>
             <DisplayName>User Profile Management</DisplayName>
             <ResourceId>/permission/admin/manage/identity/userprofile</ResourceId>
         </ManagementPermission>
