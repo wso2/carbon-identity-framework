@@ -18,10 +18,12 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.opensaml.DefaultBootstrap;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
@@ -43,6 +45,10 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
  * policy="dynamic" bind="setConfigurationContextService"
  * unbind="unsetConfigurationContextService"
+ * @scr.reference name="server.configuration.service"
+ * interface="org.wso2.carbon.base.api.ServerConfigurationService" cardinality="1..1"
+ * policy="dynamic"  bind="setServerConfigurationService"
+ * unbind="unsetServerConfigurationService"
  * @scr.reference name="registry.service"
  * interface="org.wso2.carbon.registry.core.service.RegistryService"
  * cardinality="1..1" policy="dynamic" bind="setRegistryService"
@@ -58,11 +64,29 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 public class IdentityCoreServiceComponent {
     private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom5to510";
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
+    private static ServerConfigurationService serverConfigurationService = null;
 
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
 
     public IdentityCoreServiceComponent() {
+    }
+    public static ServerConfigurationService getServerConfigurationService() {
+        return IdentityCoreServiceComponent.serverConfigurationService;
+    }
+
+    protected void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Set the ServerConfiguration Service");
+        }
+        IdentityCoreServiceComponent.serverConfigurationService = serverConfigurationService;
+
+    }
+    protected void unsetServerConfigurationService(ServerConfigurationService serverConfigurationService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Unset the ServerConfiguration Service");
+        }
+        IdentityCoreServiceComponent.serverConfigurationService = null;
     }
 
     public static BundleContext getBundleContext() {
@@ -78,6 +102,7 @@ public class IdentityCoreServiceComponent {
             log.debug("Identity Core bundle is activated");
         }
         try {
+//            DefaultBootstrap.bootstrap();
             IdentityUtil.populateProperties();
             bundleContext = ctxt.getBundleContext();
 
