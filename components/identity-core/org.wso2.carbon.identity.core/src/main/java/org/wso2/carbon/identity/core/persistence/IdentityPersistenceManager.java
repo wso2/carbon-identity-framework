@@ -16,7 +16,10 @@
 * under the License.
 */
 package org.wso2.carbon.identity.core.persistence;
+import org.wso2.carbon.identity.sso.saml.common.model.SAMLSSOServiceProviderDO;
 
+
+import org.wso2.carbon.identity.sso.saml.common.dao.SAMLSSOServiceProviderDAO;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.dao.*;
 //import org.wso2.carbon.identity.saml.metadata.dao.SAMLSSOServiceProviderDAO;
