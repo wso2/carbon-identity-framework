@@ -58,56 +58,6 @@
         </menu>
     </menus>
 
-    <ManagementPermissions>
-        <!--User Management Permissions-->
-        <ManagementPermission>
-            <DisplayName>User Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/usermgt</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/usermgt/create</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/usermgt/view</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>List</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/usermgt/list</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/usermgt/update</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/usermgt/delete</ResourceId>
-        </ManagementPermission>
-
-        <!--Role Management Permissions-->
-        <ManagementPermission>
-            <DisplayName>Role Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/rolemgt</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/rolemgt/create</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/rolemgt/view</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/rolemgt/update</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/rolemgt/delete</ResourceId>
-        </ManagementPermission>
-    </ManagementPermissions>
-
     <framework-configuration>
         <bypass>
             <tiles>
