@@ -21,83 +21,82 @@
             <DisplayName>Identity</DisplayName>
             <ResourceId>/permission/admin/manage/identity</ResourceId>
         </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Entitlement Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement</ResourceId>
+        </ManagementPermission>
 
         <!--Entitlement Policy-->
         <ManagementPermission>
             <DisplayName>Entitlement Policy Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/delete</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Publish</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/publish</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/publish</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Demote</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/demote</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/demote</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Enable</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/enable</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/enable</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Rollback</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/rollback</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/rollback</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Order</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/order</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/order</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
-            <DisplayName>Test</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy/test</ResourceId>
+            <DisplayName>List</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/list</ResourceId>
         </ManagementPermission>
+
 
         <!--Entitlement Subscriber-->
         <ManagementPermission>
             <DisplayName>Entitlement Subscriber Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/subscriber</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/subscriber/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/subscriber/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/subscriber/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/subscriber/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/delete</ResourceId>
         </ManagementPermission>
-
-        <!--Entitlement Publisher-->
         <ManagementPermission>
-            <ManagementPermission>
-                <DisplayName>Entitlement Publisher Management</DisplayName>
-                <ResourceId>/permission/admin/manage/identity/entitlement/publisher</ResourceId>
-            </ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/publisher/view</ResourceId>
+            <DisplayName>List</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/list</ResourceId>
         </ManagementPermission>
 
         <!--Entitlement PDP-->
@@ -112,6 +111,10 @@
         <ManagementPermission>
             <DisplayName>View</DisplayName>
             <ResourceId>/permission/admin/manage/identity/entitlement/pdp/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Test</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pdp/test</ResourceId>
         </ManagementPermission>
 
         <!--Entitlement PEP-->

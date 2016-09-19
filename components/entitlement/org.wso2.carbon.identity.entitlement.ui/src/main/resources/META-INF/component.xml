@@ -28,7 +28,7 @@
             <order>60</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policy.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pap</require-permission>
         </menu>
 		<menu>         
             <id>policy_pap_menu</id>
@@ -40,7 +40,7 @@
             <order>5</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/policies.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pap</require-permission>
         </menu>
         <menu>
             <id>policy_publish_menu</id>
@@ -52,7 +52,7 @@
             <order>9</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/publish.gif</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
+            <require-permission>//permission/admin/manage/identity/entitlement/pap</require-permission>
         </menu>
 
         <!--  PDP -->
@@ -102,7 +102,7 @@
             <order>10</order>
             <style-class>manage</style-class>
             <icon>../entitlement/images/search-top.png</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pdp</require-permission>
         </menu>
 
         <!--  Tools -->
@@ -128,7 +128,7 @@
             <order>5</order>
             <style-class>tools</style-class>
             <icon>../entitlement/images/evaluate.png</icon>
-            <require-permission>/permission/admin/manage/identity/entitlement/policy</require-permission>
+            <require-permission>/permission/admin/manage/identity/entitlement/pep</require-permission>
         </menu>
        
 	</menus>
@@ -141,24 +141,5 @@
             <Class>org.wso2.carbon.identity.entitlement.ui.client.EntitlementPolicyUploadExecutor</Class>
         </Mapping>
     </FileUploadConfig>
-
-    <ManagementPermissions>
-        <ManagementPermission>
-            <DisplayName>Entitlement</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Entitlement Policy Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/policy</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Entitlement PDP Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/pdp</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Entitlement PEP Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/entitlement/pep</ResourceId>
-        </ManagementPermission>
-    </ManagementPermissions>
 
 </component>

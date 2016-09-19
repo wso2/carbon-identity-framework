@@ -28,88 +28,89 @@
 		</parameter>
 
         <operation name="addPolicies">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/create</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/create</parameter>
         </operation>
         <operation name="addPolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/create</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/create</parameter>
         </operation>
         <operation name="addSubscriber">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/subscriber/create</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/subscriber/create</parameter>
         </operation>
         <operation name="deleteSubscriber">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/subscriber/delete</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/subscriber/delete</parameter>
         </operation>
         <operation name="dePromotePolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/demote</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/demote</parameter>
         </operation>
         <operation name="enableDisablePolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/enable</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/enable</parameter>
         </operation>
         <operation name="getAllPolicies">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/view</parameter>
         </operation>
         <operation name="getAllPolicyIds">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/list</parameter>
         </operation>
         <operation name="getEntitlementData">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/view</parameter>
         </operation>
         <operation name="getEntitlementDataModules">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/view</parameter>
         </operation>
         <operation name="getLightPolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/view</parameter>
         </operation>
         <operation name="getPolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/view</parameter>
         </operation>
         <operation name="getPolicyByVersion">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/view</parameter>
         </operation>
         <operation name="getPolicyVersions">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/list</parameter>
         </operation>
         <operation name="getPublisherModuleData">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/publisher/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/subscriber/create</parameter>
         </operation>
         <operation name="getStatusData">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/view</parameter>
         </operation>
         <operation name="getSubscriber">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/subscriber/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/subscriber/view</parameter>
         </operation>
         <operation name="getSubscriberIds">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/subscriber/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/subscriber/list</parameter>
         </operation>
         <operation name="importPolicyFromRegistry">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/create,
+                /permission/admin/manage/identity/entitlement/pap/policy/update</parameter>
         </operation>
         <operation name="orderPolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/order</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/order</parameter>
         </operation>
         <operation name="publish">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/publish</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/publish</parameter>
         </operation>
         <operation name="publishPolicies">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/publish</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/publish</parameter>
         </operation>
         <operation name="publishToPDP">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/publish</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/publish</parameter>
         </operation>
         <operation name="removePolicies">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/delete</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/delete</parameter>
         </operation>
         <operation name="removePolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/delete</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/delete</parameter>
         </operation>
         <operation name="rollBackPolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/rollback</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/rollback</parameter>
         </operation>
         <operation name="updatePolicy">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/update</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/policy/update</parameter>
         </operation>
         <operation name="updateSubscriber">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/subscriber/update</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pap/subscriber/update</parameter>
         </operation>
 	</service>
 
@@ -150,13 +151,13 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/manage</parameter>
         </operation>
         <operation name="doTestRequest">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/test</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/test</parameter>
         </operation>
         <operation name="doTestRequestForGivenPolicies">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/test</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/test</parameter>
         </operation>
         <operation name="getGlobalPolicyAlgorithm">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/policy/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/view</parameter>
         </operation>
         <operation name="getPDPData">
             <parameter name="AuthorizationAction" locked="true">>/permission/admin/manage/identity/entitlement/pdp/view</parameter>
