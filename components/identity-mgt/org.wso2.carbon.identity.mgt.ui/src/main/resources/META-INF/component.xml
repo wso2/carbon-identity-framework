@@ -33,27 +33,4 @@
             <require-permission>/permission/admin/manage/identity/identitymgt</require-permission>
         </menu>
     </menus>
-
-    <ManagementPermissions>
-        <ManagementPermission>
-            <DisplayName>Identity Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/identitymgt</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/identitymgt/create</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/identitymgt/view</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/identitymgt/update</ResourceId>
-        </ManagementPermission>
-        <ManagementPermission>
-            <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/identitymgt/delete</ResourceId>
-        </ManagementPermission>
-    </ManagementPermissions>
 </component>
