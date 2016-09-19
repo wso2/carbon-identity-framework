@@ -57,21 +57,4 @@
             <require-permission>/permission/admin/manage/identity/keystoremgt</require-permission>
         </menu>
     </menus>
-
-    <ManagementPermissions>
-        <ManagementPermission>
-            <DisplayName>Key Store Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/keystoremgt</ResourceId>
-        </ManagementPermission>
-
-        <ManagementPermission>
-            <DisplayName>Security Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/securitymgt</ResourceId>
-        </ManagementPermission>
-
-        <ManagementPermission>
-            <DisplayName>STS Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/stsmgt</ResourceId>
-        </ManagementPermission>
-    </ManagementPermissions>
 </component>
