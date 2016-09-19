@@ -28,7 +28,7 @@
             <order>3</order>
             <style-class>manage</style-class>
             <icon>../keystoremgt/images/keystore.gif</icon>
-            <require-permission>/permission/admin/configure/security</require-permission>
+            <require-permission>/permission/admin/manage/identity/keystoremgt</require-permission>
         </menu>
 
         <menu>
@@ -41,7 +41,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../keystoremgt/images/add.gif</icon>
-            <require-permission>/permission/admin/configure/security</require-permission>
+            <require-permission>/permission/admin/manage/identity/keystoremgt</require-permission>
         </menu>
 
         <menu>
@@ -54,7 +54,24 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../keystoremgt/images/list.gif</icon>
-            <require-permission>/permission/admin/configure/security</require-permission>
+            <require-permission>/permission/admin/manage/identity/keystoremgt</require-permission>
         </menu>
     </menus>
+
+    <ManagementPermissions>
+        <ManagementPermission>
+            <DisplayName>Key Store Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/keystoremgt</ResourceId>
+        </ManagementPermission>
+
+        <ManagementPermission>
+            <DisplayName>Security Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/securitymgt</ResourceId>
+        </ManagementPermission>
+
+        <ManagementPermission>
+            <DisplayName>STS Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/stsmgt</ResourceId>
+        </ManagementPermission>
+    </ManagementPermissions>
 </component>
