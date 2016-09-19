@@ -54,12 +54,5 @@
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
     </menus>
-
-    <ManagementPermissions>
-        <ManagementPermission>
-            <DisplayName>User Store Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore</ResourceId>
-        </ManagementPermission>
-    </ManagementPermissions>
 </component>
 

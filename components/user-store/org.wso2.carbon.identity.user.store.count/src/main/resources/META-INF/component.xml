@@ -21,24 +21,24 @@
     <ManagementPermissions>
         <ManagementPermission>
             <DisplayName>User Store Count Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/count</ResourceId>
         </ManagementPermission>
 
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/count/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/count/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/count/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/count/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 </component>

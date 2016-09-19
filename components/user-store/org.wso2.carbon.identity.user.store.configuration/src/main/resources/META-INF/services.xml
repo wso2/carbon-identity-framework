@@ -25,37 +25,37 @@
         <parameter name="ServiceClass">
             org.wso2.carbon.identity.user.store.configuration.UserStoreConfigAdminService
         </parameter>
-        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/userstore</parameter>
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/userstore/config</parameter>
 
         <operation name="getSecondaryRealmConfigurations">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
         <operation name="getAvailableUserStoreClasses">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
         <operation name="getUserStoreManagerProperties">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
         <operation name="addUserStore">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/create</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/create</parameter>
         </operation>
         <operation name="editUserStore">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/update</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
         </operation>
         <operation name="editUserStoreWithDomainName">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/update</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
         </operation>
         <operation name="deleteUserStore">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/delete</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/delete</parameter>
         </operation>
         <operation name="deleteUserStoresSet">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/delete</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/delete</parameter>
         </operation>
         <operation name="changeUserStoreState">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/update</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
         </operation>
         <operation name="testRDBMSConnection">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
     </service>
 

@@ -23,22 +23,26 @@
             <DisplayName>User Store Management</DisplayName>
             <ResourceId>/permission/admin/manage/identity/userstore</ResourceId>
         </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>User Store Configuration Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userstore/config</ResourceId>
+        </ManagementPermission>
 
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/config/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/config/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/config/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/userstore/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/userstore/config/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 </component>
