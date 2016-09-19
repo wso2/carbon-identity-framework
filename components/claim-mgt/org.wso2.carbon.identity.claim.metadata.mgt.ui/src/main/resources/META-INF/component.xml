@@ -59,11 +59,4 @@
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
     </menus>
-
-    <ManagementPermissions>
-    <ManagementPermission>
-        <DisplayName>Claim Metadata Management</DisplayName>
-        <ResourceId>/permission/admin/manage/identity/claimmgt/metadata</ResourceId>
-    </ManagementPermission>
-    </ManagementPermissions>
 </component>

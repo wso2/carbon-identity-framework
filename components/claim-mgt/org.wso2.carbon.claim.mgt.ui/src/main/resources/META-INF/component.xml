@@ -57,11 +57,4 @@
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
     </menus>
-
-    <ManagementPermissions>
-        <ManagementPermission>
-            <DisplayName>Claim Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/claimmgt/claim</ResourceId>
-        </ManagementPermission>
-    </ManagementPermissions>
 </component>
