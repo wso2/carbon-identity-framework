@@ -217,8 +217,15 @@ public class UserIdentityManagementUtil {
 
     }
     private static boolean isIdentityMgtListenerEnable() {
+
+        String listenerClassName = IdentityMgtConfig.getInstance().getProperty
+                (IdentityMgtConstants.PropertyConfig.IDENTITY_MGT_LISTENER_CLASS);
+        if (StringUtils.isBlank(listenerClassName)) {
+            listenerClassName = IdentityMgtEventListener.class.getName();
+        }
+
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
+                (UserOperationEventListener.class.getName(), listenerClassName);
         if (identityEventListenerConfig == null) {
             return true;
         }
