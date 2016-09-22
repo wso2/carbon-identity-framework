@@ -1030,9 +1030,13 @@ public class UserInformationRecoveryService {
                 userStoreManager.updateUserListOfRole(identityRoleName, new String[]{},
                         new String[]{userName});
             }
-
+            String listenerClassName = IdentityMgtConfig.getInstance().getProperty
+                    (IdentityMgtConstants.PropertyConfig.IDENTITY_MGT_LISTENER_CLASS);
+            if (StringUtils.isBlank(listenerClassName)) {
+                listenerClassName = IdentityMgtEventListener.class.getName();
+            }
             IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                    (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
+                    (UserOperationEventListener.class.getName(), listenerClassName);
 
             boolean isListenerEnable = true;
 
@@ -1149,8 +1153,15 @@ public class UserInformationRecoveryService {
             }
 
             try {
+
+                String listenerClassName = IdentityMgtConfig.getInstance().getProperty
+                        (IdentityMgtConstants.PropertyConfig.IDENTITY_MGT_LISTENER_CLASS);
+                if (StringUtils.isBlank(listenerClassName)) {
+                    listenerClassName = IdentityMgtEventListener.class.getName();
+                }
+
                 IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                        (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
+                        (UserOperationEventListener.class.getName(), listenerClassName);
 
                 boolean isListenerEnable = true;
 
