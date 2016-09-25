@@ -4305,13 +4305,23 @@ function doValidation() {
             </td>
         </tr>
     </table>
-
-    <table>
-
-
-
-
-
+    <br>
+    <table class="styledLeft" width="100%">
+              <thead>
+                  <tr>
+                      <th><fmt:message key="saml.sso.upload.id.provider.metadata"/></th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr>
+                      <td><span>File Location: </span><input type="file" id="metadataFromFileSystem"
+                                                         name="metadataFromFileSystem" size="50" /></td>
+                  </tr>
+              <tr><td>
+                      <input type="button" value="<fmt:message key='saml.sso.upload'/>" class="button" onclick="doSubmit();"/>
+                      <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>" onclick="doCancel();"/></td>
+                      </tr>
+              </tbody>
     </table>
 
 
@@ -4320,6 +4330,25 @@ function doValidation() {
 
 
 </div>
+<script type="text/javascript">
+
+         function doSubmit(){
+                 var policy;
+                 policy = document.getElementById("idp-mgt-edit-form").metadataFromFileSystem.value;
+
+                 if (policy == '') {
+                         CARBON.showWarningDialog("<fmt:message key='idp.enter.valid.issuer'/>");
+                         return;
+                 }
+
+                 document.getElementById("idp-mgt-edit-form").submit();
+        }
+
+         function doCancel(){
+                 location.href = 'index.jsp';
+         }
+
+              </script>
 <% } %>
 
 <% if (isOpenidconnectAuthenticatorActive) { %>

@@ -159,6 +159,9 @@ public class IdentityProviderMgtServiceClient {
      */
     public IdentityProvider getIdPByName(String idPName) throws Exception {
         try {
+
+
+
             return idPMgtStub.getIdPByName(idPName);
         } catch (Exception e) {
             log.error("Error in retrieving the information about Identity provider for a given tenant", e);
