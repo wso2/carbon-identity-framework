@@ -30,6 +30,8 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -76,6 +78,11 @@
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             String callback = request.getParameter("callback");
+
+            if (StringUtils.isBlank(callback)) {
+                callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+            }
 
             if (StringUtils.isBlank(username)) {
                 request.setAttribute("error", true);

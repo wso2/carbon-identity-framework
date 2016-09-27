@@ -182,6 +182,11 @@
 
                                 String callback = Encode.forHtmlAttribute
                                         (request.getParameter("callback"));
+                                if (StringUtils.isBlank(callback)) {
+                                    callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                                            application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+                                }
+
                                 if (callback != null) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
