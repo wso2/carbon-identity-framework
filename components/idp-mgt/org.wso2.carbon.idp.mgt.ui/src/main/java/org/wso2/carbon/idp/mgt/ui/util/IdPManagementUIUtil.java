@@ -82,13 +82,20 @@ public class IdPManagementUIUtil {
 
     /**
      * Build a federated identity provider.
-     * @param request HttpServletRequest
+     *
+     * @param request    HttpServletRequest
      * @param oldIdpName This value will be populated if there is an old IDP.
      * @return IdentityProvider
      * @throws Exception
      */
+
+
     public static IdentityProvider buildFederatedIdentityProvider(HttpServletRequest request, StringBuilder oldIdpName)
             throws Exception {
+
+
+        //get the String from the file
+
 
         IdentityProvider fedIdp = new IdentityProvider();
 
@@ -115,10 +122,13 @@ public class IdPManagementUIUtil {
                     byte[] value = diskFileItem.get();
                     String key = diskFileItem.getFieldName();
 
+
                     if (StringUtils.equals(key, "idpUUID")) {
                         idpUUID = diskFileItem.getString();
                     }
-
+                    if ("metadataFromFileSystem".equals(key)) {
+                        paramMap.put(key, Base64.encode(value));
+                    }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if ("google_prov_private_key".equals(key)) {
@@ -347,7 +357,7 @@ public class IdPManagementUIUtil {
             objectClass.setValue(paramMap.get("spml-oc"));
         }
 
-        if (paramMap.get("spml-unique-id") != null){
+        if (paramMap.get("spml-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("spml-unique-id"));
@@ -495,7 +505,7 @@ public class IdPManagementUIUtil {
             googleProvSeparator.setValue(paramMap.get("google_prov_separator"));
         }
 
-        if (paramMap.get("google-unique-id") != null){
+        if (paramMap.get("google-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("google-unique-id"));
@@ -592,7 +602,7 @@ public class IdPManagementUIUtil {
             defaultPwdProp.setValue(paramMap.get("scim-default-pwd"));
         }
 
-        if (paramMap.get("scim-unique-id") != null){
+        if (paramMap.get("scim-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("scim-unique-id"));
@@ -717,7 +727,7 @@ public class IdPManagementUIUtil {
             provisioningDomain.setValue(paramMap.get("sf-prov-domainName"));
         }
 
-        if (paramMap.get("sf-unique-id") != null){
+        if (paramMap.get("sf-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("sf-unique-id"));
@@ -1402,6 +1412,19 @@ public class IdPManagementUIUtil {
         FederatedAuthenticatorConfig saml2SSOAuthnConfig = new FederatedAuthenticatorConfig();
         saml2SSOAuthnConfig.setName("SAMLSSOAuthenticator");
         saml2SSOAuthnConfig.setDisplayName("samlsso");
+        if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
+            saml2SSOAuthnConfig.setEnabled(true);
+        }
+
+        if ("on".equals(paramMap.get("saml2SSODefault"))) {
+            fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
+        }
+
+
+        Property[] properties;
+
+
+        properties = new Property[25];
 
         if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
             saml2SSOAuthnConfig.setEnabled(true);
@@ -1411,7 +1434,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
         }
 
-        Property[] properties = new Property[24];
+
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
         property.setValue(paramMap.get("idPEntityId"));
@@ -1510,13 +1533,13 @@ public class IdPManagementUIUtil {
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD));
         properties[12] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM));
         properties[13] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.DIGEST_ALGORITHM);
         property.setValue(paramMap
@@ -1552,14 +1575,14 @@ public class IdPManagementUIUtil {
         properties[18] = property;
 
         String authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
-        if(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)){
+        if (IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
             authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
         }
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
         property.setValue(authenticationContextClass);
         properties[19] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
         property.setValue(paramMap
@@ -1575,13 +1598,13 @@ public class IdPManagementUIUtil {
             property.setValue("false");
         }
         properties[21] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT));
         properties[22] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING);
         if ("on".equals(paramMap
@@ -1591,7 +1614,14 @@ public class IdPManagementUIUtil {
             property.setValue("false");
         }
         properties[23] = property;
-        
+
+        if (paramMap.containsKey("metadataFromFileSystem")) {
+            property = new Property();
+            property.setName("metadataFromFileSystem");
+            property.setValue(paramMap.get("metadataFromFileSystem"));
+        }
+        properties[24] = property;
+
         saml2SSOAuthnConfig.setProperties(properties);
 
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();

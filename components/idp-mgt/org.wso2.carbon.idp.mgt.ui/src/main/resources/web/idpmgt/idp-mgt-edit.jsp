@@ -4318,7 +4318,7 @@ function doValidation() {
                                                          name="metadataFromFileSystem" size="50" /></td>
                   </tr>
               <tr><td>
-                      <input type="button" value="<fmt:message key='saml.sso.upload'/>" class="button" onclick="doSubmit();"/>
+                      <%--<input type="button" value="<fmt:message key='saml.sso.upload'/>" class="button" onclick="doSubmit();"/>--%>
                       <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>" onclick="doCancel();"/></td>
                       </tr>
               </tbody>

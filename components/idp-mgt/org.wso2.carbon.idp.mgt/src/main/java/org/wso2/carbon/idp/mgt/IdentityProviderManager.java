@@ -1262,6 +1262,14 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(msg);
         }
 
+
+
+
+        //TODO
+
+
+
+
         validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
 
         dao.addIdP(identityProvider, tenantId, tenantDomain);
