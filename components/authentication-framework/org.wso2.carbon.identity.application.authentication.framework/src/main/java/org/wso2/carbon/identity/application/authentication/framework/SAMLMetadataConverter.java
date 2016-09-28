@@ -36,15 +36,9 @@ public class SAMLMetadataConverter implements MetadataConverter {
         Property propertiesMetadata[] = metaPassed.getProperties();
 
         for(int i = 0 ; i<25 ; i++){
-
+            //compare 2 objects and return the correct one
 
         }
-
-
-
-
-
-
         return null;
     }
 
@@ -60,8 +54,8 @@ public class SAMLMetadataConverter implements MetadataConverter {
                         //parse metadata into OMElement object and build, returns a FederatedAuthenticationConfig object
                         FederatedAuthenticatorConfig federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build( AXIOMUtil.stringToOM(metadata));
                         //compare two files and add missing parametrs  validate
-                        FederatedAuthenticatorConfig federatedAuthenticatorConfigFinal  = validate(federatedAuthenticatorConfig,federatedAuthenticatorConfigMetadata);
-                        return federatedAuthenticatorConfigFinal;
+                        //FederatedAuthenticatorConfig federatedAuthenticatorConfigFinal  = validate(federatedAuthenticatorConfig,federatedAuthenticatorConfigMetadata);
+                        return federatedAuthenticatorConfigMetadata;
                     }
                 }
             }

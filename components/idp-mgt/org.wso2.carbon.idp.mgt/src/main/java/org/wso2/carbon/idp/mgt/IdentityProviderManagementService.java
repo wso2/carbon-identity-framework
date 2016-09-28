@@ -226,6 +226,16 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         try {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             IdPManagementUtil.removeRandomPasswords(identityProvider, true);
+
+
+
+
+
+
+
+
+
+
             IdentityProviderManager.getInstance().updateIdP(oldIdPName, identityProvider, tenantDomain);
         } catch (IdentityProviderManagementException idpException) {
             log.error("Error while updating IdP with name " + oldIdPName, idpException);

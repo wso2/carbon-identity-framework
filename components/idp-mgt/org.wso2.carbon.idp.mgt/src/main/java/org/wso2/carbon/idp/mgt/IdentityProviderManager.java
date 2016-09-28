@@ -27,6 +27,8 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.application.authentication.framework.MetadataConverter;
+import org.wso2.carbon.identity.application.authentication.framework.SAMLMetadataConverter;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -55,6 +57,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import javax.xml.stream.XMLStreamException;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -1265,7 +1268,22 @@ public class IdentityProviderManager implements IdpManager {
 
 
 
-        //TODO
+        //TODO SAMKMetadataConverter
+
+
+        MetadataConverter metadataConverter = new SAMLMetadataConverter();
+        FederatedAuthenticatorConfig federatedAuthenticatorConfigs [] = identityProvider.getFederatedAuthenticatorConfigs();
+        for(int i = 0 ; i< federatedAuthenticatorConfigs.length;i++) {
+            if (metadataConverter.canHandle(federatedAuthenticatorConfigs[i])) {
+                try {
+                    federatedAuthenticatorConfigs[i] = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(federatedAuthenticatorConfigs[i]);
+                } catch (XMLStreamException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
 
 
 
