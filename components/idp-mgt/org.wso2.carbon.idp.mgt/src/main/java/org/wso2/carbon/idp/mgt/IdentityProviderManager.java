@@ -27,8 +27,6 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
-import org.wso2.carbon.identity.application.authentication.framework.MetadataConverter;
-import org.wso2.carbon.identity.application.authentication.framework.SAMLMetadataConverter;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
@@ -668,6 +666,10 @@ public class IdentityProviderManager implements IdpManager {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
                 }
+/**
+ * Created by pasindutennage on 9/27/16.
+ */
+
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.REMEMBER_ME_TIME_OUT)) {
                 if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
                         Integer.parseInt(idpProp.getValue().trim()) <= 0) {
@@ -734,6 +736,10 @@ public class IdentityProviderManager implements IdpManager {
     public List<IdentityProvider> getEnabledIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
         List<IdentityProvider> enabledIdentityProviders = new ArrayList<IdentityProvider>();
+/**
+ * Created by pasindutennage on 9/27/16.
+ */
+
         List<IdentityProvider> identityProviers = getIdPs(tenantDomain);
 
         for (IdentityProvider idp : identityProviers) {
@@ -1278,6 +1284,7 @@ public class IdentityProviderManager implements IdpManager {
                 try {
                     federatedAuthenticatorConfigs[i] = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(federatedAuthenticatorConfigs[i]);
                 } catch (XMLStreamException e) {
+
                     e.printStackTrace();
                 }
             }

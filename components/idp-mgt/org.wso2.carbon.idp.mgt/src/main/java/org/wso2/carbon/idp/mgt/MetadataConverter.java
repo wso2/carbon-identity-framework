@@ -1,4 +1,4 @@
-package org.wso2.carbon.identity.application.authentication.framework;
+package org.wso2.carbon.idp.mgt;
 
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 

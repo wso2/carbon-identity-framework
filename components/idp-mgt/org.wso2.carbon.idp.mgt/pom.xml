@@ -58,10 +58,8 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-        </dependency>
+
+
     </dependencies>
 
     <build>
@@ -102,6 +100,9 @@
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
 
+
+
+
                             org.wso2.carbon.identity.application.common.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*;
@@ -109,8 +110,8 @@
                             org.wso2.carbon.identity.base;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.persistence;
-                            org.wso2.carbon.identity.application.authentication.framework,
                             version="${carbon.identity.package.import.version.range}",
+
                             org.wso2.carbon;
                             version="${carbon.kernel.package.import.version.range}";
                         </Import-Package>

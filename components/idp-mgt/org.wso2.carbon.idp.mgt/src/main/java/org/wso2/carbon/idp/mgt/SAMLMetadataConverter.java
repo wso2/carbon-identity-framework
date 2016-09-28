@@ -1,8 +1,7 @@
-package org.wso2.carbon.identity.application.authentication.framework;
+package org.wso2.carbon.idp.mgt;
 
 import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.util.AXIOMUtil;
-import org.wso2.carbon.identity.application.authentication.framework.MetadataConverter;
+import  org.apache.axiom.om.util.AXIOMUtil;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
@@ -52,6 +51,16 @@ public class SAMLMetadataConverter implements MetadataConverter {
                     if (properties[i].getName() !=null && properties[i].getName().equals("metadataFromFileSystem")) {
                         String metadata = properties[i].getValue();
                         //parse metadata into OMElement object and build, returns a FederatedAuthenticationConfig object
+                        OMElement element =  AXIOMUtil.stringToOM(metadata);
+
+
+
+
+
+
+
+
+
                         FederatedAuthenticatorConfig federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build( AXIOMUtil.stringToOM(metadata));
                         //compare two files and add missing parametrs  validate
                         //FederatedAuthenticatorConfig federatedAuthenticatorConfigFinal  = validate(federatedAuthenticatorConfig,federatedAuthenticatorConfigMetadata);
