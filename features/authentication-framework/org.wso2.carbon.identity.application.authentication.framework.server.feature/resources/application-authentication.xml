@@ -120,6 +120,10 @@
 			<Parameter name="YahooOAuthzEndpoint">https://api.login.yahoo.com/oauth2/request_auth</Parameter>
 			<Parameter name="YahooUserInfoEndpoint">https://social.yahooapis.com/v1/user/</Parameter>
 		</AuthenticatorConfig>
+		<AuthenticatorConfig name="MobileConnectAuthenticator" enabled="true">
+			<Parameter name="MobileConnectKey">3689e589-419e-4676-8130-ec15a4f898f0</Parameter>
+			<Parameter name="MobileConnectSecret">f78b4b18-6ed6-4efd-bf74-0c59474146a3</Parameter>
+		</AuthenticatorConfig>
         <AuthenticatorConfig name="EmailOTP" enabled="true">
             <Parameter name="GmailClientId">gmailClientIdValue</Parameter>
             <Parameter name="GmailClientSecret">gmailClientSecretValue</Parameter>
