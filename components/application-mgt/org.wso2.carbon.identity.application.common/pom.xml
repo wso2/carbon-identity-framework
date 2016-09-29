@@ -69,6 +69,7 @@
                             javax.sql,
                             javax.xml.namespace,
                             javax.xml.stream,
+                            org.opensaml.xml.security.credential,
 
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",

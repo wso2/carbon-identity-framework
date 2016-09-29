@@ -1615,12 +1615,19 @@ public class IdPManagementUIUtil {
         }
         properties[23] = property;
 
-        if (paramMap.containsKey("metadataFromFileSystem")) {
-            property = new Property();
-            property.setName("metadataFromFileSystem");
+
+        property = new Property();
+        property.setName("metadataFromFileSystem");
+
+        if (paramMap.get("metadataFromFileSystem")!=null && paramMap.get("metadataFromFileSystem").length()>0) {
             property.setValue(paramMap.get("metadataFromFileSystem"));
+
+
+        } else {
+            property.setValue(null);
         }
         properties[24] = property;
+
 
         saml2SSOAuthnConfig.setProperties(properties);
 

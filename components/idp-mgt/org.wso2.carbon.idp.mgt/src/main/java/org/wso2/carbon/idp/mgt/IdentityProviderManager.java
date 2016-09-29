@@ -708,7 +708,9 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Retrieves registered Identity providers for a given tenant
+     * Retrieves registered Identity finally {
+                    break;
+                }providers for a given tenant
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
      * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
@@ -1348,6 +1350,22 @@ public class IdentityProviderManager implements IdpManager {
     public void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider,
                           String tenantDomain) throws IdentityProviderManagementException {
 
+
+
+        MetadataConverter metadataConverter = new SAMLMetadataConverter();
+        FederatedAuthenticatorConfig federatedAuthenticatorConfigs [] = newIdentityProvider.getFederatedAuthenticatorConfigs();
+        for(int i = 0 ; i< federatedAuthenticatorConfigs.length;i++) {
+            if (metadataConverter.canHandle(federatedAuthenticatorConfigs[i])) {
+                try {
+                    federatedAuthenticatorConfigs[i] = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(federatedAuthenticatorConfigs[i]);
+                } catch (XMLStreamException e) {
+
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
         // invoking the pre listeners
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1355,6 +1373,17 @@ public class IdentityProviderManager implements IdpManager {
                 return;
             }
         }
+
+        //TODO
+
+        //TODO
+
+
+
+
+
+
+
 
         if (IdPManagementServiceComponent.getFileBasedIdPs().containsKey(
                 newIdentityProvider.getIdentityProviderName())) {
@@ -1407,6 +1436,16 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+
+
+
+
+
+
+
+
+
 
         validateUpdateOfIdPEntityId(currentIdentityProvider.getFederatedAuthenticatorConfigs(),
                 newIdentityProvider.getFederatedAuthenticatorConfigs(),

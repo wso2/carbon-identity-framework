@@ -173,9 +173,9 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 //    }
 
     /**
-     * Convert metadata string to samlssoServiceProviderDO object
+     * Convert metadata string to FederatedAuthenticatorConfigobject
      *
-     * @param metadata ,samlssoServiceProviderDO
+     * @param entityDescriptor ,federatedAuthenticatorConfig
      * @return samlssoServiceProviderDO
      */
 
@@ -195,12 +195,18 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     Property properties[] = new Property[24];
                     Property property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
-                    property.setValue(entityDescriptor.getEntityID());
+                    if (entityDescriptor.getEntityID() != null) {
+                        property.setValue(entityDescriptor.getEntityID());
+
+                    } else {
+                        property.setValue("");
+                    }
                     properties[0] = property;
+
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID);
-                    property.setValue(null);//not available in the metadata specification
+                    property.setValue("");//not available in the metadata specification
                     properties[1] = property;
 
                     property = new Property();
@@ -210,7 +216,11 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     if (singleSignOnServices != null && singleSignOnServices.size() > 0) {
                         SingleSignOnService singleSignOnService = singleSignOnServices.get(0);
                         if (singleSignOnService != null) {
-                            property.setValue(singleSignOnService.getLocation());
+                            if (singleSignOnService.getLocation() != null) {
+                                property.setValue(singleSignOnService.getLocation());
+                            } else {
+                                property.setValue("");
+                            }
                         } else {
                             property.setValue("");
                         }
@@ -231,7 +241,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_ENABLED);
                     List<SingleLogoutService> singleLogoutServices = idpssoDescriptor.getSingleLogoutServices();
-                    if (CollectionUtils.isNotEmpty(singleLogoutServices)) {
+                    if (singleLogoutServices != null && CollectionUtils.isNotEmpty(singleLogoutServices)) {
                         property.setValue("true");
                     } else {
                         property.setValue("false");
@@ -243,19 +253,34 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
 
 
-                    if (CollectionUtils.isNotEmpty(singleLogoutServices)) {
+                    if (singleLogoutServices != null && CollectionUtils.isNotEmpty(singleLogoutServices)) {
                         boolean foundSingleLogoutServicePostBinding = false;
                         for (SingleLogoutService singleLogoutService : singleLogoutServices) {
 
-                            if (singleLogoutService.getBinding().equals(SAMLConstants.SAML2_POST_BINDING_URI)) {
-                                property.setValue(singleLogoutService.getLocation());
-                                foundSingleLogoutServicePostBinding = true;
-                                break;
+                            if (singleLogoutService != null) {
+                                if (singleLogoutService.getBinding() != null && singleLogoutService.getBinding().equals(SAMLConstants.SAML2_POST_BINDING_URI) && singleLogoutService.getLocation() != null) {
+                                    property.setValue(singleLogoutService.getLocation());
+                                    foundSingleLogoutServicePostBinding = true;
+                                    break;
+                                }
                             }
                         }
                         if (!foundSingleLogoutServicePostBinding) {
+                            for (SingleLogoutService singleLogoutService : singleLogoutServices) {
+
+                                if (singleLogoutService != null) {
+                                    if (singleLogoutService.getBinding() != null && singleLogoutService.getLocation() != null) {
+                                        property.setValue(singleLogoutService.getLocation());
+                                        foundSingleLogoutServicePostBinding = true;
+                                        break;
+                                    }
+                                }
+                            }
                         }
-                        property.setValue(singleLogoutServices.get(0).getLocation());
+                        if (!foundSingleLogoutServicePostBinding) {
+                            property.setValue("");
+                        }
+
 
                     } else {
                         property.setValue("");
@@ -264,94 +289,138 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_REQ_SIGNED);
-                    property.setValue(null);//not found in the metadata spec
+                    property.setValue("");//not found in the metadata spec
                     //TODO while running the code Debug and check for availability
 
                     properties[6] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[7] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_USER_ID_IN_CLAIMS);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[8] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_ENCRYPTION);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[9] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_SIGNING);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[10] = property;
+
+
+                    List<KeyDescriptor> descriptors = idpssoDescriptor.getKeyDescriptors();
+                    if (descriptors != null && descriptors.size() > 0) {
+                        for (int i = 0 ; i< descriptors.size();i++) {
+                            KeyDescriptor descriptor = descriptors.get(i);
+                            if (descriptor != null) {
+                                String use = "";
+                                try {
+                                    use = descriptor.getUse().name().toString();
+                                }catch (Exception ex){
+                                    log.error("Error !!!!", ex);
+                                }
+
+
+                                if (use !=null &&  use.equals("SIGNING")) {
+
+//                                    try {
+                                        properties[10].setValue("true");
+                                        //samlssoServiceProviderDO.setX509Certificate(org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0));
+                                        //samlssoServiceProviderDO.setCertAlias(entityDescriptor.getEntityID());
+//                                    } catch (java.security.cert.CertificateException ex) {
+//                                        log.error("Error While setting Certificate and alias", ex);
+//                                    } catch (java.lang.Exception ex) {
+//                                        log.error("Error While setting Certificate and alias", ex);
+//                                    }
+                                }
+                                else if (use !=null && use.equals("ENCRYPTION")) {
+
+//                                    try {
+                                    properties[9].setValue("true");
+                                    //samlssoServiceProviderDO.setX509Certificate(org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0));
+                                    //samlssoServiceProviderDO.setCertAlias(entityDescriptor.getEntityID());
+//                                    } catch (java.security.cert.CertificateException ex) {
+//                                        log.error("Error While setting Certificate and alias", ex);
+//                                    } catch (java.lang.Exception ex) {
+//                                        log.error("Error While setting Certificate and alias", ex);
+//                                    }
+                                }
+
+                            }
+                        }
+                    }
+
 
                     property = new Property();
                     property.setName("commonAuthQueryParams");//SAML querry param in the gui
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[11] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[12] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[13] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.DIGEST_ALGORITHM);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[14] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_COMPARISON_LEVEL);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[15] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_NAME_ID_POLICY);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[16] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.FORCE_AUTHENTICATION);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[17] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM_POST);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[18] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[19] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[20] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_CERT);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[21] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[22] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING);
-                    property.setValue(null);//TODO while running the code Debug and check for availability
+                    property.setValue("");//TODO while running the code Debug and check for availability
                     properties[23] = property;
 
                     federatedAuthenticatorConfig.setProperties(properties);
