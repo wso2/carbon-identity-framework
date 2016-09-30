@@ -20,13 +20,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.wso2.carbon.identity</groupId>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>entitlement</artifactId>
         <relativePath>../pom.xml</relativePath>
         <version>5.5.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>org.wso2.carbon.identity.entitlement.provider</artifactId>
+    <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
     <name>WSO2 Carbon - Entitlement REST</name>
     <packaging>war</packaging>
 
@@ -69,11 +69,7 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.provisioning</artifactId>
-            <scope>provided</scope>
+            <version>${identity.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>

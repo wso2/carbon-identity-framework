@@ -43,6 +43,11 @@
             <artifactId>org.wso2.carbon.identity.xacml.ui.feature</artifactId>
             <type>zip</type>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.xacml.endpoint.feature</artifactId>
+            <type>zip</type>
+        </dependency>
     </dependencies>
 
     <build>

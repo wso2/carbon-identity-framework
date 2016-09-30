@@ -33,6 +33,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.xacml.feature</module>
+        <module>org.wso2.carbon.identity.xacml.endpoint.feature</module>
         <module>org.wso2.carbon.identity.xacml.server.feature</module>
         <module>org.wso2.carbon.identity.xacml.ui.feature</module>
     </modules>
