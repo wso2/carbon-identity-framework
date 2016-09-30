@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AllEntitlementsResponse>
+    <entitledResultSetDTO>
+        <advanceResult>true</advanceResult>
+        <entitledAttributesDTOs>
+            <allActions>false</allActions>
+            <allResources>false</allResources>
+            <attributeDTOs>
+                <attributeDataType>http://www.w3.org/2001/XMLSchema#string</attributeDataType>
+                <attributeId>urn:oasis:names:tc:xacml:1.0:resource:resource-id</attributeId>
+                <attributeValue>http://127.0.0.1/service/very_secure/</attributeValue>
+                <category>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</category>
+            </attributeDTOs>
+            <attributeDTOs>
+                <attributeDataType>http://www.w3.org/2001/XMLSchema#string</attributeDataType>
+                <attributeId>urn:oasis:names:tc:xacml:1.0:action:action-id</attributeId>
+                <attributeValue>read</attributeValue>
+                <category>urn:oasis:names:tc:xacml:3.0:attribute-category:action</category>
+            </attributeDTOs>
+        </entitledAttributesDTOs>
+    </entitledResultSetDTO>
+</AllEntitlementsResponse>
