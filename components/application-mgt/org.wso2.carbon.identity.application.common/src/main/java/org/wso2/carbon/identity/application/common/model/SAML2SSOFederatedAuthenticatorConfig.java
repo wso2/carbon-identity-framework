@@ -180,7 +180,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
      */
 
 
-    private static FederatedAuthenticatorConfig parse(EntityDescriptor entityDescriptor, FederatedAuthenticatorConfig federatedAuthenticatorConfig) {
+    private static FederatedAuthenticatorConfig parse(EntityDescriptor entityDescriptor, FederatedAuthenticatorConfig federatedAuthenticatorConfig, StringBuilder builder) {
 
         if (entityDescriptor != null) {
             List<RoleDescriptor> roleDescriptors = entityDescriptor.getRoleDescriptors();
@@ -425,6 +425,33 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     federatedAuthenticatorConfig.setProperties(properties);
 
+                    //set certificates
+
+                    List<KeyDescriptor> descriptorsCert = idpssoDescriptor.getKeyDescriptors();
+                    if (descriptors != null && descriptors.size() > 0) {
+                        for(int i = 0 ; i< descriptors.size();i++) {
+                            KeyDescriptor descriptor = descriptors.get(i);
+                            if (descriptor != null) {
+                                if (descriptor.getUse()!=null && descriptor.getUse().toString().equals("SIGNING")) {
+
+                                    try {
+                                        builder.append (org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0)).toString();
+//                                        samlssoServiceProviderDO.setCertAlias(entityDescriptor.getEntityID());
+                                    } catch (java.security.cert.CertificateException ex) {
+                                        log.error("Error While setting Certificate", ex);
+                                    } catch (java.lang.Exception ex) {
+                                        log.error("Error While setting Certificate", ex);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+
+
+
+
                 }
             }
         }
@@ -433,13 +460,13 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
     }
 
 
-    public static FederatedAuthenticatorConfig build(OMElement saml2FederatedAuthenticatorConfigOM) {
+    public static FederatedAuthenticatorConfig build(OMElement saml2FederatedAuthenticatorConfigOM, StringBuilder builder) {
 
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         EntityDescriptor entityDescriptor = null;
         entityDescriptor = generateMetadataObjectFromString(saml2FederatedAuthenticatorConfigOM.toString());
         if (entityDescriptor != null) {
-            federatedAuthenticatorConfig = parse(entityDescriptor, federatedAuthenticatorConfig);
+            federatedAuthenticatorConfig = parse(entityDescriptor, federatedAuthenticatorConfig, builder);
         }
 
 

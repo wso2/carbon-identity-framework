@@ -4314,8 +4314,8 @@ function doValidation() {
               </thead>
               <tbody>
                   <tr>
-                      <td><span>File Location: </span><input type="file" id="metadataFromFileSystem"
-                                                         name="metadataFromFileSystem" size="50" /></td>
+                      <td><span>File Location: </span><input type="file" id="meta_data_saml"
+                                                         name="meta_data_saml" size="50" /></td>
                   </tr>
               <tr><td>
                       <%--<input type="button" value="<fmt:message key='saml.sso.upload'/>" class="button" onclick="doSubmit();"/>--%>

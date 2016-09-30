@@ -1282,15 +1282,30 @@ public class IdentityProviderManager implements IdpManager {
         MetadataConverter metadataConverter = new SAMLMetadataConverter();
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs [] = identityProvider.getFederatedAuthenticatorConfigs();
         for(int i = 0 ; i< federatedAuthenticatorConfigs.length;i++) {
-            if (metadataConverter.canHandle(federatedAuthenticatorConfigs[i])) {
-                try {
-                    federatedAuthenticatorConfigs[i] = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(federatedAuthenticatorConfigs[i]);
-                } catch (XMLStreamException e) {
 
-                    e.printStackTrace();
+            Property properties[] = federatedAuthenticatorConfigs[i].getProperties();
+            if (properties != null && properties.length != 0) {
+                for (int j = 0; j < properties.length; j++) {
+                    if (properties[j] != null) {
+                        if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
+                            if (properties[j].getValue() != null && properties[j].getValue().length()>0) {
+                                if(metadataConverter.canHandle(properties[j])){
+                                    try {
+                                        StringBuilder stringBuilder = new StringBuilder("");
+                                        federatedAuthenticatorConfigs[i].setProperties(metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(),stringBuilder).getProperties());
+                                        //TODO SET certificate to IDProvider
+                                        identityProvider.setCertificate(stringBuilder.toString());
+                                    } catch (XMLStreamException e) {
+
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-            }
 
+            }
         }
 
 
@@ -1355,16 +1370,32 @@ public class IdentityProviderManager implements IdpManager {
         MetadataConverter metadataConverter = new SAMLMetadataConverter();
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs [] = newIdentityProvider.getFederatedAuthenticatorConfigs();
         for(int i = 0 ; i< federatedAuthenticatorConfigs.length;i++) {
-            if (metadataConverter.canHandle(federatedAuthenticatorConfigs[i])) {
-                try {
-                    federatedAuthenticatorConfigs[i] = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(federatedAuthenticatorConfigs[i]);
-                } catch (XMLStreamException e) {
 
-                    e.printStackTrace();
+            Property properties[] = federatedAuthenticatorConfigs[i].getProperties();
+            if (properties != null && properties.length != 0) {
+                for (int j = 0; j < properties.length; j++) {
+                    if (properties[j] != null) {
+                        if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
+                            if (properties[j].getValue() != null && properties[j].getValue().length()>0) {
+                                if(metadataConverter.canHandle(properties[j])){
+                                    try {
+                                        StringBuilder stringBuilder = new StringBuilder("");
+                                        federatedAuthenticatorConfigs[i].setProperties(metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(),stringBuilder).getProperties());
+                                        //TODO SET certificate to IDProvider
+                                        newIdentityProvider.setCertificate(stringBuilder.toString());
+                                    } catch (XMLStreamException e) {
+
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-            }
 
+            }
         }
+
 
         // invoking the pre listeners
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();

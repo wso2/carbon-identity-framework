@@ -126,7 +126,7 @@ public class IdPManagementUIUtil {
                     if (StringUtils.equals(key, "idpUUID")) {
                         idpUUID = diskFileItem.getString();
                     }
-                    if ("metadataFromFileSystem".equals(key)) {
+                    if ("meta_data_saml".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     }
                     if ("certFile".equals(key)) {
@@ -1617,10 +1617,10 @@ public class IdPManagementUIUtil {
 
 
         property = new Property();
-        property.setName("metadataFromFileSystem");
+        property.setName("meta_data_saml");
 
-        if (paramMap.get("metadataFromFileSystem")!=null && paramMap.get("metadataFromFileSystem").length()>0) {
-            property.setValue(paramMap.get("metadataFromFileSystem"));
+        if (paramMap.get("meta_data_saml")!=null && paramMap.get("meta_data_saml").length()>0) {
+            property.setValue(paramMap.get("meta_data_saml"));
 
 
         } else {
