@@ -6,6 +6,8 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 
+import java.security.cert.X509Certificate;
+
 /**
  * Created by pasindutennage on 9/27/16.
  */
@@ -65,7 +67,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
         return original;
     }
 
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String metadata,StringBuilder stringBuilder) throws javax.xml.stream.XMLStreamException {
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String metadata,StringBuilder builder) throws javax.xml.stream.XMLStreamException {
         //invoke build method in FederatedAuthenticationConfig
         //Compare original federatedAuthenticationConfig vs the one returned by "parse" method
 //        Property properties[] = federatedAuthenticatorConfig.getProperties();
@@ -76,7 +78,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
 //                        String metadata = properties[i].getValue();
                         //parse metadata into OMElement object and build, returns a FederatedAuthenticationConfig object
                         OMElement element = AXIOMUtil.stringToOM(metadata);
-                        FederatedAuthenticatorConfig federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build(AXIOMUtil.stringToOM(metadata),stringBuilder);
+                        FederatedAuthenticatorConfig federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build(AXIOMUtil.stringToOM(metadata),builder);
 //                        //compare two files and add missing parametrs  validate
 //                        //FederatedAuthenticatorConfig federatedAuthenticatorConfigFinal = validate(federatedAuthenticatorConfig, federatedAuthenticatorConfigMetadata);
 //                        federatedAuthenticatorConfig.setProperties(federatedAuthenticatorConfigMetadata.getProperties());

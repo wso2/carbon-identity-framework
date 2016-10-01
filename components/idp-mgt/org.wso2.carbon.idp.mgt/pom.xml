@@ -71,6 +71,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <!--<version>1.4.0</version>-->
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -82,6 +83,7 @@
                         <Import-Package>
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
+                            javax.xml.stream, org.wso2.carbon.utils.multitenancy,
 
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",

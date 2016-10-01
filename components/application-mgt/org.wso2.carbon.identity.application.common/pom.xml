@@ -41,6 +41,10 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.ws.commons.axiom.wso2</groupId>
+            <artifactId>axiom</artifactId>
+        </dependency>
     </dependencies>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Identity Application Common Bundle</name>
@@ -69,7 +73,13 @@
                             javax.sql,
                             javax.xml.namespace,
                             javax.xml.stream,
+                            org.opensaml.xml.security,
+                            org.opensaml.xml.security.keyinfo,
                             org.opensaml.xml.security.credential,
+                            org.opensaml.xml.signature,
+                            org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
+
+
 
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",

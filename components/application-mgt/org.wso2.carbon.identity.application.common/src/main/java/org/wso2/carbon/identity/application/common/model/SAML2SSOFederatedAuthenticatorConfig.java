@@ -317,30 +317,29 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     List<KeyDescriptor> descriptors = idpssoDescriptor.getKeyDescriptors();
                     if (descriptors != null && descriptors.size() > 0) {
-                        for (int i = 0 ; i< descriptors.size();i++) {
+                        for (int i = 0; i < descriptors.size(); i++) {
                             KeyDescriptor descriptor = descriptors.get(i);
                             if (descriptor != null) {
                                 String use = "";
                                 try {
                                     use = descriptor.getUse().name().toString();
-                                }catch (Exception ex){
+                                } catch (Exception ex) {
                                     log.error("Error !!!!", ex);
                                 }
 
 
-                                if (use !=null &&  use.equals("SIGNING")) {
+                                if (use != null && use.equals("SIGNING")) {
 
 //                                    try {
-                                        properties[10].setValue("true");
-                                        //samlssoServiceProviderDO.setX509Certificate(org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0));
-                                        //samlssoServiceProviderDO.setCertAlias(entityDescriptor.getEntityID());
+                                    properties[10].setValue("true");
+                                    //samlssoServiceProviderDO.setX509Certificate(org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0));
+                                    //samlssoServiceProviderDO.setCertAlias(entityDescriptor.getEntityID());
 //                                    } catch (java.security.cert.CertificateException ex) {
 //                                        log.error("Error While setting Certificate and alias", ex);
 //                                    } catch (java.lang.Exception ex) {
 //                                        log.error("Error While setting Certificate and alias", ex);
 //                                    }
-                                }
-                                else if (use !=null && use.equals("ENCRYPTION")) {
+                                } else if (use != null && use.equals("ENCRYPTION")) {
 
 //                                    try {
                                     properties[9].setValue("true");
@@ -429,33 +428,52 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     List<KeyDescriptor> descriptorsCert = idpssoDescriptor.getKeyDescriptors();
                     if (descriptors != null && descriptors.size() > 0) {
-                        for(int i = 0 ; i< descriptors.size();i++) {
+                        for (int i = 0; i < descriptors.size(); i++) {
                             KeyDescriptor descriptor = descriptors.get(i);
                             if (descriptor != null) {
-                                if (descriptor.getUse()!=null && descriptor.getUse().toString().equals("SIGNING")) {
+                                if (descriptor.getUse() != null && descriptor.getUse().toString().equals("SIGNING")) {
 
                                     try {
-                                        builder.append (org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0)).toString();
+                                        String cert = null;
+                                        if(descriptor.getKeyInfo()!=null){
+                                            if(descriptor.getKeyInfo().getX509Datas()!=null && descriptor.getKeyInfo().getX509Datas().size()>0 ){
+                                                for(int k = 0 ; k< descriptor.getKeyInfo().getX509Datas().size();k++){
+                                                    if(descriptor.getKeyInfo().getX509Datas().get(k) != null  ){
+                                                        if(descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates()!= null && descriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates().size()>0){
+                                                            for(int y = 0 ; y< descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().size();y++){
+                                                                if(descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y)!=null){
+                                                                    if(descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue()!=null && descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().length()>0){
+                                                                       cert =  descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().toString();
+                                                                        builder.append(org.apache.axiom.om.util.Base64.encode(cert.getBytes()));
+                                                                        return federatedAuthenticatorConfig;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                    }
+                                                }
+                                            }
+                                        }
+//                                        String cert = descriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue().toString();
+//                                        builder.append(org.apache.axiom.om.util.Base64.encode(cert.getBytes()));
+//                                        builder.append(org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0)).toString();
 //                                        samlssoServiceProviderDO.setCertAlias(entityDescriptor.getEntityID());
-                                    } catch (java.security.cert.CertificateException ex) {
+                                    }  catch (java.lang.Exception ex) {
                                         log.error("Error While setting Certificate", ex);
-                                    } catch (java.lang.Exception ex) {
-                                        log.error("Error While setting Certificate", ex);
+                                        break;
                                     }
-                                    break;
                                 }
                             }
                         }
+
+
                     }
-
-
-
-
-
                 }
             }
-        }
 
+
+        }
         return federatedAuthenticatorConfig;
     }
 
