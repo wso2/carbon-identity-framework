@@ -3016,9 +3016,16 @@ function doValidation() {
 
     if (jQuery('#saml2SSOEnabled').attr('checked')) {
 
-        if ($('#idPEntityId').val() == "") {
-            CARBON.showWarningDialog('Identity Provider Entity Id cannot be empty');
-            return false;
+        if($('#meta_data_saml').val() == "") {
+
+            if ($('#idPEntityId').val() == "") {
+                CARBON.showWarningDialog('Identity Provider Entity Id cannot be empty');
+                return false;
+            }
+            if ($('#ssoUrl').val() == "") {
+                CARBON.showWarningDialog('SSO URL cannot be empty');
+                return false;
+            }
         }
 
         if ($('#spEntityId').val() == "") {
@@ -3026,10 +3033,7 @@ function doValidation() {
             return false;
         }
 
-        if ($('#ssoUrl').val() == "") {
-            CARBON.showWarningDialog('SSO URL cannot be empty');
-            return false;
-        }
+
 
     }
 

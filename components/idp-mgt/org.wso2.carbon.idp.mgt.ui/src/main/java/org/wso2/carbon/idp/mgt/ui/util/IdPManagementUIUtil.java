@@ -95,7 +95,7 @@ public class IdPManagementUIUtil {
 
 
         //get the String from the file
-        String a = null;
+
 
         IdentityProvider fedIdp = new IdentityProvider();
 
@@ -131,25 +131,6 @@ public class IdPManagementUIUtil {
                     }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
-
-                         a = org.apache.axiom.om.util.Base64.encode(("-----BEGIN CERTIFICATE-----\n" +
-                                 "MIIC+jCCAmOgAwIBAgIJAParOnPwEkKjMA0GCSqGSIb3DQEBBQUAMIGKMQswCQYD\n" +
-                                 "VQQGEwJMSzEQMA4GA1UECBMHV2VzdGVybjEQMA4GA1UEBxMHQ29sb21ibzEWMBQG\n" +
-                                 "A1UEChMNU29mdHdhcmUgVmlldzERMA8GA1UECxMIVHJhaW5pbmcxLDAqBgNVBAMT\n" +
-                                 "I1NvZnR3YXJlIFZpZXcgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDcxMDA2\n" +
-                                 "MzMwM1oXDTI0MDMxODA2MzMwM1owdjELMAkGA1UEBhMCTEsxEDAOBgNVBAgTB1dl\n" +
-                                 "c3Rlcm4xEDAOBgNVBAcTB0NvbG9tYm8xFjAUBgNVBAoTDVNvZnR3YXJlIFZpZXcx\n" +
-                                 "ETAPBgNVBAsTCFRyYWluaW5nMRgwFgYDVQQDEw9NeSBUZXN0IFNlcnZpY2UwgZ8w\n" +
-                                 "DQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAN6bi0llFz+R+93nLLK5BmnuF48tbODp\n" +
-                                 "MBH7yGZ1/ESVUZoYm0GaPzg/ai3rX3r8BEr4TUrhhpKUKBpFxZvb2q+yREIeDEkD\n" +
-                                 "bHJuyVdS6hvtfa89WMJtwc7gwYYkY8AoVJ94gU54GP2B6XyNpgDTXPd0d3aH/Zt6\n" +
-                                 "69xGAVoe/0iPAgMBAAGjezB5MAkGA1UdEwQCMAAwHQYDVR0OBBYEFNAwSamhuJSw\n" +
-                                 "XG0SJnWdIVF1PkW9MB8GA1UdIwQYMBaAFNa3YmhDO7BOwbUqmYU1k/U6p/UUMCwG\n" +
-                                 "CWCGSAGG+EIBDQQfFh1PcGVuU1NMIEdlbmVyYXRlZCBDZXJ0aWZpY2F0ZTANBgkq\n" +
-                                 "hkiG9w0BAQUFAAOBgQBwwC5H+U0a+ps4tDCicHQfC2SXRTgF7PlAu2rLfmJ7jyoD\n" +
-                                 "X+lFEoWDUoE5qkTpMjsR1q/+2j9eTyi9xGj5sby4yFvmXf8jS5L6zMkkezSb6QAv\n" +
-                                 "tSHcLfefKeidq6NDBJ8DhWHi/zvC9YbT0KkCToEgvCTBpRZgdSFxTJcUksqoFA==\n" +
-                                 "-----END CERTIFICATE-----").getBytes());
 
 
                     } else if ("google_prov_private_key".equals(key)) {
@@ -1004,7 +985,7 @@ public class IdPManagementUIUtil {
         buildOpenIDConnectAuthenticationConfiguration(fedIdp, paramMap);
 
         // build SAML authentication configuration.
-         buildSAMLAuthenticationConfiguration(fedIdp, paramMap);
+        buildSAMLAuthenticationConfiguration(fedIdp, paramMap);
 
         // build passive STS authentication configuration.
         buildPassiveSTSAuthenticationConfiguration(fedIdp, paramMap);
@@ -1640,7 +1621,7 @@ public class IdPManagementUIUtil {
         property = new Property();
         property.setName("meta_data_saml");
 
-        if (paramMap.get("meta_data_saml")!=null && paramMap.get("meta_data_saml").length()>0) {
+        if (paramMap.get("meta_data_saml") != null && paramMap.get("meta_data_saml").length() > 0) {
             property.setValue(paramMap.get("meta_data_saml"));
 
 
@@ -1653,14 +1634,22 @@ public class IdPManagementUIUtil {
         saml2SSOAuthnConfig.setProperties(properties);
 
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
-
-        if (paramMap.get("ssoUrl") != null && !"".equals(paramMap.get("ssoUrl"))
-                && paramMap.get("idPEntityId") != null && !"".equals(paramMap.get("idPEntityId"))) {
+        if (paramMap.get("meta_data_saml") != null && paramMap.get("meta_data_saml").length() > 0) {
             if (authenticators == null || authenticators.length == 0) {
                 fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig});
             } else {
                 fedIdp.setFederatedAuthenticatorConfigs(concatArrays(
                         new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig}, authenticators));
+            }
+        } else {
+            if (paramMap.get("ssoUrl") != null && !"".equals(paramMap.get("ssoUrl"))
+                    && paramMap.get("idPEntityId") != null && !"".equals(paramMap.get("idPEntityId"))) {
+                if (authenticators == null || authenticators.length == 0) {
+                    fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig});
+                } else {
+                    fedIdp.setFederatedAuthenticatorConfigs(concatArrays(
+                            new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig}, authenticators));
+                }
             }
         }
     }
