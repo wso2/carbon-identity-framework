@@ -49,57 +49,74 @@
         <parameter name="ServiceClass" locked="false">
             org.wso2.carbon.identity.mgt.services.UserIdentityManagementAdminService
         </parameter>
-		<operation name="getChallengeQuestionsOfUser">
-			<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
-		</operation>
-        <operation name="getAllChallengeQuestions">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        <operation name="getChallengeQuestionsOfUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            </parameter>
         </operation>
-		<operation name="setChallengeQuestionsOfUser">
-			<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
-		</operation>
+        <operation name="getAllChallengeQuestions">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            </parameter>
+        </operation>
+        <operation name="setChallengeQuestionsOfUser">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
+        </operation>
         <operation name="updateUserIdentityClaims">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
         <operation name="getAllUserIdentityClaims">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            </parameter>
         </operation>
         <operation name="changeUserPassword">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
         <operation name="updateUserIdentityClaims">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
-		<operation name="isReadOnlyUserStore">
-			<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
-		</operation>
+        <operation name="isReadOnlyUserStore">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            </parameter>
+        </operation>
         <operation name="deleteUser">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/delete
+            </parameter>
         </operation>
         <operation name="lockUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
         <operation name="unlockUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
         <operation name="disableUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
         <operation name="enableUserAccount">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/users</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
         <operation name="resetUserPassword">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security/usermgt/passwords</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
         </operation>
         <operation name="setChallengeQuestions">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            </parameter>
         </operation>
         <operation name="getAllPromotedUserChallenge">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            </parameter>
         </operation>
-        <parameter name="adminService" locked="false">true</parameter>
-        <parameter name="hiddenService" locked="false">true</parameter>
-        <parameter name="AuthorizationAction" locked="false">/permission/admin/configure/security</parameter>
-   </service>
+    </service>
+
+    <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/identitymgt</parameter>
+    <parameter name="adminService" locked="true">true</parameter>
+    <parameter name="hiddenService" locked="false">false</parameter>
 
 </serviceGroup>
