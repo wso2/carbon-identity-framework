@@ -1291,11 +1291,29 @@ public class IdentityProviderManager implements IdpManager {
                             if (properties[j].getValue() != null && properties[j].getValue().length()>0) {
                                 if(metadataConverter.canHandle(properties[j])){
                                     try {
+
+                                        String spName = "";
+                                        for(int y = 0 ; y< properties.length;y++){
+                                            if(properties[y]!=null && properties[y].getName()!=null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)){
+                                                spName = properties[y].getValue();
+                                                break;
+                                            }
+                                        }
+
+
                                         StringBuilder certificate  = new StringBuilder("");
                                         FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(),certificate);
+                                        if(metaFederated!=null && metaFederated.getProperties()!=null && metaFederated.getProperties().length>0) {
+                                            for(int y = 0 ; y< metaFederated.getProperties().length;y++){
+                                                if(metaFederated.getProperties()[y]!=null && metaFederated.getProperties()[y].getName()!=null && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)){
+                                                    metaFederated.getProperties()[y].setValue(spName);
+                                                    break;
+                                                }
+                                            }
 
-                                        federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
 
+                                            federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
+                                        }
                                         if(certificate.toString().length()>0) {
 
 
