@@ -25,6 +25,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.user.core.listener.AuthorizationManagerListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -42,6 +43,10 @@ import org.wso2.carbon.user.mgt.permission.ManagementPermissionsAdder;
  *                interface="org.wso2.carbon.user.core.service.RealmService"
  *                cardinality="1..1" policy="dynamic" bind="setRealmService"
  *                unbind="unsetRealmService"
+ * @scr.reference name="identityCoreInitializedEventService"
+ *                interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent"
+ *                cardinality="1..1" policy="dynamic" bind="setIdentityCoreInitializedEventService"
+ *                unbind="unsetIdentityCoreInitializedEventService"
  */
 public class UserMgtDSComponent {
     private static final Log log = LogFactory.getLog(UserMgtDSComponent.class);
@@ -124,6 +129,16 @@ public class UserMgtDSComponent {
             log.info("Unsetting the Realm Service");
         }
         UserMgtDSComponent.realmService = null;
+    }
+
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
     }
 
     public static RegistryService getRegistryService() {
