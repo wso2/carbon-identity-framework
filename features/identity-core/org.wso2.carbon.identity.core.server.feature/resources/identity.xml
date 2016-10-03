@@ -395,6 +395,11 @@
         </Question>
         <ExpiryTime>3</ExpiryTime>
         <NotifySuccess>true</NotifySuccess>
+        <AdminPasswordReset>
+            <Offline>true</Offline>
+            <OTP>true</OTP>
+            <RecoveryLink>true</RecoveryLink>
+        </AdminPasswordReset>
     </Recovery>
 
     <EmailVerification>
@@ -403,7 +408,9 @@
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
+        <AdminPasswordReset>true</AdminPasswordReset>
     </EmailVerification>
+
 
     <SelfRegistration>
         <Enable>true</Enable>
