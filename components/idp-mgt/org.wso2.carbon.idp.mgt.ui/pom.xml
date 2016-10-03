@@ -79,6 +79,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
+                            org.wso2.carbon,
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",

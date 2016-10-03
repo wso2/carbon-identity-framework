@@ -28,6 +28,7 @@ import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
@@ -121,14 +122,26 @@ public class IdPManagementUIUtil {
                 if (diskFileItem != null) {
                     byte[] value = diskFileItem.get();
                     String key = diskFileItem.getFieldName();
+//
 
 
                     if (StringUtils.equals(key, "idpUUID")) {
                         idpUUID = diskFileItem.getString();
                     }
+
                     if ("meta_data_saml".equals(key)) {
-                        paramMap.put(key, Base64.encode(value));
+
+                        if (diskFileItem.getName() != null && diskFileItem.getName().length()>0 &&  !diskFileItem.getName().toString().trim().endsWith(".xml")) {
+                            throw new CarbonException("File not supported!");
+
+                        } else {
+
+
+                            paramMap.put(key, Base64.encode(value));
+                        }
                     }
+
+
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
 
