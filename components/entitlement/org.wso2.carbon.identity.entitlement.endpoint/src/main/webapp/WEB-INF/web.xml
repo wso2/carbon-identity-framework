@@ -53,7 +53,7 @@
         <!-- set the base path for the swagger application -->
         <init-param>
             <param-name>swagger.api.basepath</param-name>
-            <param-value>https://localhost:9443/wso2-entitlement/entitlement</param-value>
+            <param-value>https://localhost:9443/entitlement/entitlement</param-value>
         </init-param>
     </servlet>
 

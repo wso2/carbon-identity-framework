@@ -164,7 +164,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <warName>wso2-entitlement</warName>
+                    <warName>entitlement</warName>
                 </configuration>
             </plugin>
         </plugins>

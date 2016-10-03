@@ -14,10 +14,10 @@ Design and implementation details of the endpoint is available at [http://manzzu
 Procedure
 --------
 
-1. Download the target/wso2-entitlement.war file
+1. Download the target/entitlement.war file
 2. Place it in your **{IS ROOT}/repository/deployement/server/webapps** (Tested for IS 5.2.0)
 3. You can hot deploy the war file as well
-4. Once deployed the WADL definitions for the service can be seen at, **https://localhost:9443/wso2-entitlement/entitlement/Decision?_wadl**
+4. Once deployed the WADL definitions for the service can be seen at, **https://localhost:9443/entitlement/entitlement/Decision?_wadl**
 5. The service curently support both JSON and XML
 6. TO test various service methods, use the curl requests and json/xml request definitions available under resources/curlTests
 
