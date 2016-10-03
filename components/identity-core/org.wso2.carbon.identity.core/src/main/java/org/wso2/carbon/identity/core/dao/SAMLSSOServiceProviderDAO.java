@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.core.dao;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -161,7 +162,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
     public boolean addServiceProvider(SAMLSSOServiceProviderDO serviceProviderDO)
             throws IdentityException {
         String path = null;
-        Resource resource;
+
 
         if (serviceProviderDO.getIssuer() != null) {
             path = IdentityRegistryResources.SAML_SSO_SERVICE_PROVIDERS
@@ -178,7 +179,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                 return false;
             }
 
-            resource = createResource(serviceProviderDO);
+            Resource resource = createResource(serviceProviderDO);
             try {
                 if (!isTransactionStarted) {
                     registry.beginTransaction();
@@ -262,8 +263,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         String doSignAssertions = serviceProviderDO.isDoSignAssertions() ? "true" : "false";
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS,
                 doSignAssertions);
-        if (serviceProviderDO.getRequestedClaimsList() != null
-                && serviceProviderDO.getRequestedClaimsList().size() > 0) {
+        if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedClaimsList())) {
             resource.setProperty(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_CLAIMS,
                     serviceProviderDO.getRequestedClaimsList());
         }
@@ -272,13 +272,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     IdentityRegistryResources.PROP_SAML_SSO_ATTRIB_CONSUMING_SERVICE_INDEX,
                     serviceProviderDO.getAttributeConsumingServiceIndex());
         }
-        if (serviceProviderDO.getRequestedAudiencesList() != null
-                && serviceProviderDO.getRequestedAudiencesList().size() > 0) {
+        if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedAudiencesList()) ) {
             resource.setProperty(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_AUDIENCES,
                     serviceProviderDO.getRequestedAudiencesList());
         }
-        if (serviceProviderDO.getRequestedRecipientsList() != null
-                && serviceProviderDO.getRequestedRecipientsList().size() > 0) {
+        if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedRecipientsList())) {
             resource.setProperty(IdentityRegistryResources.PROP_SAML_SSO_REQUESTED_RECIPIENTS,
                     serviceProviderDO.getRequestedRecipientsList());
         }
