@@ -30,6 +30,7 @@ import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.parse.BasicParserPool;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
@@ -51,7 +52,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
     //parse
 
 
-    private static EntityDescriptor generateMetadataObjectFromString(String metadataString) {
+    private static EntityDescriptor generateMetadataObjectFromString(String metadataString) throws IdentityApplicationManagementException {
         EntityDescriptor entityDescriptor = null;
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -66,7 +67,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
             XMLObject xmlObject = idpMetaDataProvider.getMetadata();
             entityDescriptor = (EntityDescriptor) xmlObject;
         } catch (MetadataProviderException | SAXException | ParserConfigurationException | IOException e) {
-            log.error("Error While reading Service Provider metadata xml", e);
+            throw new IdentityApplicationManagementException("Error while converting file content to entity descriptor");
         }
         return entityDescriptor;
     }
@@ -180,7 +181,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
      */
 
 
-    private static FederatedAuthenticatorConfig parse(EntityDescriptor entityDescriptor, FederatedAuthenticatorConfig federatedAuthenticatorConfig, StringBuilder builder) {
+    private static FederatedAuthenticatorConfig parse(EntityDescriptor entityDescriptor, FederatedAuthenticatorConfig federatedAuthenticatorConfig, StringBuilder builder) throws IdentityApplicationManagementException {
 
         if (entityDescriptor != null) {
             List<RoleDescriptor> roleDescriptors = entityDescriptor.getRoleDescriptors();
@@ -189,9 +190,13 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
             if (roleDescriptors != null && roleDescriptors.size() > 0) {
                 RoleDescriptor roleDescriptor = roleDescriptors.get(0);
                 if (roleDescriptor != null) {
-                    IDPSSODescriptor idpssoDescriptor = (IDPSSODescriptor) roleDescriptor;
 
-
+                    IDPSSODescriptor idpssoDescriptor;
+                    try {
+                        idpssoDescriptor = (IDPSSODescriptor) roleDescriptor;
+                    } catch (ClassCastException ex) {
+                        throw new IdentityApplicationManagementException("No IDP Descriptors found, invalid file content");
+                    }
                     Property properties[] = new Property[24];
                     Property property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
@@ -200,6 +205,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     } else {
                         property.setValue("");
+                        throw new IdentityApplicationManagementException("No Entity ID found, invalid file content");
                     }
                     properties[0] = property;
 
@@ -220,12 +226,15 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                                 property.setValue(singleSignOnService.getLocation());
                             } else {
                                 property.setValue("");
+                                throw new IdentityApplicationManagementException("No SSO URL, invalid file content");
                             }
                         } else {
                             property.setValue("");
+                            throw new IdentityApplicationManagementException("No SSO URL, invalid file content");
                         }
                     } else {
                         property.setValue("");
+                        throw new IdentityApplicationManagementException("No SSO URL, invalid file content");
                     }
                     properties[2] = property;
 
@@ -435,15 +444,15 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                                     try {
                                         String cert = null;
-                                        if(descriptor.getKeyInfo()!=null){
-                                            if(descriptor.getKeyInfo().getX509Datas()!=null && descriptor.getKeyInfo().getX509Datas().size()>0 ){
-                                                for(int k = 0 ; k< descriptor.getKeyInfo().getX509Datas().size();k++){
-                                                    if(descriptor.getKeyInfo().getX509Datas().get(k) != null  ){
-                                                        if(descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates()!= null && descriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates().size()>0){
-                                                            for(int y = 0 ; y< descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().size();y++){
-                                                                if(descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y)!=null){
-                                                                    if(descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue()!=null && descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().length()>0){
-                                                                       cert =  descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().toString();
+                                        if (descriptor.getKeyInfo() != null) {
+                                            if (descriptor.getKeyInfo().getX509Datas() != null && descriptor.getKeyInfo().getX509Datas().size() > 0) {
+                                                for (int k = 0; k < descriptor.getKeyInfo().getX509Datas().size(); k++) {
+                                                    if (descriptor.getKeyInfo().getX509Datas().get(k) != null) {
+                                                        if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates() != null && descriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates().size() > 0) {
+                                                            for (int y = 0; y < descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().size(); y++) {
+                                                                if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y) != null) {
+                                                                    if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue() != null && descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().length() > 0) {
+                                                                        cert = descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().toString();
                                                                         builder.append(org.apache.axiom.om.util.Base64.encode(cert.getBytes()));
                                                                         return federatedAuthenticatorConfig;
                                                                     }
@@ -459,7 +468,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 //                                        builder.append(org.apache.axiom.om.util.Base64.encode(cert.getBytes()));
 //                                        builder.append(org.opensaml.xml.security.keyinfo.KeyInfoHelper.getCertificates(descriptor.getKeyInfo()).get(0)).toString();
 //                                        samlssoServiceProviderDO.setCertAlias(entityDescriptor.getEntityID());
-                                    }  catch (java.lang.Exception ex) {
+                                    } catch (java.lang.Exception ex) {
                                         log.error("Error While setting Certificate", ex);
                                         break;
                                     }
@@ -470,6 +479,8 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     }
                 }
+            } else {
+                throw new IdentityApplicationManagementException("No Role Descriptors found, invalid file content");
             }
 
 
@@ -478,13 +489,15 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
     }
 
 
-    public static FederatedAuthenticatorConfig build(OMElement saml2FederatedAuthenticatorConfigOM, StringBuilder builder) {
+    public static FederatedAuthenticatorConfig build(OMElement saml2FederatedAuthenticatorConfigOM, StringBuilder builder) throws IdentityApplicationManagementException {
 
         FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
         EntityDescriptor entityDescriptor = null;
         entityDescriptor = generateMetadataObjectFromString(saml2FederatedAuthenticatorConfigOM.toString());
         if (entityDescriptor != null) {
             federatedAuthenticatorConfig = parse(entityDescriptor, federatedAuthenticatorConfig, builder);
+        } else {
+            throw new IdentityApplicationManagementException("Error while trying to convert to metadata, Invalid file content");
         }
 
 

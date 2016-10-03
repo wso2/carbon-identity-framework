@@ -1,5 +1,6 @@
 package org.wso2.carbon.idp.mgt;
 
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 
@@ -19,7 +20,7 @@ public interface MetadataConverter {
     public boolean canHandle(Property property);
     //using property name
 
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String name,StringBuilder  builder) throws  javax.xml.stream.XMLStreamException ;
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String name,StringBuilder  builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException ;
     //invoke parse method in FederatedAuthenticationConfig
     //Compare original federatedAuthenticationConfig vs the one returned by "parse" method
 

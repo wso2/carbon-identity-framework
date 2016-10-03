@@ -1298,6 +1298,8 @@ public class IdentityProviderManager implements IdpManager {
                                                 spName = properties[y].getValue();
                                                 break;
                                             }
+                                        }if(spName.equals("")){
+                                            throw new IdentityProviderManagementException("SP name can't be empty");
                                         }
 
 
@@ -1313,6 +1315,8 @@ public class IdentityProviderManager implements IdpManager {
 
 
                                             federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
+                                        }else {
+                                            throw new IdentityProviderManagementException("Error setting metadata using file");
                                         }
                                         if(certificate.toString().length()>0) {
 
@@ -1321,8 +1325,8 @@ public class IdentityProviderManager implements IdpManager {
 
                                         }
                                     } catch (XMLStreamException e) {
+                                        throw new IdentityProviderManagementException(e.getMessage());
 
-                                        e.printStackTrace();
                                     }
                                 }
                             }
@@ -1412,6 +1416,8 @@ public class IdentityProviderManager implements IdpManager {
                                                 spName = properties[y].getValue();
                                                 break;
                                             }
+                                        }if(spName.equals("")){
+                                            throw new IdentityProviderManagementException("SP name can't be empty");
                                         }
 
 
@@ -1427,6 +1433,8 @@ public class IdentityProviderManager implements IdpManager {
 
 
                                             federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
+                                        }else {
+                                            throw new IdentityProviderManagementException("Error setting metadata using file");
                                         }
                                         if(certificate.toString().length()>0) {
 
@@ -1435,8 +1443,8 @@ public class IdentityProviderManager implements IdpManager {
 
                                         }
                                     } catch (XMLStreamException e) {
+                                        throw new IdentityProviderManagementException(e.getMessage());
 
-                                        e.printStackTrace();
                                     }
                                 }
                             }
