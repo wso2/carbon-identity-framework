@@ -410,7 +410,6 @@
         </Notification>
     </EmailVerification>
 
-
     <SelfRegistration>
         <Enable>true</Enable>
         <LockOnCreation>true</LockOnCreation>
