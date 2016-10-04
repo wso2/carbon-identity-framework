@@ -25,7 +25,6 @@
 		<parameter name="ServiceClass" locked="false">
 			org.wso2.carbon.identity.mgt.services.UserInformationRecoveryService
 		</parameter>
-		<parameter name="adminService" locked="true">true</parameter>
 		<parameter name="hiddenService" locked="false">false</parameter>
 		<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
 	</service>
