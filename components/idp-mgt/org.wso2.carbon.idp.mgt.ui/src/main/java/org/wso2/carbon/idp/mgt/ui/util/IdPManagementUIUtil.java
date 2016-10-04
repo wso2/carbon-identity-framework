@@ -122,30 +122,19 @@ public class IdPManagementUIUtil {
                 if (diskFileItem != null) {
                     byte[] value = diskFileItem.get();
                     String key = diskFileItem.getFieldName();
-//
-
-
                     if (StringUtils.equals(key, "idpUUID")) {
                         idpUUID = diskFileItem.getString();
                     }
-
                     if ("meta_data_saml".equals(key)) {
 
-                        if (diskFileItem.getName() != null && diskFileItem.getName().length()>0 &&  !diskFileItem.getName().toString().trim().endsWith(".xml")) {
+                        if (diskFileItem.getName() != null && diskFileItem.getName().length() > 0 && !diskFileItem.getName().toString().trim().endsWith(".xml")) {
                             throw new CarbonException("File not supported!");
-
                         } else {
-
-
                             paramMap.put(key, Base64.encode(value));
                         }
                     }
-
-
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
-
-
                     } else if ("google_prov_private_key".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith("claimrowname_")) {
@@ -1435,7 +1424,6 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
         }
 
-
         Property[] properties;
 
 
@@ -1630,14 +1618,10 @@ public class IdPManagementUIUtil {
         }
         properties[23] = property;
 
-
         property = new Property();
         property.setName("meta_data_saml");
-
         if (paramMap.get("meta_data_saml") != null && paramMap.get("meta_data_saml").length() > 0) {
             property.setValue(paramMap.get("meta_data_saml"));
-
-
         } else {
             property.setValue(null);
         }

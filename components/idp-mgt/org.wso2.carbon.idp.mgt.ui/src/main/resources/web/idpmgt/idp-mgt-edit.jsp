@@ -3846,7 +3846,7 @@
             }
 
             <%}%>
-        }else{
+        } else {
             CARBON.showWarningDialog('Select a valid IDP metadata file');
             return false;
         }

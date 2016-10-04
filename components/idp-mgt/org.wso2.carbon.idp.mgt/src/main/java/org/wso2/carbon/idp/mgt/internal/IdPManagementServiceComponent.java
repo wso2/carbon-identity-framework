@@ -61,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.wso2.carbon.registry.core.service.RegistryService;
 
 /**
@@ -165,7 +166,7 @@ public class IdPManagementServiceComponent {
             } else {
                 log.error("Identity Provider Management - TenantMgtListener could not be registered");
             }
-            
+
             ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
                     UserOperationEventListener.class.getName(), new UserStoreListener(), null);
             if (userOperationListenerSR != null) {
@@ -177,7 +178,7 @@ public class IdPManagementServiceComponent {
             ServiceRegistration auditLoggerSR = bundleCtx.registerService(IdentityProviderMgtListener.class.getName()
                     , new IDPMgtAuditLogger(), null);
 
-            if(auditLoggerSR != null) {
+            if (auditLoggerSR != null) {
                 log.debug("Identity Provider Management - Audit Logger registered");
             } else {
                 log.error("Identity Provider Management - Error while registering Audit Logger");
@@ -342,21 +343,21 @@ public class IdPManagementServiceComponent {
     }
 
     private static Comparator<IdentityProviderMgtListener> idpMgtListenerComparator =
-            new Comparator<IdentityProviderMgtListener>(){
+            new Comparator<IdentityProviderMgtListener>() {
 
-        @Override
-        public int compare(IdentityProviderMgtListener identityProviderMgtListener1,
-                           IdentityProviderMgtListener identityProviderMgtListener2) {
+                @Override
+                public int compare(IdentityProviderMgtListener identityProviderMgtListener1,
+                                   IdentityProviderMgtListener identityProviderMgtListener2) {
 
-            if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener1.getExecutionOrderId()) {
-                return 1;
-            } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener1.getExecutionOrderId()) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-    };
+                    if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener1.getExecutionOrderId()) {
+                        return 1;
+                    } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener1.getExecutionOrderId()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
 
     private static void addSuperTenantIdp() throws Exception {
 

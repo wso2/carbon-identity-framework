@@ -58,7 +58,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <!--<version>1.4.0</version>-->
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -78,17 +77,11 @@
                             org.opensaml.xml.security.credential,
                             org.opensaml.xml.signature,
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
-
-
-
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
-
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-
-
                             javax.xml.parsers; version="[0.0.0,1.0.0)",
                             org.opensaml.common.xml,
                             org.opensaml.saml2.metadata,
@@ -99,11 +92,6 @@
                             org.wso2.carbon.base,
                             org.wso2.carbon.user.core,
                             org.xml.sax,
-
-
-
-
-
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",

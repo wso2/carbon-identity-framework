@@ -1,31 +1,34 @@
+/*
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.carbon.idp.mgt;
 
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
-
-import java.security.cert.X509Certificate;
 
 /**
  * Created by pasindutennage on 9/26/16.
  */
 public interface MetadataConverter {
 
-    //Convertfrom, to xml
-    //can handle (property
-    //
-    // )
+    boolean canHandle(Property property);
 
+    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String name, StringBuilder builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;
 
-    public boolean canHandle(Property property);
-    //using property name
-
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String name,StringBuilder  builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException ;
-    //invoke parse method in FederatedAuthenticationConfig
-    //Compare original federatedAuthenticationConfig vs the one returned by "parse" method
-
-
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingXMLToString (FederatedAuthenticatorConfig federatedAuthenticatorConfig);
-    //get SAML parameters from parameter and create the xml string and set it as a property
+    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingXMLToString(FederatedAuthenticatorConfig federatedAuthenticatorConfig);
 
 }

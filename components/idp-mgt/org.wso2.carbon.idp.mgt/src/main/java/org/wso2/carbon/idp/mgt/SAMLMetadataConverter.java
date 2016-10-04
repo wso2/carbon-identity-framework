@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.carbon.idp.mgt;
 
 import org.apache.axiom.om.OMElement;
@@ -7,16 +24,18 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 
-import java.security.cert.X509Certificate;
-
 /**
  * Created by pasindutennage on 9/27/16.
  */
 public class SAMLMetadataConverter implements MetadataConverter {
 
+    /**
+     * Retrieves whether this property contains SAML Metadata     *
+     *
+     * @param property
+     * @return boolean     *
+     */
     public boolean canHandle(Property property) {
-        //checks whether this type of federatedAuthenticatorConfig contains a property with the name "meta_data_saml"
-
         if (property != null) {
             String meta = property.getName();
             if (meta != null && meta.contains("saml")) {
@@ -24,29 +43,27 @@ public class SAMLMetadataConverter implements MetadataConverter {
             } else {
                 return false;
             }
-
         } else {
             return false;
         }
-
-
     }
 
+    /**
+     * Compares original federatedAuthenticationConfig and the meta data generated FederationAuthenticatorConfig and returns the final federatedAuthenticatorConfig object
+     *
+     * @param original,metaPassed
+     * @return FederatedAuthenticatorConfig     *
+     */
     private FederatedAuthenticatorConfig validate(FederatedAuthenticatorConfig original, FederatedAuthenticatorConfig metaPassed) {
-
-        //original gets modified and it's returned
         Property propertiesOriginal[] = original.getProperties();//size 25
         Property propertiesMetadata[] = metaPassed.getProperties();//size 24
-
-        for (int i = 0; i < 24; i++) {
+        for (int i = 0; i < propertiesMetadata.length; i++) {
             Property propertyMetadata = propertiesMetadata[i];
             if (propertyMetadata != null) {
                 String propertyMetaName = propertyMetadata.getName();
                 String propertyMetaValue = propertyMetadata.getValue();
-
                 if (propertyMetaName != null && propertyMetaName.length() > 0) {
-
-                    for (int j = 0; j < 25; j++) {
+                    for (int j = 0; j < propertiesOriginal.length; j++) {
                         Property propertyOrigin = propertiesOriginal[j];
                         if (propertyOrigin != null) {
                             String propertyOriginName = propertyOrigin.getName();
@@ -68,16 +85,15 @@ public class SAMLMetadataConverter implements MetadataConverter {
         return original;
     }
 
+    /**
+     * Returns a FederatuedAuthenticatorConfigObject that is generated using metadata
+     *
+     * @param metadata,builder
+     * @return FederatedAuthenticatorConfig
+     * @throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException
+     */
     public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String metadata, StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
-        //invoke build method in FederatedAuthenticationConfig
-        //Compare original federatedAuthenticationConfig vs the one returned by "parse" method
-//        Property properties[] = federatedAuthenticatorConfig.getProperties();
-//        if (properties != null && properties.length != 0) {
-//            for (int i = 0; i < properties.length; i++) {
-//                if (properties != null) {
-//                    if (properties[i].getName() != null && properties[i].getName().equals("meta_data_saml")) {
-//                        String metadata = properties[i].getValue();
-        //parse metadata into OMElement object and build, returns a FederatedAuthenticationConfig object
+
         OMElement element;
         try {
             element = AXIOMUtil.stringToOM(metadata);
@@ -86,29 +102,16 @@ public class SAMLMetadataConverter implements MetadataConverter {
         }
         FederatedAuthenticatorConfig federatedAuthenticatorConfigMetadata;
         try {
-             federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build(element, builder);
-        }catch(IdentityApplicationManagementException ex){
+            federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build(element, builder);
+        } catch (IdentityApplicationManagementException ex) {
             throw new IdentityProviderManagementException("Invalid file content");
         }
-//                        //compare two files and add missing parametrs  validate
-//                        //FederatedAuthenticatorConfig federatedAuthenticatorConfigFinal = validate(federatedAuthenticatorConfig, federatedAuthenticatorConfigMetadata);
-//                        federatedAuthenticatorConfig.setProperties(federatedAuthenticatorConfigMetadata.getProperties());
-//                        return federatedAuthenticatorConfig;
-//                    }
-//                }
-//            }
-//        } else {
-//
-//        }
-//
-//
-//        return null;
         return federatedAuthenticatorConfigMetadata;
     }
 
 
     public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingXMLToString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) {
-        //get SAML parameters from parameter and create the xml string and set it as a property
+
         return null;
     }
 
