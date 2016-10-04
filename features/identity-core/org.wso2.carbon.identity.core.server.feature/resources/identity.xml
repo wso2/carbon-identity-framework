@@ -408,7 +408,6 @@
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
-        <AdminPasswordReset>true</AdminPasswordReset>
     </EmailVerification>
 
 
