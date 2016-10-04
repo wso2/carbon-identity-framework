@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resources xmlns="http://ietf.org/ns/home-documents">
+    <resources rel="http://docs.oasis-open.org/ns/xacml/relation/pdp">
+        <link href="/pdp"/>
+    </resources>
+</resources>

@@ -1,0 +1,8 @@
+<AllEntitlementsRequest>
+    <givenAttributes>
+        <attributeId>urn:oasis:names:tc:xacml:1.0:resource:resource-id</attributeId>
+        <attributeDataType>http://www.w3.org/2001/XMLSchema#string</attributeDataType>
+        <attributeValue>foo</attributeValue>
+        <attributeCategory>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</attributeCategory>
+    </givenAttributes>
+</AllEntitlementsRequest>
