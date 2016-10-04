@@ -81,9 +81,16 @@
                             org.wso2.carbon.idp.mgt.internal
                         </Private-Package>
                         <Import-Package>
+
+                            org.wso2.carbon.registry.core,
+                            org.wso2.carbon.registry.core.exceptions,
+                            org.wso2.carbon.registry.core.jdbc.utils,
+                            org.wso2.carbon.registry.core.service,
+                            org.wso2.carbon.registry.core.session,
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            javax.xml.stream, org.wso2.carbon.utils.multitenancy,
+                            javax.xml.stream,
+                            org.wso2.carbon.utils.multitenancy,
 
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
@@ -105,17 +112,12 @@
 
 
 
-                            org.wso2.carbon.identity.application.common.*;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.*;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.base;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.persistence;
-                            version="${carbon.identity.package.import.version.range}",
-
-                            org.wso2.carbon;
-                            version="${carbon.kernel.package.import.version.range}";
+                            org.wso2.carbon.identity.application.common.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.persistence;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
+                            org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.idp.mgt.internal,

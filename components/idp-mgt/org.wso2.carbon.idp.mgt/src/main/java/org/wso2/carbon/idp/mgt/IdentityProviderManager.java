@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.IdentityRegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -51,6 +52,12 @@ import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.Resource;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
+import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -78,6 +85,8 @@ public class IdentityProviderManager implements IdpManager {
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
 
+    private static RegistryService registryService;
+
     private IdentityProviderManager() {
 
     }
@@ -87,6 +96,14 @@ public class IdentityProviderManager implements IdpManager {
      */
     public static IdentityProviderManager getInstance() {
         return instance;
+    }
+
+    public static RegistryService getRegistryService() {
+        return registryService;
+    }
+
+    public static void setRegistryService(RegistryService registryService) {
+        IdentityProviderManager.registryService = registryService;
     }
 
     /**
@@ -570,13 +587,13 @@ public class IdentityProviderManager implements IdpManager {
         FederatedAuthenticatorConfig idpPropertiesResidentAuthenticatorConfig = IdentityApplicationManagementUtil
                 .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
                         IdentityApplicationConstants.NAME);
-        if(idpPropertiesResidentAuthenticatorConfig == null){
+        if (idpPropertiesResidentAuthenticatorConfig == null) {
             idpPropertiesResidentAuthenticatorConfig = new FederatedAuthenticatorConfig();
             idpPropertiesResidentAuthenticatorConfig.setName(IdentityApplicationConstants.NAME);
         }
         List<Property> propertiesList = new ArrayList<Property>(Arrays.asList(idpPropertiesResidentAuthenticatorConfig.getProperties()));
-        if(IdentityApplicationManagementUtil.getProperty(idpPropertiesResidentAuthenticatorConfig.getProperties(),
-                IdentityApplicationConstants.CLEAN_UP_PERIOD) == null){
+        if (IdentityApplicationManagementUtil.getProperty(idpPropertiesResidentAuthenticatorConfig.getProperties(),
+                IdentityApplicationConstants.CLEAN_UP_PERIOD) == null) {
             Property cleanUpPeriodProp = new Property();
             cleanUpPeriodProp.setName(IdentityApplicationConstants.CLEAN_UP_PERIOD);
             String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
@@ -604,7 +621,7 @@ public class IdentityProviderManager implements IdpManager {
         passiveStsProperty.setValue(IdPManagementUtil.getResidentIdPEntityId());
 
         FederatedAuthenticatorConfig passiveStsAuthenticationConfig = new FederatedAuthenticatorConfig();
-        passiveStsAuthenticationConfig.setProperties(new Property[] { passiveStsProperty });
+        passiveStsAuthenticationConfig.setProperties(new Property[]{passiveStsProperty});
         passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
 
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
@@ -709,8 +726,8 @@ public class IdentityProviderManager implements IdpManager {
 
     /**
      * Retrieves registered Identity finally {
-                    break;
-                }providers for a given tenant
+     * break;
+     * }providers for a given tenant
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
      * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
@@ -812,7 +829,7 @@ public class IdentityProviderManager implements IdpManager {
      * @param tenantDomain Tenant domain whose information is requested
      * @return <code>IdentityProvider</code> Identity Provider information
      * @throws IdentityProviderManagementException Error when getting Identity Provider
-     *                                                information by IdP name
+     *                                             information by IdP name
      */
     @Override
     public IdentityProvider getIdPByName(String idPName, String tenantDomain)
@@ -826,7 +843,7 @@ public class IdentityProviderManager implements IdpManager {
      * @param tenantDomain
      * @return <code>IdentityProvider</code> Identity Provider information
      * @throws IdentityProviderManagementException Error when getting Identity Provider
-     *                                                information by authenticator property value
+     *                                             information by authenticator property value
      */
     @Override
     public IdentityProvider getIdPByAuthenticatorPropertyValue(String property, String value, String tenantDomain,
@@ -858,7 +875,7 @@ public class IdentityProviderManager implements IdpManager {
      * @param tenantDomain Tenant domain whose information is requested
      * @return <code>IdentityProvider</code> Identity Provider information
      * @throws IdentityProviderManagementException Error when getting Identity Provider
-     *                                                information by IdP name
+     *                                             information by IdP name
      */
     @Override
     public IdentityProvider getEnabledIdPByName(String idPName, String tenantDomain)
@@ -878,7 +895,7 @@ public class IdentityProviderManager implements IdpManager {
      *                     requested
      * @param tenantDomain Tenant domain whose information is requested
      * @throws IdentityProviderManagementException Error when getting Identity Provider
-     *                                                information by IdP home realm identifier
+     *                                             information by IdP home realm identifier
      */
     @Override
     public IdentityProvider getIdPByRealmId(String realmId, String tenantDomain)
@@ -905,7 +922,7 @@ public class IdentityProviderManager implements IdpManager {
      *                     requested
      * @param tenantDomain Tenant domain whose information is requested
      * @throws IdentityProviderManagementException Error when getting Identity Provider
-     *                                                information by IdP home realm identifier
+     *                                             information by IdP home realm identifier
      */
     @Override
     public IdentityProvider getEnabledIdPByRealmId(String realmId, String tenantDomain)
@@ -1213,7 +1230,7 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param identityProvider new Identity Provider information
      * @throws IdentityProviderManagementException Error when adding Identity Provider
-     *                                                information
+     *                                             information
      */
     @Override
     public void addIdP(IdentityProvider identityProvider, String tenantDomain)
@@ -1274,40 +1291,42 @@ public class IdentityProviderManager implements IdpManager {
         }
 
 
-
-
         //TODO SAMKMetadataConverter
 
-
+        String metadata = "";
+        String spName = "";
+        String idpName = identityProvider.getIdentityProviderName();
+        String entityId = "";
         MetadataConverter metadataConverter = new SAMLMetadataConverter();
-        FederatedAuthenticatorConfig federatedAuthenticatorConfigs [] = identityProvider.getFederatedAuthenticatorConfigs();
-        for(int i = 0 ; i< federatedAuthenticatorConfigs.length;i++) {
+        FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = identityProvider.getFederatedAuthenticatorConfigs();
+        for (int i = 0; i < federatedAuthenticatorConfigs.length; i++) {
 
             Property properties[] = federatedAuthenticatorConfigs[i].getProperties();
             if (properties != null && properties.length != 0) {
                 for (int j = 0; j < properties.length; j++) {
                     if (properties[j] != null) {
                         if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
-                            if (properties[j].getValue() != null && properties[j].getValue().length()>0) {
-                                if(metadataConverter.canHandle(properties[j])){
+                            if (properties[j].getValue() != null && properties[j].getValue().length() > 0) {
+                                if (metadataConverter.canHandle(properties[j])) {
                                     try {
 
-                                        String spName = "";
-                                        for(int y = 0 ; y< properties.length;y++){
-                                            if(properties[y]!=null && properties[y].getName()!=null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)){
+
+                                        for (int y = 0; y < properties.length; y++) {
+                                            if (properties[y] != null && properties[y].getName() != null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
                                                 spName = properties[y].getValue();
                                                 break;
                                             }
-                                        }if(spName.equals("")){
+                                        }
+                                        if (spName.equals("")) {
                                             throw new IdentityProviderManagementException("SP name can't be empty");
                                         }
 
-
-                                        StringBuilder certificate  = new StringBuilder("");
-                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(),certificate);
-                                        if(metaFederated!=null && metaFederated.getProperties()!=null && metaFederated.getProperties().length>0) {
-                                            for(int y = 0 ; y< metaFederated.getProperties().length;y++){
-                                                if(metaFederated.getProperties()[y]!=null && metaFederated.getProperties()[y].getName()!=null && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)){
+                                        metadata = properties[j].getValue();
+                                        StringBuilder certificate = new StringBuilder("");
+                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(), certificate);
+                                        if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
+                                            for (int y = 0; y < metaFederated.getProperties().length; y++) {
+                                                if (metaFederated.getProperties()[y] != null && metaFederated.getProperties()[y].getName() != null && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
                                                     metaFederated.getProperties()[y].setValue(spName);
                                                     break;
                                                 }
@@ -1315,10 +1334,20 @@ public class IdentityProviderManager implements IdpManager {
 
 
                                             federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
-                                        }else {
+
+                                            for (int o = 0; o < metaFederated.getProperties().length; o++) {
+                                                if (metaFederated.getProperties()[o].getName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID)) {
+                                                    entityId = metaFederated.getProperties()[o].getValue();
+                                                    break;
+                                                }
+
+                                            }
+
+
+                                        } else {
                                             throw new IdentityProviderManagementException("Error setting metadata using file");
                                         }
-                                        if(certificate.toString().length()>0) {
+                                        if (certificate.toString().length() > 0) {
 
 
                                             identityProvider.setCertificate(certificate.toString());
@@ -1338,10 +1367,71 @@ public class IdentityProviderManager implements IdpManager {
         }
 
 
-
-
-
         validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
+
+        if (spName != null && spName.length() > 0 &&
+                idpName != null && idpName.length() > 0 &&
+                metadata != null && metadata.length() > 0 &&
+                entityId != null && entityId.length() > 0
+                ) {
+            //save metadata to registry
+            try {
+
+                UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
+                //User Registry
+                org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
+                idpCollection.setProperty("IDPFolderName", "IDP");
+
+
+
+                String path = IdentityRegistryResources.IDENTITY_PATH+"config/";
+                Resource resource;
+
+
+                boolean isTransactionStarted = Transaction.isStarted();
+                try {
+                    if (registry.resourceExists(path)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Identity Provider already exists with the same IDP Name") ;
+                        }
+                        throw new IdentityProviderManagementException("Identity provider already exists");
+                    }
+
+                    resource = registry.newResource();
+                    resource.setContent(metadata);
+
+                    try {
+                        if (!isTransactionStarted) {
+                            registry.beginTransaction();
+                        }
+
+                        registry.put(path, resource);
+
+                        if (!isTransactionStarted) {
+                            registry.commitTransaction();
+                        }
+
+                    } catch (RegistryException e) {
+                        if (!isTransactionStarted) {
+                            registry.rollbackTransaction();
+                        }
+                        throw new IdentityProviderManagementException("Error while saving metadata to registry");
+                    }
+
+                } catch (RegistryException e) {
+                    throw new IdentityProviderManagementException("Error while Identity Provider.", e);
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Identity Provider " + idpName + " is added successfully.");
+                }
+
+
+            } catch (RegistryException e) {
+                throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");
+            }
+
+        }
 
         dao.addIdP(identityProvider, tenantId, tenantDomain);
 
@@ -1353,12 +1443,18 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
+    private String encodePath(String path) {
+        String encodedStr = new String(org.apache.commons.codec.binary.Base64.encodeBase64(path.getBytes()));
+        return encodedStr.replace("=", "");
+    }
+
+
     /**
      * Deletes an Identity Provider from a given tenant
      *
      * @param idPName Name of the IdP to be deleted
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
-     *                                                information
+     *                                             information
      */
     @Override
     public void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
@@ -1388,44 +1484,44 @@ public class IdentityProviderManager implements IdpManager {
      * @param oldIdPName          existing Identity Provider name
      * @param newIdentityProvider new IdP information
      * @throws IdentityProviderManagementException Error when updating Identity Provider
-     *                                                information
+     *                                             information
      */
     @Override
     public void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider,
                           String tenantDomain) throws IdentityProviderManagementException {
 
 
-
 //
         MetadataConverter metadataConverter = new SAMLMetadataConverter();
-        FederatedAuthenticatorConfig federatedAuthenticatorConfigs [] = newIdentityProvider.getFederatedAuthenticatorConfigs();
-        for(int i = 0 ; i< federatedAuthenticatorConfigs.length;i++) {
+        FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = newIdentityProvider.getFederatedAuthenticatorConfigs();
+        for (int i = 0; i < federatedAuthenticatorConfigs.length; i++) {
 
             Property properties[] = federatedAuthenticatorConfigs[i].getProperties();
             if (properties != null && properties.length != 0) {
                 for (int j = 0; j < properties.length; j++) {
                     if (properties[j] != null) {
                         if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
-                            if (properties[j].getValue() != null && properties[j].getValue().length()>0) {
-                                if(metadataConverter.canHandle(properties[j])){
+                            if (properties[j].getValue() != null && properties[j].getValue().length() > 0) {
+                                if (metadataConverter.canHandle(properties[j])) {
                                     try {
 
                                         String spName = "";
-                                        for(int y = 0 ; y< properties.length;y++){
-                                            if(properties[y]!=null && properties[y].getName()!=null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)){
+                                        for (int y = 0; y < properties.length; y++) {
+                                            if (properties[y] != null && properties[y].getName() != null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
                                                 spName = properties[y].getValue();
                                                 break;
                                             }
-                                        }if(spName.equals("")){
+                                        }
+                                        if (spName.equals("")) {
                                             throw new IdentityProviderManagementException("SP name can't be empty");
                                         }
 
 
-                                        StringBuilder certificate  = new StringBuilder("");
-                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(),certificate);
-                                        if(metaFederated!=null && metaFederated.getProperties()!=null && metaFederated.getProperties().length>0) {
-                                            for(int y = 0 ; y< metaFederated.getProperties().length;y++){
-                                                if(metaFederated.getProperties()[y]!=null && metaFederated.getProperties()[y].getName()!=null && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)){
+                                        StringBuilder certificate = new StringBuilder("");
+                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(), certificate);
+                                        if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
+                                            for (int y = 0; y < metaFederated.getProperties().length; y++) {
+                                                if (metaFederated.getProperties()[y] != null && metaFederated.getProperties()[y].getName() != null && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
                                                     metaFederated.getProperties()[y].setValue(spName);
                                                     break;
                                                 }
@@ -1433,10 +1529,10 @@ public class IdentityProviderManager implements IdpManager {
 
 
                                             federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
-                                        }else {
+                                        } else {
                                             throw new IdentityProviderManagementException("Error setting metadata using file");
                                         }
-                                        if(certificate.toString().length()>0) {
+                                        if (certificate.toString().length() > 0) {
 
 
                                             newIdentityProvider.setCertificate(certificate.toString());
@@ -1467,12 +1563,6 @@ public class IdentityProviderManager implements IdpManager {
         //TODO
 
         //TODO
-
-
-
-
-
-
 
 
         if (IdPManagementServiceComponent.getFileBasedIdPs().containsKey(
@@ -1520,21 +1610,12 @@ public class IdentityProviderManager implements IdpManager {
                 } catch (UserStoreException e) {
                     String msg = "Error occurred while retrieving UserStoreManager for tenant "
                             + tenantDomain;
-                    throw new IdentityProviderManagementException(msg,e);
+                    throw new IdentityProviderManagementException(msg, e);
                 }
             }
         }
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-
-
-
-
-
-
-
-
-
 
 
         validateUpdateOfIdPEntityId(currentIdentityProvider.getFederatedAuthenticatorConfigs(),
@@ -1556,7 +1637,7 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @return <code>FederatedAuthenticatorConfig</code> array.
      * @throws IdentityProviderManagementException Error when getting authenticators registered
-     *                                                in the system
+     *                                             in the system
      */
     @Override
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators()

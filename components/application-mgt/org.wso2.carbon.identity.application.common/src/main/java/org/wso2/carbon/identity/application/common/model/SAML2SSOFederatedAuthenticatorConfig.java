@@ -218,17 +218,22 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
                     List<SingleSignOnService> singleSignOnServices = idpssoDescriptor.getSingleSignOnServices();
-                    //assuming there is only one ssoservice;
+
                     if (singleSignOnServices != null && singleSignOnServices.size() > 0) {
-                        SingleSignOnService singleSignOnService = singleSignOnServices.get(0);
-                        if (singleSignOnService != null) {
-                            if (singleSignOnService.getLocation() != null) {
-                                property.setValue(singleSignOnService.getLocation());
-                            } else {
-                                property.setValue("");
-                                throw new IdentityApplicationManagementException("No SSO URL, invalid file content");
+                        boolean found = false;
+                        for (int j = 0; j < singleSignOnServices.size(); j++) {
+
+
+                            SingleSignOnService singleSignOnService = singleSignOnServices.get(j);
+                            if (singleSignOnService != null) {
+                                if (singleSignOnService.getLocation() != null) {
+                                    property.setValue(singleSignOnService.getLocation());
+                                    found = true;
+                                    break;
+                                }
                             }
-                        } else {
+                        }
+                        if(!found){
                             property.setValue("");
                             throw new IdentityApplicationManagementException("No SSO URL, invalid file content");
                         }
@@ -299,28 +304,28 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_REQ_SIGNED);
                     property.setValue("");//not found in the metadata spec
-                    //TODO while running the code Debug and check for availability
+                    //Not found in the MEtadata Spec
 
                     properties[6] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[7] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_USER_ID_IN_CLAIMS);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[8] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_ENCRYPTION);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[9] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_SIGNING);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");///not found in the metadata spec
                     properties[10] = property;
 
 
@@ -368,67 +373,67 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     property = new Property();
                     property.setName("commonAuthQueryParams");//SAML querry param in the gui
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[11] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[12] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[13] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.DIGEST_ALGORITHM);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[14] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_COMPARISON_LEVEL);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[15] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_NAME_ID_POLICY);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[16] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.FORCE_AUTHENTICATION);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[17] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM_POST);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[18] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[19] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[20] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_CERT);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[21] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[22] = property;
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING);
-                    property.setValue("");//TODO while running the code Debug and check for availability
+                    property.setValue("");//not found in the metadata spec
                     properties[23] = property;
 
                     federatedAuthenticatorConfig.setProperties(properties);

@@ -41,6 +41,7 @@ import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -50,6 +51,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,12 +61,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.wso2.carbon.registry.core.service.RegistryService;
 
 /**
  * @scr.component name="idp.mgt.dscomponent" immediate="true"
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
+ * @scr.reference name="registry.service"
+ * interface="org.wso2.carbon.registry.core.service.RegistryService"
+ * cardinality="1..1" policy="dynamic" bind="setRegistryService"
+ * unbind="unsetRegistryService"
  * @scr.reference name="config.context.service"
  * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
  * policy="dynamic" bind="setConfigurationContextService"
@@ -85,12 +92,31 @@ public class IdPManagementServiceComponent {
     private static RealmService realmService = null;
 
     private static ConfigurationContextService configurationContextService = null;
+    private static RegistryService registryService;
 
     private static Map<String, IdentityProvider> fileBasedIdPs = new HashMap<String, IdentityProvider>();
 
     private static Set<String> sharedIdps = new HashSet<String>();
 
     private static volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
+
+    protected void setRegistryService(RegistryService registryService) {
+        if (log.isDebugEnabled()) {
+            log.debug("RegistryService set in Identity idp-mgt bundle");
+        }
+        try {
+            IdentityProviderManager.setRegistryService(registryService);
+        } catch (Throwable e) {
+            log.error("Failed to get a reference to the Registry in idp-mgt bundle", e);
+        }
+    }
+
+    protected void unsetRegistryService(RegistryService registryService) {
+        if (log.isDebugEnabled()) {
+            log.debug("RegistryService unset in SAML SSO bundle");
+        }
+        IdentityProviderManager.setRegistryService(null);
+    }
 
     /**
      * @return
