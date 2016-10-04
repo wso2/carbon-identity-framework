@@ -113,10 +113,10 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
             </parameter>
         </operation>
+        <parameter name="adminService" locked="true">true</parameter>
     </service>
 
     <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/identitymgt</parameter>
-    <parameter name="adminService" locked="true">true</parameter>
     <parameter name="hiddenService" locked="false">false</parameter>
 
 </serviceGroup>
