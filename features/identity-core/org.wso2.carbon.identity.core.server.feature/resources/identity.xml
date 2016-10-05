@@ -396,8 +396,8 @@
         <ExpiryTime>3</ExpiryTime>
         <NotifySuccess>true</NotifySuccess>
         <AdminPasswordReset>
-            <Offline>true</Offline>
-            <OTP>true</OTP>
+            <!--<Offline>true</Offline>-->
+            <!--<OTP>true</OTP>-->
             <RecoveryLink>true</RecoveryLink>
         </AdminPasswordReset>
     </Recovery>
