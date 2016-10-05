@@ -60,7 +60,6 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-
 import javax.xml.stream.XMLStreamException;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
@@ -1231,11 +1230,11 @@ public class IdentityProviderManager implements IdpManager {
      * @param tenantId
      * @throws IdentityProviderManagementException
      */
-    private void handleMetadta(IdentityProvider identityProvider, int tenantId) throws IdentityProviderManagementException {
+    private void handleMetadta(IdentityProvider identityProvider, int tenantId, StringBuilder idpName,StringBuilder metadata) throws IdentityProviderManagementException {
 
-        String metadata = "";
+
         String spName = "";
-        String idpName = identityProvider.getIdentityProviderName();
+        idpName.append(identityProvider.getIdentityProviderName());
         String entityId = "";
         MetadataConverter metadataConverter = new SAMLMetadataConverter();
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = identityProvider.getFederatedAuthenticatorConfigs();
@@ -1262,7 +1261,7 @@ public class IdentityProviderManager implements IdpManager {
                                             throw new IdentityProviderManagementException("SP name can't be empty");
                                         }
 
-                                        metadata = properties[j].getValue();
+                                        metadata.append(properties[j].getValue());
                                         StringBuilder certificate = new StringBuilder("");
                                         FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(), certificate);
                                         if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
@@ -1303,13 +1302,7 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        if (spName != null && spName.length() > 0 &&
-                idpName != null && idpName.length() > 0 &&
-                metadata != null && metadata.length() > 0 &&
-                entityId != null && entityId.length() > 0
-                ) {
-            addMetaDataToRegistry(tenantId, idpName, metadata);
-        }
+
     }
 
     /**
@@ -1487,8 +1480,19 @@ public class IdentityProviderManager implements IdpManager {
                     + identityProvider.getIdentityProviderName() + " for tenant " + tenantDomain;
             throw new IdentityProviderManagementException(msg);
         }
-        handleMetadta(identityProvider, tenantId);
+        StringBuilder idpName = new StringBuilder("");
+        StringBuilder metadata = new StringBuilder("");
+
+        handleMetadta(identityProvider, tenantId,idpName,metadata);
+
         validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
+        if (
+                idpName != null && idpName.toString().length() > 0 &&
+                        metadata != null && metadata.toString().length() > 0
+                ) {
+
+            addMetaDataToRegistry(tenantId, idpName.toString(), metadata.toString());
+        }
         dao.addIdP(identityProvider, tenantId, tenantDomain);
 
         // invoking the post listeners
@@ -1718,11 +1722,11 @@ public class IdentityProviderManager implements IdpManager {
      * @param newIdentityProvider, tenantId
      * @throws IdentityProviderManagementException
      **/
-    private void handleMetadataWhileUpdatingIdp(IdentityProvider newIdentityProvider, int tenantId) throws IdentityProviderManagementException {
+    private void handleMetadataWhileUpdatingIdp(IdentityProvider newIdentityProvider, int tenantId, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
 
-        String metadata = "";
+
         String spName = "";
-        String idpName = newIdentityProvider.getIdentityProviderName();
+        idpName.append(newIdentityProvider.getIdentityProviderName());
         String entityId = "";
         MetadataConverter metadataConverter = new SAMLMetadataConverter();
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = newIdentityProvider.getFederatedAuthenticatorConfigs();
@@ -1748,7 +1752,7 @@ public class IdentityProviderManager implements IdpManager {
                                             throw new IdentityProviderManagementException("SP name can't be empty");
                                         }
 
-                                        metadata = properties[j].getValue();
+                                        metadata.append(properties[j].getValue());
                                         StringBuilder certificate = new StringBuilder("");
                                         FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(), certificate);
                                         if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
@@ -1784,14 +1788,7 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        if (spName != null && spName.length() > 0 &&
-                idpName != null && idpName.length() > 0 &&
-                metadata != null && metadata.length() > 0 &&
-                entityId != null && entityId.length() > 0
-                ) {
-            //save metadata to registry
-            updateMetadataInRegistry(tenantId, idpName, metadata);
-        }
+
     }
 
     /**
@@ -1807,7 +1804,9 @@ public class IdentityProviderManager implements IdpManager {
                           String tenantDomain) throws IdentityProviderManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        handleMetadataWhileUpdatingIdp(newIdentityProvider, tenantId);
+        StringBuilder idpName = new StringBuilder("");
+        StringBuilder metadata = new StringBuilder("");
+        handleMetadataWhileUpdatingIdp(newIdentityProvider, tenantId,idpName,metadata);
         // invoking the pre listeners
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1869,6 +1868,15 @@ public class IdentityProviderManager implements IdpManager {
         validateUpdateOfIdPEntityId(currentIdentityProvider.getFederatedAuthenticatorConfigs(),
                 newIdentityProvider.getFederatedAuthenticatorConfigs(),
                 tenantId, tenantDomain);
+
+        if (
+                idpName != null && idpName.toString().length() > 0 &&
+                metadata != null && metadata.toString().length() > 0
+
+                ) {
+            //save metadata to registry
+            updateMetadataInRegistry(tenantId, idpName.toString(), metadata.toString());
+        }
 
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
 
