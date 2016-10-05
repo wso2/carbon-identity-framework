@@ -1243,10 +1243,10 @@ public class IdentityProviderManager implements IdpManager {
             Property properties[] = federatedAuthenticatorConfigs[i].getProperties();
             if (properties != null && properties.length != 0) {
 
-                for (int j = 0; j < properties.length; j++) {
+                for (int j = 0; j < properties.length; j++) {//TODO CollectionUTIL
                     if (properties[j] != null) {
                         if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
-                            if (properties[j].getValue() != null && properties[j].getValue().length() > 0) {
+                            if (properties[j].getValue() != null && properties[j].getValue().length() > 0) {//TODO
                                 if (metadataConverter.canHandle(properties[j])) {
                                     try {
 
@@ -1256,10 +1256,11 @@ public class IdentityProviderManager implements IdpManager {
                                                 break;
                                             }
                                         }
+                                        //TODO pass property array
 
                                         if (spName.equals("")) {
                                             throw new IdentityProviderManagementException("SP name can't be empty");
-                                        }
+                                        }//TODO in the implementation
 
                                         metadata.append(properties[j].getValue());
                                         StringBuilder certificate = new StringBuilder("");
@@ -1271,7 +1272,7 @@ public class IdentityProviderManager implements IdpManager {
                                                     metaFederated.getProperties()[y].setValue(spName);
                                                     break;
                                                 }
-                                            }
+                                            }//TODO
 
                                             federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
 
@@ -1280,7 +1281,7 @@ public class IdentityProviderManager implements IdpManager {
                                                     entityId = metaFederated.getProperties()[o].getValue();
                                                     break;
                                                 }
-                                            }
+                                            }//TODO
 
                                         } else {
                                             throw new IdentityProviderManagementException("Error setting metadata using file");
@@ -1290,7 +1291,7 @@ public class IdentityProviderManager implements IdpManager {
 
                                         }
                                     } catch (XMLStreamException e) {
-                                        throw new IdentityProviderManagementException(e.getMessage());
+                                        throw new IdentityProviderManagementException(e.getMessage());//TODO own Message, e
 
                                     }
                                 }
@@ -1328,7 +1329,7 @@ public class IdentityProviderManager implements IdpManager {
                 if (!registry.resourceExists(identityProvidersPath)) {
                     boolean isTransactionStarted = Transaction.isStarted();
                     org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
-                    try {
+                    try {//TODO Use only one transaction
 
                         if (!isTransactionStarted) {
                             registry.beginTransaction();
