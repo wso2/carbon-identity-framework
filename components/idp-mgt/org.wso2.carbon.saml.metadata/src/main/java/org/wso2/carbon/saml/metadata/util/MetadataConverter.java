@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.idp.mgt;
+package org.wso2.carbon.saml.metadata.util;
 
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
@@ -27,7 +27,7 @@ public interface MetadataConverter {
 
     boolean canHandle(Property property);
 
-    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;
+    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws IdentityProviderSAMLException, javax.xml.stream.XMLStreamException;
 
     FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingXMLToString(FederatedAuthenticatorConfig federatedAuthenticatorConfig);
 

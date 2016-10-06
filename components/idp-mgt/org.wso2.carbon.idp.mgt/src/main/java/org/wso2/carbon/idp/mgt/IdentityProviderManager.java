@@ -58,6 +58,9 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
+import org.wso2.carbon.saml.metadata.util.IdentityProviderSAMLException;
+import org.wso2.carbon.saml.metadata.util.MetadataConverter;
+import org.wso2.carbon.saml.metadata.util.SAMLMetadataConverter;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -87,6 +90,8 @@ public class IdentityProviderManager implements IdpManager {
 
     private static RegistryService registryService;
 
+    private static MetadataConverter metadataConverter;
+
     private IdentityProviderManager() {
 
     }
@@ -104,6 +109,14 @@ public class IdentityProviderManager implements IdpManager {
 
     public static void setRegistryService(RegistryService registryService) {
         IdentityProviderManager.registryService = registryService;
+    }
+
+    public static MetadataConverter getMetadataConverter() {
+        return metadataConverter;
+    }
+
+    public static void setMetadataConverter(MetadataConverter metadataConverter) {
+        IdentityProviderManager.metadataConverter = metadataConverter;
     }
 
     /**
@@ -1234,7 +1247,6 @@ public class IdentityProviderManager implements IdpManager {
     private void handleMetadta(IdentityProvider identityProvider, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
 
         idpName.append(identityProvider.getIdentityProviderName());
-        MetadataConverter metadataConverter = new SAMLMetadataConverter();
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = identityProvider.getFederatedAuthenticatorConfigs();
 
         for (int i = 0; i < federatedAuthenticatorConfigs.length; i++) {
@@ -1250,11 +1262,15 @@ public class IdentityProviderManager implements IdpManager {
 
                                     metadata.append(properties[j].getValue());
                                     StringBuilder certificate = new StringBuilder("");
-                                    FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties, certificate);
-                                    if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
-                                        federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
-                                    } else {
-                                        throw new IdentityProviderManagementException("Error setting metadata using file");
+                                    try {
+                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties, certificate);
+                                        if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
+                                            federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
+                                        } else {
+                                            throw new IdentityProviderManagementException("Error setting metadata using file");
+                                        }
+                                    }catch(IdentityProviderSAMLException ex){
+                                        throw new IdentityProviderManagementException("Error converting metadata",ex);
                                     }
                                     if (certificate.toString().length() > 0) {
                                         identityProvider.setCertificate(certificate.toString());

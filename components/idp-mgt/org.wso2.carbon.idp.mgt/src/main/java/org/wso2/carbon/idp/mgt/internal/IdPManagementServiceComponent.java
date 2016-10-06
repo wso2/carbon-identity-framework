@@ -42,6 +42,7 @@ import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.saml.metadata.util.MetadataConverter;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -85,6 +86,11 @@ import org.wso2.carbon.registry.core.service.RegistryService;
  * cardinality="0..n" policy="dynamic"
  * bind="setIdentityProviderMgtListenerService"
  * unbind="unsetIdentityProviderMgtListenerService"
+ * @scr.reference name="MetadataConverter"
+ * interface="org.wso2.carbon.saml.metadata.util.MetadataConverter"
+ * cardinality="0..n" policy="dynamic"
+ * bind="setMetadataConverterService"
+ * unbind="unsetMetadataConverterService"
  */
 public class IdPManagementServiceComponent {
 
@@ -103,7 +109,7 @@ public class IdPManagementServiceComponent {
 
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
-            log.debug("RegistryService set in Identity idp-mgt bundle");
+            log.debug("Metadata Converter in Identity idp-mgt bundle");
         }
         try {
             IdentityProviderManager.setRegistryService(registryService);
@@ -117,6 +123,24 @@ public class IdPManagementServiceComponent {
             log.debug("RegistryService unset in SAML SSO bundle");
         }
         IdentityProviderManager.setRegistryService(null);
+    }
+
+    protected void setMetadataConverterService(MetadataConverter converter) {
+        if (log.isDebugEnabled()) {
+            log.debug("Metadata converter set in Identity idp-mgt bundle");
+        }
+        try {
+            IdentityProviderManager.setMetadataConverter(converter);
+        } catch (Throwable e) {
+            log.error("Failed to get a reference to the Metadata Converter in idp-mgt bundle", e);
+        }
+    }
+
+    protected void unsetMetadataConverterService(MetadataConverter metadataConverter) {
+        if (log.isDebugEnabled()) {
+            log.debug("MetadataConverter unset in idp-mgt");
+        }
+        IdentityProviderManager.setMetadataConverter(null);
     }
 
     /**
