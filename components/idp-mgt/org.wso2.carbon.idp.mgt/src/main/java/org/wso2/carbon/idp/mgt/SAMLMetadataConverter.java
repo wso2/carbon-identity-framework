@@ -17,12 +17,15 @@
  */
 package org.wso2.carbon.idp.mgt;
 
+
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
+import org.apache.commons.lang.ArrayUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 
 /**
  * Created by pasindutennage on 9/27/16.
@@ -39,7 +42,10 @@ public class SAMLMetadataConverter implements MetadataConverter {
         if (property != null) {
             String meta = property.getName();
             if (meta != null && meta.contains("saml")) {
-                return true;
+                if (property.getValue() != null && property.getValue().length() > 0){
+                    return true;
+                }
+                    return false;
             } else {
                 return false;
             }
@@ -92,7 +98,24 @@ public class SAMLMetadataConverter implements MetadataConverter {
      * @return FederatedAuthenticatorConfig
      * @throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException
      */
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String metadata, StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
+
+        String spName = "";
+        String metadata = "";
+        for (int y = 0; y < properties.length; y++) {
+            if (properties[y] != null && properties[y].getName() != null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                spName = properties[y].getValue();
+            }
+            if (properties[y] != null && properties[y].getName() != null && properties[y].getName().toString().equals("meta_data_saml")) {
+                metadata = properties[y].getValue();
+            }
+        }
+        if (spName.equals("")) {
+            throw new IdentityProviderManagementException("SP name can't be empty");
+        }
+        if (metadata.equals("")) {
+            throw new IdentityProviderManagementException("No metadata found");
+        }
 
         OMElement element;
         try {
@@ -105,6 +128,14 @@ public class SAMLMetadataConverter implements MetadataConverter {
             federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build(element, builder);
         } catch (IdentityApplicationManagementException ex) {
             throw new IdentityProviderManagementException("Invalid file content");
+        }
+        if(federatedAuthenticatorConfigMetadata!=null && ArrayUtils.isNotEmpty(federatedAuthenticatorConfigMetadata.getProperties())) {
+            for (int y = 0; y < federatedAuthenticatorConfigMetadata.getProperties().length; y++) {
+                if (federatedAuthenticatorConfigMetadata.getProperties()[y] != null && federatedAuthenticatorConfigMetadata.getProperties()[y].getName() != null && federatedAuthenticatorConfigMetadata.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                    federatedAuthenticatorConfigMetadata.getProperties()[y].setValue(spName);
+                    break;
+                }
+            }
         }
         return federatedAuthenticatorConfigMetadata;
     }

@@ -160,8 +160,8 @@ public class IdentityRegistryResources {
     public static final String GOVERNANCE_REGISTRY_IDENTIFIER = "gov";
 
     //IDP metadata
-    public static final String BASEPATH =IdentityRegistryResources.IDENTITY_PATH+"config/";
-    public static final String IDENTITYPROVIDERSPATH = BASEPATH + "IDP/";
-    public static final String SAMPIDPPATH = IDENTITYPROVIDERSPATH + "SAML/";
+    //path /repository/identity/provider/saml
+    public static final String IDENTITYPROVIDER =IdentityRegistryResources.IDENTITY_PATH+"provider/";
+    public static final String SAMLIDP = IDENTITYPROVIDER + "saml/";
 
 }

@@ -27,7 +27,7 @@ public interface MetadataConverter {
 
     boolean canHandle(Property property);
 
-    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(String name, StringBuilder builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;
+    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;
 
     FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingXMLToString(FederatedAuthenticatorConfig federatedAuthenticatorConfig);
 

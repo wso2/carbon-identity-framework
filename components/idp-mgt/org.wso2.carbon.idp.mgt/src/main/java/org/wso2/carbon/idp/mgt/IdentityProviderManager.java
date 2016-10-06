@@ -20,6 +20,7 @@ package org.wso2.carbon.idp.mgt;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,6 +61,7 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
 import javax.xml.stream.XMLStreamException;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
@@ -1227,83 +1229,46 @@ public class IdentityProviderManager implements IdpManager {
      * If metadata file is available, creates a new FederatedAuthenticatorConfig from that
      *
      * @param identityProvider
-     * @param tenantId
      * @throws IdentityProviderManagementException
      */
-    private void handleMetadta(IdentityProvider identityProvider, int tenantId, StringBuilder idpName,StringBuilder metadata) throws IdentityProviderManagementException {
+    private void handleMetadta(IdentityProvider identityProvider, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
 
-
-        String spName = "";
         idpName.append(identityProvider.getIdentityProviderName());
-        String entityId = "";
         MetadataConverter metadataConverter = new SAMLMetadataConverter();
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = identityProvider.getFederatedAuthenticatorConfigs();
 
         for (int i = 0; i < federatedAuthenticatorConfigs.length; i++) {
             Property properties[] = federatedAuthenticatorConfigs[i].getProperties();
-            if (properties != null && properties.length != 0) {
+            if (ArrayUtils.isNotEmpty(properties)) {
 
-                for (int j = 0; j < properties.length; j++) {//TODO CollectionUTIL
+                for (int j = 0; j < properties.length; j++) {
                     if (properties[j] != null) {
                         if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
-                            if (properties[j].getValue() != null && properties[j].getValue().length() > 0) {//TODO
-                                if (metadataConverter.canHandle(properties[j])) {
-                                    try {
 
-                                        for (int y = 0; y < properties.length; y++) {
-                                            if (properties[y] != null && properties[y].getName() != null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
-                                                spName = properties[y].getValue();
-                                                break;
-                                            }
-                                        }
-                                        //TODO pass property array
+                            if (metadataConverter.canHandle(properties[j])) {
+                                try {
 
-                                        if (spName.equals("")) {
-                                            throw new IdentityProviderManagementException("SP name can't be empty");
-                                        }//TODO in the implementation
-
-                                        metadata.append(properties[j].getValue());
-                                        StringBuilder certificate = new StringBuilder("");
-                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(), certificate);
-                                        if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
-
-                                            for (int y = 0; y < metaFederated.getProperties().length; y++) {
-                                                if (metaFederated.getProperties()[y] != null && metaFederated.getProperties()[y].getName() != null && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
-                                                    metaFederated.getProperties()[y].setValue(spName);
-                                                    break;
-                                                }
-                                            }//TODO
-
-                                            federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
-
-                                            for (int o = 0; o < metaFederated.getProperties().length; o++) {
-                                                if (metaFederated.getProperties()[o].getName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID)) {
-                                                    entityId = metaFederated.getProperties()[o].getValue();
-                                                    break;
-                                                }
-                                            }//TODO
-
-                                        } else {
-                                            throw new IdentityProviderManagementException("Error setting metadata using file");
-                                        }
-                                        if (certificate.toString().length() > 0) {
-                                            identityProvider.setCertificate(certificate.toString());
-
-                                        }
-                                    } catch (XMLStreamException e) {
-                                        throw new IdentityProviderManagementException(e.getMessage());//TODO own Message, e
+                                    metadata.append(properties[j].getValue());
+                                    StringBuilder certificate = new StringBuilder("");
+                                    FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties, certificate);
+                                    if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
+                                        federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
+                                    } else {
+                                        throw new IdentityProviderManagementException("Error setting metadata using file");
+                                    }
+                                    if (certificate.toString().length() > 0) {
+                                        identityProvider.setCertificate(certificate.toString());
 
                                     }
+                                } catch (XMLStreamException e) {
+                                    throw new IdentityProviderManagementException("Error while configuring metadata", e);
                                 }
                             }
                         }
                     }
                 }
-
             }
         }
-
-
     }
 
     /**
@@ -1317,94 +1282,48 @@ public class IdentityProviderManager implements IdpManager {
         try {
 
             UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
-            String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDERSPATH;
-            String samlIdpPath = IdentityRegistryResources.SAMPIDPPATH;
+            String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDER;
+            String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + encodePath(idpName);
             Resource resource;
             resource = registry.newResource();
             resource.setContent(metadata);
 
+
+            boolean isTransactionStarted = Transaction.isStarted();
+            if (!isTransactionStarted) {
+                registry.beginTransaction();
+            }
+
             try {
-
                 if (!registry.resourceExists(identityProvidersPath)) {
-                    boolean isTransactionStarted = Transaction.isStarted();
+
                     org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
-                    try {//TODO Use only one transaction
+                    registry.put(identityProvidersPath, idpCollection);
 
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
-
-                        registry.put(identityProvidersPath, idpCollection);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {
-
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-
-                        throw new IdentityProviderManagementException("Error while creating IDP path in registry");
-                    }
                 }
-
                 if (!registry.resourceExists(samlIdpPath)) {
 
-                    boolean isTransactionStarted = Transaction.isStarted();
                     org.wso2.carbon.registry.core.Collection samlIdpCollection = registry.newCollection();
-                    try {
+                    registry.put(samlIdpPath, samlIdpCollection);
 
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
-
-                        registry.put(samlIdpPath, samlIdpCollection);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {
-
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-                        throw new IdentityProviderManagementException("Error while creating SAMLIDP path in registry");
-                    }
                 }
-
                 if (!registry.resourceExists(path)) {
-                    boolean isTransactionStarted = Transaction.isStarted();
-                    try {
-
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
-
-                        registry.put(path, resource);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {
-
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-
-                        throw new IdentityProviderManagementException("Error while saving metadata String in registry");
-                    }
-
+                    registry.put(path, resource);
                 } else {
-                    throw new IdentityProviderManagementException("Identity provider already exists");
+                    throw new IdentityProviderManagementException("Duplicate Identity Provider found in the registry");
                 }
 
+                if (!isTransactionStarted) {
+                    registry.commitTransaction();
+                }
             } catch (RegistryException e) {
-                throw new IdentityProviderManagementException("Error while Identity Provider.", e);
+
+                if (!isTransactionStarted) {
+                    registry.rollbackTransaction();
+                }
+
+                throw new IdentityProviderManagementException("Error while creating resource in registry");
             }
 
             if (log.isDebugEnabled()) {
@@ -1414,8 +1333,8 @@ public class IdentityProviderManager implements IdpManager {
         } catch (RegistryException e) {
             throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");
         }
-
     }
+
 
     /**
      * Adds an Identity Provider to the given tenant
@@ -1484,7 +1403,7 @@ public class IdentityProviderManager implements IdpManager {
         StringBuilder idpName = new StringBuilder("");
         StringBuilder metadata = new StringBuilder("");
 
-        handleMetadta(identityProvider, tenantId,idpName,metadata);
+        handleMetadta(identityProvider, idpName, metadata);
 
         validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
         if (
@@ -1526,7 +1445,7 @@ public class IdentityProviderManager implements IdpManager {
         try {
 
             UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
-            String samlIdpPath = IdentityRegistryResources.SAMPIDPPATH;
+            String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + encodePath(idPName);
 
             try {
@@ -1611,100 +1530,49 @@ public class IdentityProviderManager implements IdpManager {
         try {
 
             UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
-            String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDERSPATH;
-            String samlIdpPath = IdentityRegistryResources.SAMPIDPPATH;
+            String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDER;
+            String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + encodePath(idpName);
             Resource resource;
             resource = registry.newResource();
             resource.setContent(metadata);
+
+
+            boolean isTransactionStarted = Transaction.isStarted();
+            if (!isTransactionStarted) {
+                registry.beginTransaction();
+            }
+
             try {
                 if (!registry.resourceExists(identityProvidersPath)) {
-                    boolean isTransactionStarted = Transaction.isStarted();
+
                     org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
-                    try {
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
+                    registry.put(identityProvidersPath, idpCollection);
 
-                        registry.put(identityProvidersPath, idpCollection);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-                        throw new IdentityProviderManagementException("Error while creating IDP path in registry");
-                    }
                 }
                 if (!registry.resourceExists(samlIdpPath)) {
-                    boolean isTransactionStarted = Transaction.isStarted();
+
                     org.wso2.carbon.registry.core.Collection samlIdpCollection = registry.newCollection();
-                    try {
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
+                    registry.put(samlIdpPath, samlIdpCollection);
 
-                        registry.put(samlIdpPath, samlIdpCollection);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-                        throw new IdentityProviderManagementException("Error while creating SAMLIDP path in registry");
-                    }
                 }
                 if (!registry.resourceExists(path)) {
-                    boolean isTransactionStarted = Transaction.isStarted();
-                    try {
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
-
-                        registry.put(path, resource);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-                        throw new IdentityProviderManagementException("Error while saving metadata String in registry");
-                    }
-
-
+                    registry.put(path, resource);
                 } else {
-                    boolean isTransactionStarted = Transaction.isStarted();
-                    try {
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
-                        registry.delete(path);
-                        registry.put(path, resource);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-                        throw new IdentityProviderManagementException("Error while saving metadata String in registry");
-                    }
+                    registry.delete(path);
+                    registry.put(path, resource);
                 }
 
-
+                if (!isTransactionStarted) {
+                    registry.commitTransaction();
+                }
             } catch (RegistryException e) {
-                throw new IdentityProviderManagementException("Error while Identity Provider.", e);
+
+                if (!isTransactionStarted) {
+                    registry.rollbackTransaction();
+                }
+
+                throw new IdentityProviderManagementException("Error while creating resource in registry");
             }
 
             if (log.isDebugEnabled()) {
@@ -1714,7 +1582,6 @@ public class IdentityProviderManager implements IdpManager {
         } catch (RegistryException e) {
             throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");
         }
-
     }
 
     /**
@@ -1723,74 +1590,6 @@ public class IdentityProviderManager implements IdpManager {
      * @param newIdentityProvider, tenantId
      * @throws IdentityProviderManagementException
      **/
-    private void handleMetadataWhileUpdatingIdp(IdentityProvider newIdentityProvider, int tenantId, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
-
-
-        String spName = "";
-        idpName.append(newIdentityProvider.getIdentityProviderName());
-        String entityId = "";
-        MetadataConverter metadataConverter = new SAMLMetadataConverter();
-        FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = newIdentityProvider.getFederatedAuthenticatorConfigs();
-        for (int i = 0; i < federatedAuthenticatorConfigs.length; i++) {
-
-            Property properties[] = federatedAuthenticatorConfigs[i].getProperties();
-            if (properties != null && properties.length != 0) {
-
-                for (int j = 0; j < properties.length; j++) {
-                    if (properties[j] != null) {
-                        if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
-                            if (properties[j].getValue() != null && properties[j].getValue().length() > 0) {
-                                if (metadataConverter.canHandle(properties[j])) {
-                                    try {
-
-                                        for (int y = 0; y < properties.length; y++) {
-                                            if (properties[y] != null && properties[y].getName() != null && properties[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
-                                                spName = properties[y].getValue();
-                                                break;
-                                            }
-                                        }
-                                        if (spName.equals("")) {
-                                            throw new IdentityProviderManagementException("SP name can't be empty");
-                                        }
-
-                                        metadata.append(properties[j].getValue());
-                                        StringBuilder certificate = new StringBuilder("");
-                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties[j].getValue(), certificate);
-                                        if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
-                                            for (int y = 0; y < metaFederated.getProperties().length; y++) {
-                                                if (metaFederated.getProperties()[y] != null && metaFederated.getProperties()[y].getName() != null && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
-                                                    metaFederated.getProperties()[y].setValue(spName);
-                                                    break;
-                                                }
-                                            }
-                                            federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
-
-                                            for (int o = 0; o < metaFederated.getProperties().length; o++) {
-                                                if (metaFederated.getProperties()[o].getName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID)) {
-                                                    entityId = metaFederated.getProperties()[o].getValue();
-                                                    break;
-                                                }
-                                            }
-                                        } else {
-                                            throw new IdentityProviderManagementException("Error setting metadata using file");
-                                        }
-                                        if (certificate.toString().length() > 0) {
-                                            newIdentityProvider.setCertificate(certificate.toString());
-                                        }
-                                    } catch (XMLStreamException e) {
-                                        throw new IdentityProviderManagementException(e.getMessage());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
-
-
-    }
 
     /**
      * Updates a given Identity Provider information
@@ -1807,7 +1606,7 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         StringBuilder idpName = new StringBuilder("");
         StringBuilder metadata = new StringBuilder("");
-        handleMetadataWhileUpdatingIdp(newIdentityProvider, tenantId,idpName,metadata);
+        handleMetadta(newIdentityProvider, idpName, metadata);
         // invoking the pre listeners
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1872,7 +1671,7 @@ public class IdentityProviderManager implements IdpManager {
 
         if (
                 idpName != null && idpName.toString().length() > 0 &&
-                metadata != null && metadata.toString().length() > 0
+                        metadata != null && metadata.toString().length() > 0
 
                 ) {
             //save metadata to registry
