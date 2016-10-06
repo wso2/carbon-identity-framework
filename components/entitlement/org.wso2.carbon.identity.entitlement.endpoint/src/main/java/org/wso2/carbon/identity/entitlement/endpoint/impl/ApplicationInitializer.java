@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.entitlement.endpoint.auth.BasicAuthHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthConfigReader;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
-import org.wso2.carbon.identity.entitlement.endpoint.auth.OAuthHandler;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -76,10 +75,6 @@ public class ApplicationInitializer implements ServletContextListener {
                 basicAuthHandler.setDefaultPriority();
                 entitlementAuthRegistry.setAuthenticator(basicAuthHandler);
 
-                OAuthHandler oauthHandler = new OAuthHandler();
-                oauthHandler.setDefaultPriority();
-                oauthHandler.setDefaultAuthzServer();
-                entitlementAuthRegistry.setAuthenticator(oauthHandler);
             }
         }
     }
