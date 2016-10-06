@@ -43,15 +43,8 @@ public class EntitlementAuthConfigReader {
             basicAuthProps.put("Priority", "5");
             basicAuth.setProperties(basicAuthProps);
 
-            OAuthHandler oAuth = new OAuthHandler();
-            HashMap<String, String> oAuthProps = new HashMap<String, String>();
-            oAuthProps.put("Priority", "10");
-            oAuthProps.put("AuthorizationServer", "local://services");
-            oAuth.setProperties(oAuthProps);
-
             List<EntitlementAuthenticationHandler> entitlementAuthHandlers = new ArrayList<EntitlementAuthenticationHandler>();
             entitlementAuthHandlers.add(basicAuth);
-            entitlementAuthHandlers.add(oAuth);
 
             /**
              * TODO : Remove hardcoded Authenticator initializing and read authenticator
