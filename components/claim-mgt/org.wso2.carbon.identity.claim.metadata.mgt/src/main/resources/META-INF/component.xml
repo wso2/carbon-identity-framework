@@ -19,23 +19,23 @@
     <ManagementPermissions>
         <ManagementPermission>
             <DisplayName>Claim Metadata Management</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/claim/metadata</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claimmgt/metadata</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Create</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/claim/metadata/create</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claimmgt/metadata/create</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>View</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/claim/metadata/view</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claimmgt/metadata/view</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Update</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/claim/metadata/update</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claimmgt/metadata/update</ResourceId>
         </ManagementPermission>
         <ManagementPermission>
             <DisplayName>Delete</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/claim/metadata/delete</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/claimmgt/metadata/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 

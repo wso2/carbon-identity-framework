@@ -1,0 +1,20 @@
+{
+  "Request": {
+    "Action": {
+      "Attribute": [
+        {
+          "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+          "Value": "read"
+        }
+      ]
+    },
+    "Resource": {
+      "Attribute": [
+        {
+          "AttributeId": "urn:oasis:names:tc:xacml:1.0:resource:resource-id",
+          "Value": "http://127.0.0.1/service/very_secure/"
+        }
+      ]
+    }
+  }
+}

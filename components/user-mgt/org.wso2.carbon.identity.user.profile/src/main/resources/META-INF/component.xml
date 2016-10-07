@@ -16,11 +16,32 @@
   under the License.
   -->
 <component xmlns="http://products.wso2.org/carbon">
-    
+
     <ManagementPermissions>
         <ManagementPermission>
-            <DisplayName>User Profile</DisplayName>
-            <ResourceId>/permission/admin/manage/modify/user-profile</ResourceId>
+            <DisplayName>Identity</DisplayName>
+            <ResourceId>/permission/admin/manage/identity</ResourceId>
+        </ManagementPermission>
+
+        <ManagementPermission>
+            <DisplayName>User Profile Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userprofile</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userprofile/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userprofile/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userprofile/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/userprofile/delete</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 
