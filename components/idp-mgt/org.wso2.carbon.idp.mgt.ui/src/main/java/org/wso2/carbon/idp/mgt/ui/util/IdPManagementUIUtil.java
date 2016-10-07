@@ -89,15 +89,8 @@ public class IdPManagementUIUtil {
      * @return IdentityProvider
      * @throws Exception
      */
-
-
     public static IdentityProvider buildFederatedIdentityProvider(HttpServletRequest request, StringBuilder oldIdpName)
             throws Exception {
-
-
-        //get the String from the file
-
-
         IdentityProvider fedIdp = new IdentityProvider();
 
         if (ServletFileUpload.isMultipartContent(request)) {

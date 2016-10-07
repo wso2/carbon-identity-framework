@@ -24,7 +24,6 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.saml.metadata.util.MetadataConverter;
 import org.wso2.carbon.saml.metadata.util.SAMLMetadataConverter;
 
-
 /**
  * @scr.component name="identity.provider.saml.service.component" immediate="true"
  */
@@ -36,27 +35,17 @@ public class SAMLMetadataServiceComponent {
 
     protected void activate(ComponentContext context) {
 
-
             MetadataConverter converter = new SAMLMetadataConverter();
-
-
             context.getBundleContext().registerService(MetadataConverter.class.getName(),  converter, null);
-
-
-
         if (log.isDebugEnabled()) {
             log.debug("SAML metadata converter is enabled");
         }
     }
-
 
     protected void deactivate(ComponentContext context) {
         if (log.isDebugEnabled()) {
             log.debug("Identity Management bundle is de-activated");
         }
     }
-
-
-
 
 }

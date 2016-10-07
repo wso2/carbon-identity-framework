@@ -62,7 +62,6 @@ public class IdentityCoreServiceComponent {
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
 
-
     public IdentityCoreServiceComponent() {
     }
 

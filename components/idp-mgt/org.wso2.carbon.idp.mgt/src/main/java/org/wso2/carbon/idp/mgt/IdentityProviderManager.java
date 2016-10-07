@@ -696,10 +696,6 @@ public class IdentityProviderManager implements IdpManager {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
                 }
-/**
- * Created by pasindutennage on 9/27/16.
- */
-
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.REMEMBER_ME_TIME_OUT)) {
                 if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||
                         Integer.parseInt(idpProp.getValue().trim()) <= 0) {
@@ -768,11 +764,7 @@ public class IdentityProviderManager implements IdpManager {
     public List<IdentityProvider> getEnabledIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
         List<IdentityProvider> enabledIdentityProviders = new ArrayList<IdentityProvider>();
-/**
- * Created by pasindutennage on 9/27/16.
- */
-
-        List<IdentityProvider> identityProviers = getIdPs(tenantDomain);
+         List<IdentityProvider> identityProviers = getIdPs(tenantDomain);
 
         for (IdentityProvider idp : identityProviers) {
             if (idp.isEnable()) {
