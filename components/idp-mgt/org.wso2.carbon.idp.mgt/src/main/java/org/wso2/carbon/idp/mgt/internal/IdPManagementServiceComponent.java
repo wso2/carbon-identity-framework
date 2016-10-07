@@ -86,7 +86,7 @@ import org.wso2.carbon.registry.core.service.RegistryService;
  * cardinality="0..n" policy="dynamic"
  * bind="setIdentityProviderMgtListenerService"
  * unbind="unsetIdentityProviderMgtListenerService"
- * @scr.reference name="MetadataConverter"
+ * @scr.reference name="identity.provider.saml.service.component"
  * interface="org.wso2.carbon.saml.metadata.util.MetadataConverter"
  * cardinality="0..n" policy="dynamic"
  * bind="setMetadataConverterService"

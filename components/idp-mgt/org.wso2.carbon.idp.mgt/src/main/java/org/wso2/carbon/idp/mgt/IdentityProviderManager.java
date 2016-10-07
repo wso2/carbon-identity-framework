@@ -1246,6 +1246,9 @@ public class IdentityProviderManager implements IdpManager {
      */
     private void handleMetadta(IdentityProvider identityProvider, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
 
+        if(metadataConverter==null){
+            throw new IdentityProviderManagementException("Metadata Converter is not set");
+        }
         idpName.append(identityProvider.getIdentityProviderName());
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = identityProvider.getFederatedAuthenticatorConfigs();
 
@@ -1600,14 +1603,7 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    /**
-     * If metadata file is available, creates a new FederatedAuthenticatorConfig from that
-     *
-     * @param newIdentityProvider, tenantId
-     * @throws IdentityProviderManagementException
-     **/
-
-    /**
+     /**
      * Updates a given Identity Provider information
      *
      * @param oldIdPName          existing Identity Provider name

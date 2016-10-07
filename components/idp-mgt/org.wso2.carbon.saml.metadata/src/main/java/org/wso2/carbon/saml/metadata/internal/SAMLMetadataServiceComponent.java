@@ -24,8 +24,9 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.saml.metadata.util.MetadataConverter;
 import org.wso2.carbon.saml.metadata.util.SAMLMetadataConverter;
 
-/**
 
+/**
+ * @scr.component name="identity.provider.saml.service.component" immediate="true"
  */
 
 public class SAMLMetadataServiceComponent {
