@@ -139,6 +139,41 @@
         </footer>
         <redirectPath></redirectPath>
     </configuration>
+    <configuration type="adminforcedpasswordreset" display="AdminForcedPasswordReset" locale="en_US" emailContentType="text/plain">
+        <subject>WSO2 - Admin Forced Password Reset</subject>
+        <body>
+            Hi {{user.claim.givenname}},
+
+            Please change your password for the account : {{user-name}}. Please click the link below to
+            change the password.
+
+            https://localhost:9443/accountrecoveryendpoint/confirmrecovery.do?confirmation={{confirmation-code}}&userstoredomain={{userstore-domain}}&username={{url:user-name}}&tenantdomain={{tenant-domain}}
+
+            If clicking the link doesn't seem to work, you can copy and paste the
+            link into your browser's address window.
+        </body>
+        <footer>
+            Best Regards,
+            WSO2 Carbon Team
+            http://www.wso2.com
+        </footer>
+    </configuration>
+    <configuration type="adminforcedpasswordresetwithotp" display="AdminForcedPasswordResetWithOTP" locale="en_US" emailContentType="text/plain">
+        <subject>WSO2 - Admin Forced Password Reset</subject>
+        <body>
+            Hi {{user.claim.givenname}},
+
+            We received a request to change the password on the {{user-name}} account associated with this e-mail address.Please use below OTP as the password at next login and then reset your password.
+
+            OTP : {{confirmation-code}}
+
+        </body>
+        <footer>
+            Best Regards,
+            WSO2 Carbon Team
+            http://www.wso2.com
+        </footer>
+    </configuration>
     <configuration type="accountUnLock">
         <targetEpr></targetEpr>
         <subject>WSO2 Carbon - Your account unlocked</subject>
