@@ -398,7 +398,7 @@
         <AdminPasswordReset>
             <Offline>false</Offline>
             <OTP>false</OTP>
-            <RecoveryLink>true</RecoveryLink>
+            <RecoveryLink>false</RecoveryLink>
         </AdminPasswordReset>
     </Recovery>
 
