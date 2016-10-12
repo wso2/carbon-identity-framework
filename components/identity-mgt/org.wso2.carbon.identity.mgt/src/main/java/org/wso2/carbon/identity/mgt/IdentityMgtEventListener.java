@@ -694,6 +694,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         } finally {
             // Remove thread local variable
             IdentityUtil.threadLocalProperties.get().remove(DO_POST_ADD_USER);
+            IdentityUtil.threadLocalProperties.get().remove(EMPTY_PASSWORD_USED);
         }
     }
 
