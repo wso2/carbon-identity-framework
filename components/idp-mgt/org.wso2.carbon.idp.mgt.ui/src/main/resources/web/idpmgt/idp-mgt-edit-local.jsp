@@ -295,6 +295,23 @@ jQuery(document).ready(function(){
         }
     }
 </script>
+<script>
+    $(document).ready(function() {//pasindu
+        $('#downloadResidentIdpMetadataData').click(function() {
+            $.ajax({
+                url : '"../../filedownload/service"',
+                data : {
+//                            userName : $('#userName').val()
+                },
+                success : function(responseText) {
+                    window.alert(responseText);
+                }
+            });
+        });
+    });
+
+
+</script>
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
@@ -432,6 +449,7 @@ jQuery(document).ready(function(){
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
                         </tr>
                     </table>
+                        <input type="button" id="downloadResidentIdpMetadataData" name="downloadResidentIdpMetadataData" />
                     </div>
 
                     <h2 id="oauth1confighead"  class="sectionSeperator trigger active" style="background-color: beige;">

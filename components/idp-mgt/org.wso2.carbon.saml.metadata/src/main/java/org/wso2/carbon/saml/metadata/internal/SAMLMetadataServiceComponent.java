@@ -21,7 +21,7 @@ package org.wso2.carbon.saml.metadata.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.saml.metadata.util.MetadataConverter;
+import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.saml.metadata.util.SAMLMetadataConverter;
 
 /**

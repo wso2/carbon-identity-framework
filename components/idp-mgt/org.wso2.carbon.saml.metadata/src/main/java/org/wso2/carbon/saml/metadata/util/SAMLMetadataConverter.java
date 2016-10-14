@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.util.MetadataConverter;
+
 
 /**
  * Created by pasindutennage on 9/27/16.
@@ -98,7 +101,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
      * @return FederatedAuthenticatorConfig
      * @throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException
      */
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderSAMLException {
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
 
         String spName = "";
         String metadata = "";
@@ -111,10 +114,10 @@ public class SAMLMetadataConverter implements MetadataConverter {
             }
         }
         if (spName.equals("")) {
-            throw new IdentityProviderSAMLException("SP name can't be empty");
+            throw new IdentityProviderManagementException("SP name can't be empty");
         }
         if (metadata.equals("")) {
-            throw new IdentityProviderSAMLException("No metadata found");
+            throw new IdentityProviderManagementException("No metadata found");
         }
 
         OMElement element;
@@ -127,7 +130,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
         try {
             federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build(element, builder);
         } catch (IdentityApplicationManagementException ex) {
-            throw new IdentityProviderSAMLException("Invalid file content");
+            throw new IdentityProviderManagementException("Invalid file content");
         }
         if(federatedAuthenticatorConfigMetadata!=null && ArrayUtils.isNotEmpty(federatedAuthenticatorConfigMetadata.getProperties())) {
             for (int y = 0; y < federatedAuthenticatorConfigMetadata.getProperties().length; y++) {

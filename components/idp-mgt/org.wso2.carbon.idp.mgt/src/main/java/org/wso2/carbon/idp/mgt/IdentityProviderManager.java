@@ -53,18 +53,15 @@ import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
-import org.wso2.carbon.saml.metadata.util.IdentityProviderSAMLException;
-import org.wso2.carbon.saml.metadata.util.MetadataConverter;
-import org.wso2.carbon.saml.metadata.util.SAMLMetadataConverter;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-
 import javax.xml.stream.XMLStreamException;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
@@ -1264,7 +1261,7 @@ public class IdentityProviderManager implements IdpManager {
                                         } else {
                                             throw new IdentityProviderManagementException("Error setting metadata using file");
                                         }
-                                    }catch(IdentityProviderSAMLException ex){
+                                    }catch(IdentityProviderManagementException ex){
                                         throw new IdentityProviderManagementException("Error converting metadata",ex);
                                     }
                                     if (certificate.toString().length() > 0) {

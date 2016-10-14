@@ -34,15 +34,14 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
-import org.wso2.carbon.idp.mgt.IdpManagerService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.saml.metadata.util.MetadataConverter;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -52,7 +51,6 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,8 +60,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.wso2.carbon.registry.core.service.RegistryService;
 
 /**
  * @scr.component name="idp.mgt.dscomponent" immediate="true"
@@ -87,7 +83,7 @@ import org.wso2.carbon.registry.core.service.RegistryService;
  * bind="setIdentityProviderMgtListenerService"
  * unbind="unsetIdentityProviderMgtListenerService"
  * @scr.reference name="identity.provider.saml.service.component"
- * interface="org.wso2.carbon.saml.metadata.util.MetadataConverter"
+ * interface="org.wso2.carbon.idp.mgt.util.MetadataConverter"
  * cardinality="0..n" policy="dynamic"
  * bind="setMetadataConverterService"
  * unbind="unsetMetadataConverterService"
@@ -138,7 +134,7 @@ public class IdPManagementServiceComponent {
 
     protected void unsetMetadataConverterService(MetadataConverter metadataConverter) {
         if (log.isDebugEnabled()) {
-            log.debug("MetadataConverter unset in idp-mgt");
+            log.debug("org.wso2.carbon.idp.mgt.util.MetadataConverter unset in idp-mgt");
         }
         IdentityProviderManager.setMetadataConverter(null);
     }

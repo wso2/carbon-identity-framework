@@ -58,11 +58,7 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.saml.metadata</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
-        </dependency>
+
 
     </dependencies>
 
@@ -75,6 +71,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <!--<version>1.4.0</version>-->
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -84,7 +81,7 @@
                             org.wso2.carbon.idp.mgt.internal
                         </Private-Package>
                         <Import-Package>
-                            org.wso2.carbon.saml.metadata.util,
+
                             org.wso2.carbon.registry.core,
                             org.wso2.carbon.registry.core.exceptions,
                             org.wso2.carbon.registry.core.jdbc.utils,
