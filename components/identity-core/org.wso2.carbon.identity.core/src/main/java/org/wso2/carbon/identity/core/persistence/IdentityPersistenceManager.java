@@ -16,18 +16,15 @@
 * under the License.
 */
 package org.wso2.carbon.identity.core.persistence;
+import org.wso2.carbon.identity.sso.saml.common.model.SAMLSSOServiceProviderDO;
 
+
+import org.wso2.carbon.identity.sso.saml.common.dao.SAMLSSOServiceProviderDAO;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.dao.OpenIDAdminDAO;
-import org.wso2.carbon.identity.core.dao.OpenIDUserDAO;
-import org.wso2.carbon.identity.core.dao.ParameterDAO;
-import org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAO;
-import org.wso2.carbon.identity.core.dao.XMPPSettingsDAO;
-import org.wso2.carbon.identity.core.model.OpenIDAdminDO;
-import org.wso2.carbon.identity.core.model.OpenIDUserDO;
-import org.wso2.carbon.identity.core.model.ParameterDO;
-import org.wso2.carbon.identity.core.model.SAMLSSOServiceProviderDO;
-import org.wso2.carbon.identity.core.model.XMPPSettingsDO;
+import org.wso2.carbon.identity.core.dao.*;
+//import org.wso2.carbon.identity.saml.metadata.dao.SAMLSSOServiceProviderDAO;
+import org.wso2.carbon.identity.core.model.*;
+//import org.wso2.carbon.identity.saml.metadata.model.SAMLSSOServiceProviderDO;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.core.UserRealm;
 
@@ -240,6 +237,17 @@ public class IdentityPersistenceManager {
         SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderDAO(registry);
         return serviceProviderDAO.addServiceProvider(serviceProviderDO);
     }
+    /**
+     * Upload Service Provider
+     *
+     * @param registry,samlssoServiceProviderDO
+     * @return
+     * @throws IdentityException
+     */
+    public SAMLSSOServiceProviderDO uploadServiceProvider(Registry registry, SAMLSSOServiceProviderDO samlssoServiceProviderDO) throws IdentityException {
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderDAO(registry);
+        return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO);
+    }
 
     /**
      * Get all the relying party service providers
@@ -249,6 +257,7 @@ public class IdentityPersistenceManager {
      */
     public SAMLSSOServiceProviderDO[] getServiceProviders(Registry registry)
             throws IdentityException {
+
         SAMLSSOServiceProviderDAO serviceProviderDOA = new SAMLSSOServiceProviderDAO(registry);
         return serviceProviderDOA.getServiceProviders();
     }
