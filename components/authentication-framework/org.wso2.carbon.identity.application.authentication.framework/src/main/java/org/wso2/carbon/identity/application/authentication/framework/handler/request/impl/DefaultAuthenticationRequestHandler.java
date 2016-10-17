@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -124,6 +125,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // if flow completed, send response back
         if (context.getSequenceConfig().isCompleted()) {
+            handleAuthorization(request, response, context);
             concludeFlow(request, response, context);
         } else { // redirecting outside
             FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
@@ -138,6 +140,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         context.getSequenceConfig().setCompleted(true);
         context.setRequestAuthenticated(false);
+        //No need to handle authorization, because the authentication is not completed
         concludeFlow(request, response, context);
     }
 
@@ -443,4 +446,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             throw new FrameworkException(e.getMessage(), e);
         }
     }
+
+    protected void handleAuthorization(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context) throws FrameworkException {
+
+        AuthorizationHandler authorizationHandler = FrameworkUtils.getAuthorizationHandler();
+        if (!authorizationHandler.isAuthorized(request, response, context)) {
+            throw new FrameworkException("Authorization Failed");
+        }
+    }
+
 }

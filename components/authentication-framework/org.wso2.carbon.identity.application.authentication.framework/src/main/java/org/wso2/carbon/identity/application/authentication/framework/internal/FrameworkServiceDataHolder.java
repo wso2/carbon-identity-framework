@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
+import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -36,6 +37,7 @@ public class FrameworkServiceDataHolder {
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private RegistryService registryService = null;
+    private EntitlementService entitlementService = null;
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
@@ -117,4 +119,13 @@ public class FrameworkServiceDataHolder {
         this.authnDataPublisherProxy = authnDataPublisherProxy;
     }
 
+    public EntitlementService getEntitlementService() {
+
+        return entitlementService;
+    }
+
+    public void setEntitlementService(EntitlementService entitlementService) {
+
+        this.entitlementService = entitlementService;
+    }
 }
