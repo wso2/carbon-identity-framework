@@ -160,10 +160,10 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/view</parameter>
         </operation>
         <operation name="getPDPData">
-            <parameter name="AuthorizationAction" locked="true">>/permission/admin/manage/identity/entitlement/pdp/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/view</parameter>
         </operation>
         <operation name="getPIPAttributeFinderData">
-            <parameter name="AuthorizationAction" locked="true">>/permission/admin/manage/identity/entitlement/pdp/view</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/view</parameter>
         </operation>
         <operation name="getPIPResourceFinderData">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/entitlement/pdp/view</parameter>
