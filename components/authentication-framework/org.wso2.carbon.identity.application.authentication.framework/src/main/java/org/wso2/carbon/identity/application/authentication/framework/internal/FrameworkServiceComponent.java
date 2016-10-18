@@ -55,6 +55,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -412,5 +413,34 @@ public class FrameworkServiceComponent {
                 && publisher.isEnabled(null)) {
             FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
         }
+    }
+
+
+    public static EntitlementService getEntitlementService() {
+
+        return FrameworkServiceDataHolder.getInstance().getEntitlementService();
+    }
+
+    @Reference(
+            name = "identity.entitlement.service",
+            service = EntitlementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetEntitlementService"
+    )
+    protected void setEntitlementService(EntitlementService entitlementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("EntitlementService is set in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setEntitlementService(entitlementService);
+    }
+
+    protected void unsetEntitlementService(EntitlementService entitlementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("EntitlementService is unset in the Application Authentication Framework bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setEntitlementService(null);
     }
 }

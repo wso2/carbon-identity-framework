@@ -47,6 +47,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.impl.XACMLBasedAuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -428,6 +430,24 @@ public class FrameworkUtils {
         }
 
         return provisioningHandler;
+    }
+
+    /**
+     * @return
+     */
+    public static AuthorizationHandler getAuthorizationHandler() {
+
+        AuthorizationHandler authorizationHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER);
+
+        if (obj instanceof AuthorizationHandler) {
+            authorizationHandler = (AuthorizationHandler) obj;
+        } else {
+            authorizationHandler = XACMLBasedAuthorizationHandler.getInstance();
+        }
+
+        return authorizationHandler;
     }
 
     /**
