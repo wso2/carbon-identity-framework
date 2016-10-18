@@ -32,6 +32,7 @@ public class ClaimMapping implements Serializable {
     private Claim remoteClaim;
     private String defaultValue;
     private boolean requested;
+    private boolean isMandatory;
 
     /**
      * @param localClaimUri
@@ -54,6 +55,34 @@ public class ClaimMapping implements Serializable {
         mapping.setDefaultValue(defaultValue);
         mapping.setRequested(requested);
 
+        return mapping;
+    }
+
+    /**
+     * @param localClaimUri
+     * @param remoteClaimUri
+     * @param defaultValue
+     * @param requested
+     * @param isMandatory
+     * @return
+     */
+    public static ClaimMapping build(String localClaimUri, String remoteClaimUri,
+                                     String defaultValue, boolean requested, boolean isMandatory) {
+        ClaimMapping mapping = new ClaimMapping();
+
+        Claim localClaim = new Claim();
+        localClaim.setClaimUri(localClaimUri);
+
+        Claim remoteClaim = new Claim();
+        remoteClaim.setClaimUri(remoteClaimUri);
+
+        mapping.setLocalClaim(localClaim);
+        mapping.setRemoteClaim(remoteClaim);
+
+        mapping.setDefaultValue(defaultValue);
+        mapping.setRequested(requested);
+
+        mapping.setMandatory(isMandatory);
         return mapping;
     }
 
@@ -90,6 +119,10 @@ public class ClaimMapping implements Serializable {
 
             if ("RequestClaim".equals(elementName)) {
                 claimMapping.setRequested(Boolean.parseBoolean(element.getText()));
+            }
+
+            if ("MandatoryClaim".equals(elementName)) {
+                claimMapping.setMandatory(Boolean.parseBoolean(element.getText()));
             }
 
         }
@@ -177,5 +210,19 @@ public class ClaimMapping implements Serializable {
      */
     public void setRequested(boolean requested) {
         this.requested = requested;
+    }
+
+    /**
+     * @return
+     */
+    public boolean isMandatory(){
+        return isMandatory;
+    }
+
+    /**
+     * @param isMandatory
+     */
+    public void setMandatory(boolean isMandatory) {
+        this.isMandatory = isMandatory;
     }
 }
