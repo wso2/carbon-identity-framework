@@ -49,12 +49,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 public class TenantDataManager {
 
     private static final Log log = LogFactory.getLog(TenantDataManager.class);
-
-    private static final String SECRET_ALIAS = "secretAlias:";
+    private static final String PROTECTED_TOKENS = "protectedTokens";
+    private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+    private static final String SECRET_PROVIDER = "secretProvider";
     private static Properties prop;
     private static String carbonLogin = "";
     private static String serviceURL;
@@ -346,29 +348,37 @@ public class TenantDataManager {
      */
     private static void resolveSecrets(Properties properties) {
 
-        SecretResolver secretResolver = SecretResolverFactory.create(properties);
-        Enumeration propertyNames = properties.propertyNames();
-        if (secretResolver != null && secretResolver.isInitialized()) {
-            // Iterate through whole config file and find encrypted properties and resolve them
-            while (propertyNames.hasMoreElements()) {
-                String key = (String) propertyNames.nextElement();
-                if (secretResolver.isTokenProtected(key)) {
+        String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
+
+        if (protectedTokens != null) {
+            String secretProvider = (String) properties.get(SECRET_PROVIDER);
+            SecretResolver secretResolver;
+
+            if (secretProvider == null) {
+                properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+            }
+
+            secretResolver = SecretResolverFactory.create(properties, "");
+            StringTokenizer st = new StringTokenizer(protectedTokens, ",");
+
+            while (st.hasMoreElements()) {
+                String element = st.nextElement().toString().trim();
+
+                if (secretResolver.isTokenProtected(element)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Resolving and replacing secret for " + key);
+                        log.debug("Resolving and replacing secret for " + element);
                     }
-                    // Resolving the secret password.
-                    String value = secretResolver.resolve(key);
                     // Replaces the original encrypted property with resolved property
-                    properties.put(key, value);
+                    properties.put(element, secretResolver.resolve(element));
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("No encryption done for value with key :" + key);
+                        log.debug("No encryption done for value with key :" + element);
                     }
                 }
             }
         } else {
-            log.warn("Secret Resolver is not present. Will not resolve encryptions in " + Constants.TenantConstants
-                    .CONFIG_RELATIVE_PATH + " file");
+            log.warn("Secret Resolver is not present. Will not resolve encryptions in "
+                    + Constants.TenantConstants.CONFIG_RELATIVE_PATH + " file");
         }
     }
 
@@ -383,7 +393,7 @@ public class TenantDataManager {
 
         while (propertyNames.hasMoreElements()) {
             String key = (String) propertyNames.nextElement();
-            if (StringUtils.startsWith(properties.getProperty(key), SECRET_ALIAS)) {
+            if (PROTECTED_TOKENS.equals(key)) {
                 return true;
             }
         }
