@@ -99,7 +99,7 @@ public class ClaimDAO {
             prepStmt.setInt(2, tenantId);
             prepStmt.setString(3, claimURI);
             prepStmt.setInt(4, tenantId);
-            prepStmt.execute();
+            prepStmt.executeUpdate();
 
             rs = prepStmt.getGeneratedKeys();
 
