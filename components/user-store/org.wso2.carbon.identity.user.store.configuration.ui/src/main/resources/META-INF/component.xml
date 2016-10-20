@@ -25,7 +25,7 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../userstore_config/images/multiple-user-stores.png</icon>
-            <require-permission>/permission/admin</require-permission>
+            <require-permission>/permission/admin/manage/identity/userstore</require-permission>
         </menu>
         <menu>
             <id>userstores_mgt_menu_add</id>
@@ -37,7 +37,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../userstore_config/images/add.gif</icon>
-            <require-permission>/permission/admin</require-permission>
+            <require-permission>/permission/admin/manage/identity/userstore</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
         <menu>
@@ -50,7 +50,7 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../userstore_config/images/list.gif</icon>
-            <require-permission>/permission/admin</require-permission>
+            <require-permission>/permission/admin/manage/identity/userstore</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
     </menus>

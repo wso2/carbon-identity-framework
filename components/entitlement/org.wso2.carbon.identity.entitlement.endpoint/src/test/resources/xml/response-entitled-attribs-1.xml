@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<EntitledAttributesResponse>
+    <entitledResultSetDTO>
+        <advanceResult>false</advanceResult>
+        <entitledAttributesDTOs>
+            <action>read</action>
+            <allActions>false</allActions>
+            <allResources>false</allResources>
+            <resourceName>http://127.0.0.1/service/very_secure/</resourceName>
+        </entitledAttributesDTOs>
+    </entitledResultSetDTO>
+</EntitledAttributesResponse>

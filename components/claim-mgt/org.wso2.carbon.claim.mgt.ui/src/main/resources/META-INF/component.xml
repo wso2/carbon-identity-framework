@@ -16,7 +16,7 @@
   ~ under the License.
   -->
 <component xmlns="http://products.wso2.org/carbon">
-        <!-- sample menu configuration -->
+    <!-- sample menu configuration -->
     <menus>
         <menu>
             <id>claim_mgt_menu</id>
@@ -27,8 +27,8 @@
             <region>region1</region>
             <order>2</order>
             <style-class>manage</style-class>
-		    <icon>../claim-mgt/images/claimmgt.gif</icon>
-		    <require-permission>/permission/admin/configure/security</require-permission>
+            <icon>../claim-mgt/images/claimmgt.gif</icon>
+            <require-permission>/permission/admin/manage/identity/claimmgt/claim</require-permission>
         </menu>
         <menu>
             <id>claim_mgt_menu_add</id>
@@ -40,7 +40,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../claim-mgt/images/add.gif</icon>
-            <require-permission>/permission/admin/manage</require-permission>
+            <require-permission>/permission/admin/manage/identity/claimmgt/claim</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
         <menu>
@@ -53,7 +53,7 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../claim-mgt/images/list.gif</icon>
-            <require-permission>/permission/admin/manage</require-permission>
+            <require-permission>/permission/admin/manage/identity/claimmgt/claim</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
     </menus>
