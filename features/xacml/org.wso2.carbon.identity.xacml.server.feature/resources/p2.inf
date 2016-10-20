@@ -4,3 +4,7 @@ org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../reso
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../resources/identity/policies/xacml/default); \
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../conf/identity/); \
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.xacml.server_${feature.version}/entitlement.properties,target:${installFolder}/../../conf/identity/entitlement.properties,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/);\
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/server/);\
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/server/webapps/);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.xacml.server_${feature.version}/entitlement.war,target:${installFolder}/../../deployment/server/webapps/entitlement.war,overwrite:true);\

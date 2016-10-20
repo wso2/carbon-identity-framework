@@ -24,6 +24,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
@@ -33,6 +34,11 @@
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
+
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
 
 
     if (StringUtils.isBlank(username) || StringUtils.isBlank(confirmationKey)) {

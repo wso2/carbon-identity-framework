@@ -26,9 +26,60 @@
         <parameter name="ServiceClass">
             org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementAdminService
         </parameter>
+
+        <operation name="getClaimDialects">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/view
+            </parameter>
+        </operation>
+        <operation name="addClaimDialect">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/create
+            </parameter>
+        </operation>
+        <operation name="renameClaimDialect">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/update
+            </parameter>
+        </operation>
+        <operation name="removeClaimDialect">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/delete
+            </parameter>
+        </operation>
+        <operation name="getLocalClaims">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/view
+            </parameter>
+        </operation>
+        <operation name="addLocalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/create
+            </parameter>
+        </operation>
+        <operation name="updateLocalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/update
+            </parameter>
+        </operation>
+        <operation name="removeLocalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/delete
+            </parameter>
+        </operation>
+        <operation name="getExternalClaims">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/view
+            </parameter>
+        </operation>
+        <operation name="addExternalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/create
+            </parameter>
+        </operation>
+        <operation name="updateExternalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/update
+            </parameter>
+        </operation>
+        <operation name="removeExternalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/delete
+            </parameter>
+        </operation>
+
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/claimmgt/metadata
+        </parameter>
     </service>
-    <!-- Change permissions -->
-    <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claim/metadata</parameter>
+
     <parameter name="adminService" locked="true">true</parameter>
     <parameter name="hiddenService" locked="true">true</parameter>
 </serviceGroup>

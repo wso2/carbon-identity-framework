@@ -26,6 +26,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 
 <%
 
@@ -38,6 +39,11 @@
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmationKey");
     String callback = request.getParameter("callback");
+
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
 
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");

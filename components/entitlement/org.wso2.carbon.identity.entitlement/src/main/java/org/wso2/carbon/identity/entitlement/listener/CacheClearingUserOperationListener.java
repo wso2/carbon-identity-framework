@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
 import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 import org.wso2.carbon.identity.entitlement.pip.CarbonAttributeFinder;
@@ -27,7 +28,6 @@ import org.wso2.carbon.identity.entitlement.pip.PIPAttributeFinder;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.common.AbstractUserOperationEventListener;
 
 import java.util.Map;
 import java.util.Properties;
@@ -39,7 +39,7 @@ import java.util.Set;
  * clear all 3 caches including  PIP_ATTRIBUTE_CACHE, PDP_DECISION_INVALIDATION_CACHE,
  * ENTITLEMENT_POLICY_INVALIDATION_CACHE
  */
-public class CacheClearingUserOperationListener extends AbstractUserOperationEventListener {
+public class CacheClearingUserOperationListener extends AbstractIdentityUserOperationEventListener {
 
     private static final Log log = LogFactory.getLog(CacheClearingUserOperationListener.class);
 
@@ -59,6 +59,9 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     @Override
     public boolean doPostDeleteUser(String userName, UserStoreManager userStoreManager) throws
                                                                                         UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post delete user operation for user " +
@@ -81,6 +84,10 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     @Override
     public boolean doPostSetUserClaimValue(String userName, UserStoreManager userStoreManager)
             throws UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post set user claim value operation for user "
                       + userName);
@@ -105,6 +112,9 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     public boolean doPostSetUserClaimValues(String userName, Map<String, String> claims,
                                             String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post set user claim values operation for " +
@@ -128,6 +138,9 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     public boolean doPostDeleteUserClaimValues(String userName,
                                                UserStoreManager userStoreManager) throws
                                                                                   UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post delete user claim values operation for " +
@@ -150,6 +163,9 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     @Override
     public boolean doPostDeleteUserClaimValue(String userName, UserStoreManager userStoreManager)
             throws UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post delete user claim value operation for " +
@@ -174,6 +190,9 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     @Override
     public boolean doPostAddRole(String roleName, String[] userList, Permission[] permissions,
                                  UserStoreManager userStoreManager) throws UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post add role operation for role " +
@@ -196,6 +215,9 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     @Override
     public boolean doPostDeleteRole(String roleName, UserStoreManager userStoreManager) throws
                                                                                         UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post delete role operation for role " +
@@ -218,6 +240,10 @@ public class CacheClearingUserOperationListener extends AbstractUserOperationEve
     public boolean doPostUpdateRoleName(String roleName, String newRoleName,
                                         UserStoreManager userStoreManager) throws
                                                                            UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("Clearing entitlement cache on post update role operation for role " +
                       roleName);

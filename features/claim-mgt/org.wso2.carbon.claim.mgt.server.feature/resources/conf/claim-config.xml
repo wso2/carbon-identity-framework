@@ -435,6 +435,13 @@
 				<Description>Account Locked</Description>
 		    </Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/emailVerified</ClaimURI>
+				<DisplayName>Email Verified</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>postalAddress</AttributeID>
+				<Description>Email Verified</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountDisabled</ClaimURI>
 				<DisplayName>Account Disabled</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->

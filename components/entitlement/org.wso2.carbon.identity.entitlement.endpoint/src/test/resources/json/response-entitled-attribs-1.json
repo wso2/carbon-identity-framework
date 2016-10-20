@@ -1,0 +1,17 @@
+{
+  "entitledResultSetDTO": {
+    "entitledAttributesDTOs": [
+      {
+        "resourceName": "http://127.0.0.1/service/very_secure/",
+        "action": "read",
+        "environment": null,
+        "allActions": false,
+        "allResources": false,
+        "attributeDTOs": []
+      }
+    ],
+    "advanceResult": false,
+    "message": null,
+    "messageType": null
+  }
+}

@@ -1,6 +1,6 @@
 /**
  * WSO2 Identity Server Rest API - User
- * This document specifies a **RESTful API** for WSO2 **Identity Server** .  It is written with [swagger 2](http://swagger.io/). 
+ * This document specifies a **RESTful API** for WSO2 **Identity Server** .  It is written with [swagger 2](http://swagger.io/).
  *
  * OpenAPI spec version: 0.9.0
  * Contact: architecture@wso2.com
@@ -40,9 +40,6 @@ public class SelfUserRegistrationRequest   {
   @JsonProperty("user")
   private SelfRegistrationUser user = null;
 
-  @JsonProperty("roles")
-  private List<String> roles = new ArrayList<String>();
-
   @JsonProperty("properties")
   private List<Property> properties = new ArrayList<Property>();
 
@@ -63,22 +60,6 @@ public class SelfUserRegistrationRequest   {
     this.user = user;
   }
 
-  public SelfUserRegistrationRequest roles(List<String> roles) {
-    this.roles = roles;
-    return this;
-  }
-
-   /**
-   * Get roles
-   * @return roles
-  **/
-  public List<String> getRoles() {
-    return roles;
-  }
-
-  public void setRoles(List<String> roles) {
-    this.roles = roles;
-  }
 
   public SelfUserRegistrationRequest properties(List<Property> properties) {
     this.properties = properties;
@@ -108,22 +89,20 @@ public class SelfUserRegistrationRequest   {
     }
     SelfUserRegistrationRequest selfUserRegistrationRequest = (SelfUserRegistrationRequest) o;
     return Objects.equals(this.user, selfUserRegistrationRequest.user) &&
-        Objects.equals(this.roles, selfUserRegistrationRequest.roles) &&
         Objects.equals(this.properties, selfUserRegistrationRequest.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(user, roles, properties);
+    return Objects.hash(user, properties);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class SelfUserRegistrationRequest {\n");
-    
+
     sb.append("    user: ").append(toIndentedString(user)).append("\n");
-    sb.append("    roles: ").append(toIndentedString(roles)).append("\n");
     sb.append("    properties: ").append(toIndentedString(properties)).append("\n");
     sb.append("}");
     return sb.toString();
