@@ -1193,7 +1193,7 @@ public class FrameworkUtils {
             String appender;
             if (url.contains("?")) {
                 appender = "&";
-            } else{
+            } else {
                 appender = "?";
             }
 
