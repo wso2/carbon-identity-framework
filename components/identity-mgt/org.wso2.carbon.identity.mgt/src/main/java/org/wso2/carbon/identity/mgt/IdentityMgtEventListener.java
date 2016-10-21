@@ -267,10 +267,14 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (authenticated && isUserExistInCurrentDomain) {
 
             if (isUserExistInCurrentDomain) {
-                Map<String, String> userClaims = new HashMap<>();
-                userClaims.put(IdentityMgtConstants.LAST_LOGIN_TIME, Long.toString(System
-                        .currentTimeMillis()));
-                userStoreManager.setUserClaimValues(userName, userClaims, null);
+                UserIdentityClaimsDO userIdentityDTO = module.load(userName, userStoreManager);
+                userIdentityDTO.setLastLogonTime(System.currentTimeMillis());
+                try {
+                    module.store(userIdentityDTO, userStoreManager);
+                } catch (IdentityException e) {
+                    throw new UserStoreException(String.format("Error while saving user store data : %s for user : %s.",
+                            UserIdentityDataStore.LAST_LOGON_TIME, userName), e);
+                }
             }
         }
 
