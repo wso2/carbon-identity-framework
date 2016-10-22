@@ -34,6 +34,8 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +107,7 @@ public class UIBasedConfigurationBuilder {
             StepConfig stepConfig = createStepConfigurationObject(stepOrder, authenticationStep);
 
             // loading Federated Authenticators
-            loadFederatedAuthenticators(authenticationStep, stepConfig);
+            loadFederatedAuthenticators(authenticationStep, stepConfig, tenantDomain);
 
             // load local authenticators
             loadLocalAuthenticators(authenticationStep, stepConfig);
@@ -155,7 +157,8 @@ public class UIBasedConfigurationBuilder {
         }
     }
 
-    private void loadFederatedAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig) {
+    private void loadFederatedAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig,
+                                             String tenantDomain) throws FrameworkException {
         IdentityProvider[] federatedIDPs = authenticationStep.getFederatedIdentityProviders();
 
         if (federatedIDPs != null) {
@@ -165,6 +168,20 @@ public class UIBasedConfigurationBuilder {
                 FederatedAuthenticatorConfig federatedAuthenticator = federatedIDP
                         .getDefaultAuthenticatorConfig();
                 // for each authenticator in the idp
+
+
+                //When loading the federated IDP configuration from default.xml file in service-providers, we need to
+                // retrieve the federated IDP and load
+                if (federatedAuthenticator == null) {
+                    try {
+                        federatedAuthenticator = IdentityProviderManager.getInstance()
+                                .getIdPByName(federatedIDP.getIdentityProviderName(),
+                                        tenantDomain).getDefaultAuthenticatorConfig();
+                    } catch (IdentityProviderManagementException e) {
+                        throw new FrameworkException("Failed to load the default authenticator for IDP : " +
+                                federatedIDP.getIdentityProviderName());
+                    }
+                }
 
                 String actualAuthenticatorName = federatedAuthenticator.getName();
                 // assign it to the step
