@@ -295,23 +295,7 @@ jQuery(document).ready(function(){
         }
     }
 </script>
-<script>
-    $(document).ready(function() {//pasindu
-        $('#downloadResidentIdpMetadataData').click(function() {
-            $.ajax({
-                url : '"../../filedownload/service"',
-                data : {
-//                            userName : $('#userName').val()
-                },
-                success : function(responseText) {
-                    window.alert(responseText);
-                }
-            });
-        });
-    });
 
-
-</script>
 <script>
         function downloadRIDPMetadata() {
                 jQuery('#idp-mgt-get-RIDP-form').submit();
