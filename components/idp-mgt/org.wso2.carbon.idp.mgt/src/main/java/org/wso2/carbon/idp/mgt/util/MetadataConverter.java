@@ -19,6 +19,8 @@ package org.wso2.carbon.idp.mgt.util;/*
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
+
 /**
  * Created by pasindutennage on 9/26/16.
  */
@@ -26,8 +28,8 @@ public interface MetadataConverter {
 
     boolean canHandle(Property property);
 
-    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;
+    FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(Property properties [], StringBuilder builder) throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;
 
-    FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingXMLToString(FederatedAuthenticatorConfig federatedAuthenticatorConfig);
+    String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException;
 
 }

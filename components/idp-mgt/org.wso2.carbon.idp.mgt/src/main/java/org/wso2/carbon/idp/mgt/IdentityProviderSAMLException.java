@@ -1,4 +1,4 @@
-package org.wso2.carbon.saml.metadata.util;
+package org.wso2.carbon.idp.mgt;
 
 /**
  * Created by pasindutennage on 10/6/16.

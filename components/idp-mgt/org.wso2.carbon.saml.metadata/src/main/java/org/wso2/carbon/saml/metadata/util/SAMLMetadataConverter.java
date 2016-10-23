@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 
 
@@ -101,7 +102,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
      * @return FederatedAuthenticatorConfig
      * @throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException
      */
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingStringToXML(Property properties [], StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(Property properties [], StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
 
         String spName = "";
         String metadata = "";
@@ -144,9 +145,11 @@ public class SAMLMetadataConverter implements MetadataConverter {
     }
 
 
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfigByParsingXMLToString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) {
+    public String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException{
 
-        return null;
+
+
+        return "Just now I'm sending this message";
     }
 
 

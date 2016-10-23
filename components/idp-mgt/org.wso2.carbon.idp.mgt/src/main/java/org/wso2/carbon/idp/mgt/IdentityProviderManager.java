@@ -1255,7 +1255,7 @@ public class IdentityProviderManager implements IdpManager {
                                     metadata.append(properties[j].getValue());
                                     StringBuilder certificate = new StringBuilder("");
                                     try {
-                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfigByParsingStringToXML(properties, certificate);
+                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfig(properties, certificate);
                                         if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
                                             federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
                                         } else {
@@ -1817,6 +1817,34 @@ public class IdentityProviderManager implements IdpManager {
         }
         return OIDCEntityId;
     }
+
+    public String getResidentIDPMetadata(String tenantDomain) throws IdentityProviderManagementException {
+
+        if(metadataConverter==null){
+            throw new IdentityProviderManagementException("Error recieving Metadata object");
+        }
+
+        IdentityProvider residentIdentityProvider = this.getResidentIdP(tenantDomain);
+        FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = residentIdentityProvider.getFederatedAuthenticatorConfigs();
+        FederatedAuthenticatorConfig samlFederatedAuthenticatorConfig = null;
+        for (int i = 0; i < federatedAuthenticatorConfigs.length; i++) {
+            if (federatedAuthenticatorConfigs[i].getName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
+                samlFederatedAuthenticatorConfig = federatedAuthenticatorConfigs[i];
+                break;
+            }
+        }
+        if (samlFederatedAuthenticatorConfig != null) {
+            try {
+                return metadataConverter.getMetadataString(samlFederatedAuthenticatorConfig);
+            }catch(IdentityProviderSAMLException e){
+                throw new IdentityProviderManagementException(e.getMessage());
+            }
+        }
+
+        return "";
+
+    }
+
 
 
 }

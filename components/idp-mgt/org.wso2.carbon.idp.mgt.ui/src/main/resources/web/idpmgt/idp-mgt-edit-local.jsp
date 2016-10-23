@@ -312,7 +312,14 @@ jQuery(document).ready(function(){
 
 
 </script>
+<script>
+        function downloadRIDPMetadata() {
+                jQuery('#idp-mgt-get-RIDP-form').submit();
+            }
 
+</script>
+<form id="idp-mgt-get-RIDP-form" name="idp-mgt-get-RIDP-form" method="post"
+action="idp-mgt-get-RIDP-metadata.jsp"></form>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
         <h2>
@@ -449,7 +456,13 @@ jQuery(document).ready(function(){
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
                         </tr>
                     </table>
-                        <input type="button" id="downloadResidentIdpMetadataData" name="downloadResidentIdpMetadataData" />
+                        <br>
+                        <button onclick="downloadRIDPMetadata()" type="button" id="downloadResidentIdpMetadataData"
+                                                                  name="downloadResidentIdpMetadataData">Download
+                                                      </button>
+
+
+
                     </div>
 
                     <h2 id="oauth1confighead"  class="sectionSeperator trigger active" style="background-color: beige;">

@@ -2950,7 +2950,7 @@
     function idpMgtUpdate1() {
         if (document.getElementById("meta_data_saml").value != "") {
             <%
-                if(idPName != null && !idPName.equals("")){
+                if(idPName != null && !(idPName.equals(""))){
                 %>
             CARBON.showConfirmationDialog("This will delete your public certificate and SAML SSO configuration, Do you want to proceed?",
                     function () {
