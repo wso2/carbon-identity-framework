@@ -64,6 +64,13 @@
         </dependency>
 
 
+
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.security.mgt</artifactId>
+        </dependency>
+
+
     </dependencies>
 
     <build>
@@ -85,6 +92,26 @@
                             org.wso2.carbon.saml.metadata.internal,
                         </Private-Package>
                         <Import-Package>
+                            javax.crypto,
+                            javax.xml.namespace,
+                            javax.xml.parsers ; version="[0.0.0,2.0.0)",
+                            javax.xml.transform,
+                            javax.xml.transform.dom,
+                            javax.xml.transform.stream,
+                            org.apache.xml.security,
+                            org.apache.xml.security.exceptions,
+                            org.apache.xml.security.signature,
+                            org.apache.xml.security.utils,
+                            org.joda.time,
+                            org.opensaml.saml2.metadata,
+                            org.opensaml.saml2.metadata.impl,
+                            org.opensaml.xml,
+                            org.opensaml.xml.io,
+                            org.opensaml.xml.security.credential,
+                            org.opensaml.xml.security.x509,
+                            org.opensaml.xml.signature,
+                            org.w3c.dom,
+                            org.wso2.carbon.security.keystore,
                             org.wso2.carbon.idp.mgt.util,
                             org.wso2.carbon.idp.mgt,
                             org.wso2.carbon.registry.core,
@@ -116,9 +143,10 @@
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                         </Import-Package>
+
                         <Export-Package>
                             !org.wso2.carbon.saml.metadata.internal,
-                            org.wso2.carbon.saml.metadata.*; version="${carbon.identity.package.export.version}",-->
+                            org.wso2.carbon.saml.metadata.*; version="${carbon.identity.package.export.version}",
                         </Export-Package>
                     </instructions>
                 </configuration>

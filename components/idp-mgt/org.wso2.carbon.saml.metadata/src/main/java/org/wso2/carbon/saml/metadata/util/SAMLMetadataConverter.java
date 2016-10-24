@@ -149,7 +149,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
 
 
 
-        return "Just now I'm sending this message";
+        return "Just now I'm sending this message from Wso2 Kolpity :*";
     }
 
 
