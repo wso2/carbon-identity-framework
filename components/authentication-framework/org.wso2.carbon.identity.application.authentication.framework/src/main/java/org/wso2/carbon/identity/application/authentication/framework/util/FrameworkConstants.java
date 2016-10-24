@@ -63,6 +63,9 @@ public abstract class FrameworkConstants {
     public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
 
+    public static final String REQUEST_CLAIMS = "requestClaims";
+    public static final String MISSING_CLAIMS = "missingClaims";
+
     private FrameworkConstants() {
 
     }

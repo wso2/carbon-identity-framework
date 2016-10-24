@@ -116,17 +116,26 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         // if no request path authenticators or handler returned cannot handle
-        if (!context.getSequenceConfig().isCompleted()
+        if (!context.getSequenceConfig().isCompleted() || requestMissingClaims(context)
             || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
             // call step based sequence handler
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }
 
         // if flow completed, send response back
-        if (context.getSequenceConfig().isCompleted()) {
+        if (context.getSequenceConfig().isCompleted() && !requestMissingClaims(context)) {
             concludeFlow(request, response, context);
         } else { // redirecting outside
             FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
+        }
+    }
+
+    private boolean requestMissingClaims (AuthenticationContext context) {
+        Object object = context.getProperty("requestClaims");
+        if (object != null) {
+            return (Boolean) object;
+        } else {
+            return false;
         }
     }
 
