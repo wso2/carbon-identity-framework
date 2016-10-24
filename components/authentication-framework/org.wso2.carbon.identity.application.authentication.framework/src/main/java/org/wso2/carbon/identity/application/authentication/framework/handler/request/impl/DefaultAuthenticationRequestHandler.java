@@ -130,15 +130,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
     }
 
-    private boolean requestMissingClaims (AuthenticationContext context) {
-        Object object = context.getProperty("requestClaims");
-        if (object != null) {
-            return (Boolean) object;
-        } else {
-            return false;
-        }
-    }
-
     private void handleDenyFromLoginPage(HttpServletRequest request, HttpServletResponse response,
                                          AuthenticationContext context) throws FrameworkException {
         if (log.isDebugEnabled()) {
