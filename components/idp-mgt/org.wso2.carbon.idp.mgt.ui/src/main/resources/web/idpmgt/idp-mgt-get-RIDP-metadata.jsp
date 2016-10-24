@@ -30,8 +30,10 @@
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.io.*" %>
+<%@ page trimDirectiveWhitespaces="true" %>
 
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.MetadataDownloadHandler" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -42,6 +44,7 @@
     String metadata = "";
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    String path = "";
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
@@ -49,20 +52,27 @@
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
         metadata = client.getResidentIDPMetadata();
+
+        //MetadataDownloadHandler downloadHandler = new MetadataDownloadHandler();
+        //path = downloadHandler.createFile(metadata,"metadata.xml");
+        //downloadHandler.downloadFile(fileName,response,metadata);
+
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage("Error downloading metadata file", CarbonUIMessage.INFO, request);
     } finally {
     }
 %>
-<%--<script>--%>
-    <%--var metadata = '<%=Encode.forHtmlContent(metadata)%>';--%>
-    <%--window.alert(metadata);--%>
-    <%--var link = document.createElement('a');--%>
-    <%--link.download = 'metadata.xml';--%>
-    <%--var blob = new Blob([metadata], {type: 'text/plain'});--%>
-    <%--link.href = window.URL.createObjectURL(blob);--%>
-    <%--link.click();--%>
-<%--</script>--%>
+
+
+<script>
+    var metadata = new String(<%=Encode.forHtmlContent(metadata)%>);
+
+    var link = document.createElement('a');
+    link.download = 'metadata.xml';
+    var blob = new Blob([metadata], {type: 'text/plain'});
+    link.href = window.URL.createObjectURL(blob);
+    link.click();
+</script>
 <%--<script type="text/javascript">--%>
     <%--location.href = "idp-mgt-edit-local.jsp";--%>
 <%--</script>--%>
