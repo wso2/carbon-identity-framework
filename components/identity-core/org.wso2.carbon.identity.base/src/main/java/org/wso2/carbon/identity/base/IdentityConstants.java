@@ -136,6 +136,7 @@ public class IdentityConstants {
             "HTTP_VIA",
             "REMOTE_ADDR"};
     public static final String UNKNOWN = "unknown";
+    public static final String USER_IP = "user-ip";
 
     private IdentityConstants() {
     }
