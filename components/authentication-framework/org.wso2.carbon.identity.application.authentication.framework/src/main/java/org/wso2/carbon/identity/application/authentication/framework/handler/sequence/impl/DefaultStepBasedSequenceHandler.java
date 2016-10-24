@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -98,104 +99,108 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             log.debug("Executing the Step Based Authentication...");
         }
 
-        if (requestMissingClaims(context)) {
-            handleResponseWithMissingClaims(request, response, context);
-        } else {
+        while (!context.getSequenceConfig().isCompleted()) {
 
-            while (!context.getSequenceConfig().isCompleted()) {
+            int currentStep = context.getCurrentStep();
 
-                int currentStep = context.getCurrentStep();
-
-                // let's initialize the step count to 1 if this the beginning of the sequence
-                if (currentStep == 0) {
-                    currentStep++;
-                    context.setCurrentStep(currentStep);
-                }
-
-                StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(currentStep);
-
-                // if the current step is completed
-                if (stepConfig.isCompleted()) {
-                    stepConfig.setCompleted(false);
-                    stepConfig.setRetrying(false);
-
-                    // if the request didn't fail during the step execution
-                    if (context.isRequestAuthenticated()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Step " + stepConfig.getOrder()
-                                    + " is completed. Going to get the next one.");
-                        }
-
-                        currentStep = context.getCurrentStep() + 1;
-                        context.setCurrentStep(currentStep);
-                        stepConfig = context.getSequenceConfig().getStepMap().get(currentStep);
-
-                    } else {
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Authentication has failed in the Step "
-                                    + (context.getCurrentStep()));
-                        }
-
-                        // if the step contains multiple login options, we should give the user to retry
-                        // authentication
-                        if (stepConfig.isMultiOption() && !context.isPassiveAuthenticate()) {
-                            stepConfig.setRetrying(true);
-                            context.setRequestAuthenticated(true);
-                        } else {
-                            context.getSequenceConfig().setCompleted(true);
-                            resetAuthenticationContext(context);
-                            continue;
-                        }
-                    }
-
-                    resetAuthenticationContext(context);
-                }
-
-                // if no further steps exists
-                if (stepConfig == null) {
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("There are no more steps to execute");
-                    }
-
-                    // if no step failed at authentication we should do post authentication work (e.g.
-                    // claim handling, provision etc)
-                    if (context.isRequestAuthenticated()) {
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Request is successfully authenticated");
-                        }
-
-                        context.getSequenceConfig().setCompleted(true);
-                        handlePostAuthentication(request, response, context);
-                    }
-
-                    // we should get out of steps now.
-                    if (log.isDebugEnabled()) {
-                        log.debug("Step processing is completed");
-                    }
-                    continue;
-                }
-
-                // if the sequence is not completed, we have work to do.
-                if (log.isDebugEnabled()) {
-                    log.debug("Starting Step: " + stepConfig.getOrder());
-                }
-
-                FrameworkUtils.getStepHandler().handle(request, response, context);
-
-                // if step is not completed, that means step wants to redirect to outside
-                if (!stepConfig.isCompleted()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Step is not complete yet. Redirecting to outside.");
-                    }
-                    return;
-                }
-
-                context.setReturning(false);
+            // let's initialize the step count to 1 if this the beginning of the sequence
+            if (currentStep == 0) {
+                currentStep++;
+                context.setCurrentStep(currentStep);
             }
+
+            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(currentStep);
+
+            // if the current step is completed
+            if (stepConfig != null && stepConfig.isCompleted()) {
+                stepConfig.setCompleted(false);
+                stepConfig.setRetrying(false);
+
+                // if the request didn't fail during the step execution
+                if (context.isRequestAuthenticated()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Step " + stepConfig.getOrder()
+                                + " is completed. Going to get the next one.");
+                    }
+
+                    currentStep = context.getCurrentStep() + 1;
+                    context.setCurrentStep(currentStep);
+                    stepConfig = context.getSequenceConfig().getStepMap().get(currentStep);
+
+                } else {
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Authentication has failed in the Step "
+                                + (context.getCurrentStep()));
+                    }
+
+                    // if the step contains multiple login options, we should give the user to retry
+                    // authentication
+                    if (stepConfig.isMultiOption() && !context.isPassiveAuthenticate()) {
+                        stepConfig.setRetrying(true);
+                        context.setRequestAuthenticated(true);
+                    } else {
+                        context.getSequenceConfig().setCompleted(true);
+                        resetAuthenticationContext(context);
+                        continue;
+                    }
+                }
+
+                resetAuthenticationContext(context);
+            }
+
+            // if no further steps exists
+            if (stepConfig == null) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("There are no more steps to execute");
+                }
+
+                // if no step failed at authentication we should do post authentication work (e.g.
+                // claim handling, provision etc)
+                if (context.isRequestAuthenticated()) {
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Request is successfully authenticated");
+                    }
+
+                    context.getSequenceConfig().setCompleted(true);
+                    handlePostAuthentication(request, response, context);
+
+                    // if step is not completed, that means step wants to redirect to outside
+                    if (!context.getSequenceConfig().isCompleted()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Post authentication is not complete yet. Redirecting to outside.");
+                        }
+                        return;
+                    }
+                }
+
+                // we should get out of steps now.
+                if (log.isDebugEnabled()) {
+                    log.debug("Step processing is completed");
+                }
+                continue;
+            }
+
+            // if the sequence is not completed, we have work to do.
+            if (log.isDebugEnabled()) {
+                log.debug("Starting Step: " + stepConfig.getOrder());
+            }
+
+            FrameworkUtils.getStepHandler().handle(request, response, context);
+
+            // if step is not completed, that means step wants to redirect to outside
+            if (!stepConfig.isCompleted()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Step is not complete yet. Redirecting to outside.");
+                }
+                return;
+            }
+
+            context.setReturning(false);
         }
+
     }
 
     private void handleResponseWithMissingClaims(HttpServletRequest request, HttpServletResponse response,
@@ -235,6 +240,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
         if (log.isDebugEnabled()) {
             log.debug("Handling Post Authentication tasks");
+        }
+
+        if (requestMissingClaims(context)) {
+            handleResponseWithMissingClaims(request, response, context);
+            return;
         }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
@@ -554,22 +564,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
         sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
 
-        Map<String,String> requestedClaims = sequenceConfig.getApplicationConfig().getRequestedClaimMappings();
-        String missingClaims = getMissingClaims(mappedAttrs, requestedClaims);
+        request.setAttribute(FrameworkConstants.MAPPED_ATTRIBUTES, mappedAttrs);
 
-        if (StringUtils.isNotBlank(missingClaims)) {
-            //need to request for the missing claims before completing authentication
-            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-            context.setProperty(FrameworkConstants.REQUEST_CLAIMS, true);
-
-            try {
-                String queryString = "?" + FrameworkConstants.MISSING_CLAIMS + "=" + missingClaims;
-                queryString += "&" + FrameworkConstants.SESSION_DATA_KEY + "=" + context.getContextIdentifier();
-                response.sendRedirect("/authenticationendpoint/claims.do" + queryString);
-            } catch (IOException e) {
-                throw new FrameworkException("Error while redirecting to request claims", e);
-            }
-        }
+        handleIncompletePostAuthenticationTasks(request, response, context);
     }
 
     /**
@@ -844,6 +841,31 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     tenantDomain + " to handle local claims", e);
         }
         return realm;
+    }
+
+    private void handleIncompletePostAuthenticationTasks(HttpServletRequest request, HttpServletResponse response,
+                                                 AuthenticationContext context) throws FrameworkException {
+
+        Map<String,String> requestedClaims =
+                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings();
+        Object object = request.getAttribute(FrameworkConstants.MAPPED_ATTRIBUTES);
+        Map<String, String> mappedAttrs = (Map<String, String>) object;
+        String missingClaims = getMissingClaims(mappedAttrs, requestedClaims);
+
+        if (StringUtils.isNotBlank(missingClaims)) {
+            //need to request for the missing claims before completing authentication
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            context.getSequenceConfig().setCompleted(false);
+            context.setProperty(FrameworkConstants.REQUEST_CLAIMS, true);
+
+            try {
+                String queryString = "?" + FrameworkConstants.MISSING_CLAIMS + "=" + missingClaims;
+                queryString += "&" + FrameworkConstants.SESSION_DATA_KEY + "=" + context.getContextIdentifier();
+                response.sendRedirect("/authenticationendpoint/claims.do" + queryString);
+            } catch (IOException e) {
+                throw new FrameworkException("Error while redirecting to request claims", e);
+            }
+        }
     }
 
 }
