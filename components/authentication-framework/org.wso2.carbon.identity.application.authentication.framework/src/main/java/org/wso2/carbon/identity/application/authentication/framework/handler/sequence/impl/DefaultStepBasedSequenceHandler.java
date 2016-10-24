@@ -213,6 +213,16 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         Map<ClaimMapping, String> authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(claims);
         authenticatedUserAttributes.putAll(user.getUserAttributes());
 
+        if (!user.isFederatedUser()) {
+            UserRealm realm = getUserRealm(user.getTenantDomain());
+            try {
+                UserStoreManager userStoreManager = realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
+                userStoreManager.setUserClaimValues(user.getUserName(), claims, null);
+            } catch (UserStoreException e) {
+                throw new FrameworkException("Error while updating claims for local user", e);
+            }
+        }
+
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         context.setProperty(FrameworkConstants.REQUEST_CLAIMS, false);
 
@@ -821,6 +831,19 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             }
         }
         return missingClaims;
+    }
+
+    private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
+        UserRealm realm;
+        try {
+            realm = AnonymousSessionUtil.getRealmByTenantDomain(
+                    FrameworkServiceComponent.getRegistryService(),
+                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+        } catch (CarbonException e) {
+            throw new FrameworkException("Error occurred while retrieving the Realm for " +
+                    tenantDomain + " to handle local claims", e);
+        }
+        return realm;
     }
 
 }
