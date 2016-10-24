@@ -30,7 +30,6 @@ public class IDPMetadataSAMLServiceComponentHolder {
     public static IDPMetadataSAMLServiceComponentHolder instance = new IDPMetadataSAMLServiceComponentHolder();
     private RegistryService registryService;
     private RealmService realmService;
-    private List<IDPMetadataBuilder> idpMetadataBuilderList;
 
     public static IDPMetadataSAMLServiceComponentHolder getInstance() {
         return instance;
@@ -52,16 +51,6 @@ public class IDPMetadataSAMLServiceComponentHolder {
         this.realmService = realmService;
     }
 
-    public void addIdpMetadataBuilder(IDPMetadataBuilder idpMetadataBuilder){
-        if(idpMetadataBuilderList == null){
-            idpMetadataBuilderList = new ArrayList<IDPMetadataBuilder>();
-        }
-        idpMetadataBuilderList.add(idpMetadataBuilder);
-    }
-
-    public void removeIdpMetadataBuilder(IDPMetadataBuilder idpMetadataBuilder){
-        idpMetadataBuilderList.remove(idpMetadataBuilder);
-    }
 
 
 }

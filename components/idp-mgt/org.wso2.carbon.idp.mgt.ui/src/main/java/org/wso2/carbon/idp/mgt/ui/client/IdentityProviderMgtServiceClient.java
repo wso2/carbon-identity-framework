@@ -305,7 +305,8 @@ public class IdentityProviderMgtServiceClient {
     }
 
     public String getResidentIDPMetadata() throws java.rmi.RemoteException, IdentityProviderMgtServiceIdentityProviderManagementExceptionException {
-        return idPMgtStub.getResidentIDPMetadata();
+        String metadata = idPMgtStub.getResidentIDPMetadata();
+        return metadata;
     }
 
 }

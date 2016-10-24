@@ -33,7 +33,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 public abstract class IDPMetadataBuilder extends AbstractIdentityHandler {
 
 
-    public String build(SAML2SSOFederatedAuthenticatorConfig samlFederatedAuthenticatorConfig) throws MetadataException {
+    public String build(FederatedAuthenticatorConfig samlFederatedAuthenticatorConfig) throws MetadataException {
 
 
         EntityDescriptor entityDescriptor = buildEntityDescriptor(samlFederatedAuthenticatorConfig);

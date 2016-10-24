@@ -28,7 +28,10 @@ import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthen
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
+import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
+import org.wso2.carbon.saml.metadata.builder.DefaultIDPMetadataBuilder;
+import org.wso2.carbon.saml.metadata.builder.IDPMetadataBuilder;
 
 
 /**
@@ -147,9 +150,17 @@ public class SAMLMetadataConverter implements MetadataConverter {
 
     public String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException{
 
+        DefaultIDPMetadataBuilder builder = new DefaultIDPMetadataBuilder();
+        try {
+
+            String metadata = builder.build(federatedAuthenticatorConfig);
+            return metadata;
+        }catch(MetadataException ex){
+            throw  new IdentityProviderSAMLException("Error invoking build in IDPMetadataBuilder");
+        }
 
 
-        return "Just now I'm sending this message from Wso2 Kolpity :*";
+
     }
 
 

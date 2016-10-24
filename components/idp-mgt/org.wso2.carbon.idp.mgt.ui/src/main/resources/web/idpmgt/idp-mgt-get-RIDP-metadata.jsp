@@ -48,48 +48,24 @@
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
-        //create a .xml type
         metadata = client.getResidentIDPMetadata();
-//        MetadataDownloadHandler metadataDownloadHandler = new MetadataDownloadHandler();
-//        metadataDownloadHandler.createFile("Somthing", request);
-//
-//        metadata = metadataDownloadHandler.downloadFile();
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage("Error downloading metadata file", CarbonUIMessage.INFO, request);
     } finally {
     }
 %>
-<script>
-    var metadata = "<%=metadata.trim()%>";
-    //    function  makeTextFile (text){
-    //        var textFile = "";
-    //        var data = new Blob([text], {type: 'text/plain'});
-    //
-    //                // If we are replacing a previously generated file we need to
-    //                // manually revoke the object URL to avoid memory leaks.
-    //        if (textFile !== null) {
-    //                window.URL.revokeObjectURL(textFile);
-    //        }
-    //
-    //        textFile = window.URL.createObjectURL(data);
-    //
-    //                // returns a URL you can use as a href
-    //        return textFile;
-    //    }
-    //    location.href=makeTextFile(metadata);
-    var link = document.createElement('a');
-    link.download = 'metadata.xml';
-    var blob = new Blob([metadata], {type: 'text/plain'});
-    link.href = window.URL.createObjectURL(blob);
-    link.click();
-</script>
-
-
-
-
-<script type="text/javascript">
-    location.href = "idp-mgt-edit-local.jsp";
-</script>
+<%--<script>--%>
+    <%--var metadata = '<%=Encode.forHtmlContent(metadata)%>';--%>
+    <%--window.alert(metadata);--%>
+    <%--var link = document.createElement('a');--%>
+    <%--link.download = 'metadata.xml';--%>
+    <%--var blob = new Blob([metadata], {type: 'text/plain'});--%>
+    <%--link.href = window.URL.createObjectURL(blob);--%>
+    <%--link.click();--%>
+<%--</script>--%>
+<%--<script type="text/javascript">--%>
+    <%--location.href = "idp-mgt-edit-local.jsp";--%>
+<%--</script>--%>
 
 
 </body>

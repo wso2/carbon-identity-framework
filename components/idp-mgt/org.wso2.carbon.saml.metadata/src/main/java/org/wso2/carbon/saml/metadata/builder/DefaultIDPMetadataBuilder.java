@@ -29,6 +29,7 @@ import org.opensaml.xml.io.MarshallingException;
 import org.w3c.dom.Document;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.saml.metadata.ConfigElements;
@@ -57,6 +58,10 @@ public class DefaultIDPMetadataBuilder extends IDPMetadataBuilder {
 
     @Override public int getPriority() {
         return PRIORITY;
+    }
+
+    public String build(FederatedAuthenticatorConfig samlFederatedAuthenticatorConfig) throws MetadataException {
+        return super.build(samlFederatedAuthenticatorConfig);
     }
 
     private Property getFederatedAuthenticatorConfigProperty(
