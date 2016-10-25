@@ -32,6 +32,7 @@ public class ClaimMapping implements Serializable {
     private Claim remoteClaim;
     private String defaultValue;
     private boolean requested;
+    private boolean isMandatory;
 
     /**
      * @param localClaimUri
@@ -177,5 +178,19 @@ public class ClaimMapping implements Serializable {
      */
     public void setRequested(boolean requested) {
         this.requested = requested;
+    }
+
+    /**
+     * @return
+     */
+    public boolean isMandatory(){
+        return isMandatory;
+    }
+
+    /**
+     * @param isMandatory
+     */
+    public void setMandatory(boolean isMandatory) {
+        this.isMandatory = isMandatory;
     }
 }
