@@ -134,6 +134,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_CLAIM_HANDLER = "ClaimHandler";
         public static final String QNAME_EXT_ROLE_HANDLER = "ClaimHandler";
         public static final String QNAME_EXT_PROVISIONING_HANDLER = "ProvisioningHandler";
+        public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
 
         private Config() {
         }
