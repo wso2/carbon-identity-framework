@@ -26,7 +26,6 @@ import org.apache.thrift.transport.TSSLTransportFactory;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.base.ServerConfigurationException;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
@@ -262,6 +261,10 @@ public class EntitlementServiceComponent {
             ThriftEntitlementServiceImpl.init(thriftAuthenticationService);
             //initialize thrift based Entitlement Service.
             startThriftServices();
+            org.wso2.carbon.identity.entitlement.EntitlementService entitlementService =
+                    new org.wso2.carbon.identity.entitlement.EntitlementService();
+            ctxt.getBundleContext().registerService(
+                    org.wso2.carbon.identity.entitlement.EntitlementService.class.getName(), entitlementService, null);
         } catch (Throwable throwable) {
             log.error("Failed to initialize Entitlement Service", throwable);
         }

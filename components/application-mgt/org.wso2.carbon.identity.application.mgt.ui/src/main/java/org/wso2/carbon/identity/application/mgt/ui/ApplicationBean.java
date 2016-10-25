@@ -41,7 +41,6 @@ import org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnect
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
-import org.wso2.carbon.ui.util.CharacterEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -463,6 +462,12 @@ public class ApplicationBean {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInLocalSubjectIdentifier();
         }
         return false;
+    }
+
+    public boolean isEnableAuthorization() {
+
+        return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getEnableAuthorization();
     }
 
     public String getSubjectClaimUri() {
@@ -1227,6 +1232,11 @@ public class ApplicationBean {
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setUseUserstoreDomainInLocalSubjectIdentifier(useUserstoreDomainInLocalSubjectIdentifier != null &&
                         "on".equals(useUserstoreDomainInLocalSubjectIdentifier) ? true : false);
+
+        String enableAuthorization = request.getParameter(
+                "enable_authorization");
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
 
 
         String subjectClaimUri = request.getParameter("subject_claim_uri");
