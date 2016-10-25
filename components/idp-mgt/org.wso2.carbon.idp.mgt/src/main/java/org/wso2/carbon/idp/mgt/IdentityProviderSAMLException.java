@@ -15,5 +15,4 @@ public class IdentityProviderSAMLException extends Exception {
         super(message, cause);
     }
 
-
 }

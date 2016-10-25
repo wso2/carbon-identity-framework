@@ -257,16 +257,13 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         }
     }
     public String  getResidentIDPMetadata() throws IdentityProviderManagementException {
-        String tenantDomain = "";
-
         try {
-            tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             String metadata = IdentityProviderManager.getInstance().getResidentIDPMetadata(tenantDomain);
             return metadata;
         } catch (IdentityProviderManagementException idpException) {
             log.error("Error while getting provisioning connectors", idpException);
             throw idpException;
         }
-
     }
 }

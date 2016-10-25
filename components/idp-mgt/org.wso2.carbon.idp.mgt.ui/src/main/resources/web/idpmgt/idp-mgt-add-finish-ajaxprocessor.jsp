@@ -26,15 +26,6 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.apache.commons.fileupload.servlet.ServletRequestContext" %>
-<%@ page import="org.apache.commons.fileupload.FileItemFactory" %>
-<%@ page import="org.apache.commons.fileupload.disk.DiskFileItemFactory" %>
-<%@ page import="org.apache.commons.fileupload.servlet.ServletFileUpload" %>
-<%@ page import="java.util.List" %>
-<%@ page import="org.apache.commons.fileupload.disk.DiskFileItem" %>
-<%@ page import="org.apache.axiom.om.util.Base64" %>
-<%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -67,54 +58,5 @@
     }
 %>
 <script type="text/javascript">
-    function editIdPName(idpName) {
-        location.href = "idp-mgt-edit-load.jsp?idPName=" + encodeURIComponent(idpName);
-    }
-    <%
-
-            ServletRequestContext servletContext = new ServletRequestContext(request);
-            FileItemFactory factory = new DiskFileItemFactory();
-            ServletFileUpload upload = new ServletFileUpload(factory);
-            List items = upload.parseRequest(servletContext);
-            String meta = "";
-            String idpName = "";
-             for (Object item : items) {
-                DiskFileItem diskFileItem = (DiskFileItem) item;
-
-                if (diskFileItem != null) {
-                    byte[] value = diskFileItem.get();
-                    String key = diskFileItem.getFieldName();
-
-                    if ("meta_data_saml".equals(key)) {
-                        if(Base64.encode(value).length()>0){
-                            meta = Base64.encode(value);
-                        }
-                        break;
-                    }
-                    if (IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID.equals(key)) {
-
-                            idpName = value.toString();
-
-                        break;
-                    }
-
-                }
-
-             }
-             System.out.println("meta"+meta+" idp"+ idpName);
-             if(meta.length()>0 && idpName.length()>0){
-                %>
-    editIdPName('<%=Encode.forJavaScriptAttribute(idpName)%>');
-
-    <%
-             }else{
-             %>
-
     location.href = "idp-mgt-list-load.jsp";
-    <%
-
-             }
-
-%>
-
 </script>

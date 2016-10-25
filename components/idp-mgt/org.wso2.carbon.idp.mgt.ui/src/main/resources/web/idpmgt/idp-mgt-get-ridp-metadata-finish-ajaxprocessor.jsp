@@ -32,7 +32,6 @@
             out.write(donneeFichier[i]);
         }
 
-
     } catch (Exception e) {
         CarbonUIMessage.sendCarbonUIMessage("Error downloading metadata file", CarbonUIMessage.INFO, request);
     } finally {

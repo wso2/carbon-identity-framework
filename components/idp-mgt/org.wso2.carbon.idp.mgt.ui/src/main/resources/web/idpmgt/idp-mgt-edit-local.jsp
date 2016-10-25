@@ -296,12 +296,10 @@ jQuery(document).ready(function(){
         }
     }
 </script>
-
 <script>
         function downloadRIDPMetadata() {
                 jQuery('#idp-mgt-get-RIDP-form').submit();
-            }
-
+        }
 </script>
 <form id="idp-mgt-get-RIDP-form" name="idp-mgt-get-RIDP-form" method="post"
 action="idp-mgt-get-ridp-metadata-finish-ajaxprocessor.jsp"></form>
@@ -443,11 +441,7 @@ action="idp-mgt-get-ridp-metadata-finish-ajaxprocessor.jsp"></form>
                     </table>
                         <br>
                         <button onclick="downloadRIDPMetadata()" type="button" id="downloadResidentIdpMetadataData"
-                                                                  name="downloadResidentIdpMetadataData">Download
-                                                      </button>
-
-
-
+                                                                  name="downloadResidentIdpMetadataData">Download</button>
                     </div>
 
                     <h2 id="oauth1confighead"  class="sectionSeperator trigger active" style="background-color: beige;">

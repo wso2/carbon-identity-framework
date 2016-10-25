@@ -1821,7 +1821,7 @@ public class IdentityProviderManager implements IdpManager {
     public String getResidentIDPMetadata(String tenantDomain) throws IdentityProviderManagementException {
 
         if(metadataConverter==null){
-            throw new IdentityProviderManagementException("Error recieving Metadata object");
+            throw new IdentityProviderManagementException("Error receiving Metadata object");
         }
 
         IdentityProvider residentIdentityProvider = this.getResidentIdP(tenantDomain);

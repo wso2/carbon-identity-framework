@@ -1416,11 +1416,7 @@ public class IdPManagementUIUtil {
         if ("on".equals(paramMap.get("saml2SSODefault"))) {
             fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
         }
-
-        Property[] properties;
-
-
-        properties = new Property[25];
+        Property[] properties  = new Property[25];
 
         if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
             saml2SSOAuthnConfig.setEnabled(true);

@@ -159,9 +159,6 @@ public class SAMLMetadataConverter implements MetadataConverter {
             throw  new IdentityProviderSAMLException("Error invoking build in IDPMetadataBuilder");
         }
 
-
-
     }
-
 
 }
