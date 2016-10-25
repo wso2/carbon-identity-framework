@@ -33,7 +33,9 @@ import org.w3c.dom.Element;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.xml.sax.SAXException;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -53,7 +55,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
     private static EntityDescriptor generateMetadataObjectFromString(String metadataString) throws IdentityApplicationManagementException {
         EntityDescriptor entityDescriptor = null;
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new ByteArrayInputStream(metadataString.getBytes()));
@@ -81,7 +83,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
         if (entityDescriptor != null) {
             List<RoleDescriptor> roleDescriptors = entityDescriptor.getRoleDescriptors();
             //assuming only one IDPSSO is inside the entitydescripter
-            if (roleDescriptors != null && roleDescriptors.size() > 0) {
+            if (CollectionUtils.isNotEmpty(roleDescriptors)) {
                 RoleDescriptor roleDescriptor = roleDescriptors.get(0);
                 if (roleDescriptor != null) {
                     IDPSSODescriptor idpssoDescriptor;
@@ -110,7 +112,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
                     List<SingleSignOnService> singleSignOnServices = idpssoDescriptor.getSingleSignOnServices();
-                    if (singleSignOnServices != null && singleSignOnServices.size() > 0) {
+                    if (CollectionUtils.isNotEmpty(singleSignOnServices)) {
                         boolean found = false;
                         for (int j = 0; j < singleSignOnServices.size(); j++) {
                             SingleSignOnService singleSignOnService = singleSignOnServices.get(j);
@@ -122,7 +124,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                                 }
                             }
                         }
-                        if(!found){
+                        if (!found) {
                             property.setValue("");
                             throw new IdentityApplicationManagementException("No SSO URL, invalid file content");
                         }
@@ -144,7 +146,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_ENABLED);
                     List<SingleLogoutService> singleLogoutServices = idpssoDescriptor.getSingleLogoutServices();
-                    if (singleLogoutServices != null && CollectionUtils.isNotEmpty(singleLogoutServices)) {
+                    if (CollectionUtils.isNotEmpty(singleLogoutServices)) {
                         property.setValue("true");
                     } else {
                         property.setValue("false");
@@ -153,7 +155,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
                     property = new Property();
                     property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
-                    if (singleLogoutServices != null && CollectionUtils.isNotEmpty(singleLogoutServices)) {
+                    if (CollectionUtils.isNotEmpty(singleLogoutServices)) {
                         boolean foundSingleLogoutServicePostBinding = false;
                         for (SingleLogoutService singleLogoutService : singleLogoutServices) {
                             if (singleLogoutService != null) {
@@ -210,7 +212,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     properties[10] = property;
 
                     List<KeyDescriptor> descriptors = idpssoDescriptor.getKeyDescriptors();
-                    if (descriptors != null && descriptors.size() > 0) {
+                    if (CollectionUtils.isNotEmpty(descriptors)) {
                         for (int i = 0; i < descriptors.size(); i++) {
                             KeyDescriptor descriptor = descriptors.get(i);
                             if (descriptor != null) {
@@ -297,7 +299,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                     federatedAuthenticatorConfig.setProperties(properties);
 
                     //set certificates
-                    if (descriptors != null && descriptors.size() > 0) {
+                    if (CollectionUtils.isNotEmpty(descriptors)) {
                         for (int i = 0; i < descriptors.size(); i++) {
                             KeyDescriptor descriptor = descriptors.get(i);
                             if (descriptor != null) {
@@ -308,11 +310,15 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                                             if (descriptor.getKeyInfo().getX509Datas() != null && descriptor.getKeyInfo().getX509Datas().size() > 0) {
                                                 for (int k = 0; k < descriptor.getKeyInfo().getX509Datas().size(); k++) {
                                                     if (descriptor.getKeyInfo().getX509Datas().get(k) != null) {
-                                                        if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates() != null && descriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates().size() > 0) {
+                                                        if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates() != null &&
+                                                                descriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates().size() > 0) {
                                                             for (int y = 0; y < descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().size(); y++) {
                                                                 if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y) != null) {
-                                                                    if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue() != null && descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().length() > 0) {
-                                                                        cert = descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).getValue().toString();
+                                                                    if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).
+                                                                            getValue() != null && descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().
+                                                                            get(y).getValue().length() > 0) {
+                                                                        cert = descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).
+                                                                                getValue().toString();
                                                                         builder.append(org.apache.axiom.om.util.Base64.encode(cert.getBytes()));
                                                                         return federatedAuthenticatorConfig;
                                                                     }
@@ -358,6 +364,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
         }
         return federatedAuthenticatorConfig;
     }
+
     /**
      *
      */

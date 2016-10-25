@@ -82,7 +82,7 @@
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            javax.xml.parsers; version="[0.0.0,1.0.0)",
+                            javax.xml.parsers; version="${javax.xml.parsers.version.range}",
                             org.opensaml.common.xml,
                             org.opensaml.saml2.metadata,
                             org.opensaml.saml2.metadata.provider,
@@ -102,7 +102,8 @@
                             org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
-                            org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.application.common.*;
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

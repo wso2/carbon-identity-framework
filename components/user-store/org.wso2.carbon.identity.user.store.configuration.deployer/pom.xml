@@ -121,7 +121,8 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.store.configuration.deployer.internal,
-                            org.wso2.carbon.identity.user.store.configuration.deployer.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.user.store.configuration.deployer.*;
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                         <Axis2Deployer>UserStoreConfigurationDeployer</Axis2Deployer>
                     </instructions>

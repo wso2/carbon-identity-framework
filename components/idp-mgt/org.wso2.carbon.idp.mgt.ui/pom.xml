@@ -97,7 +97,7 @@
                             org.wso2.carbon.identity.application.common.util,
                         </Import-Package>
                         <Export-Package>
-                            org.wso2.carbon.idp.mgt.ui.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.idp.mgt.ui.*; version="${carbon.identity.framework.package.export.version}",
                         </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>

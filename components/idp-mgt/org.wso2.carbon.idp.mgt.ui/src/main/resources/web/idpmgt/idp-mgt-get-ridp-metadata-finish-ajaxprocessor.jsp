@@ -22,14 +22,14 @@
         String metadata = client.getResidentIDPMetadata();
 
         out.clearBuffer();
-        byte donneeFichier[] = metadata.getBytes();
+        byte metaBytes[] = metadata.getBytes();
         response.setHeader("Content-Disposition", "attachment;filename=\"" + "metadata.xml" + "\"");
         response.setHeader("Content-Type", "application/octet-stream;");
         response.setHeader("Accept-Ranges", "bytes");
-        response.setHeader("Content-Length", String.valueOf(donneeFichier.length));
+        response.setHeader("Content-Length", String.valueOf(metaBytes.length));
 
-        for(int i = 0; i < donneeFichier.length; i++){
-            out.write(donneeFichier[i]);
+        for(int i = 0; i < metaBytes.length; i++){
+            out.write(metaBytes[i]);
         }
 
     } catch (Exception e) {

@@ -1319,7 +1319,7 @@ public class IdentityProviderManager implements IdpManager {
                 if (!registry.resourceExists(path)) {
                     registry.put(path, resource);
                 } else {
-                    throw new IdentityProviderManagementException("Duplicate Identity Provider found in the registry");
+                    throw new IdentityProviderManagementException("Duplicate Identity Provider-"+idpName+" found in the registry");
                 }
 
                 if (!isTransactionStarted) {
@@ -1415,8 +1415,8 @@ public class IdentityProviderManager implements IdpManager {
 
         validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
         if (
-                idpName != null && idpName.toString().length() > 0 &&
-                        metadata != null && metadata.toString().length() > 0
+                idpName.toString().length() > 0 &&
+                        metadata.toString().length() > 0
                 ) {
 
             addMetaDataToRegistry(tenantId, idpName.toString(), metadata.toString());
@@ -1476,13 +1476,13 @@ public class IdentityProviderManager implements IdpManager {
                         if (!isTransactionStarted) {
                             registry.rollbackTransaction();
                         }
-                        throw new IdentityProviderManagementException("Error while deleting metadata String in registry");
+                        throw new IdentityProviderManagementException("Error while deleting metadata String in registry for "+idPName);
                     }
 
 
                 }
             } catch (RegistryException e) {
-                throw new IdentityProviderManagementException("Error while deleting Identity Provider.", e);
+                throw new IdentityProviderManagementException("Error while deleting Identity Provider", e);
             }
 
             if (log.isDebugEnabled()) {

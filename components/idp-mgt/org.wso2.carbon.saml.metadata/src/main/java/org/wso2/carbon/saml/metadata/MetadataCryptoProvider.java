@@ -31,6 +31,7 @@ import org.opensaml.xml.signature.KeyInfo;
 import org.opensaml.xml.signature.X509Certificate;
 import org.opensaml.xml.signature.X509Data;
 import org.w3c.dom.Document;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.saml.metadata.util.BuilderUtil;
 
@@ -135,7 +136,7 @@ public class MetadataCryptoProvider implements CryptoProvider {
      */
     private Document marshallDescriptor(EntityDescriptor desc) throws MetadataException {
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
         DocumentBuilder builder;
         try {
             builder = factory.newDocumentBuilder();

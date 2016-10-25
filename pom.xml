@@ -1422,7 +1422,7 @@
 
         <!--Carbon identity version-->
         <identity.framework.version>${project.version}</identity.framework.version>
-        <carbon.identity.package.export.version>${project.version}</carbon.identity.package.export.version>
+        <carbon.identity.framework.package.export.version>${project.version}</carbon.identity.framework.package.export.version>
         <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
 
         <!--Carbon component version-->
@@ -1626,7 +1626,7 @@
         <org.apache.cxf.cxf-rt.version>2.7.8</org.apache.cxf.cxf-rt.version>
         <org.apache.cxf.cxf-rt-transports-jetty.version>2.7.15</org.apache.cxf.cxf-rt-transports-jetty.version>
         <io.swagger.version>1.5.8</io.swagger.version>
-
+        <javax.xml.parsers.version.range>[0.0.0,1.0.0)</javax.xml.parsers.version.range>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
 
         <project.scm.id>my-scm-server</project.scm.id>

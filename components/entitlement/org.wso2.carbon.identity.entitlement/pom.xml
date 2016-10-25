@@ -182,7 +182,8 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.entitlement.common.*,
-                            org.wso2.carbon.identity.entitlement.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.entitlement.*;
+                            version="${carbon.identity.framework.package.export.version}",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>

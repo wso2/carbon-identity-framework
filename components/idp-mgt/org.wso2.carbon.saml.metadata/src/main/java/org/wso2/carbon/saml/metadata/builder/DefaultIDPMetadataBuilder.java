@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.saml.metadata.ConfigElements;
 import org.wso2.carbon.saml.metadata.CryptoProvider;
@@ -49,7 +50,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.StringWriter;
-
+/*
+* This class builds a metadata String using saml2SSOFederatedAuthenticatedConfig
+* */
 public class DefaultIDPMetadataBuilder extends IDPMetadataBuilder {
 
     private final static int PRIORITY = 50;
@@ -112,7 +115,7 @@ public class DefaultIDPMetadataBuilder extends IDPMetadataBuilder {
 
     public String marshallDescriptor(EntityDescriptor entityDescriptor) throws MetadataException {
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
         DocumentBuilder builder;
         try {
             builder = factory.newDocumentBuilder();

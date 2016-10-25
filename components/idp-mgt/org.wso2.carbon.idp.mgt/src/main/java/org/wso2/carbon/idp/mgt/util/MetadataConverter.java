@@ -22,7 +22,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
 
 /**
- * Created by pasindutennage on 9/26/16.
+ * This interface provides functionality to convert a string to federatedAuthenticatorConfig and vise versa
  */
 public interface MetadataConverter {
 

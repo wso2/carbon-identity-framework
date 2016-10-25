@@ -105,7 +105,7 @@ public class IdPManagementServiceComponent {
 
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
-            log.debug("Metadata Converter in Identity idp-mgt bundle");
+            log.debug("Registry service in Identity idp-mgt bundle");
         }
         try {
             IdentityProviderManager.setRegistryService(registryService);
@@ -116,7 +116,7 @@ public class IdPManagementServiceComponent {
 
     protected void unsetRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
-            log.debug("RegistryService unset in SAML SSO bundle");
+            log.debug("RegistryService unset in idp.mgt bundle");
         }
         IdentityProviderManager.setRegistryService(null);
     }

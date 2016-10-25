@@ -262,7 +262,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             String metadata = IdentityProviderManager.getInstance().getResidentIDPMetadata(tenantDomain);
             return metadata;
         } catch (IdentityProviderManagementException idpException) {
-            log.error("Error while getting provisioning connectors", idpException);
+            log.error("Error while retrieving IDP metadata", idpException);
             throw idpException;
         }
     }

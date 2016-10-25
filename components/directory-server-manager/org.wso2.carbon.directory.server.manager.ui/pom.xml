@@ -83,7 +83,7 @@
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.directory.server.manager.ui.*;
-                            version="${carbon.identity.package.export.version}",
+                            version="${carbon.identity.framework.package.export.version}",
                         </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>
