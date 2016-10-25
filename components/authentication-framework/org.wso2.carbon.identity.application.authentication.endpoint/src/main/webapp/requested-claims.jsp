@@ -48,7 +48,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WSO2 Identity Server</title>
+
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
@@ -63,42 +63,28 @@
 
     <body>
 
-    <!-- header -->
-    <header class="header header-default">
-        <div class="container-fluid"><br></div>
-        <div class="container-fluid">
-            <div class="pull-left brand float-remove-xs text-center-xs">
-                <a href="#">
-                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-
-                    <h1><em>Identity Server</em></h1>
-                </a>
-            </div>
-        </div>
-    </header>
-
     <!-- page content -->
     <div class="container-fluid body-wrapper">
-<form action="../commonauth" method="post" id="loginForm">
+<form action="../commonauth" method="post" id="claimForm">
         <div class="row">
             <div class="col-md-12">
 
                 <!-- content -->
-                <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-3 col-centered wr-content wr-login col-centered">
+                <div class="container col-centered">
                     <div>
-                        <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Missing Details </h2>
+                        <h2 class="wr-title uppercase padding-double boarder-bottom-blue margin-none">Missing Details </h2>
                     </div>
-                    <div class="boarder-all ">
-                        <div class="clearfix"></div>
+                    <div>
                         <div class="padding-double login-form">
+<table style="width: 100%" class="styledLeft">
                             <% for (String claim : missingClaimList) { %>
-                            <div>
+
                                 <tr>
-                                    <td><%=claim%></td>
-                                    <td><input id="<%=claim%>" value="" name="<%=claim%>" /></td>
+                                    <td class="leftCol-small"><%=claim%></td>
+                                    <td style="padding: 1%"><input id="<%=claim%>" value="" name="<%=claim%>" class="text-box-big" type="text" /></td>
                                 </tr>
-                            </div>
                             <%}%>
+</table>
                         </div>
                     </div>
                     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
