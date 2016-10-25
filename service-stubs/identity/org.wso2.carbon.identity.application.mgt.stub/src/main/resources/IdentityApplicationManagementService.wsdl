@@ -26,6 +26,13 @@
                </xs:sequence>
             </xs:complexType>
          </xs:element>
+         <xs:element name="updateApplication">
+            <xs:complexType>
+               <xs:sequence>
+                  <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2164:ServiceProvider" />
+               </xs:sequence>
+            </xs:complexType>
+         </xs:element>
          <xs:element name="getAllApplicationBasicInfo">
             <xs:complexType>
                <xs:sequence />
@@ -35,13 +42,6 @@
             <xs:complexType>
                <xs:sequence>
                   <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2164:ApplicationBasicInfo" />
-               </xs:sequence>
-            </xs:complexType>
-         </xs:element>
-         <xs:element name="updateApplication">
-            <xs:complexType>
-               <xs:sequence>
-                  <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2164:ServiceProvider" />
                </xs:sequence>
             </xs:complexType>
          </xs:element>

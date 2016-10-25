@@ -844,7 +844,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                                                  AuthenticationContext context) throws FrameworkException {
 
         Map<String,String> requestedClaims =
-                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings();
+                context.getSequenceConfig().getApplicationConfig().getMandatoryClaimMappings();
         Object object = request.getAttribute(FrameworkConstants.MAPPED_ATTRIBUTES);
         Map<String, String> mappedAttrs = (Map<String, String>) object;
         String missingClaims = getMissingClaims(mappedAttrs, requestedClaims);

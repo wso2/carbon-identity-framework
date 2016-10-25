@@ -862,7 +862,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                    <%}%>
                                    </td>
                                    <td>
-                                  <% if ("true".equals(appBean.getRequestedClaims().get(entry.getValue()))){%>
+                                  <% if ("true".equals(appBean.getMandatoryClaims().get(entry.getValue()))){%>
                                   <input type="checkbox"  id="spClaim_mand_<%=i%>" name="spClaim_mand_<%=i%>" checked/>
                                   <%} else { %>
                                    <input type="checkbox"  id="spClaim_mand_<%=i%>" name="spClaim_mand_<%=i%>" />

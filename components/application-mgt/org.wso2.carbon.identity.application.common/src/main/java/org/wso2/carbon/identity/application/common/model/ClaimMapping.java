@@ -58,6 +58,34 @@ public class ClaimMapping implements Serializable {
         return mapping;
     }
 
+    /**
+     * @param localClaimUri
+     * @param remoteClaimUri
+     * @param defaultValue
+     * @param requested
+     * @param isMandatory
+     * @return
+     */
+    public static ClaimMapping build(String localClaimUri, String remoteClaimUri,
+                                     String defaultValue, boolean requested, boolean isMandatory) {
+        ClaimMapping mapping = new ClaimMapping();
+
+        Claim localClaim = new Claim();
+        localClaim.setClaimUri(localClaimUri);
+
+        Claim remoteClaim = new Claim();
+        remoteClaim.setClaimUri(remoteClaimUri);
+
+        mapping.setLocalClaim(localClaim);
+        mapping.setRemoteClaim(remoteClaim);
+
+        mapping.setDefaultValue(defaultValue);
+        mapping.setRequested(requested);
+
+        mapping.setMandatory(isMandatory);
+        return mapping;
+    }
+
     /*
      * <ClaimMapping> <LocalClaim></LocalClaim> <RemoteClaim></RemoteClaim>
      * <DefaultValue></DefaultValue> </ClaimMapping>
@@ -91,6 +119,10 @@ public class ClaimMapping implements Serializable {
 
             if ("RequestClaim".equals(elementName)) {
                 claimMapping.setRequested(Boolean.parseBoolean(element.getText()));
+            }
+
+            if ("MandatoryClaim".equals(elementName)) {
+                claimMapping.setMandatory(Boolean.parseBoolean(element.getText()));
             }
 
         }

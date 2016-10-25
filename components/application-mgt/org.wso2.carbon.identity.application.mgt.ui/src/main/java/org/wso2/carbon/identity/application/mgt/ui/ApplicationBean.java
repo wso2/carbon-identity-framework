@@ -420,7 +420,7 @@ public class ApplicationBean {
                                 .put(claimMapping[i].getRemoteClaim().getClaimUri(), "false");
                     }
 
-                    if (claimMapping[i].isMandatorySpecified()) {
+                    if (claimMapping[i].getMandatory()) {
                         mandatoryClaims.put(claimMapping[i].getRemoteClaim().getClaimUri(), "true");
                     } else {
                         mandatoryClaims
@@ -1320,6 +1320,13 @@ public class ApplicationBean {
                 mapping.setRequested(true);
             } else {
                 mapping.setRequested(false);
+            }
+
+            String mandatory = request.getParameter("spClaim_mand_" + i);
+            if (mandatory != null && "on".equals(mandatory)) {
+                mapping.setMandatory(true);
+            } else {
+                mapping.setMandatory(false);
             }
 
             mapping.setLocalClaim(localClaim);
