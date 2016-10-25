@@ -1841,7 +1841,7 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        return "";
+        return null;
 
     }
 

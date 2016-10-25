@@ -304,7 +304,7 @@ jQuery(document).ready(function(){
 
 </script>
 <form id="idp-mgt-get-RIDP-form" name="idp-mgt-get-RIDP-form" method="post"
-action="idp-mgt-get-RIDP-metadata.jsp"></form>
+action="idp-mgt-get-ridp-metadata-finish-ajaxprocessor.jsp"></form>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
         <h2>
