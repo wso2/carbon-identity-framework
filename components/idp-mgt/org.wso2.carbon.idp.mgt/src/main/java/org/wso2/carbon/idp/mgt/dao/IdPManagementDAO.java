@@ -823,6 +823,12 @@ public class IdPManagementDAO {
                             prepBaseStmt.setString(5, IdPManagementConstants.IS_FALSE_VALUE);
                         }
 
+                        if (connector.isRulesEnabled()) {
+                            prepBaseStmt.setString(6, IdPManagementConstants.IS_TRUE_VALUE);
+                        } else {
+                            prepBaseStmt.setString(6, IdPManagementConstants.IS_FALSE_VALUE);
+                        }
+
                         prepBaseStmt.executeUpdate();
                         rs = prepBaseStmt.getGeneratedKeys();
 

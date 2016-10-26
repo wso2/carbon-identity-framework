@@ -38,13 +38,14 @@ public class ProvisioningConnectorConfig implements Serializable {
     protected String name;
     protected boolean enabled;
     protected boolean blocking;
+    protected boolean rulesEnabled;
 
     /*
          * <ProvisioningConnectorConfig> <Name></Name> <ProvisioningProperties></ProvisioningProperties>
          * </ProvisioningConnectorConfig>
          */
     public static ProvisioningConnectorConfig build(OMElement provisioningConnectorConfigOM) throws
-            IdentityApplicationManagementException{
+                                                                                             IdentityApplicationManagementException {
         ProvisioningConnectorConfig provisioningConnectorConfig = new ProvisioningConnectorConfig();
 
         Iterator<?> iter = provisioningConnectorConfigOM.getChildElements();
@@ -74,12 +75,14 @@ public class ProvisioningConnectorConfig implements Serializable {
                 provisioningConnectorConfig.setEnabled(Boolean.parseBoolean(element.getText()));
             } else if ("IsBlocking".equals(elementName)) {
                 provisioningConnectorConfig.setBlocking(Boolean.parseBoolean(element.getText()));
+            } else if ("IsRulesEnabled".equals(elementName)) {
+                provisioningConnectorConfig.setRulesEnabled(Boolean.parseBoolean(element.getText()));
             }
         }
 
-        if(StringUtils.isBlank(provisioningConnectorConfig.getName())){
+        if (StringUtils.isBlank(provisioningConnectorConfig.getName())) {
             throw new IdentityApplicationManagementException("No configured name found for " +
-                    "ProvisioningConnectorConfig");
+                                                             "ProvisioningConnectorConfig");
         }
         return provisioningConnectorConfig;
     }
@@ -96,7 +99,7 @@ public class ProvisioningConnectorConfig implements Serializable {
      */
     public void setProvisioningProperties(Property[] provisioningProperties) {
         if (this.provisioningProperties != null && this.provisioningProperties.length > 0
-                && provisioningProperties != null) {
+            && provisioningProperties != null) {
             this.provisioningProperties = IdentityApplicationManagementUtil.concatArrays(
                     this.provisioningProperties, provisioningProperties);
         } else {
@@ -148,11 +151,23 @@ public class ProvisioningConnectorConfig implements Serializable {
         this.blocking = blocking;
     }
 
+    public boolean isRulesEnabled() {
+        return rulesEnabled;
+    }
+
+    public void setRulesEnabled(boolean rulesEnabled) {
+        this.rulesEnabled = rulesEnabled;
+    }
+
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProvisioningConnectorConfig))
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProvisioningConnectorConfig)) {
             return false;
+        }
 
         ProvisioningConnectorConfig that = (ProvisioningConnectorConfig) o;
 
