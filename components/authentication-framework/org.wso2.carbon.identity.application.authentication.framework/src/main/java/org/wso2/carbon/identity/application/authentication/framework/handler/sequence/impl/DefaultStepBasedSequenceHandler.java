@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioning
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -229,6 +230,21 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 user = stepConfig.getAuthenticatedUser();
                 if (!user.isFederatedUser()) {
                     persistClaims = true;
+                } else {
+                    String associatedID = null;
+                    UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+                    String subject = user.getAuthenticatedSubjectIdentifier();
+                    try {
+                        associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
+                                subject);
+                        if (StringUtils.isNotBlank(associatedID)) {
+                            String userDomain = IdentityUtil.extractDomainFromName(associatedID);
+                            user.setUserStoreDomain(userDomain);
+                            persistClaims = true;
+                        }
+                    } catch (UserProfileException e) {
+                        throw new FrameworkException("Error while getting association for " + subject, e);
+                    }
                 }
                 break;
             }
