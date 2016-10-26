@@ -23,8 +23,20 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * The interface to handle the authorization for applications. Custom authorization handlers should be written
+ * implementing this interface.
+ */
 public interface AuthorizationHandler {
 
+    /**
+     * Checks whether the user is authorized.
+     *
+     * @param request  The HttpServletRequest from the user-agent
+     * @param response The HttpServletResponse to the user-agent
+     * @param context  The authorization context
+     * @return <code>true</code> if the user is authorized, <code>false</code> otherwise
+     */
     boolean isAuthorized(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationContext context);
 }

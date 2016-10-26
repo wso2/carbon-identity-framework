@@ -48,6 +48,7 @@ public class ApplicationConfig implements Serializable {
     private boolean isSaaSApp;
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
+    private boolean enableAuthorization = false;
 
     public ApplicationConfig(ServiceProvider application) {
         this.serviceProvider = application;
@@ -61,6 +62,7 @@ public class ApplicationConfig implements Serializable {
             setUseTenantDomainInLocalSubjectIdentifier(outboundAuthConfig.isUseTenantDomainInLocalSubjectIdentifier());
             setUseUserstoreDomainInLocalSubjectIdentifier(outboundAuthConfig
                     .isUseUserstoreDomainInLocalSubjectIdentifier());
+            setEnableAuthorization(outboundAuthConfig.isEnableAuthorization());
         }
 
 
@@ -235,5 +237,15 @@ public class ApplicationConfig implements Serializable {
 
     public void setUseUserstoreDomainInLocalSubjectIdentifier(boolean useUserstoreDomainInLocalSubjectIdentifier) {
         this.useUserstoreDomainInLocalSubjectIdentifier = useUserstoreDomainInLocalSubjectIdentifier;
+    }
+
+    public boolean isEnableAuthorization() {
+
+        return enableAuthorization;
+    }
+
+    public void setEnableAuthorization(boolean enableAuthorization) {
+
+        this.enableAuthorization = enableAuthorization;
     }
 }

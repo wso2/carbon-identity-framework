@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.authz.impl.XACMLBasedAuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
@@ -433,7 +434,9 @@ public class FrameworkUtils {
     }
 
     /**
-     * @return
+     * Gets the configured authorization handler at identity.xml
+     *
+     * @return Configured authorization handler
      */
     public static AuthorizationHandler getAuthorizationHandler() {
 
@@ -443,10 +446,7 @@ public class FrameworkUtils {
 
         if (obj instanceof AuthorizationHandler) {
             authorizationHandler = (AuthorizationHandler) obj;
-        } else {
-            authorizationHandler = XACMLBasedAuthorizationHandler.getInstance();
         }
-
         return authorizationHandler;
     }
 

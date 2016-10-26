@@ -464,6 +464,12 @@ public class ApplicationBean {
         return false;
     }
 
+    public boolean isEnableAuthorization() {
+
+        return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getEnableAuthorization();
+    }
+
     public String getSubjectClaimUri() {
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri();
@@ -1233,6 +1239,11 @@ public class ApplicationBean {
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setUseUserstoreDomainInLocalSubjectIdentifier(useUserstoreDomainInLocalSubjectIdentifier != null &&
                                                                "on".equals(useUserstoreDomainInLocalSubjectIdentifier) ? true : false);
+
+        String enableAuthorization = request.getParameter(
+                "enable_authorization");
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
 
 
         String subjectClaimUri = request.getParameter("subject_claim_uri");

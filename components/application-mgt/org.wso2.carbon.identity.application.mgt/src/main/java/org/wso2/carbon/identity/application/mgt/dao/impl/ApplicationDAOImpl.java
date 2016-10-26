@@ -261,6 +261,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             storeAppPrepStmt.setString(6, ApplicationConstants.AUTH_TYPE_DEFAULT);
             storeAppPrepStmt.setString(7, "0");
             storeAppPrepStmt.setString(8, "0");
+            storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -846,6 +847,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeStatement(storeUseUserstoreDomainInLocalSubjectIdStmt);
         }
 
+        PreparedStatement enableAuthzStmt = null;
+        try {
+            enableAuthzStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_ENABLE_AUTHORIZATION);
+            enableAuthzStmt.setString(1, localAndOutboundAuthConfig.isEnableAuthorization() ? "1" : "0");
+            enableAuthzStmt.setInt(2, tenantID);
+            enableAuthzStmt.setInt(3, applicationId);
+            enableAuthzStmt.executeUpdate();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(enableAuthzStmt);
+        }
+
         PreparedStatement storeSubjectClaimUri = null;
         try {
             storeSubjectClaimUri = connection
@@ -1362,13 +1375,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                 LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new LocalAndOutboundAuthenticationConfig();
                 localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                        .equals(basicAppDataResultSet.getString(12)));
+                        .equals(basicAppDataResultSet.getString(14)));
+                localAndOutboundAuthenticationConfig.setEnableAuthorization("1".equals(basicAppDataResultSet
+                        .getString(15)));
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(basicAppDataResultSet
-                        .getString(15));
+                        .getString(16));
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
-                serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(16)));
+                serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(17)));
 
                 if (log.isDebugEnabled()) {
                     log.debug("ApplicationID: " + serviceProvider.getApplicationID()
@@ -1902,10 +1917,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                            .equals(localAndOutboundConfigResultSet.getString(1)));
                     localAndOutboundConfiguration.setUseUserstoreDomainInLocalSubjectIdentifier("1"
                            .equals(localAndOutboundConfigResultSet.getString(2)));
+                    localAndOutboundConfiguration.setEnableAuthorization("1"
+                            .equals(localAndOutboundConfigResultSet.getString(3)));
                     localAndOutboundConfiguration.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                           .equals(localAndOutboundConfigResultSet.getString(3)));
+                            .equals(localAndOutboundConfigResultSet.getString(4)));
                     localAndOutboundConfiguration.setSubjectClaimUri(localAndOutboundConfigResultSet
-                           .getString(4));
+                            .getString(5));
                 }
             } finally {
                 IdentityApplicationManagementUtil.closeStatement(localAndOutboundConfigPrepStmt);

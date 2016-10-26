@@ -16,22 +16,22 @@
 ~ under the License.
 -->
 
-<%@page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.collections.CollectionUtils"%>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig"%>
-<%@ page
-	import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig"%>
-<%@page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
-<%@page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -39,7 +39,6 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -1579,6 +1578,15 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 									  "checked" : "" %>/><label
 								  for="use_userstore_domain_in_local_subject_identifier"><fmt:message
 								  key="config.application.use.userstore.domain.in.local.subject.identifier"/></label>
+						  </td>
+					  </tr>
+					  <tr>
+						  <td class="leftCol-med">
+							  <input type="checkbox" id="enable_authorization"
+									 name="enable_authorization" <%=appBean.isEnableAuthorization() ?
+									  "checked" : "" %>/><label
+								  for="enable_authorization"><fmt:message
+								  key="config.application.enable.authorization"/></label>
 						  </td>
 					  </tr>
                     </table>
