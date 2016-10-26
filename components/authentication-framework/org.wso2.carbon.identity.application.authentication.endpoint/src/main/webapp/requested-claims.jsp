@@ -35,8 +35,13 @@
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
         String[] missingClaimList = null;
+        String appName = null;
+        Boolean isFederated = false;
         if (request.getParameter("missingClaims") != null) {
             missingClaimList = request.getParameter("missingClaims").split(",");
+        }
+        if (request.getParameter("spName") != null) {
+            appName = request.getParameter("spName");
         }
 
     %>
@@ -72,16 +77,17 @@
                 <!-- content -->
                 <div class="container col-centered">
                     <div>
-                        <h2 class="wr-title uppercase padding-double boarder-bottom-blue margin-none">Missing Details </h2>
+                        <h2 class="wr-title uppercase padding-double boarder-bottom-blue margin-none"> Provide mandatory attributes for <%=appName%> </h2>
                     </div>
                     <div>
                         <div class="padding-double login-form">
 <table style="width: 100%" class="styledLeft">
+                              <tbody>
                             <% for (String claim : missingClaimList) { %>
 
                                 <tr>
                                     <td class="leftCol-small"><%=claim%></td>
-                                    <td style="padding: 1%"><input id="<%=claim%>" value="" name="<%=claim%>" class="text-box-big" type="text" /></td>
+                                    <td style="padding: 1%"><input id="claim_mand_<%=claim%>" value="" name="claim_mand_<%=claim%>" class="text-box-big" type="text" /></td>
                                 </tr>
                             <%}%>
 </table>
