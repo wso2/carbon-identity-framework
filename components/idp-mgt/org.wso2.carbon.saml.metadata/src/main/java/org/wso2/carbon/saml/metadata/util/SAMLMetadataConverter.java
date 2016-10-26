@@ -35,7 +35,7 @@ import org.wso2.carbon.saml.metadata.builder.IDPMetadataBuilder;
 
 
 /**
- * Created by pasindutennage on 9/27/16.
+ * This class implements the SAML metadata functionality to convert string to FederatedAuthenticator config nad vise versa
  */
 public class SAMLMetadataConverter implements MetadataConverter {
 

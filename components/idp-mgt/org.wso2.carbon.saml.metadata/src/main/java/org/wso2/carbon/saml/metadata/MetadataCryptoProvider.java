@@ -41,6 +41,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.security.cert.CertificateEncodingException;
 import java.util.List;
 
+/*
+* This class adds key descriptors to Roledescriptors
+* */
+
 public class MetadataCryptoProvider implements CryptoProvider {
 
     private X509Credential credential;

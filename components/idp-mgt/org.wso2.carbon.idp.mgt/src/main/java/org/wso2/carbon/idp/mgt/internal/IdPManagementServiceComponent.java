@@ -369,9 +369,9 @@ public class IdPManagementServiceComponent {
                 public int compare(IdentityProviderMgtListener identityProviderMgtListener1,
                                    IdentityProviderMgtListener identityProviderMgtListener2) {
 
-                    if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener1.getExecutionOrderId()) {
+                    if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener2.getExecutionOrderId()) {
                         return 1;
-                    } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener1.getExecutionOrderId()) {
+                    } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener2.getExecutionOrderId()) {
                         return -1;
                     } else {
                         return 0;
