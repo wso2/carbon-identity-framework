@@ -56,7 +56,6 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
         EntityDescriptor entityDescriptor = null;
         try {
             DocumentBuilderFactory factory = IdentityUtil.getSecuredDocumentBuilderFactory();
-            factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(new ByteArrayInputStream(metadataString.getBytes()));
             Element node = document.getDocumentElement();
