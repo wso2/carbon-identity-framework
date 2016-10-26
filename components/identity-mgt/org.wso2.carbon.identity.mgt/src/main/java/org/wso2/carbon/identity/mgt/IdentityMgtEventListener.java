@@ -97,6 +97,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
     private static final String DO_PRE_UPDATE_CREDENTIAL = "doPreUpdateCredential";
     private static final String DO_POST_UPDATE_CREDENTIAL = "doPostUpdateCredential";
     private static final String ASK_PASSWORD_FEATURE_IS_DISABLED = "Ask Password Feature is disabled";
+    private static final String INVALID_OPERATION = "InvalidOperation";
 
 
     public IdentityMgtEventListener() {
@@ -886,18 +887,26 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             return true;
         }
 
-        IdentityMgtConfig config = IdentityMgtConfig.getInstance();
+        //This operation is not supported for Identity Claims
+        if (StringUtils.isNotBlank(claimURI) && claimURI.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
+            throw new UserStoreException(INVALID_OPERATION + " This operation is not supported for Identity claims");
+        }
+        return true;
+    }
 
-        // security questions and identity claims are updated at the identity store
-        if (claimURI.contains(UserCoreConstants.ClaimTypeURIs.CHALLENGE_QUESTION_URI) ||
-                claimURI.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
-//			  the whole listner to return and fail adding the cliam in doSetUserClaim
-            return true;
-        } else {
-            // a simple user claim. add it to the user store
+    public boolean doPreGetUserClaimValue(String userName, String claim, String profileName, UserStoreManager storeManager) throws UserStoreException {
+
+        if (!isEnable()) {
             return true;
         }
+        //This operation is not supported for Identity Claims
+        if (StringUtils.isNotBlank(claim) && claim.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
+            throw new UserStoreException(INVALID_OPERATION + " This operation is not supported for Identity claims");
+        }
+
+        return true;
     }
+
 
     /**
      * As in the above method the user account lock claim, primary challenges
