@@ -223,31 +223,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         authenticatedUserAttributes.putAll(user.getUserAttributes());
 
         for (Map.Entry<Integer, StepConfig> entry : context.getSequenceConfig().getStepMap().entrySet()) {
-
             StepConfig stepConfig = entry.getValue();
             if (stepConfig.isSubjectAttributeStep()) {
 
                 user = stepConfig.getAuthenticatedUser();
-
-                AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
-                ApplicationAuthenticator authenticator = authenticatorConfig
-                        .getApplicationAuthenticator();
-
-                if (authenticator instanceof FederatedApplicationAuthenticator) {
-
-                    ExternalIdPConfig externalIdPConfig = null;
-                    try {
-                        externalIdPConfig = ConfigurationFacade.getInstance()
-                                .getIdPConfigByName(stepConfig.getAuthenticatedIdP(),
-                                        context.getTenantDomain());
-                    } catch (IdentityProviderManagementException e) {
-                        log.error("Exception while getting IdP by name", e);
-                    }
-                    if (externalIdPConfig.isProvisioningEnabled()) {
-                        persistClaims = true;
-                        user.setUserStoreDomain(externalIdPConfig.getProvisioningUserStoreId());
-                    }
-                } else {
+                if (!user.isFederatedUser()) {
                     persistClaims = true;
                 }
                 break;
@@ -257,7 +237,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (persistClaims) {
 
             try {
-
                 String tenantDomain =
                         context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner().getTenantDomain();
                 String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
