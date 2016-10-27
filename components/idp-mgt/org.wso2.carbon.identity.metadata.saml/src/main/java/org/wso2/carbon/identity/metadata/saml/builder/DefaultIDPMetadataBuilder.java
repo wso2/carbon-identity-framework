@@ -87,7 +87,6 @@ public class DefaultIDPMetadataBuilder extends IDPMetadataBuilder {
                 .createSAMLObject(ConfigElements.FED_METADATA_NS, ConfigElements.ENTITY_DESCRIPTOR, "");
         entityDescriptor.setEntityID(getFederatedAuthenticatorConfigProperty(samlFederatedAuthenticatorConfig,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID).getValue());
-        entityDescriptor.setID("TEST ID");
         entityDescriptor.setNoNamespaceSchemaLocation("");
         return entityDescriptor;
     }
@@ -200,20 +199,6 @@ public class DefaultIDPMetadataBuilder extends IDPMetadataBuilder {
         sloServiceDesc.setResponseLocation(getFederatedAuthenticatorConfigProperty(samlFederatedAuthenticatorConfig,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL).getValue());
         idpSsoDesc.getSingleLogoutServices().add(sloServiceDesc);
-    }
-
-    public void buildContact(IDPSSODescriptor idpSsoDesc) throws MetadataException{
-        ContactPerson contactPersonAdmin = new ContactPersonBuilder().buildObject();
-        contactPersonAdmin.setType(ContactPersonTypeEnumeration.ADMINISTRATIVE);
-
-        GivenName givenName = new GivenNameBuilder().buildObject();
-        givenName.setName("Administrator");
-        contactPersonAdmin.setGivenName(givenName);
-
-        EmailAddress emailAddress = new EmailAddressBuilder().buildObject();
-        emailAddress.setAddress("support@wso2.com");
-        contactPersonAdmin.getEmailAddresses().add(emailAddress);
-        idpSsoDesc.getContactPersons().add(contactPersonAdmin);
     }
 
     private DateTime validityPeriod(long timePeriod, char unit) {

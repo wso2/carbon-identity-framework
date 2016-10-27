@@ -50,7 +50,6 @@ public abstract class IDPMetadataBuilder extends AbstractIdentityHandler {
         entityDescriptor.getRoleDescriptors().add(idpSsoDesc);
         buildKeyDescriptor(entityDescriptor);
         buildExtensions(idpSsoDesc);
-        buildContact(idpSsoDesc);
 
         return marshallDescriptor(entityDescriptor);
     }
@@ -81,8 +80,6 @@ public abstract class IDPMetadataBuilder extends AbstractIdentityHandler {
     protected abstract void buildSingleLogOutService(IDPSSODescriptor idpSsoDesc, FederatedAuthenticatorConfig samlFederatedAuthenticatorConfig) throws MetadataException;
 
     protected abstract void buildExtensions(IDPSSODescriptor idpSsoDesc) throws MetadataException;
-
-    protected abstract void buildContact(IDPSSODescriptor idpSsoDesc) throws MetadataException;
 
     protected abstract String marshallDescriptor(EntityDescriptor entityDescriptor) throws MetadataException;
 
