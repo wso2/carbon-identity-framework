@@ -32,6 +32,11 @@ public interface MetadataConverter {
             throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;//TODO
 
     String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException;
-    public boolean canHandle(FederatedAuthenticatorConfig federatedAuthenticatorConfig);
+
+    boolean canHandle(FederatedAuthenticatorConfig federatedAuthenticatorConfig);
+
+    void saveMetadataString(int tenantId, String idpName, String metadata) throws IdentityProviderManagementException;
+
+    void deleteMetadataString(int tenantId, String idPName)throws IdentityProviderManagementException;
 
 }

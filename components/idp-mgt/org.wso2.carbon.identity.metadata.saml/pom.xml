@@ -25,7 +25,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.saml.metadata</artifactId>
+    <artifactId>org.wso2.carbon.identity.metadata.saml</artifactId>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Identity Provider Management Bundle</name>
 
@@ -87,6 +87,8 @@
                             org.wso2.carbon.identity.metadata.saml.internal,
                         </Private-Package>
                         <Import-Package>
+                            org.apache.commons.codec.binary,
+                            org.wso2.carbon.identity.core,
                             javax.xml.parsers ; version="${javax.xml.parsers.version.range}",
                             javax.crypto, javax.xml.namespace, javax.xml.stream, javax.xml.transform,
                             javax.xml.transform.dom,

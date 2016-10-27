@@ -86,6 +86,8 @@ public class IdentityProviderManager implements IdpManager {
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
 
+    private MetadataConverter SAML2SSOMetadataConverter = null;
+
     private IdentityProviderManager() {
 
     }
@@ -110,6 +112,8 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         String tenantContext = "";
+
+
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             tenantContext = MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
         }
@@ -1236,6 +1240,9 @@ public class IdentityProviderManager implements IdpManager {
                                         .getMetadataConverters().get(v);
 
                                 if (metadataConverter.canHandle(properties[j])) {
+
+                                    SAML2SSOMetadataConverter = metadataConverter;
+
                                     try {
 
                                         metadata.append(properties[j].getValue());
@@ -1290,71 +1297,6 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    /**
-     * If metadata file is available, adds that file to registry
-     *
-     * @param tenantId, idpName,metadata
-     * @throws IdentityProviderManagementException
-     */
-    private void addMetaDataToRegistry(int tenantId, String idpName, String metadata) throws IdentityProviderManagementException {
-
-        try {
-
-            UserRegistry registry = IdpMgtServiceComponentHolder.getInstance().getRegistryService()
-                    .getConfigSystemRegistry(tenantId);
-            String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDER;
-            String samlIdpPath = IdentityRegistryResources.SAMLIDP;
-            String path = samlIdpPath + encodePath(idpName);
-            Resource resource;
-            resource = registry.newResource();
-            resource.setContent(metadata);
-
-
-            boolean isTransactionStarted = Transaction.isStarted();
-            if (!isTransactionStarted) {
-                registry.beginTransaction();
-            }
-
-            try {//TODO throw exceotions
-                //TODO import Farautil
-                if (!registry.resourceExists(identityProvidersPath)) {
-
-                    org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
-                    registry.put(identityProvidersPath, idpCollection);
-
-                }
-                if (!registry.resourceExists(samlIdpPath)) {
-
-                    org.wso2.carbon.registry.core.Collection samlIdpCollection = registry.newCollection();
-                    registry.put(samlIdpPath, samlIdpCollection);
-
-                }
-                if (!registry.resourceExists(path)) {
-                    registry.put(path, resource);
-                } else {
-                    throw new IdentityProviderManagementException("Duplicate Identity Provider-" + idpName + " found in the registry");
-                }
-
-                if (!isTransactionStarted) {
-                    registry.commitTransaction();
-                }
-            } catch (RegistryException e) {
-
-                if (!isTransactionStarted) {
-                    registry.rollbackTransaction();
-                }
-
-                throw new IdentityProviderManagementException("Error while creating resource in registry");
-            }
-
-            if (log.isDebugEnabled()) {
-                log.debug("Identity Provider " + idpName + " is added successfully.");
-            }
-
-        } catch (RegistryException e) {
-            throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");
-        }
-    }
 
 
     /**
@@ -1431,8 +1373,11 @@ public class IdentityProviderManager implements IdpManager {
                 idpName.toString().length() > 0 &&
                         metadata.toString().length() > 0
                 ) {
-
-            addMetaDataToRegistry(tenantId, idpName.toString(), metadata.toString());
+            if(SAML2SSOMetadataConverter!=null) {
+                SAML2SSOMetadataConverter.saveMetadataString(tenantId, idpName.toString(), metadata.toString());
+            }else{
+                throw new  IdentityProviderManagementException("Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.");
+            }
         }
         dao.addIdP(identityProvider, tenantId, tenantDomain);
 
@@ -1444,71 +1389,6 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-
-    /**
-     * returns  an encoded String from a given path
-     *
-     * @param path
-     */
-    private String encodePath(String path) {
-        String encodedStr = new String(org.apache.commons.codec.binary.Base64.encodeBase64(path.getBytes()));
-        return encodedStr.replace("=", "");
-    }
-
-    /**
-     * Deletes an IDP metadata registry component if exists
-     *
-     * @param idPName , tennantId
-     * @throws IdentityProviderManagementException Error when deleting Identity Provider
-     *                                             information from registry
-     */
-    private void deleteMetadataFromRegistry(int tenantId, String idPName) throws IdentityProviderManagementException {
-        try {
-
-            UserRegistry registry = IdpMgtServiceComponentHolder.getInstance().getRegistryService()
-                    .getConfigSystemRegistry(tenantId);
-            String samlIdpPath = IdentityRegistryResources.SAMLIDP;
-            String path = samlIdpPath + encodePath(idPName);
-
-            try {
-
-                if (registry.resourceExists(path)) {
-                    boolean isTransactionStarted = Transaction.isStarted();
-                    try {
-
-                        if (!isTransactionStarted) {
-                            registry.beginTransaction();
-                        }
-
-                        registry.delete(path);
-
-                        if (!isTransactionStarted) {
-                            registry.commitTransaction();
-                        }
-
-                    } catch (RegistryException e) {//TODO
-                        if (!isTransactionStarted) {
-                            registry.rollbackTransaction();
-                        }
-                        throw new IdentityProviderManagementException("Error while deleting metadata String in registry for " + idPName);
-                    }
-
-
-                }
-            } catch (RegistryException e) {
-                throw new IdentityProviderManagementException("Error while deleting Identity Provider", e);
-            }
-
-            if (log.isDebugEnabled()) {
-                log.debug("Identity Provider " + idPName + " is deleted successfully.");
-            }
-
-
-        } catch (RegistryException e) {
-            throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");
-        }
-
-    }
 
     /**
      * Deletes an Identity Provider from a given tenant
@@ -1529,7 +1409,11 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        deleteMetadataFromRegistry(tenantId, idPName);
+
+        if(SAML2SSOMetadataConverter!=null) {
+            SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idPName.toString());
+        }
+
         dao.deleteIdP(idPName, tenantId, tenantDomain);
 
         // invoking the post listeners
@@ -1540,71 +1424,6 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    /**
-     * Updates an IDP metadata registry component
-     *
-     * @param idpName , tennantId, metadata
-     * @throws IdentityProviderManagementException Error when deleting Identity Provider
-     *                                             information from registry
-     */
-    private void updateMetadataInRegistry(int tenantId, String idpName, String metadata) throws IdentityProviderManagementException {
-
-        try {
-
-            UserRegistry registry = IdpMgtServiceComponentHolder.getInstance().getRegistryService().getConfigSystemRegistry(tenantId);
-            String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDER;
-            String samlIdpPath = IdentityRegistryResources.SAMLIDP;
-            String path = samlIdpPath + encodePath(idpName);
-            Resource resource;
-            resource = registry.newResource();
-            resource.setContent(metadata);
-
-
-            boolean isTransactionStarted = Transaction.isStarted();
-            if (!isTransactionStarted) {
-                registry.beginTransaction();
-            }
-
-            try {
-                if (!registry.resourceExists(identityProvidersPath)) {
-
-                    org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
-                    registry.put(identityProvidersPath, idpCollection);
-
-                }
-                if (!registry.resourceExists(samlIdpPath)) {
-
-                    org.wso2.carbon.registry.core.Collection samlIdpCollection = registry.newCollection();
-                    registry.put(samlIdpPath, samlIdpCollection);
-
-                }
-                if (!registry.resourceExists(path)) {
-                    registry.put(path, resource);
-                } else {
-                    registry.delete(path);
-                    registry.put(path, resource);
-                }
-
-                if (!isTransactionStarted) {
-                    registry.commitTransaction();
-                }
-            } catch (RegistryException e) {
-
-                if (!isTransactionStarted) {
-                    registry.rollbackTransaction();
-                }
-
-                throw new IdentityProviderManagementException("Error while creating resource in registry");
-            }
-
-            if (log.isDebugEnabled()) {
-                log.debug("Identity Provider " + idpName + " is added successfully.");
-            }
-
-        } catch (RegistryException e) {
-            throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");
-        }
-    }
 
     /**
      * Updates a given Identity Provider information
@@ -1689,8 +1508,11 @@ public class IdentityProviderManager implements IdpManager {
                         metadata != null && metadata.toString().length() > 0
 
                 ) {
-            //save metadata to registry
-            updateMetadataInRegistry(tenantId, idpName.toString(), metadata.toString());
+            if(SAML2SSOMetadataConverter!=null) {
+                SAML2SSOMetadataConverter.saveMetadataString(tenantId, idpName.toString(), metadata.toString());
+            }else{
+                throw new  IdentityProviderManagementException("Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.");
+            }
         }
 
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
