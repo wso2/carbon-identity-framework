@@ -69,6 +69,7 @@ public class ApplicationBean {
     private Map<String, String> roleMap;
     private Map<String, String> claimMap;
     private Map<String, String> requestedClaims = new HashMap<String, String>();
+    private Map<String, String> mandatoryClaims = new HashMap<String, String>();
     private String samlIssuer;
     private String kerberosServiceName;
     private String oauthAppName;
@@ -100,6 +101,7 @@ public class ApplicationBean {
         roleMap = null;
         claimMap = null;
         requestedClaims = new HashMap<String, String>();
+        mandatoryClaims = new HashMap<String, String>();
         samlIssuer = null;
         kerberosServiceName = null;
         oauthAppName = null;
@@ -415,6 +417,13 @@ public class ApplicationBean {
                         requestedClaims.put(claimMapping[i].getRemoteClaim().getClaimUri(), "true");
                     } else {
                         requestedClaims
+                                .put(claimMapping[i].getRemoteClaim().getClaimUri(), "false");
+                    }
+
+                    if (claimMapping[i].getMandatory()) {
+                        mandatoryClaims.put(claimMapping[i].getRemoteClaim().getClaimUri(), "true");
+                    } else {
+                        mandatoryClaims
                                 .put(claimMapping[i].getRemoteClaim().getClaimUri(), "false");
                     }
                 }
@@ -1245,6 +1254,11 @@ public class ApplicationBean {
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
 
+        String enableAuthorization = request.getParameter(
+                "enable_authorization");
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
+
 
         String subjectClaimUri = request.getParameter("subject_claim_uri");
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
@@ -1320,6 +1334,13 @@ public class ApplicationBean {
                 mapping.setRequested(false);
             }
 
+            String mandatory = request.getParameter("spClaim_mand_" + i);
+            if (mandatory != null && "on".equals(mandatory)) {
+                mapping.setMandatory(true);
+            } else {
+                mapping.setMandatory(false);
+            }
+
             mapping.setLocalClaim(localClaim);
             mapping.setRemoteClaim(spClaim);
 
@@ -1351,6 +1372,13 @@ public class ApplicationBean {
      */
     public Map<String, String> getRequestedClaims() {
         return requestedClaims;
+    }
+
+    /**
+     * @return
+     */
+    public Map<String, String> getMandatoryClaims() {
+        return mandatoryClaims;
     }
 
     /**

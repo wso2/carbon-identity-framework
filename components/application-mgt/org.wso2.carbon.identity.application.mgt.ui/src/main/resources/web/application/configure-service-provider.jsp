@@ -504,7 +504,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
             	jQuery('#claimMappingAddTable').append(jQuery('<tr>'+
                         '<td style="display:none;"><input type="text" style="width: 98%;" id="spClaim_' + claimMappinRowID + '" name="spClaim_' + claimMappinRowID + '"/></td> '+
             	        '<td>'+idpClaimListDiv.html()+'</td>' +                        
-                        '<td style="display:none;"><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '" checked/></td>' + 
+                        '<td style="display:none;"><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '" checked/></td>' +
+                        '<td><input type="checkbox"  name="spClaim_mand_' + claimMappinRowID + '"  id="spClaim_mand_' + claimMappinRowID + '"/></td>' +
                         '<td><a onclick="deleteClaimRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete</a></td>' + 
                         '</tr>'));
         	}
@@ -514,7 +515,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
             	jQuery('#claimMappingAddTable').append(jQuery('<tr>'+
                         '<td><input type="text" class="spClaimVal" style="width: 98%;" id="spClaim_' + claimMappinRowID + '" name="spClaim_' + claimMappinRowID + '"/></td> '+
                         '<td>'+idpClaimListDiv.html()+'</td>' +
-                        '<td><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '"/></td>' + 
+                        '<td><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '"/></td>' +
+                        '<td><input type="checkbox"  name="spClaim_mand_' + claimMappinRowID + '"  id="spClaim_mand_' + claimMappinRowID + '"/></td>' +
                         '<td><a onclick="deleteClaimRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete</a></td>' + 
                         '</tr>'));
             	$('#spClaim_' + claimMappinRowID).change(function(){
@@ -829,7 +831,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                               <th class="leftCol-big spClaimHeaders" style="<%=isLocalClaimsSelected ? "display:none;" : ""%>"><fmt:message key='title.table.claim.sp.claim'/></th>
                               <th class="leftCol-big"><fmt:message key='title.table.claim.idp.claim'/></th>
                               <th class="leftCol-mid spClaimHeaders" style="<%=isLocalClaimsSelected ? "display:none;" : ""%>"><fmt:message key='config.application.req.claim'/></th>
-                              
+
+                              <th><fmt:message key='config.application.mand.claim'/></th>
                               <th><fmt:message key='config.application.authz.permissions.action'/></th></tr></thead>
                               <tbody>
                               <% if(claimMapping != null && !claimMapping.isEmpty()){ %>
@@ -860,6 +863,13 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                     <input type="checkbox"  id="spClaim_req_<%=i%>" name="spClaim_req_<%=i%>" />
                                    <%}%>
                                    </td>
+                                   <td>
+                                  <% if ("true".equals(appBean.getMandatoryClaims().get(entry.getValue()))){%>
+                                  <input type="checkbox"  id="spClaim_mand_<%=i%>" name="spClaim_mand_<%=i%>" checked/>
+                                  <%} else { %>
+                                   <input type="checkbox"  id="spClaim_mand_<%=i%>" name="spClaim_mand_<%=i%>" />
+                                  <%}%>
+                                  </td>
                                   
                                    <td>
                                        <a title="<fmt:message key='alert.info.delete.permission'/>"

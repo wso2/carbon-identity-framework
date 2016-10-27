@@ -35,8 +35,13 @@
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
         String[] missingClaimList = null;
+        String appName = null;
+        Boolean isFederated = false;
         if (request.getParameter("missingClaims") != null) {
             missingClaimList = request.getParameter("missingClaims").split(",");
+        }
+        if (request.getParameter("spName") != null) {
+            appName = request.getParameter("spName");
         }
 
     %>
@@ -63,48 +68,56 @@
 
     <body>
 
-    <!-- page content -->
-    <div class="container-fluid body-wrapper">
-<form action="../commonauth" method="post" id="claimForm">
+	<!-- header -->
+    <header class="header header-default">
+        <div class="container-fluid"><br></div>
+        <div class="container-fluid">
+            <div class="pull-left brand float-remove-xs text-center-xs">
+                <a href="#">
+                    <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
+
+                    <h1><em>Identity Server</em></h1>
+                </a>
+            </div>
+        </div>
+    </header>
+<div class="container-fluid body-wrapper">
+
         <div class="row">
-            <div class="col-md-12">
+            <!-- content -->
+            <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
+                <form action="../commonauth" method="post" id="claimForm">
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"> Provide Mandatory Details</h2>
 
-                <!-- content -->
-                <div class="container col-centered">
-                    <div>
-                        <h2 class="wr-title uppercase padding-double boarder-bottom-blue margin-none">Missing Details </h2>
-                    </div>
-                    <div>
-                        <div class="padding-double login-form">
-<table style="width: 100%" class="styledLeft">
-                            <% for (String claim : missingClaimList) { %>
+                    <div class="clearfix"></div>
+                    <div class="boarder-all ">
 
-                                <tr>
-                                    <td class="leftCol-small"><%=claim%></td>
-                                    <td style="padding: 1%"><input id="<%=claim%>" value="" name="<%=claim%>" class="text-box-big" type="text" /></td>
-                                </tr>
-                            <%}%>
-</table>
+			<div class="padding-double font-large">You are trying to login to <%=appName%> application, but it needs following information filled in the user profile.
+			You can fill those below and proceed with the authentication. But it is advised to fill these information in your Identity Provider profile in order to avoid this step every time you login</div>
+
+                        <!-- validation -->
+                        <div class="padding-double">
+				<% for (String claim : missingClaimList) { %>
+				    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
+			                <label class="control-label"><%=claim%></label>
+			                <input type="text" name="claim_mand_<%=claim%>" id="claim_mand_<%=claim%>" class="form-control" required="required">
+			            </div>
+                            	<%}%>
+				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <br/>
+		                        <button class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
+					    type="submit">Submit
+				    	</button>
+                            	</div>
+                            
+                            <div class="clearfix"></div>
                         </div>
                     </div>
-                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                        <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
-                            (request.getParameter("sessionDataKey"))%>'/>
-                    </div>
-			<div class="form-actions">
-            <button
-                    class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit">Submit
-            </button>
-        </div>
-        </form>
-                    <!-- /content -->
-
-                </div>
+                </form>
             </div>
-            <!-- /content/body -->
-
         </div>
+        <!-- /content/body -->
+
     </div>
 
     <!-- footer -->

@@ -48,8 +48,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.authz.impl.XACMLBasedAuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;

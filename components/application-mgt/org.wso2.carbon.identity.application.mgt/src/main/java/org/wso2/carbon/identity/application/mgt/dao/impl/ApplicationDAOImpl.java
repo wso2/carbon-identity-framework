@@ -1174,7 +1174,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 } else {
                     storeClaimMapPrepStmt.setString(5, "0");
                 }
-                storeClaimMapPrepStmt.setString(6, mapping.getDefaultValue());
+                if (mapping.isMandatory()) {
+                    storeClaimMapPrepStmt.setString(6, "1");
+                } else {
+                    storeClaimMapPrepStmt.setString(6, "0");
+                }
+                storeClaimMapPrepStmt.setString(7, mapping.getDefaultValue());
                 storeClaimMapPrepStmt.addBatch();
 
                 if (log.isDebugEnabled()) {
@@ -2002,6 +2007,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     claimMapping.setRequested(false);
                 }
 
+                String mandatory = resultSet.getString(4);
+
+                if ("1".equalsIgnoreCase(mandatory)) {
+                    claimMapping.setMandatory(true);
+                } else {
+                    claimMapping.setMandatory(false);
+                }
+
                 if (remoteClaim.getClaimUri() == null
                         || remoteClaim.getClaimUri().trim().length() == 0) {
                     remoteClaim.setClaimUri(localClaim.getClaimUri());
@@ -2012,7 +2025,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     localClaim.setClaimUri(remoteClaim.getClaimUri());
                 }
 
-                claimMapping.setDefaultValue(resultSet.getString(4));
+                claimMapping.setDefaultValue(resultSet.getString(5));
 
                 claimMapping.setLocalClaim(localClaim);
                 claimMapping.setRemoteClaim(remoteClaim);

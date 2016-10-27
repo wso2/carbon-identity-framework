@@ -39,10 +39,12 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -206,23 +208,77 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
         Map<String, String> claims = new HashMap<String, String>();
         Map<String, String[]> requestParams = request.getParameterMap();
+        boolean persistClaims = false;
+
+        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
+
         for (String key : requestParams.keySet()) {
-            if (!FrameworkConstants.SESSION_DATA_KEY.equals(key)) {
-                claims.put(key, requestParams.get(key)[0]);
+            if (key.startsWith("claim_mand_")) {
+                String claim = key.substring("claim_mand_".length());
+                claims.put(claim, requestParams.get(key)[0]);
             }
         }
 
-        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
         Map<ClaimMapping, String> authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(claims);
         authenticatedUserAttributes.putAll(user.getUserAttributes());
 
-        if (!user.isFederatedUser()) {
-            UserRealm realm = getUserRealm(user.getTenantDomain());
+        for (Map.Entry<Integer, StepConfig> entry : context.getSequenceConfig().getStepMap().entrySet()) {
+            StepConfig stepConfig = entry.getValue();
+            if (stepConfig.isSubjectAttributeStep()) {
+
+                user = stepConfig.getAuthenticatedUser();
+                if (!user.isFederatedUser()) {
+                    persistClaims = true;
+                } else {
+                    String associatedID = null;
+                    UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+                    String subject = user.getAuthenticatedSubjectIdentifier();
+                    try {
+                        associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
+                                subject);
+                        if (StringUtils.isNotBlank(associatedID)) {
+                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                            user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
+                                            fullQualifiedAssociatedUserId);
+                            persistClaims = true;
+                        }
+                    } catch (UserProfileException e) {
+                        throw new FrameworkException("Error while getting association for " + subject, e);
+                    }
+                }
+                break;
+            }
+        }
+
+        if (persistClaims) {
+
             try {
-                UserStoreManager userStoreManager = realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
-                userStoreManager.setUserClaimValues(user.getUserName(), claims, null);
+                String tenantDomain =
+                        context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner().getTenantDomain();
+                String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+
+                ApplicationManagementServiceImpl applicationManagementService =
+                        ApplicationManagementServiceImpl.getInstance();
+                Map<String, String> claimMapping =
+                        applicationManagementService.getServiceProviderToLocalIdPClaimMapping(spName, tenantDomain);
+
+                Map<String, String> localIdpClaims = new HashMap<>();
+                for (Map.Entry<String, String> entry : claims.entrySet()) {
+                    String localClaim = claimMapping.get(entry.getKey());
+                    localIdpClaims.put(localClaim, entry.getValue());
+                }
+
+                UserRealm realm = getUserRealm(user.getTenantDomain());
+                UserStoreManager userStoreManager =
+                        realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
+                userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
             } catch (UserStoreException e) {
-                throw new FrameworkException("Error while updating claims for local user", e);
+                throw new FrameworkException(
+                        "Error while updating claims for local user. Could not update profile", e);
+            } catch (IdentityApplicationManagementException e) {
+                throw new FrameworkException(
+                        "Error while retrieving application claim mapping. Could not update profile", e);
             }
         }
 
@@ -802,7 +858,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         context.setCurrentAuthenticator(null);
     }
 
-    private boolean isPostAuthenticateExtensionTriggered(AuthenticationContext context) {
+    protected boolean isPostAuthenticateExtensionTriggered(AuthenticationContext context) {
 
         Object object = context.getProperty(FrameworkConstants.REQUEST_MISSING_CLAIMS_TRIGGERED);
         if (object != null) {
@@ -843,11 +899,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     private void handleIncompletePostAuthenticationTasks(HttpServletRequest request, HttpServletResponse response,
                                                  AuthenticationContext context) throws FrameworkException {
 
-        Map<String,String> requestedClaims =
-                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings();
+        Map<String,String> mandatoryClaims =
+                context.getSequenceConfig().getApplicationConfig().getMandatoryClaimMappings();
         Object object = request.getAttribute(FrameworkConstants.MAPPED_ATTRIBUTES);
         Map<String, String> mappedAttrs = (Map<String, String>) object;
-        String missingClaims = getMissingClaims(mappedAttrs, requestedClaims);
+        String missingClaims = getMissingClaims(mappedAttrs, mandatoryClaims);
 
         if (StringUtils.isNotBlank(missingClaims)) {
             //need to request for the missing claims before completing authentication
@@ -856,9 +912,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             context.setProperty(FrameworkConstants.REQUEST_MISSING_CLAIMS_TRIGGERED, true);
 
             try {
-                String queryString = "?" + FrameworkConstants.MISSING_CLAIMS + "=" + missingClaims;
+                String queryString = FrameworkConstants.MISSING_CLAIMS + "=" + missingClaims;
                 queryString += "&" + FrameworkConstants.SESSION_DATA_KEY + "=" + context.getContextIdentifier();
-                response.sendRedirect("/authenticationendpoint/claims.do" + queryString);
+                queryString += "&" + "spName" + "=" + context.getSequenceConfig().getApplicationConfig().getApplicationName();
+                //queryString = URLEncoder.encode(queryString);
+                response.sendRedirect("/authenticationendpoint/claims.do?" + queryString);
             } catch (IOException e) {
                 throw new FrameworkException("Error while redirecting to request claims", e);
             }
