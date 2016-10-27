@@ -41,10 +41,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.ws.commons.axiom.wso2</groupId>
-            <artifactId>axiom</artifactId>
-        </dependency>
     </dependencies>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Identity Application Common Bundle</name>
@@ -64,6 +60,8 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
+                            org.wso2.carbon.base,
+                            org.wso2.carbon.user.core,
                             javax.cache,
                             javax.cache.event.*,
                             javax.crypto,
@@ -72,26 +70,11 @@
                             javax.sql,
                             javax.xml.namespace,
                             javax.xml.stream,
-                            org.opensaml.xml.security,
-                            org.opensaml.xml.security.keyinfo,
-                            org.opensaml.xml.security.credential,
-                            org.opensaml.xml.signature,
-                            org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            javax.xml.parsers; version="${javax.xml.parsers.version.range}",
-                            org.opensaml.common.xml,
-                            org.opensaml.saml2.metadata,
-                            org.opensaml.saml2.metadata.provider,
-                            org.opensaml.xml,
-                            org.opensaml.xml.parse,
-                            org.w3c.dom,
-                            org.wso2.carbon.base,
-                            org.wso2.carbon.user.core,
-                            org.xml.sax,
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
