@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.saml.metadata.util;
+package org.wso2.carbon.identity.metadata.saml.util;
 
 
 import org.apache.axiom.om.OMElement;
@@ -26,12 +26,11 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.metadata.saml.builder.DefaultIDPMetadataBuilder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
 import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
-import org.wso2.carbon.saml.metadata.builder.DefaultIDPMetadataBuilder;
-import org.wso2.carbon.saml.metadata.builder.IDPMetadataBuilder;
 
 
 /**

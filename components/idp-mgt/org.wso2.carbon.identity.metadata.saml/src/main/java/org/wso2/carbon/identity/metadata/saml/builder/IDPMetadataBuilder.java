@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.saml.metadata.builder;
+package org.wso2.carbon.identity.metadata.saml.builder;
 
 import org.opensaml.saml2.metadata.EntityDescriptor;
 import org.opensaml.saml2.metadata.IDPSSODescriptor;

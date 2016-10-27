@@ -16,13 +16,13 @@
  * under the License.
  */
 
-package org.wso2.carbon.saml.metadata.internal;
+package org.wso2.carbon.identity.metadata.saml.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
-import org.wso2.carbon.saml.metadata.util.SAMLMetadataConverter;
+import org.wso2.carbon.identity.metadata.saml.util.SAMLMetadataConverter;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 

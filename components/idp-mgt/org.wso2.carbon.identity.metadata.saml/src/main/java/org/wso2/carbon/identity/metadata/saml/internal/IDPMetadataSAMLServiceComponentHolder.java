@@ -16,14 +16,10 @@
  * under the License.
  */
 
-package org.wso2.carbon.saml.metadata.internal;
+package org.wso2.carbon.identity.metadata.saml.internal;
 
-import org.wso2.carbon.saml.metadata.builder.IDPMetadataBuilder;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class IDPMetadataSAMLServiceComponentHolder {
 

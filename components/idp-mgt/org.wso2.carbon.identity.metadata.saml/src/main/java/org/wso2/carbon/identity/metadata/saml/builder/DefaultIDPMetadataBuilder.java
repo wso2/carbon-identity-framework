@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.saml.metadata.builder;
+package org.wso2.carbon.identity.metadata.saml.builder;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,15 +29,14 @@ import org.opensaml.xml.io.MarshallingException;
 import org.w3c.dom.Document;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.model.SAML2SSOFederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.metadata.saml.ConfigElements;
+import org.wso2.carbon.identity.metadata.saml.CryptoProvider;
+import org.wso2.carbon.identity.metadata.saml.IDPMetadataConstant;
+import org.wso2.carbon.identity.metadata.saml.MetadataCryptoProvider;
 import org.wso2.carbon.idp.mgt.MetadataException;
-import org.wso2.carbon.saml.metadata.ConfigElements;
-import org.wso2.carbon.saml.metadata.CryptoProvider;
-import org.wso2.carbon.saml.metadata.IDPMetadataConstant;
-import org.wso2.carbon.saml.metadata.MetadataCryptoProvider;
-import org.wso2.carbon.saml.metadata.util.BuilderUtil;
+import org.wso2.carbon.identity.metadata.saml.util.BuilderUtil;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

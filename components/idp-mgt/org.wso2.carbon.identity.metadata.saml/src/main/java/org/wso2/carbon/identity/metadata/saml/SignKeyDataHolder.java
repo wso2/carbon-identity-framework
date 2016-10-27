@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.saml.metadata;
+package org.wso2.carbon.identity.metadata.saml;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +29,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.idp.mgt.MetadataException;
-import org.wso2.carbon.saml.metadata.internal.IDPMetadataSAMLServiceComponentHolder;
+import org.wso2.carbon.identity.metadata.saml.internal.IDPMetadataSAMLServiceComponentHolder;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 

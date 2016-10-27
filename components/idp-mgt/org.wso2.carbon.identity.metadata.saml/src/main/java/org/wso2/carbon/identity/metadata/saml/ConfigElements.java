@@ -15,13 +15,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.saml.metadata;
 
-public final class IDPMetadataConstant {
+package org.wso2.carbon.identity.metadata.saml;
 
-    public static String HTTP_BINDING_REDIRECT_SAML2 = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect";
-    public static String HTTP_BINDING_POST_SAML2 = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
-    public static String NAME_FORMAT_ID_SAML = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
-    public static String SUPPORTED_PROTOCOL_SAML2 = "urn:oasis:names:tc:SAML:2.0:protocol";
-    public static String IDP_METADATA_SAML2 = "urn:oasis:names:tc:SAML:2.0:metadata";
+public class ConfigElements {
+
+    public static final String ENTITY_DESCRIPTOR = "EntityDescriptor";
+    public static final String IDPSSO_DESCRIPTOR = "IDPSSODescriptor";
+    public static final String SSOSERVICE_DESCRIPTOR = "SingleSignOnService";
+    public static final String NAMEID_FORMAT = "NameIDFormat";
+    public static final String SLOSERVICE_DESCRIPTOR = "SingleLogoutService";
+    public static final String XMLSIGNATURE_NS = "http://www.w3.org/2000/09/xmldsig#";
+    public static final String FED_METADATA_NS = "urn:oasis:names:tc:SAML:2.0:metadata";
+
 }

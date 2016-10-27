@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.saml.metadata;
+package org.wso2.carbon.identity.metadata.saml;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,7 +33,7 @@ import org.opensaml.xml.signature.X509Data;
 import org.w3c.dom.Document;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.MetadataException;
-import org.wso2.carbon.saml.metadata.util.BuilderUtil;
+import org.wso2.carbon.identity.metadata.saml.util.BuilderUtil;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

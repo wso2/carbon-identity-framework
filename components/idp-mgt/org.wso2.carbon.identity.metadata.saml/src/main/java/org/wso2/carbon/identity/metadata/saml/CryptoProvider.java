@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.saml.metadata;
+package org.wso2.carbon.identity.metadata.saml;
 
 import org.opensaml.saml2.metadata.EntityDescriptor;
 import org.wso2.carbon.idp.mgt.MetadataException;

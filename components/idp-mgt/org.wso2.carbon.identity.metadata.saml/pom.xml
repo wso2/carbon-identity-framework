@@ -84,7 +84,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>
-                            org.wso2.carbon.saml.metadata.internal,
+                            org.wso2.carbon.identity.metadata.saml.internal,
                         </Private-Package>
                         <Import-Package>
                             javax.crypto,
@@ -139,8 +139,8 @@
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                         </Import-Package>
                         <Export-Package>
-                            !org.wso2.carbon.saml.metadata.internal,
-                            org.wso2.carbon.saml.metadata.*;
+                            !org.wso2.carbon.identity.metadata.saml.internal,
+                            org.wso2.carbon.identity.metadata.saml.*;
                             version="${carbon.identity.framework.package.export.version}",
                         </Export-Package>
                     </instructions>

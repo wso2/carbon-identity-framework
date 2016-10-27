@@ -79,6 +79,7 @@
                             org.wso2.carbon.idp.mgt.internal
                         </Private-Package>
                         <Import-Package>
+                            org.wso2.carbon.identity.metadata.saml,
                             org.wso2.carbon.registry.core,
                             org.wso2.carbon.registry.core.exceptions,
                             org.wso2.carbon.registry.core.jdbc.utils,
