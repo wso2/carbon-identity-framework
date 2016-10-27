@@ -92,23 +92,20 @@ public class IdPManagementServiceComponent {
 
     private static Log log = LogFactory.getLog(IdPManagementServiceComponent.class);
 
-    private static RealmService realmService = null;
 
-    private static ConfigurationContextService configurationContextService = null;
-    private static RegistryService registryService;
 
     private static Map<String, IdentityProvider> fileBasedIdPs = new HashMap<String, IdentityProvider>();
 
     private static Set<String> sharedIdps = new HashSet<String>();
 
-    private static volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
+
 
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.debug("Registry service in Identity idp-mgt bundle");
         }
         try {
-            IdentityProviderManager.setRegistryService(registryService);
+            IdpMgtServiceComponentHolder.getInstance().setRegistryService(registryService);
         } catch (Throwable e) {
             log.error("Failed to get a reference to the Registry in idp-mgt bundle", e);
         }
@@ -118,7 +115,7 @@ public class IdPManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("RegistryService unset in idp.mgt bundle");
         }
-        IdentityProviderManager.setRegistryService(null);
+        IdpMgtServiceComponentHolder.getInstance().setRegistryService(null);
     }
 
     protected void setMetadataConverterService(MetadataConverter converter) {
@@ -126,7 +123,7 @@ public class IdPManagementServiceComponent {
             log.debug("Metadata converter set in Identity idp-mgt bundle");
         }
         try {
-            IdentityProviderManager.setMetadataConverter(converter);
+            IdpMgtServiceComponentHolder.getInstance().addMetadataConverter(converter);
         } catch (Throwable e) {
             log.error("Failed to get a reference to the Metadata Converter in idp-mgt bundle", e);
         }
@@ -136,7 +133,7 @@ public class IdPManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("org.wso2.carbon.idp.mgt.util.MetadataConverter unset in idp-mgt");
         }
-        IdentityProviderManager.setMetadataConverter(null);
+        IdpMgtServiceComponentHolder.getInstance().removeMetadataConverter(metadataConverter);
     }
 
     /**
@@ -150,28 +147,28 @@ public class IdPManagementServiceComponent {
      * @return
      */
     public static RealmService getRealmService() {
-        return realmService;
+        return IdpMgtServiceComponentHolder.getInstance().getRealmService();
     }
 
     /**
      * @param rlmService
      */
     protected void setRealmService(RealmService rlmService) {
-        realmService = rlmService;
+        IdpMgtServiceComponentHolder.getInstance().setRealmService(rlmService);
     }
 
     /**
      * @return
      */
     public static ConfigurationContextService getConfigurationContextService() {
-        return configurationContextService;
+        return IdpMgtServiceComponentHolder.getInstance().getConfigurationContextService();
     }
 
     /**
      * @param service
      */
     protected void setConfigurationContextService(ConfigurationContextService service) {
-        configurationContextService = service;
+        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(service);
     }
 
     protected void activate(ComponentContext ctxt) {
@@ -325,14 +322,14 @@ public class IdPManagementServiceComponent {
      * @param realmService
      */
     protected void unsetRealmService(RealmService realmService) {
-        realmService = null;
+        IdpMgtServiceComponentHolder.getInstance().setRealmService(null);
     }
 
     /**
      * @param service
      */
     protected void unsetConfigurationContextService(ConfigurationContextService service) {
-        configurationContextService = null;
+        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(null);
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
@@ -348,18 +345,18 @@ public class IdPManagementServiceComponent {
     protected void setIdentityProviderMgtListenerService(
             IdentityProviderMgtListener identityProviderMgtListenerService) {
 
-        idpMgtListeners.add(identityProviderMgtListenerService);
-        Collections.sort(idpMgtListeners, idpMgtListenerComparator);
+        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().add(identityProviderMgtListenerService);
+        Collections.sort(IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners(), idpMgtListenerComparator);
     }
 
     protected void unsetIdentityProviderMgtListenerService(
             IdentityProviderMgtListener identityProviderMgtListenerService) {
 
-        idpMgtListeners.remove(identityProviderMgtListenerService);
+        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().remove(identityProviderMgtListenerService);
     }
 
     public static Collection<IdentityProviderMgtListener> getIdpMgtListeners() {
-        return idpMgtListeners;
+        return IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners();
     }
 
     private static Comparator<IdentityProviderMgtListener> idpMgtListenerComparator =

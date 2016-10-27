@@ -159,5 +159,12 @@ public class SAMLMetadataConverter implements MetadataConverter {
         }
 
     }
+    public boolean canHandle(FederatedAuthenticatorConfig federatedAuthenticatorConfig){
+        if(federatedAuthenticatorConfig!=null && federatedAuthenticatorConfig.getName()
+                .equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)){
+            return true;
+        }
+        return false;
+    }
 
 }

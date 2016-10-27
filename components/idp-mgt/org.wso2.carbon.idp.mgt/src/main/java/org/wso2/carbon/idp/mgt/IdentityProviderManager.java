@@ -50,6 +50,7 @@ import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -57,7 +58,6 @@ import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -86,10 +86,6 @@ public class IdentityProviderManager implements IdpManager {
 
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
 
-    private static RegistryService registryService;
-
-    private static MetadataConverter metadataConverter;
-
     private IdentityProviderManager() {
 
     }
@@ -101,21 +97,6 @@ public class IdentityProviderManager implements IdpManager {
         return instance;
     }
 
-    public static RegistryService getRegistryService() {
-        return registryService;
-    }
-
-    public static void setRegistryService(RegistryService registryService) {
-        IdentityProviderManager.registryService = registryService;
-    }
-
-    public static MetadataConverter getMetadataConverter() {
-        return metadataConverter;
-    }
-
-    public static void setMetadataConverter(MetadataConverter metadataConverter) {
-        IdentityProviderManager.metadataConverter = metadataConverter;
-    }
 
     /**
      * Retrieves resident Identity provider for a given tenant
@@ -1236,7 +1217,7 @@ public class IdentityProviderManager implements IdpManager {
      */
     private void handleMetadta(IdentityProvider identityProvider, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
 
-        if (metadataConverter == null) {
+        if (IdpMgtServiceComponentHolder.getInstance().getMetadataConverters().isEmpty()) {
             throw new IdentityProviderManagementException("Metadata Converter is not set");
         }
         idpName.append(identityProvider.getIdentityProviderName());
@@ -1249,28 +1230,35 @@ public class IdentityProviderManager implements IdpManager {
                 for (int j = 0; j < properties.length; j++) {
                     if (properties[j] != null) {
                         if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
+                            for (int v = 0; v < IdpMgtServiceComponentHolder.getInstance().getMetadataConverters()
+                                    .size(); v++) {
+                                MetadataConverter metadataConverter = IdpMgtServiceComponentHolder.getInstance()
+                                        .getMetadataConverters().get(v);
 
-                            if (metadataConverter.canHandle(properties[j])) {
-                                try {
-
-                                    metadata.append(properties[j].getValue());
-                                    StringBuilder certificate = new StringBuilder("");
+                                if (metadataConverter.canHandle(properties[j])) {
                                     try {
-                                        FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfig(properties, certificate);
-                                        if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
-                                            federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
-                                        } else {
-                                            throw new IdentityProviderManagementException("Error setting metadata using file");
-                                        }
-                                    } catch (IdentityProviderManagementException ex) {
-                                        throw new IdentityProviderManagementException("Error converting metadata", ex);
-                                    }
-                                    if (certificate.toString().length() > 0) {
-                                        identityProvider.setCertificate(certificate.toString());
 
+                                        metadata.append(properties[j].getValue());
+                                        StringBuilder certificate = new StringBuilder("");
+                                        try {
+                                            FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfig(properties, certificate);
+                                            if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
+                                                federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
+                                            } else {
+                                                throw new IdentityProviderManagementException("Error setting metadata using file");
+                                            }
+                                        } catch (IdentityProviderManagementException ex) {
+                                            throw new IdentityProviderManagementException("Error converting metadata", ex);
+                                        }
+                                        if (certificate.toString().length() > 0) {
+                                            identityProvider.setCertificate(certificate.toString());
+
+                                        }
+                                    } catch (XMLStreamException e) {//
+                                        throw new IdentityProviderManagementException("Error while configuring metadata", e);
                                     }
-                                } catch (XMLStreamException e) {//
-                                    throw new IdentityProviderManagementException("Error while configuring metadata", e);
+                                    break;
+
                                 }
                             }
                         }
@@ -1290,7 +1278,8 @@ public class IdentityProviderManager implements IdpManager {
 
         try {
 
-            UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
+            UserRegistry registry = IdpMgtServiceComponentHolder.getInstance().getRegistryService()
+                    .getConfigSystemRegistry(tenantId);
             String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDER;
             String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + encodePath(idpName);
@@ -1454,7 +1443,8 @@ public class IdentityProviderManager implements IdpManager {
     private void deleteMetadataFromRegistry(int tenantId, String idPName) throws IdentityProviderManagementException {
         try {
 
-            UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
+            UserRegistry registry = IdpMgtServiceComponentHolder.getInstance().getRegistryService()
+                    .getConfigSystemRegistry(tenantId);
             String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + encodePath(idPName);
 
@@ -1539,7 +1529,7 @@ public class IdentityProviderManager implements IdpManager {
 
         try {
 
-            UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
+            UserRegistry registry = IdpMgtServiceComponentHolder.getInstance().getRegistryService().getConfigSystemRegistry(tenantId);
             String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDER;
             String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + encodePath(idpName);
@@ -1822,7 +1812,7 @@ public class IdentityProviderManager implements IdpManager {
 
     public String getResidentIDPMetadata(String tenantDomain) throws IdentityProviderManagementException {
 
-        if (metadataConverter == null) {
+        if (IdpMgtServiceComponentHolder.getInstance().getMetadataConverters().isEmpty()) {
             throw new IdentityProviderManagementException("Error receiving Metadata object");
         }
 
@@ -1837,7 +1827,16 @@ public class IdentityProviderManager implements IdpManager {
         }
         if (samlFederatedAuthenticatorConfig != null) {
             try {
-                return metadataConverter.getMetadataString(samlFederatedAuthenticatorConfig);
+                for (int t = 0; t < IdpMgtServiceComponentHolder.getInstance().getMetadataConverters().size(); t++) {
+
+                    MetadataConverter converter = IdpMgtServiceComponentHolder.getInstance().getMetadataConverters()
+                            .get(t);
+                    if (converter.canHandle(samlFederatedAuthenticatorConfig)) {
+
+                        return converter.getMetadataString(samlFederatedAuthenticatorConfig);
+
+                    }
+                }
             } catch (IdentityProviderSAMLException e) {
                 throw new IdentityProviderManagementException(e.getMessage());
             }
