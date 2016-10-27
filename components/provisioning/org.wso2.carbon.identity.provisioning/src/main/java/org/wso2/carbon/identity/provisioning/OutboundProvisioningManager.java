@@ -570,7 +570,7 @@ public class OutboundProvisioningManager {
                     outboundProEntity.setJitProvisioning(jitProvisioning);
                     boolean isBlocking = entry.getValue().isBlocking();
 
-                    boolean isAllowed= XACMLBasedRuleHandler.getInstance().isAuthorized(tenantDomainName, provisioningEntity, idPName, connectorType);
+                    boolean isAllowed = XACMLBasedRuleHandler.getInstance().isAuthorized(tenantDomainName, provisioningEntity, idPName, connectorType);
                     if (isAllowed) {
                         executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
                     }

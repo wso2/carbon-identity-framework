@@ -127,7 +127,7 @@ public class XACMLBasedRuleHandler {
                                       ".0:resource:idpName", "idp");
         RowDTO connectorTypeDTO =
                 createRowDTO(connectorType, "urn:oasis:names:tc:xacml:1" +
-                                      ".0:resource:connectorType", "idp");
+                                            ".0:resource:connectorType", "idp");
 
         Iterator<Map.Entry<String, String>> claimIterator = provisioningEntity.getInboundAttributes().entrySet
                 ().iterator();
@@ -181,53 +181,4 @@ public class XACMLBasedRuleHandler {
         }
         return false;
     }
-
-//    /**
-//     * Executes the authorization flow
-//     */
-//    public boolean isAuthorized() {
-//
-//        if (log.isDebugEnabled()) {
-//            log.debug("In policy authorization flow...");
-//        }
-//
-//
-//        EntitlementService entitlementService = new EntitlementService();
-//
-//        ProvisioningServiceDataHolder.getInstance().get
-//
-//        try {
-//            entitlementService.getDecisionByAttributes(("support", "federal", "support", new String[]{"test"});
-//        } catch (EntitlementException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return false;
-//    }
-
-
-//    private RequestDTO createRequestDTO(AuthenticationContext context) {
-//
-//        List<RowDTO> rowDTOs = new ArrayList<>();
-//        RowDTO contextIdentifierDTO =
-//                createRowDTO(context.getContextIdentifier(), "urn:oasis:names:tc:xacml:1" +
-//                                                             ".0:resource:authn-context-id", "authn-context");
-//        rowDTOs.add(contextIdentifierDTO);
-//        RequestDTO requestDTO = new RequestDTO();
-//        requestDTO.setRowDTOs(rowDTOs);
-//        return requestDTO;
-//    }
-//
-//    private RowDTO createRowDTO(String resourceName, String attributeId, String categoryValue) {
-//
-//        RowDTO rowDTOTenant = new RowDTO();
-//        rowDTOTenant.setAttributeValue(resourceName);
-//        rowDTOTenant.setAttributeDataType(EntitlementPolicyConstants.STRING_DATA_TYPE);
-//        rowDTOTenant.setAttributeId(attributeId);
-//        rowDTOTenant.setCategory("urn:oasis:names:tc:xacml:3.0:attribute-category:".concat(categoryValue));
-//        return rowDTOTenant;
-//    }
-//
-
-
 }
