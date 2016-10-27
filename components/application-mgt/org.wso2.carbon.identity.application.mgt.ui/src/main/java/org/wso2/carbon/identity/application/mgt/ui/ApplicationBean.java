@@ -1259,6 +1259,11 @@ public class ApplicationBean {
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
 
+        String enableAuthorization = request.getParameter(
+                "enable_authorization");
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
+
 
         String subjectClaimUri = request.getParameter("subject_claim_uri");
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
