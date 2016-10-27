@@ -18,9 +18,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>org.wso2.carbon.identity</groupId>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-mgt-feature</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.5.11-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -34,24 +34,24 @@
     </description>
     <dependencies>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.user.mgt</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.user.mgt.common</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.store.configuration</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.store.configuration.deployer</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.user.store.count</artifactId>
         </dependency>
     </dependencies>
@@ -81,18 +81,18 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.user.mgt</bundleDef>
-                                <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.user.mgt.common
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.user.mgt</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.user.mgt.common
                                 </bundleDef>
 
                                 <bundleDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.identity.user.store.configuration
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.store.configuration
                                 </bundleDef>
                                 <bundleDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.identity.user.store.configuration.deployer
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.store.configuration.deployer
                                 </bundleDef>
                                 <bundleDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.identity.user.store.count</bundleDef>
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.user.store.count</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>

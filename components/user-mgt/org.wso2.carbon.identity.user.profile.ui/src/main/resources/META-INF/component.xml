@@ -16,7 +16,7 @@
   under the License.
   -->
 <component xmlns="http://products.wso2.org/carbon">
-        <!-- sample menu configuration -->
+    <!-- sample menu configuration -->
     <menus>
         <!--menu>
             <id>userprofiles_menu</id>

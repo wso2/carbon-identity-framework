@@ -138,6 +138,8 @@
         <OAuth2AuthzEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/authorize</OAuth2AuthzEPUrl>
         <OAuth2TokenEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/token</OAuth2TokenEPUrl>
         <OAuth2UserInfoEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/userinfo</OAuth2UserInfoEPUrl>
+        <OIDCCheckSessionEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oidc/checksession</OIDCCheckSessionEPUrl>
+        <OIDCLogoutEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oidc/logout</OIDCLogoutEPUrl>
         <OAuth2ConsentPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_authz.do</OAuth2ConsentPage>
         <OAuth2ErrorPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_error.do</OAuth2ErrorPage>
         <OIDCConsentPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/oauth2_consent.do</OIDCConsentPage>
@@ -393,7 +395,20 @@
         </Question>
         <ExpiryTime>3</ExpiryTime>
         <NotifySuccess>true</NotifySuccess>
+        <AdminPasswordReset>
+            <Offline>false</Offline>
+            <OTP>false</OTP>
+            <RecoveryLink>false</RecoveryLink>
+        </AdminPasswordReset>
     </Recovery>
+
+    <EmailVerification>
+        <Enable>true</Enable>
+        <LockOnCreation>true</LockOnCreation>
+        <Notification>
+            <InternallyManage>true</InternallyManage>
+        </Notification>
+    </EmailVerification>
 
     <SelfRegistration>
         <Enable>true</Enable>
@@ -419,7 +434,7 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
                        orderId="90" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.governance.listener.IdentityStoreEventListener"
-                       orderId="20" enable="true">
+                       orderId="97" enable="true">
         <Property name="Data.Store">org.wso2.carbon.identity.governance.store.UserStoreBasedIdentityDataStore</Property>
         </EventListener>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
@@ -430,7 +445,7 @@
                        orderId="11" enable="false"/>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityMessageHandler"
                        name="org.wso2.carbon.identity.data.publisher.application.authentication.AuthnDataPublisherProxy"
-                       orderId="11" enable="false"/>
+                       orderId="11" enable="true"/>
     </EventListeners>
 
     <CacheConfig>

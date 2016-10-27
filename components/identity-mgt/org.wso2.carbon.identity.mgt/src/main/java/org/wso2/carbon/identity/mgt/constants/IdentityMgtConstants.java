@@ -127,6 +127,8 @@ public class IdentityMgtConstants {
 
         public static final String IDENTITY_LISTENER_ENABLE = "Identity.Listener.Enable";
 
+        public static final String IDENTITY_MGT_LISTENER_CLASS = "Identity.Listener.Class";
+
         public static final String NOTIFICATION_SEND_INTERNALLY = "Notification.Sending.Internally.Managed";
 
         public static final String ACCOUNT_VERIFICATION_ENABLE = "UserAccount.Verification.Enable";

@@ -1,0 +1,30 @@
+{
+  "entitledResultSetDTO": {
+    "entitledAttributesDTOs": [
+      {
+        "resourceName": null,
+        "action": null,
+        "environment": null,
+        "allActions": false,
+        "allResources": false,
+        "attributeDTOs": [
+          {
+            "attributeValue": "http://127.0.0.1/service/very_secure/",
+            "attributeDataType": "http://www.w3.org/2001/XMLSchema#string",
+            "attributeId": "urn:oasis:names:tc:xacml:1.0:resource:resource-id",
+            "category": "urn:oasis:names:tc:xacml:3.0:attribute-category:resource"
+          },
+          {
+            "attributeValue": "read",
+            "attributeDataType": "http://www.w3.org/2001/XMLSchema#string",
+            "attributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+            "category": "urn:oasis:names:tc:xacml:3.0:attribute-category:action"
+          }
+        ]
+      }
+    ],
+    "advanceResult": true,
+    "message": null,
+    "messageType": null
+  }
+}

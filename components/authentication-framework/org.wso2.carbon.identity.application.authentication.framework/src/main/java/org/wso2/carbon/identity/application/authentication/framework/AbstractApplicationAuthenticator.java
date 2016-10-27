@@ -29,9 +29,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -74,7 +74,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
                                 context.setProperty("UserTenantDomainMismatch", true);
                                 throw new AuthenticationFailedException("Service Provider tenant domain must be " +
-                                        "equal to user tenant domain for non-SaaS applications");
+                                        "equal to user tenant domain for non-SaaS applications", context.getSubject());
                             }
                         }
                     }
@@ -125,7 +125,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     }
 
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
-                                                  AuthenticatedUser user, boolean success) {
+                                                  User user, boolean success) {
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();

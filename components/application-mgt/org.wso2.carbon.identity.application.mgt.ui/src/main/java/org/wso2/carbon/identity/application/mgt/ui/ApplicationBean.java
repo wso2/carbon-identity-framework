@@ -41,7 +41,6 @@ import org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnect
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
-import org.wso2.carbon.ui.util.CharacterEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -70,6 +69,7 @@ public class ApplicationBean {
     private Map<String, String> roleMap;
     private Map<String, String> claimMap;
     private Map<String, String> requestedClaims = new HashMap<String, String>();
+    private Map<String, String> mandatoryClaims = new HashMap<String, String>();
     private String samlIssuer;
     private String kerberosServiceName;
     private String oauthAppName;
@@ -101,6 +101,7 @@ public class ApplicationBean {
         roleMap = null;
         claimMap = null;
         requestedClaims = new HashMap<String, String>();
+        mandatoryClaims = new HashMap<String, String>();
         samlIssuer = null;
         kerberosServiceName = null;
         oauthAppName = null;
@@ -418,6 +419,13 @@ public class ApplicationBean {
                         requestedClaims
                                 .put(claimMapping[i].getRemoteClaim().getClaimUri(), "false");
                     }
+
+                    if (claimMapping[i].getMandatory()) {
+                        mandatoryClaims.put(claimMapping[i].getRemoteClaim().getClaimUri(), "true");
+                    } else {
+                        mandatoryClaims
+                                .put(claimMapping[i].getRemoteClaim().getClaimUri(), "false");
+                    }
                 }
             }
         }
@@ -463,6 +471,12 @@ public class ApplicationBean {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInLocalSubjectIdentifier();
         }
         return false;
+    }
+
+    public boolean isEnableAuthorization() {
+
+        return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getEnableAuthorization();
     }
 
     public String getSubjectClaimUri() {
@@ -1228,6 +1242,11 @@ public class ApplicationBean {
                 .setUseUserstoreDomainInLocalSubjectIdentifier(useUserstoreDomainInLocalSubjectIdentifier != null &&
                         "on".equals(useUserstoreDomainInLocalSubjectIdentifier) ? true : false);
 
+        String enableAuthorization = request.getParameter(
+                "enable_authorization");
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .setEnableAuthorization(enableAuthorization != null && "on".equals(enableAuthorization));
+
 
         String subjectClaimUri = request.getParameter("subject_claim_uri");
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
@@ -1303,6 +1322,13 @@ public class ApplicationBean {
                 mapping.setRequested(false);
             }
 
+            String mandatory = request.getParameter("spClaim_mand_" + i);
+            if (mandatory != null && "on".equals(mandatory)) {
+                mapping.setMandatory(true);
+            } else {
+                mapping.setMandatory(false);
+            }
+
             mapping.setLocalClaim(localClaim);
             mapping.setRemoteClaim(spClaim);
 
@@ -1334,6 +1360,13 @@ public class ApplicationBean {
      */
     public Map<String, String> getRequestedClaims() {
         return requestedClaims;
+    }
+
+    /**
+     * @return
+     */
+    public Map<String, String> getMandatoryClaims() {
+        return mandatoryClaims;
     }
 
     /**

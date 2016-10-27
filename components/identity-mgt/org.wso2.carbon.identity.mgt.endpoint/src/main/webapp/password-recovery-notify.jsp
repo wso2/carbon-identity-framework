@@ -29,6 +29,8 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 
 <%
 
@@ -42,6 +44,10 @@
     RecoveryInitiatingRequest recoveryInitiatingRequest = new RecoveryInitiatingRequest();
     recoveryInitiatingRequest.setUser(user);
     String callback = (String) request.getAttribute("callback");
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
     List<Property> properties = new ArrayList<Property>();
     Property property = new Property();
     property.setKey("callback");

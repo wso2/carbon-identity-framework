@@ -37,19 +37,20 @@
     String newPassword = request.getParameter("reset-password");
     String callback = request.getParameter("callback");
 
-
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
     if (StringUtils.isNotBlank(newPassword)) {
 
         NotificationApi notificationApi = new NotificationApi();
 
         ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
         List<Property> properties = new ArrayList<Property>();
-        if (callback != null) {
-            Property property = new Property();
-            property.setKey("callback");
-            property.setValue(URLEncoder.encode(callback, "UTF-8"));
-            properties.add(property);
-        }
+        Property property = new Property();
+        property.setKey("callback");
+        property.setValue(URLEncoder.encode(callback, "UTF-8"));
+        properties.add(property);
 
 
         resetPasswordRequest.setKey(confirmationKey);

@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -40,6 +41,9 @@ import org.wso2.carbon.user.core.service.RealmService;
  * cardinality="0..n" policy="dynamic"
  * bind="setUserStoreConfigListenerService"
  * unbind="unsetIdentityProviderMgtListerService"
+ * @scr.reference name="identityCoreInitializedEventService"
+ * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
+ * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
  *
  */
 public class UserStoreConfigComponent {
@@ -118,6 +122,16 @@ public class UserStoreConfigComponent {
             log.debug("Unset the ServerConfiguration Service");
         }
         UserStoreConfigComponent.serverConfigurationService = null;
+    }
+
+    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
+    }
+
+    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+         is started */
     }
 
     protected void setUserStoreConfigListenerService(UserStoreConfigListener userStoreConfigListener) {

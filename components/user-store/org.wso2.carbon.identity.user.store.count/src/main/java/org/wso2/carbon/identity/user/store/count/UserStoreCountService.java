@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.user.store.count;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
@@ -29,6 +31,8 @@ import org.wso2.carbon.user.core.UserCoreConstants;
  * Service class that expose count functionality for underline user stores on users, roles and claims.
  */
 public class UserStoreCountService {
+
+    private static final Log log = LogFactory.getLog(UserStoreCountService.class);
 
     /**
      * Get the count of users having a matching user name for the filter
@@ -45,7 +49,11 @@ public class UserStoreCountService {
             UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain);
             Long count = Long.valueOf(-1);
             if (counter != null) {
-                count = counter.countUsers(filter);
+                try {
+                    count = counter.countUsers(filter);
+                } catch (UserStoreCounterException e) {
+                    log.error("Error while getting user count from user store domain : " + userStoreDomain, e);
+                }
             } else {
                 //no action
             }
@@ -72,7 +80,11 @@ public class UserStoreCountService {
             UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain);
             Long count = Long.valueOf(-1);
             if (counter != null) {
-                count = counter.countRoles(filter);
+                try {
+                    count = counter.countRoles(filter);
+                } catch (UserStoreCounterException e) {
+                    log.error("Error while getting role count from user store domain : " + userStoreDomain, e);
+                }
             } else {
                 //no action
             }
@@ -105,7 +117,11 @@ public class UserStoreCountService {
             UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain);
             Long count = Long.valueOf(-1);
             if (counter != null) {
-                count = counter.countClaim(claimURI, valueFilter);
+                try {
+                    count = counter.countClaim(claimURI, valueFilter);
+                } catch (UserStoreCounterException e) {
+                    log.error("Error while getting user count with claim : " + claimURI + " from user store domain : " + userStoreDomain, e);
+                }
             } else {
                 //no action
             }
@@ -123,7 +139,11 @@ public class UserStoreCountService {
      * @return the number of users matching the filter only within this user store domain
      */
     public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
-        UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+
+        UserStoreCountRetriever counter = null;
+        if (UserStoreCountUtils.isUserStoreEnabled(domain)) {
+            counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
+        }
         if (counter != null) {
             return counter.countUsers(filter);
         } else {

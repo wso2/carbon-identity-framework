@@ -66,7 +66,7 @@
         boolean hasLocalLoginOptions = false;
         List<String> localAuthenticatorNames = new ArrayList<String>();
 
-        if (idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) {
+        if (idpAuthenticatorMapping != null && idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) {
             String authList = idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME);
             if (authList != null) {
                 localAuthenticatorNames = Arrays.asList(authList.split(","));
@@ -172,12 +172,13 @@
                                 }
                             %>
 
-                            <%if (idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) { %>
+                            <%if (idpAuthenticatorMapping != null &&
+                                    idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) { %>
 
                             <%} %>
                             <%
                                 if ((hasLocalLoginOptions && localAuthenticatorNames.size() > 1) || (!hasLocalLoginOptions)
-                                        || (hasLocalLoginOptions && idpAuthenticatorMapping.size() > 1)) {
+                                        || (hasLocalLoginOptions && idpAuthenticatorMapping != null && idpAuthenticatorMapping.size() > 1)) {
                             %>
                             <div class="form-group">
                                 <% if (hasLocalLoginOptions) { %>
@@ -187,6 +188,7 @@
                             <div class="form-group">
                                 <%
                                     int iconId = 0;
+                                    if (idpAuthenticatorMapping != null) {
                                     for (Map.Entry<String, String> idpEntry : idpAuthenticatorMapping.entrySet()) {
                                         iconId++;
                                         if (!idpEntry.getKey().equals(Constants.RESIDENT_IDP_RESERVED_NAME)) {
@@ -265,6 +267,7 @@
                                             }
                                         }
 
+                                    }
                                     }%>
 
                             </div>

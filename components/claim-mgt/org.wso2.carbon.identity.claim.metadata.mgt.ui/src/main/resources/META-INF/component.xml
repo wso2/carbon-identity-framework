@@ -25,7 +25,7 @@
             <order>3</order>
             <style-class>manage</style-class>
 		    <icon>../identity-claim-mgt/images/claims.gif</icon>
-		    <require-permission>/permission/admin/configure/security</require-permission>
+		    <require-permission>/permission/admin/manage/identity/claimmgt/metadata</require-permission>
 
             <!--<at-least>/permission/admin/manage/identity/claim/create</at-least>-->
             <!--<at-least>/permission/admin/manage/identity/claim/view</at-least>-->
@@ -40,7 +40,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../identity-claim-mgt/images/add.gif</icon>
-            <require-permission>/permission/admin/manage</require-permission>
+            <require-permission>/permission/admin/manage/identity/claimmgt/metadata</require-permission>
             <!--<require-permission>/permission/admin/manage/identity/claim/create</require-permission>-->
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
@@ -54,7 +54,7 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../identity-claim-mgt/images/list.gif</icon>
-            <require-permission>/permission/admin/manage</require-permission>
+            <require-permission>/permission/admin/manage/identity/claimmgt/metadata</require-permission>
             <!--<require-permission>/permission/admin/manage/identity/claim/view</require-permission>-->
             <require-not-logged-in>false</require-not-logged-in>
         </menu>

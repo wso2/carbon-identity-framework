@@ -20,6 +20,7 @@
 package org.wso2.carbon.identity.mgt;
 
 import org.apache.axis2.context.MessageContext;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -38,6 +39,7 @@ import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.mail.Notification;
 import org.wso2.carbon.identity.mgt.mail.NotificationBuilder;
 import org.wso2.carbon.identity.mgt.mail.NotificationData;
+import org.wso2.carbon.identity.mgt.mail.TransportHeader;
 import org.wso2.carbon.identity.mgt.store.RegistryRecoveryDataStore;
 import org.wso2.carbon.identity.mgt.store.UserIdentityDataStore;
 import org.wso2.carbon.identity.mgt.store.UserRecoveryDataStore;
@@ -50,6 +52,7 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -131,12 +134,23 @@ public class RecoveryProcessor {
         }
 
         NotificationDataDTO notificationData = new NotificationDataDTO();
-        if(MessageContext.getCurrentMessageContext() != null &&
+        if (MessageContext.getCurrentMessageContext() != null &&
                 MessageContext.getCurrentMessageContext().getProperty(
                         MessageContext.TRANSPORT_HEADERS) != null) {
-            notificationData.setTransportHeaders(new HashMap(
-                    (Map)MessageContext.getCurrentMessageContext().getProperty(
-                            MessageContext.TRANSPORT_HEADERS)));
+            Map<String, String> transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
+                    .getProperty(MessageContext.TRANSPORT_HEADERS);
+            if (MapUtils.isNotEmpty(transportHeaderMap)) {
+                TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
+                int i = 0;
+                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
+                    TransportHeader transportHeader = new TransportHeader();
+                    transportHeader.setHeaderName(entry.getKey());
+                    transportHeader.setHeaderValue(entry.getValue());
+                    transportHeadersArray[i] = transportHeader;
+                    ++i;
+                }
+                notificationData.setTransportHeaders(transportHeadersArray);
+            }
         }
 
         String internalCode = null;
@@ -485,14 +499,24 @@ public class RecoveryProcessor {
         String userName = UserCoreUtil.removeDomainFromName(userId);
 
         NotificationDataDTO notificationData = new NotificationDataDTO();
-        if(MessageContext.getCurrentMessageContext() != null &&
+        if (MessageContext.getCurrentMessageContext() != null &&
                 MessageContext.getCurrentMessageContext().getProperty(
                         MessageContext.TRANSPORT_HEADERS) != null) {
-            notificationData.setTransportHeaders(new HashMap(
-                    (Map)MessageContext.getCurrentMessageContext().getProperty(
-                            MessageContext.TRANSPORT_HEADERS)));
+            Map<String, String> transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
+                    .getProperty(MessageContext.TRANSPORT_HEADERS);
+            if (MapUtils.isNotEmpty(transportHeaderMap)) {
+                TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
+                int i = 0;
+                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
+                    TransportHeader transportHeader = new TransportHeader();
+                    transportHeader.setHeaderName(entry.getKey());
+                    transportHeader.setHeaderValue(entry.getValue());
+                    transportHeadersArray[i] = transportHeader;
+                    ++i;
+                }
+                notificationData.setTransportHeaders(transportHeadersArray);
+            }
         }
-
 
         String type = notificationBean.getNotificationType();
         if (type != null) {

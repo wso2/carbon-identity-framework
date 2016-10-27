@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.mgt;
 
 import org.apache.axis2.context.MessageContext;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,11 +36,16 @@ import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
 import org.wso2.carbon.identity.mgt.config.ConfigType;
 import org.wso2.carbon.identity.mgt.config.StorageType;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
-import org.wso2.carbon.identity.mgt.dto.*;
+import org.wso2.carbon.identity.mgt.dto.NotificationDataDTO;
+import org.wso2.carbon.identity.mgt.dto.UserDTO;
+import org.wso2.carbon.identity.mgt.dto.UserIdentityClaimsDO;
+import org.wso2.carbon.identity.mgt.dto.UserRecoveryDTO;
+import org.wso2.carbon.identity.mgt.dto.UserRecoveryDataDO;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.mail.Notification;
 import org.wso2.carbon.identity.mgt.mail.NotificationBuilder;
 import org.wso2.carbon.identity.mgt.mail.NotificationData;
+import org.wso2.carbon.identity.mgt.mail.TransportHeader;
 import org.wso2.carbon.identity.mgt.policy.PolicyRegistry;
 import org.wso2.carbon.identity.mgt.policy.PolicyViolationException;
 import org.wso2.carbon.identity.mgt.store.UserIdentityDataStore;
@@ -261,10 +267,14 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (authenticated && isUserExistInCurrentDomain) {
 
             if (isUserExistInCurrentDomain) {
-                Map<String, String> userClaims = new HashMap<>();
-                userClaims.put(IdentityMgtConstants.LAST_LOGIN_TIME, Long.toString(System
-                        .currentTimeMillis()));
-                userStoreManager.setUserClaimValues(userName, userClaims, null);
+                UserIdentityClaimsDO userIdentityDTO = module.load(userName, userStoreManager);
+                userIdentityDTO.setLastLogonTime(System.currentTimeMillis());
+                try {
+                    module.store(userIdentityDTO, userStoreManager);
+                } catch (IdentityException e) {
+                    throw new UserStoreException(String.format("Error while saving user store data : %s for user : %s.",
+                            UserIdentityDataStore.LAST_LOGON_TIME, userName), e);
+                }
             }
         }
 
@@ -286,6 +296,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 UserIdentityClaimsDO userIdentityDTO = module.load(userName, userStoreManager);
                 if (userIdentityDTO == null) {
                     userIdentityDTO = new UserIdentityClaimsDO(userName);
+                    userIdentityDTO.setTenantId(userStoreManager.getTenantId());
                 }
 
                 boolean userOTPEnabled = userIdentityDTO.getOneTimeLogin();
@@ -316,9 +327,20 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                         if (MessageContext.getCurrentMessageContext() != null &&
                                 MessageContext.getCurrentMessageContext().getProperty(
                                         MessageContext.TRANSPORT_HEADERS) != null) {
-                            notificationData.setTransportHeaders(new HashMap(
-                                    (Map) MessageContext.getCurrentMessageContext().getProperty(
-                                            MessageContext.TRANSPORT_HEADERS)));
+                            Map<String, String> transportHeaderMap = (Map) MessageContext.getCurrentMessageContext()
+                                    .getProperty(MessageContext.TRANSPORT_HEADERS);
+                            if (MapUtils.isNotEmpty(transportHeaderMap)) {
+                                TransportHeader[] transportHeadersArray = new TransportHeader[transportHeaderMap.size()];
+                                int i = 0;
+                                for(Map.Entry<String, String> entry : transportHeaderMap.entrySet()){
+                                    TransportHeader transportHeader = new TransportHeader();
+                                    transportHeader.setHeaderName(entry.getKey());
+                                    transportHeader.setHeaderValue(entry.getValue());
+                                    transportHeadersArray[i] = transportHeader;
+                                    ++i;
+                                }
+                                notificationData.setTransportHeaders(transportHeadersArray);
+                            }
                         }
 
                         NotificationData emailNotificationData = new NotificationData();
@@ -542,6 +564,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         }
 
         UserIdentityClaimsDO identityDTO = new UserIdentityClaimsDO(userName, userDataMap);
+        identityDTO.setTenantId(userStoreManager.getTenantId());
         // adding dto to thread local to be read again from the doPostAddUser method
         IdentityUtil.threadLocalProperties.get().put(USER_IDENTITY_DO, identityDTO);
         return true;
@@ -903,6 +926,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 IdentityMgtConfig config = IdentityMgtConfig.getInstance();
                 UserIdentityDataStore identityDataStore = IdentityMgtConfig.getInstance().getIdentityDataStore();
                 UserIdentityClaimsDO identityDTO = identityDataStore.load(userName, userStoreManager);
+                if (identityDTO == null) {
+                    identityDTO = new UserIdentityClaimsDO(userName);
+                    identityDTO.setTenantId(userStoreManager.getTenantId());
+                }
                 Boolean wasAccountDisabled = identityDTO.getIsAccountDisabled();
                 String accountDisabled = claims.get(UserIdentityDataStore.ACCOUNT_DISABLED);
                 boolean isAccountDisabled = false;
@@ -923,9 +950,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                 } else {
                     // do nothing
-                }
-                if (identityDTO == null) {
-                    identityDTO = new UserIdentityClaimsDO(userName);
                 }
 
                 //account is already disabled and trying to update the claims without enabling it
@@ -961,11 +985,13 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                     String usernameWithDomain = IdentityUtil.addDomainToName(userName, domainName);
 
                     //case of enabling a disabled user account
-                    if (wasAccountDisabled && !isAccountDisabled) {
+                    if (wasAccountDisabled && !isAccountDisabled
+                            && IdentityMgtConfig.getInstance().isAccountEnableNotificationSending()) {
                         sendEmail(usernameWithDomain, tenantId, IdentityMgtConstants.Notification.ACCOUNT_ENABLE);
 
                         //case of disabling an enabled account
-                    } else if (!wasAccountDisabled && isAccountDisabled) {
+                    } else if (!wasAccountDisabled && isAccountDisabled
+                            && IdentityMgtConfig.getInstance().isAccountDisableNotificationSending()) {
                         sendEmail(usernameWithDomain, tenantId, IdentityMgtConstants.Notification.ACCOUNT_DISABLE);
                     }
 

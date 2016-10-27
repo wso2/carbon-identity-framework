@@ -46,6 +46,7 @@
 		<HomeRealmDiscoverer>org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer</HomeRealmDiscoverer>
 		<ClaimHandler>org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler</ClaimHandler>
 		<ProvisioningHandler>org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler</ProvisioningHandler>
+		<AuthorizationHandler>org.wso2.carbon.identity.application.authz.xacml.handler.impl.XACMLBasedAuthorizationHandler</AuthorizationHandler>
 	</Extensions>
 
 	<!--
@@ -119,6 +120,10 @@
 			<Parameter name="YahooTokenEndpoint">https://api.login.yahoo.com/oauth2/get_token</Parameter>
 			<Parameter name="YahooOAuthzEndpoint">https://api.login.yahoo.com/oauth2/request_auth</Parameter>
 			<Parameter name="YahooUserInfoEndpoint">https://social.yahooapis.com/v1/user/</Parameter>
+		</AuthenticatorConfig>
+		<AuthenticatorConfig name="MobileConnectAuthenticator" enabled="true">
+			<Parameter name="MobileConnectKey">mobileConnectClientId</Parameter>
+			<Parameter name="MobileConnectSecret">mobileConnectClientSecret</Parameter>
 		</AuthenticatorConfig>
         <AuthenticatorConfig name="EmailOTP" enabled="true">
             <Parameter name="GmailClientId">gmailClientIdValue</Parameter>

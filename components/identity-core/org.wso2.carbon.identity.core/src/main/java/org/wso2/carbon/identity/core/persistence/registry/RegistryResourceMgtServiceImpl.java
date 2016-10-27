@@ -202,7 +202,6 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
         if (localeString.matches(BLACKLIST_REGEX)) {
             throw new IllegalArgumentException("Locale contains invalid special characters : " + locale);
         }
-
         return localeString;
     }
 

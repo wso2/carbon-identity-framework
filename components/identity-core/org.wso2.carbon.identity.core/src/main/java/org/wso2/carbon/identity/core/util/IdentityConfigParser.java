@@ -40,6 +40,7 @@ public class IdentityConfigParser {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
+    public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -257,6 +258,11 @@ public class IdentityConfigParser {
                                 identityCacheConfig.setCapacity(Integer.parseInt(capacity));
                             }
 
+                            String isDistributedCache = cache.getAttributeValue(new QName(IS_DISTRIBUTED_CACHE));
+                            if (StringUtils.isNotBlank(isDistributedCache)) {
+                                identityCacheConfig.setDistributed(Boolean.parseBoolean(isDistributedCache));
+                            }
+
                             // Add the config to container
                             identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
                         }
@@ -412,6 +418,16 @@ public class IdentityConfigParser {
      */
     public OMElement getConfigElement(String localPart) {
         return rootElement.getFirstChildWithName(new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE,localPart));
+    }
+
+    /**
+     * Returns the QName with the identity name space
+     *
+     * @param localPart local part name
+     * @return relevant QName
+     */
+    public QName getQNameWithIdentityNS(String localPart) {
+        return new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, localPart);
     }
 
 }

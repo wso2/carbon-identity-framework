@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -40,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -123,6 +126,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // if flow completed, send response back
         if (context.getSequenceConfig().isCompleted()) {
+            //Add the context to the cache to be usable by the authorization handler
+            if (context.getSequenceConfig().getApplicationConfig().isEnableAuthorization()) {
+                handleAuthorization(request, response, context);
+            }
             concludeFlow(request, response, context);
         } else { // redirecting outside
             FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
@@ -137,6 +144,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         context.getSequenceConfig().setCompleted(true);
         context.setRequestAuthenticated(false);
+        //No need to handle authorization, because the authentication is not completed
         concludeFlow(request, response, context);
     }
 
@@ -303,7 +311,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
-                setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
+                String applicationTenantDomain = context.getTenantDomain();
+                if (StringUtils.isEmpty(applicationTenantDomain)) {
+                    applicationTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                }
+                setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
@@ -311,35 +323,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (authenticatedUserTenantDomain == null) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
-
-            String auditData = "\"" + "ContextIdentifier" + "\" : \"" + context.getContextIdentifier()
-                               + "\",\"" + "AuthenticatedUser" + "\" : \"" + sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier()
-                               + "\",\"" + "AuthenticatedUserTenantDomain" + "\" : \"" + authenticatedUserTenantDomain
-                               + "\",\"" + "ServiceProviderName" + "\" : \"" + context.getServiceProviderName()
-                               + "\",\"" + "RequestType" + "\" : \"" + context.getRequestType()
-                               + "\",\"" + "RelyingParty" + "\" : \"" + context.getRelyingParty()
-                               + "\",\"" + "AuthenticatedIdPs" + "\" : \"" + sequenceConfig.getAuthenticatedIdPs()
-                               + "\"";
-
-            AUDIT_LOG.info(String.format(
-                    FrameworkConstants.AUDIT_MESSAGE,
-                    sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
-                    "Login",
-                    "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_SUCCESS));
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
-        } else {
-            String auditData = "\"" + "ContextIdentifier" + "\" : \"" + context.getContextIdentifier()
-                    + "\",\"" + "ServiceProviderName" + "\" : \"" + context.getServiceProviderName()
-                    + "\",\"" + "RequestType" + "\" : \"" + context.getRequestType()
-                    + "\",\"" + "RelyingParty" + "\" : \"" + context.getRelyingParty()
-                    + "\"";
-
-            AUDIT_LOG.info(String.format(
-                    FrameworkConstants.AUDIT_MESSAGE,
-                    null,
-                    "Login",
-                    "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_FAILED));
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
@@ -465,4 +450,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             throw new FrameworkException(e.getMessage(), e);
         }
     }
+
+    protected void handleAuthorization(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context) throws ApplicationAuthorizationException {
+
+        AuthorizationHandler authorizationHandler = FrameworkUtils.getAuthorizationHandler();
+        if (authorizationHandler != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Calling " + authorizationHandler.getClass().getName() + " to authorize the request");
+            }
+            if (!authorizationHandler.isAuthorized(request, response, context)) {
+                throw new ApplicationAuthorizationException("Authorization Failed");
+            }
+        } else {
+            log.warn("Authorization Handler is not set. Hence proceeding without authorization");
+        }
+    }
+
 }
