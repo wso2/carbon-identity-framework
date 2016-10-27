@@ -45,7 +45,6 @@ import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioning
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -238,8 +237,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
                                 subject);
                         if (StringUtils.isNotBlank(associatedID)) {
-                            String userDomain = IdentityUtil.extractDomainFromName(associatedID);
-                            user.setUserStoreDomain(userDomain);
+                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                            user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
+                                            fullQualifiedAssociatedUserId);
                             persistClaims = true;
                         }
                     } catch (UserProfileException e) {

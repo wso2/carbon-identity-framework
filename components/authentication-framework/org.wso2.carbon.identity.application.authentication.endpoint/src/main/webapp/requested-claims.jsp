@@ -100,7 +100,7 @@
 				<% for (String claim : missingClaimList) { %>
 				    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 form-group required">
 			                <label class="control-label"><%=claim%></label>
-			                <input type="text" name="claim_mand_<%=claim%>" id="claim_mand_<%=claim%>" class="form-control">
+			                <input type="text" name="claim_mand_<%=claim%>" id="claim_mand_<%=claim%>" class="form-control" required="required">
 			            </div>
                             	<%}%>
 				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
