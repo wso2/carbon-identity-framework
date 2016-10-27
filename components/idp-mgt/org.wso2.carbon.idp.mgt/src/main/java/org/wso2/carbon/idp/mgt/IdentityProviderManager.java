@@ -1215,12 +1215,12 @@ public class IdentityProviderManager implements IdpManager {
      * @param identityProvider
      * @throws IdentityProviderManagementException
      */
-    private void handleMetadta(IdentityProvider identityProvider, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
+    private void handleMetadta(IdentityProvider identityProvider, StringBuilder idpEntityId, StringBuilder metadata) throws IdentityProviderManagementException {
 
         if (IdpMgtServiceComponentHolder.getInstance().getMetadataConverters().isEmpty()) {
             throw new IdentityProviderManagementException("Metadata Converter is not set");
         }
-        idpName.append(identityProvider.getIdentityProviderName());
+        idpEntityId.append(identityProvider.getIdentityProviderName());
         FederatedAuthenticatorConfig federatedAuthenticatorConfigs[] = identityProvider.getFederatedAuthenticatorConfigs();
 
         for (int i = 0; i < federatedAuthenticatorConfigs.length; i++) {
@@ -1242,6 +1242,28 @@ public class IdentityProviderManager implements IdpManager {
                                         StringBuilder certificate = new StringBuilder("");
                                         try {
                                             FederatedAuthenticatorConfig metaFederated = metadataConverter.getFederatedAuthenticatorConfig(properties, certificate);
+
+                                            String spName = "";
+
+                                            for (int b = 0; b < properties.length; b++) {
+                                                if (properties[b] != null && properties[b].getName() != null && properties[b].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                                                    spName = properties[b].getValue();
+                                                }
+                                            }
+                                            if (spName.equals("")) {
+                                                throw new IdentityProviderManagementException("SP name can't be empty");
+                                            }
+
+                                            if(metaFederated!=null && ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
+                                                for (int y = 0; y < metaFederated.getProperties().length; y++) {
+                                                    if (metaFederated.getProperties()[y] != null && metaFederated.getProperties()[y].getName() != null
+                                                            && metaFederated.getProperties()[y].getName().toString().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                                                        metaFederated.getProperties()[y].setValue(spName);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
                                             if (metaFederated != null && metaFederated.getProperties() != null && metaFederated.getProperties().length > 0) {
                                                 federatedAuthenticatorConfigs[i].setProperties(metaFederated.getProperties());
                                             } else {
