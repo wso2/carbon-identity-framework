@@ -441,7 +441,9 @@ action="idp-mgt-get-ridp-metadata-finish-ajaxprocessor.jsp"></form>
                     </table>
                         <br>
                         <button onclick="downloadRIDPMetadata()" type="button" id="downloadResidentIdpMetadataData"
-                                                                  name="downloadResidentIdpMetadataData">Download</button>
+                                                                  name="downloadResidentIdpMetadataData"><fmt:message
+                                key='download.metadata.saml'/>
+                        </button>
                     </div>
 
                     <h2 id="oauth1confighead"  class="sectionSeperator trigger active" style="background-color: beige;">

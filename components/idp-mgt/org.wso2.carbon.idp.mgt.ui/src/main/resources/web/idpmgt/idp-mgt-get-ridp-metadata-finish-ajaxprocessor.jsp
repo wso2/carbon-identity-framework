@@ -11,7 +11,7 @@
     if (!"post".equalsIgnoreCase(httpMethod)) {
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
-    }
+    }//TODO remove
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);

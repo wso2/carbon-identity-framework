@@ -30,7 +30,7 @@ import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
-/*
+/**
 * This class defines methods that are used to convert a metadata String using saml2SSOFederatedAuthenticatedConfig
 * */
 public abstract class IDPMetadataBuilder extends AbstractIdentityHandler {

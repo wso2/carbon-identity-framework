@@ -133,7 +133,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
         FederatedAuthenticatorConfig federatedAuthenticatorConfigMetadata;
         try {
             federatedAuthenticatorConfigMetadata = SAML2SSOFederatedAuthenticatorConfig.build(element, builder);
-        } catch (IdentityApplicationManagementException ex) {
+        } catch (IdentityApplicationManagementException ex) {//TODO check this
             throw new IdentityProviderManagementException("Invalid file content");
         }
         if(federatedAuthenticatorConfigMetadata!=null && ArrayUtils.isNotEmpty(federatedAuthenticatorConfigMetadata.getProperties())) {
@@ -156,7 +156,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
             String metadata = builder.build(federatedAuthenticatorConfig);
             return metadata;
         }catch(MetadataException ex){
-            throw  new IdentityProviderSAMLException("Error invoking build in IDPMetadataBuilder");
+            throw  new IdentityProviderSAMLException("Error invoking build in IDPMetadataBuilder", ex);
         }
 
     }

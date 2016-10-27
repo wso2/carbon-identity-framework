@@ -62,6 +62,7 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
 import javax.xml.stream.XMLStreamException;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
@@ -761,7 +762,7 @@ public class IdentityProviderManager implements IdpManager {
     public List<IdentityProvider> getEnabledIdPs(String tenantDomain)
             throws IdentityProviderManagementException {
         List<IdentityProvider> enabledIdentityProviders = new ArrayList<IdentityProvider>();
-         List<IdentityProvider> identityProviers = getIdPs(tenantDomain);
+        List<IdentityProvider> identityProviers = getIdPs(tenantDomain);
 
         for (IdentityProvider idp : identityProviers) {
             if (idp.isEnable()) {
@@ -1235,7 +1236,7 @@ public class IdentityProviderManager implements IdpManager {
      */
     private void handleMetadta(IdentityProvider identityProvider, StringBuilder idpName, StringBuilder metadata) throws IdentityProviderManagementException {
 
-        if(metadataConverter==null){
+        if (metadataConverter == null) {
             throw new IdentityProviderManagementException("Metadata Converter is not set");
         }
         idpName.append(identityProvider.getIdentityProviderName());
@@ -1261,14 +1262,14 @@ public class IdentityProviderManager implements IdpManager {
                                         } else {
                                             throw new IdentityProviderManagementException("Error setting metadata using file");
                                         }
-                                    }catch(IdentityProviderManagementException ex){
-                                        throw new IdentityProviderManagementException("Error converting metadata",ex);
+                                    } catch (IdentityProviderManagementException ex) {
+                                        throw new IdentityProviderManagementException("Error converting metadata", ex);
                                     }
                                     if (certificate.toString().length() > 0) {
                                         identityProvider.setCertificate(certificate.toString());
 
                                     }
-                                } catch (XMLStreamException e) {
+                                } catch (XMLStreamException e) {//
                                     throw new IdentityProviderManagementException("Error while configuring metadata", e);
                                 }
                             }
@@ -1303,7 +1304,8 @@ public class IdentityProviderManager implements IdpManager {
                 registry.beginTransaction();
             }
 
-            try {
+            try {//TODO throw exceotions
+                //TODO import Farautil
                 if (!registry.resourceExists(identityProvidersPath)) {
 
                     org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
@@ -1319,7 +1321,7 @@ public class IdentityProviderManager implements IdpManager {
                 if (!registry.resourceExists(path)) {
                     registry.put(path, resource);
                 } else {
-                    throw new IdentityProviderManagementException("Duplicate Identity Provider-"+idpName+" found in the registry");
+                    throw new IdentityProviderManagementException("Duplicate Identity Provider-" + idpName + " found in the registry");
                 }
 
                 if (!isTransactionStarted) {
@@ -1472,11 +1474,11 @@ public class IdentityProviderManager implements IdpManager {
                             registry.commitTransaction();
                         }
 
-                    } catch (RegistryException e) {
+                    } catch (RegistryException e) {//TODO
                         if (!isTransactionStarted) {
                             registry.rollbackTransaction();
                         }
-                        throw new IdentityProviderManagementException("Error while deleting metadata String in registry for "+idPName);
+                        throw new IdentityProviderManagementException("Error while deleting metadata String in registry for " + idPName);
                     }
 
 
@@ -1592,7 +1594,7 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-     /**
+    /**
      * Updates a given Identity Provider information
      *
      * @param oldIdPName          existing Identity Provider name
@@ -1820,7 +1822,7 @@ public class IdentityProviderManager implements IdpManager {
 
     public String getResidentIDPMetadata(String tenantDomain) throws IdentityProviderManagementException {
 
-        if(metadataConverter==null){
+        if (metadataConverter == null) {
             throw new IdentityProviderManagementException("Error receiving Metadata object");
         }
 
@@ -1836,7 +1838,7 @@ public class IdentityProviderManager implements IdpManager {
         if (samlFederatedAuthenticatorConfig != null) {
             try {
                 return metadataConverter.getMetadataString(samlFederatedAuthenticatorConfig);
-            }catch(IdentityProviderSAMLException e){
+            } catch (IdentityProviderSAMLException e) {
                 throw new IdentityProviderManagementException(e.getMessage());
             }
         }
@@ -1844,7 +1846,6 @@ public class IdentityProviderManager implements IdpManager {
         return null;
 
     }
-
 
 
 }

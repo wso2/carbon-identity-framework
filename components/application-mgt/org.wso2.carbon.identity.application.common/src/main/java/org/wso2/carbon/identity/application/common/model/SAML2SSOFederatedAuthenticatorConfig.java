@@ -23,7 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.common.xml.SAMLConstants;
-import org.opensaml.saml2.metadata.*;
+import org.opensaml.saml2.metadata.*;//TODO
 import org.opensaml.saml2.metadata.provider.DOMMetadataProvider;
 import org.opensaml.saml2.metadata.provider.MetadataProviderException;
 import org.opensaml.xml.XMLObject;
@@ -302,7 +302,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                         for (int i = 0; i < descriptors.size(); i++) {
                             KeyDescriptor descriptor = descriptors.get(i);
                             if (descriptor != null) {
-                                if (descriptor.getUse() != null && descriptor.getUse().toString().equals("SIGNING")) {
+                                if (descriptor.getUse() != null && "SIGNING".equals(descriptor.getUse().toString())) {
                                     try {
                                         String cert = null;
                                         if (descriptor.getKeyInfo() != null) {
@@ -316,8 +316,10 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                                                                     if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).
                                                                             getValue() != null && descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().
                                                                             get(y).getValue().length() > 0) {
+                                                                        //TODO try catch change
                                                                         cert = descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).
                                                                                 getValue().toString();
+                                                                        //TODO
                                                                         builder.append(org.apache.axiom.om.util.Base64.encode(cert.getBytes()));
                                                                         return federatedAuthenticatorConfig;
                                                                     }

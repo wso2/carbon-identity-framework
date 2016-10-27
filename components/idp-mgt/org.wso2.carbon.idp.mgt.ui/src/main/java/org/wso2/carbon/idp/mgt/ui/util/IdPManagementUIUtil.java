@@ -120,7 +120,7 @@ public class IdPManagementUIUtil {
                     }
                     if ("meta_data_saml".equals(key)) {
 
-                        if (StringUtils.isNotEmpty(diskFileItem.getName())  && !diskFileItem.getName().toString().trim().endsWith(".xml")) {
+                        if (StringUtils.isNotEmpty(diskFileItem.getName())  && !diskFileItem.getName().trim().endsWith(".xml")) {
                             throw new CarbonException("File not supported!");
                         } else {
                             paramMap.put(key, Base64.encode(value));

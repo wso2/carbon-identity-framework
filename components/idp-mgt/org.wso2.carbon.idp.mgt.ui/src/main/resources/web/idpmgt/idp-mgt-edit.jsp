@@ -2947,7 +2947,7 @@
             }
         }
     }
-    function idpMgtUpdate1() {
+    function idpMgtUpdateMetadata() {
         if (document.getElementById("meta_data_saml").value != "") {
             <%
                 if(idPName != null && !(idPName.equals(""))){
@@ -4781,553 +4781,606 @@
                                 src="images/ok.png" alt="enable" width="16" height="16"></div>
                     </h2>
                     <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="saml2SSOLinkRow">
-                        <table class="carbonFormTable">
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="saml2SSOEnabled"><fmt:message key='saml2.sso.enabled'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="saml2SSOEnabled" name="saml2SSOEnabled"
-                                               type="checkbox" <%=saml2SSOEnabledChecked%>
-                                               onclick="checkEnabled(this);"/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                        <div id="saml_commons_section">
+
+                            <table class="carbonFormTable">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="saml2SSOEnabled"><fmt:message key='saml2.sso.enabled'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="saml2SSOEnabled" name="saml2SSOEnabled"
+                                                   type="checkbox" <%=saml2SSOEnabledChecked%>
+                                                   onclick="checkEnabled(this);"/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='saml2.sso.enabled.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="saml2SSODefault"><fmt:message key='saml2.sso.default'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="saml2SSODefault" name="saml2SSODefault"
-                                               type="checkbox" <%=saml2SSODefaultChecked%> <%=saml2SSODefaultDisabled%>
-                                               onclick="checkDefault(this);"/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="saml2SSODefault"><fmt:message key='saml2.sso.default'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="saml2SSODefault" name="saml2SSODefault"
+                                                   type="checkbox" <%=saml2SSODefaultChecked%> <%=saml2SSODefaultDisabled%>
+                                                   onclick="checkDefault(this);"/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='saml2.sso.default.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <input id="idPEntityId" name="idPEntityId" type="text"
-                                           value=<%=Encode.forHtmlAttribute(idPEntityId)%>>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                                    <div class="sectionHelp">
-                                        <fmt:message key='idp.entity.id.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='sp.entity.id'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <input id="spEntityId" name="spEntityId" type="text"
-                                           value=<%=Encode.forHtmlAttribute(spEntityId)%>>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='sp.entity.id'/>:<span
+                                            class="required">*</span></td>
+                                    <td>
+                                        <input id="spEntityId" name="spEntityId" type="text"
+                                               value=<%=Encode.forHtmlAttribute(spEntityId)%>>
 
-                                    <div class="sectionHelp">
-                                        <fmt:message key='sp.entity.id.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='sso.url'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <input id="ssoUrl" name="ssoUrl" type="text"
-                                           value=<%=Encode.forHtmlAttribute(ssoUrl)%>>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='sp.entity.id.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div id="saml_mode_selction_section">
+                            <table class="carbonFormTable" width="100%">
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key="saml.sso.select.mode"/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.manual'/>:<span
+                                            ></span></td>
+                                    <td>
+                                        <input type="radio"  name="saml_ui_mode"  value="manual" onclick="
+                                        $('#manual_section').show(); $('#metadata_section').hide();">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.file'/>:<span
+                                            ></span></td>
 
-                                    <div class="sectionHelp">
-                                        <fmt:message key='sso.url.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="authnRequestSigned"><fmt:message key='authn.request.signed'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="authnRequestSigned" name="authnRequestSigned"
-                                               type="checkbox" <%=Encode.forHtmlAttribute(authnRequestSignedChecked)%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                    <td>
+                                        <input type="radio" name="saml_ui_mode" value="file" onclick="
+                                    $('#manual_section').hide(); $('#metadata_section').show();">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+
+                        <div id="manual_section">
+                            <table class="carbonFormTable" width="100%">
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key="saml.sso.manual.mode"/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <br>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:<span
+                                            class="required">*</span></td>
+                                    <td>
+                                        <input id="idPEntityId" name="idPEntityId" type="text"
+                                               value=<%=Encode.forHtmlAttribute(idPEntityId)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='idp.entity.id.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='sso.url'/>:<span
+                                            class="required">*</span></td>
+                                    <td>
+                                        <input id="ssoUrl" name="ssoUrl" type="text"
+                                               value=<%=Encode.forHtmlAttribute(ssoUrl)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='sso.url.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="authnRequestSigned"><fmt:message
+                                                key='authn.request.signed'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="authnRequestSigned" name="authnRequestSigned"
+                                                   type="checkbox" <%=Encode.forHtmlAttribute(authnRequestSignedChecked)%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='authn.request.signed.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="enableAssersionEncryption"><fmt:message
-                                            key='authn.enable.assertion.encryption'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="IsEnableAssetionEncription" name="IsEnableAssetionEncription"
-                                               type="checkbox" <%=enableAssertinEncriptionChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="enableAssersionEncryption"><fmt:message
+                                                key='authn.enable.assertion.encryption'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="IsEnableAssetionEncription" name="IsEnableAssetionEncription"
+                                                   type="checkbox" <%=enableAssertinEncriptionChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='authn.enable.assertion.encryption.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                    </td>
+                                </tr>
 
 
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="enableAssersionSigning"><fmt:message
-                                            key='authn.enable.assertion.signing'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="isEnableAssertionSigning" name="isEnableAssertionSigning"
-                                               type="checkbox" <%=enableAssertionSigningChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="enableAssersionSigning"><fmt:message
+                                                key='authn.enable.assertion.signing'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="isEnableAssertionSigning" name="isEnableAssertionSigning"
+                                                   type="checkbox" <%=enableAssertionSigningChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='authn.enable.assertion.signing.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="sloEnabled"><fmt:message key='logout.enabled'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="sloEnabled" name="sloEnabled"
-                                               type="checkbox" <%=sloEnabledChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="sloEnabled"><fmt:message key='logout.enabled'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="sloEnabled" name="sloEnabled"
+                                                   type="checkbox" <%=sloEnabledChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='logout.enabled.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
-                                <td>
-                                    <input id="logoutUrl" name="logoutUrl" type="text" value=<%=logoutUrl%>>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
+                                    <td>
+                                        <input id="logoutUrl" name="logoutUrl" type="text" value=<%=logoutUrl%>>
 
-                                    <div class="sectionHelp">
-                                        <fmt:message key='logout.url.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="logoutRequestSigned"><fmt:message key='logout.request.signed'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="logoutRequestSigned" name="logoutRequestSigned"
-                                               type="checkbox" <%=logoutRequestSignedChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                        <div class="sectionHelp">
+                                            <fmt:message key='logout.url.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="logoutRequestSigned"><fmt:message
+                                                key='logout.request.signed'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="logoutRequestSigned" name="logoutRequestSigned"
+                                                   type="checkbox" <%=logoutRequestSignedChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='logout.request.signed.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="authnResponseSigned"><fmt:message key='authn.response.signed'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="authnResponseSigned" name="authnResponseSigned"
-                                               type="checkbox" <%=authnResponseSignedChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="authnResponseSigned"><fmt:message
+                                                key='authn.response.signed'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="authnResponseSigned" name="authnResponseSigned"
+                                                   type="checkbox" <%=authnResponseSignedChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='authn.response.signed.help'/>
                                 </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Signature Algorithm -->
+                                <!-- Signature Algorithm -->
 
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='signature.algorithm'/>:</td>
-                                <td>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='signature.algorithm'/>:</td>
+                                    <td>
 
-                                    <select id="signature_algorithem_dropdown"
-                                            name="SignatureAlgorithm" <%=signAlgoDropdownDisabled%>>
-                                        <%
-                                            for (String algorithm : signatureAlgorithms) {
-                                                if (signatureAlgorithm != null && algorithm.equalsIgnoreCase(signatureAlgorithm)) {
-                                        %>
-                                        <option selected="selected"><%=Encode.forHtmlContent(signatureAlgorithm)%>
-                                        </option>
-                                        <%
-                                        } else {
-                                        %>
-                                        <option><%=Encode.forHtmlContent(algorithm)%>
-                                        </option>
-                                        <%
+                                        <select id="signature_algorithem_dropdown"
+                                                name="SignatureAlgorithm" <%=signAlgoDropdownDisabled%>>
+                                            <%
+                                                for (String algorithm : signatureAlgorithms) {
+                                                    if (signatureAlgorithm != null && algorithm.equalsIgnoreCase(signatureAlgorithm)) {
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(signatureAlgorithm)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(algorithm)%>
+                                            </option>
+                                            <%
+                                                    }
                                                 }
-                                            }
-                                        %>
-                                    </select>
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='signature.algorithm.help'/>
-                                    </div>
-                                </td>
-                            </tr>
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='signature.algorithm.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Digest Algorithm -->
+                                <!-- Digest Algorithm -->
 
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='digest.algorithm'/>:</td>
-                                <td>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='digest.algorithm'/>:</td>
+                                    <td>
 
-                                    <select id="digest_algorithem_dropdown"
-                                            name="DigestAlgorithm" <%=digestAlgoDropdownDisabled%>>
-                                        <%
-                                            for (String algorithm : digestAlgorithms) {
-                                                if (digestAlgorithm != null && algorithm.equalsIgnoreCase(digestAlgorithm)) {
-                                        %>
-                                        <option selected="selected"><%=Encode.forHtmlContent(digestAlgorithm)%>
-                                        </option>
-                                        <%
-                                        } else {
-                                        %>
-                                        <option><%=Encode.forHtmlContent(algorithm)%>
-                                        </option>
-                                        <%
+                                        <select id="digest_algorithem_dropdown"
+                                                name="DigestAlgorithm" <%=digestAlgoDropdownDisabled%>>
+                                            <%
+                                                for (String algorithm : digestAlgorithms) {
+                                                    if (digestAlgorithm != null && algorithm.equalsIgnoreCase(digestAlgorithm)) {
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(digestAlgorithm)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(algorithm)%>
+                                            </option>
+                                            <%
+                                                    }
                                                 }
-                                            }
-                                        %>
-                                    </select>
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='digest.algorithm.help'/>
-                                    </div>
-                                </td>
-                            </tr>
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='digest.algorithm.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Attribute Consuming Service Index -->
+                                <!-- Attribute Consuming Service Index -->
 
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='attr.consuming.service.index'/>:
-                                </td>
-                                <td>
-                                    <input id="attrConsumingServiceIndex" name="AttributeConsumingServiceIndex"
-                                           type="text"
-                                           value=<%=Encode.forHtmlAttribute(attributeConsumingServiceIndex)%>>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='attr.consuming.service.index'/>:
+                                    </td>
+                                    <td>
+                                        <input id="attrConsumingServiceIndex" name="AttributeConsumingServiceIndex"
+                                               type="text"
+                                               value=<%=Encode.forHtmlAttribute(attributeConsumingServiceIndex)%>>
 
-                                    <div class="sectionHelp">
-                                        <fmt:message key='attr.consuming.service.index.help'/>
-                                    </div>
-                                </td>
-                            </tr>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='attr.consuming.service.index.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Force Authentication -->
+                                <!-- Force Authentication -->
 
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="forceAuthentication"><fmt:message
-                                            key='enable.force.authentication'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="forceAuthentication"><fmt:message
+                                                key='enable.force.authentication'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
 
-                                        <label><input type="radio" value="yes" <%
+                                            <label><input type="radio" value="yes" <%
 	              if(forceAuthentication !=null && forceAuthentication.equals("yes")){%>checked="checked"<%
-                                            }%> name="ForceAuthentication"/> Yes </label>
-                                        <label><input type="radio" value="no" <%
+                                                }%> name="ForceAuthentication"/> Yes </label>
+                                            <label><input type="radio" value="no" <%
 	              if(forceAuthentication !=null && forceAuthentication.equals("no")){%>checked
-                                                ="checked"<%}%> name="ForceAuthentication"/>No </label>
-                                        <label><input type="radio" value="as_request" <%
+                                                    ="checked"<%}%> name="ForceAuthentication"/>No </label>
+                                            <label><input type="radio" value="as_request" <%
 	              if(forceAuthentication!=null&&forceAuthentication.equals("as_request")){%>checked="checked"<%}%>
-                                                      name="ForceAuthentication"/>As Per Request</label>
+                                                          name="ForceAuthentication"/>As Per Request</label>
 
-                                    </div>
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='enable.force.authentication.help'/>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='enable.force.authentication.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Include Public Cert -->
+                                <!-- Include Public Cert -->
 
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="includeCert"><fmt:message key='include.cert'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="includeCert" name="IncludeCert"
-                                               type="checkbox" <%=includeCertChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeCert"><fmt:message key='include.cert'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="includeCert" name="IncludeCert"
+                                                   type="checkbox" <%=includeCertChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
 	                      <fmt:message key='include.cert.help'/>
 	                  </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Include Protocol Binding -->
+                                <!-- Include Protocol Binding -->
 
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="includeProtocolBinding"><fmt:message
-                                            key='include.protocol.binding'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="includeProtocolBinding" name="IncludeProtocolBinding"
-                                               type="checkbox" <%=includeProtocolBindingChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeProtocolBinding"><fmt:message
+                                                key='include.protocol.binding'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="includeProtocolBinding" name="IncludeProtocolBinding"
+                                                   type="checkbox" <%=includeProtocolBindingChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
 	                      <fmt:message key='include.protocol.binding.help'/>
 	                  </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Include NameID Policy -->
+                                <!-- Include NameID Policy -->
 
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="includeNameIDPolicy"><fmt:message key='include.name.id.policy'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="includeNameIDPolicy" name="IncludeNameIDPolicy"
-                                               type="checkbox" <%=includeNameIdPolicyChecked%>/>
-                                        <span style="display:inline-block" class="sectionHelp">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeNameIDPolicy"><fmt:message
+                                                key='include.name.id.policy'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="includeNameIDPolicy" name="IncludeNameIDPolicy"
+                                                   type="checkbox" <%=includeNameIdPolicyChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
 	                      <fmt:message key='include.name.id.policy.help'/>
 	                  </span>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Include Authentication Context -->
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="includeAuthnContext"><fmt:message
-                                            key='include.authentication.context'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <label><input type="radio" id="includeAuthnCtxYes" value="yes" <%
+                                <!-- Include Authentication Context -->
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeAuthnContext"><fmt:message
+                                                key='include.authentication.context'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <label><input type="radio" id="includeAuthnCtxYes" value="yes" <%
 	              if(includeAuthenticationContext != null && includeAuthenticationContext.equals("yes")){%>checked="checked"<%
-                                            }%> name="IncludeAuthnContext"/>Yes </label>
-                                        <label><input type="radio" id="includeAuthnCtxNo" value="no" <%
+                                                }%> name="IncludeAuthnContext"/>Yes </label>
+                                            <label><input type="radio" id="includeAuthnCtxNo" value="no" <%
 	              if(includeAuthenticationContext != null && includeAuthenticationContext.equals("no")){%>checked="checked"<%
-                                            }%> name="IncludeAuthnContext"/>No </label>
-                                        <label><input type="radio" id="includeAuthnCtxReq" value="as_request" <%
+                                                }%> name="IncludeAuthnContext"/>No </label>
+                                            <label><input type="radio" id="includeAuthnCtxReq" value="as_request" <%
 	              if(includeAuthenticationContext !=null && includeAuthenticationContext.equals("as_request")){%>checked="checked"
-                                                      <%
+                                                          <%
 	              		}%>name="IncludeAuthnContext"/>As Per Request</label>
-                                    </div>
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='include.authentication.context.help'/>
-                                    </div>
-                                </td>
-                            </tr>
+                                        </div>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='include.authentication.context.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Authentication Context Class -->
+                                <!-- Authentication Context Class -->
 
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='authentication.context.class'/>:
-                                </td>
-                                <td>
-                                    <%
-                                        boolean isNotCustom = false;
-                                    %>
-                                    <select id="authentication_context_class_dropdown"
-                                            name="AuthnContextClassRef" <%=authnContextClassRefDropdownDisabled%>>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='authentication.context.class'/>:
+                                    </td>
+                                    <td>
                                         <%
-                                            for (String authnContextClass : authenticationContextClasses) {
-                                                if (authnContextClass != null && authnContextClass.equalsIgnoreCase(authenticationContextClass)) {
-                                                    isNotCustom = true;
+                                            boolean isNotCustom = false;
                                         %>
-                                        <option selected="selected"><%=Encode.forHtmlContent(authenticationContextClass)%>
-                                        </option>
-                                        <%
-                                        } else {
-                                        %>
-                                        <option><%=Encode.forHtmlContent(authnContextClass)%>
-                                        </option>
-                                        <%
+                                        <select id="authentication_context_class_dropdown"
+                                                name="AuthnContextClassRef" <%=authnContextClassRefDropdownDisabled%>>
+                                            <%
+                                                for (String authnContextClass : authenticationContextClasses) {
+                                                    if (authnContextClass != null && authnContextClass.equalsIgnoreCase(authenticationContextClass)) {
+                                                        isNotCustom = true;
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(authenticationContextClass)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(authnContextClass)%>
+                                            </option>
+                                            <%
+                                                    }
                                                 }
-                                            }
-                                        %>
+                                            %>
 
+                                            <%
+                                                if (isNotCustom) {
+                                            %>
+                                            <option><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option selected="selected"><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
+                                            </option>
+                                            <%
+                                                }
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authentication.context.class.help'/>
+                                        </div>
                                         <%
                                             if (isNotCustom) {
                                         %>
-                                        <option><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
-                                        </option>
+                                        <input id="custom_authentication_context_class"
+                                               name="CustomAuthnContextClassRef"
+                                               type="text" value="" disabled="true">
                                         <%
                                         } else {
                                         %>
-                                        <option selected="selected"><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
-                                        </option>
+                                        <input id="custom_authentication_context_class"
+                                               name="CustomAuthnContextClassRef"
+                                               type="text"
+                                               value="<%=Encode.forHtmlContent(authenticationContextClass)%>">
                                         <%
                                             }
                                         %>
-                                    </select>
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='authentication.context.class.help'/>
-                                    </div>
-                                    <%
-                                        if (isNotCustom) {
-                                    %>
-                                    <input id="custom_authentication_context_class" name="CustomAuthnContextClassRef"
-                                           type="text" value="" disabled="true">
-                                    <%
-                                    } else {
-                                    %>
-                                    <input id="custom_authentication_context_class" name="CustomAuthnContextClassRef"
-                                           type="text" value="<%=Encode.forHtmlContent(authenticationContextClass)%>">
-                                    <%
-                                        }
-                                    %>
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='authentication.context.class.custom.help'/>
-                                    </div>
-                                </td>
-                            </tr>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authentication.context.class.custom.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                            <!-- Authenticatin Context Comparison Level -->
+                                <!-- Authenticatin Context Comparison Level -->
 
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='authentication.context.comparison'/>:
-                                </td>
-                                <td>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message
+                                            key='authentication.context.comparison'/>:
+                                    </td>
+                                    <td>
 
-                                    <select id="auth_context_comparison_level_dropdown"
-                                            name="AuthnContextComparisonLevel" <%=authnContextComparisonDropdownDisabled%>>
-                                        <%
-                                            for (String authnContextComparisonLevel : authenticationContextComparisonLevels) {
-                                                if (authnContextComparisonLevel != null && authnContextComparisonLevel.equals(authenticationContextComparisonLevel)) {
-                                        %>
-                                        <option selected="selected"><%=Encode.forHtmlContent(authenticationContextComparisonLevel)%>
-                                        </option>
-                                        <%
-                                        } else {
-                                        %>
-                                        <option><%=Encode.forHtmlContent(authnContextComparisonLevel)%>
-                                        </option>
-                                        <%
+                                        <select id="auth_context_comparison_level_dropdown"
+                                                name="AuthnContextComparisonLevel" <%=authnContextComparisonDropdownDisabled%>>
+                                            <%
+                                                for (String authnContextComparisonLevel : authenticationContextComparisonLevels) {
+                                                    if (authnContextComparisonLevel != null && authnContextComparisonLevel.equals(authenticationContextComparisonLevel)) {
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(authenticationContextComparisonLevel)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(authnContextComparisonLevel)%>
+                                            </option>
+                                            <%
+                                                    }
                                                 }
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authentication.context.comparison.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message
+                                            key='saml2.sso.user.id.location'/>:
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input type="radio" value="0"
+                                                   name="saml2_sso_user_id_location" <% if (!isSAMLSSOUserIdInClaims) { %>
+                                                   checked="checked" <%}%> />
+                                            User ID found in 'Name Identifier'
+                                        </label>
+                                        <label>
+                                            <input type="radio" value="1"
+                                                   name="saml2_sso_user_id_location" <% if (isSAMLSSOUserIdInClaims) { %>
+                                                   checked="checked" <%}%> />
+                                            User ID found among claims
+                                        </label>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='saml2.sso.user.id.location.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='request.method'/>:</td>
+                                    <td>
+                                        <label>
+                                            <input type="radio" name="RequestMethod" value="redirect"
+                                                   <% if(requestMethod != null && requestMethod.equals("redirect")){%>checked="checked"<%}%>/>HTTP-Redirect
+                                        </label>
+                                        <label><input type="radio" name="RequestMethod" value="post"
+                                                      <% if(requestMethod != null && requestMethod.equals("post")){%>checked="checked"<%}%>/>HTTP-POST
+                                        </label>
+                                        <label><input type="radio" name="RequestMethod" value="as_request"
+                                                      <% if(requestMethod != null && requestMethod.equals("as_request")){%>checked="checked"<%}%>/>As
+                                            Per Request
+                                        </label>
+
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='request.method.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
+                                    <td>
+                                        <%
+                                            if (samlQueryParam == null) {
+                                                samlQueryParam = "";
                                             }
                                         %>
-                                    </select>
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='authentication.context.comparison.help'/>
-                                    </div>
-                                </td>
-                            </tr>
 
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='saml2.sso.user.id.location'/>:</td>
-                                <td>
-                                    <label>
-                                        <input type="radio" value="0"
-                                               name="saml2_sso_user_id_location" <% if (!isSAMLSSOUserIdInClaims) { %>
-                                               checked="checked" <%}%> />
-                                        User ID found in 'Name Identifier'
-                                    </label>
-                                    <label>
-                                        <input type="radio" value="1"
-                                               name="saml2_sso_user_id_location" <% if (isSAMLSSOUserIdInClaims) { %>
-                                               checked="checked" <%}%> />
-                                        User ID found among claims
-                                    </label>
+                                        <input id="samlQueryParam" name="samlQueryParam" type="text"
+                                               value=<%=Encode.forHtmlAttribute(samlQueryParam)%>>
 
-                                    <div class="sectionHelp">
-                                        <fmt:message key='saml2.sso.user.id.location.help'/>
-                                    </div>
-                                </td>
-                            </tr>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='query.param.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <br>
+                        </div>
+                        <br><br>
 
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='request.method'/>:</td>
-                                <td>
-                                    <label>
-                                        <input type="radio" name="RequestMethod" value="redirect"
-                                               <% if(requestMethod != null && requestMethod.equals("redirect")){%>checked="checked"<%}%>/>HTTP-Redirect
-                                    </label>
-                                    <label><input type="radio" name="RequestMethod" value="post"
-                                                  <% if(requestMethod != null && requestMethod.equals("post")){%>checked="checked"<%}%>/>HTTP-POST
-                                    </label>
-                                    <label><input type="radio" name="RequestMethod" value="as_request"
-                                                  <% if(requestMethod != null && requestMethod.equals("as_request")){%>checked="checked"<%}%>/>As
-                                        Per Request
-                                    </label>
+                        <div id="metadata_section">
+                            <table class="styledLeft" width="100%">
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key="saml.sso.upload.id.provider.metadata"/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
 
-                                    <div class="sectionHelp" style="margin-top: 5px">
-                                        <fmt:message key='request.method.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
-                                <td>
-                                    <%
-                                        if (samlQueryParam == null) {
-                                            samlQueryParam = "";
-                                        }
-                                    %>
-
-                                    <input id="samlQueryParam" name="samlQueryParam" type="text"
-                                           value=<%=Encode.forHtmlAttribute(samlQueryParam)%>>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='query.param.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                        <br>
-                        <table class="styledLeft" width="100%">
-                            <thead>
-                            <tr>
-                                <th><fmt:message key="saml.sso.upload.id.provider.metadata"/></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td><span>File Location: </span><input type="file" id="meta_data_saml"
-                                                                       name="meta_data_saml" size="50"/></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <input type="button" value="<fmt:message key='register'/>"
-                                           onclick="idpMgtUpdate1();"/>
-                                    <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>"
-                                           onclick="doCancel();"/></td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                <tr>
+                                    <td><span>File Location: </span><input type="file" id="meta_data_saml"
+                                                                           name="meta_data_saml" size="50"/></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="button" value="<fmt:message key='register'/>"
+                                               onclick="idpMgtUpdateMetadata();"/>
+                                        <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>"
+                                               onclick="doCancel();"/></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <script>
+                            $('#manual_section').hide();
+                            $('#metadata_section').hide();
+                        </script>
 
 
                     </div>
                     <script type="text/javascript">
 
-                        <%--function doSubmit(){--%>
-                        <%--var policy;--%>
-                        <%--policy = document.getElementById("idp-mgt-edit-form").metadataFromFileSystem.value;--%>
-
-                        <%--if (policy == '') {--%>
-                        <%--CARBON.showWarningDialog("<fmt:message key='idp.enter.valid.issuer'/>");--%>
-                        <%--return;--%>
-                        <%--}--%>
-
-                        <%--document.getElementById("idp-mgt-edit-form").submit();--%>
-                        <%--}--%>
-
                         function doCancel() {
                             document.getElementById("meta_data_saml").value = '';
                         }
-
                     </script>
                     <% } %>
 
