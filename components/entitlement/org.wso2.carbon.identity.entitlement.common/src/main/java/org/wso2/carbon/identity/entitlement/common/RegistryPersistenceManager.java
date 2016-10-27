@@ -80,7 +80,7 @@ public class RegistryPersistenceManager extends InMemoryPersistenceManager {
             }
 
             if (configString == null) {
-                configString = getDefaultConfig();
+                configString = getDefaultBasicConfig();
             }
             config.put(EntitlementConstants.PolicyEditor.BASIC, configString);
 
