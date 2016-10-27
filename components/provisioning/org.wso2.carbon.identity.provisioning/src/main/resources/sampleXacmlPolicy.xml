@@ -1,0 +1,283 @@
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="privisioningPolicy2"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny" Version="1.0">
+    <Target>
+        <AnyOf>
+            <AllOf>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test</AttributeValue>
+                    <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:test1"
+                                         Category="urn:oasis:names:tc:xacml:3.0:attribute-category:test2"
+                                         DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                </Match>
+            </AllOf>
+        </AnyOf>
+    </Target>
+    <Rule Effect="Permit" RuleId="proviciningRule2">
+        <Target>
+            <AnyOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test</AttributeValue>
+                        <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:test1"
+                                             Category="urn:oasis:names:tc:xacml:3.0:attribute-category:test2"
+                                             DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Match>
+                </AllOf>
+            </AnyOf>
+        </Target>
+    </Rule>
+</Policy>
+
+
+<Request xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" CombinedDecision="false" ReturnPolicyIdList="false">
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:test2">
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:test1" IncludeInResult="false">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test2</AttributeValue>
+    </Attribute>
+</Attributes>
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:test1">
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:test1" IncludeInResult="false">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test1</AttributeValue>
+    </Attribute>
+</Attributes>
+</Request>
+
+        <?xml version="1.0" encoding="UTF-8"?>
+<Request xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" CombinedDecision="false" ReturnPolicyIdList="false">
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource">
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" IncludeInResult="false">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">support</AttributeValue>
+    </Attribute>
+</Attributes>
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:environment">
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:environment:environment-id" IncludeInResult="false">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test</AttributeValue>
+    </Attribute>
+</Attributes>
+<Attributes Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" IncludeInResult="false">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">support</AttributeValue>
+    </Attribute>
+</Attributes>
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action">
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" IncludeInResult="false">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">federal</AttributeValue>
+    </Attribute>
+</Attributes>
+</Request>
+
+
+<Request xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" CombinedDecision="false" ReturnPolicyIdList="false">
+<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:test1">
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:test1" IncludeInResult="false">
+        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test1</AttributeValue>
+    </Attribute>
+</Attributes>
+</Request>
+
+
+<Response xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
+<Result>
+    <Decision>Indeterminate</Decision>
+    <Status>
+        <StatusCode Value="urn:oasis:names:tc:xacml:1.0:status:processing-error"/>
+        <StatusMessage>Couldn't find AttributeDesignator attribute</StatusMessage>
+    </Status>
+</Result>
+</Response>
+
+
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="privisioningPolicy2"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable" Version="1.0">
+<Target>
+    <AnyOf>
+        <AllOf>
+            <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">provisioningIDP</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:idpName"
+                                     Category="urn:oasis:names:tc:xacml:3.0:attribute-category:idp"
+                                     DataType="http://www.w3.org/2001/XMLSchema#string"
+                                     MustBePresent="true"></AttributeDesignator>
+            </Match>
+        </AllOf>
+    </AnyOf>
+</Target>
+<Rule Effect="Permit" RuleId="proviciningRule2">
+    <Target>
+        <AnyOf>
+            <AllOf>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SriLanka</AttributeValue>
+                    <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/country"
+                                         Category="urn:oasis:names:tc:xacml:3.0:attribute-category:claims"
+                                         DataType="http://www.w3.org/2001/XMLSchema#string"
+                                         MustBePresent="true"></AttributeDesignator>
+                </Match>
+            </AllOf>
+        </AnyOf>
+    </Target>
+    <Condition>
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SriLanka</AttributeValue>
+            </Apply>
+            <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/country" Category="urn:oasis:names:tc:xacml:3.0:at   tribute-category:claims" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+        </Apply>
+    </Condition>
+</Rule>
+<Rule Effect="Deny" RuleId="gggg"/>
+</Policy>
+
+
+    <Request xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" CombinedDecision="false" ReturnPolicyIdList="false">
+    <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:userInfo">
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:tenantDomain" IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">carbon.super</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:user" IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">kingkong</AttributeValue>
+        </Attribute>
+    </Attributes>
+    <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:idp">
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:idpName" IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">provisioningIDP</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:connectorType" IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">scim</AttributeValue>
+        </Attribute>
+    </Attributes>
+    <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:claims">
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/country"
+                   IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SriLanka</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/emailaddress"
+                   IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dkasunw@gmail.com</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:profileConfiguration" IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">default</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/lastname"
+                   IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">kong</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/givenname"
+                   IncludeInResult="false">
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">kingkong</AttributeValue>
+        </Attribute>
+    </Attributes>
+    </Request>
+
+
+
+
+
+
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="privisioningPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny" Version="1.0">
+<Target>
+    <AnyOf>
+        <AllOf>
+            <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">provisioningIDP</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:idpName"
+                                     Category="urn:oasis:names:tc:xacml:3.0:attribute-category:idp"
+                                     DataType="http://www.w3.org/2001/XMLSchema#string"
+                                     MustBePresent="true"></AttributeDesignator>
+            </Match>
+        </AllOf>
+    </AnyOf>
+</Target>
+<Rule Effect="Permit" RuleId="ruleq">
+    <Target>
+        <AnyOf>
+            <AllOf>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SriLanka</AttributeValue>
+                    <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/country"
+                                         Category="urn:oasis:names:tc:xacml:3.0:attribute-category:claims"
+                                         DataType="http://www.w3.org/2001/XMLSchema#string"
+                                         MustBePresent="true"></AttributeDesignator>
+                </Match>
+            </AllOf>
+        </AnyOf>
+    </Target>
+    <Condition>
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:http://wso2.org/claims/country" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:claims" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+            </Apply>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SriLanka</AttributeValue>
+        </Apply>
+    </Condition>
+    <ObligationExpressions>
+        <ObligationExpression FulfillOn="Permit" ObligationId="test">
+            <AttributeAssignmentExpression AttributeId="test">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test</AttributeValue>
+            </AttributeAssignmentExpression>
+        </ObligationExpression>
+    </ObligationExpressions>
+</Rule>
+</Policy>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="privisioningPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny" Version="1.0">
+<Target>
+    <AnyOf>
+        <AllOf>
+            <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">federal</AttributeValue>
+                <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+            </Match>
+        </AllOf>
+    </AnyOf>
+</Target>
+<Rule Effect="Permit" RuleId="proviciningRule">
+    <Target>
+        <AnyOf>
+            <AllOf>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">support</AttributeValue>
+                    <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                </Match>
+            </AllOf>
+        </AnyOf>
+    </Target>
+    <Condition>
+        <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">test</AttributeValue>
+            </Apply>
+            <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:environment:environment-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:environment" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+        </Apply>
+    </Condition>
+</Rule>
+</Policy>

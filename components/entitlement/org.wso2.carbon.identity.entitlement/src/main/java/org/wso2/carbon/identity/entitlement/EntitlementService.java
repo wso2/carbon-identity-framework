@@ -46,7 +46,7 @@ public class EntitlementService implements XACMLHandler {
         String response;
         try {
             EntitlementEngine entitlementEngine = EntitlementEngine.getInstance();
-            response = entitlementEngine.evaluate(request);
+                response = entitlementEngine.evaluate(request);
             return response;
         } catch (Exception e) {
             log.error("Error occurred while evaluating XACML request", e);

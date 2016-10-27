@@ -693,7 +693,9 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 			}
 		}
 		newRow+='</select></td><td><input type="checkbox" name="blocking_prov_' + selectedIDPName +
-				'"  />Blocking</td><td><input type="checkbox" name="provisioning_jit_' + selectedIDPName +
+				'"  />Blocking</td><td><input type="checkbox" name="rules_enabled_' + selectedIDPName +
+                				'"  />Enable Rules</td>
+				<td><input type="checkbox" name="provisioning_jit_' + selectedIDPName +
 				'"  />JIT Outbound</td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
 		jQuery(obj)
 				.parent()
@@ -1734,6 +1736,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 							      				if (idp != null) {
 							      					boolean jitEnabled = false;
 							      					boolean blocking = false;
+							      					boolean ruleEnabled = false;
 							      					
 							      					if (idp.getJustInTimeProvisioningConfig()!=null &&
 							      							idp.getJustInTimeProvisioningConfig().getProvisioningEnabled())
@@ -1745,6 +1748,11 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 							      					{
 							      						blocking = true;
 							      					}
+							      					if (idp.getDefaultProvisioningConnectorConfig()!=null &&
+                                                    		idp.getDefaultProvisioningConnectorConfig().getRulesEnabled())
+                                                    {
+                                                    	ruleEnabled = true;
+                                                    }
 							      						
 	           %>
 							      
@@ -1763,6 +1771,12 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 						<input type="checkbox" id="blocking_prov_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="blocking_prov_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=blocking ? "checked" : "" %>>Blocking
                    									</div>
                         						</td>
+                        						 <td>
+                                                    <div class="sectionCheckbox">
+                                                        <input type="checkbox" id="rules_enabled_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="rules_enabled_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=ruleEnabled ? "checked" :
+                                                        "" %>>Enable Rules
+                                                    </div>
+                                                 </td>
 							      	      		 <td>
                             						<div class="sectionCheckbox">
                                 						<input type="checkbox" id="provisioning_jit_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="provisioning_jit_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=jitEnabled ? "checked" : "" %>>Enable JIT
