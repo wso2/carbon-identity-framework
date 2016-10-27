@@ -34,7 +34,6 @@ import org.w3c.dom.Document;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.identity.metadata.saml.util.BuilderUtil;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -78,9 +77,6 @@ public class MetadataCryptoProvider implements CryptoProvider {
         }
         org.apache.xml.security.Init.init();
     }
-
-
-
     /**
      * Creates the KeyInfo from the provided Credential.
      *

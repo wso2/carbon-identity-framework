@@ -16,7 +16,6 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.xml.sax.SAXException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -351,16 +350,4 @@ public class SAML2SSOFederatedAuthenticatorConfigBuilder {
         }
         return federatedAuthenticatorConfig;
     }
-
-
-
-
-
-
-
-
-
-
-
-
 }

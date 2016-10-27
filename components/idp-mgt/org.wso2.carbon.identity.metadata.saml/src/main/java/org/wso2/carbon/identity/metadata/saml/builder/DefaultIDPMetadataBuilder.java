@@ -21,9 +21,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.opensaml.saml2.metadata.*;
-import org.opensaml.saml2.metadata.impl.ContactPersonBuilder;
-import org.opensaml.saml2.metadata.impl.EmailAddressBuilder;
-import org.opensaml.saml2.metadata.impl.GivenNameBuilder;
 import org.opensaml.xml.io.Marshaller;
 import org.opensaml.xml.io.MarshallingException;
 import org.w3c.dom.Document;
@@ -37,7 +34,6 @@ import org.wso2.carbon.identity.metadata.saml.IDPMetadataConstant;
 import org.wso2.carbon.identity.metadata.saml.MetadataCryptoProvider;
 import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.identity.metadata.saml.util.BuilderUtil;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -49,7 +45,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.StringWriter;
-/*
+/**
 * This class builds a metadata String using saml2SSOFederatedAuthenticatedConfig
 * */
 public class DefaultIDPMetadataBuilder extends IDPMetadataBuilder {

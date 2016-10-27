@@ -32,7 +32,6 @@ import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.identity.metadata.saml.internal.IDPMetadataSAMLServiceComponentHolder;
 import org.wso2.carbon.security.keystore.KeyStoreAdmin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-
 import javax.crypto.SecretKey;
 import java.io.File;
 import java.security.KeyStore;

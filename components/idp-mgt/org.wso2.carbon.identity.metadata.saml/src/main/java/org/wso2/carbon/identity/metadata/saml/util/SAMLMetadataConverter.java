@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.identity.metadata.saml.util;
 
-
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -35,7 +34,6 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 import org.wso2.carbon.registry.core.session.UserRegistry;
-
 
 /**
  * This class implements the SAML metadata functionality to convert string to FederatedAuthenticator config nad vise versa
@@ -104,7 +102,6 @@ public class SAMLMetadataConverter implements MetadataConverter {
         return federatedAuthenticatorConfigMetadata;
     }
 
-
     public String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException{
 
         DefaultIDPMetadataBuilder builder = new DefaultIDPMetadataBuilder();
@@ -125,7 +122,6 @@ public class SAMLMetadataConverter implements MetadataConverter {
         }
         return false;
     }
-
 
     /**
      * Deletes an IDP metadata registry component if exists
@@ -235,8 +231,6 @@ public class SAMLMetadataConverter implements MetadataConverter {
 
                 throw new IdentityProviderManagementException("Error while creating resource in registry");
             }
-
-
 
         } catch (RegistryException e) {
             throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");

@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensaml.xml.XMLObjectBuilderFactory;
 import org.wso2.carbon.idp.mgt.MetadataException;
-
 import javax.xml.namespace.QName;
 
 public class BuilderUtil {
