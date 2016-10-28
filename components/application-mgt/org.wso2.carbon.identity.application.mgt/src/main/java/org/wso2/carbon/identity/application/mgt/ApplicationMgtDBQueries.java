@@ -66,7 +66,7 @@ public class ApplicationMgtDBQueries {
     public static final String STORE_REQ_PATH_AUTHENTICATORS = "INSERT INTO SP_REQ_PATH_AUTHENTICATOR (TENANT_ID, " +
                                                                "AUTHENTICATOR_NAME, APP_ID) VALUES (?,?,?)";
     public static final String STORE_PRO_CONNECTORS = "INSERT INTO SP_PROVISIONING_CONNECTOR (TENANT_ID, IDP_NAME, " +
-                                                      "CONNECTOR_NAME, APP_ID,IS_JIT_ENABLED, BLOCKING, IS_RULE_ENABLED) VALUES (?,?,?,?,?,?,?)";
+                                                      "CONNECTOR_NAME, APP_ID,IS_JIT_ENABLED, BLOCKING, RULE_ENABLED) VALUES (?,?,?,?,?,?,?)";
 
 
     // LOAD Queries
@@ -117,7 +117,7 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_PRO_PROPERTIES_BY_APP_ID = "SELECT PROVISIONING_USERSTORE_DOMAIN, IS_DUMB_MODE FROM " +
                                                                "SP_APP WHERE TENANT_ID= ? AND ID = ?";
     public static final String LOAD_PRO_CONNECTORS_BY_APP_ID = "SELECT IDP_NAME, CONNECTOR_NAME, IS_JIT_ENABLED, " +
-                                                               "BLOCKING, IS_RULE_ENABLED FROM " +
+                                                               "BLOCKING, RULE_ENABLED FROM " +
                                                                "SP_PROVISIONING_CONNECTOR WHERE " +
                                                                "APP_ID = ? AND TENANT_ID = ?";
     public static final String LOAD_UM_PERMISSIONS = "SELECT UM_ID, UM_RESOURCE_ID FROM UM_PERMISSION WHERE " +
