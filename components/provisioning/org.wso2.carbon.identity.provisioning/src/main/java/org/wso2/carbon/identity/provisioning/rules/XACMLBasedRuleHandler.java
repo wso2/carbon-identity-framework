@@ -72,7 +72,7 @@ public class XACMLBasedRuleHandler {
                                 String connectorType) {
 
         if (log.isDebugEnabled()) {
-            log.debug("In policy authorization flow...");
+            log.debug("In policy provisioning flow...");
         }
 
         try {
@@ -81,7 +81,7 @@ public class XACMLBasedRuleHandler {
 
             String requestString = PolicyBuilder.getInstance().buildRequest(requestElementDTO);
             if (log.isDebugEnabled()) {
-                log.debug("XACML Authorization request :\n" + requestString);
+                log.debug("XACML request :\n" + requestString);
             }
 
             EntitlementService entitlementService = new EntitlementService();
@@ -95,7 +95,7 @@ public class XACMLBasedRuleHandler {
             String responseString =
                     ProvisioningServiceDataHolder.getInstance().getEntitlementService().getDecision(requestString);
             if (log.isDebugEnabled()) {
-                log.debug("XACML Authorization response :\n" + responseString);
+                log.debug("XACML response :\n" + responseString);
             }
             Boolean isAuthorized = evaluateXACMLResponse(responseString);
             if (isAuthorized) {

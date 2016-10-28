@@ -1036,6 +1036,7 @@ public class ApplicationBean {
                 String connector = request.getParameter("provisioning_con_idp_" + proProvider);
                 String jitEnabled = request.getParameter("provisioning_jit_" + proProvider);
                 String blocking = request.getParameter("blocking_prov_" + proProvider);
+                String ruleEnabled = request.getParameter("rules_enabled_" + proProvider);
                 if (connector != null) {
                     IdentityProvider proIdp = new IdentityProvider();
                     proIdp.setIdentityProviderName(proProvider);
@@ -1049,6 +1050,11 @@ public class ApplicationBean {
                     proIdp.setJustInTimeProvisioningConfig(jitpro);
 
                     ProvisioningConnectorConfig proCon = new ProvisioningConnectorConfig();
+                    if ("on".equals(ruleEnabled)) {
+                        proCon.setRulesEnabled(true);
+                    } else {
+                        proCon.setRulesEnabled(false);
+                    }
                     if ("on".equals(blocking)) {
                         proCon.setBlocking(true);
                     } else {
@@ -1416,7 +1422,7 @@ public class ApplicationBean {
         List<IdentityProvider> provisioningIdps = new ArrayList<IdentityProvider>();
 
         if (serviceProvider.getOutboundProvisioningConfig() == null
-                || provisioningProviders == null || provisioningProviders.length == 0) {
+            || provisioningProviders == null || provisioningProviders.length == 0) {
             serviceProvider.setOutboundProvisioningConfig(new OutboundProvisioningConfig());
         }
 
@@ -1425,7 +1431,7 @@ public class ApplicationBean {
                 String connector = request.getParameter("provisioning_con_idp_" + proProvider);
                 String jitEnabled = request.getParameter("provisioning_jit_" + proProvider);
                 String blocking = request.getParameter("blocking_prov_" + proProvider);
-
+                String rulesEnabled = request.getParameter("rules_enabled_" + proProvider);
                 JustInTimeProvisioningConfig jitpro = new JustInTimeProvisioningConfig();
 
                 if ("on".equals(jitEnabled)) {
@@ -1439,6 +1445,9 @@ public class ApplicationBean {
                     ProvisioningConnectorConfig proCon = new ProvisioningConnectorConfig();
                     if ("on".equals(blocking)) {
                         proCon.setBlocking(true);
+                    }
+					 if ("on".equals(rulesEnabled)) {
+                        proCon.setRulesEnabled(true);
                     }
                     proCon.setName(connector);
                     proIdp.setJustInTimeProvisioningConfig(jitpro);
