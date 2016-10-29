@@ -109,7 +109,7 @@
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.entitlement.common.*;
-                            version="${carbon.identity.package.export.version}",
+                            version="${carbon.identity.framework.package.export.version}",
                         </Export-Package>
                     </instructions>
                 </configuration>

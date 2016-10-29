@@ -99,7 +99,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
                             org.wso2.carbon.identity.entitlement.stub.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

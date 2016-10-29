@@ -45,7 +45,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
                             org.wso2.carbon.directory.server.manager.common.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

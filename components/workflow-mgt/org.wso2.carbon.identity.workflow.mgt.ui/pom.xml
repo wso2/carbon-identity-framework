@@ -97,7 +97,7 @@
                             org.wso2.carbon.identity.base;version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
-                            org.wso2.carbon.identity.workflow.mgt.ui.*;version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.workflow.mgt.ui.*;version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>

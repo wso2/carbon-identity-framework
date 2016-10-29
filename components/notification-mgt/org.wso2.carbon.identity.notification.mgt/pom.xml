@@ -92,7 +92,7 @@
                         <Export-Package>
                             !org.wso2.carbon.identity.notification.mgt.internal,
                             org.wso2.carbon.identity.notification.mgt.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

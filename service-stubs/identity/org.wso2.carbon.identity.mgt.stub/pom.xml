@@ -103,9 +103,12 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
-                            org.wso2.carbon.identity.mgt.*; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.identity.base.xsd; version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.captcha.mgt.beans.xsd; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.mgt.*;
+                            version="${carbon.identity.framework.package.export.version}",
+                            org.wso2.carbon.identity.base.xsd;
+                            version="${carbon.identity.framework.package.export.version}",
+                            org.wso2.carbon.captcha.mgt.beans.xsd;
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

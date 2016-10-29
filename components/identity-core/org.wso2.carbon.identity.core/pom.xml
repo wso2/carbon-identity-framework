@@ -103,6 +103,10 @@
                             org.wso2.carbon.identity.core.internal
                         </Private-Package>
                         <Import-Package>
+                            javax.xml,
+                            org.apache.commons.collections,
+                            org.apache.xerces.impl,
+                            org.wso2.carbon.core,
                             !javax.ws.rs,
                             javax.crypto,
                             javax.crypto.spec,
@@ -153,7 +157,7 @@
                         <Export-Package>
                             !org.wso2.carbon.identity.core.internal,
                             org.wso2.carbon.identity.core.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

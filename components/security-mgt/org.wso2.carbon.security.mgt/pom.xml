@@ -144,7 +144,7 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.security.internal,
-                            org.wso2.carbon.security.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.security.*; version="${carbon.identity.framework.package.export.version}",
                         </Export-Package>
                         <Axis2RequiredServices>org.apache.axis2.engine.AxisObserver</Axis2RequiredServices>
                     </instructions>

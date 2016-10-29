@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~  WSO2 Inc. licenses this file to you under the Apache License,
+  ~  Version 2.0 (the "License"); you may not use this file except
+  ~  in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing,
+  ~  software distributed under the License is distributed on an
+  ~  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~  KIND, either express or implied.  See the License for the
+  ~  specific language governing permissions and limitations
+  ~  under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
+        <artifactId>identity-provider-management</artifactId>
+        <version>5.5.11-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>org.wso2.carbon.identity.metadata.saml</artifactId>
+    <packaging>bundle</packaging>
+    <name>WSO2 Carbon - Identity Provider Management Bundle</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.orbit.org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.user.api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.commons</groupId>
+            <artifactId>org.wso2.carbon.tenant.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.idp.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.security.mgt</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Private-Package>
+                            org.wso2.carbon.identity.metadata.saml.internal,
+                        </Private-Package>
+                        <Import-Package>
+                            org.apache.commons.codec.binary,
+                            org.wso2.carbon.identity.core,
+                            javax.xml.parsers ; version="${javax.xml.parsers.version.range}",
+                            javax.crypto,
+                            javax.xml.namespace,
+                            javax.xml.stream,
+                            javax.xml.transform,
+                            javax.xml.transform.dom,
+                            javax.xml.transform.stream,
+                            org.apache.axiom.om,
+                            org.apache.axiom.om.util,
+                            org.apache.commons.collections,
+                            org.apache.commons.lang,
+                            org.apache.commons.logging,
+                            org.apache.xml.security,
+                            org.apache.xml.security.exceptions,
+                            org.apache.xml.security.signature,
+                            org.apache.xml.security.utils,
+                            org.joda.time,
+                            org.opensaml.common.xml,
+                            org.opensaml.saml2.metadata,
+                            org.opensaml.saml2.metadata.impl,
+                            org.opensaml.saml2.metadata.provider,
+                            org.opensaml.xml,
+                            org.opensaml.xml.io,
+                            org.opensaml.xml.parse,
+                            org.opensaml.xml.security.credential,
+                            org.opensaml.xml.security.x509,
+                            org.opensaml.xml.signature,
+                            org.osgi.framework,
+                            org.osgi.service.component,
+                            org.w3c.dom,
+                            org.wso2.carbon.base,
+                            org.wso2.carbon.context,
+                            org.wso2.carbon.core.util,
+                            org.wso2.carbon.identity.application.common,
+                            org.wso2.carbon.identity.application.common.model,
+                            org.wso2.carbon.identity.application.common.util,
+                            org.wso2.carbon.identity.core.handler,
+                            org.wso2.carbon.identity.core.util,
+                            org.wso2.carbon.idp.mgt,
+                            org.wso2.carbon.idp.mgt.util,
+                            org.wso2.carbon.registry.core.service,
+                            org.wso2.carbon.registry.core.session,
+                            org.wso2.carbon.security.keystore,
+                            org.wso2.carbon.user.core.service,
+                            org.wso2.carbon.utils.multitenancy,
+                            org.xml.sax,
+                            org.wso2.carbon.registry.core,
+                            org.wso2.carbon.registry.core.exceptions,
+                            org.wso2.carbon.registry.core.jdbc.utils,
+                        </Import-Package>
+                        <Export-Package>
+                            !org.wso2.carbon.identity.metadata.saml.internal,
+                            org.wso2.carbon.identity.metadata.saml.*;
+                            version="${carbon.identity.framework.package.export.version}",
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

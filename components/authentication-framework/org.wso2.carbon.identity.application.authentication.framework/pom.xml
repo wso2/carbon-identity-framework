@@ -137,9 +137,7 @@
                             org.wso2.carbon.ui; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
-
                             org.wso2.carbon.stratos.common.*; version="${carbon.commons.imp.pkg.version}",
-
                             org.wso2.carbon.claim.mgt; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.*;
                             version="${carbon.identity.package.import.version.range}",
@@ -156,7 +154,7 @@
                         </Import-Package>
                         <Export-Package>!org.wso2.carbon.identity.application.authentication.framework.internal,
                             org.wso2.carbon.identity.application.authentication.framework.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>

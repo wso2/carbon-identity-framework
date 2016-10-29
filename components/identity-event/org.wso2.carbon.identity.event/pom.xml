@@ -93,7 +93,8 @@
                             org.wso2.carbon.identity.event.internal,
                         </Private-Package>
                         <Export-Package>
-                            org.wso2.carbon.identity.event.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.event.*;
+                            version="${carbon.identity.framework.package.export.version}",
                             !org.wso2.carbon.identity.event.internal
                         </Export-Package>
                         <Import-Package>

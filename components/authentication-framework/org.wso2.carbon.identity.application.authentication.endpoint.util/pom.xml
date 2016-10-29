@@ -101,7 +101,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
                             org.wso2.carbon.identity.application.authentication.endpoint.util.*;
-                            version=${carbon.identity.package.export.version}
+                            version=${carbon.identity.framework.package.export.version}
                         </Export-Package>
                         <Import-Package>
                             javax.xml.xpath,

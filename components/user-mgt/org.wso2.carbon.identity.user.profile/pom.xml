@@ -123,7 +123,7 @@
                         <Export-Package>
                             !org.wso2.carbon.identity.user.profile.mgt.internal,
                             org.wso2.carbon.identity.user.profile.mgt.*;
-                            version="${carbon.identity.package.export.version}"
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

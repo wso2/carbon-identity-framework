@@ -114,8 +114,8 @@
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                          <Export-Package>
-                            org.wso2.carbon.user.mgt.ui.*;version="${carbon.identity.package.export.version}",
-                            org.wso2.carbon.userstore.ui.*,
+                             org.wso2.carbon.user.mgt.ui.*;version="${carbon.identity.framework.package.export.version}",
+                             org.wso2.carbon.userstore.ui.*,
                          </Export-Package>
                          <Carbon-Component>UIBundle</Carbon-Component>
                      </instructions>
