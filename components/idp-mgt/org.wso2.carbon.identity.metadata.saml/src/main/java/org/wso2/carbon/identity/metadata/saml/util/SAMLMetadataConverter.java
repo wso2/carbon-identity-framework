@@ -31,6 +31,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
 import org.wso2.carbon.idp.mgt.MetadataException;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
+import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
@@ -134,7 +135,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
     public void deleteMetadataString(int tenantId, String idPName) throws IdentityProviderManagementException {
         try {
 
-            UserRegistry registry = IDPMetadataSAMLServiceComponentHolder.getInstance().getRegistryService().getConfigSystemRegistry(tenantId);
+            UserRegistry registry = IDPMetadataSAMLServiceComponentHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(tenantId);
             String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + idPName;
 
@@ -187,7 +188,8 @@ public class SAMLMetadataConverter implements MetadataConverter {
 
         try {
 
-            UserRegistry registry = IDPMetadataSAMLServiceComponentHolder.getInstance().getRegistryService().getConfigSystemRegistry(tenantId);
+            UserRegistry registry = IDPMetadataSAMLServiceComponentHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(tenantId);
+            String identityPath = IdentityRegistryResources.IDENTITY;
             String identityProvidersPath = IdentityRegistryResources.IDENTITYPROVIDER;
             String samlIdpPath = IdentityRegistryResources.SAMLIDP;
             String path = samlIdpPath + idpName;
@@ -202,6 +204,12 @@ public class SAMLMetadataConverter implements MetadataConverter {
             }
 
             try {
+                if (!registry.resourceExists(identityPath)) {
+
+                    Collection idpCollection = registry.newCollection();
+                    registry.put(identityPath, idpCollection);
+
+                }
                 if (!registry.resourceExists(identityProvidersPath)) {
 
                     org.wso2.carbon.registry.core.Collection idpCollection = registry.newCollection();
