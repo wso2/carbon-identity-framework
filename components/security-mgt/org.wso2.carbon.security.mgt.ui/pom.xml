@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>security-mgt</artifactId>
-        <version>5.5.11</version>
+        <version>5.5.12-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -94,7 +94,7 @@
                             version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
-                            org.wso2.carbon.security.ui.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.security.ui.*; version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>

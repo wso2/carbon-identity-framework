@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>carbon-service-stubs</artifactId>
-        <version>5.5.11</version>
+        <version>5.5.12-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -93,7 +93,8 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
-                            org.wso2.carbon.identity.user.store.configuration.stub.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.user.store.configuration.stub.*;
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                         <Import-Package>
                             !org.wso2.carbon.identity.user.store.configuration.stub.*,

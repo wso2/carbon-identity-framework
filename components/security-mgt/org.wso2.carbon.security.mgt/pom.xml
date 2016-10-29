@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>security-mgt</artifactId>
-        <version>5.5.11</version>
+        <version>5.5.12-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -144,7 +144,7 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.security.internal,
-                            org.wso2.carbon.security.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.security.*; version="${carbon.identity.framework.package.export.version}",
                         </Export-Package>
                         <Axis2RequiredServices>org.apache.axis2.engine.AxisObserver</Axis2RequiredServices>
                     </instructions>

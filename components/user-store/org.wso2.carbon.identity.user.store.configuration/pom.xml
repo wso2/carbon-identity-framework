@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-store</artifactId>
-        <version>5.5.11</version>
+        <version>5.5.12-SNAPSHOT</version>
 	    <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -121,7 +121,8 @@
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.store.configuration.internal,
-                            org.wso2.carbon.identity.user.store.configuration.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.user.store.configuration.*;
+                            version="${carbon.identity.framework.package.export.version}"
                         </Export-Package>
                     </instructions>
                 </configuration>

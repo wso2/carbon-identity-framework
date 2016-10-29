@@ -42,7 +42,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.Comparator" %>
-<%@page import="java.util.HashMap"%>
+<%@page import="java.util.HashMap" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
@@ -211,8 +211,8 @@
     String provisioningRole = null;
     Map<String, ProvisioningConnectorConfig> customProvisioningConnectors = null;
 
-	Set<String> signatureAlgorithms = IdentityApplicationManagementUtil.getXMLSignatureAlgorithmNames();
-	Set<String> digestAlgorithms = IdentityApplicationManagementUtil.getXMLDigestAlgorithmNames();
+    Set<String> signatureAlgorithms = IdentityApplicationManagementUtil.getXMLSignatureAlgorithmNames();
+    Set<String> digestAlgorithms = IdentityApplicationManagementUtil.getXMLDigestAlgorithmNames();
     Set<String> authenticationContextClasses = IdentityApplicationManagementUtil.getSAMLAuthnContextClassNames();
     List<String> authenticationContextComparisonLevels = IdentityApplicationManagementUtil
             .getSAMLAuthnContextComparisonLevels();
@@ -227,7 +227,7 @@
 
     IdentityProvider identityProvider = null;
 
-    if(idPName != null && idpUniqueIdMap.get(idPName) != null) {
+    if (idPName != null && idpUniqueIdMap.get(idPName) != null) {
         identityProvider = (IdentityProvider) session.getAttribute(idpUniqueIdMap.get(idPName).toString());
     }
 
@@ -381,14 +381,14 @@
                     }
                     Property isEnableAssertionSignatureValidationProp =
                             IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                                                            IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
+                                    IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
                     if (isEnableAssertionSignatureValidationProp != null) {
                         isEnablePassiveSTSAssertionSignatureValidation =
                                 Boolean.parseBoolean(isEnableAssertionSignatureValidationProp.getValue());
                     }
                     Property isEnableAssertionAudienceValidationProp =
                             IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                                                            IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION);
+                                    IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION);
                     if (isEnableAssertionAudienceValidationProp != null) {
                         isEnablePassiveSTSAssertionAudienceValidation =
                                 Boolean.parseBoolean(isEnableAssertionAudienceValidationProp.getValue());
@@ -585,7 +585,7 @@
                     if (queryParamProp != null) {
                         samlQueryParam = queryParamProp.getValue();
                     }
-				} else {
+                } else {
                     FederatedAuthenticatorConfig customConfig = allFedAuthConfigs.get(fedAuthnConfig.getName());
                     if (customConfig != null) {
                         Property[] properties = fedAuthnConfig.getProperties();
@@ -716,7 +716,7 @@
                         sfProvSeparator = sfProperty.getValue();
                     } else if ("sf-prov-domainName".equals(sfProperty.getName())) {
                         sfProvDomainName = sfProperty.getValue();
-                    } else if ("UniqueID".equals(sfProperty.getName())){
+                    } else if ("UniqueID".equals(sfProperty.getName())) {
                         sfUniqueID = sfProperty.getValue();
                     }
                 }
@@ -752,10 +752,10 @@
                     } else if ("scim-user-store-domain".equals(scimProperty.getName())) {
                         scimUserStoreDomain = scimProperty.getValue();
                     } else if ("scim-enable-pwd-provisioning".equals(scimProperty.getName())) {
-                      isSCIMPwdProvEnabled = Boolean.parseBoolean(scimProperty.getValue());
-                    } else if ("scim-default-pwd".equals(scimProperty.getName())){
+                        isSCIMPwdProvEnabled = Boolean.parseBoolean(scimProperty.getValue());
+                    } else if ("scim-default-pwd".equals(scimProperty.getName())) {
                         scimDefaultPwd = scimProperty.getValue();
-                    } else if ("UniqueID".equals(scimProperty.getName())){
+                    } else if ("UniqueID".equals(scimProperty.getName())) {
                         scimUniqueID = scimProperty.getValue();
                     }
                 }
@@ -826,7 +826,7 @@
                         googleProvPattern = googleProperty.getValue();
                     } else if ("google_prov_separator".equals(googleProperty.getName())) {
                         googleProvisioningSeparator = googleProperty.getValue();
-                    } else if ("UniqueID".equals(googleProperty.getName())){
+                    } else if ("UniqueID".equals(googleProperty.getName())) {
                         googleUniqueID = googleProperty.getValue();
                     }
 
@@ -858,7 +858,7 @@
                         spmlEndpoint = spmlProperty.getValue();
                     } else if ("spml-oc".equals(spmlProperty.getName())) {
                         spmlObjectClass = spmlProperty.getValue();
-                    } else if ("UniqueID".equals(spmlProperty.getName())){
+                    } else if ("UniqueID".equals(spmlProperty.getName())) {
                         spmlUniqueID = spmlProperty.getValue();
                     }
                 }
@@ -917,9 +917,9 @@
     claimUris = client.getAllLocalClaimUris();
 
     Iterator<FederatedAuthenticatorConfig> fedAuthConfigIterator = allFedAuthConfigs.values().iterator();
-    while(fedAuthConfigIterator.hasNext()){
+    while (fedAuthConfigIterator.hasNext()) {
         FederatedAuthenticatorConfig fedAuthConfig = fedAuthConfigIterator.next();
-        if(fedAuthConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OpenID.NAME)){
+        if (fedAuthConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OpenID.NAME)) {
             isOpenidAuthenticatorActive = true;
             fedAuthConfigIterator.remove();
         } else if (fedAuthConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
@@ -954,7 +954,7 @@
             openIdDefaultDisabled = "disabled=\'disabled\'";
         }
     }
-    if(StringUtils.isBlank(openIdUrl)){
+    if (StringUtils.isBlank(openIdUrl)) {
         openIdUrl = StringUtils.EMPTY;
     }
 
@@ -980,7 +980,7 @@
     if (spEntityId == null) {
         spEntityId = "";
     }
-    if(StringUtils.isBlank(ssoUrl)){
+    if (StringUtils.isBlank(ssoUrl)) {
         ssoUrl = StringUtils.EMPTY;
     }
     String authnRequestSignedChecked = "";
@@ -1010,7 +1010,7 @@
             sloEnabledChecked = "checked=\'checked\'";
         }
     }
-    if(StringUtils.isBlank(logoutUrl)){
+    if (StringUtils.isBlank(logoutUrl)) {
         logoutUrl = StringUtils.EMPTY;
     }
     String logoutRequestSignedChecked = "";
@@ -1026,45 +1026,45 @@
         }
     }
 
-    String signAlgoDropdownDisabled="";
-    if(!isAuthnRequestSigned){
+    String signAlgoDropdownDisabled = "";
+    if (!isAuthnRequestSigned) {
         signAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
-	String digestAlgoDropdownDisabled="";
-    if(!isAuthnRequestSigned){
+    String digestAlgoDropdownDisabled = "";
+    if (!isAuthnRequestSigned) {
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
-    String authnContextClassRefDropdownDisabled="";
-    String authnContextComparisonDropdownDisabled="";
-    if("no".equals(includeAuthenticationContext)){
+    String authnContextClassRefDropdownDisabled = "";
+    String authnContextComparisonDropdownDisabled = "";
+    if ("no".equals(includeAuthenticationContext)) {
         authnContextClassRefDropdownDisabled = "disabled=\'disabled\'";
         authnContextComparisonDropdownDisabled = "disabled=\'disabled\'";
     }
 
     String includeNameIdPolicyChecked = "checked=\'checked\'";
-    if(identityProvider != null){
-        if(includeNameIdPolicy){
+    if (identityProvider != null) {
+        if (includeNameIdPolicy) {
             includeNameIdPolicyChecked = "checked=\'checked\'";
         }
     }
 
     String includeCertChecked = "checked=\'checked\'";
-    if(identityProvider != null){
-        if(includeCert){
+    if (identityProvider != null) {
+        if (includeCert) {
             includeCertChecked = "checked=\'checked\'";
         }
     }
 
     String includeProtocolBindingChecked = "checked=\'checked\'";
-    if(identityProvider != null){
-        if(includeProtocolBinding){
+    if (identityProvider != null) {
+        if (includeProtocolBinding) {
             includeProtocolBindingChecked = "checked=\'checked\'";
         }
     }
 
-    if(attributeConsumingServiceIndex == null) {
+    if (attributeConsumingServiceIndex == null) {
         attributeConsumingServiceIndex = "";
     }
 
@@ -1091,14 +1091,14 @@
     if (clientSecret == null) {
         clientSecret = "";
     }
-    if(StringUtils.isBlank(authzUrl)){
+    if (StringUtils.isBlank(authzUrl)) {
         authzUrl = StringUtils.EMPTY;
     }
-    if(StringUtils.isBlank(tokenUrl)){
+    if (StringUtils.isBlank(tokenUrl)) {
         tokenUrl = StringUtils.EMPTY;
     }
 
-    if(StringUtils.isBlank(callBackUrl)){
+    if (StringUtils.isBlank(callBackUrl)) {
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
     }
 
@@ -1121,7 +1121,7 @@
     if (passiveSTSRealm == null) {
         passiveSTSRealm = "";
     }
-    if(StringUtils.isBlank(passiveSTSUrl)){
+    if (StringUtils.isBlank(passiveSTSUrl)) {
         passiveSTSUrl = StringUtils.EMPTY;
     }
 
@@ -1188,7 +1188,7 @@
     }
 
 
-    // Out-bound Provisioning    
+    // Out-bound Provisioning
     String googleProvEnabledChecked = "";
     String googleProvDefaultDisabled = "";
     String googleProvDefaultChecked = "disabled=\'disabled\'";
@@ -1291,7 +1291,7 @@
                 scimProvDefaultChecked = "checked=\'checked\'";
             }
         }
-        if(isSCIMPwdProvEnabled){
+        if (isSCIMPwdProvEnabled) {
             scimPwdProvEnabledChecked = "checked=\'checked\'";
             disableDefaultPwd = "disabled=\'disabled\'";
         }
@@ -1312,7 +1312,7 @@
     if (scimUserStoreDomain == null) {
         scimUserStoreDomain = "";
     }
-    if (scimDefaultPwd == null){
+    if (scimDefaultPwd == null) {
         scimDefaultPwd = "";
     }
 
@@ -1366,121 +1366,34 @@
 
 <script>
 
-var claimMappinRowID = -1;
-var claimMappinRowIDSPML = -1;
-var advancedClaimMappinRowID = -1;
-var roleRowId = -1;
-var claimRowId = -1;
+    var claimMappinRowID = -1;
+    var claimMappinRowIDSPML = -1;
+    var advancedClaimMappinRowID = -1;
+    var roleRowId = -1;
+    var claimRowId = -1;
 
-<% if(identityProviderClaims != null){ %>
-claimRowId = <%=identityProviderClaims.length-1%>;
-<% } %>
+    <% if(identityProviderClaims != null){ %>
+    claimRowId = <%=identityProviderClaims.length-1%>;
+    <% } %>
 
-<% if(roles != null){ %>
-roleRowId = <%=roles.length-1%>;
-<% } %>
+    <% if(roles != null){ %>
+    roleRowId = <%=roles.length-1%>;
+    <% } %>
 
-<% if(claimMappings != null){ %>
-advancedClaimMappinRowID = <%=claimMappings.length-1%>;
-<% } %>
-
-
-var claimURIDropdownPopulator = function () {
-    var $user_id_claim_dropdown = jQuery('#user_id_claim_dropdown');
-    var $role_claim_dropdown = jQuery('#role_claim_dropdown');
-    var $google_prov_email_claim_dropdown = jQuery('#google_prov_email_claim_dropdown');
-    var $google_prov_familyname_claim_dropdown = jQuery('#google_prov_familyname_claim_dropdown');
-    var $google_prov_givenname_claim_dropdown = jQuery('#google_prov_givenname_claim_dropdown');
-    var $idpClaimsList2 = jQuery('#idpClaimsList2');
+    <% if(claimMappings != null){ %>
+    advancedClaimMappinRowID = <%=claimMappings.length-1%>;
+    <% } %>
 
 
-    $user_id_claim_dropdown.empty();
-    $role_claim_dropdown.empty();
-    $google_prov_email_claim_dropdown.empty();
-    $google_prov_familyname_claim_dropdown.empty();
-    $google_prov_givenname_claim_dropdown.empty();
-    $idpClaimsList2.empty();
+    var claimURIDropdownPopulator = function () {
+        var $user_id_claim_dropdown = jQuery('#user_id_claim_dropdown');
+        var $role_claim_dropdown = jQuery('#role_claim_dropdown');
+        var $google_prov_email_claim_dropdown = jQuery('#google_prov_email_claim_dropdown');
+        var $google_prov_familyname_claim_dropdown = jQuery('#google_prov_familyname_claim_dropdown');
+        var $google_prov_givenname_claim_dropdown = jQuery('#google_prov_givenname_claim_dropdown');
+        var $idpClaimsList2 = jQuery('#idpClaimsList2');
 
 
-    if ('<%=userIdClaimURI%>' == '') {
-        $user_id_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
-    } else {
-        $user_id_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
-    }
-
-    if ('<%=roleClaimURI%>' == '') {
-        $role_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
-    } else {
-        $role_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
-    }
-
-
-    if ('<%=googlePrimaryEmailClaim%>' == '') {
-        $google_prov_email_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
-    } else {
-        $google_prov_email_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
-    }
-
-    if ('<%=googleFamilyNameClaim%>' == '') {
-        $google_prov_familyname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
-    } else {
-        $google_prov_familyname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
-    }
-
-    if ('<%=googleGivenNameClaim%>' == '') {
-        $google_prov_givenname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
-    } else {
-        $google_prov_givenname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
-    }
-
-    $idpClaimsList2.append('<option value = "" >--- Select Claim URI ---</option>');
-
-    jQuery('#claimAddTable .claimrow').each(function () {
-        if ($(this).val().trim() != "") {
-            var val = $(this).val();
-            if (val == '<%=userIdClaimURI%>') {
-                $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
-            } else {
-                $user_id_claim_dropdown.append('<option>' + val + '</option>');
-            }
-            if (val == '<%=roleClaimURI%>') {
-                $role_claim_dropdown.append('<option selected="selected">' + val + '</option>');
-            } else {
-                $role_claim_dropdown.append('<option>' + val + '</option>');
-            }
-
-            if (val == '<%=googlePrimaryEmailClaim%>') {
-                $google_prov_email_claim_dropdown.append('<option selected="selected">' + val + '</option>');
-            } else {
-                $google_prov_email_claim_dropdown.append('<option>' + val + '</option>');
-            }
-
-            if (val == '<%=googleFamilyNameClaim%>') {
-                $google_prov_familyname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
-            } else {
-                $google_prov_familyname_claim_dropdown.append('<option>' + val + '</option>');
-            }
-
-            if (val == '<%=googleGivenNameClaim%>') {
-                $google_prov_givenname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
-            } else {
-                $google_prov_givenname_claim_dropdown.append('<option>' + val + '</option>');
-            }
-
-            $idpClaimsList2.append('<option>' + val + '</option>');
-
-        }
-    })
-
-    var selectedVal = "";
-    var selected = $("input[type='radio'][name='choose_dialet_type_group']:checked");
-    if (selected.length > 0) {
-        selectedVal = selected.val();
-    }
-
-    if (selectedVal == "choose_dialet_type1") {
-        $(".customClaim").hide();
-        var option = '<option value="">---Select Claim URI ---</option>';
         $user_id_claim_dropdown.empty();
         $role_claim_dropdown.empty();
         $google_prov_email_claim_dropdown.empty();
@@ -1489,1289 +1402,1233 @@ var claimURIDropdownPopulator = function () {
         $idpClaimsList2.empty();
 
 
-        var user_id_option = '<option value="">---Select Claim URI ---</option>';
+        if ('<%=userIdClaimURI%>' == '') {
+            $user_id_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
+        } else {
+            $user_id_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
+        }
 
-        <% for(int i =0 ; i< claimUris.length ; i++){
+        if ('<%=roleClaimURI%>' == '') {
+            $role_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
+        } else {
+            $role_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
+        }
+
+
+        if ('<%=googlePrimaryEmailClaim%>' == '') {
+            $google_prov_email_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
+        } else {
+            $google_prov_email_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
+        }
+
+        if ('<%=googleFamilyNameClaim%>' == '') {
+            $google_prov_familyname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
+        } else {
+            $google_prov_familyname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
+        }
+
+        if ('<%=googleGivenNameClaim%>' == '') {
+            $google_prov_givenname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
+        } else {
+            $google_prov_givenname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
+        }
+
+        $idpClaimsList2.append('<option value = "" >--- Select Claim URI ---</option>');
+
+        jQuery('#claimAddTable .claimrow').each(function () {
+            if ($(this).val().trim() != "") {
+                var val = $(this).val();
+                if (val == '<%=userIdClaimURI%>') {
+                    $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
+                } else {
+                    $user_id_claim_dropdown.append('<option>' + val + '</option>');
+                }
+                if (val == '<%=roleClaimURI%>') {
+                    $role_claim_dropdown.append('<option selected="selected">' + val + '</option>');
+                } else {
+                    $role_claim_dropdown.append('<option>' + val + '</option>');
+                }
+
+                if (val == '<%=googlePrimaryEmailClaim%>') {
+                    $google_prov_email_claim_dropdown.append('<option selected="selected">' + val + '</option>');
+                } else {
+                    $google_prov_email_claim_dropdown.append('<option>' + val + '</option>');
+                }
+
+                if (val == '<%=googleFamilyNameClaim%>') {
+                    $google_prov_familyname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
+                } else {
+                    $google_prov_familyname_claim_dropdown.append('<option>' + val + '</option>');
+                }
+
+                if (val == '<%=googleGivenNameClaim%>') {
+                    $google_prov_givenname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
+                } else {
+                    $google_prov_givenname_claim_dropdown.append('<option>' + val + '</option>');
+                }
+
+                $idpClaimsList2.append('<option>' + val + '</option>');
+
+            }
+        })
+
+        var selectedVal = "";
+        var selected = $("input[type='radio'][name='choose_dialet_type_group']:checked");
+        if (selected.length > 0) {
+            selectedVal = selected.val();
+        }
+
+        if (selectedVal == "choose_dialet_type1") {
+            $(".customClaim").hide();
+            var option = '<option value="">---Select Claim URI ---</option>';
+            $user_id_claim_dropdown.empty();
+            $role_claim_dropdown.empty();
+            $google_prov_email_claim_dropdown.empty();
+            $google_prov_familyname_claim_dropdown.empty();
+            $google_prov_givenname_claim_dropdown.empty();
+            $idpClaimsList2.empty();
+
+
+            var user_id_option = '<option value="">---Select Claim URI ---</option>';
+
+            <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(userIdClaimURI)){  %>
-        user_id_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <% 	 } else {  %>
-        user_id_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <%	 }
+            user_id_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <% 	 } else {  %>
+            user_id_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <%	 }
             }%>
 
 
-        var google_prov_email_option = '<option value="">---Select Claim URI ---</option>';
+            var google_prov_email_option = '<option value="">---Select Claim URI ---</option>';
 
-        <% for(int i =0 ; i< claimUris.length ; i++){
+            <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(googlePrimaryEmailClaim)){  %>
-        google_prov_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <% 	 } else {  %>
-        google_prov_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <%	 }
+            google_prov_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <% 	 } else {  %>
+            google_prov_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <%	 }
             }%>
 
 
-        var google_prov_family_email_option = '<option value="">---Select Claim URI ---</option>';
+            var google_prov_family_email_option = '<option value="">---Select Claim URI ---</option>';
 
-        <% for(int i =0 ; i< claimUris.length ; i++){
+            <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(googleFamilyNameClaim)){  %>
-        google_prov_family_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <% 	 } else {  %>
-        google_prov_family_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <%	 }
+            google_prov_family_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <% 	 } else {  %>
+            google_prov_family_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <%	 }
             }%>
 
 
-        var google_prov_givenname_option = '<option value="">---Select Claim URI ---</option>';
+            var google_prov_givenname_option = '<option value="">---Select Claim URI ---</option>';
 
-        <% for(int i =0 ; i< claimUris.length ; i++){
+            <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(googleGivenNameClaim)){  %>
-        google_prov_givenname_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <% 	 } else {  %>
-        google_prov_givenname_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-        <%	 }
+            google_prov_givenname_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <% 	 } else {  %>
+            google_prov_givenname_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <%	 }
             }%>
 
 
-        <% for(int i =0 ; i< claimUris.length ; i++){%>
-        option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            <% for(int i =0 ; i< claimUris.length ; i++){%>
+            option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
 
-        <%}%>
-
-
-        $user_id_claim_dropdown.append(user_id_option);
-        $role_claim_dropdown.append('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>');
-        $google_prov_email_claim_dropdown.append(google_prov_email_option);
-        $google_prov_familyname_claim_dropdown.append(google_prov_family_email_option);
-        $google_prov_givenname_claim_dropdown.append(google_prov_givenname_option);
-        $idpClaimsList2.append(option);
+            <%}%>
 
 
-        $(".role_claim").hide();
-        $(jQuery('#claimAddTable')).hide();
-
-        if ($(jQuery('#advancedClaimMappingAddTable tr')).length > 1) {
-            $(jQuery('#advancedClaimMappingAddTable')).show();
-        }
-    }
-
-    if (selectedVal == "choose_dialet_type2") {
-        var option = '';
-
-        <% for(int i =0 ; i< claimUris.length ; i++){%>
-        option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
-
-        <%}%>
-
-        $user_id_claim_dropdown.replace($option, "");
-        $role_claim_dropdown.replace('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>', "");
-        $google_prov_email_claim_dropdown.replace($option, "");
-        $google_prov_familyname_claim_dropdown.replace($option, "");
-        $google_prov_givenname_claim_dropdown.replace($option, "");
-        $idpClaimsList2.replace($option, "");
+            $user_id_claim_dropdown.append(user_id_option);
+            $role_claim_dropdown.append('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>');
+            $google_prov_email_claim_dropdown.append(google_prov_email_option);
+            $google_prov_familyname_claim_dropdown.append(google_prov_family_email_option);
+            $google_prov_givenname_claim_dropdown.append(google_prov_givenname_option);
+            $idpClaimsList2.append(option);
 
 
-        $(".role_claim").show();
+            $(".role_claim").hide();
+            $(jQuery('#claimAddTable')).hide();
 
-        if ($(jQuery('#claimAddTable tr')).length == 2) {
-            $(jQuery('#claimAddTable')).toggle();
+            if ($(jQuery('#advancedClaimMappingAddTable tr')).length > 1) {
+                $(jQuery('#advancedClaimMappingAddTable')).show();
+            }
         }
 
-        if ($(jQuery('#advancedClaimMappingAddTable tr')).length > 1) {
-            $(jQuery('#advancedClaimMappingAddTable')).show();
+        if (selectedVal == "choose_dialet_type2") {
+            var option = '';
+
+            <% for(int i =0 ; i< claimUris.length ; i++){%>
+            option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+
+            <%}%>
+
+            $user_id_claim_dropdown.replace($option, "");
+            $role_claim_dropdown.replace('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>', "");
+            $google_prov_email_claim_dropdown.replace($option, "");
+            $google_prov_familyname_claim_dropdown.replace($option, "");
+            $google_prov_givenname_claim_dropdown.replace($option, "");
+            $idpClaimsList2.replace($option, "");
+
+
+            $(".role_claim").show();
+
+            if ($(jQuery('#claimAddTable tr')).length == 2) {
+                $(jQuery('#claimAddTable')).toggle();
+            }
+
+            if ($(jQuery('#advancedClaimMappingAddTable tr')).length > 1) {
+                $(jQuery('#advancedClaimMappingAddTable')).show();
+            }
+
+        }
+    };
+
+    function deleteRow(obj) {
+        jQuery(obj).parent().parent().remove();
+
+    }
+
+    function disableDefaultPwd(chkbx) {
+        document.getElementById("scim-default-pwd").value = "";
+        var disabled = chkbx.checked;
+        document.getElementById("scim-default-pwd").disabled = disabled;
+    }
+
+    jQuery(document).ready(function () {
+        jQuery('#outBoundAuth').hide();
+        jQuery('#inBoundProvisioning').hide();
+        jQuery('#outBoundProvisioning').hide();
+        jQuery('#roleConfig').hide();
+        jQuery('#claimConfig').hide();
+        jQuery('#openIdLinkRow').hide();
+        jQuery('#saml2SSOLinkRow').hide();
+        jQuery('#oauth2LinkRow').hide();
+        jQuery('#passiveSTSLinkRow').hide();
+        jQuery('#fbAuthLinkRow').hide();
+        jQuery('#baisClaimLinkRow').hide();
+        jQuery('#advancedClaimLinkRow').hide();
+        jQuery('#openIdDefault').attr('disabled', 'disabled');
+        jQuery('#saml2SSODefault').attr('disabled', 'disabled');
+        jQuery('#oidcDefault').attr('disabled', 'disabled');
+        jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
+        jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+        jQuery('#googleProvDefault').attr('disabled', 'disabled');
+        jQuery('#sfProvDefault').attr('disabled', 'disabled');
+        jQuery('#scimProvDefault').attr('disabled', 'disabled');
+        jQuery('#spmlProvDefault').attr('disabled', 'disabled');
+        jQuery('#openIdDefault').attr('disabled', 'disabled');
+        jQuery('#saml2SSODefault').attr('disabled', 'disabled');
+        jQuery('#oidcDefault').attr('disabled', 'disabled');
+        jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
+        jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+
+        if ($(jQuery('#claimMappingAddTable tr')).length < 2) {
+            $(jQuery('#claimMappingAddTable')).hide();
         }
 
-    }
-};
-
-function deleteRow(obj) {
-    jQuery(obj).parent().parent().remove();
-
-}
-
-function disableDefaultPwd(chkbx) {
-    document.getElementById("scim-default-pwd").value = "";
-    var disabled = chkbx.checked;
-    document.getElementById("scim-default-pwd").disabled = disabled;
-}
-
-jQuery(document).ready(function () {
-    jQuery('#outBoundAuth').hide();
-    jQuery('#inBoundProvisioning').hide();
-    jQuery('#outBoundProvisioning').hide();
-    jQuery('#roleConfig').hide();
-    jQuery('#claimConfig').hide();
-    jQuery('#openIdLinkRow').hide();
-    jQuery('#saml2SSOLinkRow').hide();
-    jQuery('#oauth2LinkRow').hide();
-    jQuery('#passiveSTSLinkRow').hide();
-    jQuery('#fbAuthLinkRow').hide();
-    jQuery('#baisClaimLinkRow').hide();
-    jQuery('#advancedClaimLinkRow').hide();
-    jQuery('#openIdDefault').attr('disabled', 'disabled');
-    jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-    jQuery('#oidcDefault').attr('disabled', 'disabled');
-    jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-    jQuery('#fbAuthDefault').attr('disabled', 'disabled');
-    jQuery('#googleProvDefault').attr('disabled', 'disabled');
-    jQuery('#sfProvDefault').attr('disabled', 'disabled');
-    jQuery('#scimProvDefault').attr('disabled', 'disabled');
-    jQuery('#spmlProvDefault').attr('disabled', 'disabled');
-    jQuery('#openIdDefault').attr('disabled', 'disabled');
-    jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-    jQuery('#oidcDefault').attr('disabled', 'disabled');
-    jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-    jQuery('#fbAuthDefault').attr('disabled', 'disabled');
-
-    if ($(jQuery('#claimMappingAddTable tr')).length < 2) {
-        $(jQuery('#claimMappingAddTable')).hide();
-    }
-
-    if ($(jQuery('#claimMappingAddTableSPML tr')).length < 2) {
-        $(jQuery('#claimMappingAddTableSPML')).hide();
-    }
+        if ($(jQuery('#claimMappingAddTableSPML tr')).length < 2) {
+            $(jQuery('#claimMappingAddTableSPML')).hide();
+        }
 
 
-    if (<%=isOpenIdEnabled%>) {
-        jQuery('#openid_enable_logo').show();
-    } else {
-        jQuery('#openid_enable_logo').hide();
-    }
-
-    if (<%=isSAML2SSOEnabled%>) {
-        jQuery('#sampl2sso_enable_logo').show();
-    } else {
-        jQuery('#sampl2sso_enable_logo').hide();
-    }
-
-    if (<%=isOIDCEnabled%>) {
-        jQuery('#oAuth2_enable_logo').show();
-    } else {
-        jQuery('#oAuth2_enable_logo').hide();
-    }
-
-    if (<%=isPassiveSTSEnabled%>) {
-        jQuery('#wsfederation_enable_logo').show();
-    } else {
-        jQuery('#wsfederation_enable_logo').hide();
-    }
-
-    if (<%=isFBAuthEnabled%>) {
-        jQuery('#fecebook_enable_logo').show();
-    } else {
-        jQuery('#fecebook_enable_logo').hide();
-    }
-
-    if (<%=isGoogleProvEnabled%>) {
-        jQuery('#google_enable_logo').show();
-    } else {
-        jQuery('#google_enable_logo').hide();
-    }
-
-    if (<%=isSfProvEnabled%>) {
-        jQuery('#sf_enable_logo').show();
-    } else {
-        jQuery('#sf_enable_logo').hide();
-    }
-
-    if (<%=isScimProvEnabled%>) {
-        jQuery('#scim_enable_logo').show();
-    } else {
-        jQuery('#scim_enable_logo').hide();
-    }
-
-    if (<%=isSpmlProvEnabled%>) {
-        jQuery('#spml_enable_logo').show();
-    } else {
-        jQuery('#spml_enable_logo').hide();
-    }
-
-    jQuery('h2.trigger').click(function () {
-        if (jQuery(this).next().is(":visible")) {
-            this.className = "active trigger";
+        if (<%=isOpenIdEnabled%>) {
+            jQuery('#openid_enable_logo').show();
         } else {
-            this.className = "trigger";
+            jQuery('#openid_enable_logo').hide();
         }
-        jQuery(this).next().slideToggle("fast");
-        return false; //Prevent the browser jump to the link anchor
-    })
-    jQuery('#publicCertDeleteLink').click(function () {
-        $(jQuery('#publicCertDiv')).toggle();
-        var input = document.createElement('input');
-        input.type = "hidden";
-        input.name = "deletePublicCert";
-        input.id = "deletePublicCert";
-        input.value = "true";
-        document.forms['idp-mgt-edit-form'].appendChild(input);
-    })
-    jQuery('#claimAddLink').click(function () {
 
-        claimRowId++;
-        var option = '<option value="">---Select Claim URI ---</option>';
+        if (<%=isSAML2SSOEnabled%>) {
+            jQuery('#sampl2sso_enable_logo').show();
+        } else {
+            jQuery('#sampl2sso_enable_logo').hide();
+        }
 
-        <% for(int i =0 ; i< claimUris.length ; i++){%>
-        option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+        if (<%=isOIDCEnabled%>) {
+            jQuery('#oAuth2_enable_logo').show();
+        } else {
+            jQuery('#oAuth2_enable_logo').hide();
+        }
 
-        <%}%>
+        if (<%=isPassiveSTSEnabled%>) {
+            jQuery('#wsfederation_enable_logo').show();
+        } else {
+            jQuery('#wsfederation_enable_logo').hide();
+        }
 
-        $("#claimrow_id_count").val(claimRowId + 1);
+        if (<%=isFBAuthEnabled%>) {
+            jQuery('#fecebook_enable_logo').show();
+        } else {
+            jQuery('#fecebook_enable_logo').hide();
+        }
+
+        if (<%=isGoogleProvEnabled%>) {
+            jQuery('#google_enable_logo').show();
+        } else {
+            jQuery('#google_enable_logo').hide();
+        }
+
+        if (<%=isSfProvEnabled%>) {
+            jQuery('#sf_enable_logo').show();
+        } else {
+            jQuery('#sf_enable_logo').hide();
+        }
+
+        if (<%=isScimProvEnabled%>) {
+            jQuery('#scim_enable_logo').show();
+        } else {
+            jQuery('#scim_enable_logo').hide();
+        }
+
+        if (<%=isSpmlProvEnabled%>) {
+            jQuery('#spml_enable_logo').show();
+        } else {
+            jQuery('#spml_enable_logo').hide();
+        }
+
+        jQuery('h2.trigger').click(function () {
+            if (jQuery(this).next().is(":visible")) {
+                this.className = "active trigger";
+            } else {
+                this.className = "trigger";
+            }
+            jQuery(this).next().slideToggle("fast");
+            return false; //Prevent the browser jump to the link anchor
+        })
+        jQuery('#publicCertDeleteLink').click(function () {
+            $(jQuery('#publicCertDiv')).toggle();
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deletePublicCert";
+            input.id = "deletePublicCert";
+            input.value = "true";
+            document.forms['idp-mgt-edit-form'].appendChild(input);
+        })
+        jQuery('#claimAddLink').click(function () {
+
+            claimRowId++;
+            var option = '<option value="">---Select Claim URI ---</option>';
+
+            <% for(int i =0 ; i< claimUris.length ; i++){%>
+            option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+
+            <%}%>
+
+            $("#claimrow_id_count").val(claimRowId + 1);
 
 
-        var newrow = jQuery('<tr><td><input class="claimrow" style=" width: 90%; " type="text" id="claimrowid_' + claimRowId + '" name="claimrowname_' + claimRowId + '"/></td>' +
-                '<td><select class="claimrow_wso2" name="claimrow_name_wso2_' + claimRowId + '">' + option + '</select></td> ' +
-                '<td><a onclick="deleteClaimRow(this)" class="icon-link" ' +
-                'style="background-image: url(images/delete.gif)">' +
-                'Delete' +
-                '</a></td></tr>');
-        jQuery('.claimrow', newrow).blur(function () {
+            var newrow = jQuery('<tr><td><input class="claimrow" style=" width: 90%; " type="text" id="claimrowid_' + claimRowId + '" name="claimrowname_' + claimRowId + '"/></td>' +
+                    '<td><select class="claimrow_wso2" name="claimrow_name_wso2_' + claimRowId + '">' + option + '</select></td> ' +
+                    '<td><a onclick="deleteClaimRow(this)" class="icon-link" ' +
+                    'style="background-image: url(images/delete.gif)">' +
+                    'Delete' +
+                    '</a></td></tr>');
+            jQuery('.claimrow', newrow).blur(function () {
+                claimURIDropdownPopulator();
+            });
+            jQuery('#claimAddTable').append(newrow);
+            if ($(jQuery('#claimAddTable tr')).length == 2) {
+                $(jQuery('#claimAddTable')).toggle();
+            }
+
+        })
+        jQuery('#claimAddTable .claimrow').blur(function () {
             claimURIDropdownPopulator();
         });
-        jQuery('#claimAddTable').append(newrow);
-        if ($(jQuery('#claimAddTable tr')).length == 2) {
+        jQuery('#claimMappingDeleteLink').click(function () {
+            $(jQuery('#claimMappingDiv')).toggle();
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deleteClaimMappings";
+            input.id = "deleteClaimMappings";
+            input.value = "true";
+            document.forms['idp-mgt-edit-form'].appendChild(input);
+        });
+        jQuery('#roleAddLink').click(function () {
+            roleRowId++;
+            $("#rolemappingrow_id_count").val(roleRowId + 1);
+            jQuery('#roleAddTable').append(jQuery('<tr><td><input type="text" id="rolerowname_' + roleRowId + '" name="rolerowname_' + roleRowId + '"/></td>' +
+                    '<td><input type="text" id="localrowname_' + roleRowId + '" name="localrowname_' + roleRowId + '"/></td>' +
+                    '<td><a onclick="deleteRoleRow(this)" class="icon-link" ' +
+                    'style="background-image: url(images/delete.gif)">' +
+                    'Delete' +
+                    '</a></td></tr>'));
+            if ($(jQuery('#roleAddTable tr')).length == 2) {
+                $(jQuery('#roleAddTable')).toggle();
+            }
+        });
+
+
+        jQuery('#roleMappingDeleteLink').click(function () {
+            $(jQuery('#roleMappingDiv')).toggle();
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deleteRoleMappings";
+            input.id = "deleteRoleMappings";
+            input.value = "true";
+            document.forms['idp-mgt-edit-form'].appendChild(input);
+        });
+        jQuery('#provision_disabled').click(function () {
+            jQuery('#provision_static_dropdown').attr('disabled', 'disabled');
+        });
+        jQuery('#provision_static').click(function () {
+            jQuery('#provision_static_dropdown').removeAttr('disabled');
+        });
+
+
+        jQuery('#advancedClaimMappingAddLink').click(function () {
+            var selectedIDPClaimName = $('select[name=idpClaimsList2]').val();
+            if (selectedIDPClaimName == "" || selectedIDPClaimName == null) {
+                CARBON.showWarningDialog('Add valid attribute');
+                return false;
+            }
+            advancedClaimMappinRowID++;
+            $("#advanced_claim_id_count").val(advancedClaimMappinRowID + 1);
+            jQuery('#advancedClaimMappingAddTable').append(jQuery('<tr>' +
+                    '<td><input type="text" style="width: 99%;" value="' + selectedIDPClaimName + '" id="advancnedIdpClaim_' + advancedClaimMappinRowID + '" name="advancnedIdpClaim_' + advancedClaimMappinRowID + '" readonly="readonly" /></td>' +
+                    '<td><input type="text" style="width: 99%;" id="advancedDefault_' + advancedClaimMappinRowID + '" name="advancedDefault_' + advancedClaimMappinRowID + '"/></td> ' +
+                    '<td><a onclick="deleteRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete</a></td>' +
+
+                    '</tr>'));
+
+            $(jQuery('#advancedClaimMappingAddTable')).show();
+
+        });
+
+
+        jQuery('#choose_dialet_type1').click(function () {
+            $(".customClaim").hide();
+            $(".role_claim").hide();
+            deleteRows();
+            claimURIDropdownPopulator();
+            $("#advancedClaimMappingAddTable tbody > tr").remove();
+            $('#advancedClaimMappingAddTable').hide();
+
+        });
+
+        jQuery('#choose_dialet_type2').click(function () {
+            $(".customClaim").show();
+            $(".role_claim").show();
+            $("#advancedClaimMappingAddTable tbody > tr").remove();
+            $('#advancedClaimMappingAddTable').hide();
+            claimURIDropdownPopulator();
+        });
+
+        claimURIDropdownPopulator();
+
+        var $signature_algorithem_dropdown = jQuery('#signature_algorithem_dropdown');
+        var $digest_algorithem_dropdown = jQuery('#digest_algorithem_dropdown');
+        var $authentication_context_class_dropdown = jQuery('#authentication_context_class_dropdown');
+        var $auth_context_comparison_level_dropdown = jQuery('#auth_context_comparison_level_dropdown');
+
+        jQuery('#authnRequestSigned').click(function () {
+            if (jQuery(this).is(":checked") || jQuery("#logoutRequestSigned").is(":checked")) {
+                jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
+                jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+            } else {
+                jQuery('#signature_algorithem_dropdown').attr('disabled', true);
+                jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+            }
+        });
+
+        jQuery('#logoutRequestSigned').click(function () {
+            if (jQuery(this).is(":checked") || jQuery("#authnRequestSigned").is(":checked")) {
+                jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
+                jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+            } else {
+                jQuery('#signature_algorithem_dropdown').attr('disabled', true);
+                jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+            }
+        });
+
+        jQuery('#includeAuthnCtxNo').click(function () {
+            jQuery('#authentication_context_class_dropdown').attr('disabled', true);
+            jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+        });
+
+        jQuery('#includeAuthnCtxYes').click(function () {
+            jQuery('#authentication_context_class_dropdown').removeAttr('disabled');
+            jQuery('#auth_context_comparison_level_dropdown').removeAttr('disabled');
+        });
+
+        jQuery('#authentication_context_class_dropdown').change(function () {
+            var selectedClass = $("#authentication_context_class_dropdown").val();
+            if (selectedClass == '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
+                jQuery('#custom_authentication_context_class').removeAttr('disabled');
+            } else {
+                jQuery('#custom_authentication_context_class').val("");
+                jQuery('#custom_authentication_context_class').attr('disabled', true);
+            }
+        });
+
+        jQuery('#includeAuthnCtxReq').click(function () {
+            jQuery('#authentication_context_class_dropdown').attr('disabled', true);
+            jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+        });
+    })
+
+    var deleteClaimRows = [];
+    function deleteClaimRow(obj) {
+        if (jQuery(obj).parent().prev().children()[0].value != '') {
+            deleteClaimRows.push(jQuery(obj).parent().prev().children()[0].value);
+        }
+        jQuery(obj).parent().parent().remove();
+        if ($(jQuery('#claimAddTable tr')).length == 1) {
             $(jQuery('#claimAddTable')).toggle();
         }
-
-    })
-    jQuery('#claimAddTable .claimrow').blur(function () {
         claimURIDropdownPopulator();
-    });
-    jQuery('#claimMappingDeleteLink').click(function () {
-        $(jQuery('#claimMappingDiv')).toggle();
-        var input = document.createElement('input');
-        input.type = "hidden";
-        input.name = "deleteClaimMappings";
-        input.id = "deleteClaimMappings";
-        input.value = "true";
-        document.forms['idp-mgt-edit-form'].appendChild(input);
-    });
-    jQuery('#roleAddLink').click(function () {
-        roleRowId++;
-        $("#rolemappingrow_id_count").val(roleRowId + 1);
-        jQuery('#roleAddTable').append(jQuery('<tr><td><input type="text" id="rolerowname_' + roleRowId + '" name="rolerowname_' + roleRowId + '"/></td>' +
-                '<td><input type="text" id="localrowname_' + roleRowId + '" name="localrowname_' + roleRowId + '"/></td>' +
-                '<td><a onclick="deleteRoleRow(this)" class="icon-link" ' +
-                'style="background-image: url(images/delete.gif)">' +
-                'Delete' +
-                '</a></td></tr>'));
-        if ($(jQuery('#roleAddTable tr')).length == 2) {
-            $(jQuery('#roleAddTable')).toggle();
-        }
-    });
-
-
-    jQuery('#roleMappingDeleteLink').click(function () {
-        $(jQuery('#roleMappingDiv')).toggle();
-        var input = document.createElement('input');
-        input.type = "hidden";
-        input.name = "deleteRoleMappings";
-        input.id = "deleteRoleMappings";
-        input.value = "true";
-        document.forms['idp-mgt-edit-form'].appendChild(input);
-    });
-    jQuery('#provision_disabled').click(function () {
-        jQuery('#provision_static_dropdown').attr('disabled', 'disabled');
-    });
-    jQuery('#provision_static').click(function () {
-        jQuery('#provision_static_dropdown').removeAttr('disabled');
-    });
-
-
-    jQuery('#advancedClaimMappingAddLink').click(function () {
-        var selectedIDPClaimName = $('select[name=idpClaimsList2]').val();
-        if (selectedIDPClaimName == "" || selectedIDPClaimName == null) {
-            CARBON.showWarningDialog('Add valid attribute');
-            return false;
-        }
-        advancedClaimMappinRowID++;
-        $("#advanced_claim_id_count").val(advancedClaimMappinRowID + 1);
-        jQuery('#advancedClaimMappingAddTable').append(jQuery('<tr>' +
-                '<td><input type="text" style="width: 99%;" value="' + selectedIDPClaimName + '" id="advancnedIdpClaim_' + advancedClaimMappinRowID + '" name="advancnedIdpClaim_' + advancedClaimMappinRowID + '" readonly="readonly" /></td>' +
-                '<td><input type="text" style="width: 99%;" id="advancedDefault_' + advancedClaimMappinRowID + '" name="advancedDefault_' + advancedClaimMappinRowID + '"/></td> ' +
-                '<td><a onclick="deleteRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete</a></td>' +
-
-                '</tr>'));
-
-        $(jQuery('#advancedClaimMappingAddTable')).show();
-
-    });
-
-
-    jQuery('#choose_dialet_type1').click(function () {
-        $(".customClaim").hide();
-        $(".role_claim").hide();
-        deleteRows();
-        claimURIDropdownPopulator();
-        $("#advancedClaimMappingAddTable tbody > tr").remove();
-        $('#advancedClaimMappingAddTable').hide();
-
-    });
-
-    jQuery('#choose_dialet_type2').click(function () {
-        $(".customClaim").show();
-        $(".role_claim").show();
-        $("#advancedClaimMappingAddTable tbody > tr").remove();
-        $('#advancedClaimMappingAddTable').hide();
-        claimURIDropdownPopulator();
-    });
-
-    claimURIDropdownPopulator();
-
-    var $signature_algorithem_dropdown = jQuery('#signature_algorithem_dropdown');
-    var $digest_algorithem_dropdown = jQuery('#digest_algorithem_dropdown');
-    var $authentication_context_class_dropdown =  jQuery('#authentication_context_class_dropdown');
-    var $auth_context_comparison_level_dropdown = jQuery('#auth_context_comparison_level_dropdown');
-
-    jQuery('#authnRequestSigned').click(function(){
-        if(jQuery(this).is(":checked") || jQuery("#logoutRequestSigned").is(":checked")){
-            jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-            jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
-        }else{
-            jQuery('#signature_algorithem_dropdown').attr('disabled',true);
-            jQuery('#digest_algorithem_dropdown').attr('disabled',true);
-        }
-    });
-
-    jQuery('#logoutRequestSigned').click(function(){
-        if(jQuery(this).is(":checked") || jQuery("#authnRequestSigned").is(":checked")){
-            jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-            jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
-        }else{
-            jQuery('#signature_algorithem_dropdown').attr('disabled',true);
-            jQuery('#digest_algorithem_dropdown').attr('disabled',true);
-        }
-    });
-
-    jQuery('#includeAuthnCtxNo').click(function(){
-		jQuery('#authentication_context_class_dropdown').attr('disabled',true);
-        jQuery('#auth_context_comparison_level_dropdown').attr('disabled',true);
-    });
-
-    jQuery('#includeAuthnCtxYes').click(function(){
-   		jQuery('#authentication_context_class_dropdown').removeAttr('disabled');
-        jQuery('#auth_context_comparison_level_dropdown').removeAttr('disabled');
-    });
-
-    jQuery('#authentication_context_class_dropdown').change(function(){
-        var selectedClass = $("#authentication_context_class_dropdown" ).val();
-        if(selectedClass=='<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>'){
-            jQuery('#custom_authentication_context_class').removeAttr('disabled');
-        }else{
-            jQuery('#custom_authentication_context_class').val("");
-            jQuery('#custom_authentication_context_class').attr('disabled',true);
-        }
-    });
-
-    jQuery('#includeAuthnCtxReq').click(function(){
-    	jQuery('#authentication_context_class_dropdown').attr('disabled',true);
-        jQuery('#auth_context_comparison_level_dropdown').attr('disabled',true);
-    });
-})
-
-var deleteClaimRows = [];
-function deleteClaimRow(obj) {
-    if (jQuery(obj).parent().prev().children()[0].value != '') {
-        deleteClaimRows.push(jQuery(obj).parent().prev().children()[0].value);
     }
-    jQuery(obj).parent().parent().remove();
-    if ($(jQuery('#claimAddTable tr')).length == 1) {
-        $(jQuery('#claimAddTable')).toggle();
-    }
-    claimURIDropdownPopulator();
-}
-var deletedRoleRows = [];
-function deleteRoleRow(obj) {
-    if (jQuery(obj).parent().prev().children()[0].value != '') {
-        deletedRoleRows.push(jQuery(obj).parent().prev().children()[0].value);
-    }
-    jQuery(obj).parent().parent().remove();
+    var deletedRoleRows = [];
+    function deleteRoleRow(obj) {
+        if (jQuery(obj).parent().prev().children()[0].value != '') {
+            deletedRoleRows.push(jQuery(obj).parent().prev().children()[0].value);
+        }
+        jQuery(obj).parent().parent().remove();
 
-}
-
-
-function deleteRows() {
-    $.each($('.claimrow'), function () {
-        $(this).parent().parent().remove();
-    });
-}
-
-function checkEnabledLogo(obj, name) {
-    if (jQuery(obj).attr('checked')) {
-        jQuery('#custom_auth_head_enable_logo_' + name).show();
-    } else {
-        jQuery('#custom_auth_head_enable_logo_' + name).hide();
     }
 
-}
 
-function getEnabledCustomAuth() {
-    var textMap = {};
-
-    jQuery("input[name$='_Enabled']").each(function () {
-        textMap[this.id] = $(this).text();
-    });
-
-    return textMap;
-}
-
-function isCustomAuthEnabled() {
-    var enable = false;
-    for (id in getEnabledCustomAuth()) {
-        if (jQuery('#' + id).attr('checked')) {
-            enable = true;
-        }
+    function deleteRows() {
+        $.each($('.claimrow'), function () {
+            $(this).parent().parent().remove();
+        });
     }
-    return enable;
-}
 
-
-function isOtherCustomAuthEnabled(selectedId) {
-    var enable = false;
-    for (id in getEnabledCustomAuth()) {
-        if (id == selectedId) {
-            //other than selected 
+    function checkEnabledLogo(obj, name) {
+        if (jQuery(obj).attr('checked')) {
+            jQuery('#custom_auth_head_enable_logo_' + name).show();
         } else {
+            jQuery('#custom_auth_head_enable_logo_' + name).hide();
+        }
+
+    }
+
+    function getEnabledCustomAuth() {
+        var textMap = {};
+
+        jQuery("input[name$='_Enabled']").each(function () {
+            textMap[this.id] = $(this).text();
+        });
+
+        return textMap;
+    }
+
+    function isCustomAuthEnabled() {
+        var enable = false;
+        for (id in getEnabledCustomAuth()) {
             if (jQuery('#' + id).attr('checked')) {
                 enable = true;
             }
         }
+        return enable;
     }
-    return enable;
-}
-
-function checkEnabled(obj) {
-
-    if (jQuery(obj).attr('checked')) {
-        if (jQuery(obj).attr('id') == 'openIdEnabled') {
-            if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#openIdDefault').attr('checked', 'checked');
-                jQuery('#openIdDefault').attr('disabled', 'disabled');
 
 
+    function isOtherCustomAuthEnabled(selectedId) {
+        var enable = false;
+        for (id in getEnabledCustomAuth()) {
+            if (id == selectedId) {
+                //other than selected
             } else {
-                jQuery('#openIdDefault').removeAttr('disabled');
-            }
-
-            jQuery('#openid_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'saml2SSOEnabled') {
-            if (!jQuery('#openIdEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#saml2SSODefault').attr('checked', 'checked');
-                jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#saml2SSODefault').removeAttr('disabled');
-            }
-            jQuery('#sampl2sso_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'oidcEnabled') {
-            if (!jQuery('#openIdEnabled').attr('checked') && !jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#oidcDefault').attr('checked', 'checked');
-                jQuery('#oidcDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#oidcDefault').removeAttr('disabled');
-            }
-            jQuery('#oAuth2_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'passiveSTSEnabled') {
-            if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#passiveSTSDefault').attr('checked', 'checked');
-                jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#passiveSTSDefault').removeAttr('disabled');
-            }
-            jQuery('#wsfederation_enable_logo').show();
-        } else if (jQuery(obj).attr('id') == 'fbAuthEnabled') {
-            if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !isCustomAuthEnabled()) {
-                jQuery('#fbAuthDefault').attr('checked', 'checked');
-                jQuery('#fbAuthDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#fbAuthDefault').removeAttr('disabled');
-            }
-            jQuery('#fecebook_enable_logo').show();
-        } else {
-            for (id in getEnabledCustomAuth()) {
-                if (jQuery(obj).attr('id') == id) {
-                    var defId = '#' + id.replace("_Enabled", "_Default");
-                    if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isOtherCustomAuthEnabled(id)) {
-                        jQuery(defId).attr('checked', 'checked');
-                        jQuery(defId).attr('disabled', 'disabled');
-                    } else {
-                        jQuery(defId).removeAttr('disabled');
-                    }
+                if (jQuery('#' + id).attr('checked')) {
+                    enable = true;
                 }
             }
         }
-    } else {
-        if (jQuery(obj).attr('id') == 'openIdEnabled') {
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                    jQuery('#passiveSTSEnabled').attr('checked') ||
-                    jQuery('#oidcEnabled').attr('checked') ||
-                    jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+        return enable;
+    }
 
-                if (jQuery('#openIdDefault').attr('checked')) {
-                    jQuery('#openIdEnabled').attr('checked', 'checked');
-                    CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+    function checkEnabled(obj) {
+
+        if (jQuery(obj).attr('checked')) {
+            if (jQuery(obj).attr('id') == 'openIdEnabled') {
+                if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
+                    jQuery('#openIdDefault').attr('checked', 'checked');
+                    jQuery('#openIdDefault').attr('disabled', 'disabled');
+
+
+                } else {
+                    jQuery('#openIdDefault').removeAttr('disabled');
+                }
+
+                jQuery('#openid_enable_logo').show();
+            } else if (jQuery(obj).attr('id') == 'saml2SSOEnabled') {
+                if (!jQuery('#openIdEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
+                    jQuery('#saml2SSODefault').attr('checked', 'checked');
+                    jQuery('#saml2SSODefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#saml2SSODefault').removeAttr('disabled');
+                }
+                jQuery('#sampl2sso_enable_logo').show();
+            } else if (jQuery(obj).attr('id') == 'oidcEnabled') {
+                if (!jQuery('#openIdEnabled').attr('checked') && !jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
+                    jQuery('#oidcDefault').attr('checked', 'checked');
+                    jQuery('#oidcDefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#oidcDefault').removeAttr('disabled');
+                }
+                jQuery('#oAuth2_enable_logo').show();
+            } else if (jQuery(obj).attr('id') == 'passiveSTSEnabled') {
+                if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isCustomAuthEnabled()) {
+                    jQuery('#passiveSTSDefault').attr('checked', 'checked');
+                    jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#passiveSTSDefault').removeAttr('disabled');
+                }
+                jQuery('#wsfederation_enable_logo').show();
+            } else if (jQuery(obj).attr('id') == 'fbAuthEnabled') {
+                if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !isCustomAuthEnabled()) {
+                    jQuery('#fbAuthDefault').attr('checked', 'checked');
+                    jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#fbAuthDefault').removeAttr('disabled');
+                }
+                jQuery('#fecebook_enable_logo').show();
+            } else {
+                for (id in getEnabledCustomAuth()) {
+                    if (jQuery(obj).attr('id') == id) {
+                        var defId = '#' + id.replace("_Enabled", "_Default");
+                        if (!jQuery('#saml2SSOEnabled').attr('checked') && !jQuery('#oidcEnabled').attr('checked') && !jQuery('#passiveSTSEnabled').attr('checked') && !jQuery('#openIdEnabled').attr('checked') && !jQuery('#fbAuthEnabled').attr('checked') && !isOtherCustomAuthEnabled(id)) {
+                            jQuery(defId).attr('checked', 'checked');
+                            jQuery(defId).attr('disabled', 'disabled');
+                        } else {
+                            jQuery(defId).removeAttr('disabled');
+                        }
+                    }
+                }
+            }
+        } else {
+            if (jQuery(obj).attr('id') == 'openIdEnabled') {
+                if (jQuery('#saml2SSOEnabled').attr('checked') ||
+                        jQuery('#passiveSTSEnabled').attr('checked') ||
+                        jQuery('#oidcEnabled').attr('checked') ||
+                        jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+
+                    if (jQuery('#openIdDefault').attr('checked')) {
+                        jQuery('#openIdEnabled').attr('checked', 'checked');
+                        CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#openIdDefault').attr('disabled', 'disabled');
+                        jQuery('#openIdDefault').removeAttr('checked');
+                        jQuery('#openid_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#openIdDefault').attr('disabled', 'disabled');
                     jQuery('#openIdDefault').removeAttr('checked');
                     jQuery('#openid_enable_logo').hide();
                 }
-            } else {
-                jQuery('#openIdDefault').attr('disabled', 'disabled');
-                jQuery('#openIdDefault').removeAttr('checked');
-                jQuery('#openid_enable_logo').hide();
-            }
 
 
-        } else if (jQuery(obj).attr('id') == 'saml2SSOEnabled') {
+            } else if (jQuery(obj).attr('id') == 'saml2SSOEnabled') {
 
-            if (jQuery('#openIdEnabled').attr('checked') ||
-                    jQuery('#passiveSTSEnabled').attr('checked') ||
-                    jQuery('#oidcEnabled').attr('checked') ||
-                    jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+                if (jQuery('#openIdEnabled').attr('checked') ||
+                        jQuery('#passiveSTSEnabled').attr('checked') ||
+                        jQuery('#oidcEnabled').attr('checked') ||
+                        jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#saml2SSODefault').attr('checked')) {
-                    jQuery('#saml2SSOEnabled').attr('checked', 'checked');
-                    CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#saml2SSODefault').attr('checked')) {
+                        jQuery('#saml2SSOEnabled').attr('checked', 'checked');
+                        CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#saml2SSODefault').attr('disabled', 'disabled');
+                        jQuery('#saml2SSODefault').removeAttr('checked');
+                        jQuery('#sampl2sso_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#saml2SSODefault').attr('disabled', 'disabled');
                     jQuery('#saml2SSODefault').removeAttr('checked');
                     jQuery('#sampl2sso_enable_logo').hide();
                 }
-            } else {
-                jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-                jQuery('#saml2SSODefault').removeAttr('checked');
-                jQuery('#sampl2sso_enable_logo').hide();
-            }
 
-        } else if (jQuery(obj).attr('id') == 'oidcEnabled') {
+            } else if (jQuery(obj).attr('id') == 'oidcEnabled') {
 
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                    jQuery('#passiveSTSEnabled').attr('checked') ||
-                    jQuery('#openIdEnabled').attr('checked') ||
-                    jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+                if (jQuery('#saml2SSOEnabled').attr('checked') ||
+                        jQuery('#passiveSTSEnabled').attr('checked') ||
+                        jQuery('#openIdEnabled').attr('checked') ||
+                        jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#oidcDefault').attr('checked')) {
-                    jQuery('#oidcEnabled').attr('checked', 'checked');
-                    CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#oidcDefault').attr('checked')) {
+                        jQuery('#oidcEnabled').attr('checked', 'checked');
+                        CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#oidcDefault').attr('disabled', 'disabled');
+                        jQuery('#oidcDefault').removeAttr('checked');
+                        jQuery('#oAuth2_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#oidcDefault').attr('disabled', 'disabled');
                     jQuery('#oidcDefault').removeAttr('checked');
                     jQuery('#oAuth2_enable_logo').hide();
                 }
-            } else {
-                jQuery('#oidcDefault').attr('disabled', 'disabled');
-                jQuery('#oidcDefault').removeAttr('checked');
-                jQuery('#oAuth2_enable_logo').hide();
-            }
-        } else if (jQuery(obj).attr('id') == 'passiveSTSEnabled') {
+            } else if (jQuery(obj).attr('id') == 'passiveSTSEnabled') {
 
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                    jQuery('#oidcEnabled').attr('checked') ||
-                    jQuery('#openIdEnabled').attr('checked') ||
-                    jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
+                if (jQuery('#saml2SSOEnabled').attr('checked') ||
+                        jQuery('#oidcEnabled').attr('checked') ||
+                        jQuery('#openIdEnabled').attr('checked') ||
+                        jQuery('#fbAuthEnabled').attr('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#passiveSTSDefault').attr('checked')) {
-                    jQuery('#passiveSTSEnabled').attr('checked', 'checked');
-                    CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#passiveSTSDefault').attr('checked')) {
+                        jQuery('#passiveSTSEnabled').attr('checked', 'checked');
+                        CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
+                        jQuery('#passiveSTSDefault').removeAttr('checked');
+                        jQuery('#wsfederation_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
                     jQuery('#passiveSTSDefault').removeAttr('checked');
                     jQuery('#wsfederation_enable_logo').hide();
                 }
-            } else {
-                jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-                jQuery('#passiveSTSDefault').removeAttr('checked');
-                jQuery('#wsfederation_enable_logo').hide();
-            }
 
-        } else if (jQuery(obj).attr('id') == 'fbAuthEnabled') {
+            } else if (jQuery(obj).attr('id') == 'fbAuthEnabled') {
 
-            if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                    jQuery('#oidcEnabled').attr('checked') ||
-                    jQuery('#openIdEnabled').attr('checked') ||
-                    jQuery('#passiveSTSEnabled').attr('checked') || isCustomAuthEnabled()) {
+                if (jQuery('#saml2SSOEnabled').attr('checked') ||
+                        jQuery('#oidcEnabled').attr('checked') ||
+                        jQuery('#openIdEnabled').attr('checked') ||
+                        jQuery('#passiveSTSEnabled').attr('checked') || isCustomAuthEnabled()) {
 
-                if (jQuery('#fbAuthDefault').attr('checked')) {
-                    jQuery('#fbAuthEnabled').attr('checked', 'checked');
-                    CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#fbAuthDefault').attr('checked')) {
+                        jQuery('#fbAuthEnabled').attr('checked', 'checked');
+                        CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+                        jQuery('#fbAuthDefault').removeAttr('checked');
+                        jQuery('#fecebook_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#fbAuthDefault').attr('disabled', 'disabled');
                     jQuery('#fbAuthDefault').removeAttr('checked');
                     jQuery('#fecebook_enable_logo').hide();
                 }
             } else {
-                jQuery('#fbAuthDefault').attr('disabled', 'disabled');
-                jQuery('#fbAuthDefault').removeAttr('checked');
-                jQuery('#fecebook_enable_logo').hide();
-            }
-        } else {
-            for (id in getEnabledCustomAuth()) {
-                if (jQuery(obj).attr('id') == id) {
-                    var defId = '#' + id.replace("_Enabled", "_Default");
-                    if (jQuery('#saml2SSOEnabled').attr('checked') ||
-                            jQuery('#oidcEnabled').attr('checked') ||
-                            jQuery('#passiveSTSEnabled').attr('checked') ||
-                            jQuery('#openIdEnabled').attr('checked') ||
-                            jQuery('#fbAuthEnabled').attr('checked') || isOtherCustomAuthEnabled(id)) {
+                for (id in getEnabledCustomAuth()) {
+                    if (jQuery(obj).attr('id') == id) {
+                        var defId = '#' + id.replace("_Enabled", "_Default");
+                        if (jQuery('#saml2SSOEnabled').attr('checked') ||
+                                jQuery('#oidcEnabled').attr('checked') ||
+                                jQuery('#passiveSTSEnabled').attr('checked') ||
+                                jQuery('#openIdEnabled').attr('checked') ||
+                                jQuery('#fbAuthEnabled').attr('checked') || isOtherCustomAuthEnabled(id)) {
 
-                        if (jQuery(defId).attr('checked')) {
-                            jQuery('#' + id).attr('checked', 'checked');
-                            CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                            if (jQuery(defId).attr('checked')) {
+                                jQuery('#' + id).attr('checked', 'checked');
+                                CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                            } else {
+                                jQuery(defId).attr('disabled', 'disabled');
+                                jQuery(defId).removeAttr('checked');
+                            }
                         } else {
                             jQuery(defId).attr('disabled', 'disabled');
                             jQuery(defId).removeAttr('checked');
                         }
-                    } else {
-                        jQuery(defId).attr('disabled', 'disabled');
-                        jQuery(defId).removeAttr('checked');
                     }
                 }
             }
         }
     }
-}
 
-function checkDefault(obj) {
-    if (jQuery(obj).attr('id') == 'openIdDefault') {
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
-        }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
-        }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
-        }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
-        }
-
-        for (id in getEnabledCustomAuth()) {
-            var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
-
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+    function checkDefault(obj) {
+        if (jQuery(obj).attr('id') == 'openIdDefault') {
+            jQuery('#saml2SSODefault').removeAttr('checked');
+            jQuery('#oidcDefault').removeAttr('checked');
+            jQuery('#passiveSTSDefault').removeAttr('checked');
+            jQuery('#fbAuthDefault').removeAttr('checked');
+            if (jQuery('#saml2SSOEnabled').attr('checked')) {
+                jQuery('#saml2SSODefault').removeAttr('disabled');
             }
-        }
-        jQuery('#openIdDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'saml2SSODefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
-        }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
-        }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
-        }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
-        }
-        for (id in getEnabledCustomAuth()) {
-            var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
-
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#oidcEnabled').attr('checked')) {
+                jQuery('#oidcDefault').removeAttr('disabled');
             }
-        }
-        jQuery('#saml2SSODefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'oidcDefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
-        }
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
-        }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
-        }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
-        }
-        for (id in getEnabledCustomAuth()) {
-            var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
-
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#passiveSTSEnabled').attr('checked')) {
+                jQuery('#passiveSTSDefault').removeAttr('disabled');
             }
-        }
-        jQuery('#oidcDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'passiveSTSDefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#fbAuthDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
-        }
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
-        }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
-        }
-        if (jQuery('#fbAuthEnabled').attr('checked')) {
-            jQuery('#fbAuthDefault').removeAttr('disabled');
-        }
-        for (id in getEnabledCustomAuth()) {
-            var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
-
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            if (jQuery('#fbAuthEnabled').attr('checked')) {
+                jQuery('#fbAuthDefault').removeAttr('disabled');
             }
-        }
-        jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'fbAuthDefault') {
-        jQuery('#openIdDefault').removeAttr('checked');
-        jQuery('#saml2SSODefault').removeAttr('checked');
-        jQuery('#oidcDefault').removeAttr('checked');
-        jQuery('#passiveSTSDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#openIdDefault').removeAttr('disabled');
-        }
-        if (jQuery('#saml2SSOEnabled').attr('checked')) {
-            jQuery('#saml2SSODefault').removeAttr('disabled');
-        }
-        if (jQuery('#oidcEnabled').attr('checked')) {
-            jQuery('#oidcDefault').removeAttr('disabled');
-        }
-        if (jQuery('#passiveSTSEnabled').attr('checked')) {
-            jQuery('#passiveSTSDefault').removeAttr('disabled');
-        }
-        for (id in getEnabledCustomAuth()) {
-            var defId = '#' + id.replace("_Enabled", "_Default");
-            jQuery(defId).removeAttr('checked');
 
-            if (jQuery('#' + id).attr('checked')) {
-                jQuery(defId).removeAttr('disabled');
+            for (id in getEnabledCustomAuth()) {
+                var defId = '#' + id.replace("_Enabled", "_Default");
+                jQuery(defId).removeAttr('checked');
+
+                if (jQuery('#' + id).attr('checked')) {
+                    jQuery(defId).removeAttr('disabled');
+                }
             }
-        }
-        jQuery('#fbAuthDefault').attr('disabled', 'disabled');
-    } else {
-        for (id in getEnabledCustomAuth()) {
-            var defId = id.replace("_Enabled", "_Default");
-            if (jQuery(obj).attr('id') == defId) {
-                jQuery('#openIdDefault').removeAttr('checked');
-                jQuery('#saml2SSODefault').removeAttr('checked');
-                jQuery('#oidcDefault').removeAttr('checked');
-                jQuery('#passiveSTSDefault').removeAttr('checked');
-                jQuery('#fbAuthDefault').removeAttr('checked');
+            jQuery('#openIdDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).attr('id') == 'saml2SSODefault') {
+            jQuery('#openIdDefault').removeAttr('checked');
+            jQuery('#oidcDefault').removeAttr('checked');
+            jQuery('#passiveSTSDefault').removeAttr('checked');
+            jQuery('#fbAuthDefault').removeAttr('checked');
+            if (jQuery('#openIdEnabled').attr('checked')) {
+                jQuery('#openIdDefault').removeAttr('disabled');
+            }
+            if (jQuery('#oidcEnabled').attr('checked')) {
+                jQuery('#oidcDefault').removeAttr('disabled');
+            }
+            if (jQuery('#passiveSTSEnabled').attr('checked')) {
+                jQuery('#passiveSTSDefault').removeAttr('disabled');
+            }
+            if (jQuery('#fbAuthEnabled').attr('checked')) {
+                jQuery('#fbAuthDefault').removeAttr('disabled');
+            }
+            for (id in getEnabledCustomAuth()) {
+                var defId = '#' + id.replace("_Enabled", "_Default");
+                jQuery(defId).removeAttr('checked');
 
-                if (jQuery('#openIdEnabled').attr('checked')) {
-                    jQuery('#openIdDefault').removeAttr('disabled');
+                if (jQuery('#' + id).attr('checked')) {
+                    jQuery(defId).removeAttr('disabled');
                 }
-                if (jQuery('#saml2SSOEnabled').attr('checked')) {
-                    jQuery('#saml2SSODefault').removeAttr('disabled');
-                }
-                if (jQuery('#oidcEnabled').attr('checked')) {
-                    jQuery('#oidcDefault').removeAttr('disabled');
-                }
-                if (jQuery('#passiveSTSEnabled').attr('checked')) {
-                    jQuery('#passiveSTSDefault').removeAttr('disabled');
-                }
-                if (jQuery('#fbAuthEnabled').attr('checked')) {
-                    jQuery('#fbAuthDefault').removeAttr('disabled');
-                }
+            }
+            jQuery('#saml2SSODefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).attr('id') == 'oidcDefault') {
+            jQuery('#openIdDefault').removeAttr('checked');
+            jQuery('#saml2SSODefault').removeAttr('checked');
+            jQuery('#passiveSTSDefault').removeAttr('checked');
+            jQuery('#fbAuthDefault').removeAttr('checked');
+            if (jQuery('#openIdEnabled').attr('checked')) {
+                jQuery('#openIdDefault').removeAttr('disabled');
+            }
+            if (jQuery('#saml2SSOEnabled').attr('checked')) {
+                jQuery('#saml2SSODefault').removeAttr('disabled');
+            }
+            if (jQuery('#passiveSTSEnabled').attr('checked')) {
+                jQuery('#passiveSTSDefault').removeAttr('disabled');
+            }
+            if (jQuery('#fbAuthEnabled').attr('checked')) {
+                jQuery('#fbAuthDefault').removeAttr('disabled');
+            }
+            for (id in getEnabledCustomAuth()) {
+                var defId = '#' + id.replace("_Enabled", "_Default");
+                jQuery(defId).removeAttr('checked');
 
-                for (idE in getEnabledCustomAuth()) {
-                    var defIdE = idE.replace("_Enabled", "_Default");
+                if (jQuery('#' + id).attr('checked')) {
+                    jQuery(defId).removeAttr('disabled');
+                }
+            }
+            jQuery('#oidcDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).attr('id') == 'passiveSTSDefault') {
+            jQuery('#openIdDefault').removeAttr('checked');
+            jQuery('#saml2SSODefault').removeAttr('checked');
+            jQuery('#oidcDefault').removeAttr('checked');
+            jQuery('#fbAuthDefault').removeAttr('checked');
+            if (jQuery('#openIdEnabled').attr('checked')) {
+                jQuery('#openIdDefault').removeAttr('disabled');
+            }
+            if (jQuery('#saml2SSOEnabled').attr('checked')) {
+                jQuery('#saml2SSODefault').removeAttr('disabled');
+            }
+            if (jQuery('#oidcEnabled').attr('checked')) {
+                jQuery('#oidcDefault').removeAttr('disabled');
+            }
+            if (jQuery('#fbAuthEnabled').attr('checked')) {
+                jQuery('#fbAuthDefault').removeAttr('disabled');
+            }
+            for (id in getEnabledCustomAuth()) {
+                var defId = '#' + id.replace("_Enabled", "_Default");
+                jQuery(defId).removeAttr('checked');
 
-                    if (jQuery(obj).attr('id') == defIdE) {
-                        //Nothing do
+                if (jQuery('#' + id).attr('checked')) {
+                    jQuery(defId).removeAttr('disabled');
+                }
+            }
+            jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).attr('id') == 'fbAuthDefault') {
+            jQuery('#openIdDefault').removeAttr('checked');
+            jQuery('#saml2SSODefault').removeAttr('checked');
+            jQuery('#oidcDefault').removeAttr('checked');
+            jQuery('#passiveSTSDefault').removeAttr('checked');
+            if (jQuery('#openIdEnabled').attr('checked')) {
+                jQuery('#openIdDefault').removeAttr('disabled');
+            }
+            if (jQuery('#saml2SSOEnabled').attr('checked')) {
+                jQuery('#saml2SSODefault').removeAttr('disabled');
+            }
+            if (jQuery('#oidcEnabled').attr('checked')) {
+                jQuery('#oidcDefault').removeAttr('disabled');
+            }
+            if (jQuery('#passiveSTSEnabled').attr('checked')) {
+                jQuery('#passiveSTSDefault').removeAttr('disabled');
+            }
+            for (id in getEnabledCustomAuth()) {
+                var defId = '#' + id.replace("_Enabled", "_Default");
+                jQuery(defId).removeAttr('checked');
+
+                if (jQuery('#' + id).attr('checked')) {
+                    jQuery(defId).removeAttr('disabled');
+                }
+            }
+            jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+        } else {
+            for (id in getEnabledCustomAuth()) {
+                var defId = id.replace("_Enabled", "_Default");
+                if (jQuery(obj).attr('id') == defId) {
+                    jQuery('#openIdDefault').removeAttr('checked');
+                    jQuery('#saml2SSODefault').removeAttr('checked');
+                    jQuery('#oidcDefault').removeAttr('checked');
+                    jQuery('#passiveSTSDefault').removeAttr('checked');
+                    jQuery('#fbAuthDefault').removeAttr('checked');
+
+                    if (jQuery('#openIdEnabled').attr('checked')) {
+                        jQuery('#openIdDefault').removeAttr('disabled');
                     }
-                    else {
-                        jQuery('#' + defIdE).removeAttr('checked');
-                        if (jQuery('#' + idE).attr('checked')) {
-                            jQuery('#' + defIdE).removeAttr('disabled');
+                    if (jQuery('#saml2SSOEnabled').attr('checked')) {
+                        jQuery('#saml2SSODefault').removeAttr('disabled');
+                    }
+                    if (jQuery('#oidcEnabled').attr('checked')) {
+                        jQuery('#oidcDefault').removeAttr('disabled');
+                    }
+                    if (jQuery('#passiveSTSEnabled').attr('checked')) {
+                        jQuery('#passiveSTSDefault').removeAttr('disabled');
+                    }
+                    if (jQuery('#fbAuthEnabled').attr('checked')) {
+                        jQuery('#fbAuthDefault').removeAttr('disabled');
+                    }
+
+                    for (idE in getEnabledCustomAuth()) {
+                        var defIdE = idE.replace("_Enabled", "_Default");
+
+                        if (jQuery(obj).attr('id') == defIdE) {
+                            //Nothing do
+                        }
+                        else {
+                            jQuery('#' + defIdE).removeAttr('checked');
+                            if (jQuery('#' + idE).attr('checked')) {
+                                jQuery('#' + defIdE).removeAttr('disabled');
+                            }
                         }
                     }
-                }
 
-                jQuery('#' + defId).attr('disabled', 'disabled');
+                    jQuery('#' + defId).attr('disabled', 'disabled');
+                }
             }
         }
     }
-}
 
-function checkProvEnabled(obj) {
+    function checkProvEnabled(obj) {
 
-    if (jQuery(obj).attr('checked')) {
-        if (jQuery(obj).attr('id') == 'googleProvEnabled') {
+        if (jQuery(obj).attr('checked')) {
+            if (jQuery(obj).attr('id') == 'googleProvEnabled') {
 
-            if (!jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
+                if (!jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
 
-                jQuery('#googleProvDefault').attr('checked', 'checked');
-                jQuery('#googleProvDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#googleProvDefault').removeAttr('disabled');
+                    jQuery('#googleProvDefault').attr('checked', 'checked');
+                    jQuery('#googleProvDefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#googleProvDefault').removeAttr('disabled');
+                }
+
+                jQuery('#google_enable_logo').show();
+
+            } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
+
+                if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
+
+                    jQuery('#sfProvDefault').attr('checked', 'checked');
+                    jQuery('#sfProvDefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#sfProvDefault').removeAttr('disabled');
+                }
+
+                jQuery('#sf_enable_logo').show();
+
+            } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
+
+                if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
+
+                    jQuery('#scimProvDefault').attr('checked', 'checked');
+                    jQuery('#scimProvDefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#scimProvDefault').removeAttr('disabled');
+                }
+
+                jQuery('#scim_enable_logo').show();
+
+            } else if (jQuery(obj).attr('id') == 'spmlProvEnabled') {
+
+                if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked')) {
+
+                    jQuery('#spmlProvDefault').attr('checked', 'checked');
+                    jQuery('#spmlProvDefault').attr('disabled', 'disabled');
+                } else {
+                    jQuery('#spmlProvDefault').removeAttr('disabled');
+                }
+
+                jQuery('#spml_enable_logo').show();
             }
+        } else {
+            if (jQuery(obj).attr('id') == 'googleProvEnabled') {
 
-            jQuery('#google_enable_logo').show();
+                if (jQuery('#sfProvEnabled').attr('checked') ||
+                        jQuery('#spmlProvEnabled').attr('checked') ||
+                        jQuery('#scimProvEnabled').attr('checked')) {
 
-        } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
-
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
-
-                jQuery('#sfProvDefault').attr('checked', 'checked');
-                jQuery('#sfProvDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#sfProvDefault').removeAttr('disabled');
-            }
-
-            jQuery('#sf_enable_logo').show();
-
-        } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
-
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
-
-                jQuery('#scimProvDefault').attr('checked', 'checked');
-                jQuery('#scimProvDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#scimProvDefault').removeAttr('disabled');
-            }
-
-            jQuery('#scim_enable_logo').show();
-
-        } else if (jQuery(obj).attr('id') == 'spmlProvEnabled') {
-
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked')) {
-
-                jQuery('#spmlProvDefault').attr('checked', 'checked');
-                jQuery('#spmlProvDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#spmlProvDefault').removeAttr('disabled');
-            }
-
-            jQuery('#spml_enable_logo').show();
-        }
-    } else {
-        if (jQuery(obj).attr('id') == 'googleProvEnabled') {
-
-            if (jQuery('#sfProvEnabled').attr('checked') ||
-                    jQuery('#spmlProvEnabled').attr('checked') ||
-                    jQuery('#scimProvEnabled').attr('checked')) {
-
-                if (jQuery('#googleProvDefault').attr('checked')) {
-                    //jQuery('#googleProvEnabled').attr('checked','checked');
-                    // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#googleProvDefault').attr('checked')) {
+                        //jQuery('#googleProvEnabled').attr('checked','checked');
+                        // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#googleProvDefault').attr('disabled', 'disabled');
+                        jQuery('#googleProvDefault').removeAttr('checked');
+                        jQuery('#google_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#googleProvDefault').attr('disabled', 'disabled');
                     jQuery('#googleProvDefault').removeAttr('checked');
                     jQuery('#google_enable_logo').hide();
                 }
-            } else {
-                jQuery('#googleProvDefault').attr('disabled', 'disabled');
-                jQuery('#googleProvDefault').removeAttr('checked');
-                jQuery('#google_enable_logo').hide();
-            }
 
-        } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
+            } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
 
-            if (jQuery('#googleProvEnabled').attr('checked') ||
-                    jQuery('#spmlProvEnabled').attr('checked') ||
-                    jQuery('#scimProvEnabled').attr('checked')) {
+                if (jQuery('#googleProvEnabled').attr('checked') ||
+                        jQuery('#spmlProvEnabled').attr('checked') ||
+                        jQuery('#scimProvEnabled').attr('checked')) {
 
-                if (jQuery('#sfProvDefault').attr('checked')) {
-                    // jQuery('#sfProvEnabled').attr('checked','checked');
-                    // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#sfProvDefault').attr('checked')) {
+                        // jQuery('#sfProvEnabled').attr('checked','checked');
+                        // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#sfProvDefault').attr('disabled', 'disabled');
+                        jQuery('#sfProvDefault').removeAttr('checked');
+                        jQuery('#sf_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#sfProvDefault').attr('disabled', 'disabled');
                     jQuery('#sfProvDefault').removeAttr('checked');
                     jQuery('#sf_enable_logo').hide();
                 }
-            } else {
-                jQuery('#sfProvDefault').attr('disabled', 'disabled');
-                jQuery('#sfProvDefault').removeAttr('checked');
-                jQuery('#sf_enable_logo').hide();
-            }
 
-        } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
+            } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
 
-            if (jQuery('#sfProvEnabled').attr('checked') ||
-                    jQuery('#spmlProvEnabled').attr('checked') ||
-                    jQuery('#googleProvEnabled').attr('checked')) {
+                if (jQuery('#sfProvEnabled').attr('checked') ||
+                        jQuery('#spmlProvEnabled').attr('checked') ||
+                        jQuery('#googleProvEnabled').attr('checked')) {
 
-                if (jQuery('#scimProvDefault').attr('checked')) {
-                    // jQuery('#scimProvEnabled').attr('checked','checked');
-                    // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#scimProvDefault').attr('checked')) {
+                        // jQuery('#scimProvEnabled').attr('checked','checked');
+                        // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#scimProvDefault').attr('disabled', 'disabled');
+                        jQuery('#scimProvDefault').removeAttr('checked');
+                        jQuery('#scim_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#scimProvDefault').attr('disabled', 'disabled');
                     jQuery('#scimProvDefault').removeAttr('checked');
                     jQuery('#scim_enable_logo').hide();
                 }
-            } else {
-                jQuery('#scimProvDefault').attr('disabled', 'disabled');
-                jQuery('#scimProvDefault').removeAttr('checked');
-                jQuery('#scim_enable_logo').hide();
-            }
 
-        } else if (jQuery(obj).attr('id') == 'spmlProvEnabled') {
+            } else if (jQuery(obj).attr('id') == 'spmlProvEnabled') {
 
-            if (jQuery('#sfProvEnabled').attr('checked') ||
-                    jQuery('#scimProvEnabled').attr('checked') ||
-                    jQuery('#googleProvEnabled').attr('checked')) {
+                if (jQuery('#sfProvEnabled').attr('checked') ||
+                        jQuery('#scimProvEnabled').attr('checked') ||
+                        jQuery('#googleProvEnabled').attr('checked')) {
 
-                if (jQuery('#spmlProvDefault').attr('checked')) {
-                    // jQuery('#spmlProvEnabled').attr('checked','checked');
-                    // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    if (jQuery('#spmlProvDefault').attr('checked')) {
+                        // jQuery('#spmlProvEnabled').attr('checked','checked');
+                        // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
+                    } else {
+                        jQuery('#spmlProvDefault').attr('disabled', 'disabled');
+                        jQuery('#spmlProvDefault').removeAttr('checked');
+                        jQuery('#spml_enable_logo').hide();
+                    }
                 } else {
                     jQuery('#spmlProvDefault').attr('disabled', 'disabled');
                     jQuery('#spmlProvDefault').removeAttr('checked');
                     jQuery('#spml_enable_logo').hide();
                 }
-            } else {
-                jQuery('#spmlProvDefault').attr('disabled', 'disabled');
-                jQuery('#spmlProvDefault').removeAttr('checked');
-                jQuery('#spml_enable_logo').hide();
             }
         }
     }
-}
 
-function checkProvDefault(obj) {
-    if (jQuery(obj).attr('id') == 'googleProvDefault') {
-        jQuery('#sfProvDefault').removeAttr('checked');
-        jQuery('#scimProvDefault').removeAttr('checked');
-        jQuery('#spmlProvDefault').removeAttr('checked');
-        if (jQuery('#sfProvEnabled').attr('checked')) {
-            jQuery('#sfProvDefault').removeAttr('disabled');
+    function checkProvDefault(obj) {
+        if (jQuery(obj).attr('id') == 'googleProvDefault') {
+            jQuery('#sfProvDefault').removeAttr('checked');
+            jQuery('#scimProvDefault').removeAttr('checked');
+            jQuery('#spmlProvDefault').removeAttr('checked');
+            if (jQuery('#sfProvEnabled').attr('checked')) {
+                jQuery('#sfProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#scimProvEnabled').attr('checked')) {
+                jQuery('#scimProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#spmlProvEnabled').attr('checked')) {
+                jQuery('#spmlProvDefault').removeAttr('disabled');
+            }
+            jQuery('#googleProvDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).attr('id') == 'sfProvDefault') {
+            jQuery('#googleProvDefault').removeAttr('checked');
+            jQuery('#scimProvDefault').removeAttr('checked');
+            jQuery('#spmlProvDefault').removeAttr('checked');
+            if (jQuery('#googleProvEnabled').attr('checked')) {
+                jQuery('#googleProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#scimProvEnabled').attr('checked')) {
+                jQuery('#scimProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#spmlProvEnabled').attr('checked')) {
+                jQuery('#spmlProvDefault').removeAttr('disabled');
+            }
+            jQuery('#sfProvDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).attr('id') == 'scimProvDefault') {
+            jQuery('#googleProvDefault').removeAttr('checked');
+            jQuery('#sfProvDefault').removeAttr('checked');
+            jQuery('#spmlProvDefault').removeAttr('checked');
+            if (jQuery('#googleProvEnabled').attr('checked')) {
+                jQuery('#googleProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#spmlProvEnabled').attr('checked')) {
+                jQuery('#spmlProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#sfProvEnabled').attr('checked')) {
+                jQuery('#sfProvDefault').removeAttr('disabled');
+            }
+            jQuery('#scimProvDefault').attr('disabled', 'disabled');
+        } else if (jQuery(obj).attr('id') == 'spmlProvDefault') {
+            jQuery('#googleProvDefault').removeAttr('checked');
+            jQuery('#sfProvDefault').removeAttr('checked');
+            jQuery('#scimProvDefault').removeAttr('checked');
+            if (jQuery('#openIdEnabled').attr('checked')) {
+                jQuery('#googleProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#googleProvEnabled').attr('checked')) {
+                jQuery('#sfProvDefault').removeAttr('disabled');
+            }
+            if (jQuery('#scimProvEnabled').attr('checked')) {
+                jQuery('#scimProvDefault').removeAttr('disabled');
+            }
+            jQuery('#spmlProvDefault').attr('disabled', 'disabled');
         }
-        if (jQuery('#scimProvEnabled').attr('checked')) {
-            jQuery('#scimProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#spmlProvEnabled').attr('checked')) {
-            jQuery('#spmlProvDefault').removeAttr('disabled');
-        }
-        jQuery('#googleProvDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'sfProvDefault') {
-        jQuery('#googleProvDefault').removeAttr('checked');
-        jQuery('#scimProvDefault').removeAttr('checked');
-        jQuery('#spmlProvDefault').removeAttr('checked');
-        if (jQuery('#googleProvEnabled').attr('checked')) {
-            jQuery('#googleProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#scimProvEnabled').attr('checked')) {
-            jQuery('#scimProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#spmlProvEnabled').attr('checked')) {
-            jQuery('#spmlProvDefault').removeAttr('disabled');
-        }
-        jQuery('#sfProvDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'scimProvDefault') {
-        jQuery('#googleProvDefault').removeAttr('checked');
-        jQuery('#sfProvDefault').removeAttr('checked');
-        jQuery('#spmlProvDefault').removeAttr('checked');
-        if (jQuery('#googleProvEnabled').attr('checked')) {
-            jQuery('#googleProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#spmlProvEnabled').attr('checked')) {
-            jQuery('#spmlProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#sfProvEnabled').attr('checked')) {
-            jQuery('#sfProvDefault').removeAttr('disabled');
-        }
-        jQuery('#scimProvDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'spmlProvDefault') {
-        jQuery('#googleProvDefault').removeAttr('checked');
-        jQuery('#sfProvDefault').removeAttr('checked');
-        jQuery('#scimProvDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#googleProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#googleProvEnabled').attr('checked')) {
-            jQuery('#sfProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#scimProvEnabled').attr('checked')) {
-            jQuery('#scimProvDefault').removeAttr('disabled');
-        }
-        jQuery('#spmlProvDefault').attr('disabled', 'disabled');
     }
-}
 
-function idpMgtUpdate() {
-    if (doValidation()) {
-        var allDeletedClaimStr = "";
-        for (var i = 0; i < deleteClaimRows.length; i++) {
-            if (i < deleteClaimRows.length - 1) {
-                allDeletedClaimStr += deleteClaimRows[i] + ", ";
-            } else {
-                allDeletedClaimStr += deleteClaimRows[i] + "?";
+    function idpMgtUpdate() {
+        document.getElementById("meta_data_saml").value = "";
+        if (doValidation()) {
+            var allDeletedClaimStr = "";
+            for (var i = 0; i < deleteClaimRows.length; i++) {
+                if (i < deleteClaimRows.length - 1) {
+                    allDeletedClaimStr += deleteClaimRows[i] + ", ";
+                } else {
+                    allDeletedClaimStr += deleteClaimRows[i] + "?";
+                }
             }
-        }
-        var allDeletedRoleStr = "";
-        for (var i = 0; i < deletedRoleRows.length; i++) {
-            if (i < deletedRoleRows.length - 1) {
-                allDeletedRoleStr += deletedRoleRows[i] + ", ";
-            } else {
-                allDeletedRoleStr += deletedRoleRows[i] + "?";
+            var allDeletedRoleStr = "";
+            for (var i = 0; i < deletedRoleRows.length; i++) {
+                if (i < deletedRoleRows.length - 1) {
+                    allDeletedRoleStr += deletedRoleRows[i] + ", ";
+                } else {
+                    allDeletedRoleStr += deletedRoleRows[i] + "?";
+                }
             }
-        }
 
-        if (jQuery('#deletePublicCert').val() == 'true') {
-            var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
-                    jQuery('#idPName').val() + '?';
-            if (jQuery('#certFile').val() != '') {
-                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-            }
-            CARBON.showConfirmationDialog(confirmationMessage,
-                    function () {
-                        if (allDeletedClaimStr != "") {
-                            CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                                    allDeletedClaimStr,
-                                    function () {
-                                        if (allDeletedRoleStr != "") {
-                                            CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                    'role(s) ' + allDeletedRoleStr,
-                                                    function () {
-                                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Claim URI Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
-                                                            if (jQuery('#claimMappingFile').val() != '') {
-                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                            }
-                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                                    'delete the Role Mappings of ' +
-                                                                                    jQuery('#idPName').val() + '?';
-                                                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                            }
-                                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                    function () {
-                                                                                        doEditFinish();
-                                                                                    },
-                                                                                    function () {
-                                                                                        location.href =
-                                                                                                "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                    });
-                                                                        } else {
-                                                                            doEditFinish();
-                                                                        }
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
-                                                        } else {
-                                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+            if (jQuery('#deletePublicCert').val() == 'true') {
+                var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
+                        jQuery('#idPName').val() + '?';
+                if (jQuery('#certFile').val() != '') {
+                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                }
+                CARBON.showConfirmationDialog(confirmationMessage,
+                        function () {
+                            if (allDeletedClaimStr != "") {
+                                CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                        allDeletedClaimStr,
+                                        function () {
+                                            if (allDeletedRoleStr != "") {
+                                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                        'role(s) ' + allDeletedRoleStr,
+                                                        function () {
+                                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
                                                                 var confirmationMessage = 'Are you sure you want to ' +
-                                                                        'delete the Role Mappings of ' +
+                                                                        'delete the Claim URI Mappings of ' +
                                                                         jQuery('#idPName').val() + '?';
-                                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                                if (jQuery('#claimMappingFile').val() != '') {
                                                                     confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                                 }
                                                                 CARBON.showConfirmationDialog(confirmationMessage,
                                                                         function () {
-                                                                            doEditFinish();
+                                                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                                                        'delete the Role Mappings of ' +
+                                                                                        jQuery('#idPName').val() + '?';
+                                                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                                }
+                                                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                        function () {
+                                                                                            doEditFinish();
+                                                                                        },
+                                                                                        function () {
+                                                                                            location.href =
+                                                                                                    "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                        });
+                                                                            } else {
+                                                                                doEditFinish();
+                                                                            }
                                                                         },
                                                                         function () {
-                                                                            location.href =
-                                                                                    "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                                         });
                                                             } else {
-                                                                doEditFinish();
+                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                            'delete the Role Mappings of ' +
+                                                                            jQuery('#idPName').val() + '?';
+                                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                    }
+                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                            function () {
+                                                                                doEditFinish();
+                                                                            },
+                                                                            function () {
+                                                                                location.href =
+                                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                            });
+                                                                } else {
+                                                                    doEditFinish();
+                                                                }
                                                             }
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                            } else {
+                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                            'delete the Claim URI mappings of ' +
+                                                            jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#claimMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                            function () {
+
+                                                            },
+                                                            function () {
+                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                            });
+                                                } else {
+                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                         }
-                                                    },
-                                                    function () {
-                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                    });
-                                        } else {
-                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                        'delete the Claim URI mappings of ' +
-                                                        jQuery('#idPName').val() + '?';
-                                                if (jQuery('#claimMappingFile').val() != '') {
-                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                }
-                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                        function () {
-
-                                                        },
-                                                        function () {
-                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                        });
-                                            } else {
-                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Role Mappings of ' +
-                                                            jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#roleMappingFile').val() != '') {
-                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        doEditFinish();
                                                     }
-                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                            function () {
-                                                                doEditFinish();
-                                                            },
-                                                            function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                            });
-                                                } else {
-                                                    doEditFinish();
-                                                }
-                                            }
-                                        }
-                                    },
-                                    function () {
-                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                    });
-                        } else {
-                            if (allDeletedRoleStr != "") {
-                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                        'role(s) ' + allDeletedRoleStr,
-                                        function () {
-                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                        'delete the Claim URI mappings of ' +
-                                                        jQuery('#idPName').val() + '?';
-                                                if (jQuery('#claimMappingFile').val() != '') {
-                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                }
-                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                        function () {
-
-                                                        },
-                                                        function () {
-                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                        });
-                                            } else {
-                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Role Mappings of ' +
-                                                            jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#roleMappingFile').val() != '') {
-                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                    }
-                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                            function () {
-                                                                doEditFinish();
-                                                            },
-                                                            function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                            });
-                                                } else {
-                                                    doEditFinish();
-                                                }
-                                            }
-                                        },
-                                        function () {
-                                            location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
-                                        });
-                            } else {
-                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                    var confirmationMessage = 'Are you sure you want to ' +
-                                            'delete the Claim URI mappings of ' +
-                                            jQuery('#idPName').val() + '?';
-                                    if (jQuery('#claimMappingFile').val() != '') {
-                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                    }
-                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                            function () {
-                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Role Mappings of ' +
-                                                            jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#roleMappingFile').val() != '') {
-                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                    }
-                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                            function () {
-                                                                doEditFinish();
-                                                            },
-                                                            function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                            });
-                                                } else {
-                                                    doEditFinish();
-                                                }
-                                            },
-                                            function () {
-                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                            });
-                                } else {
-                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                'delete the Role Mappings of ' +
-                                                jQuery('#idPName').val() + '?';
-                                        if (jQuery('#roleMappingFile').val() != '') {
-                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                        }
-                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                function () {
-                                                    doEditFinish();
-                                                },
-                                                function () {
-                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                });
-                                    } else {
-                                        doEditFinish();
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    function () {
-                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                    });
-        } else {
-            if (allDeletedClaimStr != "") {
-                CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                        allDeletedClaimStr,
-                        function () {
-                            if (allDeletedRoleStr != "") {
-                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                        'role(s) ' + allDeletedRoleStr,
-                                        function () {
-                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                        'delete the Claim URI mappings of ' +
-                                                        jQuery('#idPName').val() + '?';
-                                                if (jQuery('#claimMappingFile').val() != '') {
-                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                }
-                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                        function () {
-
-                                                        },
-                                                        function () {
-                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                        });
-                                            } else {
-                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Role Mappings of ' +
-                                                            jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#roleMappingFile').val() != '') {
-                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                    }
-                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                            function () {
-                                                                doEditFinish();
-                                                            },
-                                                            function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                            });
-                                                } else {
-                                                    doEditFinish();
                                                 }
                                             }
                                         },
@@ -2779,53 +2636,96 @@ function idpMgtUpdate() {
                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                         });
                             } else {
-                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                    var confirmationMessage = 'Are you sure you want to ' +
-                                            'delete the Claim URI mappings of ' +
-                                            jQuery('#idPName').val() + '?';
-                                    if (jQuery('#claimMappingFile').val() != '') {
-                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                    }
-                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                if (allDeletedRoleStr != "") {
+                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                            'role(s) ' + allDeletedRoleStr,
                                             function () {
-                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
                                                     var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Role Mappings of ' +
+                                                            'delete the Claim URI mappings of ' +
                                                             jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                    if (jQuery('#claimMappingFile').val() != '') {
                                                         confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                     }
                                                     CARBON.showConfirmationDialog(confirmationMessage,
                                                             function () {
-                                                                doEditFinish();
+
                                                             },
                                                             function () {
                                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                             });
                                                 } else {
-                                                    doEditFinish();
+                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        doEditFinish();
+                                                    }
                                                 }
                                             },
                                             function () {
-                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
                                             });
                                 } else {
-                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
                                         var confirmationMessage = 'Are you sure you want to ' +
-                                                'delete the Role Mappings of ' +
+                                                'delete the Claim URI mappings of ' +
                                                 jQuery('#idPName').val() + '?';
-                                        if (jQuery('#roleMappingFile').val() != '') {
+                                        if (jQuery('#claimMappingFile').val() != '') {
                                             confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                         }
                                         CARBON.showConfirmationDialog(confirmationMessage,
                                                 function () {
-                                                    doEditFinish();
+                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        doEditFinish();
+                                                    }
                                                 },
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                 });
                                     } else {
-                                        doEditFinish();
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            doEditFinish();
+                                        }
                                     }
                                 }
                             }
@@ -2834,57 +2734,100 @@ function idpMgtUpdate() {
                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                         });
             } else {
-                if (allDeletedRoleStr != "") {
-                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                            'role(s) ' + allDeletedRoleStr,
+                if (allDeletedClaimStr != "") {
+                    CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                            allDeletedClaimStr,
                             function () {
-                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                    var confirmationMessage = 'Are you sure you want to ' +
-                                            'delete the Claim URI mappings of ' +
-                                            jQuery('#idPName').val() + '?';
-                                    if (jQuery('#claimMappingFile').val() != '') {
-                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                    }
-                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                if (allDeletedRoleStr != "") {
+                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                            'role(s) ' + allDeletedRoleStr,
                                             function () {
-                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
                                                     var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Role Mappings of ' +
+                                                            'delete the Claim URI mappings of ' +
                                                             jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                    if (jQuery('#claimMappingFile').val() != '') {
                                                         confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                     }
                                                     CARBON.showConfirmationDialog(confirmationMessage,
                                                             function () {
-                                                                doEditFinish();
+
                                                             },
                                                             function () {
                                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                             });
                                                 } else {
-                                                    doEditFinish();
+                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        doEditFinish();
+                                                    }
                                                 }
                                             },
                                             function () {
                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                             });
                                 } else {
-                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
                                         var confirmationMessage = 'Are you sure you want to ' +
-                                                'delete the Role Mappings of ' +
+                                                'delete the Claim URI mappings of ' +
                                                 jQuery('#idPName').val() + '?';
-                                        if (jQuery('#roleMappingFile').val() != '') {
+                                        if (jQuery('#claimMappingFile').val() != '') {
                                             confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                         }
                                         CARBON.showConfirmationDialog(confirmationMessage,
                                                 function () {
-                                                    doEditFinish();
+                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        doEditFinish();
+                                                    }
                                                 },
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                 });
                                     } else {
-                                        doEditFinish();
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            doEditFinish();
+                                        }
                                     }
                                 }
                             },
@@ -2892,2733 +2835,3965 @@ function idpMgtUpdate() {
                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                             });
                 } else {
-                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                        var confirmationMessage = 'Are you sure you want to ' +
-                                'delete the Claim URI mappings of ' +
-                                jQuery('#idPName').val() + '?';
-                        if (jQuery('#claimMappingFile').val() != '') {
-                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                        }
-                        CARBON.showConfirmationDialog(confirmationMessage,
+                    if (allDeletedRoleStr != "") {
+                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                'role(s) ' + allDeletedRoleStr,
                                 function () {
-                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
                                         var confirmationMessage = 'Are you sure you want to ' +
-                                                'delete the Role Mappings of ' +
+                                                'delete the Claim URI mappings of ' +
                                                 jQuery('#idPName').val() + '?';
-                                        if (jQuery('#roleMappingFile').val() != '') {
+                                        if (jQuery('#claimMappingFile').val() != '') {
                                             confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                         }
                                         CARBON.showConfirmationDialog(confirmationMessage,
                                                 function () {
-                                                    doEditFinish();
+                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        doEditFinish();
+                                                    }
                                                 },
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                 });
                                     } else {
-                                        doEditFinish();
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            doEditFinish();
+                                        }
                                     }
                                 },
                                 function () {
                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                 });
                     } else {
-                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                        if (jQuery('#deleteClaimMappings').val() == 'true') {
                             var confirmationMessage = 'Are you sure you want to ' +
-                                    'delete the Role Mappings of ' +
+                                    'delete the Claim URI mappings of ' +
                                     jQuery('#idPName').val() + '?';
-                            if (jQuery('#roleMappingFile').val() != '') {
+                            if (jQuery('#claimMappingFile').val() != '') {
                                 confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                             }
                             CARBON.showConfirmationDialog(confirmationMessage,
                                     function () {
-                                        doEditFinish();
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            doEditFinish();
+                                        }
                                     },
                                     function () {
                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                     });
                         } else {
-                            doEditFinish();
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-function doEditFinish() {
-    jQuery('#primary').removeAttr('disabled');
-    jQuery('#openIdEnabled').removeAttr('disabled');
-    jQuery('#saml2SSOEnabled').removeAttr('disabled');
-    jQuery('#oidcEnabled').removeAttr('disabled');
-    jQuery('#passiveSTSEnabled').removeAttr('disabled');
-    jQuery('#fbAuthEnabled').removeAttr('disabled');
-    jQuery('#openIdDefault').removeAttr('disabled');
-    jQuery('#saml2SSODefault').removeAttr('disabled');
-    jQuery('#oidcDefault').removeAttr('disabled');
-    jQuery('#passiveSTSDefault').removeAttr('disabled');
-    jQuery('#fbAuthDefault').removeAttr('disabled');
-    jQuery('#googleProvDefault').removeAttr('disabled');
-    jQuery('#spmlProvDefault').removeAttr('disabled');
-    jQuery('#sfProvDefault').removeAttr('disabled');
-    jQuery('#scimProvDefault').removeAttr('disabled');
-
-    for (id in getEnabledCustomAuth()) {
-        var defId = '#' + id.replace("_Enabled", "_Default");
-        jQuery(defId).removeAttr('disabled');
-    }
-    <% if(idPName == null || idPName.equals("")){ %>
-    jQuery('#idp-mgt-edit-form').attr('action', 'idp-mgt-add-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>');
-    <% } %>
-    jQuery('#idp-mgt-edit-form').submit();
-}
-function idpMgtCancel() {
-    location.href = "idp-mgt-list.jsp"
-}
-
-function showHidePassword(element, inputId) {
-    if ($(element).text() == 'Show') {
-        document.getElementById(inputId).type = 'text';
-        $(element).text('Hide');
-    } else {
-        document.getElementById(inputId).type = 'password';
-        $(element).text('Show');
-    }
-}
-
-function emailValidator(name) {
-    var errorMsg = "";
-    var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    if (name == "") {
-        errorMsg = "null";
-    } else if (!name.match(new RegExp(emailPattern))) {
-        errorMsg = "notValied";
-    }
-    return errorMsg;
-}
-
-function doValidation() {
-    var reason = "";
-    reason = validateEmpty("idPName");
-    if (reason != "") {
-        CARBON.showWarningDialog("Name of IdP cannot be empty");
-        return false;
-    }
-
-    if (jQuery('#openIdEnabled').attr('checked')) {
-
-        if ($('#openIdUrl').val() == "") {
-            CARBON.showWarningDialog('OpenID Server URL cannot be empty');
-            return false;
-        }
-    }
-
-    if (jQuery('#saml2SSOEnabled').attr('checked')) {
-
-        if ($('#idPEntityId').val() == "") {
-            CARBON.showWarningDialog('Identity Provider Entity Id cannot be empty');
-            return false;
-        }
-
-        if ($('#spEntityId').val() == "") {
-            CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
-            return false;
-        }
-
-        if ($('#ssoUrl').val() == "") {
-            CARBON.showWarningDialog('SSO URL cannot be empty');
-            return false;
-        }
-
-    }
-
-    if (jQuery('#oidcEnabled').attr('checked')) {
-
-        if ($('#authzUrl').val() == "") {
-            CARBON.showWarningDialog('OAuth2/OpenId  Authorization Endpoint URL cannot be empty');
-            return false;
-        }
-
-        if ($('#tokenUrl').val() == "") {
-            CARBON.showWarningDialog('OAuth2/OpenId Token Endpoint URL cannot be empty');
-            return false;
-        }
-
-        if ($('#clientId').val() == "") {
-            CARBON.showWarningDialog('OAuth2/OpenId Client Id cannot be empty');
-            return false;
-        }
-
-        if ($('#clientSecret').val() == "") {
-            CARBON.showWarningDialog('OAuth2/OpenId Client Secret cannot be empty');
-            return false;
-        }
-
-    }
-
-    if (jQuery('#passiveSTSEnabled').attr('checked')) {
-
-        if ($('#passiveSTSRealm').val() == "") {
-            CARBON.showWarningDialog('Passive STS Realm cannot be empty');
-            return false;
-        }
-
-        if ($('#passiveSTSUrl').val() == "") {
-            CARBON.showWarningDialog('Passive STS URL cannot be empty');
-            return false;
-        }
-    }
-
-    if (jQuery('#fbAuthEnabled').attr('checked')) {
-
-        if ($('#fbClientId').val() == "") {
-            CARBON.showWarningDialog('Facebook Client Id cannot be empty');
-            return false;
-        }
-
-        if ($('#fbClientSecret').val() == "") {
-            CARBON.showWarningDialog('Facebook Client Secret cannot be empty');
-            return false;
-        }
-    }
-
-
-    if (jQuery('#googleProvEnabled').attr('checked')) {
-
-        if ($('#google_prov_domain_name').val() == "") {
-            CARBON.showWarningDialog('Google Domain cannot be empty');
-            return false;
-        }
-
-
-        var errorMsg = emailValidator($('#google_prov_service_acc_email').val());
-        if (errorMsg == "null") {
-            CARBON.showWarningDialog('Google connector Service Account Email cannot be empty');
-            return false;
-        } else if (errorMsg == "notValied") {
-            CARBON.showWarningDialog('Google connector Service Account Email is not valid');
-            return false;
-        }
-
-        var errorMsgAdmin = emailValidator($('#google_prov_admin_email').val());
-        if (errorMsgAdmin == "null") {
-            CARBON.showWarningDialog('Google connector Administrator\'s Email cannot be empty');
-            return false;
-        } else if (errorMsgAdmin == "notValied") {
-            CARBON.showWarningDialog('Google connector Administrator\'s Email is not valid');
-            return false;
-        }
-
-
-        if ($('#google_prov_application_name').val() == "") {
-            CARBON.showWarningDialog('Google connector Application Name cannot be empty');
-            return false;
-        }
-
-        if ($('#google_prov_email_claim_dropdown').val() == "") {
-            CARBON.showWarningDialog('Google connector Primary Email claim URI should be selected ');
-            return false;
-        }
-
-        if ($('#google_prov_givenname_claim_dropdown').val() == "") {
-            CARBON.showWarningDialog('Google connector Given Name claim URI should be selected ');
-            return false;
-        }
-
-        if ($('#google_prov_familyname_claim_dropdown').val() == "") {
-            CARBON.showWarningDialog('Google connector Family Name claim URI should be selected ');
-            return false;
-        }
-
-    }
-
-    if (jQuery('#sfProvEnabled').attr('checked')) {
-
-        if ($('#sf-api-version').val() == "") {
-            CARBON.showWarningDialog('Salesforce Provisioning Configuration API version cannot be empty');
-            return false;
-        }
-
-        if ($('#sf-domain-name').val() == "") {
-            CARBON.showWarningDialog('Salesforce Provisioning Configuration Domain Name cannot be empty');
-            return false;
-        }
-
-        if ($('#sf-clientid').val() == "") {
-            CARBON.showWarningDialog('Salesforce Provisioning Configuration Client Id cannot be empty');
-            return false;
-        }
-
-        if ($('#sf-client-secret').val() == "") {
-            CARBON.showWarningDialog('Salesforce Provisioning Configuration Client Secret cannot be empty');
-            return false;
-        }
-
-        if ($('#sf-username').val() == "") {
-            CARBON.showWarningDialog('Salesforce Provisioning Configuration Username cannot be empty');
-            return false;
-        }
-
-        if ($('#sf-password').val() == "") {
-            CARBON.showWarningDialog('Salesforce Provisioning Configuration Password cannot be empty');
-            return false;
-        }
-
-        if ($('#sf-token-endpoint').val() == "") {
-            CARBON.showWarningDialog('Salesforce Provisioning Configuration Oauth2 Token Endpoint cannot be empty');
-            return false;
-        }
-    }
-
-
-    if (jQuery('#scimProvEnabled').attr('checked')) {
-
-        if ($('#scim-username').val() == "") {
-            CARBON.showWarningDialog('Scim Configuration username cannot be empty');
-            return false;
-        }
-
-        if ($('#scim-password').val() == "") {
-            CARBON.showWarningDialog('Scim Configuration password cannot be empty');
-            return false;
-        }
-
-        if ($('#scim-user-ep').val() == "") {
-            CARBON.showWarningDialog('Scim Configuration User endpoint cannot be empty');
-            return false;
-        }
-    }
-
-    if (jQuery('#spmlProvEnabled').attr('checked')) {
-
-        if ($('#spml-ep').val() == "") {
-            CARBON.showWarningDialog('SPML Endpoint cannot be empty');
-            return false;
-        }
-
-        if ($('#spml-oc').val() == "") {
-            CARBON.showWarningDialog('SPML Object class cannot be empty');
-            return false;
-        }
-
-    }
-
-    for (var i = 0; i <= claimRowId; i++) {
-        if (document.getElementsByName('claimrowname_' + i)[0] != null) {
-            reason = validateEmpty('claimrowname_' + i);
-            if (reason != "") {
-                CARBON.showWarningDialog("Claim URI strings cannot be of zero length");
-                return false;
-            }
-        }
-    }
-
-    for (var i = 0; i <= roleRowId; i++) {
-        if (document.getElementsByName('rolerowname_' + i)[0] != null) {
-            reason = validateEmpty('rolerowname_' + i);
-            if (reason != "") {
-                CARBON.showWarningDialog("Role name strings cannot be of zero length");
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-</script>
-
-<fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
-<div id="middle">
-<h2>
-    <fmt:message key='add.identity.provider'/>
-</h2>
-
-<div id="workArea">
-<form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post" action="idp-mgt-edit-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>"
-      enctype="multipart/form-data">
-    <% if(idPName != null && idpUniqueIdMap.get(idPName) != null) { %>
-        <input type="hidden" name="idpUUID" value="<%= Encode.forHtmlAttribute(idpUniqueIdMap.get(idPName).toString()) %>"/>
-    <% } %>
-    <div class="sectionSeperator togglebleTitle"><fmt:message key='identity.provider.info'/></div>
-    <div class="sectionSub">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='name'/>:<span class="required">*</span></td>
-            <td>
-                <input id="idPName" name="idPName" type="text" value="<%=Encode.forHtmlAttribute(idPName)%>" autofocus/>
-                <%if (identityProvider != null && identityProvider.getEnable()) { %>
-                <input id="enable" name="enable" type="hidden" value="1">
-                <%} %>
-                <div class="sectionHelp">
-                    <fmt:message key='name.help'/>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='idp.display.name'/>:</td>
-            <td>
-                <input id="idpDisplayName" name="idpDisplayName" type="text"
-                       value="<%=Encode.forHtmlAttribute(idpDisplayName)%>" autofocus/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='idp.display.name.help'/>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='description'/></td>
-            <td>
-                <input id="idPDescription" name="idPDescription" type="text"
-                       value="<%=Encode.forHtmlAttribute(description)%>" autofocus/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='description.help'/>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="federationHub"><fmt:message key='federation.hub.identity.proider'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input type="checkbox" id="federation_hub_idp"
-                           name="federation_hub_idp" <%=federationHubIdp ? "checked" : "" %>>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='federation.hub.identity.proider.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='home.realm.id'/>:</td>
-            <td>
-                <input id="realmId" name="realmId" type="text" value="<%=Encode.forHtmlAttribute(realmId)%>" autofocus/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='home.realm.id.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
-            <td>
-                <input id="certFile" name="certFile" type="file"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='certificate.help'/>
-                </div>
-                <div id="publicCertDiv">
-                    <% if (certData != null) { %>
-                    <a id="publicCertDeleteLink" class="icon-link"
-                       style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
-                            key='public.cert.delete'/></a>
-
-                    <div style="clear:both"></div>
-                    <table class="styledLeft">
-                        <thead>
-                        <tr>
-                            <th><fmt:message key='issuerdn'/></th>
-                            <th><fmt:message key='subjectdn'/></th>
-                            <th><fmt:message key='notafter'/></th>
-                            <th><fmt:message key='notbefore'/></th>
-                            <th><fmt:message key='serialno'/></th>
-                            <th><fmt:message key='version'/></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td><%
-                                String issuerDN = "";
-                                if (certData.getIssuerDN() != null) {
-                                    issuerDN = certData.getIssuerDN();
+                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                var confirmationMessage = 'Are you sure you want to ' +
+                                        'delete the Role Mappings of ' +
+                                        jQuery('#idPName').val() + '?';
+                                if (jQuery('#roleMappingFile').val() != '') {
+                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                 }
-                            %><%=Encode.forHtmlContent(issuerDN)%>
-                            </td>
-                            <td><%
-                                String subjectDN = "";
-                                if (certData.getSubjectDN() != null) {
-                                    subjectDN = certData.getSubjectDN();
-                                }
-                            %><%=Encode.forHtmlContent(subjectDN)%>
-                            </td>
-                            <td><%
-                                String notAfter = "";
-                                if (certData.getNotAfter() != null) {
-                                    notAfter = certData.getNotAfter();
-                                }
-                            %><%=Encode.forHtmlContent(notAfter)%>
-                            </td>
-                            <td><%
-                                String notBefore = "";
-                                if (certData.getNotBefore() != null) {
-                                    notBefore = certData.getNotBefore();
-                                }
-                            %><%=Encode.forHtmlContent(notBefore)%>
-                            </td>
-                            <td><%
-                                String serialNo = "";
-                                if (certData.getSerialNumber() != null) {
-                                    serialNo = certData.getSerialNumber().toString();
-                                }
-                            %><%=Encode.forHtmlContent(serialNo)%>
-                            </td>
-                            <td><%=certData.getVersion()%>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <% } %>
-                </div>
-            </td>
-        </tr>
-
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='resident.idp.alias'/>:</td>
-            <td>
-                <input id="tokenEndpointAlias" name="tokenEndpointAlias" type="text" value="<%=Encode.forHtmlAttribute(idPAlias)%>" autofocus/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='resident.idp.alias.help'/>
-                </div>
-            </td>
-        </tr>
-
-    </table>
-</div>
-
-
-<h2 id="claim_config_head" class="sectionSeperator trigger active"><a href="#"><fmt:message
-        key="claim.config.head"/></a>
-</h2>
-
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="claimConfig">
-
-<h2 id="basic_claim_config_head" class="sectionSeperator trigger active" style="background-color: beige;">
-    <a href="#"><fmt:message key="basic.cliam.config"/></a>
-</h2>
-
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="baisClaimLinkRow">
-
-    <table>
-
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='select_dialet_type'/>:</td>
-            <td>
-                <label style="display:block">
-                    <input type="radio" id="choose_dialet_type1" name="choose_dialet_type_group"
-                           value="choose_dialet_type1" <% if (!isCustomClaimEnabled) { %> checked="checked" <% } %> />
-                    Use Local Claim Dialect
-                </label>
-                <label style="display:block">
-                    <input type="radio" id="choose_dialet_type2" name="choose_dialet_type_group"
-                           value="choose_dialet_type2"  <% if (isCustomClaimEnabled) { %> checked="checked" <% } %> />
-                    Define Custom Claim Dialect
-                </label>
-            </td>
-        </tr>
-        <tr>
-
-
-            <td class="leftCol-med labelField customClaim"><fmt:message key='claimURIs'/>:</td>
-
-            <td class="customClaim">
-                <a id="claimAddLink" class="icon-link"
-                   style="margin-left:0;background-image:url(images/add.gif);"><fmt:message key='add.claim'/></a>
-
-                <div style="clear:both"></div>
-                <div class="sectionHelp">
-                    <fmt:message key='claimURIs.help'/>
-                </div>
-                <table class="styledLeft" id="claimAddTable" style="display:none">
-                    <thead>
-                    <tr>
-                        <th class="leftCol-big"><fmt:message key='idp.claim'/></th>
-                        <th><fmt:message key='wso2.claim'/></th>
-                        <th><fmt:message key='actions'/></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <%
-                        if (claimMappings != null && claimMappings.length > 0) {
-                    %>
-                    <script>
-                        $(
-                                jQuery('#claimAddTable'))
-                                .toggle();
-                    </script>
-                    <% for (int i = 0; i < claimMappings.length; i++) { %>
-                    <tr>
-                        <td><input type="text" style=" width: 90%; " class="claimrow"
-                                   value="<%=Encode.forHtmlAttribute(claimMappings[i].getRemoteClaim().getClaimUri())%>" id="claimrowid_<%=i%>"
-                                   name="claimrowname_<%=i%>"/></td>
-                        <td>
-                            <select id="claimrow_id_wso2_<%=i%>" class="claimrow_wso2" name="claimrow_name_wso2_<%=i%>">
-                                <option value="">--- Select Claim URI ---</option>
-                                        <% for(String wso2ClaimName : claimUris) { 
-													if(claimMappings[i].getLocalClaim().getClaimUri() != null && claimMappings[i].getLocalClaim().getClaimUri().equals(wso2ClaimName)){	%>
-                                <option selected="selected" value="<%=Encode.forHtmlAttribute(wso2ClaimName)%>"><%=Encode.forHtmlContent(wso2ClaimName)%>
-                                </option>
-                                        <%
-													} else{ %>
-                                <option value="<%=Encode.forHtmlAttribute(wso2ClaimName)%>"><%=Encode.forHtmlContent(wso2ClaimName)%>
-                                </option>
-                                        <%}
-												}%>
-
-
-                        </td>
-
-                        <td>
-                            <a title="<fmt:message key='delete.claim'/>"
-                               onclick="deleteClaimRow(this);return false;"
-                               href="#"
-                               class="icon-link"
-                               style="background-image: url(images/delete.gif)">
-                                <fmt:message key='delete'/>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <% } %>
-                    <% } %>
-
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-
-        <tr>
-            <td>
-
-                <% if (claimMappings != null) { %>
-                <input type="hidden" id="claimrow_id_count" name="claimrow_name_count"
-                       value="<%=claimMappings.length%>">
-                <% } else { %>
-                <input type="hidden" id="claimrow_id_count" name="claimrow_name_count" value="0">
-                <% } %>
-
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='user.id.claim.uri'/>:</td>
-            <td>
-                <select id="user_id_claim_dropdown" name="user_id_claim_dropdown"></select>
-
-                <div class="sectionHelp">
-                    <fmt:message key='user.id.claim.uri.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr class="role_claim">
-            <td class="leftCol-med labelField"><fmt:message key='role.claim.uri'/>:</td>
-            <td>
-                <select id="role_claim_dropdown" name="role_claim_dropdown"></select>
-
-                <div class="sectionHelp">
-                    <fmt:message key='role.claim.uri.help'/>
-                </div>
-            </td>
-        </tr>
-    </table>
-</div>
-
-<h2 id="advanced_claim_config_head" class="sectionSeperator trigger active" style="background-color: beige;">
-    <a href="#"><fmt:message key="advanced.cliam.config"/></a>
-</h2>
-
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="advancedClaimLinkRow">
-    <table style="width: 100%">
-        <tr>
-
-            <td colspan="2">
-                <table>
-                    <tr>
-                        <td class="leftCol-med labelField"><fmt:message key='role.claim.filter'/>:</td>
-                        <td>
-                            <select id="idpClaimsList2" name="idpClaimsList2" style="float: left;"></select>
-                            <a id="advancedClaimMappingAddLink" class="icon-link"
-                               style="background-image: url(images/add.gif);"><fmt:message
-                                    key='button.add.advanced.claim'/></a>
-
-                            <div style="clear: both"/>
-                            <div class="sectionHelp">
-                                <fmt:message key='help.advanced.claim.mapping'/>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-                <table class="styledLeft" id="advancedClaimMappingAddTable" style="display:none">
-                    <thead>
-                    <tr>
-                        <th class="leftCol-big">Claim URI</th>
-                        <th class="leftCol-big">Default Value</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-
-                    <%
-                        if (claimMappings != null && claimMappings.length > 0) {
-                    %>
-                    <script>
-                        $(
-                                jQuery('#advancedClaimMappingAddTable'))
-                                .show();
-                    </script>
-                    <% for (int i = 0; i < claimMappings.length; i++) {
-                        if (!isCustomClaimEnabled) {
-                    %>
-                    <tr>
-                        <td><input type="text" style="width: 99%;" class="claimrow"
-                                   value="<%=claimMappings[i].getLocalClaim().getClaimUri()%>"
-                                   id="advancnedIdpClaim_<%=i%>" name="advancnedIdpClaim_<%=i%>"/></td>
-                        <td><input type="text" style="width: 99%;" class="claimrow"
-                                   value="<%=claimMappings[i].getDefaultValue() != null ? claimMappings[i].getDefaultValue() : "" %>"
-                                   id="advancedDefault_<%=i%>" name="advancedDefault_<%=i%>"/></td>
-                        <td>
-                            <a title="<fmt:message key='delete.claim'/>"
-                               onclick="deleteClaimRow(this);return false;"
-                               href="#"
-                               class="icon-link"
-                               style="background-image: url(images/delete.gif)">
-                                <fmt:message key='delete'/>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <% } else {
-
-                        if (claimMappings[i].getRequested()) {
-                    %>
-                    <tr>
-                        <td><input type="text" style="width: 99%;" class="claimrow"
-                                   value="<%=Encode.forHtmlAttribute(claimMappings[i].getRemoteClaim().getClaimUri())%>"
-                                   id="advancnedIdpClaim_<%=i%>" name="advancnedIdpClaim_<%=i%>"/></td>
-                        <td><input type="text" style="width: 99%;" class="claimrow"
-                                   value="<%=claimMappings[i].getDefaultValue() != null ?
-                                   Encode.forHtmlAttribute(claimMappings[i].getDefaultValue()) : "" %>"
-                                   id="advancedDefault_<%=i%>" name="advancedDefault_<%=i%>"/></td>
-                        <td>
-                            <a title="<fmt:message key='delete.claim'/>"
-                               onclick="deleteClaimRow(this);return false;"
-                               href="#"
-                               class="icon-link"
-                               style="background-image: url(images/delete.gif)">
-                                <fmt:message key='delete'/>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <%
-                                }
-
-                            }
-
-                        }%>
-                    <% } %>
-
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-
-        <tr>
-            <td>
-                <%
-                    if (claimMappings != null) {
-                %> <input type="hidden" id="advanced_claim_id_count" name="advanced_claim_id_count"
-                          value="<%=claimMappings.length%>"> <% } else { %> <input
-                    type="hidden" id="advanced_claim_id_count" name="advanced_claim_id_count" value="0">
-                <% } %>
-
-            </td>
-        </tr>
-    </table>
-</div>
-
-
-</div>
-
-
-<h2 id="role_permission_config_head" class="sectionSeperator trigger active">
-    <a href="#"><fmt:message key="role.config.head"/></a>
-</h2>
-
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="roleConfig">
-    <table>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='roles'/>:</td>
-            <td>
-                <a id="roleAddLink" class="icon-link"
-                   style="margin-left:0;background-image:url(images/add.gif);"><fmt:message key='add.role.mapping'/></a>
-
-                <div style="clear:both"/>
-                <div class="sectionHelp">
-                    <fmt:message key='roles.mapping.help'/>
-                </div>
-                <table class="styledLeft" id="roleAddTable" style="display:none">
-                    <thead>
-                    <tr>
-                        <th class="leftCol-big"><fmt:message key='idp.role'/></th>
-                        <th class="leftCol-big"><fmt:message key='local.role'/></th>
-                        <th><fmt:message key='actions'/></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <%
-                        if (roleMappings != null && roleMappings.length > 0) {
-                    %>
-                    <script>
-                        $(
-                                jQuery('#roleAddTable'))
-                                .toggle();
-                    </script>
-                    <%
-                        for (int i = 0; i < roleMappings.length; i++) {
-                    %>
-                    <tr>
-                        <td><input type="text" value="<%=Encode.forHtmlAttribute(roleMappings[i].getRemoteRole())%>"
-                                   id="rolerowname_<%=i%>"
-                                   name="rolerowname_<%=i%>"/></td>
-                        <td><input type="text" value="<%=UserCoreUtil.addDomainToName(roleMappings[i].getLocalRole().getLocalRoleName(), roleMappings[i].getLocalRole().getUserStoreId())%>" id="localrowname_<%=i%>" name="localrowname_<%=i%>"/></td>
-                        <td>
-                            <a title="<fmt:message key='delete.role'/>"
-                               onclick="deleteRoleRow(this);return false;"
-                               href="#"
-                               class="icon-link"
-                               style="background-image: url(images/delete.gif)">
-                                <fmt:message key='delete'/>
-                            </a>
-                        </td>
-                    </tr>
-                    <%
-                        }
-                    %>
-                    <%
-                        }
-                    %>
-
-
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-
-        <tr>
-            <td>
-                <%
-                    if (roleMappings != null) {
-                %> <input type="hidden" id="rolemappingrow_id_count" name="rolemappingrow_name_count"
-                          value="<%=roleMappings.length%>"> <% } else { %> <input
-                    type="hidden" id="rolemappingrow_id_count"
-                    name="rolemappingrow_name_count" value="0"> <% } %>
-
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='provisioning.role'/>:</td>
-            <td>
-                <input id="idpProvisioningRole" class="leftCol-med" name="idpProvisioningRole" type="text"
-                       value="<%=Encode.forHtmlAttribute(provisioningRole)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='provisioning.role.help'/>
-                </div>
-            </td>
-        </tr>
-
-    </table>
-</div>
-
-
-<h2 id="out_bound_auth_head" class="sectionSeperator trigger active">
-    <a href="#"><fmt:message key="out.bound.auth.config"/></a>
-</h2>
-
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="outBoundAuth">
-
-<% if (isOpenidAuthenticatorActive) { %>
-<h2 id="openid_head" class="sectionSeperator trigger active" style="background-color: beige;">
-    <a href="#"><fmt:message key="openid.config"/></a>
-
-    <div id="openid_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-</h2>
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="openIdLinkRow">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="openIdEnabled"><fmt:message key='openid.enabled'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="openIdEnabled" name="openIdEnabled" type="checkbox" <%=openIdEnabledChecked%>
-                           onclick="checkEnabled(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='openid.enabled.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="openIdDefault"><fmt:message key='openid.default'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="openIdDefault" name="openIdDefault"
-                           type="checkbox" <%=openIdDefaultChecked%> <%=openIdDefaultDisabled%>
-                           onclick="checkDefault(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='openid.default.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='openid.url'/>:<span class="required">*</span></td>
-            <td>
-                <input id="openIdUrl" name="openIdUrl" type="text" value="<%=Encode.forHtmlAttribute(openIdUrl)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='openid.url.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='openid.user.id.location'/>:</td>
-            <td>
-                <label>
-                    <input type="radio" value="0" name="open_id_user_id_location" <% if (!isOpenIdUserIdInClaims) { %>
-                           checked="checked" <%}%> />
-                    User ID found in 'claimed_id'
-                </label>
-                <label>
-                    <input type="radio" value="1" name="open_id_user_id_location" <% if (isOpenIdUserIdInClaims) { %>
-                           checked="checked" <%}%> />
-                    User ID found among claims
-                </label>
-
-                <div class="sectionHelp">
-                    <fmt:message key='openid.user.id.location.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
-            <td>
-                <%if (openidQueryParam != null) { %>
-                <input id="openidQueryParam" name="openidQueryParam" type="text" value=<%=Encode.forHtmlAttribute(openidQueryParam)%>>
-                <% } else { %>
-                <input id="openidQueryParam" name="openidQueryParam" type="text"/>
-                <% } %>
-                <div class="sectionHelp">
-                    <fmt:message key='query.param.help'/>
-                </div>
-            </td>
-        </tr>
-    </table>
-</div>
-<% } %>
-
-<% if (isSamlssoAuthenticatorActive) { %>
-
-<h2 id="saml2_sso_head" class="sectionSeperator trigger active" style="background-color: beige;">
-    <a href="#"><fmt:message key="saml2.web.sso.config"/></a>
-
-    <div id="sampl2sso_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-</h2>
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="saml2SSOLinkRow">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="saml2SSOEnabled"><fmt:message key='saml2.sso.enabled'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="saml2SSOEnabled" name="saml2SSOEnabled" type="checkbox" <%=saml2SSOEnabledChecked%>
-                           onclick="checkEnabled(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='saml2.sso.enabled.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="saml2SSODefault"><fmt:message key='saml2.sso.default'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="saml2SSODefault" name="saml2SSODefault"
-                           type="checkbox" <%=saml2SSODefaultChecked%> <%=saml2SSODefaultDisabled%>
-                           onclick="checkDefault(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='saml2.sso.default.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:<span class="required">*</span></td>
-            <td>
-                <input id="idPEntityId" name="idPEntityId" type="text" value=<%=Encode.forHtmlAttribute(idPEntityId)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='idp.entity.id.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='sp.entity.id'/>:<span class="required">*</span></td>
-            <td>
-                <input id="spEntityId" name="spEntityId" type="text" value=<%=Encode.forHtmlAttribute(spEntityId)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='sp.entity.id.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='sso.url'/>:<span class="required">*</span></td>
-            <td>
-                <input id="ssoUrl" name="ssoUrl" type="text" value=<%=Encode.forHtmlAttribute(ssoUrl)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='sso.url.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="authnRequestSigned"><fmt:message key='authn.request.signed'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="authnRequestSigned" name="authnRequestSigned"
-                           type="checkbox" <%=Encode.forHtmlAttribute(authnRequestSignedChecked)%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='authn.request.signed.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="enableAssersionEncryption"><fmt:message key='authn.enable.assertion.encryption'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="IsEnableAssetionEncription" name="IsEnableAssetionEncription"
-                           type="checkbox" <%=enableAssertinEncriptionChecked%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='authn.enable.assertion.encryption.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-
-
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="enableAssersionSigning"><fmt:message key='authn.enable.assertion.signing'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="isEnableAssertionSigning" name="isEnableAssertionSigning"
-                           type="checkbox" <%=enableAssertionSigningChecked%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='authn.enable.assertion.signing.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="sloEnabled"><fmt:message key='logout.enabled'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="sloEnabled" name="sloEnabled" type="checkbox" <%=sloEnabledChecked%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='logout.enabled.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
-            <td>
-                <input id="logoutUrl" name="logoutUrl" type="text" value=<%=logoutUrl%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='logout.url.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="logoutRequestSigned"><fmt:message key='logout.request.signed'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="logoutRequestSigned" name="logoutRequestSigned"
-                           type="checkbox" <%=logoutRequestSignedChecked%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='logout.request.signed.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="authnResponseSigned"><fmt:message key='authn.response.signed'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="authnResponseSigned" name="authnResponseSigned"
-                           type="checkbox" <%=authnResponseSignedChecked%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='authn.response.signed.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-
-        <!-- Signature Algorithm -->
-
-	      <tr>
-	          <td class="leftCol-med labelField"><fmt:message key='signature.algorithm'/>:</td>
-	          <td>
-
-	              <select id="signature_algorithem_dropdown" name="SignatureAlgorithm" <%=signAlgoDropdownDisabled%>>
-	                  <%
-	                  for(String algorithm : signatureAlgorithms){
-	                      if(signatureAlgorithm != null && algorithm.equalsIgnoreCase(signatureAlgorithm)){
-	                  %>
-	                  <option selected="selected"><%=Encode.forHtmlContent(signatureAlgorithm)%></option>
-	                  <%
-	                  } else {
-	                  %>
-	                  <option><%=Encode.forHtmlContent(algorithm)%></option>
-	                  <%
-	                              }
-	                          }
-	                  %>
-	              </select>
-	              <div class="sectionHelp" style="margin-top: 5px">
-	                  <fmt:message key='signature.algorithm.help'/>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Digest Algorithm -->
-
-	      <tr>
-	          <td class="leftCol-med labelField"><fmt:message key='digest.algorithm'/>:</td>
-	          <td>
-
-	              <select id="digest_algorithem_dropdown" name="DigestAlgorithm" <%=digestAlgoDropdownDisabled%>>
-	                  <%
-	                  for(String algorithm : digestAlgorithms){
-	                      if(digestAlgorithm != null && algorithm.equalsIgnoreCase(digestAlgorithm)){
-	                  %>
-	                  <option selected="selected"><%=Encode.forHtmlContent(digestAlgorithm)%></option>
-	               <%
-	                   } else {
-	               %>
-	                  	<option><%=Encode.forHtmlContent(algorithm)%></option>
-	                  <%
-	                      }
-	                  }
-	                  %>
-	              </select>
-	              <div class="sectionHelp" style="margin-top: 5px">
-	                  <fmt:message key='digest.algorithm.help'/>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Attribute Consuming Service Index -->
-
-	      <tr>
-	          <td class="leftCol-med labelField"><fmt:message key='attr.consuming.service.index'/>:</td>
-	          <td>
-                  <input id="attrConsumingServiceIndex" name="AttributeConsumingServiceIndex" type="text"
-                         value=<%=Encode.forHtmlAttribute(attributeConsumingServiceIndex)%>>
-
-                  <div class="sectionHelp">
-	                  <fmt:message key='attr.consuming.service.index.help'/>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Force Authentication -->
-
-	      <tr>
-	          <td class="leftCol-med labelField">
-	              <label for="forceAuthentication"><fmt:message key='enable.force.authentication'/></label>
-	          </td>
-	          <td>
-	              <div class="sectionCheckbox">
-
-	                  <label><input type="radio" value="yes" <%
-	              if(forceAuthentication !=null && forceAuthentication.equals("yes")){%>checked="checked"<%
-	                      }%> name="ForceAuthentication"  /> Yes </label>
-	                  <label><input type="radio" value="no" <%
-	              if(forceAuthentication !=null && forceAuthentication.equals("no")){%>checked
-	                          ="checked"<%}%> name="ForceAuthentication" />No </label>
-	                  <label><input type="radio" value="as_request" <%
-	              if(forceAuthentication!=null&&forceAuthentication.equals("as_request")){%>checked="checked"<%}%> name="ForceAuthentication" />As Per Request</label>
-
-	              </div>
-	              <div class="sectionHelp" style="margin-top: 5px" >
-	                  <fmt:message key='enable.force.authentication.help'/>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Include Public Cert -->
-
-	      <tr>
-	          <td class="leftCol-med labelField">
-	              <label for="includeCert"><fmt:message key='include.cert'/></label>
-	          </td>
-	          <td>
-	              <div class="sectionCheckbox">
-	                  <input id="includeCert" name="IncludeCert" type="checkbox" <%=includeCertChecked%>/>
-	                  <span style="display:inline-block" class="sectionHelp">
-	                      <fmt:message key='include.cert.help'/>
-	                  </span>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Include Protocol Binding -->
-
-	      <tr>
-	          <td class="leftCol-med labelField">
-	              <label for="includeProtocolBinding"><fmt:message key='include.protocol.binding'/></label>
-	          </td>
-	          <td>
-	              <div class="sectionCheckbox">
-	                  <input id="includeProtocolBinding" name="IncludeProtocolBinding" type="checkbox" <%=includeProtocolBindingChecked%>/>
-	                  <span style="display:inline-block" class="sectionHelp">
-	                      <fmt:message key='include.protocol.binding.help'/>
-	                  </span>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Include NameID Policy -->
-
-	      <tr>
-	          <td class="leftCol-med labelField">
-	              <label for="includeNameIDPolicy"><fmt:message key='include.name.id.policy'/></label>
-	          </td>
-	          <td>
-	              <div class="sectionCheckbox">
-	                  <input id="includeNameIDPolicy" name="IncludeNameIDPolicy" type="checkbox" <%=includeNameIdPolicyChecked%>/>
-	                  <span style="display:inline-block" class="sectionHelp">
-	                      <fmt:message key='include.name.id.policy.help'/>
-	                  </span>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Include Authentication Context -->
-	      <tr>
-	          <td class="leftCol-med labelField">
-	              <label for="includeAuthnContext"><fmt:message key='include.authentication.context'/></label>
-	          </td>
-	          <td>
-	              <div class="sectionCheckbox">
-	                  <label><input type="radio" id="includeAuthnCtxYes" value="yes" <%
-	              if(includeAuthenticationContext != null && includeAuthenticationContext.equals("yes")){%>checked="checked"<%
-	                      }%> name="IncludeAuthnContext"/>Yes </label>
-	                  <label><input type="radio" id="includeAuthnCtxNo" value="no" <%
-	              if(includeAuthenticationContext != null && includeAuthenticationContext.equals("no")){%>checked="checked"<%
-	              		}%> name="IncludeAuthnContext"/>No </label>
-	                  <label><input type="radio" id="includeAuthnCtxReq" value="as_request" <%
-	              if(includeAuthenticationContext !=null && includeAuthenticationContext.equals("as_request")){%>checked="checked"<%
-	              		}%>name="IncludeAuthnContext"/>As Per Request</label>
-	              </div>
-	              <div class="sectionHelp" style="margin-top: 5px" >
-	                  <fmt:message key='include.authentication.context.help'/>
-	              </div>
-	          </td>
-	      </tr>
-
-	      <!-- Authentication Context Class -->
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='authentication.context.class'/>:</td>
-            <td>
-                <%
-                    boolean isNotCustom = false ;
-                %>
-                <select id="authentication_context_class_dropdown" name="AuthnContextClassRef" <%=authnContextClassRefDropdownDisabled%>>
-                    <%
-                        for(String authnContextClass : authenticationContextClasses){
-                            if( authnContextClass != null && authnContextClass.equalsIgnoreCase(authenticationContextClass)){
-                                isNotCustom = true ;
-                    %>
-                    <option selected="selected"><%=Encode.forHtmlContent(authenticationContextClass)%></option>
-                    <%
-                    } else {
-                    %>
-                    <option><%=Encode.forHtmlContent(authnContextClass)%></option>
-                    <%
+                                CARBON.showConfirmationDialog(confirmationMessage,
+                                        function () {
+                                            doEditFinish();
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                        });
+                            } else {
+                                doEditFinish();
                             }
                         }
-                    %>
-
-                    <%
-                        if(isNotCustom){
-                    %>
-                    <option><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %></option>
-                    <%
-                    }else{
-                    %>
-                    <option selected="selected"><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %></option>
-                    <%
-                        }
-                    %>
-                </select>
-                <div class="sectionHelp" style="margin-top: 5px">
-                    <fmt:message key='authentication.context.class.help'/>
-                </div>
-                <%
-                    if(isNotCustom){
-                %>
-                <input id="custom_authentication_context_class" name="CustomAuthnContextClassRef" type="text" value="" disabled="true">
-                <%
-                }else{
-                %>
-                <input id="custom_authentication_context_class" name="CustomAuthnContextClassRef" type="text" value="<%=Encode.forHtmlContent(authenticationContextClass)%>">
-                <%
                     }
-                %>
-                <div class="sectionHelp" style="margin-top: 5px">
-                    <fmt:message key='authentication.context.class.custom.help'/>
-                </div>
-            </td>
-        </tr>
-
-	      <!-- Authenticatin Context Comparison Level -->
-
-	<tr>
-	                  <td class="leftCol-med labelField"><fmt:message key='authentication.context.comparison'/>:</td>
-	          <td>
-
-	              <select id="auth_context_comparison_level_dropdown" name="AuthnContextComparisonLevel" <%=authnContextComparisonDropdownDisabled%>>
-	                  <%
-	                  for(String authnContextComparisonLevel : authenticationContextComparisonLevels){
-	                      if(authnContextComparisonLevel != null && authnContextComparisonLevel.equals(authenticationContextComparisonLevel)){
-	                  %>
-	                  		<option selected="selected"><%=Encode.forHtmlContent(authenticationContextComparisonLevel)%></option>
-	                   <%
-	                   } else {
-	                   %>
-	                  		<option><%=Encode.forHtmlContent(authnContextComparisonLevel)%></option>
-	                  <%
-	                      }
-	                  }
-	                  %>
-	              </select>
-	              <div class="sectionHelp" style="margin-top: 5px">
-	                  <fmt:message key='authentication.context.comparison.help'/>
-	              </div>
-	          </td>
-	      </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='saml2.sso.user.id.location'/>:</td>
-            <td>
-                <label>
-                    <input type="radio" value="0"
-                           name="saml2_sso_user_id_location" <% if (!isSAMLSSOUserIdInClaims) { %>
-                           checked="checked" <%}%> />
-                    User ID found in 'Name Identifier'
-                </label>
-                <label>
-                    <input type="radio" value="1" name="saml2_sso_user_id_location" <% if (isSAMLSSOUserIdInClaims) { %>
-                           checked="checked" <%}%> />
-                    User ID found among claims
-                </label>
-
-                <div class="sectionHelp">
-                    <fmt:message key='saml2.sso.user.id.location.help'/>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='request.method'/>:</td>
-            <td>
-                <label>
-                    <input type="radio" name="RequestMethod" value="redirect"
-                           <% if(requestMethod != null && requestMethod.equals("redirect")){%>checked="checked"<%}%>/>HTTP-Redirect
-                </label>
-                <label><input type="radio" name="RequestMethod" value="post"
-                              <% if(requestMethod != null && requestMethod.equals("post")){%>checked="checked"<%}%>/>HTTP-POST
-                </label>
-                <label><input type="radio" name="RequestMethod" value="as_request"
-                              <% if(requestMethod != null && requestMethod.equals("as_request")){%>checked="checked"<%}%>/>As
-                    Per Request
-                </label>
-
-                <div class="sectionHelp" style="margin-top: 5px">
-                    <fmt:message key='request.method.help'/>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
-            <td>
-                <%
-                    if (samlQueryParam == null) {
-                        samlQueryParam = "";
-                    }
-                %>
-
-                <input id="samlQueryParam" name="samlQueryParam" type="text" value=<%=Encode.forHtmlAttribute(samlQueryParam)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='query.param.help'/>
-                </div>
-            </td>
-        </tr>
-    </table>
-</div>
-<% } %>
-
-<% if (isOpenidconnectAuthenticatorActive) { %>
-
-<h2 id="oauth2_head" class="sectionSeperator trigger active" style="background-color: beige;">
-    <a href="#"><fmt:message key="oidc.config"/></a>
-
-    <div id="oAuth2_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-</h2>
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="oauth2LinkRow">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="oidcEnabled"><fmt:message key='oidc.enabled'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="oidcEnabled" name="oidcEnabled" type="checkbox" <%=oidcEnabledChecked%>
-                           onclick="checkEnabled(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='oidc.enabled.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="oidcDefault"><fmt:message key='oidc.default'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="oidcDefault" name="oidcDefault"
-                           type="checkbox" <%=oidcDefaultChecked%> <%=oidcDefaultDisabled%>
-                           onclick="checkDefault(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='oidc.default.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='client.id'/>:<span class="required">*</span></td>
-            <td>
-                <input id="clientId" name="clientId" type="text" value=<%=Encode.forHtmlAttribute(clientId)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='client.id.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='client.secret'/>:<span class="required">*</span></td>
-            <td>
-                <div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105, 125);" class="leftCol-med">
-                    <input id="clientSecret" name="clientSecret" type="password" autocomplete="false" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
-                           style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
-	                            <span id="showHideButtonIdOauth" style=" float: right; padding-right: 5px;">
-	                        		<a style="margin-top: 5px;" class="showHideBtn"
-                                       onclick="showHidePassword(this, 'clientSecret')">Show</a>
-	                       		</span>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message key='client.secret.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:<span class="required">*</span></td>
-            <td>
-                <input id="authzUrl" name="authzUrl" type="text" value=<%=Encode.forHtmlAttribute(authzUrl)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='authz.endpoint.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='token.endpoint'/>:<span class="required">*</span></td>
-            <td>
-                <input id="tokenUrl" name="tokenUrl" type="text" value=<%=Encode.forHtmlAttribute(tokenUrl)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='token.endpoint.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='callbackurl'/>
-            <td>
-                <input id="callbackUrl" name="callbackUrl" type="text" value=<%=Encode.forHtmlAttribute(callBackUrl)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='callbackUrl.help'/>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='oidc.user.id.location'/>:</td>
-            <td>
-                <label>
-                    <input type="radio" value="0" name="oidc_user_id_location" <% if (!isOIDCUserIdInClaims) { %>
-                           checked="checked" <%}%> />
-                    User ID found in 'sub' attribute
-                </label>
-                <label>
-                    <input type="radio" value="1" name="oidc_user_id_location" <% if (isOIDCUserIdInClaims) { %>
-                           checked="checked" <%}%> />
-                    User ID found among claims
-                </label>
-
-                <div class="sectionHelp">
-                    <fmt:message key='oidc.user.id.location.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
-            <td>
-                <input id="oidcQueryParam" name="oidcQueryParam" type="text" value=<%=Encode.forHtmlAttribute(oidcQueryParam)%>>
-
-                <div class="sectionHelp">
-                    <fmt:message key='query.param.help'/>
-                </div>
-            </td>
-        </tr>
-    </table>
-</div>
-
-<% } %>
-
-<% if (isPassivestsAuthenticatorActive) { %>
-
-<h2 id="passive_sts_head" class="sectionSeperator trigger active" style="background-color: beige;">
-    <a href="#"><fmt:message key="passive.sts.config"/></a>
-
-    <div id="wsfederation_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-</h2>
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="passiveSTSLinkRow">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="passiveSTSEnabled"><fmt:message key='passive.sts.enabled'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="passiveSTSEnabled" name="passiveSTSEnabled" type="checkbox" <%=passiveSTSEnabledChecked%>
-                           onclick="checkEnabled(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.enabled.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="passiveSTSDefault"><fmt:message key='passive.sts.default'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="passiveSTSDefault" name="passiveSTSDefault"
-                           type="checkbox" <%=passiveSTSDefaultChecked%> <%=passiveSTSDefaultDisabled%>
-                           onclick="checkDefault(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.default.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='passive.sts.realm'/>:<span class="required">*</span>
-            </td>
-            <td>
-                <input id="passiveSTSRealm" name="passiveSTSRealm" type="text" value="<%=Encode.forHtmlAttribute(passiveSTSRealm)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='passive.sts.realm.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='passive.sts.url'/>:<span class="required">*</span></td>
-            <td>
-                <input id="passiveSTSUrl" name="passiveSTSUrl" type="text" value="<%=Encode.forHtmlAttribute(passiveSTSUrl)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='passive.sts.url.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='passive.sts.user.id.location'/>:</td>
-            <td>
-                <label>
-                    <input type="radio" value="0"
-                           name="passive_sts_user_id_location" <% if (!isPassiveSTSUserIdInClaims) { %>
-                           checked="checked" <%}%>/>
-                    User ID found in 'Name Identifier'
-                </label>
-                <label>
-                    <input type="radio" value="1"
-                           name="passive_sts_user_id_location" <% if (isPassiveSTSUserIdInClaims) { %>
-                           checked="checked" <%}%>/>
-                    User ID found among claims
-                </label>
-
-                <div class="sectionHelp">
-                    <fmt:message key='passive.sts.user.id.location.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="enablePassiveSTSAssertionSignatureValidation">
-                    <fmt:message key='passive.sts.enable.assertion.signature.validation'/>
-                </label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="isEnablePassiveSTSAssertionSignatureValidation"
-                           name="isEnablePassiveSTSAssertionSignatureValidation"
-                           type="checkbox" <%=enablePassiveSTSAssertionSignatureValidationChecked%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.enable.assertion.signature.validation.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="enablePassiveSTSAssertionAudienceValidation">
-                    <fmt:message key='passive.sts.enable.assertion.audience.validation'/>
-                </label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="isEnablePassiveSTSAssertionAudienceValidation" name="isEnablePassiveSTSAssertionAudienceValidation"
-                           type="checkbox" <%=enablePassiveSTSAssertionAudienceValidationChecked%>/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='passive.sts.enable.assertion.audience.validation.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
-            <td>
-                <input id="passiveSTSQueryParam" name="passiveSTSQueryParam" type="text" value="<%=Encode.forHtml(passiveSTSQueryParam)%>" />
-
-                <div class="sectionHelp">
-                    <fmt:message key='query.param.help'/>
-                </div>
-            </td>
-        </tr>
-    </table>
-</div>
-
-<% } %>
-
-
-<% if (isFacebookAuthenticatorActive) { %>
-
-<h2 id="fb_auth_head" class="sectionSeperator trigger active" style="background-color: beige;">
-    <a href="#"><fmt:message key="fbauth.config"/></a>
-
-    <div id="fecebook_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-</h2>
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fbAuthLinkRow">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="fbAuthEnabled"><fmt:message key='fbauth.enabled'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="fbAuthEnabled" name="fbAuthEnabled" type="checkbox" <%=fbAuthEnabledChecked%>
-                           onclick="checkEnabled(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='fbauth.enabled.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="fbAuthDefault"><fmt:message key='fbauth.default'/></label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="fbAuthDefault" name="fbAuthDefault"
-                           type="checkbox" <%=fbAuthDefaultChecked%> <%=fbAuthDefaultDisabled%>
-                           onclick="checkDefault(this);"/>
-                                <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='fbauth.default.help'/>
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='client.id'/>:<span class="required">*</span></td>
-            <td>
-                <input id="fbClientId" name="fbClientId" type="text" value="<%=Encode.forHtmlAttribute(fbClientId)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='fbauth.client.id.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='client.secret'/>:<span class="required">*</span></td>
-            <td>
-                <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);" class="leftCol-med">
-                    <input id="fbClientSecret" name="fbClientSecret" type="password" autocomplete="off" value="<%=Encode.forHtmlAttribute(fbClientSecret)%>"
-                           style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
-       							<span id="showHideButtonId" style=" float: right; padding-right: 5px;"> 
-       								<a style="margin-top: 5px;" class="showHideBtn"
-                                       onclick="showHidePassword(this, 'fbClientSecret')">Show</a> 
-       							</span>
-                </div>
-
-                <div class="sectionHelp"><fmt:message key='fbauth.client.secret.help'/></div>
-            </td>
-
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='fbauth.scope'/>:</td>
-            <td>
-                <input id="fbScope" name="fbScope" type="text"
-                       value="<%=Encode.forHtmlAttribute(fbScope)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='fbauth.scope.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='fbauth.user.information.fields'/>:</td>
-            <td>
-                <input id="fbUserInfoFields" name="fbUserInfoFields" type="text"
-                       value="<%=Encode.forHtmlAttribute(fbUserInfoFields)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='fbauth.user.information.fields.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message key='fbauth.callback.url.fields'/>:</td>
-            <td>
-                <input id="fbCallBackUrl" name="fbCallBackUrl" type="text"
-                       value="<%=Encode.forHtmlAttribute(fbCallBackUrl)%>"/>
-
-                <div class="sectionHelp">
-                    <fmt:message key='fbauth.callback.url.fields.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr style="display:none;">
-            <td class="leftCol-med labelField">Facebook Authentication Endpoint:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="fbAuthnEndpoint"
-                       name="fbAuthnEndpoint" type="text" value=<%=Encode.forHtmlAttribute(fbAuthnEndpoint)%>></td>
-        </tr>
-        <tr style="display:none;">
-            <td class="leftCol-med labelField">Facebook OAuth2 Token Endpoint:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="fbOauth2TokenEndpoint"
-                       name="fbOauth2TokenEndpoint" type="text" value=<%=Encode.forHtmlAttribute(fbOauth2TokenEndpoint)%>></td>
-        </tr>
-        <tr style="display:none;">
-            <td class="leftCol-med labelField">Facebook User Information Endpoint:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="fbUserInfoEndpoint"
-                       name="fbUserInfoEndpoint" type="text" value=<%=Encode.forHtmlAttribute(fbUserInfoEndpoint)%>></td>
-        </tr>
-    </table>
-</div>
-
-<% } %>
-
-<%
-
-    if (allFedAuthConfigs != null && allFedAuthConfigs.size() > 0) {
-
-        for (Map.Entry<String, FederatedAuthenticatorConfig> entry : allFedAuthConfigs.entrySet()) {
-            FederatedAuthenticatorConfig fedConfig = entry.getValue();
-            if (fedConfig != null) {
-                boolean isEnabled = fedConfig.getEnabled();
-
-                boolean isDefault = false;
-
-                if (identityProvider != null && identityProvider.getDefaultAuthenticatorConfig() != null && identityProvider.getDefaultAuthenticatorConfig().getDisplayName() != null
-                        && identityProvider.getDefaultAuthenticatorConfig().getName().equals(fedConfig.getName())) {
-                    isDefault = true;
-                }
-
-
-                String valueChecked = "";
-                String valueDefaultDisabled = "";
-
-                String enableChecked = "";
-                String enableDefaultDisabled = "";
-
-                if (isDefault) {
-                    valueChecked = "checked=\'checked\'";
-                    valueDefaultDisabled = "disabled=\'disabled\'";
-                }
-
-                if (isEnabled) {
-                    enableChecked = "checked=\'checked\'";
-                    enableDefaultDisabled = "disabled=\'disabled\'";
-                }
-
-                if (fedConfig.getDisplayName() != null && fedConfig.getDisplayName().trim().length() > 0) {
-
-%>
-
-<h2 id="custom_auth_head_"<%=fedConfig.getDisplayName() %> class="sectionSeperator trigger active"
-    style="background-color: beige;">
-    <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName() %> Configuration</a>
-    <% if (isEnabled) { %>
-    <div id="custom_auth_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
-         style="float:right;padding-right: 5px;padding-top: 5px;"><img src="images/ok.png" alt="enable" width="16"
-                                                                       height="16"></div>
-    <%} else {%>
-    <div id="custom_auth_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
-         style="float:right;padding-right: 5px;padding-top: 5px; display: none"><img src="images/ok.png" alt="enable"
-                                                                                     width="16" height="16"></div>
-    <%}%>
-</h2>
-<div class="toggle_container sectionSub" style="margin-bottom:10px;display: none;"
-     id="custom_auth_<%=fedConfig.getName()%>">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField">
-                <input type="hidden" name="custom_auth_name" value=<%=fedConfig.getName()%>>
-                <input type="hidden" name="<%=fedConfig.getName()%>_DisplayName" value=<%=fedConfig.getDisplayName()%>>
-
-                <label for="<%=fedConfig.getName()%>Enabled">Enable</label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="<%=fedConfig.getName()%>_Enabled" name="<%=fedConfig.getName()%>_Enabled"
-                           type="checkbox" <%=enableChecked%>
-                           onclick="checkEnabled(this); checkEnabledLogo(this, '<%=fedConfig.getName()%>')"/>
-                                <span style="display:inline-block" class="sectionHelp">Specifies if custom authenticator is enabled for this Identity Provider
-                                </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <label for="<%=fedConfig.getName()%>_Default">Default</label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="<%=fedConfig.getName()%>_Default" name="<%=fedConfig.getName()%>_Default"
-                           type="checkbox" <%=valueChecked%> <%=valueDefaultDisabled%> onclick="checkDefault(this);"/>
-                                 <span style="display:inline-block" class="sectionHelp">Specifies if custom authenticator is the default
-                                </span>
-                </div>
-            </td>
-        </tr>
-
-        <% Property[] properties = fedConfig.getProperties();
-
-            if (properties != null && properties.length > 0) {
-                Arrays.sort(properties, new Comparator<Property>() {
-                    public int compare(Property obj1, Property obj2) {
-                        Property property1 = (Property) obj1;
-                        Property property2 = (Property) obj2;
-                        if (property1.getDisplayOrder() == property2.getDisplayOrder())
-                            return 0;
-                        else if (property1.getDisplayOrder() > property2.getDisplayOrder())
-                            return 1;
-                        else
-                            return -1;
-                    }
-                });
-                for (Property prop : properties) {
-                    if (prop != null && prop.getDisplayName() != null) {
-        %>
-
-        <tr>
-            <%if (prop.getRequired()) { %>
-            <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:<span class="required">*</span></td>
-            <% } else { %>
-            <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:</td>
-            <%} %>
-            <td>
-                <% if (prop.getConfidential()) { %>
-
-                <% if (prop.getValue() != null) { %>
-                <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);" class="leftCol-med">
-                    <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                           name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="password" autocomplete="off"
-                           value="<%=prop.getValue()%>"
-                           style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
-       												<span id="showHideButtonId"
-                                                          style=" float: right; padding-right: 5px;"> 
-       													<a style="margin-top: 5px;" class="showHideBtn"
-                                                           onclick="showHidePassword(this, 'cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a> 
-       												</span>
-                </div>
-                <% } else { %>
-
-                <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);" class="leftCol-med">
-                    <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                           name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="password" autocomplete="off"
-                           style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
-       												<span id="showHideButtonId"
-                                                          style=" float: right; padding-right: 5px;"> 
-       													<a style="margin-top: 5px;" class="showHideBtn"
-                                                           onclick="showHidePassword(this, 'cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a> 
-       												</span>
-                </div>
-
-                <% } %>
-
-                <% } else { %>
-
-                <% if (prop.getValue() != null) { %>
-                <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                       name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="text"
-                       value="<%=prop.getValue()%>"/>
-                <% } else { %>
-                <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                       name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="text">
-                <% } %>
-
-                <% } %>
-
-                <%
-                    if (prop.getDescription() != null) { %>
-                <div class="sectionHelp"><%=prop.getDescription()%>
-                </div>
-                <%} %>
-            </td>
-        </tr>
-        <%
-                    }
-                }
-            }
-        %>
-
-    </table>
-</div>
-
-<%
                 }
             }
         }
     }
-%>
+    function idpMgtUpdateMetadata() {
+        if (document.getElementById("meta_data_saml").value != "") {
+            <%
+                if(idPName != null && !(idPName.equals(""))){
+                %>
+            CARBON.showConfirmationDialog("This will delete your public certificate and SAML SSO configuration, Do you want to proceed?",
+                    function () {
+                        if (doValidation()) {
+                            var allDeletedClaimStr = "";
+                            for (var i = 0; i < deleteClaimRows.length; i++) {
+                                if (i < deleteClaimRows.length - 1) {
+                                    allDeletedClaimStr += deleteClaimRows[i] + ", ";
+                                } else {
+                                    allDeletedClaimStr += deleteClaimRows[i] + "?";
+                                }
+                            }
+                            var allDeletedRoleStr = "";
+                            for (var i = 0; i < deletedRoleRows.length; i++) {
+                                if (i < deletedRoleRows.length - 1) {
+                                    allDeletedRoleStr += deletedRoleRows[i] + ", ";
+                                } else {
+                                    allDeletedRoleStr += deletedRoleRows[i] + "?";
+                                }
+                            }
 
-</div>
+                            if (jQuery('#deletePublicCert').val() == 'true') {
+                                var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
+                                        jQuery('#idPName').val() + '?';
+                                if (jQuery('#certFile').val() != '') {
+                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                }
+                                CARBON.showConfirmationDialog(confirmationMessage,
+                                        function () {
+                                            if (allDeletedClaimStr != "") {
+                                                CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                                        allDeletedClaimStr,
+                                                        function () {
+                                                            if (allDeletedRoleStr != "") {
+                                                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                                        'role(s) ' + allDeletedRoleStr,
+                                                                        function () {
+                                                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                                                        'delete the Claim URI Mappings of ' +
+                                                                                        jQuery('#idPName').val() + '?';
+                                                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                                }
+                                                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                        function () {
+                                                                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                                                                        'delete the Role Mappings of ' +
+                                                                                                        jQuery('#idPName').val() + '?';
+                                                                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                                                }
+                                                                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                                        function () {
+                                                                                                            doEditFinish();
+                                                                                                        },
+                                                                                                        function () {
+                                                                                                            location.href =
+                                                                                                                    "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                                        });
+                                                                                            } else {
+                                                                                                doEditFinish();
+                                                                                            }
+                                                                                        },
+                                                                                        function () {
+                                                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                        });
+                                                                            } else {
+                                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                                            'delete the Role Mappings of ' +
+                                                                                            jQuery('#idPName').val() + '?';
+                                                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                                    }
+                                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                            function () {
+                                                                                                doEditFinish();
+                                                                                            },
+                                                                                            function () {
+                                                                                                location.href =
+                                                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                            });
+                                                                                } else {
+                                                                                    doEditFinish();
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        function () {
+                                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                        });
+                                                            } else {
+                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                            'delete the Claim URI mappings of ' +
+                                                                            jQuery('#idPName').val() + '?';
+                                                                    if (jQuery('#claimMappingFile').val() != '') {
+                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                    }
+                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                            function () {
 
-<h2 id="in_bound_provisioning_head" class="sectionSeperator trigger active">
-    <a href="#"><fmt:message key="in.bound.provisioning.config"/></a>
-</h2>
+                                                                            },
+                                                                            function () {
+                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                            });
+                                                                } else {
+                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                                'delete the Role Mappings of ' +
+                                                                                jQuery('#idPName').val() + '?';
+                                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                        }
+                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                function () {
+                                                                                    doEditFinish();
+                                                                                },
+                                                                                function () {
+                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                });
+                                                                    } else {
+                                                                        doEditFinish();
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                            } else {
+                                                if (allDeletedRoleStr != "") {
+                                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                            'role(s) ' + allDeletedRoleStr,
+                                                            function () {
+                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                            'delete the Claim URI mappings of ' +
+                                                                            jQuery('#idPName').val() + '?';
+                                                                    if (jQuery('#claimMappingFile').val() != '') {
+                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                    }
+                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                            function () {
 
-<div class="toggle_container sectionSub" style="margin-bottom:10px;" id="inBoundProvisioning">
-    <table>
-        <tr>
-            <td>
-                <label style="display:block">
-                    <input type="radio" id="provision_disabled" name="provisioning"
-                           value="provision_disabled" <% if (!isProvisioningEnabled) { %> checked="checked" <% } %> />
-                    No provisioning
-                </label>
+                                                                            },
+                                                                            function () {
+                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                            });
+                                                                } else {
+                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                                'delete the Role Mappings of ' +
+                                                                                jQuery('#idPName').val() + '?';
+                                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                        }
+                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                function () {
+                                                                                    doEditFinish();
+                                                                                },
+                                                                                function () {
+                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                });
+                                                                    } else {
+                                                                        doEditFinish();
+                                                                    }
+                                                                }
+                                                            },
+                                                            function () {
+                                                                location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
+                                                            });
+                                                } else {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Claim URI mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                                'delete the Role Mappings of ' +
+                                                                                jQuery('#idPName').val() + '?';
+                                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                        }
+                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                function () {
+                                                                                    doEditFinish();
+                                                                                },
+                                                                                function () {
+                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                });
+                                                                    } else {
+                                                                        doEditFinish();
+                                                                    }
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                        });
+                            } else {
+                                if (allDeletedClaimStr != "") {
+                                    CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                            allDeletedClaimStr,
+                                            function () {
+                                                if (allDeletedRoleStr != "") {
+                                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                            'role(s) ' + allDeletedRoleStr,
+                                                            function () {
+                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                            'delete the Claim URI mappings of ' +
+                                                                            jQuery('#idPName').val() + '?';
+                                                                    if (jQuery('#claimMappingFile').val() != '') {
+                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                    }
+                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                            function () {
 
-                <div>
-                    <label>
-                        <input type="radio" id="provision_static" name="provisioning"
-                               value="provision_static" <% if (isProvisioningEnabled && provisioningUserStoreId != null) { %>
-                               checked="checked" <% } %>/>
-                        Always provision to User Store Domain
-                    </label>
-                    <select id="provision_static_dropdown"
-                            name="provision_static_dropdown" <%=provisionStaticDropdownDisabled%>>
-                        <%
-                            if (userStoreDomains != null && userStoreDomains.length > 0) {
-                                for (String userStoreDomain : userStoreDomains) {
-                                    if (provisioningUserStoreId != null && userStoreDomain.equals(provisioningUserStoreId)) {
-                        %>
-                        <option selected="selected"><%=Encode.forHtmlContent(userStoreDomain)%>
-                        </option>
-                        <%
-                        } else {
-                        %>
-                        <option><%=userStoreDomain%>
-                        </option>
-                        <%
+                                                                            },
+                                                                            function () {
+                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                            });
+                                                                } else {
+                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                                'delete the Role Mappings of ' +
+                                                                                jQuery('#idPName').val() + '?';
+                                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                        }
+                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                function () {
+                                                                                    doEditFinish();
+                                                                                },
+                                                                                function () {
+                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                });
+                                                                    } else {
+                                                                        doEditFinish();
+                                                                    }
+                                                                }
+                                                            },
+                                                            function () {
+                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                            });
+                                                } else {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Claim URI mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                                'delete the Role Mappings of ' +
+                                                                                jQuery('#idPName').val() + '?';
+                                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                        }
+                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                function () {
+                                                                                    doEditFinish();
+                                                                                },
+                                                                                function () {
+                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                });
+                                                                    } else {
+                                                                        doEditFinish();
+                                                                    }
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                } else {
+                                    if (allDeletedRoleStr != "") {
+                                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                'role(s) ' + allDeletedRoleStr,
+                                                function () {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Claim URI mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                                'delete the Role Mappings of ' +
+                                                                                jQuery('#idPName').val() + '?';
+                                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                        }
+                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                function () {
+                                                                                    doEditFinish();
+                                                                                },
+                                                                                function () {
+                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                });
+                                                                    } else {
+                                                                        doEditFinish();
+                                                                    }
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    }
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                    } else {
+                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#claimMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        %>
-                    </select>
+                        }
+                    },
+                    function () {
+                        location.href =
+                                "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                    });
+            <%
+
+            }else{
+
+
+
+        %>
+            if (doValidation()) {
+                var allDeletedClaimStr = "";
+                for (var i = 0; i < deleteClaimRows.length; i++) {
+                    if (i < deleteClaimRows.length - 1) {
+                        allDeletedClaimStr += deleteClaimRows[i] + ", ";
+                    } else {
+                        allDeletedClaimStr += deleteClaimRows[i] + "?";
+                    }
+                }
+                var allDeletedRoleStr = "";
+                for (var i = 0; i < deletedRoleRows.length; i++) {
+                    if (i < deletedRoleRows.length - 1) {
+                        allDeletedRoleStr += deletedRoleRows[i] + ", ";
+                    } else {
+                        allDeletedRoleStr += deletedRoleRows[i] + "?";
+                    }
+                }
+
+                if (jQuery('#deletePublicCert').val() == 'true') {
+                    var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
+                            jQuery('#idPName').val() + '?';
+                    if (jQuery('#certFile').val() != '') {
+                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                    }
+                    CARBON.showConfirmationDialog(confirmationMessage,
+                            function () {
+                                if (allDeletedClaimStr != "") {
+                                    CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                            allDeletedClaimStr,
+                                            function () {
+                                                if (allDeletedRoleStr != "") {
+                                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                            'role(s) ' + allDeletedRoleStr,
+                                                            function () {
+                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                            'delete the Claim URI Mappings of ' +
+                                                                            jQuery('#idPName').val() + '?';
+                                                                    if (jQuery('#claimMappingFile').val() != '') {
+                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                    }
+                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                            function () {
+                                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                                            'delete the Role Mappings of ' +
+                                                                                            jQuery('#idPName').val() + '?';
+                                                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                                    }
+                                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                            function () {
+                                                                                                doEditFinish();
+                                                                                            },
+                                                                                            function () {
+                                                                                                location.href =
+                                                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                            });
+                                                                                } else {
+                                                                                    doEditFinish();
+                                                                                }
+                                                                            },
+                                                                            function () {
+                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                            });
+                                                                } else {
+                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                                'delete the Role Mappings of ' +
+                                                                                jQuery('#idPName').val() + '?';
+                                                                        if (jQuery('#roleMappingFile').val() != '') {
+                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                        }
+                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                                function () {
+                                                                                    doEditFinish();
+                                                                                },
+                                                                                function () {
+                                                                                    location.href =
+                                                                                            "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                });
+                                                                    } else {
+                                                                        doEditFinish();
+                                                                    }
+                                                                }
+                                                            },
+                                                            function () {
+                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                            });
+                                                } else {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Claim URI mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                } else {
+                                    if (allDeletedRoleStr != "") {
+                                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                'role(s) ' + allDeletedRoleStr,
+                                                function () {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Claim URI mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    }
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
+                                                });
+                                    } else {
+                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#claimMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            function () {
+                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                            });
+                } else {
+                    if (allDeletedClaimStr != "") {
+                        CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                allDeletedClaimStr,
+                                function () {
+                                    if (allDeletedRoleStr != "") {
+                                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                'role(s) ' + allDeletedRoleStr,
+                                                function () {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Claim URI mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                    } else {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    }
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                    } else {
+                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#claimMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        }
+                                    }
+                                },
+                                function () {
+                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                });
+                    } else {
+                        if (allDeletedRoleStr != "") {
+                            CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                    'role(s) ' + allDeletedRoleStr,
+                                    function () {
+                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                            if (jQuery('#claimMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                        } else {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        }
+                                    },
+                                    function () {
+                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                    });
+                        } else {
+                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                var confirmationMessage = 'Are you sure you want to ' +
+                                        'delete the Claim URI mappings of ' +
+                                        jQuery('#idPName').val() + '?';
+                                if (jQuery('#claimMappingFile').val() != '') {
+                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                }
+                                CARBON.showConfirmationDialog(confirmationMessage,
+                                        function () {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                        });
+                            } else {
+                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                    var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Role Mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                    if (jQuery('#roleMappingFile').val() != '') {
+                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                    }
+                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                doEditFinish();
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                } else {
+                                    doEditFinish();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            <%}%>
+        } else {
+            CARBON.showWarningDialog('Select a valid IDP metadata file');
+            return false;
+        }
+    }
+
+    function doEditFinish() {
+        jQuery('#primary').removeAttr('disabled');
+        jQuery('#openIdEnabled').removeAttr('disabled');
+        jQuery('#saml2SSOEnabled').removeAttr('disabled');
+        jQuery('#oidcEnabled').removeAttr('disabled');
+        jQuery('#passiveSTSEnabled').removeAttr('disabled');
+        jQuery('#fbAuthEnabled').removeAttr('disabled');
+        jQuery('#openIdDefault').removeAttr('disabled');
+        jQuery('#saml2SSODefault').removeAttr('disabled');
+        jQuery('#oidcDefault').removeAttr('disabled');
+        jQuery('#passiveSTSDefault').removeAttr('disabled');
+        jQuery('#fbAuthDefault').removeAttr('disabled');
+        jQuery('#googleProvDefault').removeAttr('disabled');
+        jQuery('#spmlProvDefault').removeAttr('disabled');
+        jQuery('#sfProvDefault').removeAttr('disabled');
+        jQuery('#scimProvDefault').removeAttr('disabled');
+
+        for (id in getEnabledCustomAuth()) {
+            var defId = '#' + id.replace("_Enabled", "_Default");
+            jQuery(defId).removeAttr('disabled');
+        }
+        <% if(idPName == null || idPName.equals("")){ %>
+        jQuery('#idp-mgt-edit-form').attr('action', 'idp-mgt-add-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>');
+        <% } %>
+        jQuery('#idp-mgt-edit-form').submit();
+    }
+    function idpMgtCancel() {
+        location.href = "idp-mgt-list.jsp"
+    }
+
+    function showHidePassword(element, inputId) {
+        if ($(element).text() == 'Show') {
+            document.getElementById(inputId).type = 'text';
+            $(element).text('Hide');
+        } else {
+            document.getElementById(inputId).type = 'password';
+            $(element).text('Show');
+        }
+    }
+
+    function emailValidator(name) {
+        var errorMsg = "";
+        var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+        if (name == "") {
+            errorMsg = "null";
+        } else if (!name.match(new RegExp(emailPattern))) {
+            errorMsg = "notValied";
+        }
+        return errorMsg;
+    }
+
+    function doValidation() {
+        var reason = "";
+        reason = validateEmpty("idPName");
+        if (reason != "") {
+            CARBON.showWarningDialog("Name of IdP cannot be empty");
+            return false;
+        }
+
+        if (jQuery('#openIdEnabled').attr('checked')) {
+
+            if ($('#openIdUrl').val() == "") {
+                CARBON.showWarningDialog('OpenID Server URL cannot be empty');
+                return false;
+            }
+        }
+
+        if (jQuery('#saml2SSOEnabled').attr('checked')) {
+
+            if ($('#meta_data_saml').val() == "") {
+
+                if ($('#idPEntityId').val() == "") {
+                    CARBON.showWarningDialog('Identity Provider Entity Id cannot be empty');
+                    return false;
+                }
+                if ($('#ssoUrl').val() == "") {
+                    CARBON.showWarningDialog('SSO URL cannot be empty');
+                    return false;
+                }
+            }
+
+            if ($('#spEntityId').val() == "") {
+                CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
+                return false;
+            }
+
+
+        }
+
+        if (jQuery('#oidcEnabled').attr('checked')) {
+
+            if ($('#authzUrl').val() == "") {
+                CARBON.showWarningDialog('OAuth2/OpenId  Authorization Endpoint URL cannot be empty');
+                return false;
+            }
+
+            if ($('#tokenUrl').val() == "") {
+                CARBON.showWarningDialog('OAuth2/OpenId Token Endpoint URL cannot be empty');
+                return false;
+            }
+
+            if ($('#clientId').val() == "") {
+                CARBON.showWarningDialog('OAuth2/OpenId Client Id cannot be empty');
+                return false;
+            }
+
+            if ($('#clientSecret').val() == "") {
+                CARBON.showWarningDialog('OAuth2/OpenId Client Secret cannot be empty');
+                return false;
+            }
+
+        }
+
+        if (jQuery('#passiveSTSEnabled').attr('checked')) {
+
+            if ($('#passiveSTSRealm').val() == "") {
+                CARBON.showWarningDialog('Passive STS Realm cannot be empty');
+                return false;
+            }
+
+            if ($('#passiveSTSUrl').val() == "") {
+                CARBON.showWarningDialog('Passive STS URL cannot be empty');
+                return false;
+            }
+        }
+
+        if (jQuery('#fbAuthEnabled').attr('checked')) {
+
+            if ($('#fbClientId').val() == "") {
+                CARBON.showWarningDialog('Facebook Client Id cannot be empty');
+                return false;
+            }
+
+            if ($('#fbClientSecret').val() == "") {
+                CARBON.showWarningDialog('Facebook Client Secret cannot be empty');
+                return false;
+            }
+        }
+
+
+        if (jQuery('#googleProvEnabled').attr('checked')) {
+
+            if ($('#google_prov_domain_name').val() == "") {
+                CARBON.showWarningDialog('Google Domain cannot be empty');
+                return false;
+            }
+
+
+            var errorMsg = emailValidator($('#google_prov_service_acc_email').val());
+            if (errorMsg == "null") {
+                CARBON.showWarningDialog('Google connector Service Account Email cannot be empty');
+                return false;
+            } else if (errorMsg == "notValied") {
+                CARBON.showWarningDialog('Google connector Service Account Email is not valid');
+                return false;
+            }
+
+            var errorMsgAdmin = emailValidator($('#google_prov_admin_email').val());
+            if (errorMsgAdmin == "null") {
+                CARBON.showWarningDialog('Google connector Administrator\'s Email cannot be empty');
+                return false;
+            } else if (errorMsgAdmin == "notValied") {
+                CARBON.showWarningDialog('Google connector Administrator\'s Email is not valid');
+                return false;
+            }
+
+
+            if ($('#google_prov_application_name').val() == "") {
+                CARBON.showWarningDialog('Google connector Application Name cannot be empty');
+                return false;
+            }
+
+            if ($('#google_prov_email_claim_dropdown').val() == "") {
+                CARBON.showWarningDialog('Google connector Primary Email claim URI should be selected ');
+                return false;
+            }
+
+            if ($('#google_prov_givenname_claim_dropdown').val() == "") {
+                CARBON.showWarningDialog('Google connector Given Name claim URI should be selected ');
+                return false;
+            }
+
+            if ($('#google_prov_familyname_claim_dropdown').val() == "") {
+                CARBON.showWarningDialog('Google connector Family Name claim URI should be selected ');
+                return false;
+            }
+
+        }
+
+        if (jQuery('#sfProvEnabled').attr('checked')) {
+
+            if ($('#sf-api-version').val() == "") {
+                CARBON.showWarningDialog('Salesforce Provisioning Configuration API version cannot be empty');
+                return false;
+            }
+
+            if ($('#sf-domain-name').val() == "") {
+                CARBON.showWarningDialog('Salesforce Provisioning Configuration Domain Name cannot be empty');
+                return false;
+            }
+
+            if ($('#sf-clientid').val() == "") {
+                CARBON.showWarningDialog('Salesforce Provisioning Configuration Client Id cannot be empty');
+                return false;
+            }
+
+            if ($('#sf-client-secret').val() == "") {
+                CARBON.showWarningDialog('Salesforce Provisioning Configuration Client Secret cannot be empty');
+                return false;
+            }
+
+            if ($('#sf-username').val() == "") {
+                CARBON.showWarningDialog('Salesforce Provisioning Configuration Username cannot be empty');
+                return false;
+            }
+
+            if ($('#sf-password').val() == "") {
+                CARBON.showWarningDialog('Salesforce Provisioning Configuration Password cannot be empty');
+                return false;
+            }
+
+            if ($('#sf-token-endpoint').val() == "") {
+                CARBON.showWarningDialog('Salesforce Provisioning Configuration Oauth2 Token Endpoint cannot be empty');
+                return false;
+            }
+        }
+
+
+        if (jQuery('#scimProvEnabled').attr('checked')) {
+
+            if ($('#scim-username').val() == "") {
+                CARBON.showWarningDialog('Scim Configuration username cannot be empty');
+                return false;
+            }
+
+            if ($('#scim-password').val() == "") {
+                CARBON.showWarningDialog('Scim Configuration password cannot be empty');
+                return false;
+            }
+
+            if ($('#scim-user-ep').val() == "") {
+                CARBON.showWarningDialog('Scim Configuration User endpoint cannot be empty');
+                return false;
+            }
+        }
+
+        if (jQuery('#spmlProvEnabled').attr('checked')) {
+
+            if ($('#spml-ep').val() == "") {
+                CARBON.showWarningDialog('SPML Endpoint cannot be empty');
+                return false;
+            }
+
+            if ($('#spml-oc').val() == "") {
+                CARBON.showWarningDialog('SPML Object class cannot be empty');
+                return false;
+            }
+
+        }
+
+        for (var i = 0; i <= claimRowId; i++) {
+            if (document.getElementsByName('claimrowname_' + i)[0] != null) {
+                reason = validateEmpty('claimrowname_' + i);
+                if (reason != "") {
+                    CARBON.showWarningDialog("Claim URI strings cannot be of zero length");
+                    return false;
+                }
+            }
+        }
+
+        for (var i = 0; i <= roleRowId; i++) {
+            if (document.getElementsByName('rolerowname_' + i)[0] != null) {
+                reason = validateEmpty('rolerowname_' + i);
+                if (reason != "") {
+                    CARBON.showWarningDialog("Role name strings cannot be of zero length");
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+</script>
+
+<fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
+    <div id="middle">
+        <h2>
+            <fmt:message key='add.identity.provider'/>
+        </h2>
+
+        <div id="workArea">
+            <form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post"
+                  action="idp-mgt-edit-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>"
+                  enctype="multipart/form-data">
+                        <% if(idPName != null && idpUniqueIdMap.get(idPName) != null) { %>
+                <input type="hidden" name="idpUUID"
+                       value="<%= Encode.forHtmlAttribute(idpUniqueIdMap.get(idPName).toString()) %>"/>
+                        <% } %>
+                <div class="sectionSeperator togglebleTitle"><fmt:message key='identity.provider.info'/></div>
+                <div class="sectionSub">
+                    <table class="carbonFormTable">
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='name'/>:<span class="required">*</span>
+                            </td>
+                            <td>
+                                <input id="idPName" name="idPName" type="text"
+                                       value="<%=Encode.forHtmlAttribute(idPName)%>" autofocus/>
+                                <%if (identityProvider != null && identityProvider.getEnable()) { %>
+                                <input id="enable" name="enable" type="hidden" value="1">
+                                <%} %>
+                                <div class="sectionHelp">
+                                    <fmt:message key='name.help'/>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='idp.display.name'/>:</td>
+                            <td>
+                                <input id="idpDisplayName" name="idpDisplayName" type="text"
+                                       value="<%=Encode.forHtmlAttribute(idpDisplayName)%>" autofocus/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='idp.display.name.help'/>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='description'/></td>
+                            <td>
+                                <input id="idPDescription" name="idPDescription" type="text"
+                                       value="<%=Encode.forHtmlAttribute(description)%>" autofocus/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='description.help'/>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="leftCol-med labelField">
+                                <label for="federationHub"><fmt:message key='federation.hub.identity.proider'/></label>
+                            </td>
+                            <td>
+                                <div class="sectionCheckbox">
+                                    <input type="checkbox" id="federation_hub_idp"
+                                           name="federation_hub_idp" <%=federationHubIdp ? "checked" : "" %>>
+                                    <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='federation.hub.identity.proider.help'/>
+                                </span>
+                                </div>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='home.realm.id'/>:</td>
+                            <td>
+                                <input id="realmId" name="realmId" type="text"
+                                       value="<%=Encode.forHtmlAttribute(realmId)%>" autofocus/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='home.realm.id.help'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
+                            <td>
+                                <input id="certFile" name="certFile" type="file"/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='certificate.help'/>
+                                </div>
+                                <div id="publicCertDiv">
+                                    <% if (certData != null) { %>
+                                    <a id="publicCertDeleteLink" class="icon-link"
+                                       style="margin-left:0;background-image:url(images/delete.gif);"><fmt:message
+                                            key='public.cert.delete'/></a>
+
+                                    <div style="clear:both"></div>
+                                    <table class="styledLeft">
+                                        <thead>
+                                        <tr>
+                                            <th><fmt:message key='issuerdn'/></th>
+                                            <th><fmt:message key='subjectdn'/></th>
+                                            <th><fmt:message key='notafter'/></th>
+                                            <th><fmt:message key='notbefore'/></th>
+                                            <th><fmt:message key='serialno'/></th>
+                                            <th><fmt:message key='version'/></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <td><%
+                                                String issuerDN = "";
+                                                if (certData.getIssuerDN() != null) {
+                                                    issuerDN = certData.getIssuerDN();
+                                                }
+                                            %><%=Encode.forHtmlContent(issuerDN)%>
+                                            </td>
+                                            <td><%
+                                                String subjectDN = "";
+                                                if (certData.getSubjectDN() != null) {
+                                                    subjectDN = certData.getSubjectDN();
+                                                }
+                                            %><%=Encode.forHtmlContent(subjectDN)%>
+                                            </td>
+                                            <td><%
+                                                String notAfter = "";
+                                                if (certData.getNotAfter() != null) {
+                                                    notAfter = certData.getNotAfter();
+                                                }
+                                            %><%=Encode.forHtmlContent(notAfter)%>
+                                            </td>
+                                            <td><%
+                                                String notBefore = "";
+                                                if (certData.getNotBefore() != null) {
+                                                    notBefore = certData.getNotBefore();
+                                                }
+                                            %><%=Encode.forHtmlContent(notBefore)%>
+                                            </td>
+                                            <td><%
+                                                String serialNo = "";
+                                                if (certData.getSerialNumber() != null) {
+                                                    serialNo = certData.getSerialNumber().toString();
+                                                }
+                                            %><%=Encode.forHtmlContent(serialNo)%>
+                                            </td>
+                                            <td><%=certData.getVersion()%>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                    <% } %>
+                                </div>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='resident.idp.alias'/>:</td>
+                            <td>
+                                <input id="tokenEndpointAlias" name="tokenEndpointAlias" type="text"
+                                       value="<%=Encode.forHtmlAttribute(idPAlias)%>" autofocus/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='resident.idp.alias.help'/>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+
+
+                <h2 id="claim_config_head" class="sectionSeperator trigger active"><a href="#"><fmt:message
+                        key="claim.config.head"/></a>
+                </h2>
+
+                <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="claimConfig">
+
+                    <h2 id="basic_claim_config_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="basic.cliam.config"/></a>
+                    </h2>
+
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="baisClaimLinkRow">
+
+                        <table>
+
+
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='select_dialet_type'/>:</td>
+                                <td>
+                                    <label style="display:block">
+                                        <input type="radio" id="choose_dialet_type1" name="choose_dialet_type_group"
+                                               value="choose_dialet_type1" <% if (!isCustomClaimEnabled) { %>
+                                               checked="checked" <% } %> />
+                                        Use Local Claim Dialect
+                                    </label>
+                                    <label style="display:block">
+                                        <input type="radio" id="choose_dialet_type2" name="choose_dialet_type_group"
+                                               value="choose_dialet_type2"  <% if (isCustomClaimEnabled) { %>
+                                               checked="checked" <% } %> />
+                                        Define Custom Claim Dialect
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+
+
+                                <td class="leftCol-med labelField customClaim"><fmt:message key='claimURIs'/>:</td>
+
+                                <td class="customClaim">
+                                    <a id="claimAddLink" class="icon-link"
+                                       style="margin-left:0;background-image:url(images/add.gif);"><fmt:message
+                                            key='add.claim'/></a>
+
+                                    <div style="clear:both"></div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='claimURIs.help'/>
+                                    </div>
+                                    <table class="styledLeft" id="claimAddTable" style="display:none">
+                                        <thead>
+                                        <tr>
+                                            <th class="leftCol-big"><fmt:message key='idp.claim'/></th>
+                                            <th><fmt:message key='wso2.claim'/></th>
+                                            <th><fmt:message key='actions'/></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <%
+                                            if (claimMappings != null && claimMappings.length > 0) {
+                                        %>
+                                        <script>
+                                            $(
+                                                    jQuery('#claimAddTable'))
+                                                    .toggle();
+                                        </script>
+                                        <% for (int i = 0; i < claimMappings.length; i++) { %>
+                                        <tr>
+                                            <td><input type="text" style=" width: 90%; " class="claimrow"
+                                                       value="<%=Encode.forHtmlAttribute(claimMappings[i].getRemoteClaim().getClaimUri())%>"
+                                                       id="claimrowid_<%=i%>"
+                                                       name="claimrowname_<%=i%>"/></td>
+                                            <td>
+                                                <select id="claimrow_id_wso2_<%=i%>" class="claimrow_wso2"
+                                                        name="claimrow_name_wso2_<%=i%>">
+                                                    <option value="">--- Select Claim URI ---</option>
+                                                            <% for(String wso2ClaimName : claimUris) {
+													if(claimMappings[i].getLocalClaim().getClaimUri() != null && claimMappings[i].getLocalClaim().getClaimUri().equals(wso2ClaimName)){	%>
+                                                    <option selected="selected"
+                                                            value="<%=Encode.forHtmlAttribute(wso2ClaimName)%>"><%=Encode.forHtmlContent(wso2ClaimName)%>
+                                                    </option>
+                                                            <%
+													} else{ %>
+                                                    <option value="<%=Encode.forHtmlAttribute(wso2ClaimName)%>"><%=Encode.forHtmlContent(wso2ClaimName)%>
+                                                    </option>
+                                                            <%}
+												}%>
+
+
+                                            </td>
+
+                                            <td>
+                                                <a title="<fmt:message key='delete.claim'/>"
+                                                   onclick="deleteClaimRow(this);return false;"
+                                                   href="#"
+                                                   class="icon-link"
+                                                   style="background-image: url(images/delete.gif)">
+                                                    <fmt:message key='delete'/>
+                                                </a>
+                                            </td>
+                                        </tr>
+
+                                        <% } %>
+                                        <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+
+                                    <% if (claimMappings != null) { %>
+                                    <input type="hidden" id="claimrow_id_count" name="claimrow_name_count"
+                                           value="<%=claimMappings.length%>">
+                                    <% } else { %>
+                                    <input type="hidden" id="claimrow_id_count" name="claimrow_name_count" value="0">
+                                    <% } %>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='user.id.claim.uri'/>:</td>
+                                <td>
+                                    <select id="user_id_claim_dropdown" name="user_id_claim_dropdown"></select>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='user.id.claim.uri.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="role_claim">
+                                <td class="leftCol-med labelField"><fmt:message key='role.claim.uri'/>:</td>
+                                <td>
+                                    <select id="role_claim_dropdown" name="role_claim_dropdown"></select>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='role.claim.uri.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <h2 id="advanced_claim_config_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="advanced.cliam.config"/></a>
+                    </h2>
+
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="advancedClaimLinkRow">
+                        <table style="width: 100%">
+                            <tr>
+
+                                <td colspan="2">
+                                    <table>
+                                        <tr>
+                                            <td class="leftCol-med labelField"><fmt:message key='role.claim.filter'/>:
+                                            </td>
+                                            <td>
+                                                <select id="idpClaimsList2" name="idpClaimsList2"
+                                                        style="float: left;"></select>
+                                                <a id="advancedClaimMappingAddLink" class="icon-link"
+                                                   style="background-image: url(images/add.gif);"><fmt:message
+                                                        key='button.add.advanced.claim'/></a>
+
+                                                <div style="clear: both"/>
+                                                <div class="sectionHelp">
+                                                    <fmt:message key='help.advanced.claim.mapping'/>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table class="styledLeft" id="advancedClaimMappingAddTable" style="display:none">
+                                        <thead>
+                                        <tr>
+                                            <th class="leftCol-big">Claim URI</th>
+                                            <th class="leftCol-big">Default Value</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        <%
+                                            if (claimMappings != null && claimMappings.length > 0) {
+                                        %>
+                                        <script>
+                                            $(
+                                                    jQuery('#advancedClaimMappingAddTable'))
+                                                    .show();
+                                        </script>
+                                        <% for (int i = 0; i < claimMappings.length; i++) {
+                                            if (!isCustomClaimEnabled) {
+                                        %>
+                                        <tr>
+                                            <td><input type="text" style="width: 99%;" class="claimrow"
+                                                       value="<%=claimMappings[i].getLocalClaim().getClaimUri()%>"
+                                                       id="advancnedIdpClaim_<%=i%>" name="advancnedIdpClaim_<%=i%>"/>
+                                            </td>
+                                            <td><input type="text" style="width: 99%;" class="claimrow"
+                                                       value="<%=claimMappings[i].getDefaultValue() != null ? claimMappings[i].getDefaultValue() : "" %>"
+                                                       id="advancedDefault_<%=i%>" name="advancedDefault_<%=i%>"/></td>
+                                            <td>
+                                                <a title="<fmt:message key='delete.claim'/>"
+                                                   onclick="deleteClaimRow(this);return false;"
+                                                   href="#"
+                                                   class="icon-link"
+                                                   style="background-image: url(images/delete.gif)">
+                                                    <fmt:message key='delete'/>
+                                                </a>
+                                            </td>
+                                        </tr>
+
+                                        <% } else {
+
+                                            if (claimMappings[i].getRequested()) {
+                                        %>
+                                        <tr>
+                                            <td><input type="text" style="width: 99%;" class="claimrow"
+                                                       value="<%=Encode.forHtmlAttribute(claimMappings[i].getRemoteClaim().getClaimUri())%>"
+                                                       id="advancnedIdpClaim_<%=i%>" name="advancnedIdpClaim_<%=i%>"/>
+                                            </td>
+                                            <td><input type="text" style="width: 99%;" class="claimrow"
+                                                       value="<%=claimMappings[i].getDefaultValue() != null ?
+                                   Encode.forHtmlAttribute(claimMappings[i].getDefaultValue()) : "" %>"
+                                                       id="advancedDefault_<%=i%>" name="advancedDefault_<%=i%>"/></td>
+                                            <td>
+                                                <a title="<fmt:message key='delete.claim'/>"
+                                                   onclick="deleteClaimRow(this);return false;"
+                                                   href="#"
+                                                   class="icon-link"
+                                                   style="background-image: url(images/delete.gif)">
+                                                    <fmt:message key='delete'/>
+                                                </a>
+                                            </td>
+                                        </tr>
+
+                                        <%
+                                                    }
+
+                                                }
+
+                                            }%>
+                                        <% } %>
+
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <%
+                                        if (claimMappings != null) {
+                                    %> <input type="hidden" id="advanced_claim_id_count" name="advanced_claim_id_count"
+                                              value="<%=claimMappings.length%>"> <% } else { %> <input
+                                        type="hidden" id="advanced_claim_id_count" name="advanced_claim_id_count"
+                                        value="0">
+                                    <% } %>
+
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
 
                 </div>
 
-                <div class="sectionHelp">
-                    <fmt:message key='provisioning.enabled.help'/>
+
+                <h2 id="role_permission_config_head" class="sectionSeperator trigger active">
+                    <a href="#"><fmt:message key="role.config.head"/></a>
+                </h2>
+
+                <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="roleConfig">
+                    <table>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='roles'/>:</td>
+                            <td>
+                                <a id="roleAddLink" class="icon-link"
+                                   style="margin-left:0;background-image:url(images/add.gif);"><fmt:message
+                                        key='add.role.mapping'/></a>
+
+                                <div style="clear:both"/>
+                                <div class="sectionHelp">
+                                    <fmt:message key='roles.mapping.help'/>
+                                </div>
+                                <table class="styledLeft" id="roleAddTable" style="display:none">
+                                    <thead>
+                                    <tr>
+                                        <th class="leftCol-big"><fmt:message key='idp.role'/></th>
+                                        <th class="leftCol-big"><fmt:message key='local.role'/></th>
+                                        <th><fmt:message key='actions'/></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <%
+                                        if (roleMappings != null && roleMappings.length > 0) {
+                                    %>
+                                    <script>
+                                        $(
+                                                jQuery('#roleAddTable'))
+                                                .toggle();
+                                    </script>
+                                    <%
+                                        for (int i = 0; i < roleMappings.length; i++) {
+                                    %>
+                                    <tr>
+                                        <td><input type="text"
+                                                   value="<%=Encode.forHtmlAttribute(roleMappings[i].getRemoteRole())%>"
+                                                   id="rolerowname_<%=i%>"
+                                                   name="rolerowname_<%=i%>"/></td>
+                                        <td><input type="text"
+                                                   value="<%=UserCoreUtil.addDomainToName(roleMappings[i].getLocalRole().getLocalRoleName(), roleMappings[i].getLocalRole().getUserStoreId())%>"
+                                                   id="localrowname_<%=i%>" name="localrowname_<%=i%>"/></td>
+                                        <td>
+                                            <a title="<fmt:message key='delete.role'/>"
+                                               onclick="deleteRoleRow(this);return false;"
+                                               href="#"
+                                               class="icon-link"
+                                               style="background-image: url(images/delete.gif)">
+                                                <fmt:message key='delete'/>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <%
+                                        }
+                                    %>
+                                    <%
+                                        }
+                                    %>
+
+
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <%
+                                    if (roleMappings != null) {
+                                %> <input type="hidden" id="rolemappingrow_id_count" name="rolemappingrow_name_count"
+                                          value="<%=roleMappings.length%>"> <% } else { %> <input
+                                    type="hidden" id="rolemappingrow_id_count"
+                                    name="rolemappingrow_name_count" value="0"> <% } %>
+
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='provisioning.role'/>:</td>
+                            <td>
+                                <input id="idpProvisioningRole" class="leftCol-med" name="idpProvisioningRole"
+                                       type="text"
+                                       value="<%=Encode.forHtmlAttribute(provisioningRole)%>"/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='provisioning.role.help'/>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
                 </div>
-            </td>
-        </tr>
-    </table>
-</div>
 
 
-<!-- Outbound Provisioning UI -->
-<h2 id="out_bound_provisioning_head" class="sectionSeperator trigger active">
-    <a href="#"><fmt:message key="out.bound.provisioning.config"/></a>
-</h2>
+                <h2 id="out_bound_auth_head" class="sectionSeperator trigger active">
+                    <a href="#"><fmt:message key="out.bound.auth.config"/></a>
+                </h2>
+
+                <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="outBoundAuth">
+
+                    <% if (isOpenidAuthenticatorActive) { %>
+                    <h2 id="openid_head" class="sectionSeperator trigger active" style="background-color: beige;">
+                        <a href="#"><fmt:message key="openid.config"/></a>
+
+                        <div id="openid_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+                    </h2>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="openIdLinkRow">
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="openIdEnabled"><fmt:message key='openid.enabled'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="openIdEnabled" name="openIdEnabled"
+                                               type="checkbox" <%=openIdEnabledChecked%>
+                                               onclick="checkEnabled(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='openid.enabled.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="openIdDefault"><fmt:message key='openid.default'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="openIdDefault" name="openIdDefault"
+                                               type="checkbox" <%=openIdDefaultChecked%> <%=openIdDefaultDisabled%>
+                                               onclick="checkDefault(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='openid.default.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='openid.url'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <input id="openIdUrl" name="openIdUrl" type="text"
+                                           value="<%=Encode.forHtmlAttribute(openIdUrl)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='openid.url.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='openid.user.id.location'/>:</td>
+                                <td>
+                                    <label>
+                                        <input type="radio" value="0"
+                                               name="open_id_user_id_location" <% if (!isOpenIdUserIdInClaims) { %>
+                                               checked="checked" <%}%> />
+                                        User ID found in 'claimed_id'
+                                    </label>
+                                    <label>
+                                        <input type="radio" value="1"
+                                               name="open_id_user_id_location" <% if (isOpenIdUserIdInClaims) { %>
+                                               checked="checked" <%}%> />
+                                        User ID found among claims
+                                    </label>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='openid.user.id.location.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
+                                <td>
+                                    <%if (openidQueryParam != null) { %>
+                                    <input id="openidQueryParam" name="openidQueryParam" type="text"
+                                           value=<%=Encode.forHtmlAttribute(openidQueryParam)%>>
+                                    <% } else { %>
+                                    <input id="openidQueryParam" name="openidQueryParam" type="text"/>
+                                    <% } %>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='query.param.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <% } %>
+
+                    <% if (isSamlssoAuthenticatorActive) { %>
+
+                    <h2 id="saml2_sso_head" class="sectionSeperator trigger active" style="background-color: beige;">
+                        <a href="#"><fmt:message key="saml2.web.sso.config"/></a>
+
+                        <div id="sampl2sso_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+                    </h2>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="saml2SSOLinkRow">
+                        <div id="saml_commons_section">
+
+                            <table class="carbonFormTable">
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="saml2SSOEnabled"><fmt:message key='saml2.sso.enabled'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="saml2SSOEnabled" name="saml2SSOEnabled"
+                                                   type="checkbox" <%=saml2SSOEnabledChecked%>
+                                                   onclick="checkEnabled(this);"/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='saml2.sso.enabled.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="saml2SSODefault"><fmt:message key='saml2.sso.default'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="saml2SSODefault" name="saml2SSODefault"
+                                                   type="checkbox" <%=saml2SSODefaultChecked%> <%=saml2SSODefaultDisabled%>
+                                                   onclick="checkDefault(this);"/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='saml2.sso.default.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='sp.entity.id'/>:<span
+                                            class="required">*</span></td>
+                                    <td>
+                                        <input id="spEntityId" name="spEntityId" type="text"
+                                               value=<%=Encode.forHtmlAttribute(spEntityId)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='sp.entity.id.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div id="saml_mode_selction_section">
+                            <table class="carbonFormTable" width="100%">
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key="saml.sso.select.mode"/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.manual'/>:<span
+                                            ></span></td>
+                                    <td>
+                                        <input type="radio"  name="saml_ui_mode"  value="manual" onclick="
+                                        $('#manual_section').show(); $('#metadata_section').hide();">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.file'/>:<span
+                                            ></span></td>
+
+                                    <td>
+                                        <input type="radio" name="saml_ui_mode" value="file" onclick="
+                                    $('#manual_section').hide(); $('#metadata_section').show();">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
 
-<div class="toggle_container sectionSub"
-     style="margin-bottom: 10px; display: none;" id="outBoundProv">
 
-<!-- Google Connector -->
-<h2 id="google_prov_head" class="sectionSeperator trigger active"
-    style="background-color: beige;">
-    <a href="#"><fmt:message key="google.provisioning.connector"/></a>
+                        <div id="manual_section">
+                            <table class="carbonFormTable" width="100%">
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key="saml.sso.manual.mode"/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <br>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:<span
+                                            class="required">*</span></td>
+                                    <td>
+                                        <input id="idPEntityId" name="idPEntityId" type="text"
+                                               value=<%=Encode.forHtmlAttribute(idPEntityId)%>>
 
-    <div id="google_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-</h2>
-<div class="toggle_container sectionSub"
-     style="margin-bottom: 10px; display: none;" id="googleProvRow">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField"><label
-                    for="googleProvEnabled"><fmt:message
-                    key='google.provisioning.enabled'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="googleProvEnabled" name="googleProvEnabled"
-                           type="checkbox" <%=googleProvEnabledChecked%>
-                           onclick="checkProvEnabled(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='google.provisioning.enabled.help'/>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='idp.entity.id.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='sso.url'/>:<span
+                                            class="required">*</span></td>
+                                    <td>
+                                        <input id="ssoUrl" name="ssoUrl" type="text"
+                                               value=<%=Encode.forHtmlAttribute(ssoUrl)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='sso.url.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="authnRequestSigned"><fmt:message
+                                                key='authn.request.signed'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="authnRequestSigned" name="authnRequestSigned"
+                                                   type="checkbox" <%=Encode.forHtmlAttribute(authnRequestSignedChecked)%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='authn.request.signed.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="enableAssersionEncryption"><fmt:message
+                                                key='authn.enable.assertion.encryption'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="IsEnableAssetionEncription" name="IsEnableAssetionEncription"
+                                                   type="checkbox" <%=enableAssertinEncriptionChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='authn.enable.assertion.encryption.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="enableAssersionSigning"><fmt:message
+                                                key='authn.enable.assertion.signing'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="isEnableAssertionSigning" name="isEnableAssertionSigning"
+                                                   type="checkbox" <%=enableAssertionSigningChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='authn.enable.assertion.signing.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="sloEnabled"><fmt:message key='logout.enabled'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="sloEnabled" name="sloEnabled"
+                                                   type="checkbox" <%=sloEnabledChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='logout.enabled.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
+                                    <td>
+                                        <input id="logoutUrl" name="logoutUrl" type="text" value=<%=logoutUrl%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='logout.url.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="logoutRequestSigned"><fmt:message
+                                                key='logout.request.signed'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="logoutRequestSigned" name="logoutRequestSigned"
+                                                   type="checkbox" <%=logoutRequestSignedChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='logout.request.signed.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="authnResponseSigned"><fmt:message
+                                                key='authn.response.signed'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="authnResponseSigned" name="authnResponseSigned"
+                                                   type="checkbox" <%=authnResponseSignedChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='authn.response.signed.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Signature Algorithm -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='signature.algorithm'/>:</td>
+                                    <td>
+
+                                        <select id="signature_algorithem_dropdown"
+                                                name="SignatureAlgorithm" <%=signAlgoDropdownDisabled%>>
+                                            <%
+                                                for (String algorithm : signatureAlgorithms) {
+                                                    if (signatureAlgorithm != null && algorithm.equalsIgnoreCase(signatureAlgorithm)) {
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(signatureAlgorithm)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(algorithm)%>
+                                            </option>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='signature.algorithm.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Digest Algorithm -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='digest.algorithm'/>:</td>
+                                    <td>
+
+                                        <select id="digest_algorithem_dropdown"
+                                                name="DigestAlgorithm" <%=digestAlgoDropdownDisabled%>>
+                                            <%
+                                                for (String algorithm : digestAlgorithms) {
+                                                    if (digestAlgorithm != null && algorithm.equalsIgnoreCase(digestAlgorithm)) {
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(digestAlgorithm)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(algorithm)%>
+                                            </option>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='digest.algorithm.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Attribute Consuming Service Index -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='attr.consuming.service.index'/>:
+                                    </td>
+                                    <td>
+                                        <input id="attrConsumingServiceIndex" name="AttributeConsumingServiceIndex"
+                                               type="text"
+                                               value=<%=Encode.forHtmlAttribute(attributeConsumingServiceIndex)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='attr.consuming.service.index.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Force Authentication -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="forceAuthentication"><fmt:message
+                                                key='enable.force.authentication'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+
+                                            <label><input type="radio" value="yes" <%
+	              if(forceAuthentication !=null && forceAuthentication.equals("yes")){%>checked="checked"<%
+                                                }%> name="ForceAuthentication"/> Yes </label>
+                                            <label><input type="radio" value="no" <%
+	              if(forceAuthentication !=null && forceAuthentication.equals("no")){%>checked
+                                                    ="checked"<%}%> name="ForceAuthentication"/>No </label>
+                                            <label><input type="radio" value="as_request" <%
+	              if(forceAuthentication!=null&&forceAuthentication.equals("as_request")){%>checked="checked"<%}%>
+                                                          name="ForceAuthentication"/>As Per Request</label>
+
+                                        </div>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='enable.force.authentication.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Include Public Cert -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeCert"><fmt:message key='include.cert'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="includeCert" name="IncludeCert"
+                                                   type="checkbox" <%=includeCertChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+	                      <fmt:message key='include.cert.help'/>
+	                  </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Include Protocol Binding -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeProtocolBinding"><fmt:message
+                                                key='include.protocol.binding'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="includeProtocolBinding" name="IncludeProtocolBinding"
+                                                   type="checkbox" <%=includeProtocolBindingChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+	                      <fmt:message key='include.protocol.binding.help'/>
+	                  </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Include NameID Policy -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeNameIDPolicy"><fmt:message
+                                                key='include.name.id.policy'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="includeNameIDPolicy" name="IncludeNameIDPolicy"
+                                                   type="checkbox" <%=includeNameIdPolicyChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+	                      <fmt:message key='include.name.id.policy.help'/>
+	                  </span>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Include Authentication Context -->
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="includeAuthnContext"><fmt:message
+                                                key='include.authentication.context'/></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <label><input type="radio" id="includeAuthnCtxYes" value="yes" <%
+	              if(includeAuthenticationContext != null && includeAuthenticationContext.equals("yes")){%>checked="checked"<%
+                                                }%> name="IncludeAuthnContext"/>Yes </label>
+                                            <label><input type="radio" id="includeAuthnCtxNo" value="no" <%
+	              if(includeAuthenticationContext != null && includeAuthenticationContext.equals("no")){%>checked="checked"<%
+                                                }%> name="IncludeAuthnContext"/>No </label>
+                                            <label><input type="radio" id="includeAuthnCtxReq" value="as_request" <%
+	              if(includeAuthenticationContext !=null && includeAuthenticationContext.equals("as_request")){%>checked="checked"
+                                                          <%
+	              		}%>name="IncludeAuthnContext"/>As Per Request</label>
+                                        </div>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='include.authentication.context.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Authentication Context Class -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='authentication.context.class'/>:
+                                    </td>
+                                    <td>
+                                        <%
+                                            boolean isNotCustom = false;
+                                        %>
+                                        <select id="authentication_context_class_dropdown"
+                                                name="AuthnContextClassRef" <%=authnContextClassRefDropdownDisabled%>>
+                                            <%
+                                                for (String authnContextClass : authenticationContextClasses) {
+                                                    if (authnContextClass != null && authnContextClass.equalsIgnoreCase(authenticationContextClass)) {
+                                                        isNotCustom = true;
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(authenticationContextClass)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(authnContextClass)%>
+                                            </option>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+
+                                            <%
+                                                if (isNotCustom) {
+                                            %>
+                                            <option><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option selected="selected"><%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION %>
+                                            </option>
+                                            <%
+                                                }
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authentication.context.class.help'/>
+                                        </div>
+                                        <%
+                                            if (isNotCustom) {
+                                        %>
+                                        <input id="custom_authentication_context_class"
+                                               name="CustomAuthnContextClassRef"
+                                               type="text" value="" disabled="true">
+                                        <%
+                                        } else {
+                                        %>
+                                        <input id="custom_authentication_context_class"
+                                               name="CustomAuthnContextClassRef"
+                                               type="text"
+                                               value="<%=Encode.forHtmlContent(authenticationContextClass)%>">
+                                        <%
+                                            }
+                                        %>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authentication.context.class.custom.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Authenticatin Context Comparison Level -->
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message
+                                            key='authentication.context.comparison'/>:
+                                    </td>
+                                    <td>
+
+                                        <select id="auth_context_comparison_level_dropdown"
+                                                name="AuthnContextComparisonLevel" <%=authnContextComparisonDropdownDisabled%>>
+                                            <%
+                                                for (String authnContextComparisonLevel : authenticationContextComparisonLevels) {
+                                                    if (authnContextComparisonLevel != null && authnContextComparisonLevel.equals(authenticationContextComparisonLevel)) {
+                                            %>
+                                            <option selected="selected"><%=Encode.forHtmlContent(authenticationContextComparisonLevel)%>
+                                            </option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option><%=Encode.forHtmlContent(authnContextComparisonLevel)%>
+                                            </option>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='authentication.context.comparison.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message
+                                            key='saml2.sso.user.id.location'/>:
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input type="radio" value="0"
+                                                   name="saml2_sso_user_id_location" <% if (!isSAMLSSOUserIdInClaims) { %>
+                                                   checked="checked" <%}%> />
+                                            User ID found in 'Name Identifier'
+                                        </label>
+                                        <label>
+                                            <input type="radio" value="1"
+                                                   name="saml2_sso_user_id_location" <% if (isSAMLSSOUserIdInClaims) { %>
+                                                   checked="checked" <%}%> />
+                                            User ID found among claims
+                                        </label>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='saml2.sso.user.id.location.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='request.method'/>:</td>
+                                    <td>
+                                        <label>
+                                            <input type="radio" name="RequestMethod" value="redirect"
+                                                   <% if(requestMethod != null && requestMethod.equals("redirect")){%>checked="checked"<%}%>/>HTTP-Redirect
+                                        </label>
+                                        <label><input type="radio" name="RequestMethod" value="post"
+                                                      <% if(requestMethod != null && requestMethod.equals("post")){%>checked="checked"<%}%>/>HTTP-POST
+                                        </label>
+                                        <label><input type="radio" name="RequestMethod" value="as_request"
+                                                      <% if(requestMethod != null && requestMethod.equals("as_request")){%>checked="checked"<%}%>/>As
+                                            Per Request
+                                        </label>
+
+                                        <div class="sectionHelp" style="margin-top: 5px">
+                                            <fmt:message key='request.method.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
+                                    <td>
+                                        <%
+                                            if (samlQueryParam == null) {
+                                                samlQueryParam = "";
+                                            }
+                                        %>
+
+                                        <input id="samlQueryParam" name="samlQueryParam" type="text"
+                                               value=<%=Encode.forHtmlAttribute(samlQueryParam)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='query.param.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <br>
+                        </div>
+                        <br><br>
+
+                        <div id="metadata_section">
+                            <table class="styledLeft" width="100%">
+                                <thead>
+                                <tr>
+                                    <th><fmt:message key="saml.sso.upload.id.provider.metadata"/></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                <tr>
+                                    <td><span>File Location: </span><input type="file" id="meta_data_saml"
+                                                                           name="meta_data_saml" size="50"/></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="button" value="<fmt:message key='register'/>"
+                                               onclick="idpMgtUpdateMetadata();"/>
+                                        <input class="button" type="reset" value="<fmt:message key='saml.sso.cancel'/>"
+                                               onclick="doCancel();"/></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <script>
+                            $('#manual_section').hide();
+                            $('#metadata_section').hide();
+                        </script>
+
+
+                    </div>
+                    <script type="text/javascript">
+
+                        function doCancel() {
+                            document.getElementById("meta_data_saml").value = '';
+                        }
+                    </script>
+                    <% } %>
+
+                    <% if (isOpenidconnectAuthenticatorActive) { %>
+
+                    <h2 id="oauth2_head" class="sectionSeperator trigger active" style="background-color: beige;">
+                        <a href="#"><fmt:message key="oidc.config"/></a>
+
+                        <div id="oAuth2_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+                    </h2>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="oauth2LinkRow">
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="oidcEnabled"><fmt:message key='oidc.enabled'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="oidcEnabled" name="oidcEnabled"
+                                               type="checkbox" <%=oidcEnabledChecked%>
+                                               onclick="checkEnabled(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.enabled.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="oidcDefault"><fmt:message key='oidc.default'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="oidcDefault" name="oidcDefault"
+                                               type="checkbox" <%=oidcDefaultChecked%> <%=oidcDefaultDisabled%>
+                                               onclick="checkDefault(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.default.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='client.id'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <input id="clientId" name="clientId" type="text"
+                                           value=<%=Encode.forHtmlAttribute(clientId)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='client.id.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='client.secret'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105, 125);"
+                                         class="leftCol-med">
+                                        <input id="clientSecret" name="clientSecret" type="password"
+                                               autocomplete="false" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
+                                               style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
+                                        <span id="showHideButtonIdOauth" style=" float: right; padding-right: 5px;">
+	                        		<a style="margin-top: 5px;" class="showHideBtn"
+                                       onclick="showHidePassword(this, 'clientSecret')">Show</a>
+	                       		</span>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='client.secret.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <input id="authzUrl" name="authzUrl" type="text"
+                                           value=<%=Encode.forHtmlAttribute(authzUrl)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='authz.endpoint.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='token.endpoint'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <input id="tokenUrl" name="tokenUrl" type="text"
+                                           value=<%=Encode.forHtmlAttribute(tokenUrl)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='token.endpoint.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='callbackurl'/>
+                                <td>
+                                    <input id="callbackUrl" name="callbackUrl" type="text"
+                                           value=<%=Encode.forHtmlAttribute(callBackUrl)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='callbackUrl.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='oidc.user.id.location'/>:</td>
+                                <td>
+                                    <label>
+                                        <input type="radio" value="0"
+                                               name="oidc_user_id_location" <% if (!isOIDCUserIdInClaims) { %>
+                                               checked="checked" <%}%> />
+                                        User ID found in 'sub' attribute
+                                    </label>
+                                    <label>
+                                        <input type="radio" value="1"
+                                               name="oidc_user_id_location" <% if (isOIDCUserIdInClaims) { %>
+                                               checked="checked" <%}%> />
+                                        User ID found among claims
+                                    </label>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='oidc.user.id.location.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
+                                <td>
+                                    <input id="oidcQueryParam" name="oidcQueryParam" type="text"
+                                           value=<%=Encode.forHtmlAttribute(oidcQueryParam)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='query.param.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <% } %>
+
+                    <% if (isPassivestsAuthenticatorActive) { %>
+
+                    <h2 id="passive_sts_head" class="sectionSeperator trigger active" style="background-color: beige;">
+                        <a href="#"><fmt:message key="passive.sts.config"/></a>
+
+                        <div id="wsfederation_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+                    </h2>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="passiveSTSLinkRow">
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="passiveSTSEnabled"><fmt:message key='passive.sts.enabled'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="passiveSTSEnabled" name="passiveSTSEnabled"
+                                               type="checkbox" <%=passiveSTSEnabledChecked%>
+                                               onclick="checkEnabled(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='passive.sts.enabled.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="passiveSTSDefault"><fmt:message key='passive.sts.default'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="passiveSTSDefault" name="passiveSTSDefault"
+                                               type="checkbox" <%=passiveSTSDefaultChecked%> <%=passiveSTSDefaultDisabled%>
+                                               onclick="checkDefault(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='passive.sts.default.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='passive.sts.realm'/>:<span
+                                        class="required">*</span>
+                                </td>
+                                <td>
+                                    <input id="passiveSTSRealm" name="passiveSTSRealm" type="text"
+                                           value="<%=Encode.forHtmlAttribute(passiveSTSRealm)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='passive.sts.realm.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='passive.sts.url'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <input id="passiveSTSUrl" name="passiveSTSUrl" type="text"
+                                           value="<%=Encode.forHtmlAttribute(passiveSTSUrl)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='passive.sts.url.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='passive.sts.user.id.location'/>:
+                                </td>
+                                <td>
+                                    <label>
+                                        <input type="radio" value="0"
+                                               name="passive_sts_user_id_location" <% if (!isPassiveSTSUserIdInClaims) { %>
+                                               checked="checked" <%}%>/>
+                                        User ID found in 'Name Identifier'
+                                    </label>
+                                    <label>
+                                        <input type="radio" value="1"
+                                               name="passive_sts_user_id_location" <% if (isPassiveSTSUserIdInClaims) { %>
+                                               checked="checked" <%}%>/>
+                                        User ID found among claims
+                                    </label>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='passive.sts.user.id.location.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="enablePassiveSTSAssertionSignatureValidation">
+                                        <fmt:message key='passive.sts.enable.assertion.signature.validation'/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="isEnablePassiveSTSAssertionSignatureValidation"
+                                               name="isEnablePassiveSTSAssertionSignatureValidation"
+                                               type="checkbox" <%=enablePassiveSTSAssertionSignatureValidationChecked%>/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='passive.sts.enable.assertion.signature.validation.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="enablePassiveSTSAssertionAudienceValidation">
+                                        <fmt:message key='passive.sts.enable.assertion.audience.validation'/>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="isEnablePassiveSTSAssertionAudienceValidation"
+                                               name="isEnablePassiveSTSAssertionAudienceValidation"
+                                               type="checkbox" <%=enablePassiveSTSAssertionAudienceValidationChecked%>/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='passive.sts.enable.assertion.audience.validation.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
+                                <td>
+                                    <input id="passiveSTSQueryParam" name="passiveSTSQueryParam" type="text"
+                                           value="<%=Encode.forHtml(passiveSTSQueryParam)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='query.param.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <% } %>
+
+
+                    <% if (isFacebookAuthenticatorActive) { %>
+
+                    <h2 id="fb_auth_head" class="sectionSeperator trigger active" style="background-color: beige;">
+                        <a href="#"><fmt:message key="fbauth.config"/></a>
+
+                        <div id="fecebook_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+                    </h2>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="fbAuthLinkRow">
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="fbAuthEnabled"><fmt:message key='fbauth.enabled'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="fbAuthEnabled" name="fbAuthEnabled"
+                                               type="checkbox" <%=fbAuthEnabledChecked%>
+                                               onclick="checkEnabled(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='fbauth.enabled.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="fbAuthDefault"><fmt:message key='fbauth.default'/></label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="fbAuthDefault" name="fbAuthDefault"
+                                               type="checkbox" <%=fbAuthDefaultChecked%> <%=fbAuthDefaultDisabled%>
+                                               onclick="checkDefault(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='fbauth.default.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='client.id'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <input id="fbClientId" name="fbClientId" type="text"
+                                           value="<%=Encode.forHtmlAttribute(fbClientId)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='fbauth.client.id.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='client.secret'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);"
+                                         class="leftCol-med">
+                                        <input id="fbClientSecret" name="fbClientSecret" type="password"
+                                               autocomplete="off" value="<%=Encode.forHtmlAttribute(fbClientSecret)%>"
+                                               style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
+                                        <span id="showHideButtonId" style=" float: right; padding-right: 5px;">
+       								<a style="margin-top: 5px;" class="showHideBtn"
+                                       onclick="showHidePassword(this, 'fbClientSecret')">Show</a>
+       							</span>
+                                    </div>
+
+                                    <div class="sectionHelp"><fmt:message key='fbauth.client.secret.help'/></div>
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='fbauth.scope'/>:</td>
+                                <td>
+                                    <input id="fbScope" name="fbScope" type="text"
+                                           value="<%=Encode.forHtmlAttribute(fbScope)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='fbauth.scope.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='fbauth.user.information.fields'/>:
+                                </td>
+                                <td>
+                                    <input id="fbUserInfoFields" name="fbUserInfoFields" type="text"
+                                           value="<%=Encode.forHtmlAttribute(fbUserInfoFields)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='fbauth.user.information.fields.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='fbauth.callback.url.fields'/>:</td>
+                                <td>
+                                    <input id="fbCallBackUrl" name="fbCallBackUrl" type="text"
+                                           value="<%=Encode.forHtmlAttribute(fbCallBackUrl)%>"/>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='fbauth.callback.url.fields.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="display:none;">
+                                <td class="leftCol-med labelField">Facebook Authentication Endpoint:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="fbAuthnEndpoint"
+                                           name="fbAuthnEndpoint" type="text"
+                                           value=<%=Encode.forHtmlAttribute(fbAuthnEndpoint)%>></td>
+                            </tr>
+                            <tr style="display:none;">
+                                <td class="leftCol-med labelField">Facebook OAuth2 Token Endpoint:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="fbOauth2TokenEndpoint"
+                                           name="fbOauth2TokenEndpoint" type="text"
+                                           value=<%=Encode.forHtmlAttribute(fbOauth2TokenEndpoint)%>></td>
+                            </tr>
+                            <tr style="display:none;">
+                                <td class="leftCol-med labelField">Facebook User Information Endpoint:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="fbUserInfoEndpoint"
+                                           name="fbUserInfoEndpoint" type="text"
+                                           value=<%=Encode.forHtmlAttribute(fbUserInfoEndpoint)%>></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <% } %>
+
+                    <%
+
+                        if (allFedAuthConfigs != null && allFedAuthConfigs.size() > 0) {
+
+                            for (Map.Entry<String, FederatedAuthenticatorConfig> entry : allFedAuthConfigs.entrySet()) {
+                                FederatedAuthenticatorConfig fedConfig = entry.getValue();
+                                if (fedConfig != null) {
+                                    boolean isEnabled = fedConfig.getEnabled();
+
+                                    boolean isDefault = false;
+
+                                    if (identityProvider != null && identityProvider.getDefaultAuthenticatorConfig() != null && identityProvider.getDefaultAuthenticatorConfig().getDisplayName() != null
+                                            && identityProvider.getDefaultAuthenticatorConfig().getName().equals(fedConfig.getName())) {
+                                        isDefault = true;
+                                    }
+
+
+                                    String valueChecked = "";
+                                    String valueDefaultDisabled = "";
+
+                                    String enableChecked = "";
+                                    String enableDefaultDisabled = "";
+
+                                    if (isDefault) {
+                                        valueChecked = "checked=\'checked\'";
+                                        valueDefaultDisabled = "disabled=\'disabled\'";
+                                    }
+
+                                    if (isEnabled) {
+                                        enableChecked = "checked=\'checked\'";
+                                        enableDefaultDisabled = "disabled=\'disabled\'";
+                                    }
+
+                                    if (fedConfig.getDisplayName() != null && fedConfig.getDisplayName().trim().length() > 0) {
+
+                    %>
+
+                    <h2 id="custom_auth_head_"<%=fedConfig.getDisplayName() %> class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName() %>Configuration</a>
+                        <% if (isEnabled) { %>
+                        <div id="custom_auth_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img src="images/ok.png"
+                                                                                           alt="enable" width="16"
+                                                                                           height="16"></div>
+                        <%} else {%>
+                        <div id="custom_auth_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px; display: none"><img
+                                src="images/ok.png" alt="enable"
+                                width="16" height="16"></div>
+                        <%}%>
+                    </h2>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;display: none;"
+                         id="custom_auth_<%=fedConfig.getName()%>">
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <input type="hidden" name="custom_auth_name" value=<%=fedConfig.getName()%>>
+                                    <input type="hidden" name="<%=fedConfig.getName()%>_DisplayName"
+                                           value=<%=fedConfig.getDisplayName()%>>
+
+                                    <label for="<%=fedConfig.getName()%>Enabled">Enable</label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="<%=fedConfig.getName()%>_Enabled"
+                                               name="<%=fedConfig.getName()%>_Enabled"
+                                               type="checkbox" <%=enableChecked%>
+                                               onclick="checkEnabled(this); checkEnabledLogo(this, '<%=fedConfig.getName()%>')"/>
+                                        <span style="display:inline-block" class="sectionHelp">Specifies if custom authenticator is enabled for this Identity Provider
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <label for="<%=fedConfig.getName()%>_Default">Default</label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="<%=fedConfig.getName()%>_Default"
+                                               name="<%=fedConfig.getName()%>_Default"
+                                               type="checkbox" <%=valueChecked%> <%=valueDefaultDisabled%>
+                                               onclick="checkDefault(this);"/>
+                                        <span style="display:inline-block" class="sectionHelp">Specifies if custom authenticator is the default
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <% Property[] properties = fedConfig.getProperties();
+
+                                if (properties != null && properties.length > 0) {
+                                    Arrays.sort(properties, new Comparator<Property>() {
+                                        public int compare(Property obj1, Property obj2) {
+                                            Property property1 = (Property) obj1;
+                                            Property property2 = (Property) obj2;
+                                            if (property1.getDisplayOrder() == property2.getDisplayOrder())
+                                                return 0;
+                                            else if (property1.getDisplayOrder() > property2.getDisplayOrder())
+                                                return 1;
+                                            else
+                                                return -1;
+                                        }
+                                    });
+                                    for (Property prop : properties) {
+                                        if (prop != null && prop.getDisplayName() != null) {
+                            %>
+
+                            <tr>
+                                <%if (prop.getRequired()) { %>
+                                <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:<span
+                                        class="required">*</span></td>
+                                <% } else { %>
+                                <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:</td>
+                                <%} %>
+                                <td>
+                                    <% if (prop.getConfidential()) { %>
+
+                                    <% if (prop.getValue() != null) { %>
+                                    <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);"
+                                         class="leftCol-med">
+                                        <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               type="password" autocomplete="off"
+                                               value="<%=prop.getValue()%>"
+                                               style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
+                                        <span id="showHideButtonId"
+                                              style=" float: right; padding-right: 5px;">
+       													<a style="margin-top: 5px;" class="showHideBtn"
+                                                           onclick="showHidePassword(this, 'cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a>
+       												</span>
+                                    </div>
+                                    <% } else { %>
+
+                                    <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);"
+                                         class="leftCol-med">
+                                        <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               type="password" autocomplete="off"
+                                               style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
+                                        <span id="showHideButtonId"
+                                              style=" float: right; padding-right: 5px;">
+       													<a style="margin-top: 5px;" class="showHideBtn"
+                                                           onclick="showHidePassword(this, 'cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a>
+       												</span>
+                                    </div>
+
+                                    <% } %>
+
+                                    <% } else { %>
+
+                                    <% if (prop.getValue() != null) { %>
+                                    <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           type="text"
+                                           value="<%=prop.getValue()%>"/>
+                                    <% } else { %>
+                                    <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           type="text">
+                                    <% } %>
+
+                                    <% } %>
+
+                                    <%
+                                        if (prop.getDescription() != null) { %>
+                                    <div class="sectionHelp"><%=prop.getDescription()%>
+                                    </div>
+                                    <%} %>
+                                </td>
+                            </tr>
+                            <%
+                                        }
+                                    }
+                                }
+                            %>
+
+                        </table>
+                    </div>
+
+                    <%
+                                    }
+                                }
+                            }
+                        }
+                    %>
+
+                </div>
+
+                <h2 id="in_bound_provisioning_head" class="sectionSeperator trigger active">
+                    <a href="#"><fmt:message key="in.bound.provisioning.config"/></a>
+                </h2>
+
+                <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="inBoundProvisioning">
+                    <table>
+                        <tr>
+                            <td>
+                                <label style="display:block">
+                                    <input type="radio" id="provision_disabled" name="provisioning"
+                                           value="provision_disabled" <% if (!isProvisioningEnabled) { %>
+                                           checked="checked" <% } %> />
+                                    No provisioning
+                                </label>
+
+                                <div>
+                                    <label>
+                                        <input type="radio" id="provision_static" name="provisioning"
+                                               value="provision_static" <% if (isProvisioningEnabled && provisioningUserStoreId != null) { %>
+                                               checked="checked" <% } %>/>
+                                        Always provision to User Store Domain
+                                    </label>
+                                    <select id="provision_static_dropdown"
+                                            name="provision_static_dropdown" <%=provisionStaticDropdownDisabled%>>
+                                        <%
+                                            if (userStoreDomains != null && userStoreDomains.length > 0) {
+                                                for (String userStoreDomain : userStoreDomains) {
+                                                    if (provisioningUserStoreId != null && userStoreDomain.equals(provisioningUserStoreId)) {
+                                        %>
+                                        <option selected="selected"><%=Encode.forHtmlContent(userStoreDomain)%>
+                                        </option>
+                                        <%
+                                        } else {
+                                        %>
+                                        <option><%=userStoreDomain%>
+                                        </option>
+                                        <%
+                                                    }
+                                                }
+                                            }
+                                        %>
+                                    </select>
+
+                                </div>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='provisioning.enabled.help'/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+
+                <!-- Outbound Provisioning UI -->
+                <h2 id="out_bound_provisioning_head" class="sectionSeperator trigger active">
+                    <a href="#"><fmt:message key="out.bound.provisioning.config"/></a>
+                </h2>
+
+
+                <div class="toggle_container sectionSub"
+                     style="margin-bottom: 10px; display: none;" id="outBoundProv">
+
+                    <!-- Google Connector -->
+                    <h2 id="google_prov_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="google.provisioning.connector"/></a>
+
+                        <div id="google_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+                    </h2>
+                    <div class="toggle_container sectionSub"
+                         style="margin-bottom: 10px; display: none;" id="googleProvRow">
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><label
+                                        for="googleProvEnabled"><fmt:message
+                                        key='google.provisioning.enabled'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="googleProvEnabled" name="googleProvEnabled"
+                                               type="checkbox" <%=googleProvEnabledChecked%>
+                                               onclick="checkProvEnabled(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='google.provisioning.enabled.help'/>
 										</span>
-                </div>
-            </td>
-        </tr>
-        <tr style="display:none;">
-            <td class="leftCol-med labelField"><label
-                    for="googleProvDefault"><fmt:message
-                    key='google.provisioning.default'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="googleProvDefault" name="googleProvDefault"
-                           type="checkbox" <%=googleProvDefaultChecked%>
-                            <%=googleProvDefaultDisabled%>
-                           onclick="checkProvDefault(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='google.provisioning.default.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="display:none;">
+                                <td class="leftCol-med labelField"><label
+                                        for="googleProvDefault"><fmt:message
+                                        key='google.provisioning.default'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="googleProvDefault" name="googleProvDefault"
+                                               type="checkbox" <%=googleProvDefaultChecked%>
+                                                <%=googleProvDefaultDisabled%>
+                                               onclick="checkProvDefault(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='google.provisioning.default.help'/>
 										</span>
-                </div>
-            </td>
-        </tr>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.domain.name'/>:<span class="required">*</span></td>
-            <td><input id="google_prov_domain_name"
-                       name="google_prov_domain_name" type="text"
-                       value="<%=Encode.forHtmlAttribute(googleDomainName)%>"/>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.domain.name'/>:<span class="required">*</span></td>
+                                <td><input id="google_prov_domain_name"
+                                           name="google_prov_domain_name" type="text"
+                                           value="<%=Encode.forHtmlAttribute(googleDomainName)%>"/>
 
-                <div class="sectionHelp">
-                    <fmt:message key='google.provisioning.domain.name.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.attribute.primary.email'/>:<span class="required">*</span></td>
-            <td>
-                <div>
-                    <select id="google_prov_email_claim_dropdown"
-                            name="google_prov_email_claim_dropdown">
-                    </select>
-                    <!--a id="claimMappingAddLink" class="icon-link" style="background-image: url(images/add.gif);"><fmt:message key='button.add.claim.mapping' /></a-->
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message
-                            key='google.provisioning.attribute.primary.email.help'/>
-                </div>
-            </td>
-        </tr>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='google.provisioning.domain.name.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.attribute.primary.email'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <div>
+                                        <select id="google_prov_email_claim_dropdown"
+                                                name="google_prov_email_claim_dropdown">
+                                        </select>
+                                        <!--a id="claimMappingAddLink" class="icon-link" style="background-image: url(images/add.gif);"><fmt:message key='button.add.claim.mapping' /></a-->
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message
+                                                key='google.provisioning.attribute.primary.email.help'/>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.attribute.given.name'/>:<span class="required">*</span></td>
-            <td>
-                <div>
-                    <label> <!-- --> Pick given name from Claim :
-                    </label> <select id="google_prov_givenname_claim_dropdown"
-                                     name="google_prov_givenname_claim_dropdown">
-                </select>
-                </div>
-                <div style=" display: none; ">
-                    <label> Given name default value : </label> <input
-                        id="google_prov_givenname" name="google_prov_givenname"
-                        type="text" value="<%=Encode.forHtmlAttribute(googleGivenNameDefaultValue)%>"/>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message
-                            key='google.provisioning.attribute.given.name.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.attribute.family.name'/>:<span class="required">*</span></td>
-            <td>
-                <div>
-                    <label> Pick family name from Claim : </label> <select
-                        id="google_prov_familyname_claim_dropdown"
-                        name="google_prov_familyname_claim_dropdown">
-                </select>
-                </div>
-                <div style=" display: none;">
-                    <label> Family name default value : </label> <input
-                        id="google_prov_familyname" name="google_prov_familyname"
-                        type="text" value="<%=Encode.forHtmlAttribute(googleFamilyNameDefaultValue)%>"/>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message
-                            key='google.provisioning.attribute.family.name.help'/>
-                </div>
-            </td>
-        </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.attribute.given.name'/>:<span class="required">*</span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <label> <!-- --> Pick given name from Claim :
+                                        </label> <select id="google_prov_givenname_claim_dropdown"
+                                                         name="google_prov_givenname_claim_dropdown">
+                                    </select>
+                                    </div>
+                                    <div style=" display: none; ">
+                                        <label> Given name default value : </label> <input
+                                            id="google_prov_givenname" name="google_prov_givenname"
+                                            type="text"
+                                            value="<%=Encode.forHtmlAttribute(googleGivenNameDefaultValue)%>"/>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message
+                                                key='google.provisioning.attribute.given.name.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.attribute.family.name'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <div>
+                                        <label> Pick family name from Claim : </label> <select
+                                            id="google_prov_familyname_claim_dropdown"
+                                            name="google_prov_familyname_claim_dropdown">
+                                    </select>
+                                    </div>
+                                    <div style=" display: none;">
+                                        <label> Family name default value : </label> <input
+                                            id="google_prov_familyname" name="google_prov_familyname"
+                                            type="text"
+                                            value="<%=Encode.forHtmlAttribute(googleFamilyNameDefaultValue)%>"/>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message
+                                                key='google.provisioning.attribute.family.name.help'/>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.service.accont.email'/>:<span class="required">*</span></td>
-            <td>
-                <div>
-                    <input id="google_prov_service_acc_email"
-                           name="google_prov_service_acc_email" type="text"
-                           value="<%=Encode.forHtmlAttribute(googleProvServiceAccEmail)%>"/>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message
-                            key='google.provisioning.service.accont.email.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.service.account.private.key'/>:
-            </td>
-            <td><span><input id="google_prov_private_key"
-                             name="google_prov_private_key" type="file"/>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.service.accont.email'/>:<span class="required">*</span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <input id="google_prov_service_acc_email"
+                                               name="google_prov_service_acc_email" type="text"
+                                               value="<%=Encode.forHtmlAttribute(googleProvServiceAccEmail)%>"/>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message
+                                                key='google.provisioning.service.accont.email.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.service.account.private.key'/>:
+                                </td>
+                                <td><span><input id="google_prov_private_key"
+                                                 name="google_prov_private_key" type="file"/>
 									<% if (googleProvPrivateKeyData != null) { %>
                                          <img src="images/key.png" alt="key" width="14" height="14"
                                               style=" padding-right: 5px; "><label>Private Key attached</label>
 									<% } %></span>
 
-                <div class="sectionHelp">
-                    <fmt:message
-                            key='google.provisioning.service.account.private.key.help'/>
-                </div>
-                <div id="google_prov_privatekey_div">
+                                    <div class="sectionHelp">
+                                        <fmt:message
+                                                key='google.provisioning.service.account.private.key.help'/>
+                                    </div>
+                                    <div id="google_prov_privatekey_div">
 
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.admin.email'/>:<span class="required">*</span></td>
-            <td>
-                <div>
-                    <input id="google_prov_admin_email"
-                           name="google_prov_admin_email" type="text"
-                           value="<%=Encode.forHtmlAttribute(googleProvAdminEmail)%>"/>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message key='google.provisioning.admin.email.help'/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.application.name'/>:<span class="required">*</span></td>
-            <td>
-                <div>
-                    <input id="google_prov_application_name"
-                           name="google_prov_application_name" type="text"
-                           value="<%=Encode.forHtmlAttribute(googleProvApplicationName)%>"/>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message key='google.provisioning.application.name.help'/>
-                </div>
-            </td>
-        </tr>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.admin.email'/>:<span class="required">*</span></td>
+                                <td>
+                                    <div>
+                                        <input id="google_prov_admin_email"
+                                               name="google_prov_admin_email" type="text"
+                                               value="<%=Encode.forHtmlAttribute(googleProvAdminEmail)%>"/>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='google.provisioning.admin.email.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.application.name'/>:<span class="required">*</span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <input id="google_prov_application_name"
+                                               name="google_prov_application_name" type="text"
+                                               value="<%=Encode.forHtmlAttribute(googleProvApplicationName)%>"/>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='google.provisioning.application.name.help'/>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.pattern'/>:
-            </td>
-            <td>
-                <div>
-                    <input id="google_prov_pattern"
-                           name="google_prov_pattern" type="text"
-                           value="<%=Encode.forHtmlAttribute(googleProvPattern)%>"/>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message key='google_prov_pattern.help'/>
-                </div>
-            </td>
-        </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.pattern'/>:
+                                </td>
+                                <td>
+                                    <div>
+                                        <input id="google_prov_pattern"
+                                               name="google_prov_pattern" type="text"
+                                               value="<%=Encode.forHtmlAttribute(googleProvPattern)%>"/>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='google_prov_pattern.help'/>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='google.provisioning.separator'/>:
-            </td>
-            <td>
-                <div>
-                    <input id="google_prov_separator"
-                           name="google_prov_separator" type="text"
-                           value="<%=Encode.forHtmlAttribute(googleProvisioningSeparator)%>"/>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message key='google.provisioning.separator.help'/>
-                </div>
-            </td>
-        </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='google.provisioning.separator'/>:
+                                </td>
+                                <td>
+                                    <div>
+                                        <input id="google_prov_separator"
+                                               name="google_prov_separator" type="text"
+                                               value="<%=Encode.forHtmlAttribute(googleProvisioningSeparator)%>"/>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='google.provisioning.separator.help'/>
+                                    </div>
+                                </td>
+                            </tr>
 
-    </table>
-</div>
+                        </table>
+                    </div>
 
-<h2 id="sf_prov_head" class="sectionSeperator trigger active"
-    style="background-color: beige;">
-    <a href="#"><fmt:message key="sf.provisioning.connector"/></a>
+                    <h2 id="sf_prov_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="sf.provisioning.connector"/></a>
 
-    <div id="sf_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-</h2>
-<div class="toggle_container sectionSub"
-     style="margin-bottom: 10px; display: none;" id="sfProvRow">
+                        <div id="sf_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+                    </h2>
+                    <div class="toggle_container sectionSub"
+                         style="margin-bottom: 10px; display: none;" id="sfProvRow">
 
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField"><label
-                    for="sfProvEnabled"><fmt:message
-                    key='sf.provisioning.enabled'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="sfProvEnabled" name="sfProvEnabled"
-                           type="checkbox" <%=sfProvEnabledChecked%>
-                           onclick="checkProvEnabled(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='sf.provisioning.enabled.help'/>
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><label
+                                        for="sfProvEnabled"><fmt:message
+                                        key='sf.provisioning.enabled'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="sfProvEnabled" name="sfProvEnabled"
+                                               type="checkbox" <%=sfProvEnabledChecked%>
+                                               onclick="checkProvEnabled(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='sf.provisioning.enabled.help'/>
                                         </span>
-                </div>
-            </td>
-        </tr>
-        <tr style="display:none;">
-            <td class="leftCol-med labelField"><label
-                    for="sfProvDefault"><fmt:message
-                    key='sf.provisioning.default'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="sfProvDefault" name="sfProvDefault"
-                           type="checkbox" <%=sfProvDefaultChecked%>
-                            <%=sfProvDefaultDisabled%>
-                           onclick="checkProvDefault(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='sf.provisioning.default.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="display:none;">
+                                <td class="leftCol-med labelField"><label
+                                        for="sfProvDefault"><fmt:message
+                                        key='sf.provisioning.default'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="sfProvDefault" name="sfProvDefault"
+                                               type="checkbox" <%=sfProvDefaultChecked%>
+                                                <%=sfProvDefaultDisabled%>
+                                               onclick="checkProvDefault(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='sf.provisioning.default.help'/>
                                         </span>
-                </div>
-            </td>
-        </tr>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.api.version'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="sf-api-version"
-                       name="sf-api-version" type="text" value=<%=Encode.forHtmlAttribute(sfApiVersion) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.domain.name'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="sf-domain-name"
-                       name="sf-domain-name" type="text" value=<%=Encode.forHtmlAttribute(sfDomainName) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.client.id'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="sf-clientid"
-                       name="sf-clientid" type="text" value=<%=Encode.forHtmlAttribute(sfClientId) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.client.secret'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="sf-client-secret"
-                       name="sf-client-secret" type="password" autocomplete="off" value=<%=Encode.forHtmlAttribute(sfClientSecret) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.username'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="sf-username"
-                       name="sf-username" type="text" value=<%=Encode.forHtmlAttribute(sfUserName) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.password'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="sf-password"
-                       name="sf-password" type="password" autocomplete="off" value=<%=Encode.forHtmlAttribute(sfPassword) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.oauth.endpoint'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="sf-token-endpoint"
-                       name="sf-token-endpoint" type="text"
-                       value=<%=Encode.forHtmlAttribute(sfOauth2TokenEndpoint)%>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.pattern'/>:</td>
-            <td>
-                <div>
-                    <input class="text-box-big" id="sf-prov-pattern"
-                       name="sf-prov-pattern" type="text" value=<%=Encode.forHtmlAttribute(sfProvPattern)%>>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message key='sf_prov_pattern.help'/>
-                </div>
-            </td>
-        </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.api.version'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="sf-api-version"
+                                           name="sf-api-version" type="text"
+                                           value=<%=Encode.forHtmlAttribute(sfApiVersion) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.domain.name'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="sf-domain-name"
+                                           name="sf-domain-name" type="text"
+                                           value=<%=Encode.forHtmlAttribute(sfDomainName) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.client.id'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="sf-clientid"
+                                           name="sf-clientid" type="text"
+                                           value=<%=Encode.forHtmlAttribute(sfClientId) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.client.secret'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="sf-client-secret"
+                                           name="sf-client-secret" type="password" autocomplete="off"
+                                           value=<%=Encode.forHtmlAttribute(sfClientSecret) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.username'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="sf-username"
+                                           name="sf-username" type="text"
+                                           value=<%=Encode.forHtmlAttribute(sfUserName) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.password'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="sf-password"
+                                           name="sf-password" type="password" autocomplete="off"
+                                           value=<%=Encode.forHtmlAttribute(sfPassword) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.oauth.endpoint'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="sf-token-endpoint"
+                                           name="sf-token-endpoint" type="text"
+                                           value=<%=Encode.forHtmlAttribute(sfOauth2TokenEndpoint)%>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.pattern'/>:
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="text-box-big" id="sf-prov-pattern"
+                                               name="sf-prov-pattern" type="text"
+                                               value=<%=Encode.forHtmlAttribute(sfProvPattern)%>>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='sf_prov_pattern.help'/>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.separator'/>:</td>
-            <td>
-                <div>
-                    <input class="text-box-big" id="sf-prov-separator"
-                       name="sf-prov-separator" type="text" value=<%=Encode.forHtmlAttribute(sfProvSeparator)%>>
-                </div>
-                <div class="sectionHelp">
-                    <fmt:message key='sf.provisioning.separator.help'/>
-                </div>
-            </td>
-        </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.separator'/>:
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="text-box-big" id="sf-prov-separator"
+                                               name="sf-prov-separator" type="text"
+                                               value=<%=Encode.forHtmlAttribute(sfProvSeparator)%>>
+                                    </div>
+                                    <div class="sectionHelp">
+                                        <fmt:message key='sf.provisioning.separator.help'/>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='sf.provisioning.domain'/>:</td>
-            <td><input class="text-box-big" id="sf-prov-domainName"
-                       name="sf-prov-domainName" type="text" value=<%=Encode.forHtmlAttribute(sfProvDomainName)%>>
-            <%if(sfUniqueID != null){%>
-                <input type="hidden" id="sf-unique-id" name="sf-unique-id" value=<%=Encode.forHtmlAttribute(sfUniqueID)%>>
-            <%}%>
-            </td>
-        </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='sf.provisioning.domain'/>:
+                                </td>
+                                <td><input class="text-box-big" id="sf-prov-domainName"
+                                           name="sf-prov-domainName" type="text"
+                                           value=<%=Encode.forHtmlAttribute(sfProvDomainName)%>>
+                                    <%if (sfUniqueID != null) {%>
+                                    <input type="hidden" id="sf-unique-id" name="sf-unique-id"
+                                           value=<%=Encode.forHtmlAttribute(sfUniqueID)%>>
+                                    <%}%>
+                                </td>
+                            </tr>
 
-    </table>
+                        </table>
 
-</div>
+                    </div>
 
-<h2 id="scim_prov_head" class="sectionSeperator trigger active"
-    style="background-color: beige;">
-    <a href="#"><fmt:message key="scim.provisioning.connector"/></a>
+                    <h2 id="scim_prov_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="scim.provisioning.connector"/></a>
 
-    <div id="scim_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
+                        <div id="scim_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
 
-</h2>
-<div class="toggle_container sectionSub"
-     style="margin-bottom: 10px; display: none;" id="scimProvRow">
+                    </h2>
+                    <div class="toggle_container sectionSub"
+                         style="margin-bottom: 10px; display: none;" id="scimProvRow">
 
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField"><label
-                    for="scimProvEnabled"><fmt:message
-                    key='scim.provisioning.enabled'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="scimProvEnabled" name="scimProvEnabled"
-                           type="checkbox" <%=scimProvEnabledChecked%>
-                           onclick="checkProvEnabled(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='scim.provisioning.enabled.help'/>
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField"><label
+                                        for="scimProvEnabled"><fmt:message
+                                        key='scim.provisioning.enabled'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="scimProvEnabled" name="scimProvEnabled"
+                                               type="checkbox" <%=scimProvEnabledChecked%>
+                                               onclick="checkProvEnabled(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='scim.provisioning.enabled.help'/>
                                         </span>
-                </div>
-            </td>
-        </tr>
-        <tr style="display:none;">
-            <td class="leftCol-med labelField"><label
-                    for="scimProvDefault"><fmt:message
-                    key='scim.provisioning.default'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="scimProvDefault" name="scimProvDefault"
-                           type="checkbox" <%=scimProvDefaultChecked%>
-                            <%=scimProvDefaultDisabled%>
-                           onclick="checkProvDefault(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='scim.provisioning.default.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="display:none;">
+                                <td class="leftCol-med labelField"><label
+                                        for="scimProvDefault"><fmt:message
+                                        key='scim.provisioning.default'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="scimProvDefault" name="scimProvDefault"
+                                               type="checkbox" <%=scimProvDefaultChecked%>
+                                                <%=scimProvDefaultDisabled%>
+                                               onclick="checkProvDefault(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='scim.provisioning.default.help'/>
                                         </span>
-                </div>
-            </td>
-        </tr>
+                                    </div>
+                                </td>
+                            </tr>
 
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='scim.provisioning.user.name'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="scim-username"
-                       name="scim-username" type="text" value=<%=Encode.forHtmlAttribute(scimUserName) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='scim.provisioning.user.password'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="scim-password"
-                       name="scim-password" type="password" autocomplete="off" value=<%=Encode.forHtmlAttribute(scimPassword) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='scim.provisioning.user.endpoint'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="scim-user-ep"
-                       name="scim-user-ep" type="text" value=<%=Encode.forHtmlAttribute(scimUserEp) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='scim.provisioning.group.endpoint'/>:</td>
-            <td><input class="text-box-big" id="scim-group-ep"
-                       name="scim-group-ep" type="text" value=<%=Encode.forHtmlAttribute(scimGroupEp) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='scim.provisioning.userStore.domain'/>:</td>
-            <td><input class="text-box-big" id="scim-user-store-domain" name="scim-user-store-domain" type="text"
-                       value=<%=Encode.forHtmlAttribute(scimUserStoreDomain)%>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><label><fmt:message
-                    key='scim.password.provisioning.enabled'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="scimPwdProvEnabled" name="scimPwdProvEnabled"
-                           type="checkbox" <%=scimPwdProvEnabledChecked%> onclick="disableDefaultPwd(this);"/>
-                    <span style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='scim.password.provisioning.enabled.help'/>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='scim.provisioning.user.name'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="scim-username"
+                                           name="scim-username" type="text"
+                                           value=<%=Encode.forHtmlAttribute(scimUserName) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='scim.provisioning.user.password'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="scim-password"
+                                           name="scim-password" type="password" autocomplete="off"
+                                           value=<%=Encode.forHtmlAttribute(scimPassword) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='scim.provisioning.user.endpoint'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="scim-user-ep"
+                                           name="scim-user-ep" type="text"
+                                           value=<%=Encode.forHtmlAttribute(scimUserEp) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='scim.provisioning.group.endpoint'/>:
+                                </td>
+                                <td><input class="text-box-big" id="scim-group-ep"
+                                           name="scim-group-ep" type="text"
+                                           value=<%=Encode.forHtmlAttribute(scimGroupEp) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='scim.provisioning.userStore.domain'/>:
+                                </td>
+                                <td><input class="text-box-big" id="scim-user-store-domain"
+                                           name="scim-user-store-domain" type="text"
+                                           value=<%=Encode.forHtmlAttribute(scimUserStoreDomain)%>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><label><fmt:message
+                                        key='scim.password.provisioning.enabled'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="scimPwdProvEnabled" name="scimPwdProvEnabled"
+                                               type="checkbox" <%=scimPwdProvEnabledChecked%>
+                                               onclick="disableDefaultPwd(this);"/>
+                                        <span style="display: inline-block" class="sectionHelp"> <fmt:message
+                                                key='scim.password.provisioning.enabled.help'/>
                                         </span>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField">
-                <fmt:message key='scim.default.password'/>:</td>
-            <td><input class="text-box-big" id="scim-default-pwd" <%=disableDefaultPwd%>
-                       name="scim-default-pwd" type="text" value=<%=scimDefaultPwd%>></td>
-            <%if(scimUniqueID != null){%>
-                            <input type="hidden" id="scim-unique-id" name="scim-unique-id" value=<%=Encode.forHtmlAttribute(scimUniqueID)%>>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <fmt:message key='scim.default.password'/>:
+                                </td>
+                                <td><input class="text-box-big" id="scim-default-pwd" <%=disableDefaultPwd%>
+                                           name="scim-default-pwd" type="text" value=<%=scimDefaultPwd%>></td>
+                                <%if (scimUniqueID != null) {%>
+                                <input type="hidden" id="scim-unique-id" name="scim-unique-id"
+                                       value=<%=Encode.forHtmlAttribute(scimUniqueID)%>>
+                                <%}%>
+                            </tr>
+                        </table>
+
+                    </div>
+
+                    <h2 id="spml_prov_head" class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#"><fmt:message key="spml.provisioning.connector"/></a>
+
+                        <div id="spml_enable_logo" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
+                                src="images/ok.png" alt="enable" width="16" height="16"></div>
+
+                    </h2>
+                    <div class="toggle_container sectionSub"
+                         style="margin-bottom: 10px; display: none;" id="spmlProvRow">
+
+                        <table class="carbonFormTable">
+
+                            <tr>
+                                <td class="leftCol-med labelField"><label
+                                        for="spmlProvEnabled"><fmt:message
+                                        key='spml.provisioning.enabled'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="spmlProvEnabled" name="spmlProvEnabled"
+                                               type="checkbox" <%=spmlProvEnabledChecked%>
+                                               onclick="checkProvEnabled(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='spml.provisioning.enabled.help'/>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="display:none;">
+                                <td class="leftCol-med labelField"><label
+                                        for="spmlProvDefault"><fmt:message
+                                        key='spml.provisioning.default'/>:</label></td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <!-- -->
+                                        <input id="spmlProvDefault" name="spmlProvDefault"
+                                               type="checkbox" <%=spmlProvDefaultChecked%>
+                                                <%=spmlProvDefaultDisabled%>
+                                               onclick="checkProvDefault(this);"/> <span
+                                            style="display: inline-block" class="sectionHelp"> <fmt:message
+                                            key='spml.provisioning.default.help'/>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='spml.provisioning.user.name'/>:
+                                </td>
+                                <td><input class="text-box-big" id="spml-username"
+                                           name="spml-username" type="text"
+                                           value=<%=Encode.forHtmlAttribute(spmlUserName) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='spml.provisioning.user.password'/>:
+                                </td>
+                                <td><input class="text-box-big" id="spml-password"
+                                           name="spml-password" type="password" autocomplete="off"
+                                           value=<%=Encode.forHtmlAttribute(spmlPassword) %>></td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='spml.provisioning.endpoint'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="spml-ep" name="spml-ep"
+                                           type="text" value=<%=Encode.forHtmlAttribute(spmlEndpoint) %>></td>
+                            </tr>
+
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message
+                                        key='spml.provisioning.objectClass'/>:<span
+                                        class="required">*</span></td>
+                                <td><input class="text-box-big" id="spml-oc" name="spml-oc"
+                                           type="text" value=<%=Encode.forHtmlAttribute(spmlObjectClass) %>></td>
+                                <%if (spmlUniqueID != null) {%>
+                                <input type="hidden" id="spml-unique-id" name="spml-unique-id"
+                                       value=<%=Encode.forHtmlAttribute(spmlUniqueID)%>>
+                                <%}%>
+                            </tr>
+
+                        </table>
+                    </div>
+
+                    <%
+
+                        if (customProvisioningConnectors != null && customProvisioningConnectors.size() > 0) {
+
+                            for (Map.Entry<String, ProvisioningConnectorConfig> entry : customProvisioningConnectors.entrySet()) {
+                                ProvisioningConnectorConfig fedConfig = entry.getValue();
+                                if (fedConfig != null) {
+                                    boolean isEnabled = fedConfig.getEnabled();
+
+
+                                    String enableChecked = "";
+
+                                    if (isEnabled) {
+                                        enableChecked = "checked=\'checked\'";
+                                    }
+
+                                    if (fedConfig.getName() != null && fedConfig.getName().trim().length() > 0) {
+
+                    %>
+
+                    <h2 id="custom_pro_head_"<%=fedConfig.getName() %> class="sectionSeperator trigger active"
+                        style="background-color: beige;">
+                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getName()%> Provisioning
+                            Configuration</a>
+                        <% if (isEnabled) { %>
+                        <div id="custom_pro_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px;"><img src="images/ok.png"
+                                                                                           alt="enable" width="16"
+                                                                                           height="16"></div>
+                        <%} else {%>
+                        <div id="custom_pro_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
+                             style="float:right;padding-right: 5px;padding-top: 5px; display: none"><img
+                                src="images/ok.png" alt="enable"
+                                width="16" height="16"></div>
                         <%}%>
-        </tr>
-    </table>
+                    </h2>
+                    <div class="toggle_container sectionSub" style="margin-bottom:10px;display: none;"
+                         id="custom_pro_<%=fedConfig.getName()%>">
+                        <table class="carbonFormTable">
+                            <tr>
+                                <td class="leftCol-med labelField">
+                                    <input type="hidden" name="custom_pro_name" value=<%=fedConfig.getName()%>>
 
-</div>
-
-<h2 id="spml_prov_head" class="sectionSeperator trigger active"
-    style="background-color: beige;">
-    <a href="#"><fmt:message key="spml.provisioning.connector"/></a>
-
-    <div id="spml_enable_logo" class="enablelogo" style="float:right;padding-right: 5px;padding-top: 5px;"><img
-            src="images/ok.png" alt="enable" width="16" height="16"></div>
-
-</h2>
-<div class="toggle_container sectionSub"
-     style="margin-bottom: 10px; display: none;" id="spmlProvRow">
-
-    <table class="carbonFormTable">
-
-        <tr>
-            <td class="leftCol-med labelField"><label
-                    for="spmlProvEnabled"><fmt:message
-                    key='spml.provisioning.enabled'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="spmlProvEnabled" name="spmlProvEnabled"
-                           type="checkbox" <%=spmlProvEnabledChecked%>
-                           onclick="checkProvEnabled(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='spml.provisioning.enabled.help'/>
-                                        </span>
-                </div>
-            </td>
-        </tr>
-        <tr style="display:none;">
-            <td class="leftCol-med labelField"><label
-                    for="spmlProvDefault"><fmt:message
-                    key='spml.provisioning.default'/>:</label></td>
-            <td>
-                <div class="sectionCheckbox">
-                    <!-- -->
-                    <input id="spmlProvDefault" name="spmlProvDefault"
-                           type="checkbox" <%=spmlProvDefaultChecked%>
-                            <%=spmlProvDefaultDisabled%>
-                           onclick="checkProvDefault(this);"/> <span
-                        style="display: inline-block" class="sectionHelp"> <fmt:message
-                        key='spml.provisioning.default.help'/>
-                                        </span>
-                </div>
-            </td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='spml.provisioning.user.name'/>:</td>
-            <td><input class="text-box-big" id="spml-username"
-                       name="spml-username" type="text" value=<%=Encode.forHtmlAttribute(spmlUserName) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='spml.provisioning.user.password'/>:</td>
-            <td><input class="text-box-big" id="spml-password"
-                       name="spml-password" type="password" autocomplete="off" value=<%=Encode.forHtmlAttribute(spmlPassword) %>></td>
-        </tr>
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='spml.provisioning.endpoint'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="spml-ep" name="spml-ep"
-                       type="text" value=<%=Encode.forHtmlAttribute(spmlEndpoint) %>></td>
-        </tr>
-
-        <tr>
-            <td class="leftCol-med labelField"><fmt:message
-                    key='spml.provisioning.objectClass'/>:<span
-                    class="required">*</span></td>
-            <td><input class="text-box-big" id="spml-oc" name="spml-oc"
-                       type="text" value=<%=Encode.forHtmlAttribute(spmlObjectClass) %>></td>
-                <%if(spmlUniqueID != null){%>
-                    <input type="hidden" id="spml-unique-id" name="spml-unique-id" value=<%=Encode.forHtmlAttribute(spmlUniqueID)%>>
-                <%}%>
-        </tr>
-
-    </table>
-</div>
-
-<%
-
-    if (customProvisioningConnectors != null && customProvisioningConnectors.size() > 0) {
-
-        for (Map.Entry<String, ProvisioningConnectorConfig> entry : customProvisioningConnectors.entrySet()) {
-            ProvisioningConnectorConfig fedConfig = entry.getValue();
-            if (fedConfig != null) {
-                boolean isEnabled = fedConfig.getEnabled();
-
-
-                String enableChecked = "";
-
-                if (isEnabled) {
-                    enableChecked = "checked=\'checked\'";
-                }
-
-                if (fedConfig.getName() != null && fedConfig.getName().trim().length() > 0) {
-
-%>
-
-<h2 id="custom_pro_head_"<%=fedConfig.getName() %> class="sectionSeperator trigger active"
-    style="background-color: beige;">
-    <a href="#" style="text-transform:capitalize;"><%=fedConfig.getName()%> Provisioning Configuration</a>
-    <% if (isEnabled) { %>
-    <div id="custom_pro_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
-         style="float:right;padding-right: 5px;padding-top: 5px;"><img src="images/ok.png" alt="enable" width="16"
-                                                                       height="16"></div>
-    <%} else {%>
-    <div id="custom_pro_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
-         style="float:right;padding-right: 5px;padding-top: 5px; display: none"><img src="images/ok.png" alt="enable"
-                                                                                     width="16" height="16"></div>
-    <%}%>
-</h2>
-<div class="toggle_container sectionSub" style="margin-bottom:10px;display: none;"
-     id="custom_pro_<%=fedConfig.getName()%>">
-    <table class="carbonFormTable">
-        <tr>
-            <td class="leftCol-med labelField">
-                <input type="hidden" name="custom_pro_name" value=<%=fedConfig.getName()%>>
-
-                <label for="<%=fedConfig.getName()%>Enabled">Enable</label>
-            </td>
-            <td>
-                <div class="sectionCheckbox">
-                    <input id="<%=fedConfig.getName()%>_PEnabled" name="<%=fedConfig.getName()%>_PEnabled"
-                           type="checkbox" <%=enableChecked%>
-                           onclick="checkEnabledLogo(this, '<%=fedConfig.getName()%>')"/>
-                                <span style="display:inline-block" class="sectionHelp">Specifies if custom provisioning connector is enabled for this Identity Provider
+                                    <label for="<%=fedConfig.getName()%>Enabled">Enable</label>
+                                </td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="<%=fedConfig.getName()%>_PEnabled"
+                                               name="<%=fedConfig.getName()%>_PEnabled"
+                                               type="checkbox" <%=enableChecked%>
+                                               onclick="checkEnabledLogo(this, '<%=fedConfig.getName()%>')"/>
+                                        <span style="display:inline-block" class="sectionHelp">Specifies if custom provisioning connector is enabled for this Identity Provider
                                 </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+
+                            <%
+                                Property[] properties = fedConfig.getProvisioningProperties();
+                                if (properties != null && properties.length > 0) {
+                                    for (Property prop : properties) {
+                                        if (prop != null && prop.getDisplayName() != null) {
+                            %>
+
+                            <tr>
+                                <%if (prop.getRequired()) { %>
+                                <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:<span
+                                        class="required">*</span></td>
+                                <% } else { %>
+                                <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:</td>
+                                <%} %>
+                                <td>
+                                    <% if (prop.getConfidential()) { %>
+
+                                    <% if (prop.getValue() != null) { %>
+                                    <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);"
+                                         class="leftCol-med">
+                                        <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               type="password" autocomplete="off"
+                                               value="<%=prop.getValue()%>"
+                                               style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
+                                        <span id="showHideButtonId"
+                                              style=" float: right; padding-right: 5px;">
+       													<a style="margin-top: 5px;" class="showHideBtn"
+                                                           onclick="showHidePassword(this, 'cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a>
+       												</span>
+                                    </div>
+                                    <% } else { %>
+
+                                    <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);"
+                                         class="leftCol-med">
+                                        <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                               type="password" autocomplete="off"
+                                               style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
+                                        <span id="showHideButtonId"
+                                              style=" float: right; padding-right: 5px;">
+       													<a style="margin-top: 5px;" class="showHideBtn"
+                                                           onclick="showHidePassword(this, 'cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a>
+       												</span>
+                                    </div>
+
+                                    <% } %>
+
+                                    <% } else { %>
+
+                                    <% if (prop.getValue() != null) { %>
+                                    <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="text"
+                                           value="<%=prop.getValue()%>"/>
+                                    <% } else { %>
+                                    <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           type="text">
+                                    <% } %>
+
+                                    <% } %>
+
+                                    <%
+                                        if (prop.getDescription() != null) { %>
+                                    <div class="sectionHelp"><%=prop.getDescription()%>
+                                    </div>
+                                    <%} %>
+                                </td>
+                            </tr>
+                            <%
+                                        }
+                                    }
+                                }
+                            %>
+
+                        </table>
+                    </div>
+
+                    <%
+                                    }
+                                }
+                            }
+                        }
+                    %>
+
                 </div>
-            </td>
-        </tr>
 
 
-        <%
-            Property[] properties = fedConfig.getProvisioningProperties();
-            if (properties != null && properties.length > 0) {
-                for (Property prop : properties) {
-                    if (prop != null && prop.getDisplayName() != null) {
-        %>
+        </div>
 
-        <tr>
-            <%if (prop.getRequired()) { %>
-            <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:<span class="required">*</span></td>
+
+        <!-- sectionSub Div -->
+        <div class="buttonRow">
+            <% if (identityProvider != null) { %>
+            <input type="button" value="<fmt:message key='update'/>" onclick="idpMgtUpdate();"/>
             <% } else { %>
-            <td class="leftCol-med labelField"><%=prop.getDisplayName()%>:</td>
-            <%} %>
-            <td>
-                <% if (prop.getConfidential()) { %>
-
-                <% if (prop.getValue() != null) { %>
-                <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);" class="leftCol-med">
-                    <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                           name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="password" autocomplete="off"
-                           value="<%=prop.getValue()%>"
-                           style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
-       												<span id="showHideButtonId"
-                                                          style=" float: right; padding-right: 5px;"> 
-       													<a style="margin-top: 5px;" class="showHideBtn"
-                                                           onclick="showHidePassword(this, 'cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a> 
-       												</span>
-                </div>
-                <% } else { %>
-
-                <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);" class="leftCol-med">
-                    <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                           name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="password" autocomplete="off"
-                           style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
-       												<span id="showHideButtonId"
-                                                          style=" float: right; padding-right: 5px;"> 
-       													<a style="margin-top: 5px;" class="showHideBtn"
-                                                           onclick="showHidePassword(this, 'cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>')">Show</a> 
-       												</span>
-                </div>
-
-                <% } %>
-
-                <% } else { %>
-
-                <% if (prop.getValue() != null) { %>
-                <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                       name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="text"
-                       value="<%=prop.getValue()%>"/>
-                <% } else { %>
-                <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                       name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="text">
-                <% } %>
-
-                <% } %>
-
-                <%
-                    if (prop.getDescription() != null) { %>
-                <div class="sectionHelp"><%=prop.getDescription()%>
-                </div>
-                <%} %>
-            </td>
-        </tr>
-        <%
-                    }
-                }
-            }
-        %>
-
-    </table>
-</div>
-
-<%
-                }
-            }
-        }
-    }
-%>
-
-</div>
-
-
-</div>
-
-
-<!-- sectionSub Div -->
-<div class="buttonRow">
-    <% if (identityProvider != null) { %>
-    <input type="button" value="<fmt:message key='update'/>" onclick="idpMgtUpdate();"/>
-    <% } else { %>
-    <input type="button" value="<fmt:message key='register'/>" onclick="idpMgtUpdate();"/>
-    <% } %>
-    <input type="button" value="<fmt:message key='cancel'/>" onclick="idpMgtCancel();"/>
-</div>
-</form>
-</div>
-</div>
+            <input type="button" value="<fmt:message key='register'/>" onclick="idpMgtUpdate();"/>
+            <% } %>
+            <input type="button" value="<fmt:message key='cancel'/>" onclick="idpMgtCancel();"/>
+        </div>
+        </form>
+    </div>
+    </div>
 
 </fmt:bundle>

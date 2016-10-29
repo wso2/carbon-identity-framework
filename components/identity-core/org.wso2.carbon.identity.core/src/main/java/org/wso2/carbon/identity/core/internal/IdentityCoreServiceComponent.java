@@ -188,13 +188,13 @@ public class IdentityCoreServiceComponent {
         }
     }
 
-    protected void setRegistryService(RegistryService registryService) {
-        IdentityTenantUtil.setRegistryService(registryService);
-    }
+        protected void setRegistryService(RegistryService registryService) {
+            IdentityTenantUtil.setRegistryService(registryService);
+        }
 
-    protected void unsetRegistryService(RegistryService registryService) {
-        IdentityTenantUtil.setRegistryService(null);
-    }
+        protected void unsetRegistryService(RegistryService registryService) {
+            IdentityTenantUtil.setRegistryService(null);
+        }
 
     /**
      * @param realmService
