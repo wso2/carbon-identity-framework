@@ -58,6 +58,8 @@ public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
 
+    private static final String META_DATA_SAML = "meta_data_saml";
+
     /**
      * Validates an URI.
      *
@@ -118,7 +120,7 @@ public class IdPManagementUIUtil {
                     if (StringUtils.equals(key, "idpUUID")) {
                         idpUUID = diskFileItem.getString();
                     }
-                    if ("meta_data_saml".equals(key)) {
+                    if (IdPManagementUIUtil.META_DATA_SAML.equals(key)) {
 
                         if (StringUtils.isNotEmpty(diskFileItem.getName())  && !diskFileItem.getName().trim().endsWith(".xml")) {
                             throw new CarbonException("File not supported!");
@@ -1608,9 +1610,9 @@ public class IdPManagementUIUtil {
         properties[23] = property;
 
         property = new Property();
-        property.setName("meta_data_saml");
-        if (paramMap.get("meta_data_saml") != null && paramMap.get("meta_data_saml").length() > 0) {
-            property.setValue(paramMap.get("meta_data_saml"));
+        property.setName(IdPManagementUIUtil.META_DATA_SAML);
+        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
+            property.setValue(paramMap.get(IdPManagementUIUtil.META_DATA_SAML));
         } else {
             property.setValue(null);
         }
@@ -1620,7 +1622,7 @@ public class IdPManagementUIUtil {
         saml2SSOAuthnConfig.setProperties(properties);
 
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
-        if (paramMap.get("meta_data_saml") != null && paramMap.get("meta_data_saml").length() > 0) {
+        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
             if (authenticators == null || authenticators.length == 0) {
                 fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig});
             } else {

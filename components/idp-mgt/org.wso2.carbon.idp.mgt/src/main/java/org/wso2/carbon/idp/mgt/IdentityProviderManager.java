@@ -1226,7 +1226,7 @@ public class IdentityProviderManager implements IdpManager {
 
                 for (int j = 0; j < properties.length; j++) {
                     if (properties[j] != null) {
-                        if (properties[j].getName() != null && properties[j].getName().contains("meta_data")) {
+                        if (properties[j].getName() != null && properties[j].getName().contains(IdPManagementConstants.META_DATA)) {
                             for (int v = 0; v < IdpMgtServiceComponentHolder.getInstance().getMetadataConverters()
                                     .size(); v++) {
                                 MetadataConverter metadataConverter = IdpMgtServiceComponentHolder.getInstance()

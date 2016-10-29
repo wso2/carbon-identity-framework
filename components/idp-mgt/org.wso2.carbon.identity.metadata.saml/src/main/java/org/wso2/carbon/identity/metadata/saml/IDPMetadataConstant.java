@@ -24,4 +24,5 @@ public final class IDPMetadataConstant {
     public static String NAME_FORMAT_ID_SAML = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
     public static String SUPPORTED_PROTOCOL_SAML2 = "urn:oasis:names:tc:SAML:2.0:protocol";
     public static String IDP_METADATA_SAML2 = "urn:oasis:names:tc:SAML:2.0:metadata";
+    public static String SAML = "saml";
 }

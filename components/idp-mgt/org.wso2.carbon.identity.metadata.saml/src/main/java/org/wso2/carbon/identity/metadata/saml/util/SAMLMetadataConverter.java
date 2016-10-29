@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.IdentityRegistryResources;
+import org.wso2.carbon.identity.metadata.saml.IDPMetadataConstant;
 import org.wso2.carbon.identity.metadata.saml.builder.DefaultIDPMetadataBuilder;
 import org.wso2.carbon.identity.metadata.saml.internal.IDPMetadataSAMLServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -49,7 +50,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
     public boolean canHandle(Property property) {
         if (property != null) {
             String meta = property.getName();
-            if (meta != null && meta.contains("saml")) {
+            if (meta != null && meta.contains(IDPMetadataConstant.SAML)) {
                 if (property.getValue() != null && property.getValue().length() > 0){
                     return true;
                 }
