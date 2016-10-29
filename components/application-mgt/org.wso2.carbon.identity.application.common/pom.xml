@@ -60,8 +60,6 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
-                            org.wso2.carbon.base,
-                            org.wso2.carbon.user.core,
                             javax.cache,
                             javax.cache.event.*,
                             javax.crypto,

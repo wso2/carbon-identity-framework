@@ -52,10 +52,10 @@ public class SAMLMetadataConverter implements MetadataConverter {
         if (property != null) {
             String meta = property.getName();
             if (meta != null && meta.contains(IDPMetadataConstant.SAML)) {
-                if (property.getValue() != null && property.getValue().length() > 0){
+                if (property.getValue() != null && property.getValue().length() > 0) {
                     return true;
                 }
-                    return false;
+                return false;
             } else {
                 return false;
             }
@@ -65,7 +65,6 @@ public class SAMLMetadataConverter implements MetadataConverter {
     }
 
 
-
     /**
      * Returns a FederatuedAuthenticatorConfigObject that is generated using metadata
      *
@@ -73,7 +72,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
      * @return FederatedAuthenticatorConfig
      * @throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException
      */
-    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(Property properties [], StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
+    public FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(Property properties[], StringBuilder builder) throws javax.xml.stream.XMLStreamException, IdentityProviderManagementException {
 
 
         String metadata = "";
@@ -104,22 +103,22 @@ public class SAMLMetadataConverter implements MetadataConverter {
         return federatedAuthenticatorConfigMetadata;
     }
 
-    public String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException{
+    public String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException {
 
         DefaultIDPMetadataBuilder builder = new DefaultIDPMetadataBuilder();
         try {
 
             String metadata = builder.build(federatedAuthenticatorConfig);
             return metadata;
-        }catch(MetadataException ex){
-            throw  new IdentityProviderSAMLException("Error invoking build in IDPMetadataBuilder", ex);
+        } catch (MetadataException ex) {
+            throw new IdentityProviderSAMLException("Error invoking build in IDPMetadataBuilder", ex);
         }
 
     }
 
-    public boolean canHandle(FederatedAuthenticatorConfig federatedAuthenticatorConfig){
-        if(federatedAuthenticatorConfig!=null && federatedAuthenticatorConfig.getName()
-                .equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)){
+    public boolean canHandle(FederatedAuthenticatorConfig federatedAuthenticatorConfig) {
+        if (federatedAuthenticatorConfig != null && federatedAuthenticatorConfig.getName()
+                .equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
             return true;
         }
         return false;
@@ -143,6 +142,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
 
                 if (registry.resourceExists(path)) {
                     boolean isTransactionStarted = Transaction.isStarted();
+
                     try {
 
                         if (!isTransactionStarted) {
@@ -162,13 +162,10 @@ public class SAMLMetadataConverter implements MetadataConverter {
                         throw new IdentityProviderManagementException("Error while deleting metadata String in registry for " + idPName);
                     }
 
-
                 }
             } catch (RegistryException e) {
                 throw new IdentityProviderManagementException("Error while deleting Identity Provider", e);
             }
-
-
 
 
         } catch (RegistryException e) {
@@ -184,7 +181,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      *                                             information from registry
      */
-    public  void saveMetadataString(int tenantId, String idpName, String metadata) throws IdentityProviderManagementException {
+    public void saveMetadataString(int tenantId, String idpName, String metadata) throws IdentityProviderManagementException {
 
         try {
 
@@ -204,6 +201,7 @@ public class SAMLMetadataConverter implements MetadataConverter {
             }
 
             try {
+
                 if (!registry.resourceExists(identityPath)) {
 
                     Collection idpCollection = registry.newCollection();
@@ -245,6 +243,5 @@ public class SAMLMetadataConverter implements MetadataConverter {
             throw new IdentityProviderManagementException("Error while setting a registry object in IdentityProviderManager");
         }
     }
-
 
 }

@@ -301,10 +301,8 @@ public class SAML2SSOFederatedAuthenticatorConfigBuilder {
                                                                     if (descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).
                                                                             getValue() != null && descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().
                                                                             get(y).getValue().length() > 0) {
-                                                                        //TODO try catch change
                                                                         cert = descriptor.getKeyInfo().getX509Datas().get(k).getX509Certificates().get(y).
                                                                                 getValue().toString();
-                                                                        //TODO
                                                                         builder.append(org.apache.axiom.om.util.Base64.encode(cert.getBytes()));
                                                                         return federatedAuthenticatorConfig;
                                                                     }

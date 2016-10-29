@@ -154,7 +154,6 @@ public class IdPManagementDAO {
 
     /**
      * Get Identity properties map
-     *
      * @param dbConnection database connection
      * @param idpId        IDP Id
      * @return Identity provider properties
@@ -565,7 +564,6 @@ public class IdPManagementDAO {
         }
 
     }
-
     /**
      * @param dbConnection
      * @param idPName
@@ -1945,7 +1943,6 @@ public class IdPManagementDAO {
                                String tenantDomain) throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
-        ;
         PreparedStatement prepStmt = null;
         try {
             String sqlStmt = IdPManagementConstants.SQLQueries.RENAME_CLAIM_SQL;
@@ -2581,6 +2578,4 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
     }
-
-
 }
