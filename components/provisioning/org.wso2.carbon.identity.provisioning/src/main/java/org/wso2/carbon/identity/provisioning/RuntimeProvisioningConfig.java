@@ -26,6 +26,7 @@ public class RuntimeProvisioningConfig implements Serializable {
     private static final long serialVersionUID = -2629523092537958531L;
 
     private boolean blocking;
+    private boolean policyEnabled;
     private Entry<String, AbstractOutboundProvisioningConnector> provisioningConnectorEntry;
 
     /**
@@ -41,6 +42,21 @@ public class RuntimeProvisioningConfig implements Serializable {
     public void setBlocking(boolean blocking) {
         this.blocking = blocking;
     }
+
+    /**
+     * @return
+     */
+    public boolean isPolicyEnabled() {
+        return policyEnabled;
+    }
+
+    /**
+     * @param policyEnabled
+     */
+    public void setPolicyEnabled(boolean policyEnabled) {
+        this.policyEnabled = policyEnabled;
+    }
+
 
     /**
      * @return

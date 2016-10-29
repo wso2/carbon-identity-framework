@@ -666,12 +666,20 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         blocking = "1";
                     }
 
+                    String ruleEnabled = "0";
+
+                    if (proProvider.getDefaultProvisioningConnectorConfig() != null
+                        && proProvider.getDefaultProvisioningConnectorConfig().isRulesEnabled()) {
+                        ruleEnabled = "1";
+                    }
+
                     outboundProConfigPrepStmt.setInt(1, tenantID);
                     outboundProConfigPrepStmt.setString(2, proProvider.getIdentityProviderName());
                     outboundProConfigPrepStmt.setString(3, proConnector.getName());
                     outboundProConfigPrepStmt.setInt(4, applicationId);
                     outboundProConfigPrepStmt.setString(5, jitEnabled);
                     outboundProConfigPrepStmt.setString(6, blocking);
+                    outboundProConfigPrepStmt.setString(7, ruleEnabled);
                     outboundProConfigPrepStmt.addBatch();
 
                 }
@@ -760,6 +768,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     proConnector.setBlocking(true);
                 } else {
                     proConnector.setBlocking(false);
+                }
+
+                if ("1".equals(resultSet.getString(5))) {
+                    proConnector.setRulesEnabled(true);
+                } else {
+                    proConnector.setRulesEnabled(false);
                 }
 
                 fedIdp.setDefaultProvisioningConnectorConfig(proConnector);

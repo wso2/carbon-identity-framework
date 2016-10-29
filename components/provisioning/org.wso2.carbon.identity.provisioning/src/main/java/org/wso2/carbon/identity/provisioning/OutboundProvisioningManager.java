@@ -232,6 +232,7 @@ public class OutboundProvisioningManager {
                                     .setProvisioningConnectorEntry(new SimpleEntry<>(
                                             connectorType, connector));
                             proConfig.setBlocking(defaultConnector.isBlocking());
+                            proConfig.setPolicyEnabled(defaultConnector.isRulesEnabled());
                             connectors.put(fIdP.getIdentityProviderName(), proConfig);
                         }
                     }
@@ -568,9 +569,12 @@ public class OutboundProvisioningManager {
                                                                          tenantDomainName, connector, connectorType, idPName, dao);
                     outboundProEntity.setIdentifier(provisionedIdentifier);
                     outboundProEntity.setJitProvisioning(jitProvisioning);
+                    boolean isAllowed = true;
                     boolean isBlocking = entry.getValue().isBlocking();
-
-                    boolean isAllowed = XACMLBasedRuleHandler.getInstance().isAuthorized(tenantDomainName, provisioningEntity, idPName, connectorType);
+                    boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
+                    if(isPolicyEnabled) {
+                         isAllowed = XACMLBasedRuleHandler.getInstance().isAuthorized(tenantDomainName, provisioningEntity, idPName, connectorType);
+                    }
                     if (isAllowed) {
                         executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);
                     }
