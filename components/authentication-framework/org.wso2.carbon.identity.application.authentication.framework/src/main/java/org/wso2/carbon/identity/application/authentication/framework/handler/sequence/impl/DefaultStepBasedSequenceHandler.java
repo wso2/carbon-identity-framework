@@ -18,13 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -35,28 +33,21 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreException;
-import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -167,13 +158,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     context.getSequenceConfig().setCompleted(true);
                     handlePostAuthentication(request, response, context);
 
-                    // if step is not completed, that means step wants to redirect to outside
-                    if (!context.getSequenceConfig().isCompleted()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Post authentication is not complete yet. Redirecting to outside.");
-                        }
-                        return;
-                    }
                 }
 
                 // we should get out of steps now.
@@ -203,90 +187,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     }
 
-    private void handleResponseWithMissingClaims(HttpServletRequest request, HttpServletResponse response,
-                                                 AuthenticationContext context) throws FrameworkException {
-
-        Map<String, String> claims = new HashMap<String, String>();
-        Map<String, String[]> requestParams = request.getParameterMap();
-        boolean persistClaims = false;
-
-        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
-
-        for (String key : requestParams.keySet()) {
-            if (key.startsWith("claim_mand_")) {
-                String claim = key.substring("claim_mand_".length());
-                claims.put(claim, requestParams.get(key)[0]);
-            }
-        }
-
-        Map<ClaimMapping, String> authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(claims);
-        authenticatedUserAttributes.putAll(user.getUserAttributes());
-
-        for (Map.Entry<Integer, StepConfig> entry : context.getSequenceConfig().getStepMap().entrySet()) {
-            StepConfig stepConfig = entry.getValue();
-            if (stepConfig.isSubjectAttributeStep()) {
-
-                user = stepConfig.getAuthenticatedUser();
-                if (!user.isFederatedUser()) {
-                    persistClaims = true;
-                } else {
-                    String associatedID = null;
-                    UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-                    String subject = user.getAuthenticatedSubjectIdentifier();
-                    try {
-                        associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
-                                subject);
-                        if (StringUtils.isNotBlank(associatedID)) {
-                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
-                            user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
-                                            fullQualifiedAssociatedUserId);
-                            persistClaims = true;
-                        }
-                    } catch (UserProfileException e) {
-                        throw new FrameworkException("Error while getting association for " + subject, e);
-                    }
-                }
-                break;
-            }
-        }
-
-        if (persistClaims) {
-
-            try {
-                String tenantDomain =
-                        context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner().getTenantDomain();
-                String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
-
-                ApplicationManagementServiceImpl applicationManagementService =
-                        ApplicationManagementServiceImpl.getInstance();
-                Map<String, String> claimMapping =
-                        applicationManagementService.getServiceProviderToLocalIdPClaimMapping(spName, tenantDomain);
-
-                Map<String, String> localIdpClaims = new HashMap<>();
-                for (Map.Entry<String, String> entry : claims.entrySet()) {
-                    String localClaim = claimMapping.get(entry.getKey());
-                    localIdpClaims.put(localClaim, entry.getValue());
-                }
-
-                UserRealm realm = getUserRealm(user.getTenantDomain());
-                UserStoreManager userStoreManager =
-                        realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
-                userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
-            } catch (UserStoreException e) {
-                throw new FrameworkException(
-                        "Error while updating claims for local user. Could not update profile", e);
-            } catch (IdentityApplicationManagementException e) {
-                throw new FrameworkException(
-                        "Error while retrieving application claim mapping. Could not update profile", e);
-            }
-        }
-
-        context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-        context.setProperty(FrameworkConstants.REQUEST_MISSING_CLAIMS_TRIGGERED, false);
-
-    }
-
     @SuppressWarnings("unchecked")
     protected void handlePostAuthentication(HttpServletRequest request,
                                             HttpServletResponse response, AuthenticationContext context)
@@ -296,329 +196,320 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             log.debug("Handling Post Authentication tasks");
         }
 
-        if (!isPostAuthenticateExtensionTriggered(context)) {
+        SequenceConfig sequenceConfig = context.getSequenceConfig();
+        StringBuilder jsonBuilder = new StringBuilder();
 
-            SequenceConfig sequenceConfig = context.getSequenceConfig();
-            StringBuilder jsonBuilder = new StringBuilder();
+        boolean subjectFoundInStep = false;
+        boolean subjectAttributesFoundInStep = false;
+        int stepCount = 1;
+        Map<String, String> mappedAttrs = new HashMap<>();
+        Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
 
-            boolean subjectFoundInStep = false;
-            boolean subjectAttributesFoundInStep = false;
-            int stepCount = 1;
-            Map<String, String> mappedAttrs = new HashMap<>();
-            Map<ClaimMapping, String> authenticatedUserAttributes = new HashMap<>();
+        for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
+            StepConfig stepConfig = entry.getValue();
+            AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
+            ApplicationAuthenticator authenticator = authenticatorConfig
+                    .getApplicationAuthenticator();
 
-            for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
-                StepConfig stepConfig = entry.getValue();
-                AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
-                ApplicationAuthenticator authenticator = authenticatorConfig
-                        .getApplicationAuthenticator();
+            // build the authenticated idps JWT to send to the calling servlet.
+            if (stepCount == 1) {
+                jsonBuilder.append("\"idps\":");
+                jsonBuilder.append("[");
+            }
 
-                // build the authenticated idps JWT to send to the calling servlet.
-                if (stepCount == 1) {
-                    jsonBuilder.append("\"idps\":");
-                    jsonBuilder.append("[");
+            // build the JSON object for this step
+            jsonBuilder.append("{");
+            jsonBuilder.append("\"idp\":\"").append(stepConfig.getAuthenticatedIdP()).append("\",");
+            jsonBuilder.append("\"authenticator\":\"").append(authenticator.getName()).append("\"");
+
+            if (stepCount != sequenceConfig.getStepMap().size()) {
+                jsonBuilder.append("},");
+            } else {
+                // wrap up the JSON object
+                jsonBuilder.append("}");
+                jsonBuilder.append("]");
+
+                sequenceConfig.setAuthenticatedIdPs(IdentityApplicationManagementUtil.getSignedJWT(
+                        jsonBuilder.toString(), sequenceConfig.getApplicationConfig()
+                                .getServiceProvider()));
+
+                stepConfig.setSubjectIdentifierStep(!subjectFoundInStep);
+
+                stepConfig.setSubjectAttributeStep(!subjectAttributesFoundInStep);
+            }
+
+            stepCount++;
+
+            if (authenticator instanceof FederatedApplicationAuthenticator) {
+
+                ExternalIdPConfig externalIdPConfig = null;
+                try {
+                    externalIdPConfig = ConfigurationFacade.getInstance()
+                            .getIdPConfigByName(stepConfig.getAuthenticatedIdP(),
+                                    context.getTenantDomain());
+                } catch (IdentityProviderManagementException e) {
+                    log.error("Exception while getting IdP by name", e);
                 }
 
-                // build the JSON object for this step
-                jsonBuilder.append("{");
-                jsonBuilder.append("\"idp\":\"").append(stepConfig.getAuthenticatedIdP()).append("\",");
-                jsonBuilder.append("\"authenticator\":\"").append(authenticator.getName()).append("\"");
+                context.setExternalIdP(externalIdPConfig);
 
-                if (stepCount != sequenceConfig.getStepMap().size()) {
-                    jsonBuilder.append("},");
-                } else {
-                    // wrap up the JSON object
-                    jsonBuilder.append("}");
-                    jsonBuilder.append("]");
+                String originalExternalIdpSubjectValueForThisStep =
+                        stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
 
-                    sequenceConfig.setAuthenticatedIdPs(IdentityApplicationManagementUtil.getSignedJWT(
-                            jsonBuilder.toString(), sequenceConfig.getApplicationConfig()
-                                    .getServiceProvider()));
-
-                    if (!subjectFoundInStep) {
-                        stepConfig.setSubjectIdentifierStep(true);
-                    }
-
-                    if (!subjectAttributesFoundInStep) {
-                        stepConfig.setSubjectAttributeStep(true);
-                    }
+                if (externalIdPConfig == null) {
+                    String errorMsg = "An External IdP cannot be null for a FederatedApplicationAuthenticator";
+                    log.error(errorMsg);
+                    throw new FrameworkException(errorMsg);
                 }
 
-                stepCount++;
+                Map<ClaimMapping, String> extAttrs;
+                Map<String, String> extAttibutesValueMap;
+                Map<String, String> localClaimValues = null;
+                Map<String, String> idpClaimValues = null;
+                List<String> locallyMappedUserRoles = null;
 
-                if (authenticator instanceof FederatedApplicationAuthenticator) {
+                extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
+                extAttibutesValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
 
-                    ExternalIdPConfig externalIdPConfig = null;
-                    try {
-                        externalIdPConfig = ConfigurationFacade.getInstance()
-                                .getIdPConfigByName(stepConfig.getAuthenticatedIdP(),
-                                        context.getTenantDomain());
-                    } catch (IdentityProviderManagementException e) {
-                        log.error("Exception while getting IdP by name", e);
-                    }
+                if (stepConfig.isSubjectIdentifierStep()) {
+                    // there can be only step for subject attributes.
 
-                    context.setExternalIdP(externalIdPConfig);
+                    subjectFoundInStep = true;
+                    String associatedID = null;
 
-                    String originalExternalIdpSubjectValueForThisStep =
-                            stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+                    // now we know the value of the subject - from the external identity provider.
 
-                    if (externalIdPConfig == null) {
-                        String errorMsg = "An External IdP cannot be null for a FederatedApplicationAuthenticator";
-                        log.error(errorMsg);
-                        throw new FrameworkException(errorMsg);
-                    }
+                    if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
 
-                    Map<ClaimMapping, String> extAttrs;
-                    Map<String, String> extAttibutesValueMap;
-                    Map<String, String> localClaimValues = null;
-                    Map<String, String> idpClaimValues = null;
-                    List<String> locallyMappedUserRoles = null;
+                        // okay - now we need to find out the corresponding mapped local subject
+                        // identifier.
 
-                    extAttrs = stepConfig.getAuthenticatedUser().getUserAttributes();
-                    extAttibutesValueMap = FrameworkUtils.getClaimMappings(extAttrs, false);
-
-                    if (stepConfig.isSubjectIdentifierStep()) {
-                        // there can be only step for subject attributes.
-
-                        subjectFoundInStep = true;
-                        String associatedID = null;
-
-                        // now we know the value of the subject - from the external identity provider.
-
-                        if (sequenceConfig.getApplicationConfig().isAlwaysSendMappedLocalSubjectId()) {
-
-                            // okay - now we need to find out the corresponding mapped local subject
-                            // identifier.
-
-                            UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-                            try {
-                                // start tenant flow
-                                FrameworkUtils.startTenantFlow(context.getTenantDomain());
-                                associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
-                                        originalExternalIdpSubjectValueForThisStep);
-                                if (StringUtils.isNotBlank(associatedID)) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("User " + stepConfig.getAuthenticatedUser() +
-                                                " has an associated account as " + associatedID + ". Hence continuing as " +
-                                                associatedID);
-                                    }
-                                    stepConfig.getAuthenticatedUser().setUserName(associatedID);
-                                    stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
-                                    stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
-                                } else {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("User " + stepConfig.getAuthenticatedUser() +
-                                                " doesn't have an associated" +
-                                                " account. Hence continuing as the same user.");
-                                    }
+                        UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+                        try {
+                            // start tenant flow
+                            FrameworkUtils.startTenantFlow(context.getTenantDomain());
+                            associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
+                                    originalExternalIdpSubjectValueForThisStep);
+                            if (StringUtils.isNotBlank(associatedID)) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
+                                            " has an associated account as " + associatedID + ". Hence continuing as " +
+                                            associatedID);
                                 }
-                            } catch (UserProfileException e) {
-                                throw new FrameworkException("Error while getting associated local user ID for "
-                                        + originalExternalIdpSubjectValueForThisStep, e);
-                            } finally {
-                                // end tenant flow
-                                FrameworkUtils.endTenantFlow();
-                            }
-                        }
-
-
-                        if (associatedID != null && associatedID.trim().length() > 0) {
-
-                            handleClaimMappings(stepConfig, context, extAttibutesValueMap, true);
-                            localClaimValues = (Map<String, String>) context
-                                    .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
-
-                            idpClaimValues = (Map<String, String>) context
-                                    .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
-                            // we found an associated user identifier
-                            // build the full qualified user id for the associated user
-                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
-                            sequenceConfig.setAuthenticatedUser(AuthenticatedUser
-                                    .createLocalAuthenticatedUserFromSubjectIdentifier(
-                                            fullQualifiedAssociatedUserId));
-
-                            sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
-
-                            // if we found a local mapped user - then we will also take attributes from
-                            // that user - this will load local claim values for the user.
-                            mappedAttrs = handleClaimMappings(stepConfig, context, null, false);
-
-                            // if no requested claims are selected, send all local mapped claim values or idp claim values
-                            if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
-                                    context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings()
-                                            .isEmpty()) {
-
-                                if (localClaimValues != null && !localClaimValues.isEmpty()) {
-                                    mappedAttrs = localClaimValues;
-                                } else if (idpClaimValues != null && !idpClaimValues.isEmpty()) {
-                                    mappedAttrs = idpClaimValues;
+                                stepConfig.getAuthenticatedUser().setUserName(associatedID);
+                                stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
+                                stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
+                            } else {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
+                                            " doesn't have an associated" +
+                                            " account. Hence continuing as the same user.");
                                 }
                             }
-
-                            authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
-
-                            // in this case associatedID is a local user name - belongs to a tenant in IS.
-                            String tenantDomain = MultitenantUtils.getTenantDomain(associatedID);
-                            Map<String, Object> authProperties = context.getProperties();
-
-                            if (authProperties == null) {
-                                authProperties = new HashMap<>();
-                                context.setProperties(authProperties);
-                            }
-
-                            //TODO: user tenant domain has to be an attribute in the AuthenticationContext
-                            authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
-
-                            if (log.isDebugEnabled()) {
-                                log.debug("Authenticated User: " +
-                                        sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
-                                log.debug("Authenticated User Tenant Domain: " + tenantDomain);
-                            }
-
-                        } else {
-
-                            sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
-
-                            // Only place we do not set the setAuthenticatedUserTenantDomain into the sequenceConfig
-                            // TODO : Check whether not setting setAuthenticatedUserTenantDomain is correct
-
-                        }
-
-                    }
-
-                    if (stepConfig.isSubjectAttributeStep()) {
-
-                        subjectAttributesFoundInStep = true;
-
-                        String idpRoleClaimUri = getIdpRoleClaimUri(externalIdPConfig);
-
-                        locallyMappedUserRoles = getLocallyMappedUserRoles(sequenceConfig,
-                                externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri);
-
-                        if (idpRoleClaimUri != null && getServiceProviderMappedUserRoles(sequenceConfig,
-                                locallyMappedUserRoles) != null) {
-                            extAttibutesValueMap.put(idpRoleClaimUri, getServiceProviderMappedUserRoles(sequenceConfig,
-                                    locallyMappedUserRoles));
-                        }
-
-                        if (mappedAttrs == null || mappedAttrs.isEmpty()) {
-                            // do claim handling
-                            mappedAttrs = handleClaimMappings(stepConfig, context,
-                                    extAttibutesValueMap, true);
-                            // external claim values mapped to local claim uris.
-                            localClaimValues = (Map<String, String>) context
-                                    .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
-
-                            idpClaimValues = (Map<String, String>) context
-                                    .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
-                        }
-
-                        if (!sequenceConfig.getApplicationConfig().isMappedSubjectIDSelected()) {
-                            // if we found the mapped subject - then we do not need to worry about
-                            // finding attributes.
-
-                            // if no requested claims are selected, send all local mapped claim values or idp claim values
-                            if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
-                                    context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
-
-                                if (localClaimValues != null && !localClaimValues.isEmpty()) {
-                                    mappedAttrs = localClaimValues;
-                                } else if (idpClaimValues != null && !idpClaimValues.isEmpty()) {
-                                    mappedAttrs = idpClaimValues;
-                                }
-                            }
-                            authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
-                        }
-
-                    }
-
-                    // do user provisioning. we should provision the user with the original external
-                    // subject identifier.
-                    if (externalIdPConfig.isProvisioningEnabled()) {
-
-                        if (localClaimValues == null) {
-                            localClaimValues = new HashMap<>();
-                        }
-
-                        handleJitProvisioning(originalExternalIdpSubjectValueForThisStep, context,
-                                locallyMappedUserRoles, localClaimValues);
-                    }
-
-                } else {
-
-                    if (stepConfig.isSubjectIdentifierStep()) {
-                        subjectFoundInStep = true;
-                        sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
-
-                        if (log.isDebugEnabled()) {
-                            log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserName());
-                            log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
-                                    .getTenantDomain());
+                        } catch (UserProfileException e) {
+                            throw new FrameworkException("Error while getting associated local user ID for "
+                                    + originalExternalIdpSubjectValueForThisStep, e);
+                        } finally {
+                            // end tenant flow
+                            FrameworkUtils.endTenantFlow();
                         }
                     }
 
-                    if (stepConfig.isSubjectAttributeStep()) {
-                        subjectAttributesFoundInStep = true;
-                        // local authentications
+
+                    if (associatedID != null && associatedID.trim().length() > 0) {
+
+                        handleClaimMappings(stepConfig, context, extAttibutesValueMap, true);
+                        localClaimValues = (Map<String, String>) context
+                                .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+
+                        idpClaimValues = (Map<String, String>) context
+                                .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
+                        // we found an associated user identifier
+                        // build the full qualified user id for the associated user
+                        String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+                                associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                        sequenceConfig.setAuthenticatedUser(AuthenticatedUser
+                                .createLocalAuthenticatedUserFromSubjectIdentifier(
+                                        fullQualifiedAssociatedUserId));
+
+                        sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
+
+                        // if we found a local mapped user - then we will also take attributes from
+                        // that user - this will load local claim values for the user.
                         mappedAttrs = handleClaimMappings(stepConfig, context, null, false);
 
-                        String spRoleUri = getSpRoleClaimUri(sequenceConfig.getApplicationConfig());
+                        // if no requested claims are selected, send all local mapped claim values or idp claim values
+                        if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
+                                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings()
+                                        .isEmpty()) {
 
-                        String roleAttr = mappedAttrs.get(spRoleUri);
-
-                        if (roleAttr != null && roleAttr.trim().length() > 0) {
-
-                            String[] roles = roleAttr.split(",");
-                            mappedAttrs.put(
-                                    spRoleUri,
-                                    getServiceProviderMappedUserRoles(sequenceConfig,
-                                            Arrays.asList(roles)));
+                            if (MapUtils.isNotEmpty(localClaimValues)) {
+                                mappedAttrs = localClaimValues;
+                            } else if (MapUtils.isNotEmpty(idpClaimValues)) {
+                                mappedAttrs = idpClaimValues;
+                            }
                         }
 
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
+
+                        // in this case associatedID is a local user name - belongs to a tenant in IS.
+                        String tenantDomain = MultitenantUtils.getTenantDomain(associatedID);
+                        Map<String, Object> authProperties = context.getProperties();
+
+                        if (authProperties == null) {
+                            authProperties = new HashMap<>();
+                            context.setProperties(authProperties);
+                        }
+
+                        //TODO: user tenant domain has to be an attribute in the AuthenticationContext
+                        authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("Authenticated User: " +
+                                    sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                            log.debug("Authenticated User Tenant Domain: " + tenantDomain);
+                        }
+
+                    } else {
+
+                        sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
+
+                        // Only place we do not set the setAuthenticatedUserTenantDomain into the sequenceConfig
+                        // TODO : Check whether not setting setAuthenticatedUserTenantDomain is correct
+
                     }
+
                 }
-            }
 
-            String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
-            String subjectValue = (String) context.getProperty("ServiceProviderSubjectClaimValue");
-            if (StringUtils.isNotBlank(subjectClaimURI)) {
-                if (subjectValue != null) {
-                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
+                if (stepConfig.isSubjectAttributeStep()) {
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Authenticated User: " +
-                                sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
-                        log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
-                                .getTenantDomain());
+                    subjectAttributesFoundInStep = true;
+
+                    String idpRoleClaimUri = getIdpRoleClaimUri(externalIdPConfig);
+
+                    locallyMappedUserRoles = getLocallyMappedUserRoles(sequenceConfig,
+                            externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri);
+
+                    if (idpRoleClaimUri != null && getServiceProviderMappedUserRoles(sequenceConfig,
+                            locallyMappedUserRoles) != null) {
+                        extAttibutesValueMap.put(idpRoleClaimUri, getServiceProviderMappedUserRoles(sequenceConfig,
+                                locallyMappedUserRoles));
                     }
-                } else {
-                    log.warn("Subject claim could not be found. Defaulting to Name Identifier.");
-                    if (StringUtils.isNotBlank(sequenceConfig.getAuthenticatedUser().getUserName())) {
-                        sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(sequenceConfig
-                                .getAuthenticatedUser().getUsernameAsSubjectIdentifier(sequenceConfig.getApplicationConfig()
-                                        .isUseUserstoreDomainInLocalSubjectIdentifier(), sequenceConfig
-                                        .getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()));
+
+                    if (mappedAttrs == null || mappedAttrs.isEmpty()) {
+                        // do claim handling
+                        mappedAttrs = handleClaimMappings(stepConfig, context,
+                                extAttibutesValueMap, true);
+                        // external claim values mapped to local claim uris.
+                        localClaimValues = (Map<String, String>) context
+                                .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+
+                        idpClaimValues = (Map<String, String>) context
+                                .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
                     }
+
+                    if (!sequenceConfig.getApplicationConfig().isMappedSubjectIDSelected()) {
+                        // if we found the mapped subject - then we do not need to worry about
+                        // finding attributes.
+
+                        // if no requested claims are selected, send all local mapped claim values or idp claim values
+                        if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
+                                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
+
+                            if (MapUtils.isNotEmpty(localClaimValues)) {
+                                mappedAttrs = localClaimValues;
+                            } else if (MapUtils.isNotEmpty(idpClaimValues)) {
+                                mappedAttrs = idpClaimValues;
+                            }
+                        }
+                        authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
+                    }
+
+                }
+
+                // do user provisioning. we should provision the user with the original external
+                // subject identifier.
+                if (externalIdPConfig.isProvisioningEnabled()) {
+
+                    if (localClaimValues == null) {
+                        localClaimValues = new HashMap<>();
+                    }
+
+                    handleJitProvisioning(originalExternalIdpSubjectValueForThisStep, context,
+                            locallyMappedUserRoles, localClaimValues);
                 }
 
             } else {
+
+                if (stepConfig.isSubjectIdentifierStep()) {
+                    subjectFoundInStep = true;
+                    sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserName());
+                        log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
+                                .getTenantDomain());
+                    }
+                }
+
+                if (stepConfig.isSubjectAttributeStep()) {
+                    subjectAttributesFoundInStep = true;
+                    // local authentications
+                    mappedAttrs = handleClaimMappings(stepConfig, context, null, false);
+
+                    String spRoleUri = getSpRoleClaimUri(sequenceConfig.getApplicationConfig());
+
+                    String roleAttr = mappedAttrs.get(spRoleUri);
+
+                    if (StringUtils.isNotBlank(roleAttr)) {
+
+                        String[] roles = roleAttr.split(",");
+                        mappedAttrs.put(
+                                spRoleUri,
+                                getServiceProviderMappedUserRoles(sequenceConfig,
+                                        Arrays.asList(roles)));
+                    }
+
+                    authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
+                }
+            }
+        }
+
+        String subjectClaimURI = sequenceConfig.getApplicationConfig().getSubjectClaimUri();
+        String subjectValue = (String) context.getProperty("ServiceProviderSubjectClaimValue");
+        if (StringUtils.isNotBlank(subjectClaimURI)) {
+            if (subjectValue != null) {
+                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Authenticated User: " +
+                            sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
+                            .getTenantDomain());
+                }
+            } else {
+                log.warn("Subject claim could not be found. Defaulting to Name Identifier.");
                 if (StringUtils.isNotBlank(sequenceConfig.getAuthenticatedUser().getUserName())) {
                     sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(sequenceConfig
                             .getAuthenticatedUser().getUsernameAsSubjectIdentifier(sequenceConfig.getApplicationConfig()
-                                    .isUseUserstoreDomainInLocalSubjectIdentifier(), sequenceConfig.getApplicationConfig
-                                    ().isUseTenantDomainInLocalSubjectIdentifier()));
+                                    .isUseUserstoreDomainInLocalSubjectIdentifier(), sequenceConfig
+                                    .getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()));
                 }
-
             }
 
-            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+        } else {
+            if (StringUtils.isNotBlank(sequenceConfig.getAuthenticatedUser().getUserName())) {
+                sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(sequenceConfig
+                        .getAuthenticatedUser().getUsernameAsSubjectIdentifier(sequenceConfig.getApplicationConfig()
+                                .isUseUserstoreDomainInLocalSubjectIdentifier(), sequenceConfig.getApplicationConfig
+                                ().isUseTenantDomainInLocalSubjectIdentifier()));
+            }
 
-            request.setAttribute(FrameworkConstants.MAPPED_ATTRIBUTES, mappedAttrs);
         }
 
-        handlePostAuthenticateExtensions(request, response, context);
+        sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+        request.setAttribute(FrameworkConstants.MAPPED_ATTRIBUTES, mappedAttrs);
+
     }
 
     /**
@@ -856,82 +747,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         context.setRetryCount(0);
         context.setRetrying(false);
         context.setCurrentAuthenticator(null);
-    }
-
-    protected boolean isPostAuthenticateExtensionTriggered(AuthenticationContext context) {
-
-        Object object = context.getProperty(FrameworkConstants.REQUEST_MISSING_CLAIMS_TRIGGERED);
-        if (object != null) {
-            return (Boolean) object;
-        } else {
-            return false;
-        }
-    }
-
-    private String getMissingClaims(Map<String,String> mappedAttrs, Map<String,String> requestedClaims) {
-
-        String missingClaims = "";
-        for (Map.Entry<String, String> entry : requestedClaims.entrySet())
-        {
-            if (mappedAttrs.get(entry.getKey()) == null){
-                if (StringUtils.isNotBlank(missingClaims)) {
-                    missingClaims += ",";
-                }
-                missingClaims += entry.getKey();
-            }
-        }
-        return missingClaims;
-    }
-
-    private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
-        UserRealm realm;
-        try {
-            realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    FrameworkServiceComponent.getRegistryService(),
-                    FrameworkServiceComponent.getRealmService(), tenantDomain);
-        } catch (CarbonException e) {
-            throw new FrameworkException("Error occurred while retrieving the Realm for " +
-                    tenantDomain + " to handle local claims", e);
-        }
-        return realm;
-    }
-
-    private void handleIncompletePostAuthenticationTasks(HttpServletRequest request, HttpServletResponse response,
-                                                 AuthenticationContext context) throws FrameworkException {
-
-        Map<String,String> mandatoryClaims =
-                context.getSequenceConfig().getApplicationConfig().getMandatoryClaimMappings();
-        Object object = request.getAttribute(FrameworkConstants.MAPPED_ATTRIBUTES);
-        Map<String, String> mappedAttrs = (Map<String, String>) object;
-        String missingClaims = getMissingClaims(mappedAttrs, mandatoryClaims);
-
-        if (StringUtils.isNotBlank(missingClaims)) {
-            //need to request for the missing claims before completing authentication
-            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-            context.getSequenceConfig().setCompleted(false);
-            context.setProperty(FrameworkConstants.REQUEST_MISSING_CLAIMS_TRIGGERED, true);
-
-            try {
-                String queryString = FrameworkConstants.MISSING_CLAIMS + "=" + missingClaims;
-                queryString += "&" + FrameworkConstants.SESSION_DATA_KEY + "=" + context.getContextIdentifier();
-                queryString += "&" + "spName" + "=" + context.getSequenceConfig().getApplicationConfig().getApplicationName();
-                //queryString = URLEncoder.encode(queryString);
-                response.sendRedirect("/authenticationendpoint/claims.do?" + queryString);
-            } catch (IOException e) {
-                throw new FrameworkException("Error while redirecting to request claims", e);
-            }
-        }
-    }
-
-    protected void handlePostAuthenticateExtensions(HttpServletRequest request, HttpServletResponse response,
-                                                    AuthenticationContext context) throws FrameworkException {
-
-        // if post authentication extension for missing claims is not already triggered, trigger it
-        if (!isPostAuthenticateExtensionTriggered(context)) {
-            handleIncompletePostAuthenticationTasks(request, response, context);
-        } else {
-            handleResponseWithMissingClaims(request, response, context);
-        }
     }
 
 }
