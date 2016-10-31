@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig;
+import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceIdentityProviderManagementExceptionException;
 import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceStub;
 import org.wso2.carbon.user.mgt.stub.UserAdminStub;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo;
@@ -301,6 +302,10 @@ public class IdentityProviderMgtServiceClient {
             throw new Exception(
                     "Error occurred while retrieving Read-Write User Store Domain IDs for logged-in user's tenant realm");
         }
+    }
+
+    public String getResidentIDPMetadata() throws java.rmi.RemoteException, IdentityProviderMgtServiceIdentityProviderManagementExceptionException {
+        return idPMgtStub.getResidentIDPMetadata();
     }
 
 }
