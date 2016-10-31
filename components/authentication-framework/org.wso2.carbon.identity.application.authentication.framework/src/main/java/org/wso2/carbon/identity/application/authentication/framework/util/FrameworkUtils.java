@@ -56,9 +56,11 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
@@ -446,6 +448,25 @@ public class FrameworkUtils {
             authorizationHandler = (AuthorizationHandler) obj;
         }
         return authorizationHandler;
+    }
+
+    /**
+     * Gets the configured post authentication handler at identity.xml
+     *
+     * @return Configured post authentication handler
+     */
+    public static PostAuthenticationHandler getPostAuthenticationHandler() {
+
+        PostAuthenticationHandler postAuthenticationHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER);
+
+        if (obj instanceof PostAuthenticationHandler) {
+            postAuthenticationHandler = (PostAuthenticationHandler) obj;
+        } else {
+            postAuthenticationHandler = DefaultPostAuthenticationHandler.getInstance();
+        }
+        return postAuthenticationHandler;
     }
 
     /**

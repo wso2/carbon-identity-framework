@@ -103,6 +103,10 @@
 			                <input type="text" name="claim_mand_<%=claim%>" id="claim_mand_<%=claim%>" class="form-control" required="required">
 			            </div>
                             	<%}%>
+                        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                            <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
+                                (request.getParameter("sessionDataKey"))%>'/>
+                        </div>
 				<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <br/>
 		                        <button class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
