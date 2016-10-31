@@ -63,7 +63,8 @@ public abstract class FrameworkConstants {
     public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
     public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
 
-    public static final String REQUEST_MISSING_CLAIMS_TRIGGERED = "isRequestingMissingClaims";
+    public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
+    public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
 
@@ -135,6 +136,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_ROLE_HANDLER = "ClaimHandler";
         public static final String QNAME_EXT_PROVISIONING_HANDLER = "ProvisioningHandler";
         public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
+        public static final String QNAME_EXT_POST_AUTHENTICATION_HANDLER = "PostAuthenticationHandler";
 
         private Config() {
         }

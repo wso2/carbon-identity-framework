@@ -124,8 +124,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }
 
+        if (context.getSequenceConfig().isCompleted() && !isPostAuthenticationExtensionCompleted(context)) {
+            // call post authentication handler
+            FrameworkUtils.getPostAuthenticationHandler().handle(request, response, context);
+        }
+
         // if flow completed, send response back
-        if (context.getSequenceConfig().isCompleted()) {
+        if (isPostAuthenticationExtensionCompleted(context)) {
             //Add the context to the cache to be usable by the authorization handler
             if (context.getSequenceConfig().getApplicationConfig().isEnableAuthorization()) {
                 handleAuthorization(request, response, context);
@@ -464,6 +469,16 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
         } else {
             log.warn("Authorization Handler is not set. Hence proceeding without authorization");
+        }
+    }
+
+    protected boolean isPostAuthenticationExtensionCompleted(AuthenticationContext context) {
+
+        Object object = context.getProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED);
+        if (object != null && object instanceof Boolean) {
+            return (Boolean) object;
+        } else {
+            return false;
         }
     }
 
