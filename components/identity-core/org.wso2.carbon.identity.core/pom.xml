@@ -103,6 +103,10 @@
                             org.wso2.carbon.identity.core.internal
                         </Private-Package>
                         <Import-Package>
+                            javax.xml; version="${javax.xml.parsers.import.pkg.version}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+                            org.apache.xerces.impl;version="${org.apache.xerces.impl.version.range}",
+                            org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
                             !javax.ws.rs,
                             javax.crypto,
                             javax.crypto.spec,

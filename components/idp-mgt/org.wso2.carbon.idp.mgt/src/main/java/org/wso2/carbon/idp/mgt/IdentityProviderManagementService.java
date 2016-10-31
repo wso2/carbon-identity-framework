@@ -256,4 +256,14 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             throw idpException;
         }
     }
+    public String  getResidentIDPMetadata() throws IdentityProviderManagementException {
+        try {
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            String metadata = IdentityProviderManager.getInstance().getResidentIDPMetadata(tenantDomain);
+            return metadata;
+        } catch (IdentityProviderManagementException idpException) {
+            log.error("Error while retrieving IDP metadata", idpException);
+            throw idpException;
+        }
+    }
 }

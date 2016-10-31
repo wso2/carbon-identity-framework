@@ -70,13 +70,14 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
+                            javax.servlet,
+                            org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
@@ -85,7 +86,6 @@
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-
                             org.wso2.carbon.ui;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.mgt.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common;
@@ -94,6 +94,7 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.util,
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.idp.mgt.ui.*; version="${carbon.identity.package.export.version}",
@@ -104,5 +105,5 @@
             </plugin>
         </plugins>
     </build>
-    
+
 </project>
