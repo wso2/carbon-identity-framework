@@ -103,11 +103,8 @@
                             org.wso2.carbon.identity.core.internal
                         </Private-Package>
                         <Import-Package>
-                            javax.xml; version="${javax.xml.parsers.import.pkg.version}",
-                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
-                            org.apache.xerces.impl; resolution:=optional,
-                            org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
                             !javax.ws.rs,
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             javax.crypto,
                             javax.crypto.spec,
                             javax.naming,
@@ -116,7 +113,6 @@
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             javax.xml.stream; version="${equinox.osgi.stax-api.imp.pkg.version.range}",
-
                             org.apache.axiom.om.*; version="${axiom.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
