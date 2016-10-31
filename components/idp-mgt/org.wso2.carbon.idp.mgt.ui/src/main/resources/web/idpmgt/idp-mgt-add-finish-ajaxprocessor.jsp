@@ -16,7 +16,7 @@
 ~ under the License.
 -->
 
-<%@ page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
@@ -46,7 +46,7 @@
         IdentityProvider identityProvider = IdPManagementUIUtil
                 .buildFederatedIdentityProvider(request, new StringBuilder());
         client.addIdP(identityProvider);
-        String message = MessageFormat.format(resourceBundle.getString("success.adding.idp"),null);
+        String message = MessageFormat.format(resourceBundle.getString("success.adding.idp"), null);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.adding.idp"),

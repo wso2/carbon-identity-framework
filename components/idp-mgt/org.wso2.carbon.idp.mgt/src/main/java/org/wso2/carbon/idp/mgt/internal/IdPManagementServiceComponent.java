@@ -34,13 +34,14 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
-import org.wso2.carbon.idp.mgt.IdpManagerService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.idp.mgt.util.MetadataConverter;
+import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -65,6 +66,10 @@ import java.util.Set;
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
+ * @scr.reference name="registry.service"
+ * interface="org.wso2.carbon.registry.core.service.RegistryService"
+ * cardinality="1..1" policy="dynamic" bind="setRegistryService"
+ * unbind="unsetRegistryService"
  * @scr.reference name="config.context.service"
  * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
  * policy="dynamic" bind="setConfigurationContextService"
@@ -77,20 +82,59 @@ import java.util.Set;
  * cardinality="0..n" policy="dynamic"
  * bind="setIdentityProviderMgtListenerService"
  * unbind="unsetIdentityProviderMgtListenerService"
+ * @scr.reference name="identity.provider.saml.service.component"
+ * interface="org.wso2.carbon.idp.mgt.util.MetadataConverter"
+ * cardinality="0..n" policy="dynamic"
+ * bind="setMetadataConverterService"
+ * unbind="unsetMetadataConverterService"
  */
 public class IdPManagementServiceComponent {
 
     private static Log log = LogFactory.getLog(IdPManagementServiceComponent.class);
 
-    private static RealmService realmService = null;
 
-    private static ConfigurationContextService configurationContextService = null;
 
     private static Map<String, IdentityProvider> fileBasedIdPs = new HashMap<String, IdentityProvider>();
 
     private static Set<String> sharedIdps = new HashSet<String>();
 
-    private static volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
+
+
+    protected void setRegistryService(RegistryService registryService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Registry service in Identity idp-mgt bundle");
+        }
+        try {
+            IdpMgtServiceComponentHolder.getInstance().setRegistryService(registryService);
+        } catch (Throwable e) {
+            log.error("Failed to get a reference to the Registry in idp-mgt bundle", e);
+        }
+    }
+
+    protected void unsetRegistryService(RegistryService registryService) {
+        if (log.isDebugEnabled()) {
+            log.debug("RegistryService unset in idp.mgt bundle");
+        }
+        IdpMgtServiceComponentHolder.getInstance().setRegistryService(null);
+    }
+
+    protected void setMetadataConverterService(MetadataConverter converter) {
+        if (log.isDebugEnabled()) {
+            log.debug("Metadata converter set in Identity idp-mgt bundle");
+        }
+        try {
+            IdpMgtServiceComponentHolder.getInstance().addMetadataConverter(converter);
+        } catch (Throwable e) {
+            log.error("Failed to get a reference to the Metadata Converter in idp-mgt bundle", e);
+        }
+    }
+
+    protected void unsetMetadataConverterService(MetadataConverter metadataConverter) {
+        if (log.isDebugEnabled()) {
+            log.debug("org.wso2.carbon.idp.mgt.util.MetadataConverter unset in idp-mgt");
+        }
+        IdpMgtServiceComponentHolder.getInstance().removeMetadataConverter(metadataConverter);
+    }
 
     /**
      * @return
@@ -103,28 +147,28 @@ public class IdPManagementServiceComponent {
      * @return
      */
     public static RealmService getRealmService() {
-        return realmService;
+        return IdpMgtServiceComponentHolder.getInstance().getRealmService();
     }
 
     /**
      * @param rlmService
      */
     protected void setRealmService(RealmService rlmService) {
-        realmService = rlmService;
+        IdpMgtServiceComponentHolder.getInstance().setRealmService(rlmService);
     }
 
     /**
      * @return
      */
     public static ConfigurationContextService getConfigurationContextService() {
-        return configurationContextService;
+        return IdpMgtServiceComponentHolder.getInstance().getConfigurationContextService();
     }
 
     /**
      * @param service
      */
     protected void setConfigurationContextService(ConfigurationContextService service) {
-        configurationContextService = service;
+        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(service);
     }
 
     protected void activate(ComponentContext ctxt) {
@@ -139,7 +183,7 @@ public class IdPManagementServiceComponent {
             } else {
                 log.error("Identity Provider Management - TenantMgtListener could not be registered");
             }
-            
+
             ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
                     UserOperationEventListener.class.getName(), new UserStoreListener(), null);
             if (userOperationListenerSR != null) {
@@ -151,7 +195,7 @@ public class IdPManagementServiceComponent {
             ServiceRegistration auditLoggerSR = bundleCtx.registerService(IdentityProviderMgtListener.class.getName()
                     , new IDPMgtAuditLogger(), null);
 
-            if(auditLoggerSR != null) {
+            if (auditLoggerSR != null) {
                 log.debug("Identity Provider Management - Audit Logger registered");
             } else {
                 log.error("Identity Provider Management - Error while registering Audit Logger");
@@ -278,14 +322,14 @@ public class IdPManagementServiceComponent {
      * @param realmService
      */
     protected void unsetRealmService(RealmService realmService) {
-        realmService = null;
+        IdpMgtServiceComponentHolder.getInstance().setRealmService(null);
     }
 
     /**
      * @param service
      */
     protected void unsetConfigurationContextService(ConfigurationContextService service) {
-        configurationContextService = null;
+        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(null);
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
@@ -301,36 +345,36 @@ public class IdPManagementServiceComponent {
     protected void setIdentityProviderMgtListenerService(
             IdentityProviderMgtListener identityProviderMgtListenerService) {
 
-        idpMgtListeners.add(identityProviderMgtListenerService);
-        Collections.sort(idpMgtListeners, idpMgtListenerComparator);
+        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().add(identityProviderMgtListenerService);
+        Collections.sort(IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners(), idpMgtListenerComparator);
     }
 
     protected void unsetIdentityProviderMgtListenerService(
             IdentityProviderMgtListener identityProviderMgtListenerService) {
 
-        idpMgtListeners.remove(identityProviderMgtListenerService);
+        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().remove(identityProviderMgtListenerService);
     }
 
     public static Collection<IdentityProviderMgtListener> getIdpMgtListeners() {
-        return idpMgtListeners;
+        return IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners();
     }
 
     private static Comparator<IdentityProviderMgtListener> idpMgtListenerComparator =
-            new Comparator<IdentityProviderMgtListener>(){
+            new Comparator<IdentityProviderMgtListener>() {
 
-        @Override
-        public int compare(IdentityProviderMgtListener identityProviderMgtListener1,
-                           IdentityProviderMgtListener identityProviderMgtListener2) {
+                @Override
+                public int compare(IdentityProviderMgtListener identityProviderMgtListener1,
+                                   IdentityProviderMgtListener identityProviderMgtListener2) {
 
-            if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener1.getExecutionOrderId()) {
-                return 1;
-            } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener1.getExecutionOrderId()) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-    };
+                    if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener2.getExecutionOrderId()) {
+                        return 1;
+                    } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener2.getExecutionOrderId()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
 
     private static void addSuperTenantIdp() throws Exception {
 
