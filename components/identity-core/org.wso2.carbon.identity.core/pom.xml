@@ -153,12 +153,15 @@
 
                             org.xml.sax,
                             org.wso2.carbon.is.migration.client; resolution:=optional,
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+                            <!--org.opensaml.xml.security.keyinfo; version=[2.6.4,3.0.0)-->
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.core.internal,
                             org.wso2.carbon.identity.core.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>
