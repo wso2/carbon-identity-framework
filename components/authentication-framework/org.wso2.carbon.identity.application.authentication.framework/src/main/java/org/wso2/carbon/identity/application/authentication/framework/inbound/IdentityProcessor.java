@@ -102,6 +102,14 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      *
      * @return Relying party unique ID
      */
+    @Deprecated
+    public abstract String getRelyingPartyId();
+
+    /**
+     * Get relying party unique ID
+     *
+     * @return Relying party unique ID
+     */
     public abstract String getRelyingPartyId(IdentityMessageContext context);
 
     /**
