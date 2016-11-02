@@ -30,7 +30,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -122,8 +124,17 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }
 
+        if (context.getSequenceConfig().isCompleted() && !isPostAuthenticationExtensionCompleted(context)) {
+            // call post authentication handler
+            FrameworkUtils.getPostAuthenticationHandler().handle(request, response, context);
+        }
+
         // if flow completed, send response back
-        if (context.getSequenceConfig().isCompleted()) {
+        if (isPostAuthenticationExtensionCompleted(context)) {
+            //Add the context to the cache to be usable by the authorization handler
+            if (context.getSequenceConfig().getApplicationConfig().isEnableAuthorization()) {
+                handleAuthorization(request, response, context);
+            }
             concludeFlow(request, response, context);
         } else { // redirecting outside
             FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
@@ -138,6 +149,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         context.getSequenceConfig().setCompleted(true);
         context.setRequestAuthenticated(false);
+        //No need to handle authorization, because the authentication is not completed
         concludeFlow(request, response, context);
     }
 
@@ -443,4 +455,31 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             throw new FrameworkException(e.getMessage(), e);
         }
     }
+
+    protected void handleAuthorization(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context) throws ApplicationAuthorizationException {
+
+        AuthorizationHandler authorizationHandler = FrameworkUtils.getAuthorizationHandler();
+        if (authorizationHandler != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Calling " + authorizationHandler.getClass().getName() + " to authorize the request");
+            }
+            if (!authorizationHandler.isAuthorized(request, response, context)) {
+                throw new ApplicationAuthorizationException("Authorization Failed");
+            }
+        } else {
+            log.warn("Authorization Handler is not set. Hence proceeding without authorization");
+        }
+    }
+
+    protected boolean isPostAuthenticationExtensionCompleted(AuthenticationContext context) {
+
+        Object object = context.getProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED);
+        if (object != null && object instanceof Boolean) {
+            return (Boolean) object;
+        } else {
+            return false;
+        }
+    }
+
 }

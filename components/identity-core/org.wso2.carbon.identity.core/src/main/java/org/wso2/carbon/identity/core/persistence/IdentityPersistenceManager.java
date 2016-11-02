@@ -240,6 +240,17 @@ public class IdentityPersistenceManager {
         SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderDAO(registry);
         return serviceProviderDAO.addServiceProvider(serviceProviderDO);
     }
+    /**
+     * Upload Service Provider
+     *
+     * @param registry,samlssoServiceProviderDO
+     * @return
+     * @throws IdentityException
+     */
+    public SAMLSSOServiceProviderDO uploadServiceProvider(Registry registry, SAMLSSOServiceProviderDO samlssoServiceProviderDO) throws IdentityException {
+        SAMLSSOServiceProviderDAO serviceProviderDAO = new SAMLSSOServiceProviderDAO(registry);
+        return serviceProviderDAO.uploadServiceProvider(samlssoServiceProviderDO);
+    }
 
     /**
      * Get all the relying party service providers
