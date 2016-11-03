@@ -30,6 +30,7 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
     private static final long serialVersionUID = 104614801932285909L;
 
 	protected IdentityRequest request;
+    protected String relyingPartyID;
 
     public IdentityMessageContext(IdentityRequest request, Map<T1,T2> parameters) {
         super(parameters);
@@ -43,4 +44,12 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
 	public IdentityRequest getRequest() {
 		return request;
 	}
+
+    public void setRelyingPartyID(String relyingPartyID) {
+        this.relyingPartyID = relyingPartyID;
+    }
+
+    public String getRelyingPartyId() {
+        return relyingPartyID;
+    }
 }
