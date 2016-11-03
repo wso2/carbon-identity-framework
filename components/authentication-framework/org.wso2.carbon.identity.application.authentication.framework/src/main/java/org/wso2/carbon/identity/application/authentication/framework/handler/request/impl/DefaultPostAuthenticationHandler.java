@@ -95,16 +95,23 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
     private void handlePostAuthenticationForMissingClaimsRequest(HttpServletRequest request, HttpServletResponse response,
                                                                  AuthenticationContext context) throws FrameworkException {
 
-        Map<String,String> mandatoryClaims =
-                context.getSequenceConfig().getApplicationConfig().getMandatoryClaimMappings();
+        AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
+        if (user == null) {
+            // no authenticated user found. Cannot process claims
+            context.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, true);
+            return;
+        }
 
         Map<String, String> mappedAttrs = new HashMap<>();
+        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
 
-        Object object = request.getAttribute(FrameworkConstants.MAPPED_ATTRIBUTES);
-
-        if (object != null && object instanceof Map) {
-            mappedAttrs = (Map<String, String>) object;
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
+            mappedAttrs.put(localClaimUri, entry.getValue());
         }
+
+        Map<String,String> mandatoryClaims =
+                context.getSequenceConfig().getApplicationConfig().getMandatoryClaimMappings();
 
         String missingClaims = getMissingClaims(mappedAttrs, mandatoryClaims);
 

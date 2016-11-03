@@ -508,7 +508,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         }
 
         sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-        request.setAttribute(FrameworkConstants.MAPPED_ATTRIBUTES, mappedAttrs);
 
     }
 
