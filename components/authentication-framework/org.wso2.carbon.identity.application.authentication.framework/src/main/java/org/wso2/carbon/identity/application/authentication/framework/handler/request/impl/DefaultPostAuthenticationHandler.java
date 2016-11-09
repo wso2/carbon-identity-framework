@@ -176,7 +176,10 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
             StepConfig stepConfig = entry.getValue();
             if (stepConfig.isSubjectAttributeStep()) {
 
-                user = stepConfig.getAuthenticatedUser();
+                if (stepConfig.getAuthenticatedUser() != null) {
+                    user = stepConfig.getAuthenticatedUser();
+                }
+
                 if (!user.isFederatedUser()) {
                     persistClaims = true;
                 } else {
