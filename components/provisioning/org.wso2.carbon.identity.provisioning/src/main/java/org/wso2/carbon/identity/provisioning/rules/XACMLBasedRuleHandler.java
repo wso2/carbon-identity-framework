@@ -23,7 +23,6 @@ import org.wso2.balana.utils.exception.PolicyBuilderException;
 import org.wso2.balana.utils.policy.PolicyBuilder;
 import org.wso2.balana.utils.policy.dto.RequestElementDTO;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyConstants;
 import org.wso2.carbon.identity.entitlement.ui.dto.RequestDTO;
 import org.wso2.carbon.identity.entitlement.ui.dto.RowDTO;
@@ -84,14 +83,6 @@ public class XACMLBasedRuleHandler {
                 log.debug("XACML request :\n" + requestString);
             }
 
-            EntitlementService entitlementService = new EntitlementService();
-
-            try {
-                entitlementService.getDecisionByAttributes("support", "federal", "support", new String[]{"test"});
-            } catch (EntitlementException e) {
-                e.printStackTrace();
-            }
-
             String responseString =
                     ProvisioningServiceDataHolder.getInstance().getEntitlementService().getDecision(requestString);
             if (log.isDebugEnabled()) {
@@ -116,18 +107,18 @@ public class XACMLBasedRuleHandler {
                                         String connectorType) {
 
         List<RowDTO> rowDTOs = new ArrayList<>();
+        //Setting up user-info category
         RowDTO tenatDomainDTO =
-                createRowDTO(tenantDomainName, "urn:oasis:names:tc:xacml:1" +
-                                               ".0:resource:tenantDomain", "userInfo");
+                createRowDTO(tenantDomainName, "tenant-domain", "http://wso2.org/identity/user");
         RowDTO userDTO =
-                createRowDTO(provisioningEntity.getEntityName(), "urn:oasis:names:tc:xacml:1" +
-                                                                 ".0:resource:user", "userInfo");
+                createRowDTO(provisioningEntity.getEntityName(), "username",
+                             "http://wso2.org/identity/user");
         RowDTO idpNameDTO =
-                createRowDTO(idPName, "urn:oasis:names:tc:xacml:1" +
-                                      ".0:resource:idpName", "idp");
+                createRowDTO(idPName, "idp-name", "http://wso2.org/identity/idp");
+        RowDTO provisioningFlowDTO =
+                createRowDTO("provisioning", "action-name", "http://wso2.org/identity/identity-action");
         RowDTO connectorTypeDTO =
-                createRowDTO(connectorType, "urn:oasis:names:tc:xacml:1" +
-                                            ".0:resource:connectorType", "idp");
+                createRowDTO(connectorType, "connector-type", "http://wso2.org/identity/idp");
 
         Iterator<Map.Entry<String, String>> claimIterator = provisioningEntity.getInboundAttributes().entrySet
                 ().iterator();
@@ -136,14 +127,14 @@ public class XACMLBasedRuleHandler {
             String claimUri = claim.getKey();
             String claimValue = claim.getValue();
             RowDTO claimRowDTO =
-                    createRowDTO(claimValue, "urn:oasis:names:tc:xacml:1" +
-                                             ".0:resource:" + claimUri, "claims");
+                    createRowDTO(claimValue, claimUri, "http://wso2.org/identity/claims");
             rowDTOs.add(claimRowDTO);
         }
 
         rowDTOs.add(tenatDomainDTO);
         rowDTOs.add(userDTO);
         rowDTOs.add(idpNameDTO);
+        rowDTOs.add(provisioningFlowDTO);
         rowDTOs.add(connectorTypeDTO);
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setRowDTOs(rowDTOs);
@@ -155,7 +146,7 @@ public class XACMLBasedRuleHandler {
         RowDTO rowDTOTenant = new RowDTO();
         rowDTOTenant.setAttributeValue(resourceName);
         rowDTOTenant.setAttributeDataType(EntitlementPolicyConstants.STRING_DATA_TYPE);
-        rowDTOTenant.setAttributeId(attributeId);
+        rowDTOTenant.setAttributeId("urn:oasis:names:tc:xacml:1.0:" + categoryValue + ":" + attributeId);
         rowDTOTenant.setCategory("urn:oasis:names:tc:xacml:3.0:attribute-category:".concat(categoryValue));
         return rowDTOTenant;
     }
