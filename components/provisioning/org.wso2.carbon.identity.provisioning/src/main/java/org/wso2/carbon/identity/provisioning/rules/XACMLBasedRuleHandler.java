@@ -43,7 +43,10 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -109,16 +112,20 @@ public class XACMLBasedRuleHandler {
         List<RowDTO> rowDTOs = new ArrayList<>();
         //Setting up user-info category
         RowDTO tenatDomainDTO =
-                createRowDTO(tenantDomainName, "tenant-domain", "http://wso2.org/identity/user");
+                createRowDTO(tenantDomainName, EntitlementPolicyConstants.STRING_DATA_TYPE, "tenant-domain",
+                             "http://wso2.org/identity/user");
         RowDTO userDTO =
-                createRowDTO(provisioningEntity.getEntityName(), "username",
+                createRowDTO(provisioningEntity.getEntityName(), EntitlementPolicyConstants.STRING_DATA_TYPE, "username",
                              "http://wso2.org/identity/user");
         RowDTO idpNameDTO =
-                createRowDTO(idPName, "idp-name", "http://wso2.org/identity/idp");
+                createRowDTO(idPName, EntitlementPolicyConstants.STRING_DATA_TYPE, "idp-name", "http://wso2" +
+                                                                                               ".org/identity/idp");
         RowDTO provisioningFlowDTO =
-                createRowDTO("provisioning", "action-name", "http://wso2.org/identity/identity-action");
+                createRowDTO("provisioning", EntitlementPolicyConstants.STRING_DATA_TYPE, "action-name", "http://wso2" +
+                                                                                                         ".org/identity/identity-action");
         RowDTO connectorTypeDTO =
-                createRowDTO(connectorType, "connector-type", "http://wso2.org/identity/idp");
+                createRowDTO(connectorType, EntitlementPolicyConstants.STRING_DATA_TYPE, "connector-type",
+                             "http://wso2.org/identity/idp");
 
         Iterator<Map.Entry<String, String>> claimIterator = provisioningEntity.getInboundAttributes().entrySet
                 ().iterator();
@@ -127,25 +134,44 @@ public class XACMLBasedRuleHandler {
             String claimUri = claim.getKey();
             String claimValue = claim.getValue();
             RowDTO claimRowDTO =
-                    createRowDTO(claimValue, claimUri, "http://wso2.org/identity/claims");
+                    createRowDTO(claimValue, EntitlementPolicyConstants.STRING_DATA_TYPE, claimUri, "http://wso2" +
+                                                                                                    ".org/identity/claims");
             rowDTOs.add(claimRowDTO);
         }
 
+        RowDTO environmentTypeDTO =
+                createRowDTO(tenantDomainName, EntitlementPolicyConstants.STRING_DATA_TYPE, "environment-id",
+                             "environment");
+        RowDTO dateDTO =
+                createRowDTO(getCurrentDateTime("yyyy/MM/dd"), EntitlementPolicyConstants
+                                     .STRING_DATA_TYPE,
+                             "current-time",
+                             "environment");
+        RowDTO timeDTO =
+                createRowDTO(getCurrentDateTime("HH:mm:ss"), EntitlementPolicyConstants.STRING_DATA_TYPE,
+                             "current-date", "environment");
+        RowDTO dateTimeDTO =
+                createRowDTO(getCurrentDateTime("yyyy/MM/dd HH:mm:ss"), EntitlementPolicyConstants.STRING_DATA_TYPE, "current-dateTime",
+                             "environment");
         rowDTOs.add(tenatDomainDTO);
         rowDTOs.add(userDTO);
         rowDTOs.add(idpNameDTO);
         rowDTOs.add(provisioningFlowDTO);
         rowDTOs.add(connectorTypeDTO);
+        rowDTOs.add(environmentTypeDTO);
+        rowDTOs.add(dateDTO);
+        rowDTOs.add(timeDTO);
+        rowDTOs.add(dateTimeDTO);
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setRowDTOs(rowDTOs);
         return requestDTO;
     }
 
-    private RowDTO createRowDTO(String resourceName, String attributeId, String categoryValue) {
+    private RowDTO createRowDTO(String resourceName, String dataType, String attributeId, String categoryValue) {
 
         RowDTO rowDTOTenant = new RowDTO();
         rowDTOTenant.setAttributeValue(resourceName);
-        rowDTOTenant.setAttributeDataType(EntitlementPolicyConstants.STRING_DATA_TYPE);
+        rowDTOTenant.setAttributeDataType(dataType);
         rowDTOTenant.setAttributeId("urn:oasis:names:tc:xacml:1.0:" + categoryValue + ":" + attributeId);
         rowDTOTenant.setCategory("urn:oasis:names:tc:xacml:3.0:attribute-category:".concat(categoryValue));
         return rowDTOTenant;
@@ -171,5 +197,11 @@ public class XACMLBasedRuleHandler {
             throw new IdentityProvisioningException("Exception occurred while xacmlResponse processing", e);
         }
         return false;
+    }
+
+    private String getCurrentDateTime(String dateTimeFormat) {
+        DateFormat dateFormat = new SimpleDateFormat(dateTimeFormat);
+        Calendar cal = Calendar.getInstance();
+        return dateFormat.format(cal.getTime()).toString();
     }
 }
