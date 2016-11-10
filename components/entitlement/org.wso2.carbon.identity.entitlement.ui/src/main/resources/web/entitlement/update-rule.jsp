@@ -21,6 +21,7 @@
 <%@ page import="org.wso2.carbon.identity.entitlement.ui.dto.TargetDTO" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <jsp:useBean id="entitlementPolicyBean" type="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean"
              class="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean" scope="session"/>
 <jsp:setProperty name="entitlementPolicyBean" property="*" />
@@ -459,7 +460,7 @@
     }
 
     if (completedRule == null || !Boolean.parseBoolean(completedRule)) {
-        forwardTo = forwardTo + "?ruleId=" + ruleId;
+        forwardTo = forwardTo + "?ruleId=" + Encode.forJavaScript(ruleId);
         if(categoryType != null && categoryType.trim().length() > 0){
             forwardTo = forwardTo + "&category=" + categoryType + "&returnPage=policy-editor.jsp";
         }
