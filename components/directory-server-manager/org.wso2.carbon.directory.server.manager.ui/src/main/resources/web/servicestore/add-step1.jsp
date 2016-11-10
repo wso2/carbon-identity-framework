@@ -172,12 +172,12 @@
                             </tr>
                             <tr>
                                 <td><fmt:message key="password"/><font color="red">*</font></td>
-                                <td><input type="password" name="password" value="" style="width:150px"/></td>
+                                <td><input type="password" name="password" value="" style="width:150px" autocomplete="false"/></td>
                             </tr>
                             <tr>
                                 <td><fmt:message key="password.repeat"/><font
                                         color="red">*</font></td>
-                                <td><input type="password" name="retype" value="" style="width:150px"/></td>
+                                <td><input type="password" name="retype" value="" style="width:150px" autocomplete="false"/></td>
                             </tr>
                         </table>
                     </td>

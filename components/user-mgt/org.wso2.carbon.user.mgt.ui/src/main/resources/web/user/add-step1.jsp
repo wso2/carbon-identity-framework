@@ -401,7 +401,7 @@
                                 %>
                                 <tr id="passwordRow">
                                     <td><fmt:message key="password"/><font color="red">*</font></td>
-                                    <td><input type="password" name="password" style="width:150px"/></td>
+                                    <td><input type="password" name="password" style="width:150px" autocomplete="false"/></td>
                                 </tr>
                                 <tr id="retypeRow">
                                     <td><fmt:message key="password.repeat"/><font color="red">*</font></td>
