@@ -35,6 +35,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -180,7 +181,8 @@ public class XACMLBasedRuleHandler {
     private boolean evaluateXACMLResponse(String xacmlResponse) throws IdentityProvisioningException {
 
         try {
-            DocumentBuilder db = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
+            DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+           // DocumentBuilder db = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
             InputSource is = new InputSource();
             is.setCharacterStream(new StringReader(xacmlResponse));
             Document doc = db.parse(is);
