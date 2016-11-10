@@ -90,7 +90,7 @@
     String ssoUrl = null;
     boolean isAuthnRequestSigned = false;
     boolean isEnableAssertionEncription = false;
-    boolean isEnableAssertionSigning = true;
+    boolean isEnableAssertionSigning = false;
 
     String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1;
     String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA1;
@@ -99,9 +99,9 @@
     String forceAuthentication = "as_request";
     String attributeConsumingServiceIndex = null;
     String includeAuthenticationContext = "yes";
-    boolean includeNameIdPolicy = true;
-    boolean includeProtocolBinding = true;
-    boolean includeCert = true;
+    boolean includeNameIdPolicy = false;
+    boolean includeProtocolBinding = false;
+    boolean includeCert = false;
 
     String requestMethod = "redirect";
     boolean isSLOEnabled = false;
@@ -997,7 +997,7 @@
         }
     }
 
-    String enableAssertionSigningChecked = "checked=\'checked\'";
+    String enableAssertionSigningChecked = "";
     if (identityProvider != null) {
         if (isEnableAssertionSigning) {
             enableAssertionSigningChecked = "checked=\'checked\'";
@@ -1043,21 +1043,21 @@
         authnContextComparisonDropdownDisabled = "disabled=\'disabled\'";
     }
 
-    String includeNameIdPolicyChecked = "checked=\'checked\'";
+    String includeNameIdPolicyChecked = "";
     if (identityProvider != null) {
         if (includeNameIdPolicy) {
             includeNameIdPolicyChecked = "checked=\'checked\'";
         }
     }
 
-    String includeCertChecked = "checked=\'checked\'";
+    String includeCertChecked = "";
     if (identityProvider != null) {
         if (includeCert) {
             includeCertChecked = "checked=\'checked\'";
         }
     }
 
-    String includeProtocolBindingChecked = "checked=\'checked\'";
+    String includeProtocolBindingChecked = "";
     if (identityProvider != null) {
         if (includeProtocolBinding) {
             includeProtocolBindingChecked = "checked=\'checked\'";
