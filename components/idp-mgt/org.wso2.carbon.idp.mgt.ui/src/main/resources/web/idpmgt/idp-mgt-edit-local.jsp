@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
 
@@ -295,7 +296,13 @@ jQuery(document).ready(function(){
         }
     }
 </script>
-
+<script>
+        function downloadRIDPMetadata() {
+                jQuery('#idp-mgt-get-RIDP-form').submit();
+        }
+</script>
+<form id="idp-mgt-get-RIDP-form" name="idp-mgt-get-RIDP-form" method="post"
+action="idp-mgt-get-ridp-metadata-finish-ajaxprocessor.jsp"></form>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
         <h2>
@@ -432,6 +439,11 @@ jQuery(document).ready(function(){
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
                         </tr>
                     </table>
+                        <br>
+                        <button onclick="downloadRIDPMetadata()" type="button" id="downloadResidentIdpMetadataData"
+                                                                  name="downloadResidentIdpMetadataData"><fmt:message
+                                key='download.metadata.saml'/>
+                        </button>
                     </div>
 
                     <h2 id="oauth1confighead"  class="sectionSeperator trigger active" style="background-color: beige;">

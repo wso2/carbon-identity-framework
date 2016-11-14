@@ -146,7 +146,7 @@ public class IdPManagementDAO {
         } finally {
             if (dbConnInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
-            }else{
+            } else {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
         }
@@ -154,8 +154,9 @@ public class IdPManagementDAO {
 
     /**
      * Get Identity properties map
+     *
      * @param dbConnection database connection
-     * @param idpId IDP Id
+     * @param idpId        IDP Id
      * @return Identity provider properties
      */
     private List<IdentityProviderProperty> getIdentityPropertiesByIdpId(Connection dbConnection, int idpId)
@@ -191,7 +192,7 @@ public class IdPManagementDAO {
      * @throws SQLException
      */
     private void addIdentityProviderProperties(Connection dbConnection, int idpId,
-            List<IdentityProviderProperty> properties, int tenantId)
+                                               List<IdentityProviderProperty> properties, int tenantId)
             throws SQLException {
         String sqlStmt = IdPManagementConstants.SQLQueries.ADD_IDP_METADATA;
         PreparedStatement prepStmt = null;
@@ -222,7 +223,7 @@ public class IdPManagementDAO {
      * @throws SQLException
      */
     private void updateIdentityProviderProperties(Connection dbConnection, int idpId,
-            List<IdentityProviderProperty> properties, int tenantId)
+                                                  List<IdentityProviderProperty> properties, int tenantId)
             throws SQLException {
 
         PreparedStatement prepStmt = null;
@@ -526,7 +527,7 @@ public class IdPManagementDAO {
 
     private void updateMultiValuedFederatedConfigProperties(Connection dbConnection, Property[]
             oldFederatedAuthenticatorConfigProperties, int authnId, int tenantId, List<Property>
-            multiValuedProperties) throws SQLException {
+                                                                    multiValuedProperties) throws SQLException {
 
         PreparedStatement deleteOldValuePrepStmt = null;
         PreparedStatement addNewPropsPrepStmt = null;
@@ -564,6 +565,7 @@ public class IdPManagementDAO {
         }
 
     }
+
     /**
      * @param dbConnection
      * @param idPName
@@ -1204,7 +1206,7 @@ public class IdPManagementDAO {
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
-            }else{
+            } else {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
         }
@@ -1358,7 +1360,7 @@ public class IdPManagementDAO {
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
-            }else{
+            } else {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
         }
@@ -1567,7 +1569,7 @@ public class IdPManagementDAO {
                 }
 
             }
-            if(identityProvider.getIdpProperties() != null) {
+            if (identityProvider.getIdpProperties() != null) {
                 addIdentityProviderProperties(dbConnection, idPId, Arrays.asList(identityProvider.getIdpProperties())
                         , tenantId);
             }
@@ -1734,7 +1736,7 @@ public class IdPManagementDAO {
                         newIdentityProvider.getProvisioningConnectorConfigs(), dbConnection, idpId,
                         tenantId);
 
-                if(newIdentityProvider.getIdpProperties() != null) {
+                if (newIdentityProvider.getIdpProperties() != null) {
                     updateIdentityProviderProperties(dbConnection, idpId,
                             Arrays.asList(newIdentityProvider.getIdpProperties()), tenantId);
                 }
@@ -1942,7 +1944,8 @@ public class IdPManagementDAO {
     public void renameClaimURI(String newClaimURI, String oldClaimURI, int tenantId,
                                String tenantDomain) throws IdentityProviderManagementException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();;
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        ;
         PreparedStatement prepStmt = null;
         try {
             String sqlStmt = IdPManagementConstants.SQLQueries.RENAME_CLAIM_SQL;
@@ -2476,7 +2479,7 @@ public class IdPManagementDAO {
         } finally {
             if (dbConnInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
-            }else{
+            } else {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
             }
         }
@@ -2578,4 +2581,6 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
     }
+
+
 }

@@ -45,9 +45,11 @@ public class ApplicationConfig implements Serializable {
     private Map<String, String> claimMappings = new HashMap<String, String>();
     private Map<String, String> roleMappings = new HashMap<String, String>();
     private Map<String, String> requestedClaims = new HashMap<String, String>();
+    private Map<String, String> mandatoryClaims = new HashMap<String, String>();
     private boolean isSaaSApp;
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
+    private boolean enableAuthorization = false;
 
     public ApplicationConfig(ServiceProvider application) {
         this.serviceProvider = application;
@@ -61,6 +63,7 @@ public class ApplicationConfig implements Serializable {
             setUseTenantDomainInLocalSubjectIdentifier(outboundAuthConfig.isUseTenantDomainInLocalSubjectIdentifier());
             setUseUserstoreDomainInLocalSubjectIdentifier(outboundAuthConfig
                     .isUseUserstoreDomainInLocalSubjectIdentifier());
+            setEnableAuthorization(outboundAuthConfig.isEnableAuthorization());
         }
 
 
@@ -72,6 +75,7 @@ public class ApplicationConfig implements Serializable {
             ClaimMapping[] claimMapping = claimConfig.getClaimMappings();
 
             requestedClaims = new HashMap<String, String>();
+            mandatoryClaims = new HashMap<String, String>();
 
             if (claimMapping != null && claimMapping.length > 0) {
                 claimMappings = new HashMap<String, String>();
@@ -87,10 +91,19 @@ public class ApplicationConfig implements Serializable {
                                         .getLocalClaim().getClaimUri());
                             }
 
+                            if (claim.isMandatory()) {
+                                mandatoryClaims.put(claim.getRemoteClaim().getClaimUri(), claim
+                                        .getLocalClaim().getClaimUri());
+                            }
+
                         } else {
                             claimMappings.put(claim.getRemoteClaim().getClaimUri(), null);
                             if (claim.isRequested()) {
                                 requestedClaims.put(claim.getRemoteClaim().getClaimUri(), null);
+                            }
+
+                            if (claim.isMandatory()) {
+                                mandatoryClaims.put(claim.getRemoteClaim().getClaimUri(), null);
                             }
                         }
                     }
@@ -177,6 +190,10 @@ public class ApplicationConfig implements Serializable {
         return requestedClaims;
     }
 
+    public Map<String, String> getMandatoryClaimMappings() {
+        return mandatoryClaims;
+    }
+
     public Map<String, String> getRoleMappings() {
         return roleMappings;
     }
@@ -235,5 +252,15 @@ public class ApplicationConfig implements Serializable {
 
     public void setUseUserstoreDomainInLocalSubjectIdentifier(boolean useUserstoreDomainInLocalSubjectIdentifier) {
         this.useUserstoreDomainInLocalSubjectIdentifier = useUserstoreDomainInLocalSubjectIdentifier;
+    }
+
+    public boolean isEnableAuthorization() {
+
+        return enableAuthorization;
+    }
+
+    public void setEnableAuthorization(boolean enableAuthorization) {
+
+        this.enableAuthorization = enableAuthorization;
     }
 }

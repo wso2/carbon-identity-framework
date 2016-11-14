@@ -16,22 +16,22 @@
 ~ under the License.
 -->
 
-<%@page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.collections.CollectionUtils"%>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig"%>
-<%@ page
-	import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig"%>
-<%@page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
-<%@page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil"%>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -39,7 +39,6 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 <carbon:breadcrumb label="breadcrumb.service.provider" resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
@@ -505,7 +504,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
             	jQuery('#claimMappingAddTable').append(jQuery('<tr>'+
                         '<td style="display:none;"><input type="text" style="width: 98%;" id="spClaim_' + claimMappinRowID + '" name="spClaim_' + claimMappinRowID + '"/></td> '+
             	        '<td>'+idpClaimListDiv.html()+'</td>' +                        
-                        '<td style="display:none;"><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '" checked/></td>' + 
+                        '<td style="display:none;"><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '" checked/></td>' +
+                        '<td><input type="checkbox"  name="spClaim_mand_' + claimMappinRowID + '"  id="spClaim_mand_' + claimMappinRowID + '"/></td>' +
                         '<td><a onclick="deleteClaimRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete</a></td>' + 
                         '</tr>'));
         	}
@@ -515,7 +515,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
             	jQuery('#claimMappingAddTable').append(jQuery('<tr>'+
                         '<td><input type="text" class="spClaimVal" style="width: 98%;" id="spClaim_' + claimMappinRowID + '" name="spClaim_' + claimMappinRowID + '"/></td> '+
                         '<td>'+idpClaimListDiv.html()+'</td>' +
-                        '<td><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '"/></td>' + 
+                        '<td><input type="checkbox"  name="spClaim_req_' + claimMappinRowID + '"  id="spClaim_req_' + claimMappinRowID + '"/></td>' +
+                        '<td><input type="checkbox"  name="spClaim_mand_' + claimMappinRowID + '"  id="spClaim_mand_' + claimMappinRowID + '"/></td>' +
                         '<td><a onclick="deleteClaimRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete</a></td>' + 
                         '</tr>'));
             	$('#spClaim_' + claimMappinRowID).change(function(){
@@ -692,7 +693,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 			}
 		}
 		newRow+='</select></td><td><input type="checkbox" name="blocking_prov_' + selectedIDPName +
-				'"  />Blocking</td><td><input type="checkbox" name="provisioning_jit_' + selectedIDPName +
+				'"  />Blocking</td><td><input type="checkbox" name="rules_enabled_' + selectedIDPName +
+                				'"  />Enable Rules</td><td><input type="checkbox" name="provisioning_jit_' + selectedIDPName +
 				'"  />JIT Outbound</td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
 		jQuery(obj)
 				.parent()
@@ -828,7 +830,8 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                               <th class="leftCol-big spClaimHeaders" style="<%=isLocalClaimsSelected ? "display:none;" : ""%>"><fmt:message key='title.table.claim.sp.claim'/></th>
                               <th class="leftCol-big"><fmt:message key='title.table.claim.idp.claim'/></th>
                               <th class="leftCol-mid spClaimHeaders" style="<%=isLocalClaimsSelected ? "display:none;" : ""%>"><fmt:message key='config.application.req.claim'/></th>
-                              
+
+                              <th><fmt:message key='config.application.mand.claim'/></th>
                               <th><fmt:message key='config.application.authz.permissions.action'/></th></tr></thead>
                               <tbody>
                               <% if(claimMapping != null && !claimMapping.isEmpty()){ %>
@@ -859,6 +862,13 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                     <input type="checkbox"  id="spClaim_req_<%=i%>" name="spClaim_req_<%=i%>" />
                                    <%}%>
                                    </td>
+                                   <td>
+                                  <% if ("true".equals(appBean.getMandatoryClaims().get(entry.getValue()))){%>
+                                  <input type="checkbox"  id="spClaim_mand_<%=i%>" name="spClaim_mand_<%=i%>" checked/>
+                                  <%} else { %>
+                                   <input type="checkbox"  id="spClaim_mand_<%=i%>" name="spClaim_mand_<%=i%>" />
+                                  <%}%>
+                                  </td>
                                   
                                    <td>
                                        <a title="<fmt:message key='alert.info.delete.permission'/>"
@@ -1579,6 +1589,15 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 								  key="config.application.use.userstore.domain.in.local.subject.identifier"/></label>
 						  </td>
 					  </tr>
+					  <tr>
+						  <td class="leftCol-med">
+							  <input type="checkbox" id="enable_authorization"
+									 name="enable_authorization" <%=appBean.isEnableAuthorization() ?
+									  "checked" : "" %>/><label
+								  for="enable_authorization"><fmt:message
+								  key="config.application.enable.authorization"/></label>
+						  </td>
+					  </tr>
                     </table>
 
                   
@@ -1698,7 +1717,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 						<td>				             	  
 							 <select name="provisioning_idps" style="float: left; min-width: 150px;font-size:13px;">
 							 <%=idpType.toString()%>
-							 </select>
+s							 </select>
 						     <a id="provisioningIdpAdd" onclick="addIDPRow(this);return false;" class="icon-link" style="background-image:url(images/add.gif);"></a>
 						</td>
 		            </tr>
@@ -1716,6 +1735,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 							      				if (idp != null) {
 							      					boolean jitEnabled = false;
 							      					boolean blocking = false;
+							      					boolean ruleEnabled = false;
 							      					
 							      					if (idp.getJustInTimeProvisioningConfig()!=null &&
 							      							idp.getJustInTimeProvisioningConfig().getProvisioningEnabled())
@@ -1727,6 +1747,11 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 							      					{
 							      						blocking = true;
 							      					}
+							      					if (idp.getDefaultProvisioningConnectorConfig()!=null &&
+                                                    		idp.getDefaultProvisioningConnectorConfig().getRulesEnabled())
+                                                    {
+                                                    	ruleEnabled = true;
+                                                    }
 							      						
 	           %>
 							      
@@ -1745,6 +1770,12 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 						<input type="checkbox" id="blocking_prov_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="blocking_prov_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=blocking ? "checked" : "" %>>Blocking
                    									</div>
                         						</td>
+                        						 <td>
+                                                    <div class="sectionCheckbox">
+                                                        <input type="checkbox" id="rules_enabled_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="rules_enabled_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=ruleEnabled ? "checked" :
+                                                        "" %>>Enable Rules
+                                                    </div>
+                                                 </td>
 							      	      		 <td>
                             						<div class="sectionCheckbox">
                                 						<input type="checkbox" id="provisioning_jit_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="provisioning_jit_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=jitEnabled ? "checked" : "" %>>Enable JIT

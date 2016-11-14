@@ -31,7 +31,7 @@ import org.wso2.carbon.registry.core.service.RegistryService;
 import static org.wso2.carbon.identity.base.IdentityRuntimeException.ErrorInfo.ErrorInfoBuilder;
 
 /**
- * A Util OSGi service to exposes Registry resource management functionality based on locale.
+ * A Util OSGi service that exposes Registry resource management functionality based on locale.
  */
 public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtService {
 
@@ -41,9 +41,16 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     private static final String EN_US = "en_us";
     private static final String BLACKLIST_REGEX = ".*[/\\\\<>`\"].*";
 
+
+    private static final String MSG_RESOURCE_PERSIST = "Resource persisted at %s in %s tenant registry.";
+
     private static final String ERROR_GET_RESOURCE = "Error retrieving registry resource from %s for tenant %s.";
-    private static final String ERROR_PUT_RESOURCE = "Error persisting registry resource of %s tenant at %s";
+    private static final String ERROR_ADD_RESOURCE = "Error adding registry resource to %s tenant at %s. Resource " +
+            "already exists at the path";
     private static final String ERROR_DELETE_RESOURCE = "Error deleting registry resource of tenant : %s at %s.";
+
+    private static final String ERROR_PERSIST_RESOURCE = "Error persisting registry resource of %s tenant at %s";
+    private static final String ERROR_NO_RESOURCE_FOUND = "Resource does not exist at %s in %s tenant domain.";
 
 
     @Override
@@ -64,6 +71,15 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     }
 
     @Override
+    public void addIdentityResource(Resource identityResource,
+                                    String path,
+                                    String tenantDomain,
+                                    String locale) throws IdentityRuntimeException {
+        path = getRegistryPath(path, locale);
+        addIdentityResource(identityResource, path, tenantDomain);
+    }
+
+    @Override
     public void deleteIdentityResource(String path,
                                        String tenantDomain,
                                        String locale) throws IdentityRuntimeException {
@@ -72,7 +88,9 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     }
 
     @Override
-    public boolean isResourceExists(String path, String tenantDomain, String locale) throws IdentityRuntimeException {
+    public boolean isResourceExists(String path,
+                                    String tenantDomain,
+                                    String locale) throws IdentityRuntimeException {
         path = getRegistryPath(path, locale);
         return isResourceExists(path, tenantDomain);
     }
@@ -106,12 +124,10 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             Registry registry = getRegistryForTenant(tenantDomain);
             registry.put(path, identityResource);
             if (log.isDebugEnabled()) {
-                String msg = String.format(
-                        "Resource persisted at %s in %s tenant domain registry.", path, tenantDomain);
-                log.debug(msg);
+                log.debug(String.format(MSG_RESOURCE_PERSIST, path, tenantDomain));
             }
         } catch (RegistryException e) {
-            String errorMsg = String.format(ERROR_PUT_RESOURCE, tenantDomain, path);
+            String errorMsg = String.format(ERROR_PERSIST_RESOURCE, tenantDomain, path);
             throw buildIdentityRuntimeException(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
@@ -119,15 +135,39 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     }
 
     @Override
-    public void deleteIdentityResource(String path, String tenantDomain) throws IdentityRuntimeException {
+    public void addIdentityResource(Resource identityResource,
+                                    String path,
+                                    String tenantDomain) throws IdentityRuntimeException {
+        startTenantFlow(tenantDomain);
+        try {
+            Registry registry = getRegistryForTenant(tenantDomain);
+            if (registry.get(path) != null) {
+                // resource already exists at the path so we throw an exception
+                String errorMsg = String.format(ERROR_ADD_RESOURCE, tenantDomain, path);
+                throw buildIdentityRuntimeException(errorMsg, null);
+            }
+            registry.put(path, identityResource);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format(MSG_RESOURCE_PERSIST, path, tenantDomain));
+            }
+        } catch (RegistryException e) {
+            String errorMsg = String.format(ERROR_PERSIST_RESOURCE, tenantDomain, path);
+            throw buildIdentityRuntimeException(errorMsg, e);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    @Override
+    public void deleteIdentityResource(String path,
+                                       String tenantDomain) throws IdentityRuntimeException {
         startTenantFlow(tenantDomain);
         try {
             Registry registry = getRegistryForTenant(tenantDomain);
             if (registry.resourceExists(path)) {
                 registry.delete(path);
             } else {
-                String errorMsg = String.format(
-                        "Resource does not exist at %s in %s tenant domain.", path, tenantDomain);
+                String errorMsg = String.format(ERROR_NO_RESOURCE_FOUND, path, tenantDomain);
                 log.error(errorMsg);
                 throw buildIdentityRuntimeException(errorMsg, null);
             }
@@ -140,7 +180,8 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
     }
 
     @Override
-    public boolean isResourceExists(String path, String tenantDomain) throws IdentityRuntimeException {
+    public boolean isResourceExists(String path,
+                                    String tenantDomain) throws IdentityRuntimeException {
         startTenantFlow(tenantDomain);
         try {
             Registry registry = getRegistryForTenant(tenantDomain);

@@ -37,10 +37,28 @@ public interface RegistryResourceMgtService {
                                  String tenantDomain,
                                  String locale) throws IdentityRuntimeException;
 
+
     /**
-     * Add a registry resource into a tenant registry based on locale.
-     * (In cases where the multiple resources of the same type exists for different locales like email templates,
-     * challenge questions etc.)
+     * Add a registry resource into the tenant registry based on locale. (In cases where the multiple
+     * resources of the same type exists for different locales like email templates, challenge questions etc.)
+     * If a resource already exists in the same path with the same locale an exception will be thrown.
+     *
+     * @param identityResource
+     * @param path
+     * @param tenantDomain
+     * @param locale
+     * @throws IdentityRuntimeException
+     */
+    void addIdentityResource(Resource identityResource,
+                             String path,
+                             String tenantDomain,
+                             String locale) throws IdentityRuntimeException;
+
+
+    /**
+     * Update and replace a registry resource in a tenant registry based on locale. (In cases where the multiple
+     * resources of the same type exists for different locales like email templates, challenge questions etc.)
+     * If a resource already exists in the same path with the same locale an exception will be thrown.
      *
      * @param identityResource
      * @param path
@@ -93,7 +111,7 @@ public interface RegistryResourceMgtService {
                                  String tenantDomain) throws IdentityRuntimeException;
 
     /**
-     * Add a registry resource to a tenant registry
+     * Update and replace a registry resource in tenant registry
      *
      * @param identityResource
      * @param path
@@ -101,6 +119,20 @@ public interface RegistryResourceMgtService {
      * @throws IdentityRuntimeException
      */
     void putIdentityResource(Resource identityResource,
+                             String path,
+                             String tenantDomain) throws IdentityRuntimeException;
+
+
+    /**
+     * Add a registry resource to tenant registry. If a resource already exists at the specified path an exception
+     * will be thrown.
+     *
+     * @param identityResource
+     * @param path
+     * @param tenantDomain
+     * @throws IdentityRuntimeException
+     */
+    void addIdentityResource(Resource identityResource,
                              String path,
                              String tenantDomain) throws IdentityRuntimeException;
 

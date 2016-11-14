@@ -38,6 +38,7 @@ public class ProvisioningConnectorConfig implements Serializable {
     protected String name;
     protected boolean enabled;
     protected boolean blocking;
+    protected boolean rulesEnabled;
 
     /*
          * <ProvisioningConnectorConfig> <Name></Name> <ProvisioningProperties></ProvisioningProperties>
@@ -74,6 +75,8 @@ public class ProvisioningConnectorConfig implements Serializable {
                 provisioningConnectorConfig.setEnabled(Boolean.parseBoolean(element.getText()));
             } else if ("IsBlocking".equals(elementName)) {
                 provisioningConnectorConfig.setBlocking(Boolean.parseBoolean(element.getText()));
+            } else if ("IsRulesEnabled".equals(elementName)) {
+                provisioningConnectorConfig.setRulesEnabled(Boolean.parseBoolean(element.getText()));
             }
         }
 
@@ -147,6 +150,15 @@ public class ProvisioningConnectorConfig implements Serializable {
     public void setBlocking(boolean blocking) {
         this.blocking = blocking;
     }
+
+    public boolean isRulesEnabled() {
+        return rulesEnabled;
+    }
+
+    public void setRulesEnabled(boolean rulesEnabled) {
+        this.rulesEnabled = rulesEnabled;
+    }
+
 
     @Override
     public boolean equals(Object o) {

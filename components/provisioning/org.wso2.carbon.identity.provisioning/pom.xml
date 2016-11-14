@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>provisioning</artifactId>
-        <version>5.5.12-SNAPSHOT</version>
+        <version>5.6.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -84,6 +84,19 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.balana</groupId>
+            <artifactId>org.wso2.balana.utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.entitlement</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.entitlement.ui</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -104,6 +117,10 @@
                             org.wso2.carbon.identity.provisioning.internal,
                         </Private-Package>
                         <Import-Package>
+                            org.wso2.balana.*;
+                            version="${balana.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.entitlement.*;
+                            version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
