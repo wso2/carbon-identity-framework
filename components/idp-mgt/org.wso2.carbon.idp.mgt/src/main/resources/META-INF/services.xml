@@ -68,6 +68,10 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/update
             </parameter>
         </operation>
+        <operation name="getResidentIDPMetadata">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
+        </operation>
     </service>
     <parameter name="adminService" locked="true">true</parameter>
     <parameter name="hiddenService" locked="true">true</parameter>
