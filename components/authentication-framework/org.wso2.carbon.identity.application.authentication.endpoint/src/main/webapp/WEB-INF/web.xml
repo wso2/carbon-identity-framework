@@ -102,6 +102,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>claims.do</servlet-name>
+        <jsp-file>/requested-claims.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_login.do</servlet-name>
         <jsp-file>/login.jsp</jsp-file>
     </servlet>
@@ -254,6 +259,11 @@
     <servlet-mapping>
         <servlet-name>registration.do</servlet-name>
         <url-pattern>/registration.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>claims.do</servlet-name>
+        <url-pattern>/claims.do</url-pattern>
     </servlet-mapping>
 
     <error-page>

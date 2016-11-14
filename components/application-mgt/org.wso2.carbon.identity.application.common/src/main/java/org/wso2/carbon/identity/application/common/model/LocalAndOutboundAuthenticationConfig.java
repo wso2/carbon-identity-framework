@@ -31,6 +31,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final long serialVersionUID = 6552125621314155291L;
     private static final String USE_USERSTORE_DOMAIN_IN_USERNAME = "UseUserstoreDomainInUsername";
     private static final String USE_TENANT_DOMAIN_IN_USERNAME = "UseTenantDomainInUsername";
+    private static final String ENABLE_AUTHORIZATION = "EnableAuthorization";
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
     private static final String ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS = "alwaysSendBackAuthenticatedListOfIdPs";
     private static final String AUTHENTICATION_STEP_FOR_ATTRIBUTES = "AuthenticationStepForAttributes";
@@ -45,6 +46,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private String subjectClaimUri;
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
+    private boolean enableAuthorization = false;
 
     /*
      * <LocalAndOutboundAuthenticationConfig> <AuthenticationSteps></AuthenticationSteps>
@@ -117,6 +119,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
             } else if (USE_TENANT_DOMAIN_IN_USERNAME.equals(member.getLocalName())) {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setUseTenantDomainInLocalSubjectIdentifier(true);
+                }
+            } else if (ENABLE_AUTHORIZATION.equals(member.getLocalName())) {
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setEnableAuthorization(true);
                 }
             } else if (SUBJECT_CLAIM_URI.equals(member.getLocalName())) {
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(member.getText());
@@ -225,5 +231,15 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     public void setUseUserstoreDomainInLocalSubjectIdentifier(boolean useUserstoreDomainInLocalSubjectIdentifier) {
         this.useUserstoreDomainInLocalSubjectIdentifier = useUserstoreDomainInLocalSubjectIdentifier;
+    }
+
+    public boolean isEnableAuthorization() {
+
+        return enableAuthorization;
+    }
+
+    public void setEnableAuthorization(boolean enableAuthorization) {
+
+        this.enableAuthorization = enableAuthorization;
     }
 }

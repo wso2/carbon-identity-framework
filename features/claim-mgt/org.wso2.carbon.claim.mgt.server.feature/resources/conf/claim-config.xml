@@ -470,11 +470,11 @@
 				<Description>Unlock Time</Description>
 			</Claim>
 			<Claim>
-				<ClaimURI>http://wso2.org/claims/identity/lastLoginTime</ClaimURI>
-				<DisplayName>Last Login</DisplayName>
+				<ClaimURI>http://wso2.org/claims/identity/lastLogonTime</ClaimURI>
+				<DisplayName>Last Logon</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>carLicense</AttributeID>
-				<Description>Last Login Time</Description>
+				<Description>Last Logon Time</Description>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/lastPasswordUpdateTime</ClaimURI>

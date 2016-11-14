@@ -22,12 +22,15 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -43,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
@@ -80,8 +84,8 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
+        AuthenticationContext context = null;
         try {
-            AuthenticationContext context;
             AuthenticationRequestCacheEntry authRequest = null;
             String sessionDataKey = request.getParameter("sessionDataKey");
 
@@ -150,6 +154,19 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                     }
                 }
                 log.error("Context does not exist. Probably due to invalidated cache");
+                FrameworkUtils.sendToRetryPage(request, response);
+            }
+        } catch (ApplicationAuthorizationException e) {
+            //TODO publish failure event
+            try {
+                URIBuilder uriBuilder = new URIBuilder(ConfigurationFacade.getInstance()
+                        .getAuthenticationEndpointRetryURL());
+                uriBuilder.addParameter("status", e.getMessage());
+                uriBuilder.addParameter("statusMsg", "You are not authorized to login to this application.");
+                request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+                response.sendRedirect(uriBuilder.build().toString());
+            } catch (URISyntaxException e1) {
+                log.error("Error building redirect url for authz failure", e);
                 FrameworkUtils.sendToRetryPage(request, response);
             }
         } catch (Throwable e) {

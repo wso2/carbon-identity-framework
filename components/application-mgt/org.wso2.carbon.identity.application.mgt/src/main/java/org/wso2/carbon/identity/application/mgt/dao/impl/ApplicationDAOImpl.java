@@ -261,6 +261,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             storeAppPrepStmt.setString(6, ApplicationConstants.AUTH_TYPE_DEFAULT);
             storeAppPrepStmt.setString(7, "0");
             storeAppPrepStmt.setString(8, "0");
+            storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -665,12 +666,20 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         blocking = "1";
                     }
 
+                    String ruleEnabled = "0";
+
+                    if (proProvider.getDefaultProvisioningConnectorConfig() != null
+                        && proProvider.getDefaultProvisioningConnectorConfig().isRulesEnabled()) {
+                        ruleEnabled = "1";
+                    }
+
                     outboundProConfigPrepStmt.setInt(1, tenantID);
                     outboundProConfigPrepStmt.setString(2, proProvider.getIdentityProviderName());
                     outboundProConfigPrepStmt.setString(3, proConnector.getName());
                     outboundProConfigPrepStmt.setInt(4, applicationId);
                     outboundProConfigPrepStmt.setString(5, jitEnabled);
                     outboundProConfigPrepStmt.setString(6, blocking);
+                    outboundProConfigPrepStmt.setString(7, ruleEnabled);
                     outboundProConfigPrepStmt.addBatch();
 
                 }
@@ -761,6 +770,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     proConnector.setBlocking(false);
                 }
 
+                if ("1".equals(resultSet.getString(5))) {
+                    proConnector.setRulesEnabled(true);
+                } else {
+                    proConnector.setRulesEnabled(false);
+                }
+
                 fedIdp.setDefaultProvisioningConnectorConfig(proConnector);
                 idpProConnectors.add(fedIdp);
 
@@ -836,6 +851,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             storeUseUserstoreDomainInLocalSubjectIdStmt.executeUpdate();
         } finally {
             IdentityApplicationManagementUtil.closeStatement(storeUseUserstoreDomainInLocalSubjectIdStmt);
+        }
+
+        PreparedStatement enableAuthzStmt = null;
+        try {
+            enableAuthzStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_ENABLE_AUTHORIZATION);
+            enableAuthzStmt.setString(1, localAndOutboundAuthConfig.isEnableAuthorization() ? "1" : "0");
+            enableAuthzStmt.setInt(2, tenantID);
+            enableAuthzStmt.setInt(3, applicationId);
+            enableAuthzStmt.executeUpdate();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(enableAuthzStmt);
         }
 
         PreparedStatement storeSubjectClaimUri = null;
@@ -1153,7 +1180,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 } else {
                     storeClaimMapPrepStmt.setString(5, "0");
                 }
-                storeClaimMapPrepStmt.setString(6, mapping.getDefaultValue());
+                if (mapping.isMandatory()) {
+                    storeClaimMapPrepStmt.setString(6, "1");
+                } else {
+                    storeClaimMapPrepStmt.setString(6, "0");
+                }
+                storeClaimMapPrepStmt.setString(7, mapping.getDefaultValue());
                 storeClaimMapPrepStmt.addBatch();
 
                 if (log.isDebugEnabled()) {
@@ -1354,13 +1386,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                 LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new LocalAndOutboundAuthenticationConfig();
                 localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                        .equals(basicAppDataResultSet.getString(12)));
+                        .equals(basicAppDataResultSet.getString(14)));
+                localAndOutboundAuthenticationConfig.setEnableAuthorization("1".equals(basicAppDataResultSet
+                        .getString(15)));
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(basicAppDataResultSet
-                        .getString(15));
+                        .getString(16));
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
-                serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(16)));
+                serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(17)));
 
                 if (log.isDebugEnabled()) {
                     log.debug("ApplicationID: " + serviceProvider.getApplicationID()
@@ -1894,10 +1928,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                            .equals(localAndOutboundConfigResultSet.getString(1)));
                     localAndOutboundConfiguration.setUseUserstoreDomainInLocalSubjectIdentifier("1"
                            .equals(localAndOutboundConfigResultSet.getString(2)));
+                    localAndOutboundConfiguration.setEnableAuthorization("1"
+                            .equals(localAndOutboundConfigResultSet.getString(3)));
                     localAndOutboundConfiguration.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                           .equals(localAndOutboundConfigResultSet.getString(3)));
+                            .equals(localAndOutboundConfigResultSet.getString(4)));
                     localAndOutboundConfiguration.setSubjectClaimUri(localAndOutboundConfigResultSet
-                           .getString(4));
+                            .getString(5));
                 }
             } finally {
                 IdentityApplicationManagementUtil.closeStatement(localAndOutboundConfigPrepStmt);
@@ -1977,6 +2013,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     claimMapping.setRequested(false);
                 }
 
+                String mandatory = resultSet.getString(4);
+
+                if ("1".equalsIgnoreCase(mandatory)) {
+                    claimMapping.setMandatory(true);
+                } else {
+                    claimMapping.setMandatory(false);
+                }
+
                 if (remoteClaim.getClaimUri() == null
                         || remoteClaim.getClaimUri().trim().length() == 0) {
                     remoteClaim.setClaimUri(localClaim.getClaimUri());
@@ -1987,7 +2031,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     localClaim.setClaimUri(remoteClaim.getClaimUri());
                 }
 
-                claimMapping.setDefaultValue(resultSet.getString(4));
+                claimMapping.setDefaultValue(resultSet.getString(5));
 
                 claimMapping.setLocalClaim(localClaim);
                 claimMapping.setRemoteClaim(remoteClaim);

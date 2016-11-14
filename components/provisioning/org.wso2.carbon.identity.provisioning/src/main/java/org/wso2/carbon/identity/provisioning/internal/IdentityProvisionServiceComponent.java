@@ -21,10 +21,15 @@ package org.wso2.carbon.identity.provisioning.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.entitlement.EntitlementService;
 import org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory;
 import org.wso2.carbon.identity.provisioning.listener.DefaultInboundUserProvisioningListener;
 import org.wso2.carbon.identity.provisioning.listener.ProvisioningApplicationMgtListener;
@@ -51,7 +56,13 @@ import java.util.Map;
  * interface="org.wso2.carbon.identity.provisioning.AbstractProvisioningConnectorFactory"
  * cardinality="1..n" policy="dynamic" bind="setProvisioningConnectorFactory"
  * unbind="unsetProvisioningConnectorFactory"
+ * @scr.reference name="identity.entitlement.service"
+ * interface="org.wso2.carbon.identity.entitlement.EntitlementService"
+ * cardinality="1..n" policy="dynamic" bind="setEntitlementService"
+ * unbind="unsetEntitlementService"
  */
+
+
 public class IdentityProvisionServiceComponent {
 
     private static final Log log = LogFactory.getLog(IdentityProvisionServiceComponent.class);
@@ -181,5 +192,26 @@ public class IdentityProvisionServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Removed provisioning connector : " + connectorFactory.getConnectorType());
         }
+    }
+
+    /**
+     * @param entitlementService
+     */
+    protected void setEntitlementService(EntitlementService entitlementService) {
+        if (log.isDebugEnabled()) {
+            log.debug("EntitlementService is set in the Application Authentication Framework bundle");
+        }
+        ProvisioningServiceDataHolder.getInstance().setEntitlementService(entitlementService);
+    }
+
+    /**
+     * @param entitlementService
+     */
+    protected void unsetEntitlementService(EntitlementService entitlementService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("EntitlementService is unset in the Application Authentication Framework bundle");
+        }
+        ProvisioningServiceDataHolder.getInstance().setEntitlementService(null);
     }
 }
