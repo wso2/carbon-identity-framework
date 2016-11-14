@@ -105,9 +105,11 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
         Map<String, String> mappedAttrs = new HashMap<>();
         Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
 
-        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
-            String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
-            mappedAttrs.put(localClaimUri, entry.getValue());
+        if (userAttributes != null) {
+            for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+                String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
+                mappedAttrs.put(localClaimUri, entry.getValue());
+            }
         }
 
         Map<String,String> mandatoryClaims =
