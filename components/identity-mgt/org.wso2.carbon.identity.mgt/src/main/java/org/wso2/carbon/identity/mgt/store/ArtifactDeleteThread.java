@@ -64,7 +64,6 @@ public class ArtifactDeleteThread implements Runnable {
     private void deleteOldResourcesIfFound() {
 
         log.debug("---starting delete old resource task---");
-        long startTime = System.currentTimeMillis();
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId, true);
         Collection collection = null;
@@ -134,9 +133,6 @@ public class ArtifactDeleteThread implements Runnable {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
-        long stopTime = System.currentTimeMillis();
-        long elapsedTime = stopTime - startTime;
-        log.info("Delete Method Time Consumption:" + elapsedTime);
         log.debug("---ending delete old resource task---");
     }
 
