@@ -43,13 +43,12 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     }
 
     @Override
-    public boolean isEnable() {
-        return true;
-    }
-
-    @Override
     public boolean doPreSetUserClaimValues(String userName, Map<String, String> claims, String profileName,
                                            UserStoreManager userStoreManager) throws UserStoreException {
+        if (!isEnable()) {
+            return true;
+        }
+
         //The following black listed patterns contain possible invalid inputs for profile which could be used for a
         // stored XSS attack.
         String[] whiteListPatternKeys = {ALPHANUMERICS_ONLY, DIGITS_ONLY};
