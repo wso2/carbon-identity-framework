@@ -49,6 +49,8 @@
         if (claimsList != null) {
             claims = claimsList.toArray(new Claim[claimsList.size()]);
         }
+        IdentityManagementEndpointUtil.addReCaptchaHeaders(request, usernameRecoveryApi.getApiClient().getResponseHeaders());
+
     } catch (ApiException e) {
         Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
