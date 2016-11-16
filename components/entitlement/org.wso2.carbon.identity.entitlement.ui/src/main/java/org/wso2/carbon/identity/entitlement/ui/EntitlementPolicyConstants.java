@@ -123,6 +123,16 @@ public class EntitlementPolicyConstants {
 
     public static final String STRING_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#string";
 
+    public static final String INT_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#integer";
+
+    public static final String BOOLEAN_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#boolean";
+
+    public static final String DATE_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#date";
+
+    public static final String TIME_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#time";
+
+    public static final String DATE_TIME_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#dateTime";
+
     public static final String FUNCTION_BAG = "urn:oasis:names:tc:xacml:1.0:function:string-bag";
 
     public static final String SUBJECT_ID_DEFAULT = "urn:oasis:names:tc:xacml:1.0:subject:subject-id";
