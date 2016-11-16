@@ -138,8 +138,6 @@ public class IdentityServlet extends HttpServlet {
     private HttpIdentityRequestFactory getIdentityRequestFactory(HttpServletRequest request, HttpServletResponse response) {
 
         List<HttpIdentityRequestFactory> factories = FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
-        Collections.sort(factories,new org.wso2.carbon.identity.core.handler.HandlerComparator());
-
         for (HttpIdentityRequestFactory requestBuilder : factories) {
             if (requestBuilder.canHandle(request, response)) {
                 return requestBuilder;
@@ -158,8 +156,6 @@ public class IdentityServlet extends HttpServlet {
 
         List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
-        Collections.sort(factories,new HandlerComparator());
-
         for (HttpIdentityResponseFactory responseFactory : factories) {
             if (responseFactory.canHandle(identityResponse)) {
                 return responseFactory;
@@ -178,8 +174,6 @@ public class IdentityServlet extends HttpServlet {
 
         List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
-        Collections.sort(factories,new HandlerComparator());
-
         for (HttpIdentityResponseFactory responseFactory : factories) {
             if (responseFactory.canHandle(exception)) {
                 return responseFactory;
