@@ -3941,6 +3941,14 @@
 
         }
 
+        if ($('#meta_data_saml').val() != ""  && !jQuery('#saml2SSOEnabled').attr('checked') ) {
+            if ($('#spEntityId').val() == "") {
+                CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
+                return false;
+            }
+
+        }
+
         if (jQuery('#oidcEnabled').attr('checked')) {
 
             if ($('#authzUrl').val() == "") {
