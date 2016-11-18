@@ -75,6 +75,7 @@
             boolean isSelfRegistrationWithVerification =
                     Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
 
+            String userLocale = request.getHeader("Accept-Language");
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             String callback = request.getParameter("callback");
@@ -138,6 +139,16 @@
             try {
 
                 for (Claim claim : claims) {
+
+                    if(claim.getUri().trim().contains("/claims/locality") &&
+                        StringUtils.isBlank(request.getParameter(claim.getUri()))){
+
+                        Claim userClaim = new Claim();
+                        userClaim.setUri(claim.getUri());
+                        userClaim.setValue(userLocale.replace('-','_'));
+                        userClaimList.add(userClaim);
+                    }
+
                     if (StringUtils.isNotBlank(request.getParameter(claim.getUri()))) {
                         Claim userClaim = new Claim();
                         userClaim.setUri(claim.getUri());
