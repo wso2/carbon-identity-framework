@@ -25,10 +25,11 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
-<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimDialectDTO" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
+<%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo" %>
 
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
@@ -45,12 +46,23 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String localClaimURI = request.getParameter("localClaimURI");
-    ClaimDialectDTO[] claimDialects = null;
+
+    String[] domainNames = null;
+    UserRealmInfo userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
+
     try {
-        ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
-        claimDialects = client.getClaimDialects();
+        UserAdminClient userAdminClient = new UserAdminClient(cookie, serverURL, configContext);
+        if (userRealmInfo == null) {
+            userRealmInfo = userAdminClient.getUserRealmInfo();
+            session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
+        }
+
+        if (userRealmInfo != null) {
+            domainNames = userRealmInfo.getDomainNames();
+        }
+
     } catch (Exception e) {
-        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
+        String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
         String message = resourceBundle.getString("error.while.loading.claim.dialects");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -90,8 +102,19 @@
                     jQuery('#attributeAddLink').click(function(){
                         attributeMappingRowID++;
                         jQuery('#attributeAddTable').append(jQuery('<tr><td class="leftCol-big">' +
-                                '<input style="width: 98%;" type="text" id="userstore_'+ attributeMappingRowID +
-                                '" name="userstore_' + attributeMappingRowID + '"/></td>' +
+                                '<select style="width: 98%;" id="userstore_'+ attributeMappingRowID +
+                                '" name="userstore_' + attributeMappingRowID + '">' +
+                                <%
+                                    if (domainNames != null && domainNames.length > 0) {
+                                        for (String domainName : domainNames) {
+                                %>
+                                '<option value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(domainName))%>">' +
+                                '<%=Encode.forJavaScript(Encode.forHtmlContent(domainName))%></option>' +
+                                <%
+                                        }
+                                    }
+                                %>
+                                '</select></td>' +
 
                                 '<td class="leftCol-big">' +
                                 '<input style="width: 98%;" type="text" id="attribute_'+ attributeMappingRowID +
@@ -137,25 +160,6 @@
                     jQuery(obj).parent().parent().remove();
                 }
 
-                String.prototype.format = function (args) {
-                    var str = this;
-                    return str.replace(String.prototype.format.regex, function (item) {
-                        var intVal = parseInt(item.substring(1, item.length - 1));
-                        var replace;
-                        if (intVal >= 0) {
-                            replace = args[intVal];
-                        } else if (intVal === -1) {
-                            replace = "{";
-                        } else if (intVal === -2) {
-                            replace = "}";
-                        } else {
-                            replace = "";
-                        }
-                        return replace;
-                    });
-                };
-                String.prototype.format.regex = new RegExp("{-?[0-9]+}", "g");
-
                 function setType(chk, hidden) {
                     var val = document.getElementById(chk).checked;
                     var hiddenElement = document.getElementById(hidden);
@@ -196,14 +200,22 @@
                         return false;
                     }
 
-                    <%--var value = document.getElementsByName("mappedAttribute")[0].value;--%>
-                    <%--if (value == '') {--%>
-                        <%--CARBON.showWarningDialog('<fmt:message key="attribute.is.required"/>');--%>
-                        <%--return false;--%>
-                    <%--} else if (value.length > 300) {--%>
-                        <%--CARBON.showWarningDialog('<fmt:message key="attr.id.is.too.long"/>');--%>
-                        <%--return false;--%>
-                    <%--}--%>
+                    var attributeAddTable = document.getElementById('attributeAddTable').tBodies[0];
+                    var attributeAddTableRowCount = attributeAddTable.rows.length;
+
+                    if (attributeAddTableRowCount <= 0) {
+                        CARBON.showWarningDialog('<fmt:message key="attribute.mapping.is.required"/>');
+                        return false;
+                    } else {
+                        for (var i = 0; i < attributeAddTableRowCount; i++) {
+                            var row = attributeAddTable.rows[i];
+                            var mappedAttributeValue = row.getElementsByTagName("input")[0].value;
+                            if (mappedAttributeValue == '') {
+                                CARBON.showWarningDialog('<fmt:message key="attribute.mapping.cannot.be.empty"/>');
+                                return false;
+                            }
+                        }
+                    }
 
                     var value = document.getElementsByName("displayOrder")[0].value;
                     if (value != '') {
@@ -229,37 +241,6 @@
                             return false;
                         }
                     }
-
-                    <%--//Mapped Attributes Validation--%>
-                    <%--var value = document.getElementsByName("mappedAttribute")[0].value;--%>
-                    <%--var mappedAttributes = value.split(";");--%>
-                    <%--var domainSeparator = "/";--%>
-                    <%--for (var i = 0; i < mappedAttributes.length; i++) {--%>
-                        <%--var index = mappedAttributes[i].indexOf(domainSeparator);--%>
-                        <%--if (index >= 0) { //has domain--%>
-                            <%--var lastIndex = mappedAttributes[i].lastIndexOf(domainSeparator);--%>
-                            <%--if (index == 0) {--%>
-                                <%--//domain separator cannot be the first letter of the mapped attribute--%>
-                                <%--var message = '<fmt:message key="attribute.domain.required"/>';--%>
-                                <%--message = message.format([mappedAttributes[i]]);--%>
-                                <%--CARBON.showWarningDialog(message);--%>
-                                <%--return false;--%>
-                            <%--}--%>
-                            <%--else if (index != lastIndex) {--%>
-                                <%--//mapped attribute cannot have duplicated domainSeparator--%>
-                                <%--var message = '<fmt:message key="attribute.domain.separator.duplicate"/>';--%>
-                                <%--message = message.format([mappedAttributes[i]]);--%>
-                                <%--CARBON.showWarningDialog(message);--%>
-                                <%--return false;--%>
-                            <%--} else if (index == (mappedAttributes[i].length - 1)) {--%>
-                                <%--//domain separator cannot be the last character of the mapped attribute--%>
-                                <%--var message = '<fmt:message key="attribute.domain.mapped.attribute.required"/>';--%>
-                                <%--message = message.format([mappedAttributes[i]]);--%>
-                                <%--CARBON.showWarningDialog(message);--%>
-                                <%--return false;--%>
-                            <%--}--%>
-                        <%--}--%>
-                    <%--}--%>
 
                     var numberOfAttributeMappings = attributeMappingRowID + 1;
                     document.getElementById('number_of_AttributeMappings').value=numberOfAttributeMappings;
@@ -346,8 +327,19 @@
                                             <tbody>
                                             <tr>
                                                 <td class="leftCol-big">
-                                                    <input style="width: 98%;" type="text"
-                                                           id="userstore_0" name="userstore_0"/>
+                                                    <select style="width: 98%;" id="userstore_0" name="userstore_0">
+                                                        <%
+                                                            if (domainNames != null && domainNames.length > 0) {
+                                                                for (String domainName : domainNames) {
+                                                        %>
+                                                        <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                                            <%=Encode.forHtmlContent(domainName)%>
+                                                        </option>
+                                                        <%
+                                                                }
+                                                            }
+                                                        %>
+                                                    </select>
                                                 </td>
                                                 <td class="leftCol-big">
                                                     <input style="width: 98%;" type="text"
