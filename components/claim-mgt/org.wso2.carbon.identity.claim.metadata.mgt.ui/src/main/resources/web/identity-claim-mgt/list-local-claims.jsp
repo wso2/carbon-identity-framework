@@ -48,7 +48,7 @@
         localClaims = client.getLocalClaims();
         session.setAttribute("localClaims", localClaims);
     } catch (Exception e) {
-        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
+        String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
         String message = resourceBundle.getString("error.while.loading.local.claims");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -94,7 +94,7 @@
             };
             jQuery("a.trigger-title").click(triggerHandler);
         });
-        function removeItem(localClaimURI, localClaimslength) {
+        function removeItem(localClaimURI, localClaimURIForMessage, localClaimslength) {
             if (localClaimslength <= 1) {
                 CARBON.showWarningDialog('<fmt:message key="cannot.remove.default.carbon.dialect.all.claims"/>');
                 return false;
@@ -116,8 +116,8 @@
                     });
                 }
 
-                CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message>' + localClaimURI +
-                        '<fmt:message key="remove.message2"/>', doDelete, null);
+                CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message> ' +
+                        localClaimURIForMessage + '<fmt:message key="remove.message2"/>', doDelete, null);
             }
         }
     </script>
@@ -294,6 +294,7 @@
                 <a href="#" class="icon-link deleteLink"
                    style="background-image:url(../identity-claim-mgt/images/delete.gif);"
                    onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(localClaimURI))%>',
+                           '<%=Encode.forJavaScriptAttribute(localClaimURI)%>',
                            '<%=Encode.forJavaScriptAttribute(String.valueOf(localClaims.length))%>');return
                            false;"><fmt:message key='delete'/>
                 </a>
