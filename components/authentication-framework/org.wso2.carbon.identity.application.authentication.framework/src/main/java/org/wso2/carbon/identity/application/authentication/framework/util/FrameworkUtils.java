@@ -1130,6 +1130,7 @@ public class FrameworkUtils {
             Claim claim = new Claim();
             claim.setClaimUri(userIdClaimURI);
             claimMapping.setRemoteClaim(claim);
+            claimMapping.setLocalClaim(claim);
             value = claimMappings.get(claimMapping);
         }
         return value;

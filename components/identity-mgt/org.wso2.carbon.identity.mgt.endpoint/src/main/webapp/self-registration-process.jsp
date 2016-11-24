@@ -75,6 +75,7 @@
             boolean isSelfRegistrationWithVerification =
                     Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
 
+            String userLocale = request.getHeader("Accept-Language");
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             String callback = request.getParameter("callback");
@@ -143,6 +144,15 @@
                         userClaim.setUri(claim.getUri());
                         userClaim.setValue(request.getParameter(claim.getUri()));
                         userClaimList.add(userClaim);
+
+                    } else if (claim.getUri().trim().equals("http://wso2.org/claims/locality")
+                            && StringUtils.isNotBlank(userLocale)) {
+
+                        Claim localeClaim = new Claim();
+                        localeClaim.setUri(claim.getUri());
+                        localeClaim.setValue(userLocale.split(",")[0].replace('-','_'));
+                        userClaimList.add(localeClaim);
+
                     }
                 }
 

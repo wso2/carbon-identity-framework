@@ -90,7 +90,7 @@ public class IdentityMgtConstants {
 
     public static final String DEFAULT_MAX_FAIL_LOGIN_ATTEMPTS = "10";
 
-    public static final String LAST_LOGIN_TIME = "http://wso2.org/claims/identity/lastLoginTime";
+    public static final String LAST_LOGIN_TIME = "http://wso2.org/claims/identity/lastLogonTime";
 
     public static final String LAST_PASSWORD_UPDATE_TIME = "http://wso2.org/claims/identity/lastPasswordUpdateTime";
 
@@ -116,6 +116,8 @@ public class IdentityMgtConstants {
         public static final String CONFIG_FILE_NAME = "identity-mgt.properties";
 
         public static final String USER_INFO_RECOVERY_SAA_SENABLE = "UserInfoRecovery.SaaSEnable";
+
+        public static final String ARTIFACT_DELETE_THREAD_POOL_SIZE = "UserInfoRecovery.Artifact.Delete.ThreadPoolSize";
 
         public static final String NOTIFICATION_SEND_ENABLE = "Notification.Sending.Enable";
 

@@ -49,6 +49,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -107,6 +109,16 @@ public class IdentityMgtConfig {
      * pattern in config.
      * Eg. Password.policy.extensions.1.min.length=6
      */
+    private int poolSize = 0;
+    private ExecutorService executors = null;
+
+    public ExecutorService getExecutors() {
+        return executors;
+    }
+
+    public int getPoolSize() {
+        return poolSize;
+    }
     private Pattern propertyPattern = Pattern.compile("(\\.\\d\\.)");
 
     public IdentityMgtConfig(RealmConfiguration configuration) {
@@ -132,6 +144,18 @@ public class IdentityMgtConfig {
                     }
                 }
             }
+        }
+
+        String strPoolSize = properties.getProperty(IdentityMgtConstants.PropertyConfig.
+                ARTIFACT_DELETE_THREAD_POOL_SIZE);
+
+        if (org.apache.commons.lang.NumberUtils.isNumber(strPoolSize)) {
+
+            poolSize = Integer.parseInt(strPoolSize);
+            if (poolSize > 0) {
+                executors = Executors.newFixedThreadPool(poolSize);
+            }
+
         }
 
         try {

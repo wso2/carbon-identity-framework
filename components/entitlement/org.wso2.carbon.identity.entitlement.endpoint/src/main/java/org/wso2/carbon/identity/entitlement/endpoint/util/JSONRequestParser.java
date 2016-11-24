@@ -37,6 +37,7 @@ import org.wso2.balana.xacml3.AttributesReference;
 import org.wso2.balana.xacml3.MultiRequests;
 import org.wso2.balana.xacml3.RequestDefaults;
 import org.wso2.balana.xacml3.RequestReference;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.RequestParseException;
 
 import javax.xml.bind.DatatypeConverter;
@@ -146,7 +147,7 @@ public class JSONRequestParser {
                                     .get(EntitlementEndpointConstants.CONTENT)
                                     .getAsString());
                             inputStream = new ByteArrayInputStream(xmlContent.getBytes());
-                            dbf = DocumentBuilderFactory.newInstance();
+                            dbf = IdentityUtil.getSecuredDocumentBuilderFactory();
                             dbf.setNamespaceAware(true);
 
                             try {

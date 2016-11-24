@@ -159,12 +159,12 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                     if ("name".equals(child.getNodeName())) {
                         name = child.getTextContent();
                         if (EntitlementConstants.PolicyEditor.BASIC.equals(type) ||
-                                (EntitlementConstants.PolicyEditor.RBAC.equals(type))) {
+                            (EntitlementConstants.PolicyEditor.RBAC.equals(type))) {
                             if (!Utils.isValidCategory(name)) {
                                 throw new PolicyEditorException("Invalid Category : " + name
-                                        + "  Basic policy editor supports only for Subject, " +
-                                        "Resource, Action and Environment category names. " +
-                                        "But you can change the URI of them");
+                                                                + "  Basic policy editor supports only for Subject, " +
+                                                                "Resource, Action and Environment category names. " +
+                                                                "But you can change the URI of them");
                             }
                         }
                     } else if ("uri".equals(child.getNodeName())) {
@@ -468,1051 +468,1250 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
     }
 
     protected String getSimpleConfig() {
-        return "                                          <policyEditor>\n" +
-                "    <categories>\n" +
-                "        <category>\n" +
-                "            <name>Subject</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>UserName</attributeId>\n" +
-                "                <attributeId>Email</attributeId>\n" +
-                "                <attributeId>Role</attributeId>\n" +
-                "                <attributeId>Age</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Resource</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>resource-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Action</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>action-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>Domain</attributeId>\n" +
-                "\t\t<attributeId>Date</attributeId>\n" +
-                "\t\t<attributeId>Time</attributeId>\n" +
-                "\t\t<attributeId>DateTime</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "    </categories>\n" +
-                "    <attributeIds>\n" +
-                "        <attributeId>\n" +
-                "            <name>resource-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>action-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>UserName</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Role</name>\n" +
-                "            <uri>http://wso2.org/claims/role</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Email</name>\n" +
-                "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Domain</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Time</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Date</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>DateTime</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Age</name>\n" +
-                "            <uri>http://wso2.org/claims/age</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
-                "        </attributeId>\n" +
-                "    </attributeIds>\n" +
-                "    <dataTypes>    \n" +
-                "    </dataTypes>\n" +
-                "    <ruleCombiningAlgorithm>\n" +
-                "        <display>true</display>\n" +
-                "        <defaultAlgorithm>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</defaultAlgorithm>\n" +
-                "        <algorithms>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>First Applicable</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Unless Permit</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Unless Deny</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny</uri>\n" +
-                "            </algorithm>\n" +
-                "        </algorithms>\n" +
-                "    </ruleCombiningAlgorithm>\n" +
-                "    <dataTypes>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>String</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Boolean</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Integer</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Double</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Year Month Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Any URI</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Hex Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Base64 Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>DNS Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>IP Address</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>RFC822 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>XPath</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
-                "\t</dataType>    \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>X500 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
-                "\t</dataType>       \n" +
-                "    </dataTypes>\n" +
-                "</policyEditor>";
+        return "<policyEditor>\n" +
+               "    <categories>\n" +
+               "        <category>\n" +
+               "            <name>Subject</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>UserName</attributeId>\n" +
+               "                <attributeId>Email</attributeId>\n" +
+               "                <attributeId>Role</attributeId>\n" +
+               "                <attributeId>Age</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Resource</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>resource-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Action</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>action-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>Domain</attributeId>\n" +
+               "\t\t<attributeId>Date</attributeId>\n" +
+               "\t\t<attributeId>Time</attributeId>\n" +
+               "\t\t<attributeId>DateTime</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "    </categories>\n" +
+               "    <attributeIds>\n" +
+               "        <attributeId>\n" +
+               "            <name>resource-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>action-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>UserName</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Role</name>\n" +
+               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Email</name>\n" +
+               "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Domain</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Time</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Date</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>DateTime</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Age</name>\n" +
+               "            <uri>http://wso2.org/claims/age</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
+               "        </attributeId>\n" +
+               "    </attributeIds>\n" +
+               "    <dataTypes>    \n" +
+               "    </dataTypes>\n" +
+               "    <ruleCombiningAlgorithm>\n" +
+               "        <display>true</display>\n" +
+               "        <defaultAlgorithm>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</defaultAlgorithm>\n" +
+               "        <algorithms>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>First Applicable</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Unless Permit</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Unless Deny</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny</uri>\n" +
+               "            </algorithm>\n" +
+               "        </algorithms>\n" +
+               "    </ruleCombiningAlgorithm>\n" +
+               "    <dataTypes>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>String</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Boolean</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Integer</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Double</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Year Month Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Any URI</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Hex Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Base64 Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>DNS Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>IP Address</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>RFC822 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>XPath</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
+               "\t</dataType>    \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>X500 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
+               "\t</dataType>       \n" +
+               "    </dataTypes>\n" +
+               "</policyEditor>";
     }
 
     protected String getDefaultBasicConfig() {
 
         return "<policyEditor>\n" +
-                "    <categories>\n" +
-                "        <category>\n" +
-                "            <name>Subject</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>UserName</attributeId>\n" +
-                "                <attributeId>Email</attributeId>\n" +
-                "                <attributeId>Role</attributeId>\n" +
-                "                <attributeId>Age</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Resource</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>resource-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Action</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>action-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>Domain</attributeId>\n" +
-                "\t\t<attributeId>Date</attributeId>\n" +
-                "\t\t<attributeId>Time</attributeId>\n" +
-                "\t\t<attributeId>DateTime</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "    </categories>\n" +
-                "    <attributeIds>\n" +
-                "        <attributeId>\n" +
-                "            <name>resource-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>action-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>UserName</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Role</name>\n" +
-                "            <uri>http://wso2.org/claims/role</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Email</name>\n" +
-                "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Domain</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Time</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Date</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>DateTime</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Age</name>\n" +
-                "            <uri>http://wso2.org/claims/age</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
-                "        </attributeId>\n" +
-                "    </attributeIds>\n" +
-                "    <dataTypes>    \n" +
-                "    </dataTypes>\n" +
-                "    <ruleCombiningAlgorithm>\n" +
-                "        <display>true</display>\n" +
-                "        <defaultAlgorithm>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</defaultAlgorithm>\n" +
-                "        <algorithms>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>First Applicable</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Unless Permit</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Unless Deny</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny</uri>\n" +
-                "            </algorithm>\n" +
-                "        </algorithms>\n" +
-                "    </ruleCombiningAlgorithm>\n" +
-                "    <dataTypes>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>String</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Boolean</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Integer</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Double</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Year Month Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Any URI</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Hex Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Base64 Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>DNS Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>IP Address</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>RFC822 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>XPath</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
-                "\t</dataType>    \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>X500 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
-                "\t</dataType>       \n" +
-                "    </dataTypes>\n" +
-                "    <functions>\n" +
-                "        <function>\n" +
-                "            <name>equal</name>\n" +
-                "            <uri>equal</uri>\n" +
-                "            <targetFunction>true</targetFunction>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>equals-with-regexp-match</name>\n" +
-                "            <uri>regexp-match</uri>\n" +
-                "\t    <targetFunction>true</targetFunction>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>at-least-one-member-of</name>\n" +
-                "            <uri>at-least-one-member-of</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>is-in</name>\n" +
-                "            <uri>is-in</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>set-equals</name>\n" +
-                "            <uri>set-equals</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>greater-than</name>\n" +
-                "            <uri>greater-than</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>less-than</name>\n" +
-                "            <uri>less-than</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>greater-than-and-less-than</name>\n" +
-                "            <uri>greater-than-and-less-than</uri>\n" +
-                "        </function>\n" +
-                "    </functions>\n" +
-                "    <preFunctions>\n" +
-                "        <preFunction>\n" +
-                "            <name>is/are</name>\n" +
-                "            <uri>is</uri>\n" +
-                "        </preFunction>\n" +
-                "        <preFunction>\n" +
-                "            <name>is not/are not</name>\n" +
-                "            <uri>not</uri>\n" +
-                "        </preFunction>\n" +
-                "    </preFunctions>\n" +
-                "    <policyDescription>\n" +
-                "        <display>true</display>\n" +
-                "    </policyDescription>\n" +
-                "    <rule>\n" +
-                "        <ruleId>true</ruleId>\n" +
-                "        <ruleEffect>\n" +
-                "            <display>true</display>\n" +
-                "            <defaultEffect>Permit</defaultEffect>\n" +
-                "\t    \t<effect>\n" +
-                "            \t\t<name>Permit</name>\n" +
-                "            \t\t<uri>Permit</uri>\n" +
-                "\t\t</effect>\n" +
-                "\t    \t<effect>\n" +
-                "            \t\t<name>Deny</name>\n" +
-                "            \t\t<uri>Deny</uri>\n" +
-                "\t\t</effect>\t\n" +
-                "        </ruleEffect>\n" +
-                "        <lastRule>\n" +
-                "            <add>false</add>\n" +
-                "            <effect>Deny</effect>\n" +
-                "        </lastRule>\n" +
-                "    </rule>\n" +
-                "</policyEditor>\n";
+               "    <categories>\n" +
+               "        <category>\n" +
+               "            <name>Subject</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>UserName</attributeId>\n" +
+               "                <attributeId>Email</attributeId>\n" +
+               "                <attributeId>Role</attributeId>\n" +
+               "                <attributeId>Age</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Resource</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>resource-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Action</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>action-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>Domain</attributeId>\n" +
+               "\t\t<attributeId>Date</attributeId>\n" +
+               "\t\t<attributeId>Time</attributeId>\n" +
+               "\t\t<attributeId>DateTime</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "    </categories>\n" +
+               "    <attributeIds>\n" +
+               "        <attributeId>\n" +
+               "            <name>resource-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>action-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>UserName</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Role</name>\n" +
+               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Email</name>\n" +
+               "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Domain</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Time</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Date</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>DateTime</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Age</name>\n" +
+               "            <uri>http://wso2.org/claims/age</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
+               "        </attributeId>\n" +
+               "    </attributeIds>\n" +
+               "    <dataTypes>    \n" +
+               "    </dataTypes>\n" +
+               "    <ruleCombiningAlgorithm>\n" +
+               "        <display>true</display>\n" +
+               "        <defaultAlgorithm>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</defaultAlgorithm>\n" +
+               "        <algorithms>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>First Applicable</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Unless Permit</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Unless Deny</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny</uri>\n" +
+               "            </algorithm>\n" +
+               "        </algorithms>\n" +
+               "    </ruleCombiningAlgorithm>\n" +
+               "    <dataTypes>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>String</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Boolean</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Integer</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Double</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Year Month Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Any URI</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Hex Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Base64 Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>DNS Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>IP Address</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>RFC822 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>XPath</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
+               "\t</dataType>    \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>X500 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
+               "\t</dataType>       \n" +
+               "    </dataTypes>\n" +
+               "    <functions>\n" +
+               "        <function>\n" +
+               "            <name>equal</name>\n" +
+               "            <uri>equal</uri>\n" +
+               "            <targetFunction>true</targetFunction>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>equals-with-regexp-match</name>\n" +
+               "            <uri>regexp-match</uri>\n" +
+               "\t    <targetFunction>true</targetFunction>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>at-least-one-member-of</name>\n" +
+               "            <uri>at-least-one-member-of</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>is-in</name>\n" +
+               "            <uri>is-in</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>set-equals</name>\n" +
+               "            <uri>set-equals</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>greater-than</name>\n" +
+               "            <uri>greater-than</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>less-than</name>\n" +
+               "            <uri>less-than</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>greater-than-and-less-than</name>\n" +
+               "            <uri>greater-than-and-less-than</uri>\n" +
+               "        </function>\n" +
+               "    </functions>\n" +
+               "    <preFunctions>\n" +
+               "        <preFunction>\n" +
+               "            <name>is/are</name>\n" +
+               "            <uri>is</uri>\n" +
+               "        </preFunction>\n" +
+               "        <preFunction>\n" +
+               "            <name>is not/are not</name>\n" +
+               "            <uri>not</uri>\n" +
+               "        </preFunction>\n" +
+               "    </preFunctions>\n" +
+               "    <policyDescription>\n" +
+               "        <display>true</display>\n" +
+               "    </policyDescription>\n" +
+               "    <rule>\n" +
+               "        <ruleId>true</ruleId>\n" +
+               "        <ruleEffect>\n" +
+               "            <display>true</display>\n" +
+               "            <defaultEffect>Permit</defaultEffect>\n" +
+               "\t    \t<effect>\n" +
+               "            \t\t<name>Permit</name>\n" +
+               "            \t\t<uri>Permit</uri>\n" +
+               "\t\t</effect>\n" +
+               "\t    \t<effect>\n" +
+               "            \t\t<name>Deny</name>\n" +
+               "            \t\t<uri>Deny</uri>\n" +
+               "\t\t</effect>\t\n" +
+               "        </ruleEffect>\n" +
+               "        <lastRule>\n" +
+               "            <add>false</add>\n" +
+               "            <effect>Deny</effect>\n" +
+               "        </lastRule>\n" +
+               "    </rule>\n" +
+               "</policyEditor>\n";
     }
 
     protected String getDefaultConfig() {
 
         return "<policyEditor>\n" +
-                "    <categories>\n" +
-                "        <category>\n" +
-                "            <name>Subject</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>UserName</attributeId>\n" +
-                "                <attributeId>Email</attributeId>\n" +
-                "                <attributeId>Role</attributeId>\n" +
-                "                <attributeId>Age</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Resource</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>resource-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Action</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>action-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>Domain</attributeId>\n" +
-                "\t\t<attributeId>Date</attributeId>\n" +
-                "\t\t<attributeId>Time</attributeId>\n" +
-                "\t\t<attributeId>DateTime</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>ServiceProvider</name>\n" +
-                "            <uri>http://wso2.org/identity/auth</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>sp-name</attributeId>\n" +
-                "                <attributeId>sp-tenant-domain</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>User</name>\n" +
-                "            <uri>http://wso2.org/identity/auth</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>username</attributeId>\n" +
-                "                <attributeId>userstore-domain</attributeId>\n" +
-                "                <attributeId>user-tenant-domain</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "    </categories>\n" +
-                "    <attributeIds>\n" +
-                "        <attributeId>\n" +
-                "            <name>resource-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>action-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>UserName</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Role</name>\n" +
-                "            <uri>http://wso2.org/claims/role</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Email</name>\n" +
-                "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Domain</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Time</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Date</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>DateTime</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Age</name>\n" +
-                "            <uri>http://wso2.org/claims/age</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>sp-name</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/sp-name</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>sp-tenant-domain</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/sp-domain</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>username</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/username</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>userstore-domain</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/userstore-domain</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>user-tenant-domain</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/user-tenant-domain</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "    </attributeIds>\n" +
-                "    <dataTypes>    \n" +
-                "    </dataTypes>\n" +
-                "    <ruleCombiningAlgorithm>\n" +
-                "        <display>true</display>\n" +
-                "        <defaultAlgorithm>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</defaultAlgorithm>\n" +
-                "        <algorithms>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>First Applicable</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Unless Permit</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Unless Deny</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny</uri>\n" +
-                "            </algorithm>\n" +
-                "        </algorithms>\n" +
-                "    </ruleCombiningAlgorithm>\n" +
-                "    <dataTypes>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>String</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Boolean</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Integer</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Double</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Year Month Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Any URI</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Hex Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Base64 Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>DNS Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>IP Address</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>RFC822 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>XPath</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
-                "\t</dataType>    \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>X500 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
-                "\t</dataType>       \n" +
-                "    </dataTypes>\n" +
-                "    <functions>\n" +
-                "        <function>\n" +
-                "            <name>equal</name>\n" +
-                "            <uri>equal</uri>\n" +
-                "            <targetFunction>true</targetFunction>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>equals-with-regexp-match</name>\n" +
-                "            <uri>regexp-match</uri>\n" +
-                "\t    <targetFunction>true</targetFunction>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>at-least-one-member-of</name>\n" +
-                "            <uri>at-least-one-member-of</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>is-in</name>\n" +
-                "            <uri>is-in</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>set-equals</name>\n" +
-                "            <uri>set-equals</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>greater-than</name>\n" +
-                "            <uri>greater-than</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>less-than</name>\n" +
-                "            <uri>less-than</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>greater-than-and-less-than</name>\n" +
-                "            <uri>greater-than-and-less-than</uri>\n" +
-                "        </function>\n" +
-                "    </functions>\n" +
-                "    <preFunctions>\n" +
-                "        <preFunction>\n" +
-                "            <name>is/are</name>\n" +
-                "            <uri>is</uri>\n" +
-                "        </preFunction>\n" +
-                "        <preFunction>\n" +
-                "            <name>is not/are not</name>\n" +
-                "            <uri>not</uri>\n" +
-                "        </preFunction>\n" +
-                "    </preFunctions>\n" +
-                "    <policyDescription>\n" +
-                "        <display>true</display>\n" +
-                "    </policyDescription>\n" +
-                "    <rule>\n" +
-                "        <ruleId>true</ruleId>\n" +
-                "        <ruleEffect>\n" +
-                "            <display>true</display>\n" +
-                "            <defaultEffect>Permit</defaultEffect>\n" +
-                "\t    \t<effect>\n" +
-                "            \t\t<name>Permit</name>\n" +
-                "            \t\t<uri>Permit</uri>\n" +
-                "\t\t</effect>\n" +
-                "\t    \t<effect>\n" +
-                "            \t\t<name>Deny</name>\n" +
-                "            \t\t<uri>Deny</uri>\n" +
-                "\t\t</effect>\t\n" +
-                "        </ruleEffect>\n" +
-                "        <lastRule>\n" +
-                "            <add>false</add>\n" +
-                "            <effect>Deny</effect>\n" +
-                "        </lastRule>\n" +
-                "    </rule>\n" +
-                "</policyEditor>\n";
+               "    <categories>\n" +
+               "        <category>\n" +
+               "            <name>Subject</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>UserName</attributeId>\n" +
+               "                <attributeId>Email</attributeId>\n" +
+               "                <attributeId>Role</attributeId>\n" +
+               "                <attributeId>Age</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Resource</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>resource-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Action</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>action-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>Domain</attributeId>\n" +
+               "\t\t<attributeId>Date</attributeId>\n" +
+               "\t\t<attributeId>Time</attributeId>\n" +
+               "\t\t<attributeId>DateTime</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>ServiceProvider</name>\n" +
+               "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>sp-name</attributeId>\n" +
+               "                <attributeId>sp-tenant-domain</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>User</name>\n" +
+               "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>username</attributeId>\n" +
+               "                <attributeId>userstore-domain</attributeId>\n" +
+               "                <attributeId>user-tenant-domain</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>UserInfo</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/user</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>username</attributeId>\n" +
+               "                <attributeId>tenant-domain</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Claims</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/claims</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>emailaddress</attributeId>\n" +
+               "                <attributeId>age</attributeId>\n" +
+               "                <attributeId>lastname</attributeId>\n" +
+               "                <attributeId>givenname</attributeId>\n" +
+               "                <attributeId>organization</attributeId>\n" +
+               "                <attributeId>telephone</attributeId>\n" +
+               "                <attributeId>IM</attributeId>\n" +
+               "                <attributeId>country</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>IdentityProvider</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/idp</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>idp-name</attributeId>\n" +
+               "                <attributeId>connector-type</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>IdentityAction</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/identity-action</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>action-name</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "    </categories>\n" +
+               "    <attributeIds>\n" +
+               "        <attributeId>\n" +
+               "            <name>resource-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>action-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>UserName</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Role</name>\n" +
+               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Email</name>\n" +
+               "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Domain</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Time</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Date</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>DateTime</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Age</name>\n" +
+               "            <uri>http://wso2.org/claims/age</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>sp-name</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/sp-name</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>sp-tenant-domain</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/sp-domain</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>username</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:username</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>tenant-domain</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:tenant-domain</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>age</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/age</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>lastname</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/lastname</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>givenname</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/givenname</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>organization</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/organization</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>telephone</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/telephone</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>IM</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/im</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>country</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/country</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>country</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/mobile</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>emailaddress</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/emailaddress</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>idp-name</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:idp-name</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>connector-type</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:connector-type</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>action-name</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/identity-action:action-name</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "    </attributeIds>\n" +
+               "    <dataTypes>    \n" +
+               "    </dataTypes>\n" +
+               "    <ruleCombiningAlgorithm>\n" +
+               "        <display>true</display>\n" +
+               "        <defaultAlgorithm>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</defaultAlgorithm>\n" +
+               "        <algorithms>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>First Applicable</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Unless Permit</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Unless Deny</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny</uri>\n" +
+               "            </algorithm>\n" +
+               "        </algorithms>\n" +
+               "    </ruleCombiningAlgorithm>\n" +
+               "    <dataTypes>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>String</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Boolean</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Integer</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Double</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Year Month Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Any URI</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Hex Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Base64 Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>DNS Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>IP Address</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>RFC822 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>XPath</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
+               "\t</dataType>    \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>X500 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
+               "\t</dataType>       \n" +
+               "    </dataTypes>\n" +
+               "    <functions>\n" +
+               "        <function>\n" +
+               "            <name>equal</name>\n" +
+               "            <uri>equal</uri>\n" +
+               "            <targetFunction>true</targetFunction>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>equals-with-regexp-match</name>\n" +
+               "            <uri>regexp-match</uri>\n" +
+               "\t    <targetFunction>true</targetFunction>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>at-least-one-member-of</name>\n" +
+               "            <uri>at-least-one-member-of</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>is-in</name>\n" +
+               "            <uri>is-in</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>set-equals</name>\n" +
+               "            <uri>set-equals</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>greater-than</name>\n" +
+               "            <uri>greater-than</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>less-than</name>\n" +
+               "            <uri>less-than</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>greater-than-and-less-than</name>\n" +
+               "            <uri>greater-than-and-less-than</uri>\n" +
+               "        </function>\n" +
+               "    </functions>\n" +
+               "    <preFunctions>\n" +
+               "        <preFunction>\n" +
+               "            <name>is/are</name>\n" +
+               "            <uri>is</uri>\n" +
+               "        </preFunction>\n" +
+               "        <preFunction>\n" +
+               "            <name>is not/are not</name>\n" +
+               "            <uri>not</uri>\n" +
+               "        </preFunction>\n" +
+               "    </preFunctions>\n" +
+               "    <policyDescription>\n" +
+               "        <display>true</display>\n" +
+               "    </policyDescription>\n" +
+               "    <rule>\n" +
+               "        <ruleId>true</ruleId>\n" +
+               "        <ruleEffect>\n" +
+               "            <display>true</display>\n" +
+               "            <defaultEffect>Permit</defaultEffect>\n" +
+               "\t    \t<effect>\n" +
+               "            \t\t<name>Permit</name>\n" +
+               "            \t\t<uri>Permit</uri>\n" +
+               "\t\t</effect>\n" +
+               "\t    \t<effect>\n" +
+               "            \t\t<name>Deny</name>\n" +
+               "            \t\t<uri>Deny</uri>\n" +
+               "\t\t</effect>\t\n" +
+               "        </ruleEffect>\n" +
+               "        <lastRule>\n" +
+               "            <add>false</add>\n" +
+               "            <effect>Deny</effect>\n" +
+               "        </lastRule>\n" +
+               "    </rule>\n" +
+               "</policyEditor>\n";
     }
 
 
     protected String getDefaultSetConfig() {
 
         return "<policyEditor>\n" +
-                "    <categories>\n" +
-                "        <category>\n" +
-                "            <name>Subject</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>UserName</attributeId>\n" +
-                "                <attributeId>Email</attributeId>\n" +
-                "                <attributeId>Role</attributeId>\n" +
-                "                <attributeId>Age</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Resource</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>resource-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Action</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>action-id</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>Domain</attributeId>\n" +
-                "\t\t<attributeId>Date</attributeId>\n" +
-                "\t\t<attributeId>Time</attributeId>\n" +
-                "\t\t<attributeId>DateTime</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>ServiceProvider</name>\n" +
-                "            <uri>http://wso2.org/identity/auth</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>sp-name</attributeId>\n" +
-                "                <attributeId>sp-tenant-domain</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "        <category>\n" +
-                "            <name>User</name>\n" +
-                "            <uri>http://wso2.org/identity/auth</uri>\n" +
-                "            <supportedAttributeIds>\n" +
-                "                <attributeId>username</attributeId>\n" +
-                "                <attributeId>userstore-domain</attributeId>\n" +
-                "                <attributeId>user-tenant-domain</attributeId>\n" +
-                "            </supportedAttributeIds>\n" +
-                "        </category>\n" +
-                "    </categories>\n" +
-                "    <attributeIds>\n" +
-                "        <attributeId>\n" +
-                "            <name>resource-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>action-id</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>UserName</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Role</name>\n" +
-                "            <uri>http://wso2.org/claims/role</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Email</name>\n" +
-                "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Environment</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Domain</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Time</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Date</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>DateTime</name>\n" +
-                "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
-                "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>Age</name>\n" +
-                "            <uri>http://wso2.org/claims/age</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>sp-name</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/sp-name</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>sp-tenant-domain</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/sp-domain</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>username</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/username</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>userstore-domain</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/userstore-domain</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "        <attributeId>\n" +
-                "            <name>user-tenant-domain</name>\n" +
-                "            <uri>http://wso2.org/identity/auth/user-tenant-domain</uri>\n" +
-                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-                "        </attributeId>\n" +
-                "    </attributeIds>\n" +
-                "    <dataTypes>    \n" +
-                "    </dataTypes>\n" +
-                "    <policyCombiningAlgorithm>\n" +
-                "        <display>true</display>\n" +
-                "        <defaultAlgorithm>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides</defaultAlgorithm>\n" +
-                "        <algorithms>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>First Applicable</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:first-applicable</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:permit-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Deny Unless Permit</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Permit Unless Deny</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:permit-unless-deny</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Only One Applicable</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:only-one-applicable</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Ordered Permit Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:ordered-permit-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "            <algorithm>\n" +
-                "                <name>Ordered Deny Overrides</name>\n" +
-                "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:ordered-deny-overrides</uri>\n" +
-                "            </algorithm>\n" +
-                "        </algorithms>\n" +
-                "    </policyCombiningAlgorithm>\n" +
-                "    <dataTypes>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>String</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Boolean</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Integer</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Double</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Date Time</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Day Time Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Year Month Duration</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Any URI</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Hex Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
-                "\t</dataType>\n" +
-                "\t<dataType>\n" +
-                "\t\t<name>Base64 Binary</name>\n" +
-                "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>DNS Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>IP Address</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>RFC822 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
-                "\t</dataType> \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>XPath</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
-                "\t</dataType>    \n" +
-                "\t<dataType>\n" +
-                "\t\t<name>X500 Name</name>\n" +
-                "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
-                "\t</dataType>       \n" +
-                "    </dataTypes>\n" +
-                "    <functions>\n" +
-                "        <function>\n" +
-                "            <name>equal</name>\n" +
-                "            <uri>equal</uri>\n" +
-                "            <targetFunction>true</targetFunction>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>equals-with-regexp-match</name>\n" +
-                "            <uri>regexp-match</uri>\n" +
-                "\t    <targetFunction>true</targetFunction>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>at-least-one-member-of</name>\n" +
-                "            <uri>at-least-one-member-of</uri>\n" +
-                "        </function>\n" +
-                "        <function>\n" +
-                "            <name>set-equals</name>\n" +
-                "            <uri>set-equals</uri>\n" +
-                "        </function>\n" +
-                "    </functions>\n" +
-                "    <preFunctions>\n" +
-                "        <preFunction>\n" +
-                "            <name>is/are</name>\n" +
-                "            <uri>is</uri>\n" +
-                "        </preFunction>\n" +
-                "        <preFunction>\n" +
-                "            <name>is not/are not</name>\n" +
-                "            <uri>not</uri>\n" +
-                "        </preFunction>\n" +
-                "    </preFunctions>\n" +
-                "    <policyDescription>\n" +
-                "        <display>true</display>\n" +
-                "    </policyDescription>\n" +
-                "</policyEditor>\n";
+               "    <categories>\n" +
+               "        <category>\n" +
+               "            <name>Subject</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject-category:access-subject</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>UserName</attributeId>\n" +
+               "                <attributeId>Email</attributeId>\n" +
+               "                <attributeId>Role</attributeId>\n" +
+               "                <attributeId>Age</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Resource</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:resource</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>resource-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Action</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:action</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>action-id</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:environment</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>Domain</attributeId>\n" +
+               "\t\t<attributeId>Date</attributeId>\n" +
+               "\t\t<attributeId>Time</attributeId>\n" +
+               "\t\t<attributeId>DateTime</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>ServiceProvider</name>\n" +
+               "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>sp-name</attributeId>\n" +
+               "                <attributeId>sp-tenant-domain</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>User</name>\n" +
+               "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>username</attributeId>\n" +
+               "                <attributeId>userstore-domain</attributeId>\n" +
+               "                <attributeId>user-tenant-domain</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>UserInfo</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/user</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>username</attributeId>\n" +
+               "                <attributeId>tenant-domain</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>Claims</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/claims</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>emailaddress</attributeId>\n" +
+               "                <attributeId>age</attributeId>\n" +
+               "                <attributeId>lastname</attributeId>\n" +
+               "                <attributeId>givenname</attributeId>\n" +
+               "                <attributeId>organization</attributeId>\n" +
+               "                <attributeId>telephone</attributeId>\n" +
+               "                <attributeId>IM</attributeId>\n" +
+               "                <attributeId>country</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>IdentityProvider</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/idp</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>idp-name</attributeId>\n" +
+               "                <attributeId>connector-type</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>IdentityAction</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/identity-action</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>action-name</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "    </categories>\n" +
+               "    <attributeIds>\n" +
+               "        <attributeId>\n" +
+               "            <name>resource-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:resource:resource-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>action-id</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:action:action-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>UserName</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:subject:subject-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Role</name>\n" +
+               "            <uri>http://wso2.org/claims/role</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Email</name>\n" +
+               "            <uri>http://wso2.org/claims/emailaddress</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Environment</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Domain</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:environment-id</uri>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Time</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-time</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#time</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Date</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-date</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#date</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>DateTime</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:environment:current-dateTime</uri>\n" +
+               "\t    <dataType>http://www.w3.org/2001/XMLSchema#dateTime</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>Age</name>\n" +
+               "            <uri>http://wso2.org/claims/age</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>sp-name</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/sp-name</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>sp-tenant-domain</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/sp-domain</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>username</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/username</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>userstore-domain</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/userstore-domain</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>user-tenant-domain</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/user-tenant-domain</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>username</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:username</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>tenant-domain</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:tenant-domain</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>age</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/age</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>lastname</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/lastname</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>givenname</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/givenname</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>organization</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/organization</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>telephone</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/telephone</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>IM</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/im</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>country</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/country</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>country</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/mobile</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>emailaddress</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/emailaddress</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>idp-name</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:idp-name</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>connector-type</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:connector-type</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>action-name</name>\n" +
+               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/identity-action:action-name</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "    </attributeIds>\n" +
+               "    <dataTypes>    \n" +
+               "    </dataTypes>\n" +
+               "    <policyCombiningAlgorithm>\n" +
+               "        <display>true</display>\n" +
+               "        <defaultAlgorithm>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides</defaultAlgorithm>\n" +
+               "        <algorithms>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>First Applicable</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:first-applicable</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:permit-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Deny Unless Permit</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Permit Unless Deny</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:permit-unless-deny</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Only One Applicable</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:only-one-applicable</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Ordered Permit Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:ordered-permit-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "            <algorithm>\n" +
+               "                <name>Ordered Deny Overrides</name>\n" +
+               "                <uri>urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:ordered-deny-overrides</uri>\n" +
+               "            </algorithm>\n" +
+               "        </algorithms>\n" +
+               "    </policyCombiningAlgorithm>\n" +
+               "    <dataTypes>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>String</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#string</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Boolean</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#boolean</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Integer</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#integer</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Double</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#double</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#time</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#date</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Date Time</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dateTime</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Day Time Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#dayTimeDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Year Month Duration</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#yearMonthDuration</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Any URI</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#anyURI</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Hex Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#hexBinary</uri>\n" +
+               "\t</dataType>\n" +
+               "\t<dataType>\n" +
+               "\t\t<name>Base64 Binary</name>\n" +
+               "\t\t<uri>http://www.w3.org/2001/XMLSchema#base64Binary</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>DNS Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:dnsName</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>IP Address</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:2.0:data-type:ipAddress</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>RFC822 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name</uri>\n" +
+               "\t</dataType> \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>XPath</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression</uri>\n" +
+               "\t</dataType>    \n" +
+               "\t<dataType>\n" +
+               "\t\t<name>X500 Name</name>\n" +
+               "\t\t<uri>urn:oasis:names:tc:xacml:1.0:data-type:x500Name</uri>\n" +
+               "\t</dataType>       \n" +
+               "    </dataTypes>\n" +
+               "    <functions>\n" +
+               "        <function>\n" +
+               "            <name>equal</name>\n" +
+               "            <uri>equal</uri>\n" +
+               "            <targetFunction>true</targetFunction>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>equals-with-regexp-match</name>\n" +
+               "            <uri>regexp-match</uri>\n" +
+               "\t    <targetFunction>true</targetFunction>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>at-least-one-member-of</name>\n" +
+               "            <uri>at-least-one-member-of</uri>\n" +
+               "        </function>\n" +
+               "        <function>\n" +
+               "            <name>set-equals</name>\n" +
+               "            <uri>set-equals</uri>\n" +
+               "        </function>\n" +
+               "    </functions>\n" +
+               "    <preFunctions>\n" +
+               "        <preFunction>\n" +
+               "            <name>is/are</name>\n" +
+               "            <uri>is</uri>\n" +
+               "        </preFunction>\n" +
+               "        <preFunction>\n" +
+               "            <name>is not/are not</name>\n" +
+               "            <uri>not</uri>\n" +
+               "        </preFunction>\n" +
+               "    </preFunctions>\n" +
+               "    <policyDescription>\n" +
+               "        <display>true</display>\n" +
+               "    </policyDescription>\n" +
+               "</policyEditor>\n";
     }
 }

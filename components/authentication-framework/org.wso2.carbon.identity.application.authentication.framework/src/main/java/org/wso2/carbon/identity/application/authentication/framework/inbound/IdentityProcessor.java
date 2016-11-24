@@ -102,7 +102,15 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      *
      * @return Relying party unique ID
      */
+    @Deprecated
     public abstract String getRelyingPartyId();
+
+    /**
+     * Get relying party unique ID
+     *
+     * @return Relying party unique ID
+     */
+    public abstract String getRelyingPartyId(IdentityMessageContext context);
 
     /**
      * Tells if this processor can handle this IdentityRequest
@@ -130,7 +138,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
-        authenticationRequest.setRelyingParty(getRelyingPartyId());
+        authenticationRequest.setRelyingParty(getRelyingPartyId(context));
         authenticationRequest.setType(getName());
         authenticationRequest.setPassiveAuth(Boolean.parseBoolean(
                 String.valueOf(context.getParameter(InboundConstants.PassiveAuth))));
@@ -155,7 +163,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         responseBuilder.setAuthName(getName());
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));
-        responseBuilder.setRelyingParty(getRelyingPartyId());
+        responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getName());
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
@@ -181,7 +189,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
-        authenticationRequest.setRelyingParty(getRelyingPartyId());
+        authenticationRequest.setRelyingParty(getRelyingPartyId(context));
         authenticationRequest.setType(getName());
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
@@ -203,7 +211,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         responseBuilder.setAuthName(getName());
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));
-        responseBuilder.setRelyingParty(getRelyingPartyId());
+        responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getName());
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
