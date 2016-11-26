@@ -286,7 +286,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // Add listener
 
-        this.externalClaimDAO.updateLocalClaim(externalClaim, tenantId);
+        this.externalClaimDAO.updateExternalClaim(externalClaim, tenantId);
 
         // Add listener
     }

@@ -18,12 +18,13 @@ package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCache;
-import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCacheEntry;
+import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimInvalidationCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -35,7 +36,9 @@ public class CacheBackedLocalClaimDAO {
     private static Log log = LogFactory.getLog(CacheBackedLocalClaimDAO.class);
 
     LocalClaimDAO localClaimDAO;
-    LocalClaimCache localClaimCache = LocalClaimCache.getInstance();
+    Map<Integer, List<LocalClaim>> localClaims = new HashMap<>();
+
+    LocalClaimInvalidationCache localClaimInvalidationCache = LocalClaimInvalidationCache.getInstance();
 
     public CacheBackedLocalClaimDAO(LocalClaimDAO localClaimDAO) {
         this.localClaimDAO = localClaimDAO;
@@ -44,53 +47,49 @@ public class CacheBackedLocalClaimDAO {
 
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
-        List<LocalClaim> localClaims;
+        List<LocalClaim> localClaimList = localClaims.get(tenantId);
 
-        LocalClaimCacheEntry localClaimCacheEntry = localClaimCache.getValueFromCache();
-
-        if (localClaimCacheEntry != null) {
-
+        if (localClaimList == null || localClaimInvalidationCache.isInvalid(tenantId)) {
             if (log.isDebugEnabled()) {
-                log.debug("Received local claim list from the cache");
+                log.debug("Cache miss for local claim list for tenant: " + tenantId);
             }
-            localClaims = localClaimCacheEntry.getLocalClaimList();
-
+            localClaimList = localClaimDAO.getLocalClaims(tenantId);
+            localClaims.put(tenantId, localClaimList);
         } else {
-
-            localClaims = localClaimDAO.getLocalClaims(tenantId);
-
             if (log.isDebugEnabled()) {
-                log.debug("Updating local claim list on the cache");
+                log.debug("Cache hit for local claim list for tenant: " + tenantId);
             }
-            localClaimCache.addToCache(new LocalClaimCacheEntry(localClaims));
         }
 
-        return localClaims;
+        return localClaimList;
     }
 
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.addLocalClaim(localClaim, tenantId);
-        clearExternalClaimCache();
+        invalidate(tenantId);
     }
 
     public void updateLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.updateLocalClaim(localClaim, tenantId);
-        clearExternalClaimCache();
+        invalidate(tenantId);
     }
 
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
-        clearExternalClaimCache();
+        invalidate(tenantId);
     }
 
-    private void clearExternalClaimCache() {
+    private void invalidate(int tenantId) throws ClaimMetadataException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Clearing claim list on the cache");
+            log.debug("Updating local claim list for tenant: " + tenantId);
         }
-        localClaimCache.clearCacheEntry();
+
+        List<LocalClaim> localClaimList = localClaimDAO.getLocalClaims(tenantId);
+        localClaims.put(tenantId, localClaimList);
+        localClaimInvalidationCache.invalidate(tenantId);
     }
 }
