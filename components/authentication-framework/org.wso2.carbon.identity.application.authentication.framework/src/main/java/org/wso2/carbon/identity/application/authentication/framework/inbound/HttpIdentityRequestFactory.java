@@ -91,6 +91,11 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
             builder.addHeader(headerName, request.getHeader(headerName));
         }
         builder.setParameters(request.getParameterMap());
+        Enumeration<String> attrNames = request.getAttributeNames();
+        while(attrNames.hasMoreElements()) {
+            String attrName = attrNames.nextElement();
+            builder.addAttribute(attrName, request.getAttribute(attrName));
+        }
         Cookie[] cookies = request.getCookies();
         if(cookies!=null) {
             for (Cookie cookie : cookies) {

@@ -33,9 +33,10 @@ public class IdentityRequest implements Serializable {
 
     private static final long serialVersionUID = 5418537216546873566L;
 
-    protected Map<String, String> headers = new HashMap<>();
-    protected Map<String, Cookie> cookies = new HashMap<>();
-    protected Map<String, String[]> parameters = new HashMap<>();
+    protected Map<String, String> headers = new HashMap();
+    protected Map<String, Cookie> cookies = new HashMap();
+    protected Map<String, String[]> parameters = new HashMap();
+    protected Map<String, Object> attributes = new HashMap();
     protected String tenantDomain;
     protected String contextPath;
     protected String method;
@@ -142,6 +143,7 @@ public class IdentityRequest implements Serializable {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
         this.parameters = builder.parameters;
+        this.attributes = builder.attributes;
         this.tenantDomain = builder.tenantDomain;
         this.contextPath = builder.contextPath;
         this.method = builder.method;
@@ -165,22 +167,22 @@ public class IdentityRequest implements Serializable {
 
     public static class IdentityRequestBuilder {
 
-        private HttpServletRequest request;
-        private HttpServletResponse response;
-        private Map<String, String> headers = new HashMap<>();
-        private Map<String, Cookie> cookies = new HashMap<>();
-        private Map<String, String[]> parameters = new HashMap<>();
-        private String tenantDomain;
-        private String contextPath;
-        private String method;
-        private String pathInfo;
-        private String pathTranslated;
-        private String queryString;
-        private String requestURI;
-        private StringBuffer requestURL;
-        private String servletPath;
-        private String contentType;
-
+        protected HttpServletRequest request;
+        protected HttpServletResponse response;
+        protected Map<String, String> headers = new HashMap();
+        protected Map<String, Cookie> cookies = new HashMap();
+        protected Map<String, String[]> parameters = new HashMap();
+        protected Map<String, Object> attributes = new HashMap();
+        protected String tenantDomain;
+        protected String contextPath;
+        protected String method;
+        protected String pathInfo;
+        protected String pathTranslated;
+        protected String queryString;
+        protected String requestURI;
+        protected StringBuffer requestURL;
+        protected String servletPath;
+        protected String contentType;
 
         public IdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
             this.request = request;
@@ -279,6 +281,31 @@ public class IdentityRequest implements Serializable {
                             parameter.getKey());
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
+            }
+            return this;
+        }
+
+        public IdentityRequestBuilder setAttributes(Map<String, Object> attributes) {
+            this.attributes = new HashMap(attributes);;
+            return this;
+        }
+
+        public IdentityRequestBuilder addAttribute(String name, Object value) {
+            if (this.attributes.containsKey(name)) {
+                throw FrameworkRuntimeException.error("Attributes map trying to override existing " +
+                                                      "key " + name);
+            }
+            this.attributes.put(name, value);
+            return this;
+        }
+
+        public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
+            for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+                if (this.attributes.containsKey(attribute.getKey())) {
+                    throw FrameworkRuntimeException.error("Attributes map trying to override existing key " +
+                                                          attribute.getKey());
+                }
+                this.attributes.put(attribute.getKey(), attribute.getValue());
             }
             return this;
         }

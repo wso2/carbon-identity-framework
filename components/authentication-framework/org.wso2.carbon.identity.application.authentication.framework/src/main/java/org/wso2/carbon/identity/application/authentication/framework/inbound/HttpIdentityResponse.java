@@ -26,13 +26,13 @@ import java.util.Map;
 
 public class HttpIdentityResponse {
 
-    private Map<String, String> headers = new HashMap<String, String>();
-    private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
-    private String contentType;
-    private Map<String, String[]> parameters = new HashMap<>();
-    private String body;
-    private int statusCode;
-    private String redirectURL;
+    protected Map<String, String> headers = new HashMap<String, String>();
+    protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+    protected String contentType;
+    protected Map<String, String[]> parameters = new HashMap<>();
+    protected String body;
+    protected int statusCode;
+    protected String redirectURL;
 
     public Map<String, String> getHeaders() {
         return Collections.unmodifiableMap(headers);
@@ -86,13 +86,13 @@ public class HttpIdentityResponse {
 
     public static class HttpIdentityResponseBuilder {
 
-        private Map<String, String> headers = new HashMap<String, String>();
-        private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
-        private String contentType;
-        private Map<String, String[]> parameters = new HashMap<>();
-        private int statusCode;
-        private String redirectURL;
-        private String body;
+        protected Map<String, String> headers = new HashMap<String, String>();
+        protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+        protected String contentType;
+        protected Map<String, String[]> parameters = new HashMap<>();
+        protected int statusCode;
+        protected String redirectURL;
+        protected String body;
 
         public HttpIdentityResponseBuilder setHeaders(Map<String, String> headers) {
             this.headers = headers;
