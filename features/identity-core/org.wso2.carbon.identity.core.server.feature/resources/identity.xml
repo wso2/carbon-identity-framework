@@ -460,11 +460,18 @@
 
 
     <ResourceAccessControl>
-        <!--Resource context="/api/identity/*" secured="true" http-method="all">
-            <Permissions>/permission/admin/login</Permissions>
-        </Resource-->
+        <Resource context="(.*)/api/identity/user/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all" />
     </ResourceAccessControl>
 
+    <ClientAppAuthentication>
+        <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
+    </ClientAppAuthentication>
+
+    <TenantContextsToRewrite>
+        <context>/api/identity/user/v0.9</context>
+        <context>/api/identity/recovery/v0.9</context>
+    </TenantContextsToRewrite>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>

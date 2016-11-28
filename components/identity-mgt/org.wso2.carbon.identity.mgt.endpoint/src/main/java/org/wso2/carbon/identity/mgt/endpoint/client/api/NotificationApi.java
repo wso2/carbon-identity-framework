@@ -21,6 +21,8 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
@@ -42,6 +44,7 @@ public class NotificationApi {
     String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
             .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
                     "api/identity/recovery/v0.9");
+
     public NotificationApi() {
         this(Configuration.getDefaultApiClient());
     }
@@ -73,6 +76,17 @@ public class NotificationApi {
         // verify the required parameter 'recoveryInitiatingRequest' is set
         if (recoveryInitiatingRequest == null) {
             throw new ApiException(400, "Missing the required parameter 'recoveryInitiatingRequest' when calling recoverPasswordPost");
+        }
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        if (StringUtils.isNotBlank(recoveryInitiatingRequest.getUser().getTenantDomain())) {
+            tenantDomain = recoveryInitiatingRequest.getUser().getTenantDomain();
+        }
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/" + tenantDomain + "/api/identity/recovery/v0.9");
         }
 
         apiClient.setBasePath(basePath);
@@ -120,6 +134,12 @@ public class NotificationApi {
         // verify the required parameter 'claim' is set
         if (claim == null) {
             throw new ApiException(400, "Missing the required parameter 'claim' when calling recoverUsernamePost");
+        }
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/" + tenantDomain + "/api/identity/recovery/v0.9");
         }
 
         apiClient.setBasePath(basePath);
