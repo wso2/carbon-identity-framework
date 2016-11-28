@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.framework.internal;
+package org.wso2.carbon.identity.gateway.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,19 +24,19 @@ import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.framework.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.framework.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.framework.IdentityProcessor;
-import org.wso2.carbon.identity.framework.IdentityServlet;
+import org.wso2.carbon.identity.gateway.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.request.factory.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.response.factory.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.gateway.servlet.IdentityGateway;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import javax.servlet.Servlet;
 import java.util.Collections;
 import java.util.Comparator;
+import javax.servlet.Servlet;
 
 /**
- * @scr.component name="identity.framework.component"
+ * @scr.component name="identity.gateway.component"
  * immediate="true"
  * @scr.reference name="osgi.httpservice"
  * interface="org.osgi.service.http.HttpService"
@@ -51,70 +51,53 @@ import java.util.Comparator;
  * cardinality="1..1" policy="dynamic" bind="setRegistryService"
  * unbind="unSetRegistryService"
  * @scr.reference name="identity.processor"
- * interface="org.wso2.carbon.identity.framework.IdentityProcessor"
+ * interface="org.wso2.carbon.identity.gateway.IdentityProcessor"
  * cardinality="0..n" policy="dynamic" bind="addIdentityProcessor"
  * unbind="unSetIdentityProcessor"
  * @scr.reference name="identity.request.factory"
- * interface="org.wso2.carbon.identity.framework.HttpIdentityRequestFactory"
+ * interface="org.wso2.carbon.identity.gateway.request.factory.HttpIdentityRequestFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityRequestFactory"
  * unbind="unSetHttpIdentityRequestFactory"
  * @scr.reference name="identity.response.factory"
- * interface="org.wso2.carbon.identity.framework.HttpIdentityResponseFactory"
+ * interface="org.wso2.carbon.identity.gateway.response.factory.HttpIdentityResponseFactory"
  * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
  * unbind="unSetHttpIdentityResponseFactory"
  */
-
-
 public class FrameworkServiceComponent {
 
     public static final String COMMON_SERVLET_URL = "/commonauth";
-    private static final String IDENTITY_SERVLET_URL = "/identitynew";
+    private static final String IDENTITY_GATEWAY_URL = "/identity-gateway";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
+    private FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
     private HttpService httpService;
 
-    public static RealmService getRealmService() {
-        return FrameworkServiceDataHolder.getInstance().getRealmService();
-    }
 
     protected void setRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
             log.debug("RealmService is set in the Application Authentication Framework bundle");
         }
-        FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
-    }
-
-    public static RegistryService getRegistryService() {
-        return FrameworkServiceDataHolder.getInstance().getRegistryService();
+        dataHolder.setRealmService(realmService);
     }
 
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.debug("RegistryService is set in the Application Authentication Framework bundle");
         }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
+        dataHolder.setRegistryService(registryService);
     }
 
-    public static BundleContext getBundleContext() {
-        BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
-        if (bundleContext == null) {
-            String msg = "System has not been started properly. Bundle Context is null.";
-            log.error(msg);
-        }
-
-        return bundleContext;
-    }
-
-    @SuppressWarnings("unchecked")
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                                                                IDENTITY_SERVLET_URL);
+        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityGateway(), IDENTITY_GATEWAY_URL);
         try {
-            httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
+            httpService.registerServlet(IDENTITY_GATEWAY_URL, identityServlet, null, null);
+            if (log.isDebugEnabled()) {
+                log.debug("Identity Gateway Servlet registered under : " + IDENTITY_GATEWAY_URL);
+            }
         } catch (Exception e) {
-            String errMsg = "Error when registering servlets via the HttpService.";
+            String errMsg = "Error when registering Identity Gateway Servlet via the HttpService.";
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
@@ -122,9 +105,6 @@ public class FrameworkServiceComponent {
         //Default HttpIdentityRequestFactory is registered.
         HttpIdentityRequestFactory httpIdentityRequestFactory = new HttpIdentityRequestFactory();
         bundleContext.registerService(HttpIdentityRequestFactory.class, httpIdentityRequestFactory, null);
-
-
-        FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
 
         if (log.isDebugEnabled()) {
@@ -136,8 +116,6 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is deactivated");
         }
-
-        FrameworkServiceDataHolder.getInstance().setBundleContext(null);
     }
 
     protected void setHttpService(HttpService httpService) {
@@ -160,24 +138,21 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("RealmService is unSet in the Application Authentication Framework bundle");
         }
-        FrameworkServiceDataHolder.getInstance().setRealmService(null);
+        dataHolder.setRealmService(null);
     }
 
     protected void unSetRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.debug("RegistryService is unSet in the Application Authentication Framework bundle");
         }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(null);
+        dataHolder.setRegistryService(null);
     }
-
 
 
     protected void addIdentityProcessor(IdentityProcessor requestProcessor) {
 
-        FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
-                         identityProcessor);
-
+        dataHolder.getIdentityProcessors().add(requestProcessor);
+        Collections.sort(dataHolder.getIdentityProcessors(), identityProcessorComparator);
         if (log.isDebugEnabled()) {
             log.debug("Added IdentityProcessor : " + requestProcessor.getName());
         }
@@ -185,8 +160,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetIdentityProcessor(IdentityProcessor requestProcessor) {
 
-        FrameworkServiceDataHolder.getInstance().getIdentityProcessors().remove(requestProcessor);
-
+        dataHolder.getIdentityProcessors().remove(requestProcessor);
         if (log.isDebugEnabled()) {
             log.debug("Removed IdentityProcessor : " + requestProcessor.getName());
         }
@@ -194,9 +168,9 @@ public class FrameworkServiceComponent {
 
     protected void addHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         httpIdentityRequestFactory);
+        dataHolder.getHttpIdentityRequestFactories().add(factory);
+        Collections.sort(dataHolder.getHttpIdentityRequestFactories(),
+                httpIdentityRequestFactoryComparator);
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
         }
@@ -204,7 +178,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().remove(factory);
+        dataHolder.getHttpIdentityRequestFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed HttpIdentityRequestFactory : " + factory.getName());
         }
@@ -212,9 +186,9 @@ public class FrameworkServiceComponent {
 
     protected void addHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
 
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         httpIdentityResponseFactory);
+        dataHolder.getHttpIdentityResponseFactories().add(factory);
+        Collections.sort(dataHolder.getHttpIdentityResponseFactories(),
+                httpIdentityResponseFactoryComparator);
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
         }
@@ -222,59 +196,45 @@ public class FrameworkServiceComponent {
 
     protected void unSetHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
 
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
+        dataHolder.getHttpIdentityResponseFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed HttpIdentityResponseFactory : " + factory.getName());
         }
     }
 
+    private static Comparator<IdentityProcessor> identityProcessorComparator = new Comparator<IdentityProcessor>() {
+        @Override
+        public int compare(IdentityProcessor identityProcessor1, IdentityProcessor identityProcessor2) {
+            return comparePriority(identityProcessor1.getPriority(), identityProcessor2.getPriority());
+        }
+    };
 
-    private static Comparator<IdentityProcessor> identityProcessor =
-            new Comparator<IdentityProcessor>() {
-
-                @Override
-                public int compare(IdentityProcessor identityProcessor1,
-                                   IdentityProcessor identityProcessor2) {
-
-                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
-                        return 1;
-                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
+    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactoryComparator =
             new Comparator<HttpIdentityRequestFactory>() {
-
                 @Override
-                public int compare(HttpIdentityRequestFactory factory1,
-                                   HttpIdentityRequestFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
+                public int compare(HttpIdentityRequestFactory factory1, HttpIdentityRequestFactory factory2) {
+                    return comparePriority(factory1.getPriority(), factory2.getPriority());
                 }
             };
-    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
+
+    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactoryComparator =
             new Comparator<HttpIdentityResponseFactory>() {
-
                 @Override
-                public int compare(HttpIdentityResponseFactory factory1,
-                                   HttpIdentityResponseFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
+                public int compare(HttpIdentityResponseFactory factory1, HttpIdentityResponseFactory factory2) {
+                    return comparePriority(factory1.getPriority(), factory2.getPriority());
                 }
             };
+
+    /*
+        Compare true priority values and return the result as an integer.
+     */
+    private static int comparePriority(int priority1, int priority2) {
+        if (priority1 > priority2) {
+            return 1;
+        } else if (priority1 < priority2) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
 }

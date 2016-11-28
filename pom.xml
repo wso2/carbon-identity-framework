@@ -39,7 +39,7 @@
 
     <modules>
         <module>components/framework</module>
-        <module>components/authentication</module>
+        <!--<module>components/authentication</module>-->
         <module>components/gateway</module>
     </modules>
 
@@ -554,7 +554,7 @@
                 <version>${identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.common</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
@@ -1328,7 +1328,7 @@
         <carbon.commons.imp.pkg.version>[4.4.0, 5.0.0)</carbon.commons.imp.pkg.version>
 
         <!--Carbon identity version-->
-        <identity.framework.version>5.5.0-SNAPSHOT</identity.framework.version>
+        <identity.framework.version>5.6.20</identity.framework.version>
         <carbon.identity.package.export.version>${identity.framework.version}</carbon.identity.package.export.version>
         <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
 
