@@ -1,14 +1,10 @@
 package org.wso2.carbon.identity.framework.authentication.processor.request;
 
 
-import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.exception.FrameworkRuntimeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class ClientAuthenticationRequest extends AuthenticationRequest {
 
@@ -18,8 +14,8 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
     protected ClientAuthenticationRequest(
             ClientAuthenticationRequestBuilder builder, String uniqueId, String type) {
         super(builder);
-        this.uniqueId = uniqueId ;
-        this.type = type ;
+        this.uniqueId = uniqueId;
+        this.type = type;
     }
 
     public String getUniqueId() {
@@ -49,10 +45,12 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
             this.uniqueId = uniqueId;
             return this;
         }
+
         public ClientAuthenticationRequestBuilder setType(String type) {
             this.type = type;
             return this;
         }
+
         @Override
         public ClientAuthenticationRequest build() throws FrameworkRuntimeException {
             return new ClientAuthenticationRequest(this, uniqueId, type);

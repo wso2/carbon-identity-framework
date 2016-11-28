@@ -19,15 +19,11 @@
 package org.wso2.carbon.identity.framework.authentication.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.framework.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.framework.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl
-        .AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.ContextInitializer;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.SequenceManager;
@@ -40,6 +36,9 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.exten
 import org.wso2.carbon.identity.framework.authentication.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.request.factory.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.response.factory.HttpIdentityResponseFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -59,8 +58,6 @@ public class FrameworkServiceDataHolder {
     List<SequenceManager> sequenceManagers = new ArrayList<>();
     List<StepHandler> stepHandlers = new ArrayList<>();
     List<RequestPathHandler> requestPathHandlers = new ArrayList<>();
-
-
 
 
     private BundleContext bundleContext = null;

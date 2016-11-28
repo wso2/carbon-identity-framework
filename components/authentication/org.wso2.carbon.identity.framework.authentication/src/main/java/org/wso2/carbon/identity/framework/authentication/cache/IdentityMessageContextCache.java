@@ -22,8 +22,9 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.framework.IdentityMessageContext;
-import org.wso2.carbon.identity.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.gateway.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.store.SessionDataStore;
+
 
 public class IdentityMessageContextCache extends BaseCache<String, IdentityMessageContext> {
 
@@ -66,7 +67,7 @@ public class IdentityMessageContextCache extends BaseCache<String, IdentityMessa
         IdentityMessageContext context = super.getValueFromCache(key);
         if (context == null && enableRequestScopeCache) {
             context = (IdentityMessageContext) SessionDataStore.getInstance().getSessionData(key,
-                                                                                             IDENTITY_MESSAGE_CONTEXT_CACHE);
+                    IDENTITY_MESSAGE_CONTEXT_CACHE);
         }
         return context;
     }

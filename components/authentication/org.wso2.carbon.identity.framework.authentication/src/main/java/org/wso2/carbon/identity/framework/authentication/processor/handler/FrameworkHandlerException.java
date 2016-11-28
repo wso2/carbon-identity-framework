@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.framework.authentication.processor.handler;
 
-import org.wso2.carbon.identity.framework.FrameworkException;
 
+import org.wso2.carbon.identity.gateway.exception.FrameworkException;
 
 public class FrameworkHandlerException extends FrameworkException {
     public FrameworkHandlerException(String message) {

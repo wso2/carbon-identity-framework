@@ -104,8 +104,4 @@
         </plugins>
     </build>
 
-    <properties>
-        <identity.gateway.exp.pkg.version>${project.version}</identity.gateway.exp.pkg.version>
-    </properties>
-
 </project>

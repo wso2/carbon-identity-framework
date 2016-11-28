@@ -3,22 +3,21 @@ package org.wso2.carbon.identity.framework.authentication.context;
 
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.framework.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.authentication.cache.SessionContextCache;
 import org.wso2.carbon.identity.framework.authentication.model.User;
 import org.wso2.carbon.identity.framework.authentication.model.UserClaim;
-import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication
-        .AuthenticationHandlerException;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.framework.authentication.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.framework.authentication.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.context.IdentityMessageContext;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends AuthenticationRequest > extends IdentityMessageContext<T1, T2, T3> {
+public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends AuthenticationRequest> extends IdentityMessageContext<T1, T2, T3> {
 
     private static final long serialVersionUID = 6821167819709907062L;
 

@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.gateway.util;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.IdentityMessageContext;
 
-public class InboundUtil {
+public class IdentityGatewayUtil {
 
     /**
      * Add to IdentityMessageContext
@@ -44,5 +44,18 @@ public class InboundUtil {
 
         IdentityMessageContext context = IdentityMessageContextCache.getInstance().getValueFromCache(key);
         return context;
+    }
+
+    /*
+        Compare true priority values and return the result as an integer.
+    */
+    public static int comparePriority(int priority1, int priority2) {
+        if (priority1 > priority2) {
+            return 1;
+        } else if (priority1 < priority2) {
+            return -1;
+        } else {
+            return 0;
+        }
     }
 }

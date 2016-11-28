@@ -38,8 +38,8 @@
     </scm>
 
     <modules>
-        <module>components/framework</module>
-        <!--<module>components/authentication</module>-->
+        <!--<module>components/framework</module>-->
+        <module>components/authentication</module>
         <module>components/gateway</module>
     </modules>
 
@@ -700,11 +700,6 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
-                <artifactId>org.wso2.carbon.identity.framework</artifactId>
-                <version>${identity.framework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
                 <artifactId>org.wso2.carbon.identity.framework.authentication</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
@@ -896,6 +891,13 @@
                 <artifactId>encoder</artifactId>
                 <version>${encoder.wso2.version}</version>
             </dependency>
+
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+                <version>${identity.gateway.version}</version>
+            </dependency>
             <!--Components Dependencies Ends-->
 
             <!--Composite Feature Dependency-->
@@ -1039,7 +1041,7 @@
             </dependency>
 
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
@@ -1528,6 +1530,9 @@
         <ehcache.version>1.5.0.wso2v3</ehcache.version>
 
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
+
+        <identity.gateway.version>5.5.0-SNAPSHOT</identity.gateway.version>
+        <identity.gateway.exp.pkg.version>${identity.gateway.version}</identity.gateway.exp.pkg.version>
 
         <project.scm.id>my-scm-server</project.scm.id>
     </properties>

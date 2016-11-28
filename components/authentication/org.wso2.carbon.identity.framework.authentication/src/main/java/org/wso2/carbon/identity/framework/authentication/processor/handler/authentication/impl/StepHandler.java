@@ -5,7 +5,6 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
-import org.wso2.carbon.identity.framework.IdentityRequest;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.context.SequenceContext;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.ApplicationAuthenticator;
@@ -16,6 +15,7 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.authe
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.framework.authentication.processor.request.FrameworkLoginRequest;
 import org.wso2.carbon.identity.framework.authentication.processor.request.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.IdentityRequest;
 
 public class StepHandler extends FrameworkHandler {
     @Override

@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.gateway.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.exception.FrameworkException;
 import org.wso2.carbon.identity.gateway.request.IdentityRequest;
 import org.wso2.carbon.identity.gateway.response.IdentityResponse;
-import org.wso2.carbon.identity.gateway.util.InboundUtil;
+import org.wso2.carbon.identity.gateway.util.IdentityGatewayUtil;
 
 import java.util.Properties;
 
@@ -118,7 +118,7 @@ public abstract class IdentityProcessor {
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
-        InboundUtil.addContextToCache(sessionDataKey, context);
+        IdentityGatewayUtil.addContextToCache(sessionDataKey, context);
 
         FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
                 new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
@@ -171,7 +171,7 @@ public abstract class IdentityProcessor {
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
-        InboundUtil.addContextToCache(sessionDataKey, context);
+        IdentityGatewayUtil.addContextToCache(sessionDataKey, context);
 
         FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
                 new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
@@ -194,7 +194,7 @@ public abstract class IdentityProcessor {
     protected boolean isContextAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         if (StringUtils.isNotBlank(sessionDataKey)) {
-            IdentityMessageContext context = InboundUtil.getContextFromCache(sessionDataKey);
+            IdentityMessageContext context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
             if (context != null) {
                 return true;
             }
@@ -213,7 +213,7 @@ public abstract class IdentityProcessor {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         IdentityMessageContext context = null;
         if (StringUtils.isNotBlank(sessionDataKey)) {
-            context = InboundUtil.getContextFromCache(sessionDataKey);
+            context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
         }
         return context;
     }

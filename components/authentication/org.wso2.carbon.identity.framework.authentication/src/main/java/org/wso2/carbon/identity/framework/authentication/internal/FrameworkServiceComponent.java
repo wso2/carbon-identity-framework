@@ -23,10 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.framework.FrameworkLoginResponseFactory;
-import org.wso2.carbon.identity.framework.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.framework.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.authentication.demo.DemoSequenceBuildFactory;
 import org.wso2.carbon.identity.framework.authentication.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.ApplicationAuthenticator;
@@ -34,8 +30,7 @@ import org.wso2.carbon.identity.framework.authentication.processor.authenticator
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl
-        .AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.StepHandler;
@@ -48,6 +43,10 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.jit.J
 import org.wso2.carbon.identity.framework.authentication.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.request.FrameworkLoginRequestFactory;
+import org.wso2.carbon.identity.gateway.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.request.factory.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.response.factory.FrameworkLoginResponseFactory;
+import org.wso2.carbon.identity.gateway.response.factory.HttpIdentityResponseFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -56,6 +55,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.gateway.util.IdentityGatewayUtil.comparePriority;
 
 /**
  * @scr.component name="identity.framework.authentication.component"
@@ -130,7 +131,7 @@ import java.util.Map;
 public class FrameworkServiceComponent {
 
     public static final String COMMON_SERVLET_URL = "/commonauth";
-    private static final String IDENTITY_SERVLET_URL = "/identitynew";
+    private static final String IDENTITY_SERVLET_URL = "/identity-gateway";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
     private static Comparator<IdentityProcessor> identityProcessor =
             new Comparator<IdentityProcessor>() {
@@ -138,14 +139,7 @@ public class FrameworkServiceComponent {
                 @Override
                 public int compare(IdentityProcessor identityProcessor1,
                                    IdentityProcessor identityProcessor2) {
-
-                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
-                        return 1;
-                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
+                    return comparePriority(identityProcessor1.getPriority(), identityProcessor2.getPriority());
                 }
             };
     private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
@@ -154,14 +148,7 @@ public class FrameworkServiceComponent {
                 @Override
                 public int compare(HttpIdentityRequestFactory factory1,
                                    HttpIdentityRequestFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
+                    return comparePriority(factory1.getPriority(), factory2.getPriority());
                 }
             };
     private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
@@ -170,14 +157,7 @@ public class FrameworkServiceComponent {
                 @Override
                 public int compare(HttpIdentityResponseFactory factory1,
                                    HttpIdentityResponseFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
+                    return comparePriority(factory1.getPriority(), factory2.getPriority());
                 }
             };
     private HttpService httpService;
@@ -214,13 +194,13 @@ public class FrameworkServiceComponent {
         return bundleContext;
     }
 
-    @SuppressWarnings("unchecked")
+
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
 
         //Registering processor
         AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
-        bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
+        bundleContext.registerService(IdentityProcessor.class.getName(), authenticationProcessor, null);
 
 
         //Registering this for demo perposes only
@@ -230,7 +210,7 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
         bundleContext.registerService(StepHandler.class, new StepHandler(), null);
 
-        bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
+        bundleContext.registerService(HttpIdentityRequestFactory.class.getName(), new FrameworkLoginRequestFactory(), null);
         bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
 
 
@@ -321,7 +301,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         httpIdentityRequestFactory);
+                httpIdentityRequestFactory);
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
         }
@@ -339,7 +319,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         httpIdentityResponseFactory);
+                httpIdentityResponseFactory);
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
         }
@@ -561,7 +541,6 @@ public class FrameworkServiceComponent {
     }
 
 
-
     protected void addRequestPathHandler(RequestPathHandler requestPathHandler) {
 
         FrameworkServiceDataHolder.getInstance().getRequestPathHandlers().add(requestPathHandler);
@@ -579,7 +558,6 @@ public class FrameworkServiceComponent {
             log.debug("Removed RequestPathHandler : " + requestPathHandler.getName());
         }
     }
-
 
 
     protected void addStepHandler(StepHandler stepHandler) {

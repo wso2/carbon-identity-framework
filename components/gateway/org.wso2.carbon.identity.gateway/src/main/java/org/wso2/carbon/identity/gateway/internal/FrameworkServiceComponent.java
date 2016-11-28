@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import javax.servlet.Servlet;
 
+import static org.wso2.carbon.identity.gateway.util.IdentityGatewayUtil.comparePriority;
+
 /**
  * @scr.component name="identity.gateway.component"
  * immediate="true"
@@ -225,16 +227,5 @@ public class FrameworkServiceComponent {
                 }
             };
 
-    /*
-        Compare true priority values and return the result as an integer.
-     */
-    private static int comparePriority(int priority1, int priority2) {
-        if (priority1 > priority2) {
-            return 1;
-        } else if (priority1 < priority2) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
+
 }

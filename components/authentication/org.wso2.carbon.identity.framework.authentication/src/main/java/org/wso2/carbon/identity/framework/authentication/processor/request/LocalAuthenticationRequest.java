@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.framework.authentication.processor.request;
 
 
-import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.exception.FrameworkRuntimeException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

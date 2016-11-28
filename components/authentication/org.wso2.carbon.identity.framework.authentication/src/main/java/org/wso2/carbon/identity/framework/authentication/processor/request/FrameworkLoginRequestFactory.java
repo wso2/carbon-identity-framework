@@ -1,23 +1,22 @@
 package org.wso2.carbon.identity.framework.authentication.processor.request;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.framework.FrameworkClientException;
-import org.wso2.carbon.identity.framework.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.framework.HttpIdentityResponse;
-import org.wso2.carbon.identity.framework.IdentityRequest;
+import org.wso2.carbon.identity.gateway.exception.FrameworkClientException;
+import org.wso2.carbon.identity.gateway.request.factory.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.response.HttpIdentityResponse;
+
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class FrameworkLoginRequestFactory<T extends  FrameworkLoginRequest.FrameworkLoginBuilder> extends HttpIdentityRequestFactory<T>{
+public class FrameworkLoginRequestFactory<T extends  FrameworkLoginRequest.FrameworkLoginBuilder>
+        extends HttpIdentityRequestFactory<T> {
+
     @Override
     public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {
         String authenticatorName = request.getParameter(FrameworkLoginRequest.FrameworkLoginRequestConstants.AUTHENTICATOR_NAME);
         String idpName = request.getParameter(FrameworkLoginRequest.FrameworkLoginRequestConstants.IDP_NAME);
-        if(StringUtils.isNotBlank(authenticatorName) && StringUtils.isNotBlank(idpName)) {
-            return true;
-        }
-        return false ;
+        return StringUtils.isNotBlank(authenticatorName) && StringUtils.isNotBlank(idpName);
     }
 
     @Override

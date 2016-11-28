@@ -3,16 +3,14 @@ package org.wso2.carbon.identity.framework.authentication.processor.handler.auth
 
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
-import org.wso2.carbon.identity.framework.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandler;
-import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl
-        .AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.AuthenticationResponse;
-import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.ContextInitializer;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.impl.util.HandlerManager;
+import org.wso2.carbon.identity.gateway.response.FrameworkHandlerResponse;
 
 public class AuthenticationHandler extends FrameworkHandler {
     @Override
@@ -20,8 +18,8 @@ public class AuthenticationHandler extends FrameworkHandler {
         return null;
     }
 
-    public FrameworkHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
-                                                                                                AuthenticationHandlerException {
+    public FrameworkHandlerResponse doAuthenticate(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException {
 
 
         FrameworkHandlerResponse frameworkHandlerResponse = null;

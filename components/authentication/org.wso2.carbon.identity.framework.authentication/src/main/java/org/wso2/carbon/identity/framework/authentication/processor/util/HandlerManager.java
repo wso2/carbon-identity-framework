@@ -1,9 +1,6 @@
 package org.wso2.carbon.identity.framework.authentication.processor.util;
 
 
-import org.wso2.carbon.identity.framework.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.authentication.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandler;
@@ -12,6 +9,9 @@ import org.wso2.carbon.identity.framework.authentication.processor.handler.exten
 import org.wso2.carbon.identity.framework.authentication.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.response.FrameworkHandlerResponse;
 
 import java.util.List;
 

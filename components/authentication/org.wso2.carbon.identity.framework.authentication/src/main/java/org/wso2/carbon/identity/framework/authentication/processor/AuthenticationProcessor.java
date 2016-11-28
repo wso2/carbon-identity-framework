@@ -1,19 +1,11 @@
 package org.wso2.carbon.identity.framework.authentication.processor;
 
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.framework.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.IdentityMessageContext;
-import org.wso2.carbon.identity.framework.IdentityProcessor;
-import org.wso2.carbon.identity.framework.IdentityRequest;
-import org.wso2.carbon.identity.framework.IdentityResponse;
 import org.wso2.carbon.identity.framework.authentication.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.framework.authentication.context.AuthenticationContext;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication
-        .AuthenticationHandlerException;
+import org.wso2.carbon.identity.framework.authentication.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.framework.authentication.processor.handler.request.RequestHandlerException;
@@ -23,7 +15,13 @@ import org.wso2.carbon.identity.framework.authentication.processor.request.Authe
 import org.wso2.carbon.identity.framework.authentication.processor.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.framework.authentication.processor.request.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.framework.authentication.processor.util.HandlerManager;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.identity.gateway.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.exception.FrameworkException;
+import org.wso2.carbon.identity.gateway.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.response.IdentityResponse;
 
 public class AuthenticationProcessor extends IdentityProcessor {
 
@@ -164,7 +162,7 @@ public class AuthenticationProcessor extends IdentityProcessor {
             if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
 
                 frameworkHandlerResponse = doPostHandle(ExtensionHandlerPoints
-                                                                .REQUEST_HANDLER, authenticationContext);
+                        .REQUEST_HANDLER, authenticationContext);
 
             }
         }
@@ -185,7 +183,7 @@ public class AuthenticationProcessor extends IdentityProcessor {
             if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
 
                 frameworkHandlerResponse = doPostHandle(ExtensionHandlerPoints
-                                                                .AUTHENTICATION_HANDLER, authenticationContext);
+                        .AUTHENTICATION_HANDLER, authenticationContext);
 
             }
         }

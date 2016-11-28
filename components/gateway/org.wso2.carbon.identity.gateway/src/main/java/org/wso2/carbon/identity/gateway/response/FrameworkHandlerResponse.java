@@ -9,8 +9,7 @@ public enum FrameworkHandlerResponse {
         return identityResponseBuilder;
     }
 
-    public void setIdentityResponseBuilder(
-            IdentityResponse.IdentityResponseBuilder identityResponseBuilder) {
+    public void setIdentityResponseBuilder(IdentityResponse.IdentityResponseBuilder identityResponseBuilder) {
         this.identityResponseBuilder = identityResponseBuilder;
     }
 }
