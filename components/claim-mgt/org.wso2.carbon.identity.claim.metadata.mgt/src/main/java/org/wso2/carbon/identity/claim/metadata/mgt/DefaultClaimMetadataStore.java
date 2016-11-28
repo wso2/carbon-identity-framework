@@ -19,6 +19,8 @@ package org.wso2.carbon.identity.claim.metadata.mgt;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedExternalClaimDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
@@ -52,8 +54,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     private static final Log log = LogFactory.getLog(DefaultClaimMetadataStore.class);
 
     private ClaimDialectDAO claimDialectDAO = new ClaimDialectDAO();
-    private LocalClaimDAO localClaimDAO = new LocalClaimDAO();
-    private ExternalClaimDAO externalClaimDAO = new ExternalClaimDAO();
+    private CacheBackedLocalClaimDAO localClaimDAO = new CacheBackedLocalClaimDAO(new LocalClaimDAO());
+    private CacheBackedExternalClaimDAO externalClaimDAO = new CacheBackedExternalClaimDAO(new ExternalClaimDAO());
 
     ClaimConfig claimConfig;
     int tenantId;
@@ -458,20 +460,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
     @Deprecated
     public ClaimMapping[] getAllClaimMappings() throws UserStoreException {
 
-        try {
-            List<LocalClaim> localClaims = localClaimDAO.getLocalClaims(this.tenantId);
-
-            List<ClaimMapping> claimMappings = new ArrayList<>();
-
-            for (LocalClaim localClaim : localClaims) {
-                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
-                claimMappings.add(claimMapping);
-            }
-
-            return claimMappings.toArray(new ClaimMapping[0]);
-        } catch (ClaimMetadataException e) {
-            throw new UserStoreException(e.getMessage(), e);
-        }
+        return getAllClaimMappings(ClaimConstants.LOCAL_CLAIM_DIALECT_URI);
     }
 
     @Override

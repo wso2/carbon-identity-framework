@@ -117,6 +117,8 @@ public class IdentityMgtConstants {
 
         public static final String USER_INFO_RECOVERY_SAA_SENABLE = "UserInfoRecovery.SaaSEnable";
 
+        public static final String ARTIFACT_DELETE_THREAD_POOL_SIZE = "UserInfoRecovery.Artifact.Delete.ThreadPoolSize";
+
         public static final String NOTIFICATION_SEND_ENABLE = "Notification.Sending.Enable";
 
         public static final String NOTIFICATION_SEND_ACCOUNT_DISABLE = "Notification.Sending.Enable.Account.Disable";

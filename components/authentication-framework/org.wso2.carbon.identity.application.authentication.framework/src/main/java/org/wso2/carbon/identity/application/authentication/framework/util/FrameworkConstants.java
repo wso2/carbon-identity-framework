@@ -34,6 +34,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
+    public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
     public static final String LOCAL_IDP_NAME = "LOCAL";
     public static final String FEDERATED_IDP_NAME = "FEDERATED";
     public static final String REQ_ATTR_HANDLED = "commonAuthHandled";

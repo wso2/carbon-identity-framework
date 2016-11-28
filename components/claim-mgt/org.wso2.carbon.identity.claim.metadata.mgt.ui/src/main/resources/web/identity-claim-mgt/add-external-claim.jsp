@@ -29,6 +29,11 @@
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimDialectDTO" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ExternalClaimDTO" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.user.api.Claim" %>
 
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <jsp:include page="../dialog/display_messages.jsp"/>
@@ -46,15 +51,43 @@
 
     String externalClaimURI = request.getParameter("externalClaimURI");
     String externalClaimDialectURI = request.getParameter("externalClaimDialectURI");
+    String mappedLocalClaimURI = request.getParameter("mappedLocalClaimURI");
 
     ClaimDialectDTO[] claimDialects = null;
+    List<String> availableLocalClaimsURIs = new ArrayList<String>();
+    ExternalClaimDTO[] existingExternalClaims = null;
+
     try {
         ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
         claimDialects = client.getClaimDialects();
+
+        LocalClaimDTO[] availableLocalClaims = client.getLocalClaims();
+        if (availableLocalClaims != null) {
+            for (LocalClaimDTO localClaim : availableLocalClaims) {
+                availableLocalClaimsURIs.add(localClaim.getLocalClaimURI());
+            }
+        }
+
+        if (StringUtils.isBlank(externalClaimDialectURI) && claimDialects != null) {
+            for (ClaimDialectDTO claimDialectDTO : claimDialects) {
+                if (!UserCoreConstants.DEFAULT_CARBON_DIALECT.equalsIgnoreCase(claimDialectDTO.getClaimDialectURI())) {
+                    externalClaimDialectURI = claimDialectDTO.getClaimDialectURI();
+                    break;
+                }
+            }
+        }
+
+        existingExternalClaims = client.getExternalClaims(externalClaimDialectURI);
+        if (existingExternalClaims != null) {
+            for (ExternalClaimDTO externalClaimDTO : existingExternalClaims) {
+                availableLocalClaimsURIs.remove(externalClaimDTO.getMappedLocalClaimURI());
+            }
+        }
+
     } catch (Exception e) {
-        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
+        String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-        String message = resourceBundle.getString("error.while.loading.claim.dialects");
+        String message = resourceBundle.getString("error.while.loading.claim.details");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
         String forwardTo = "../admin/error.jsp";
 %>
@@ -85,32 +118,19 @@
         <div id="workArea">
 
             <script type="text/javascript">
-                String.prototype.format = function (args) {
-                    var str = this;
-                    return str.replace(String.prototype.format.regex, function (item) {
-                        var intVal = parseInt(item.substring(1, item.length - 1));
-                        var replace;
-                        if (intVal >= 0) {
-                            replace = args[intVal];
-                        } else if (intVal === -1) {
-                            replace = "{";
-                        } else if (intVal === -2) {
-                            replace = "}";
-                        } else {
-                            replace = "";
-                        }
-                        return replace;
-                    });
-                };
-                String.prototype.format.regex = new RegExp("{-?[0-9]+}", "g");
-
                 function validate() {
+
+                    var value = document.getElementsByName("externalClaimDialectURI")[0].value;
+                    if (value == '') {
+                        CARBON.showWarningDialog('<fmt:message key="dialect.uri.is.required"/>');
+                        return false;
+                    }
 
                     var value = document.getElementsByName("externalClaimURI")[0].value;
                     if (value == '') {
                         CARBON.showWarningDialog('<fmt:message key="claim.uri.is.required"/>');
                         return false;
-                    } else if (value.length > 100) {
+                    } else if (value.length > 255) {
                         CARBON.showWarningDialog('<fmt:message key="claim.uri.is.too.long"/>');
                         return false;
                     }
@@ -118,9 +138,6 @@
                     var value = document.getElementsByName("mappedLocalClaimURI")[0].value;
                     if (value == '') {
                         CARBON.showWarningDialog('<fmt:message key="mapped.local.claim.uri.is.required"/>');
-                        return false;
-                    } else if (value.length > 100) {
-                        CARBON.showWarningDialog('<fmt:message key="mapped.local.claim.uri.is.too.long"/>');
                         return false;
                     }
 
@@ -134,6 +151,11 @@
                         }
                     }
 
+                    document.addclaim.submit();
+                }
+
+                function getClaimDialect() {
+                    document.addclaim.action = "add-external-claim.jsp";
                     document.addclaim.submit();
                 }
 
@@ -157,15 +179,24 @@
                                     <td class="leftCol-small"><fmt:message key='dialect.uri'/><font
                                             color="red">*</font></td>
                                     <td class="leftCol-big">
-                                        <select id="externalClaimDialectURI" name="externalClaimDialectURI">
+                                        <select id="externalClaimDialectURI" name="externalClaimDialectURI"
+                                                onchange="getClaimDialect();">
                                         <%
                                             if (claimDialects != null && claimDialects.length > 0) {
                                                 for (int i = 0; i < claimDialects.length; i++) {
                                                     String claimDialectURI = claimDialects[i].getClaimDialectURI();
                                                     if (!UserCoreConstants.DEFAULT_CARBON_DIALECT.equalsIgnoreCase(claimDialectURI)) {
+
+                                                        if (StringUtils.isNotBlank(externalClaimDialectURI) &&
+                                                                externalClaimDialectURI.equalsIgnoreCase(claimDialectURI)) {
+                                        %>
+                                        <option value="<%=Encode.forHtmlAttribute(claimDialectURI)%>" selected><%=Encode.forHtmlContent(claimDialectURI)%></option>
+                                        <%
+                                                        } else {
                                         %>
                                         <option value="<%=Encode.forHtmlAttribute(claimDialectURI)%>"><%=Encode.forHtmlContent(claimDialectURI)%></option>
                                         <%
+                                                        }
                                                     }
                                                 }
                                             }
@@ -199,9 +230,24 @@
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='mapped.local.claim'/><font
                                             color="red">*</font></td>
-                                    <td class="leftCol-big"><input type="text" name="mappedLocalClaimURI"
-                                                                   id="mappedLocalClaimURI"
-                                                                   class="text-box-big"/></td>
+                                    <td class="leftCol-big">
+                                        <select id="mappedLocalClaimURI" name="mappedLocalClaimURI">
+                                            <%
+                                                for (String localClaimURI : availableLocalClaimsURIs) {
+                                                    if (StringUtils.isNotBlank(mappedLocalClaimURI) &&
+                                                            mappedLocalClaimURI.equalsIgnoreCase(localClaimURI)) {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(localClaimURI)%>" selected><%=Encode.forHtmlContent(localClaimURI)%></option>
+                                            <%
+                                                    } else {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(localClaimURI)%>"><%=Encode.forHtmlContent(localClaimURI)%></option>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                    </td>
                                 </tr>
                             </table>
                         </td>

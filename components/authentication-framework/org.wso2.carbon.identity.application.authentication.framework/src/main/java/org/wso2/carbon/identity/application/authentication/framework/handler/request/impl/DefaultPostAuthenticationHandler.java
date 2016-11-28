@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -106,8 +107,22 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
         Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
 
         if (userAttributes != null) {
+
+            Map<String, String> spToCarbonClaimMapping = new HashMap<>();
+            Object object = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
+
+            if (object != null && object instanceof Map) {
+                spToCarbonClaimMapping = (Map<String, String>) object;
+            }
+
             for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
                 String localClaimUri = entry.getKey().getLocalClaim().getClaimUri();
+
+                //getting the carbon claim uri mapping for other claim dialects
+                if (MapUtils.isNotEmpty(spToCarbonClaimMapping) &&
+                        spToCarbonClaimMapping.get(localClaimUri) != null) {
+                    localClaimUri = spToCarbonClaimMapping.get(localClaimUri);
+                }
                 mappedAttrs.put(localClaimUri, entry.getValue());
             }
         }
@@ -251,11 +266,11 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
 
     }
 
-    private String getMissingClaims(Map<String,String> mappedAttrs, Map<String,String> requestedClaims) {
+    private String getMissingClaims(Map<String,String> mappedAttrs, Map<String,String> mandatoryClaims) {
 
         StringBuilder missingClaimsString = new StringBuilder();
-        for (Map.Entry<String, String> entry : requestedClaims.entrySet()) {
-            if (mappedAttrs.get(entry.getKey()) == null){
+        for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
+            if (mappedAttrs.get(entry.getValue()) == null) {
                 missingClaimsString.append(entry.getKey());
                 missingClaimsString.append(",");
             }

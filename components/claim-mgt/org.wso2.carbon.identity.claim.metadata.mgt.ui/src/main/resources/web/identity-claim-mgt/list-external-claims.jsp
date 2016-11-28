@@ -44,10 +44,9 @@
             externalClaims = new ExternalClaimDTO[0];
         }
 
-        System.out.println("externalClaims : " + externalClaims);
         session.setAttribute("externalClaims-"+ externalClaimDialectURI, externalClaims);
     } catch (Exception e) {
-        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
+        String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
         String message = resourceBundle.getString("error.while.loading.external.claims");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -93,7 +92,7 @@
             };
             jQuery("a.trigger-title").click(triggerHandler);
         });
-        function removeItem(externalClaimDialectURI, externalClaimURI) {
+        function removeItem(externalClaimDialectURI, externalClaimURI, externalClaimURIForMessage) {
             function doDelete() {
                 $.ajax({
                     type: 'POST',
@@ -113,8 +112,8 @@
                 });
             }
 
-            CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message>' + externalClaimURI +
-                    '<fmt:message key="remove.message2"/>', doDelete, null);
+            CARBON.showConfirmationDialog('<fmt:message key="remove.message1"></fmt:message> ' +
+                    externalClaimURIForMessage + '<fmt:message key="remove.message2"/>', doDelete, null);
         }
     </script>
     <style type="text/css">
@@ -232,7 +231,8 @@
                 <a href="#" class="icon-link deleteLink"
                    style="background-image:url(../identity-claim-mgt/images/delete.gif);"
                    onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimDialectURI))%>',
-                           '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimURI))%>');return
+                           '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimURI))%>',
+                           '<%=Encode.forJavaScriptAttribute(externalClaimURI)%>');return
                            false;"><fmt:message key='delete'/>
                 </a>
 
