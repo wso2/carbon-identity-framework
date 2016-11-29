@@ -460,11 +460,34 @@
 
 
     <ResourceAccessControl>
-        <!--Resource context="/api/identity/*" secured="true" http-method="all">
-            <Permissions>/permission/admin/login</Permissions>
-        </Resource-->
+        <Resource context="(.*)/api/identity/user/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/identity/register/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+        </Resource>
+        <Resource context="(.*)/identity/connect/register/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+        </Resource>
+        <Resource context="(.*)/oauth2/introspect/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+        </Resource>
+        <Resource context="(.*)/entitlement/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/pep</Permissions>
+        </Resource>
     </ResourceAccessControl>
 
+    <ClientAppAuthentication>
+        <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
+    </ClientAppAuthentication>
+
+    <TenantContextsToRewrite>
+        <context>/api/identity/user/v0.9</context>
+        <context>/api/identity/recovery/v0.9</context>
+        <context>/identity/register</context>
+        <context>/identity/connect/register</context>
+        <context>/oauth2/introspect</context>
+        <context>/entitlement</context>
+    </TenantContextsToRewrite>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
     <ClockSkew>300</ClockSkew>

@@ -53,6 +53,8 @@ public class IdentityManagementServiceUtil {
     private String accessUsername;
     private String accessPassword;
     private String serviceContextURL;
+    private String appName;
+    private char[] appPassword;
 
     private static final Log log = LogFactory.getLog(IdentityManagementServiceUtil.class);
 
@@ -112,6 +114,10 @@ public class IdentityManagementServiceUtil {
                                                             .SERVICE_ACCESS_USERNAME);
             accessPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
                                                             .SERVICE_ACCESS_PASSWORD);
+            appName = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                    .APP_NAME);
+            appPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                    .APP_PASSWORD).toCharArray();
             String serviceContextURL = properties
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
             this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? IdentityUtil.getServerURL(
@@ -228,5 +234,13 @@ public class IdentityManagementServiceUtil {
         user.setTenantDomain(tenantDomain);
 
         return user;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public char[] getAppPassword() {
+        return appPassword;
     }
 }
