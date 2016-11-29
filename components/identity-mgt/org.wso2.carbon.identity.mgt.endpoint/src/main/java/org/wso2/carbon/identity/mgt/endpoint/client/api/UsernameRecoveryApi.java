@@ -21,6 +21,7 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
@@ -67,6 +68,12 @@ public class UsernameRecoveryApi {
   public List<Claim> claimsGet(String tenantDomain) throws ApiException {
     Object localVarPostBody = null;
 
+    if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+      basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                      "t/" + tenantDomain + "/api/identity/recovery/v0.9");
+    }
+
     apiClient.setBasePath(basePath);
 
     // create path and map variables
@@ -110,6 +117,12 @@ public class UsernameRecoveryApi {
     // verify the required parameter 'claim' is set
     if (claim == null) {
       throw new ApiException(400, "Missing the required parameter 'claim' when calling recoverUsernamePost");
+    }
+
+    if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+      basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                      "t/" + tenantDomain + "/api/identity/recovery/v0.9");
     }
 
     apiClient.setBasePath(basePath);
