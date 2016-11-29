@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.util.validation;
@@ -26,7 +24,6 @@ import org.wso2.carbon.identity.common.base.Constants;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.internal.config.ConfigParser;
 import org.wso2.carbon.identity.common.internal.validation.ValidationConfig;
-import org.wso2.carbon.identity.common.util.IdentityUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +35,14 @@ import java.util.regex.Pattern;
  */
 public class ValidationUtils {
 
+    public static final String DEFAULT_FILE_NAME_REGEX = "^(?!(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.[^.]*)?$)" +
+            "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
+    public static final ThreadLocal<Map<String, Object>> MAP_THREAD_LOCAL = new ThreadLocal<Map<String, Object>>() {
+        @Override
+        protected Map<String, Object> initialValue() {
+            return new HashMap();
+        }
+    };
     private static final ValidationConfig validatorConfig = new ValidationConfig();
     private static final String msgSection1 = "The provided input ";
     private static final String msgSection2 = "does not match any of the white list patterns [ %s ]";
@@ -45,71 +50,28 @@ public class ValidationUtils {
             "contains illegal characters matching one of the black list patterns [ %s ]";
     private static final String msgSection4 = " or ";
     private static final String PATTERN_NOT_REGISTERED = "No regex pattern registered for the provided key : %s";
-    public static final String DEFAULT_FILE_NAME_REGEX = "^(?!(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.[^.]*)?$)" +
-                                                         "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
-
     private static Logger logger = LoggerFactory.getLogger(ValidationUtils.class);
-
     private static volatile ValidationUtils instance = null;
 
-    public static final ThreadLocal<Map<String, Object>> threadLocals = new ThreadLocal<Map<String, Object>> () {
-
-        @Override
-        protected Map<String, Object> initialValue() {
-            return new HashMap();
+    static {
+        for (ValidatorPattern pattern : ValidatorPattern.values()) {
+            validatorConfig.addPattern(pattern.name(), pattern.getRegex());
         }
-    };
+    }
 
     private ValidationUtils() {
         ConfigParser.getInstance();
     }
 
     public static ValidationUtils getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             synchronized (ValidationUtils.class) {
-                if(instance == null) {
+                if (instance == null) {
                     instance = new ValidationUtils();
                 }
             }
         }
         return instance;
-    }
-
-    /**
-     * Defines a predefined set of pattern list
-     */
-    public static enum ValidatorPattern {
-        DIGITS_ONLY("^[0-9]+$"),
-        ALPHABETIC_ONLY("^[a-zA-Z]+$"),
-        ALPHANUMERICS_ONLY("^[a-zA-Z0-9]+$"),
-        URL("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        EMAIL("^\\s*?(.+)@(.+?)\\s*$"),
-        WHITESPACE_EXISTS(".*\\s+.*"),
-        URI_RESERVED_EXISTS(".*[:/\\?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+.*"),
-        URI_UNSAFE_EXISTS(".*[<>%\\{\\}\\|\\^~\\[\\]`]+.*"),
-        HTML_META_EXISTS(".*[&<>\"'/]+.*"),
-        XML_META_EXISTS(".*[&<>\"']+.*"),
-        REGEX_META_EXISTS(".*[\\\\\\^\\$\\.\\|\\?\\*\\+\\(\\)\\[\\{]+.*"),
-        HTTP_URL("^(http:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        HTTPS_URL("^(https:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        FTP_URL("^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        REGISTRY_INVALID_CHARS_EXISTS("[~!@#;%^*()+={}|<>\\\\\"'/,]+");
-
-        private String regex;
-
-        ValidatorPattern(String regex) {
-            this.regex = regex;
-        }
-
-        public String getRegex() {
-            return regex;
-        }
-    }
-
-    static {
-        for (ValidatorPattern pattern : ValidatorPattern.values()) {
-            validatorConfig.addPattern(pattern.name(), pattern.getRegex());
-        }
     }
 
     /**
@@ -324,16 +286,47 @@ public class ValidationUtils {
         }
     }
 
-    public static boolean isValidFileName(String fileName){
+    public static boolean isValidFileName(String fileName) {
         String fileNameRegEx = null; // read filename regex from identity.yaml
 
-        if(isBlank(fileNameRegEx)){
+        if (isBlank(fileNameRegEx)) {
             fileNameRegEx = DEFAULT_FILE_NAME_REGEX;
         }
 
         Pattern pattern = Pattern.compile(fileNameRegEx, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE |
-                                                         Pattern.COMMENTS);
+                Pattern.COMMENTS);
         Matcher matcher = pattern.matcher(fileName);
         return matcher.matches();
+    }
+
+    /**
+     * Defines a predefined set of pattern list
+     */
+    public static enum ValidatorPattern {
+        DIGITS_ONLY("^[0-9]+$"),
+        ALPHABETIC_ONLY("^[a-zA-Z]+$"),
+        ALPHANUMERICS_ONLY("^[a-zA-Z0-9]+$"),
+        URL("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        EMAIL("^\\s*?(.+)@(.+?)\\s*$"),
+        WHITESPACE_EXISTS(".*\\s+.*"),
+        URI_RESERVED_EXISTS(".*[:/\\?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+.*"),
+        URI_UNSAFE_EXISTS(".*[<>%\\{\\}\\|\\^~\\[\\]`]+.*"),
+        HTML_META_EXISTS(".*[&<>\"'/]+.*"),
+        XML_META_EXISTS(".*[&<>\"']+.*"),
+        REGEX_META_EXISTS(".*[\\\\\\^\\$\\.\\|\\?\\*\\+\\(\\)\\[\\{]+.*"),
+        HTTP_URL("^(http:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        HTTPS_URL("^(https:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        FTP_URL("^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        REGISTRY_INVALID_CHARS_EXISTS("[~!@#;%^*()+={}|<>\\\\\"'/,]+");
+
+        private String regex;
+
+        ValidatorPattern(String regex) {
+            this.regex = regex;
+        }
+
+        public String getRegex() {
+            return regex;
+        }
     }
 }

@@ -1,19 +1,17 @@
 /*
  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.util.keystore;
@@ -31,6 +29,9 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 
+/**
+ * Keystore utils.
+ */
 public class KeyStoreUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(KeyStoreUtils.class);
@@ -42,9 +43,9 @@ public class KeyStoreUtils {
     }
 
     public static KeyStoreUtils getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             synchronized (KeyStoreUtils.class) {
-                if(instance == null) {
+                if (instance == null) {
                     instance = new KeyStoreUtils();
                 }
             }
@@ -138,7 +139,7 @@ public class KeyStoreUtils {
 
         if (bytes != null) {
             char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
-                                'd', 'e', 'f'};
+                    'd', 'e', 'f'};
             StringBuilder buf = new StringBuilder(bytes.length * 2);
             for (int i = 0; i < bytes.length; ++i) {
                 buf.append(hexDigits[(bytes[i] & 0xf0) >> 4]);

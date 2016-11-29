@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.event.internal;
@@ -50,7 +48,7 @@ public class EventUtils {
 
         if (StringUtils.isEmpty(prefix) || properties == null) {
             throw new IllegalArgumentException("Prefix and properties should not be null to extract properties with " +
-                                               "certain prefix");
+                    "certain prefix");
         }
 
         Properties subProperties = new Properties();
@@ -101,7 +99,7 @@ public class EventUtils {
         // Stop proceeding if required arguments are not present
         if (StringUtils.isEmpty(prefix) || propertiesWithFullKeys == null) {
             throw new IllegalArgumentException("Prefix and properties should not be null to get  properties with " +
-                                               "single word keys.");
+                    "single word keys.");
         }
 
         propertiesWithFullKeys = EventUtils.getPropertiesWithPrefix(prefix, propertiesWithFullKeys);
@@ -144,19 +142,19 @@ public class EventUtils {
                     replaceRegexEndsWith);
             logger.debug("Replacing place holders of String " + content);
         }
-            // For each property check whether there is a place holder and replace the place
-            // holders exist.
-            for (String key : properties.stringPropertyNames()) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Replacing place holder with property key :" + key + " from value :" + properties
-                            .getProperty(key));
-                }
-                content = content.replaceAll(replaceRegexStartsWith + key + replaceRegexEndsWith,
-                        properties.getProperty(key));
-            }
+        // For each property check whether there is a place holder and replace the place
+        // holders exist.
+        for (String key : properties.stringPropertyNames()) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Place holders replaced String " + content);
+                logger.debug("Replacing place holder with property key :" + key + " from value :" + properties
+                        .getProperty(key));
             }
+            content = content.replaceAll(replaceRegexStartsWith + key + replaceRegexEndsWith,
+                    properties.getProperty(key));
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Place holders replaced String " + content);
+        }
         return content;
     }
 

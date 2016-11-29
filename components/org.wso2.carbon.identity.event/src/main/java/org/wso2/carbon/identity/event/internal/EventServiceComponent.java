@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.event.internal;
@@ -35,22 +33,20 @@ import java.util.Map;
 
 public class EventServiceComponent {
 
-    private static Logger logger = LoggerFactory.getLogger(EventServiceComponent.class);
-
-    private ServiceRegistration serviceRegistration = null;
-
     // list of all registered event handlers
     public static List<AbstractEventHandler> eventHandlerList = new ArrayList();
+    private static Logger logger = LoggerFactory.getLogger(EventServiceComponent.class);
+    private ServiceRegistration serviceRegistration = null;
 
     protected void activate(ComponentContext componentContext, BundleContext bundleContext, Map<String, ?> properties) {
 
         try {
 
             serviceRegistration = bundleContext.registerService(EventService.class.getName(),
-                                                                new EventServiceImpl(
-                                                                        eventHandlerList, Integer.parseInt
-                                                                        (ConfigParser.getInstance().getThreadPoolSize())),
-                                                                null);
+                    new EventServiceImpl(
+                            eventHandlerList, Integer.parseInt
+                            (ConfigParser.getInstance().getThreadPoolSize())),
+                    null);
 
         } catch (Throwable e) {
             logger.error("Error while initiating IdentityMgtService.", e);

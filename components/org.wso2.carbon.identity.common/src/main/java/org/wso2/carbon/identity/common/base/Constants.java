@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2007 WSO2, Inc. (http://wso2.com)
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package org.wso2.carbon.identity.common.base;
 
+/**
+ * Identity common constants.
+ */
 public class Constants {
-
-    private Constants() {
-    }
 
     public static final String CLOCK_SKEW_DEFAULT = "300";
     public static final String IP_UNKNOWN = "unknown";
     public static final String WSO2CARBON_CLAIM_DIALECT = "http://wso2.org/claims";
-    public final static String CLAIM_TENANT_DOMAIN = "http://wso2.org/claims/tenant";
-    public final static String SELF_SIGNUP_ROLE = "selfsignup";
+    public static final String CLAIM_TENANT_DOMAIN = "http://wso2.org/claims/tenant";
+    public static final String SELF_SIGNUP_ROLE = "selfsignup";
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
     public static final int HTTPS_PORT_DEFAULT = 443;
     public static final String IDENTITY_CONFIG = "identity.xml";
@@ -40,85 +40,6 @@ public class Constants {
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
     public static final String HMAC_SHA1 = "HmacSHA1";
     public static final String NULL = "null";
-
-    public static class ServerConfig {
-
-        // Interceptor Config attributes
-        public static class Interceptor {
-            public final static String ROOT = "Interceptors";
-            public final static String INTERCEPTOR = "Interceptor";
-            public final static String TYPE = "type";
-            public final static String NAME = "name";
-            public final static String ORDER = "order";
-            public final static String ENABLE = "enable";
-            public final static String PROPERTY = "Property";
-            public final static String PROPERTY_NAME = "name";
-        }
-
-        // Cache Config attributes
-        public static class Cache {
-            public final static String ROOT = "CacheConfig";
-            public final static String MANAGER = "CacheManager";
-            public final static String MANAGER_NAME = "name";
-            public final static String CACHE = "Cache";
-            public final static String NAME = "name";
-            public final static String ENABLE = "enable";
-            public final static String TIMEOUT = "timeout";
-            public final static String CAPACITY = "capacity";
-        }
-
-        // Cookie Config attributes
-        public static class Cookie {
-            public final static String ROOT = "Cookies";
-            public final static String COOKIE = "Cookie";
-            public final static String NAME = "name";
-            public final static String DOMAIN = "domain";
-            public final static String COMMENT = "comment";
-            public final static String VERSION = "version";
-            public final static String PATH = "path";
-            public final static String MAX_AGE = "maxAge";
-            public final static String SECURE = "secure";
-            public final static String HTTP_ONLY = "httpOnly";
-        }
-
-        // Server Synchronization Tolerance Config
-        public static final String CLOCK_SKEW = "ClockSkew";
-
-        public static class CarbonPlaceholders {
-
-            public static final String CARBON_HOST = "${carbon.host}";
-            public static final String CARBON_PORT = "${carbon.management.port}";
-            public static final String CARBON_PORT_HTTP = "${mgt.transport.http.port}";
-            public static final String CARBON_PORT_HTTPS = "${mgt.transport.https.port}";
-            public static final String CARBON_PROXY_CONTEXT_PATH = "${carbon.proxycontextpath}";
-            public static final String CARBON_WEB_CONTEXT_ROOT = "${carbon.webcontextroot}";
-            public static final String CARBON_PROTOCOL = "${carbon.protocol}";
-            public static final String CARBON_CONTEXT = "${carbon.context}";
-
-            public static final String CARBON_PORT_HTTP_PROPERTY = "mgt.transport.http.port";
-            public static final String CARBON_PORT_HTTPS_PROPERTY = "mgt.transport.https.port";
-        }
-
-        public static class ConfigElements {
-
-            public static final String PROPERTIES = "Properties";
-            public static final String PROPERTY = "Property";
-            public static final String ATTR_NAME = "name";
-            public static final String ATTR_ENABLED = "enabled";
-            public static final String PROPERTY_TYPE_STRING = "STRING";
-            public static final String PROPERTY_TYPE_BLOB = "BLOB";
-
-            private ConfigElements() {
-
-            }
-
-        }
-
-        public static final String PROXY_CONTEXT_PATH = "ProxyContextPath";
-        public static final String WEB_CONTEXT_ROOT = "WebContextRoot";
-
-    }
-
     // HTTP headers which may contain IP address of the client in the order of priority
     public static final String[] HEADERS_WITH_IP = {
             "X-Forwarded-For",
@@ -134,9 +55,109 @@ public class Constants {
             "REMOTE_ADDR"
     };
 
+    private Constants() {
+    }
 
+    /**
+     * Server configuration.
+     */
+    public static class ServerConfig {
+
+        // Server Synchronization Tolerance Config
+        public static final String CLOCK_SKEW = "ClockSkew";
+        public static final String PROXY_CONTEXT_PATH = "ProxyContextPath";
+        public static final String WEB_CONTEXT_ROOT = "WebContextRoot";
+
+        /**
+         * Interceptor Config attributes
+         */
+        public static class Interceptor {
+            public static final String ROOT = "Interceptors";
+            public static final String INTERCEPTOR = "Interceptor";
+            public static final String TYPE = "type";
+            public static final String NAME = "name";
+            public static final String ORDER = "order";
+            public static final String ENABLE = "enable";
+            public static final String PROPERTY = "Property";
+            public static final String PROPERTY_NAME = "name";
+        }
+
+        /**
+         * Cache Config attributes
+         */
+        public static class Cache {
+            public static final String ROOT = "CacheConfig";
+            public static final String MANAGER = "CacheManager";
+            public static final String MANAGER_NAME = "name";
+            public static final String CACHE = "Cache";
+            public static final String NAME = "name";
+            public static final String ENABLE = "enable";
+            public static final String TIMEOUT = "timeout";
+            public static final String CAPACITY = "capacity";
+        }
+
+        /**
+         * Cookie Config attributes
+         */
+        public static class Cookie {
+            public static final String ROOT = "Cookies";
+            public static final String COOKIE = "Cookie";
+            public static final String NAME = "name";
+            public static final String DOMAIN = "domain";
+            public static final String COMMENT = "comment";
+            public static final String VERSION = "version";
+            public static final String PATH = "path";
+            public static final String MAX_AGE = "maxAge";
+            public static final String SECURE = "secure";
+            public static final String HTTP_ONLY = "httpOnly";
+        }
+
+        /**
+         * Carbon place holders
+         */
+        public static class CarbonPlaceholders {
+
+            public static final String CARBON_HOST = "${carbon.host}";
+            public static final String CARBON_PORT = "${carbon.management.port}";
+            public static final String CARBON_PORT_HTTP = "${mgt.transport.http.port}";
+            public static final String CARBON_PORT_HTTPS = "${mgt.transport.https.port}";
+            public static final String CARBON_PROXY_CONTEXT_PATH = "${carbon.proxycontextpath}";
+            public static final String CARBON_WEB_CONTEXT_ROOT = "${carbon.webcontextroot}";
+            public static final String CARBON_PROTOCOL = "${carbon.protocol}";
+            public static final String CARBON_CONTEXT = "${carbon.context}";
+
+            public static final String CARBON_PORT_HTTP_PROPERTY = "mgt.transport.http.port";
+            public static final String CARBON_PORT_HTTPS_PROPERTY = "mgt.transport.https.port";
+        }
+
+        /**
+         * Config elements.
+         */
+        public static class ConfigElements {
+
+            public static final String PROPERTIES = "Properties";
+            public static final String PROPERTY = "Property";
+            public static final String ATTR_NAME = "name";
+            public static final String ATTR_ENABLED = "enabled";
+            public static final String PROPERTY_TYPE_STRING = "STRING";
+            public static final String PROPERTY_TYPE_BLOB = "BLOB";
+
+            private ConfigElements() {
+
+            }
+
+        }
+
+    }
+
+    /**
+     * XML
+     */
     public static class XML {
 
+        /**
+         * Signature algorithms.
+         */
         public static class SignatureAlgorithm {
             public static final String DSA_SHA1 = "DSA with SHA1";
             public static final String ECDSA_SHA1 = "ECDSA with SHA1";
@@ -151,6 +172,9 @@ public class Constants {
             public static final String RSA_SHA512 = "RSA with SHA512";
         }
 
+        /**
+         * Signature algorithm URIs.
+         */
         public static class SignatureAlgorithmURI {
             public static final String DSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#dsa-sha1";
             public static final String ECDSA_SHA1 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1";
@@ -165,6 +189,9 @@ public class Constants {
             public static final String RSA_SHA512 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512";
         }
 
+        /**
+         * Digest algorithm.
+         */
         public static class DigestAlgorithm {
             public static final String MD5 = "MD5";
             public static final String RIPEMD160 = "RIPEMD160";
@@ -174,6 +201,9 @@ public class Constants {
             public static final String SHA512 = "SHA512";
         }
 
+        /**
+         * Digest algorithm URIs.
+         */
         public static class DigestAlgorithmURI {
             public static final String MD5 = "http://www.w3.org/2001/04/xmldsig-more#md5";
             public static final String RIPEMD160 = "http://www.w3.org/2001/04/xmlenc#ripemd160";

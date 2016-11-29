@@ -1,19 +1,17 @@
 /*
- *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.base.handler;
@@ -36,15 +34,15 @@ public class HandlerManager {
     private static Logger logger = LoggerFactory.getLogger(AbstractMessageHandler.class);
     private static HandlerManager handlerManager = new HandlerManager();
 
-    private HandlerManager(){
+    private HandlerManager() {
 
     }
 
-    public static HandlerManager getInstance(){
-        if(logger.isDebugEnabled()){
+    public static HandlerManager getInstance() {
+        if (logger.isDebugEnabled()) {
             logger.debug("Created singleton instance for " + HandlerManager.class.getName());
         }
-        return HandlerManager.handlerManager ;
+        return HandlerManager.handlerManager;
     }
 
     /**
@@ -56,11 +54,11 @@ public class HandlerManager {
      */
     public <T extends Handler> T getFirstPriorityHandler(List<T> identityHandlers,
                                                          boolean isEnableHandlersOnly) {
-        if(logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Get first priority handler for the given handler list.");
         }
-        if(identityHandlers == null || identityHandlers.isEmpty()){
-            return null ;
+        if (identityHandlers == null || identityHandlers.isEmpty()) {
+            return null;
         }
         T identityHandler = null;
 
@@ -77,9 +75,9 @@ public class HandlerManager {
                 break;
             }
         }
-        if(logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Get first priority handler : " + identityHandler.getName() + "(" +
-                         identityHandler.getClass().getName() + ")");
+                    identityHandler.getClass().getName() + ")");
         }
         return identityHandler;
     }
@@ -93,11 +91,11 @@ public class HandlerManager {
      */
     public <T extends Handler> List<T> sortHandlers(List<T> identityHandlers,
                                                     boolean isEnableHandlersOnly) {
-        if(logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Sort the handler list.");
         }
-        if(identityHandlers == null || identityHandlers.isEmpty()){
-            return new ArrayList<T>()  ;
+        if (identityHandlers == null || identityHandlers.isEmpty()) {
+            return new ArrayList<T>();
         }
         List<T> identityHandlersList = identityHandlers;
         sort(identityHandlersList, new HandlerComparator());
@@ -121,12 +119,12 @@ public class HandlerManager {
      * @return IdentityMessageHandler
      */
     public <T1 extends MessageHandler, T2 extends MessageContext> T1
-            getFirstPriorityHandler(List<T1> identityMessageHandlers, boolean isEnableHandlersOnly, T2 messageContext) {
-        if(logger.isDebugEnabled()){
+    getFirstPriorityHandler(List<T1> identityMessageHandlers, boolean isEnableHandlersOnly, T2 messageContext) {
+        if (logger.isDebugEnabled()) {
             logger.debug("Get first priority handler for the given handler list and the context");
         }
-        if(identityMessageHandlers == null || identityMessageHandlers.isEmpty()){
-            return null ;
+        if (identityMessageHandlers == null || identityMessageHandlers.isEmpty()) {
+            return null;
         }
         T1 identityMessageHandler = null;
 
@@ -147,9 +145,9 @@ public class HandlerManager {
                 }
             }
         }
-        if(logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Get first priority handler : " + identityMessageHandler.getName() + "(" +
-                         identityMessageHandler.getClass().getName() + ")");
+                    identityMessageHandler.getClass().getName() + ")");
         }
         return identityMessageHandler;
     }
@@ -164,13 +162,13 @@ public class HandlerManager {
      * @return List<IdentityMessageHandler>
      */
     public <T1 extends MessageHandler, T2 extends MessageContext> List<T1> sortHandlers
-                        (List<T1> identityMessageHandlers, boolean isEnableHandlersOnly, T2 messageContext) {
+    (List<T1> identityMessageHandlers, boolean isEnableHandlersOnly, T2 messageContext) {
 
-        if(logger.isDebugEnabled()){
+        if (logger.isDebugEnabled()) {
             logger.debug("Sort the handler list with the context.");
         }
-        if(identityMessageHandlers == null || identityMessageHandlers.isEmpty()){
-            return new ArrayList<T1>()  ;
+        if (identityMessageHandlers == null || identityMessageHandlers.isEmpty()) {
+            return new ArrayList<T1>();
         }
         List<T1> identityMessageHandlerList = identityMessageHandlers;
         sort(identityMessageHandlerList, new MessageHandlerComparator(messageContext));
