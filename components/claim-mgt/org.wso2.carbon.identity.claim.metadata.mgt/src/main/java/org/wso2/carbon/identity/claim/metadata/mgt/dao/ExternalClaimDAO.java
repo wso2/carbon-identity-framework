@@ -129,7 +129,7 @@ public class ExternalClaimDAO extends ClaimDAO {
         }
     }
 
-    public void updateLocalClaim(ExternalClaim externalClaim, int tenantId) throws ClaimMetadataException {
+    public void updateExternalClaim(ExternalClaim externalClaim, int tenantId) throws ClaimMetadataException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection();
 
