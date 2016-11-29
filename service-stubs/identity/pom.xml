@@ -47,6 +47,7 @@
         <module>org.wso2.carbon.user.mgt.workflow.stub</module>
         <module>org.wso2.carbon.identity.workflow.mgt.stub</module>
         <module>org.wso2.carbon.identity.user.store.count.stub</module>
+        <module>org.wso2.carbon.identity.governance.stub</module>
     </modules>
 
     <build>
