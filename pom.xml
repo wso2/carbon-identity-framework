@@ -895,7 +895,7 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
-                <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+                <artifactId>org.wso2.carbon.identity.gateway.framework</artifactId>
                 <version>${identity.gateway.version}</version>
             </dependency>
             <!--Components Dependencies Ends-->

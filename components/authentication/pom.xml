@@ -37,7 +37,7 @@
     <url>http://wso2.org</url>
 
     <modules>
-	    <module>org.wso2.carbon.identity.framework.authentication</module>
+	    <module>org.wso2.carbon.identity.gateway.authentication</module>
     </modules>
 
 </project>
