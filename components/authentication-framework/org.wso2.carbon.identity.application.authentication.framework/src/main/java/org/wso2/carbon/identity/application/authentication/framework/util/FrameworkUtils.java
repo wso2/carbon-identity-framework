@@ -667,13 +667,14 @@ public class FrameworkUtils {
     public static SessionContext getSessionContextFromCache(String key) {
 
         SessionContext sessionContext = null;
-        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-        Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
+        if (StringUtils.isNotBlank(key)) {
+            SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+            Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
 
-        if (cacheEntryObj != null) {
-            sessionContext = ((SessionContextCacheEntry) cacheEntryObj).getContext();
+            if (cacheEntryObj != null) {
+                sessionContext = ((SessionContextCacheEntry) cacheEntryObj).getContext();
+            }
         }
-
         return sessionContext;
     }
 
