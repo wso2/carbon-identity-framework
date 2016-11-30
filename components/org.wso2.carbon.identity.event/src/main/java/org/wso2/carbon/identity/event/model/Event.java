@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.event.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents an event.
+ */
 public class Event {
 
     private String eventName;

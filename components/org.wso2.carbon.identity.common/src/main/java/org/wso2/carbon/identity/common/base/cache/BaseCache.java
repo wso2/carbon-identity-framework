@@ -16,20 +16,7 @@
 
 package org.wso2.carbon.identity.common.base.cache;
 
-//import org.wso2.carbon.caching.impl.CacheImpl;
-//import org.wso2.carbon.caching.impl.CachingConstants;
-
-import org.wso2.carbon.identity.common.internal.cache.CacheConfig;
-import org.wso2.carbon.identity.common.internal.cache.CacheConfigKey;
-import org.wso2.carbon.identity.common.util.IdentityUtils;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import javax.cache.Cache;
-
-//import javax.cache.CacheBuilder;
-//import javax.cache.CacheConfiguration;
 
 /**
  * A base class for all cache implementations in Identity Application Management modules.
@@ -38,10 +25,12 @@ import javax.cache.Cache;
  */
 public class BaseCache<K extends Serializable, V extends Serializable> {
 
-    private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
-    //    private CacheBuilder<K, V> cacheBuilder;
-    private String cacheName;
-    private List<AbstractCacheEntryListener> cacheListeners = new ArrayList<AbstractCacheEntryListener>();
+    // TODO: Implement this class using Carbon Cache.
+
+//    private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
+//    private CacheBuilder<K, V> cacheBuilder;
+//    private String cacheName;
+//    private List<AbstractCacheEntryListener> cacheListeners = new ArrayList<AbstractCacheEntryListener>();
 
     public BaseCache(String cacheName) {
 
@@ -53,9 +42,9 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
 //        }
     }
 
-    private Cache<K, V> getBaseCache() {
-
-        Cache<K, V> cache = null;
+//    private Cache<K, V> getBaseCache() {
+//
+//        Cache<K, V> cache = null;
 //
 //        CacheManager cacheManager = Caching.getCacheManagerFactory()
 //                .getCacheManager(CACHE_MANAGER_NAME);
@@ -93,8 +82,8 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
 //
 //        }
 //
-        return cache;
-    }
+//        return null;
+//    }
 
     /**
      * Add a cache entry.
@@ -103,14 +92,14 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
      * @param entry Actual object where cache entry is placed.
      */
     public void put(K key, V entry) {
-        if (!isEnabled()) {
-            return;
-        }
-
-        Cache<K, V> cache = getBaseCache();
-        if (cache != null) {
-            cache.put(key, entry);
-        }
+//        if (!isEnabled()) {
+//            return;
+//        }
+//
+//        Cache<K, V> cache = getBaseCache();
+//        if (cache != null) {
+//            cache.put(key, entry);
+//        }
     }
 
     /**
@@ -120,18 +109,18 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
      * @return Cached entry.
      */
     public V get(K key) {
-        if (!isEnabled()) {
-            return null;
-        }
-
-        if (key == null) {
-            return null;
-        }
-
-        Cache<K, V> cache = getBaseCache();
-        if (cache != null && cache.get(key) != null) {
-            return (V) cache.get(key);
-        }
+//        if (!isEnabled()) {
+//            return null;
+//        }
+//
+//        if (key == null) {
+//            return null;
+//        }
+//
+//        Cache<K, V> cache = getBaseCache();
+//        if (cache != null && cache.get(key) != null) {
+//            return (V) cache.get(key);
+//        }
         return null;
     }
 
@@ -141,58 +130,58 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
      * @param key Key to clear cache.
      */
     public void clear(K key) {
-        if (!isEnabled()) {
-            return;
-        }
-
-        Cache<K, V> cache = getBaseCache();
-        if (cache != null) {
-            cache.remove(key);
-        }
+//        if (!isEnabled()) {
+//            return;
+//        }
+//
+//        Cache<K, V> cache = getBaseCache();
+//        if (cache != null) {
+//            cache.remove(key);
+//        }
     }
 
     /**
      * Remove everything in the cache.
      */
     public void clear() {
-        if (!isEnabled()) {
-            return;
-        }
-
-        Cache<K, V> cache = getBaseCache();
-        if (cache != null) {
-            cache.removeAll();
-        }
+//        if (!isEnabled()) {
+//            return;
+//        }
+//
+//        Cache<K, V> cache = getBaseCache();
+//        if (cache != null) {
+//            cache.removeAll();
+//        }
     }
 
     public void addListener(AbstractCacheEntryListener listener) {
-        cacheListeners.add(listener);
+//        cacheListeners.add(listener);
     }
 
     public boolean isEnabled() {
-        CacheConfig cacheConfig = IdentityUtils.getInstance().getCacheConfig().get(new CacheConfigKey
-                (CACHE_MANAGER_NAME, cacheName));
-        if (cacheConfig != null) {
-            return cacheConfig.isEnabled();
-        }
+//        CacheConfig cacheConfig = IdentityUtils.getInstance().getCacheConfig().get(new CacheConfigKey
+//                (CACHE_MANAGER_NAME, cacheName));
+//        if (cacheConfig != null) {
+//            return cacheConfig.isEnabled();
+//        }
         return true;
     }
 
     public int getCacheTimeout() {
-        CacheConfig cacheConfig = IdentityUtils.getInstance().getCacheConfig().get(new CacheConfigKey
-                (CACHE_MANAGER_NAME, cacheName));
-        if (cacheConfig != null && cacheConfig.getTimeout() > 0) {
-            return cacheConfig.getTimeout();
-        }
+//        CacheConfig cacheConfig = IdentityUtils.getInstance().getCacheConfig().get(new CacheConfigKey
+//                (CACHE_MANAGER_NAME, cacheName));
+//        if (cacheConfig != null && cacheConfig.getTimeout() > 0) {
+//            return cacheConfig.getTimeout();
+//        }
         return -1;
     }
 
     public int getCapacity() {
-        CacheConfig cacheConfig = IdentityUtils.getInstance().getCacheConfig().get(new CacheConfigKey
-                (CACHE_MANAGER_NAME, cacheName));
-        if (cacheConfig != null && cacheConfig.getCapacity() > 0) {
-            return cacheConfig.getCapacity();
-        }
+//        CacheConfig cacheConfig = IdentityUtils.getInstance().getCacheConfig().get(new CacheConfigKey
+//                (CACHE_MANAGER_NAME, cacheName));
+//        if (cacheConfig != null && cacheConfig.getCapacity() > 0) {
+//            return cacheConfig.getCapacity();
+//        }
         return -1;
     }
 

@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.common.util.IdentityUtilService;
 
 
 /**
- * Identity provider service component
+ * Identity provider service component.
  */
 
 @Component(

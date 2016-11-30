@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
 public abstract class ExtensionHandler extends AbstractHandler {
 
     /**
-     * Handles the request
+     * Handles the request.
      *
      * @return {@code HandlerReturnStatus}
      * @throws IdentityException

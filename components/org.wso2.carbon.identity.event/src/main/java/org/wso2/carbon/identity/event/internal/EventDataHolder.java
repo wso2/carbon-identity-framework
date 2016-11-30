@@ -22,10 +22,13 @@ import org.wso2.carbon.identity.event.EventService;
 
 import java.util.concurrent.ExecutorService;
 
+/**
+ * Event data holder.
+ */
 public class EventDataHolder {
 
     private static Logger logger = LoggerFactory.getLogger(EventDataHolder.class);
-    private static EventDataHolder instance;
+    private static volatile EventDataHolder instance;
     private EventService eventService;
     private ExecutorService threadPool;
 

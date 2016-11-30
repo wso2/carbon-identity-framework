@@ -16,12 +16,15 @@
 
 package org.wso2.carbon.identity.common.base.handler;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
- * Comparator for sorting handler collection
+ * Comparator for sorting handler collection.
  */
-public class HandlerComparator implements Comparator<Handler> {
+public class HandlerComparator implements Comparator<Handler>, Serializable {
+
+    private static final long serialVersionUID = 5763890010377902676L;
 
     public HandlerComparator() {
     }

@@ -22,7 +22,7 @@ package org.wso2.carbon.identity.common.base.handler;
 public interface Handler {
 
     /**
-     * Initializes the handler
+     * Initializes the handler.
      */
     public void init(InitConfig initConfig);
 
@@ -40,7 +40,7 @@ public interface Handler {
     public boolean isEnabled();
 
     /**
-     * Used to sort the set of handlers
+     * Used to sort the set of handlers.
      *
      * @return The priority value of the handler
      */

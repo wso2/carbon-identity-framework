@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.event;
 
 import org.wso2.carbon.identity.event.model.Event;
 
+/**
+ * Represents an event service.
+ */
 public interface EventService {
 
     void handleEvent(Event event) throws EventException;

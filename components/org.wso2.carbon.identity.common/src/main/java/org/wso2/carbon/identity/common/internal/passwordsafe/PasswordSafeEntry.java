@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.common.util.passwordsafe.SafePasswordContainer;
  */
 public class PasswordSafeEntry extends CacheEntry {
 
+    private static final long serialVersionUID = 7982681994670418183L;
     private SafePasswordContainer safePasswordContainer = null;
 
     public PasswordSafeEntry(

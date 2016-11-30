@@ -16,22 +16,12 @@
 
 package org.wso2.carbon.identity.common.util.xml;
 
-import com.sun.org.apache.xerces.internal.impl.Constants;
-import org.apache.xerces.util.SecurityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.xml.sax.SAXException;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * XML Utils.
@@ -52,18 +42,20 @@ public class XMLUtils {
     }
 
     public static Element getDocumentElement(String xmlString) throws IdentityException {
+//
+//        try {
+//            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilderFactory();
+//            DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+//            Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes(StandardCharsets
+//                    .UTF_8)));
+//            Element element = document.getDocumentElement();
+//            return element;
+//        } catch (ParserConfigurationException | SAXException | IOException e) {
+//            String message = "Error in constructing element from the encoded XML string.";
+//            throw IdentityException.error(message, e);
+//        }
 
-        try {
-            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilderFactory();
-            DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-            Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes(StandardCharsets
-                    .UTF_8)));
-            Element element = document.getDocumentElement();
-            return element;
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            String message = "Error in constructing element from the encoded XML string.";
-            throw IdentityException.error(message, e);
-        }
+        return null;
     }
 
     /**
@@ -73,28 +65,28 @@ public class XMLUtils {
      */
     public static DocumentBuilderFactory getSecuredDocumentBuilderFactory() {
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        dbf.setXIncludeAware(false);
-        dbf.setExpandEntityReferences(false);
-        try {
-            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-            dbf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
-            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+//        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+//        dbf.setNamespaceAware(true);
+//        dbf.setXIncludeAware(false);
+//        dbf.setExpandEntityReferences(false);
+//        try {
+//            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+//            dbf.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+//            dbf.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE, false);
+//            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+//
+//        } catch (ParserConfigurationException e) {
+//            logger.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE+" or" +
+//                    " " +
+//                    Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE +
+//                    " or secure-processing.");
+//        }
+//
+//        SecurityManager securityManager = new SecurityManager();
+//        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
+//        dbf.setAttribute(Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY, securityManager);
 
-        } catch (ParserConfigurationException e) {
-            logger.error("Failed to load XML Processor Feature " + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE + " or" +
-                    " " +
-                    Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE + " or " + Constants.LOAD_EXTERNAL_DTD_FEATURE +
-                    " or secure-processing.");
-        }
-
-        SecurityManager securityManager = new SecurityManager();
-        securityManager.setEntityExpansionLimit(ENTITY_EXPANSION_LIMIT);
-        dbf.setAttribute(Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY, securityManager);
-
-        return dbf;
+        return null;
 
     }
 }

@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 public abstract class ExtensionMessageHandler extends AbstractMessageHandler {
 
     /**
-     * Handles the message
+     * Handles the message.
      *
      * @param messageContext The runtime message context
      * @return {@code HandlerReturnStatus}

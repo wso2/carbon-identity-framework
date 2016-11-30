@@ -38,12 +38,15 @@ public class SafePasswordContainer implements Serializable {
     }
 
     public SafePassword[] getSafePasswords() {
-        return safePasswords;
+
+        if (safePasswords != null) {
+            return safePasswords.clone();
+        }
+
+        return new SafePassword[0];
     }
 
     public void setSafePasswords(SafePassword[] safePasswords) {
-        this.safePasswords = safePasswords;
+        this.safePasswords = safePasswords.clone();
     }
-
-
 }

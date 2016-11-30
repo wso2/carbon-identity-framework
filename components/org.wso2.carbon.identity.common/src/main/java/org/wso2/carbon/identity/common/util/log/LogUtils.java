@@ -28,12 +28,12 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Parser to parse the identity_log_tokens.properties
+ * Parser to parse the identity_log_tokens.properties.
  */
 public class LogUtils {
 
     private static final Object lock = new Object();
-    private static LogUtils logUtils;
+    private static volatile LogUtils logUtils;
     private static Map<String, String> logTokenMap = new HashMap();
     private static String filePath;
     private static Logger logger = LoggerFactory.getLogger(LogUtils.class);

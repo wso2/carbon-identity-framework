@@ -18,6 +18,9 @@ package org.wso2.carbon.identity.event;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 
+/**
+ * Represents a event exception.
+ */
 public class EventException extends IdentityException {
 
     private static final long serialVersionUID = 5488593245689924485L;

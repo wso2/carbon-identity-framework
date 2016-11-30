@@ -30,10 +30,12 @@ import org.wso2.carbon.identity.common.internal.handler.HandlerConfigKey;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -84,7 +86,7 @@ public class IdentityUtils {
     }
 
     /**
-     * Generates a secure random hexadecimal string using SHA1 PRNG and digest
+     * Generates a secure random hexadecimal string using SHA1 PRNG and digest.
      *
      * @return Random hexadecimal encoded String
      */
@@ -110,19 +112,19 @@ public class IdentityUtils {
     }
 
     /**
-     * Generates a random number using two UUIDs and HMAC-SHA1
+     * Generates a random number using two UUIDs and HMAC-SHA1.
      */
     public static String generateRandomNumber() throws IdentityRuntimeException {
         try {
             String secretKey = UUID.randomUUID().toString();
             String baseString = UUID.randomUUID().toString();
 
-            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), "HmacSHA1");
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(key);
-            byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            String random = null;
-//            random = new String(Base64.getEncoder().encode(rawHmac));
+            byte[] rawHmac = mac.doFinal(baseString.getBytes(StandardCharsets.UTF_8));
+            String random;
+            random = new String(Base64.getEncoder().encode(rawHmac), StandardCharsets.UTF_8);
             return random;
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw IdentityRuntimeException.error("Error occurred while generating random number.", e);
@@ -154,7 +156,7 @@ public class IdentityUtils {
     }
 
     /**
-     * Get the server synchronization tolerance value in seconds
+     * Get the server synchronization tolerance value in seconds.
      *
      * @return clock skew in seconds
      */
@@ -207,17 +209,18 @@ public class IdentityUtils {
     public static String calculateHmacSha1(String key, String value) throws SignatureException {
         String result = null;
         try {
-            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "HmacSHA1");
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(signingKey);
-            byte[] rawHmac = mac.doFinal(value.getBytes());
-//            result = Base64.getEncoder().encode(rawHmac);
-        } catch (Exception e) {
+            byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
+            result = new String(Base64.getEncoder().encode(rawHmac), StandardCharsets.UTF_8);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to create the HMAC Signature", e);
             }
             throw new SignatureException("Failed to calculate HMAC : " + e.getMessage());
         }
+
         return result;
     }
 

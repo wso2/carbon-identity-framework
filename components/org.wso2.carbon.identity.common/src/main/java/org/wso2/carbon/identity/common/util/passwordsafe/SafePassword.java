@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.common.util.passwordsafe;
 import java.io.Serializable;
 
 /**
- * Class holds the information related to RandomPassword
+ * Class holds the information related to RandomPassword.
  */
 public class SafePassword implements Serializable {
 

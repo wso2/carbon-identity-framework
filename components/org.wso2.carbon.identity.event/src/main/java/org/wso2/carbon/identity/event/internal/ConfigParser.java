@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.event.internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.util.IdentityUtils;
+import org.wso2.carbon.identity.event.EventConstants;
 import org.wso2.carbon.identity.event.EventException;
 import org.wso2.carbon.identity.event.model.ModuleConfig;
 import org.wso2.carbon.identity.event.model.Subscription;
@@ -47,20 +48,20 @@ public class ConfigParser {
     private static final Logger logger = LoggerFactory.getLogger(ConfigParser.class);
     private static ConfigParser notificationMgtConfigBuilder;
     /**
-     * All properties configured in msg-mgt.properties file
+     * All properties configured in msg-mgt.properties file.
      */
     private Properties notificationMgtConfigProperties;
     /**
-     * Map of configurations which are specific to notification sending modules
+     * Map of configurations which are specific to notification sending modules.
      */
     private Map<String, ModuleConfig> moduleConfiguration;
     /**
-     * Thread pool size for message sending task
+     * Thread pool size for message sending task.
      */
     private String threadPoolSize;
 
     /**
-     * Load properties file and set Module properties
+     * Load properties file and set Module properties.
      *
      * @throws EventException
      */
@@ -80,16 +81,16 @@ public class ConfigParser {
     }
 
     /**
-     * Sets the thread pool size read from configurations
+     * Sets the thread pool size read from configurations.
      */
     private void setThreadPoolSize() {
         threadPoolSize = (String) notificationMgtConfigProperties.remove("threadPool.size");
     }
 
     /**
-     * Load properties which are defined in msg-mgt.properties file
+     * Load properties which are defined in msg-mgt.properties file.
      *
-     * @return Set of properties which are defined in msg-mgt.properties file
+     * @return Set of properties which are defined in msg-mgt.properties file.
      * @throws EventException
      */
     private Properties loadProperties() throws EventException {
@@ -97,22 +98,22 @@ public class ConfigParser {
         InputStream inStream = null;
 
         // Open the default configuration file in carbon conf directory path .
-        File MessageMgtPropertyFile = new File(IdentityUtils.getIdentityConfigDirPath(), Constants
+        File messageMgtPropertyFile = new File(IdentityUtils.getIdentityConfigDirPath(), EventConstants
                 .PropertyConfig.CONFIG_FILE_NAME);
 
         try {
             // If the configuration exists in the carbon conf directory, read properties from there
-            if (MessageMgtPropertyFile.exists()) {
-                inStream = new FileInputStream(MessageMgtPropertyFile);
+            if (messageMgtPropertyFile.exists()) {
+                inStream = new FileInputStream(messageMgtPropertyFile);
             }
             if (inStream != null) {
                 properties.load(inStream);
             }
             //Even if the configurations are not found, individual modules can behave themselves without configuration
         } catch (FileNotFoundException e) {
-            logger.warn("Could not find configuration file for Message Sending module", e);
+            logger.warn("Could not find configuration file for Message Sending module.", e);
         } catch (IOException e) {
-            logger.warn("Error while opening input stream for property file", e);
+            logger.warn("Error while opening input stream for property file.", e);
             // Finally close input stream
         } finally {
             try {
@@ -128,7 +129,7 @@ public class ConfigParser {
     }
 
     /**
-     * Build and store per module configuration objects
+     * Build and store per module configuration objects.
      */
     private void build() {
         Properties moduleNames = EventUtils.getSubProperties("module.name", notificationMgtConfigProperties);
@@ -142,10 +143,10 @@ public class ConfigParser {
     }
 
     /**
-     * Building per module configuration objects
+     * Building per module configuration objects.
      *
-     * @param moduleName Name of the module
-     * @return ModuleConfiguration object which has configurations for the given module name
+     * @param moduleName Name of the module.
+     * @return ModuleConfiguration object which has configurations for the given module name.
      */
     private ModuleConfig buildModuleConfigurations(String moduleName) {
         Properties moduleProperties = getModuleProperties(moduleName);
@@ -155,11 +156,11 @@ public class ConfigParser {
     }
 
     /**
-     * Build a list of subscription by a particular module
+     * Build a list of subscription by a particular module.
      *
-     * @param moduleName       Name of the module
-     * @param moduleProperties Set of properties which
-     * @return A list of subscriptions by the module
+     * @param moduleName       Name of the module.
+     * @param moduleProperties Set of properties which.
+     * @return A list of subscriptions by the module.
      */
     private List<Subscription> buildSubscriptionList(String moduleName, Properties moduleProperties) {
         // Get subscribed events
@@ -183,19 +184,19 @@ public class ConfigParser {
     }
 
     /**
-     * Retrieve all properties defined for a particular module
+     * Retrieve all properties defined for a particular module.
      *
-     * @param moduleName Name of the module
-     * @return A set of properties which are defined for a particular module
+     * @param moduleName Name of the module.
+     * @return A set of properties which are defined for a particular module.
      */
     private Properties getModuleProperties(String moduleName) {
         return EventUtils.getPropertiesWithPrefix(moduleName, notificationMgtConfigProperties);
     }
 
     /**
-     * Returns a module configuration object for the passed mdoule name
+     * Returns a module configuration object for the passed module name.
      *
-     * @param moduleName Name of the module
+     * @param moduleName Name of the module.
      * @return Module configuration object which is relevant to the given name.
      */
     public ModuleConfig getModuleConfigurations(String moduleName) {
@@ -211,7 +212,7 @@ public class ConfigParser {
     }
 
     /**
-     * There can be sensitive information like passwords in configuration file. If they are encrypted using secure
+     * There can be sensitive information like passwords in configuration file. If they are encrypted using secure.
      * vault, this method will resolve them and replace with original values.
      */
     private void resolveSecrets() {

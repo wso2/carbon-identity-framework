@@ -50,7 +50,7 @@ public class URLUtils {
         return instance;
     }
 
-    public static String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
+    public String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
 
         // check implementation in C4
@@ -76,11 +76,11 @@ public class URLUtils {
      *
      * @return Hostname
      */
-    public static String getHostName() {
+    public String getHostName() {
         return null;
     }
 
-    public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
+    public String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
 
         StringBuilder queryString = new StringBuilder("?");
         boolean isFirst = true;
@@ -117,12 +117,12 @@ public class URLUtils {
 //    }
 
     /**
-     * Get the first IP from a comma separated list of IPs
+     * Get the first IP from a comma separated list of IPs.
      *
      * @param commaSeparatedIPs String which contains comma+space separated IPs
      * @return First IP
      */
-    public static String getFirstIP(String commaSeparatedIPs) {
+    public String getFirstIP(String commaSeparatedIPs) {
         if (StringUtils.isNotEmpty(commaSeparatedIPs) && commaSeparatedIPs.contains(",")) {
             return commaSeparatedIPs.split(",")[0];
         }

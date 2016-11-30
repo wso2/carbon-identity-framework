@@ -31,7 +31,7 @@ import javax.cache.event.CacheEntryListener;
 public abstract class AbstractCacheEntryListener<K, V> implements CacheEntryListener<K, V> {
 
     /**
-     * Return is listener enable
+     * Return is listener enable.
      *
      * @return enable/disable
      */

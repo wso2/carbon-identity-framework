@@ -71,6 +71,42 @@ public class CookieBuilder {
         return this;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public int getMaxAge() {
+        return maxAge;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public boolean isSecure() {
+        return secure;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public boolean isHttpOnly() {
+        return isHttpOnly;
+    }
+
     /**
      * Need to replace with C5 cookies
      */

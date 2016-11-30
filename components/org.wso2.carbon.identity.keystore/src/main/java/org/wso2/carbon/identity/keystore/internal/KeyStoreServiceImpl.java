@@ -24,6 +24,9 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.Collection;
 
+/**
+ * Key store service implementation.
+ */
 public class KeyStoreServiceImpl implements KeyStoreService {
 
     public Collection<String> listKeyStores() throws KeyStoreException {

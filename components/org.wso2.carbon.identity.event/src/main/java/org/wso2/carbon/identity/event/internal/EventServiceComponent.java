@@ -31,10 +31,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Event service component.
+ */
 public class EventServiceComponent {
 
     // list of all registered event handlers
-    public static List<AbstractEventHandler> eventHandlerList = new ArrayList();
+    static final List<AbstractEventHandler> EVENT_HANDLER_LIST = new ArrayList();
     private static Logger logger = LoggerFactory.getLogger(EventServiceComponent.class);
     private ServiceRegistration serviceRegistration = null;
 
@@ -44,7 +47,7 @@ public class EventServiceComponent {
 
             serviceRegistration = bundleContext.registerService(EventService.class.getName(),
                     new EventServiceImpl(
-                            eventHandlerList, Integer.parseInt
+                            EVENT_HANDLER_LIST, Integer.parseInt
                             (ConfigParser.getInstance().getThreadPoolSize())),
                     null);
 
@@ -69,10 +72,10 @@ public class EventServiceComponent {
     protected void registerEventHandler(AbstractEventHandler eventHandler) throws EventException {
         String handlerName = eventHandler.getName();
         eventHandler.init(ConfigParser.getInstance().getModuleConfigurations(handlerName));
-        eventHandlerList.add(eventHandler);
+        EVENT_HANDLER_LIST.add(eventHandler);
 
         MessageHandlerComparator messageHandlerComparator = new MessageHandlerComparator(null);
-        Collections.sort(eventHandlerList, messageHandlerComparator);
+        Collections.sort(EVENT_HANDLER_LIST, messageHandlerComparator);
     }
 
     protected void unRegisterEventHandler(AbstractEventHandler eventHandler) {

@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * This class manages validation patterns
+ * This class manages validation patterns.
  */
 public class ValidationConfig {
 
@@ -36,7 +36,7 @@ public class ValidationConfig {
 
     /**
      * Adds a validation pattern and stores it against the provided key.
-     * Throws an IllegalArgumentException if pattern key or pattern is empty, or if a pattern exists for the given key
+     * Throws an IllegalArgumentException if pattern key or pattern is empty, or if a pattern exists for the given key.
      *
      * @param key   pattern key
      * @param regex pattern regex
@@ -62,7 +62,7 @@ public class ValidationConfig {
     }
 
     /**
-     * Returns a Pattern instance for the given key
+     * Returns a Pattern instance for the given key.
      *
      * @param key pattern key
      * @return Pattern instance stored against the key
@@ -72,7 +72,7 @@ public class ValidationConfig {
     }
 
     /**
-     * Removes pattern from the memory
+     * Removes pattern from the memory.
      *
      * @param key pattern key
      */
@@ -81,7 +81,7 @@ public class ValidationConfig {
     }
 
     /**
-     * Checks if a pattern exists for the provided key
+     * Checks if a pattern exists for the provided key.
      *
      * @param key pattern key
      * @return true if pattern exists or false if pattern does not exist

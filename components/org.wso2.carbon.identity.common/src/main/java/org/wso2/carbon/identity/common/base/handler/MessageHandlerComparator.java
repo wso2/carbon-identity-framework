@@ -18,12 +18,15 @@ package org.wso2.carbon.identity.common.base.handler;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
- * Comparator for sorting message handler collection
+ * Comparator for sorting message handler collection.
  */
-public class MessageHandlerComparator implements Comparator<MessageHandler> {
+public class MessageHandlerComparator implements Comparator<MessageHandler>, Serializable {
+
+    private static final long serialVersionUID = -4006101351105308862L;
 
     private MessageContext messageContext = null;
 
@@ -32,7 +35,6 @@ public class MessageHandlerComparator implements Comparator<MessageHandler> {
     }
 
     public MessageHandlerComparator() {
-
     }
 
     @Override
@@ -45,5 +47,18 @@ public class MessageHandlerComparator implements Comparator<MessageHandler> {
         } else {
             return -1;
         }
+    }
+
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws java.io.IOException {
+
+        // TODO: Remove this if this class should be really serializable.
+        throw new java.io.NotSerializableException(getClass().getName());
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws java.io.IOException, ClassNotFoundException {
+
+        // TODO: Remove this if this class should be really serializable.
+        throw new java.io.NotSerializableException(getClass().getName());
     }
 }

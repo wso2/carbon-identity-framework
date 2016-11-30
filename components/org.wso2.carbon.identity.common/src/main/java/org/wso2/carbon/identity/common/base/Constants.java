@@ -41,7 +41,7 @@ public class Constants {
     public static final String HMAC_SHA1 = "HmacSHA1";
     public static final String NULL = "null";
     // HTTP headers which may contain IP address of the client in the order of priority
-    public static final String[] HEADERS_WITH_IP = {
+    static final String[] HEADERS_WITH_IP = {
             "X-Forwarded-For",
             "Proxy-Client-IP",
             "WL-Proxy-Client-IP",
@@ -69,7 +69,7 @@ public class Constants {
         public static final String WEB_CONTEXT_ROOT = "WebContextRoot";
 
         /**
-         * Interceptor Config attributes
+         * Interceptor Config attributes.
          */
         public static class Interceptor {
             public static final String ROOT = "Interceptors";
@@ -83,7 +83,7 @@ public class Constants {
         }
 
         /**
-         * Cache Config attributes
+         * Cache Config attributes.
          */
         public static class Cache {
             public static final String ROOT = "CacheConfig";
@@ -97,7 +97,7 @@ public class Constants {
         }
 
         /**
-         * Cookie Config attributes
+         * Cookie Config attributes.
          */
         public static class Cookie {
             public static final String ROOT = "Cookies";
@@ -113,7 +113,7 @@ public class Constants {
         }
 
         /**
-         * Carbon place holders
+         * Carbon place holders.
          */
         public static class CarbonPlaceholders {
 
@@ -151,7 +151,7 @@ public class Constants {
     }
 
     /**
-     * XML
+     * XML.
      */
     public static class XML {
 

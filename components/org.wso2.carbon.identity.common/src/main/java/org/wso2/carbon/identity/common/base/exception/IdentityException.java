@@ -101,7 +101,7 @@ public class IdentityException extends Exception {
     }
 
     /**
-     * Error Info
+     * Error Info.
      */
     public static class ErrorInfo {
 
@@ -153,7 +153,7 @@ public class IdentityException extends Exception {
         }
 
         /**
-         * Error Info Builder
+         * Error Info Builder.
          */
         public static class ErrorInfoBuilder {
 
@@ -206,5 +206,17 @@ public class IdentityException extends Exception {
                 return new ErrorInfo(this);
             }
         }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream) throws java.io.IOException {
+
+        // TODO: Remove this if this class should be really serializable.
+        throw new java.io.NotSerializableException(getClass().getName());
+    }
+
+    private void readObject(java.io.ObjectInputStream stream) throws java.io.IOException, ClassNotFoundException {
+
+        // TODO: Remove this if this class should be really serializable.
+        throw new java.io.NotSerializableException(getClass().getName());
     }
 }

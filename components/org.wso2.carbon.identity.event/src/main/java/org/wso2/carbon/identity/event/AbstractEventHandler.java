@@ -30,6 +30,9 @@ import org.wso2.carbon.identity.event.model.Subscription;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Abstract Event Handler class.
+ */
 public abstract class AbstractEventHandler extends AbstractMessageHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractEventHandler.class);
@@ -45,6 +48,7 @@ public abstract class AbstractEventHandler extends AbstractMessageHandler {
             notificationMgtConfigBuilder = ConfigParser.getInstance();
         } catch (EventException e) {
             logger.error("Error while retrieving event mgt config builder", e);
+            return false;
         }
         List<Subscription> subscriptionList = null;
         ModuleConfig moduleConfig = notificationMgtConfigBuilder.getModuleConfigurations(moduleName);
@@ -63,21 +67,18 @@ public abstract class AbstractEventHandler extends AbstractMessageHandler {
     }
 
     public boolean isAssociationAsync(String eventName) throws EventException {
+
         Map<String, ModuleConfig> moduleConfigurationList = ConfigParser.getInstance()
                 .getModuleConfiguration();
         ModuleConfig moduleConfig = moduleConfigurationList.get(this.getName());
         List<Subscription> subscriptions = moduleConfig.getSubscriptions();
+
         for (Subscription sub : subscriptions) {
             if (sub.getSubscriptionName().equals(eventName)) {
                 continue;
             }
-            if (Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
-                    .getName() + ".subscription." + eventName + "" +
-                    ".operationAsync"))) {
-                return true;
-            } else {
-                return false;
-            }
+            return Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this.getName() + ".subscription."
+                    + eventName + "" + ".operationAsync"));
         }
         return false;
     }
@@ -86,7 +87,10 @@ public abstract class AbstractEventHandler extends AbstractMessageHandler {
 
     @Override
     public void init(InitConfig configuration) throws IdentityRuntimeException {
-        this.moduleConfig = (ModuleConfig) configuration;
+
+        if (configuration instanceof  ModuleConfig) {
+            this.moduleConfig = (ModuleConfig) configuration;
+        }
     }
 
 }

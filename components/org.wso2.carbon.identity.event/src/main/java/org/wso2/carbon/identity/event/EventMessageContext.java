@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.event;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.event.model.Event;
 
+/**
+ * Event message context.
+ */
 public class EventMessageContext extends MessageContext {
 
     private Event event;

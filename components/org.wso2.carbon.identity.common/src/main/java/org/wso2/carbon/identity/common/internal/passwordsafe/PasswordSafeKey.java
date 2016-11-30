@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.common.base.cache.CacheKey;
  */
 public class PasswordSafeKey extends CacheKey {
 
+    private static final long serialVersionUID = -974407425837498934L;
     private String uniqueID = null;
 
     public PasswordSafeKey(String uniqueID) {

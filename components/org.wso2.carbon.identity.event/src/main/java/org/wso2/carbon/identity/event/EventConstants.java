@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.event.internal;
+package org.wso2.carbon.identity.event;
 
 /**
- * Identity management related constants
+ * Identity management related constants.
  */
-public class Constants {
+public class EventConstants {
 
-    private Constants() {
+    private EventConstants() {
     }
 
-    public class PropertyConfig {
+    /**
+     * Property config related constants.
+     */
+    public static class PropertyConfig {
 
         public static final String CONFIG_FILE_NAME = "identity-event.properties";
         public static final String ACCOUNT_LOCK_ENABLE = "Account.Lock.Enable";
@@ -43,7 +46,10 @@ public class Constants {
 
     }
 
-    public class Event {
+    /**
+     * Event related constants.
+     */
+    public static class Event {
 
         public static final String PRE_AUTHENTICATION = "PRE_AUTHENTICATION";
         public static final String POST_AUTHENTICATION = "POST_AUTHENTICATION";
@@ -85,7 +91,10 @@ public class Constants {
 
     }
 
-    public class EventProperty {
+    /**
+     * Event property related constants.
+     */
+    public static class EventProperty {
 
         public static final String MODULE = "module";
         public static final String USER_NAME = "user-name";
@@ -119,7 +128,10 @@ public class Constants {
 
     }
 
-    public class ErrorMessage {
+    /**
+     * Error messages.
+     */
+    public static class ErrorMessage {
 
         public static final String FAILURE = "Failure";
         public static final String FAILED_AUTHENTICATION = "Authentication Failed.";
@@ -129,8 +141,10 @@ public class Constants {
 
     }
 
-
-    public class Claim {
+    /**
+     * Claim related constants.
+     */
+    public static class Claim {
 
         public static final String FAIL_LOGIN_ATTEMPTS = "http://wso2.org/claims/identity/failedLoginAttempts";
         public static final String UNLOCKING_TIME = "http://wso2.org/claims/identity/unlockTime";

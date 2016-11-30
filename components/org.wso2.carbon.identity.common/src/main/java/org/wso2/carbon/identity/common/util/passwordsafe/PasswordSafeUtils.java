@@ -20,12 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Use this class to secure sensitive properties display on html front-end
+ * Use this class to secure sensitive properties display on html front-end.
  */
 public class PasswordSafeUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordSafeUtils.class);
-
     private static volatile PasswordSafeUtils passwordSafeUtils = null;
 
     private PasswordSafeUtils() {
@@ -42,5 +41,10 @@ public class PasswordSafeUtils {
             }
         }
         return passwordSafeUtils;
+    }
+
+    public Object getValue() {
+        // TODO: This is a dummy method. Implement real methods or remove this class.
+        return this;
     }
 }

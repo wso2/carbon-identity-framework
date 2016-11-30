@@ -26,7 +26,10 @@ import org.wso2.carbon.identity.event.model.Event;
 
 import java.util.List;
 
-public class EventServiceImpl implements EventService {
+/**
+ * Event service implementation.
+ */
+public final class EventServiceImpl implements EventService {
 
     private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
     private EventDistributionTask eventDistributionTask;
@@ -42,7 +45,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public void handleEvent(Event event) throws EventException {
 
-        List<AbstractEventHandler> eventHandlerList = EventServiceComponent.eventHandlerList;
+        List<AbstractEventHandler> eventHandlerList = EventServiceComponent.EVENT_HANDLER_LIST;
         EventMessageContext eventContext = new EventMessageContext(event);
         for (final AbstractEventHandler handler : eventHandlerList) {
 

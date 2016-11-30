@@ -48,12 +48,12 @@ public class StreamUtils {
         return instance;
     }
 
-    public static void closeAllStreams(InputStream input, OutputStream output) {
+    public void closeAllStreams(InputStream input, OutputStream output) {
         closeInputStream(input);
         closeOutputStream(output);
     }
 
-    public static void closeInputStream(InputStream input) {
+    public void closeInputStream(InputStream input) {
         try {
             if (input != null) {
                 input.close();
@@ -63,7 +63,7 @@ public class StreamUtils {
         }
     }
 
-    public static void closeOutputStream(OutputStream output) {
+    public void closeOutputStream(OutputStream output) {
         try {
             if (output != null) {
                 output.close();
@@ -73,7 +73,7 @@ public class StreamUtils {
         }
     }
 
-    public static void flushOutputStream(OutputStream output) {
+    public void flushOutputStream(OutputStream output) {
         try {
             if (output != null) {
                 output.flush();
@@ -83,7 +83,7 @@ public class StreamUtils {
         }
     }
 
-    public static void closeReader(Reader reader) {
+    public void closeReader(Reader reader) {
         try {
             if (reader != null) {
                 reader.close();

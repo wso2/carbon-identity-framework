@@ -21,13 +21,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Properties;
 
 /**
- * Util functionality for MessageSending Components
+ * Util functionality for MessageSending Components.
  */
 @SuppressWarnings("unused")
 public class EventUtils {
@@ -38,7 +40,7 @@ public class EventUtils {
     }
 
     /**
-     * Returns a set of properties which has keys starting with the given prefix
+     * Returns a set of properties which has keys starting with the given prefix.
      *
      * @param prefix     prefix of the property key
      * @param properties Set of properties which needs be filtered for the given prefix
@@ -119,7 +121,7 @@ public class EventUtils {
     }
 
     /**
-     * Replace place holders in the given string with properties
+     * Replace place holders in the given string with properties.
      *
      * @param content                Original content of the message which has place holders
      * @param replaceRegexStartsWith Placeholders starting regex
@@ -159,7 +161,7 @@ public class EventUtils {
     }
 
     /**
-     * Read the file which is in given path and build the message template
+     * Read the file which is in given path and build the message template.
      *
      * @param filePath Path of the message template file
      * @return String which contains message template
@@ -179,7 +181,8 @@ public class EventUtils {
         }
         try {
             String currentLine;
-            bufferedReader = new BufferedReader(new FileReader(filePath));
+            bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath),
+                    StandardCharsets.UTF_8));
             StringBuilder templateBuilder = new StringBuilder();
 
             while ((currentLine = bufferedReader.readLine()) != null) {

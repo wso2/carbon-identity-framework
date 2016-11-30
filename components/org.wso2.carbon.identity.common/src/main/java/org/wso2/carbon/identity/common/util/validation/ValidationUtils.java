@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class defines utility methods to be used with input validation
+ * This class defines utility methods to be used with input validation.
  */
 public class ValidationUtils {
 
@@ -75,13 +75,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Validates the provided input against the given white list patterns
+     * Validates the provided input against the given white list patterns.
      *
      * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @return true if matches with any of the white list patterns
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @return true if matches with any of the white list patterns.
      */
-    public static boolean isValidOverWhiteListPatterns(String input, String... whiteListPatterns) {
+    public boolean isValidOverWhiteListPatterns(String input, String... whiteListPatterns) {
         if (ArrayUtils.isEmpty(whiteListPatterns)) {
             throw new IllegalArgumentException("Should provide at least one white list pattern");
         }
@@ -106,13 +106,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Validates the provided input against the given black list patterns
+     * Validates the provided input against the given black list patterns.
      *
      * @param input             input
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return true if does not match with any of the black list patterns
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return true if does not match with any of the black list patterns.
      */
-    public static boolean isValidOverBlackListPatterns(String input, String... blackListPatterns) {
+    public boolean isValidOverBlackListPatterns(String input, String... blackListPatterns) {
         if (ArrayUtils.isEmpty(blackListPatterns)) {
             throw new IllegalArgumentException("Should provide at least one black list pattern");
         }
@@ -142,13 +142,14 @@ public class ValidationUtils {
      * will be considered as valid.
      *
      * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return isWhiteListed || isNotBlackListed
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return isWhiteListed || isNotBlackListed.
      */
-    public static boolean isValid(String input, String[] whiteListPatterns, String[] blackListPatterns) {
+    public boolean isValid(String input, String[] whiteListPatterns, String[] blackListPatterns) {
         if (ArrayUtils.isEmpty(whiteListPatterns) || ArrayUtils.isEmpty(blackListPatterns)) {
-            throw new IllegalArgumentException("Should provide at least one white list pattern and black list pattern");
+            throw new IllegalArgumentException("Should provide at least one white list pattern and black list " +
+                    "pattern.");
         }
 
         return isValidOverWhiteListPatterns(input, whiteListPatterns) ||
@@ -157,13 +158,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Returns the input if valid over the given white list patterns else throws an InputValidationException
+     * Returns the input if valid over the given white list patterns else throws an InputValidationException.
      *
      * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @return input if valid over the given white list patterns else throws an InputValidationException
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @return input if valid over the given white list patterns else throws an InputValidationException.
      */
-    public static String getValidInputOverWhiteListPatterns(String input, String... whiteListPatterns)
+    public String getValidInputOverWhiteListPatterns(String input, String... whiteListPatterns)
             throws IdentityException {
 
         if (StringUtils.isEmpty(input) || isValidOverWhiteListPatterns(input, whiteListPatterns)) {
@@ -174,13 +175,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Returns the input if valid over the given black list patterns else throws an InputValidationException
+     * Returns the input if valid over the given black list patterns else throws an InputValidationException.
      *
-     * @param input             input
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return input if valid over the given black list patterns else throws an InputValidationException
+     * @param input             input.
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return input if valid over the given black list patterns else throws an InputValidationException.
      */
-    public static String getValidInputOverBlackListPatterns(String input, String... blackListPatterns)
+    public String getValidInputOverBlackListPatterns(String input, String... blackListPatterns)
             throws IdentityException {
 
         if (StringUtils.isEmpty(input) || isValidOverBlackListPatterns(input, blackListPatterns)) {
@@ -192,14 +193,14 @@ public class ValidationUtils {
 
     /**
      * Returns the input if valid over the given white list and black list patterns else throws an
-     * InputValidationException
+     * InputValidationException.
      *
-     * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return input if valid over the given white list and black list patterns else throws an InputValidationException
+     * @param input             input.
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return input if valid over the given white list and black list patterns else throws an InputValidationException.
      */
-    public static String getValidInput(String input, String[] whiteListPatterns, String[] blackListPatterns)
+    public String getValidInput(String input, String[] whiteListPatterns, String[] blackListPatterns)
             throws IdentityException {
 
         if (StringUtils.isEmpty(input) || isValid(input, whiteListPatterns, blackListPatterns)) {
@@ -217,31 +218,31 @@ public class ValidationUtils {
 
     /**
      * Adds a validation pattern and stores it against the provided key.
-     * Throws an IllegalArgumentException if pattern key or pattern is empty, or if a pattern exists for the given key
+     * Throws an IllegalArgumentException if pattern key or pattern is empty, or if a pattern exists for the given key.
      *
-     * @param key   pattern key
-     * @param regex pattern regex
+     * @param key   pattern key.
+     * @param regex pattern regex.
      */
-    public static void addPattern(String key, String regex) {
+    public void addPattern(String key, String regex) {
         validatorConfig.addPattern(key, regex);
     }
 
     /**
-     * Removes a validation pattern
+     * Removes a validation pattern.
      *
-     * @param key pattern key
+     * @param key pattern key.
      */
-    public static void removePattern(String key) {
+    public void removePattern(String key) {
         validatorConfig.removePattern(key);
     }
 
     /**
-     * Checks if a pattern exists for the provided key
+     * Checks if a pattern exists for the provided key.
      *
-     * @param key pattern key
-     * @return true if pattern exists or false if pattern does not exist
+     * @param key pattern key.
+     * @return true if pattern exists or false if pattern does not exist.
      */
-    public static boolean patternExists(String key) {
+    public boolean patternExists(String key) {
         return validatorConfig.patternExists(key);
     }
 
@@ -260,9 +261,9 @@ public class ValidationUtils {
     /**
      * Check if all provided patterns keys have a corresponding regex registered.
      *
-     * @param patterns array of pattern keys to be checked
+     * @param patterns array of pattern keys to be checked.
      */
-    private static void validatePatternKeys(String[] patterns) {
+    private void validatePatternKeys(String[] patterns) {
         for (String key : patterns) {
             if (!patternExists(key)) {
                 throw new IllegalArgumentException(String.format(PATTERN_NOT_REGISTERED, key));
@@ -270,7 +271,7 @@ public class ValidationUtils {
         }
     }
 
-    public static boolean isNotBlank(String input) {
+    public boolean isNotBlank(String input) {
         if (StringUtils.isNotBlank(input) && !Constants.NULL.equals(input.trim())) {
             return true;
         } else {
@@ -287,7 +288,7 @@ public class ValidationUtils {
     }
 
     public static boolean isValidFileName(String fileName) {
-        String fileNameRegEx = null; // read filename regex from identity.yaml
+        String fileNameRegEx = ""; // read filename regex from identity.yaml
 
         if (isBlank(fileNameRegEx)) {
             fileNameRegEx = DEFAULT_FILE_NAME_REGEX;
@@ -300,7 +301,7 @@ public class ValidationUtils {
     }
 
     /**
-     * Defines a predefined set of pattern list
+     * Defines a predefined set of pattern list.
      */
     public static enum ValidatorPattern {
         DIGITS_ONLY("^[0-9]+$"),

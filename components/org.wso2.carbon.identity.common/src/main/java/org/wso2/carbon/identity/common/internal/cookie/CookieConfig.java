@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.common.internal.cookie;
 
 /**
- * Cookie configuration
+ * Cookie configuration.
  */
 public class CookieConfig {
 

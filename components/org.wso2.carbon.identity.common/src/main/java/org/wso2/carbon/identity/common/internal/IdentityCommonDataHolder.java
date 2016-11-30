@@ -16,11 +16,8 @@
 
 package org.wso2.carbon.identity.common.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.internal.cache.CacheConfig;
 import org.wso2.carbon.identity.common.internal.cache.CacheConfigKey;
-import org.wso2.carbon.identity.common.internal.config.ConfigParser;
 import org.wso2.carbon.identity.common.internal.cookie.CookieConfig;
 import org.wso2.carbon.identity.common.internal.cookie.CookieConfigKey;
 import org.wso2.carbon.identity.common.internal.handler.HandlerConfig;
@@ -30,11 +27,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Identity Common Data Holder
+ * Identity Common Data Holder.
  */
 public class IdentityCommonDataHolder {
 
-    private static Logger logger = LoggerFactory.getLogger(ConfigParser.class);
+//    private static Logger logger = LoggerFactory.getLogger(ConfigParser.class);
 
     private static IdentityCommonDataHolder instance = new IdentityCommonDataHolder();
     private Map<HandlerConfigKey, HandlerConfig> handlerConfig = new HashMap();

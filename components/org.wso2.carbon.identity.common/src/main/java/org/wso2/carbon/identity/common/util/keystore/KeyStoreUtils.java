@@ -54,12 +54,12 @@ public class KeyStoreUtils {
     }
 
     /**
-     * Extract key store filename
+     * Extract key store filename.
      *
      * @param filePath File path of a key store
      * @return Key store file name
      */
-    public static String extractKeyStoreFileName(String filePath) {
+    public String extractKeyStoreFileName(String filePath) {
 
         if (filePath != null) {
             String name = null;
@@ -83,13 +83,13 @@ public class KeyStoreUtils {
     }
 
     /**
-     * Generate thumbprint of certificate
+     * Generate thumbprint of certificate.
      *
      * @param encodedCert Base64 encoded certificate
      * @return Certificate thumbprint
      * @throws java.security.NoSuchAlgorithmException Unsupported hash algorithm
      */
-    public static String generateThumbPrint(String encodedCert) throws NoSuchAlgorithmException {
+    public String generateThumbPrint(String encodedCert) throws NoSuchAlgorithmException {
 
         if (encodedCert != null) {
             MessageDigest digestValue = null;
@@ -107,13 +107,13 @@ public class KeyStoreUtils {
     }
 
     /**
-     * Generate thumbprint of certificate
+     * Generate thumbprint of certificate.
      *
      * @param encodedCert Base64 encoded certificate
      * @return Decoded <code>Certificate</code>
      * @throws java.security.cert.CertificateException Error when decoding certificate
      */
-    public static Certificate decodeCertificate(String encodedCert) throws CertificateException {
+    public Certificate decodeCertificate(String encodedCert) throws CertificateException {
 
         if (encodedCert != null) {
             byte[] bytes = Base64.getDecoder().decode(encodedCert);
@@ -135,7 +135,7 @@ public class KeyStoreUtils {
      * @param bytes
      * @return hexadecimal representation
      */
-    public static String hexify(byte bytes[]) {
+    public String hexify(byte bytes[]) {
 
         if (bytes != null) {
             char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',

@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 public interface MessageHandler {
 
     /**
-     * Initializes the handler
+     * Initializes the handler.
      */
     public void init(InitConfig initConfig);
 
@@ -44,15 +44,15 @@ public interface MessageHandler {
     public boolean isEnabled(MessageContext messageContext);
 
     /**
-     * Used to sort the set of handlers
+     * Used to sort the set of handlers.
      *
-     * @param messageContext The runtime message context
+     * @param messageContext The runtime message context.
      * @return The priority value of the handler
      */
     public int getPriority(MessageContext messageContext);
 
     /**
-     * Tells if this request can be handled by this handler
+     * Tells if this request can be handled by this handler.
      *
      * @param messageContext The runtime message context
      * @return {@code true} if the message can be handled by this handler

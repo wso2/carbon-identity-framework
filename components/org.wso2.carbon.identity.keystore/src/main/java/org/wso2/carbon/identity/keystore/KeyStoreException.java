@@ -18,6 +18,9 @@ package org.wso2.carbon.identity.keystore;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 
+/**
+ * Represents a key store exception.
+ */
 public class KeyStoreException extends IdentityException {
 
     protected KeyStoreException(String errorDescription) {

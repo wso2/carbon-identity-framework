@@ -43,7 +43,7 @@ public class JDBCUtils {
     }
 
     /**
-     * Get a database connection instance from the Identity Persistence Manager
+     * Get a database connection instance from the Identity Persistence Manager.
      *
      * @return Database Connection
      * @throws IdentityRuntimeException Error when getting a database connection to Identity database

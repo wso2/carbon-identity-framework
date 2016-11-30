@@ -27,7 +27,7 @@ import static java.util.Collections.sort;
 
 /**
  * HandlerManager class can be used to get the correct handlers just before execute it either
- * list or first priority one
+ * list or first priority one.
  */
 public class HandlerManager {
 

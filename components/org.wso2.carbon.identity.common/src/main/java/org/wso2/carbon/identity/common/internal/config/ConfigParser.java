@@ -30,7 +30,7 @@ public class ConfigParser {
 
     private static Logger logger = LoggerFactory.getLogger(ConfigParser.class);
 
-    private static ConfigParser parser;
+    private static volatile ConfigParser parser;
     private static Object lock = new Object();
 
     private ConfigParser() {
@@ -49,21 +49,21 @@ public class ConfigParser {
     }
 
     /**
-     * Read configuration elements from the identity.yaml
+     * Read configuration elements from the identity.yaml.
      *
-     * @param key fully qualified element name
+     * @param key fully qualified element name.
      * @return Element text value.
      */
     public static String getProperty(String key) {
 
-        String strValue = null;
-        // implement to get property value
+        String strValue = "";
+        // TODO: implement to get property value
         strValue = fillPlaceHolders(strValue);
         return strValue;
     }
 
     /**
-     * To read properties from the identity.yaml
+     * To read properties from the identity.yaml.
      *
      * @param key
      * @return Properties defined under that configuration.
