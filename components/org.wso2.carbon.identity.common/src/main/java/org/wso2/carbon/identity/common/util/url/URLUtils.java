@@ -1,19 +1,17 @@
 /*
  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.util.url;
@@ -28,6 +26,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+/**
+ * Url utils.
+ */
 public class URLUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(URLUtils.class);
@@ -39,9 +40,9 @@ public class URLUtils {
     }
 
     public static URLUtils getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             synchronized (URLUtils.class) {
-                if(instance == null) {
+                if (instance == null) {
                     instance = new URLUtils();
                 }
             }
@@ -49,7 +50,7 @@ public class URLUtils {
         return instance;
     }
 
-    public static String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
+    public String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
 
         // check implementation in C4
@@ -59,6 +60,7 @@ public class URLUtils {
 
     /**
      * Replace the placeholders with the related values in the URL.
+     *
      * @param urlWithPlaceholders URL with the placeholders.
      * @return URL filled with the placeholder values.
      */
@@ -71,13 +73,14 @@ public class URLUtils {
 
     /**
      * Get the host name of the server.
+     *
      * @return Hostname
      */
-    public static String getHostName() {
+    public String getHostName() {
         return null;
     }
 
-    public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
+    public String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
 
         StringBuilder queryString = new StringBuilder("?");
         boolean isFirst = true;
@@ -114,12 +117,12 @@ public class URLUtils {
 //    }
 
     /**
-     * Get the first IP from a comma separated list of IPs
+     * Get the first IP from a comma separated list of IPs.
      *
      * @param commaSeparatedIPs String which contains comma+space separated IPs
      * @return First IP
      */
-    public static String getFirstIP(String commaSeparatedIPs) {
+    public String getFirstIP(String commaSeparatedIPs) {
         if (StringUtils.isNotEmpty(commaSeparatedIPs) && commaSeparatedIPs.contains(",")) {
             return commaSeparatedIPs.split(",")[0];
         }

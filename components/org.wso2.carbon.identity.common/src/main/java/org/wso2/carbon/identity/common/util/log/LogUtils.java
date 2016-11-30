@@ -1,19 +1,17 @@
 /*
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.util.log;
@@ -30,15 +28,14 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Parser to parse the identity_log_tokens.properties
+ * Parser to parse the identity_log_tokens.properties.
  */
 public class LogUtils {
 
-    private static LogUtils logUtils;
+    private static final Object lock = new Object();
+    private static volatile LogUtils logUtils;
     private static Map<String, String> logTokenMap = new HashMap();
     private static String filePath;
-    private static final Object lock = new Object();
-
     private static Logger logger = LoggerFactory.getLogger(LogUtils.class);
 
     private LogUtils() {
@@ -53,6 +50,7 @@ public class LogUtils {
 
     /**
      * Instantiate a new instance and get it or get the available instance.
+     *
      * @return IdentityLogTokenParser
      */
     public static LogUtils getInstance() {
@@ -69,6 +67,7 @@ public class LogUtils {
 
     /**
      * Check whether the given token value is appropriate to log.
+     *
      * @param tokenName Name of the token.
      * @return True if token is appropriate to log.
      */
@@ -76,19 +75,11 @@ public class LogUtils {
         return false;
     }
 
-    /**
-     * Get the properties as a map.
-     * @return Map{String String}
-     */
-    Map<String, String> getLogTokenMap() {
-        return logTokenMap;
-    }
-
     private static void buildConfiguration() {
 
         if (filePath == null) {
             filePath = IdentityUtils.getIdentityConfigDirPath() + File.separator +
-                       LogTokens.FILE_NAME;
+                    LogTokens.FILE_NAME;
         }
 
         FileInputStream fileInput = null;
@@ -115,6 +106,18 @@ public class LogUtils {
         }
     }
 
+    /**
+     * Get the properties as a map.
+     *
+     * @return Map{String String}
+     */
+    Map<String, String> getLogTokenMap() {
+        return logTokenMap;
+    }
+
+    /**
+     * Log tokens.
+     */
     public static class LogTokens {
 
         public static final String FILE_NAME = "identity_log_tokens.properties";

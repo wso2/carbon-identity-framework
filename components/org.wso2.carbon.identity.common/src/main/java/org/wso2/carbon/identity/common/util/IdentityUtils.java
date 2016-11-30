@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * 
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.util;
@@ -22,65 +20,56 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.internal.IdentityCommonDataHolder;
-import org.wso2.carbon.identity.common.internal.config.ConfigParser;
 import org.wso2.carbon.identity.common.internal.cache.CacheConfig;
 import org.wso2.carbon.identity.common.internal.cache.CacheConfigKey;
+import org.wso2.carbon.identity.common.internal.config.ConfigParser;
 import org.wso2.carbon.identity.common.internal.cookie.CookieConfig;
 import org.wso2.carbon.identity.common.internal.cookie.CookieConfigKey;
 import org.wso2.carbon.identity.common.internal.handler.HandlerConfig;
 import org.wso2.carbon.identity.common.internal.handler.HandlerConfigKey;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * Identity utils.
+ */
 public class IdentityUtils {
 
-    private static Logger logger = LoggerFactory.getLogger(IdentityUtils.class);
-
-    private static volatile IdentityUtils instance = null;
-
-    public static final ThreadLocal<Map<String, Object>> threadLocals = new ThreadLocal<Map<String, Object>> () {
+    public static final ThreadLocal<Map<String, Object>> MAP_THREAD_LOCAL = new ThreadLocal<Map<String, Object>>() {
 
         @Override
         protected Map<String, Object> initialValue() {
             return new HashMap();
         }
     };
+    private static Logger logger = LoggerFactory.getLogger(IdentityUtils.class);
+    private static volatile IdentityUtils instance = null;
 
     private IdentityUtils() {
         ConfigParser.getInstance();
     }
 
     public static IdentityUtils getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             synchronized (IdentityUtils.class) {
-                if(instance == null) {
+                if (instance == null) {
                     instance = new IdentityUtils();
                 }
             }
         }
         return instance;
-    }
-
-    public Map<HandlerConfigKey, HandlerConfig> getHandlerConfig() {
-        return IdentityCommonDataHolder.getInstance().getHandlerConfig();
-    }
-
-    public Map<CacheConfigKey, CacheConfig> getCacheConfig() {
-        return IdentityCommonDataHolder.getInstance().getCacheConfig();
-    }
-
-    public Map<CookieConfigKey, CookieConfig> getCookieConfig() {
-        return IdentityCommonDataHolder.getInstance().getCookieConfig();
     }
 
     public static String generateHmacSHA1(String secretKey, String baseString) throws SignatureException {
@@ -97,7 +86,7 @@ public class IdentityUtils {
     }
 
     /**
-     * Generates a secure random hexadecimal string using SHA1 PRNG and digest
+     * Generates a secure random hexadecimal string using SHA1 PRNG and digest.
      *
      * @return Random hexadecimal encoded String
      */
@@ -123,22 +112,21 @@ public class IdentityUtils {
     }
 
     /**
-     * Generates a random number using two UUIDs and HMAC-SHA1
-     *
+     * Generates a random number using two UUIDs and HMAC-SHA1.
      */
     public static String generateRandomNumber() throws IdentityRuntimeException {
         try {
             String secretKey = UUID.randomUUID().toString();
             String baseString = UUID.randomUUID().toString();
 
-            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), "HmacSHA1");
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(key);
-            byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            String random = null;
-//            random = new String(Base64.getEncoder().encode(rawHmac));
+            byte[] rawHmac = mac.doFinal(baseString.getBytes(StandardCharsets.UTF_8));
+            String random;
+            random = new String(Base64.getEncoder().encode(rawHmac), StandardCharsets.UTF_8);
             return random;
-        } catch (NoSuchAlgorithmException|InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw IdentityRuntimeException.error("Error occurred while generating random number.", e);
         }
     }
@@ -167,10 +155,8 @@ public class IdentityUtils {
         return null;
     }
 
-
-
     /**
-     * Get the server synchronization tolerance value in seconds
+     * Get the server synchronization tolerance value in seconds.
      *
      * @return clock skew in seconds
      */
@@ -178,8 +164,6 @@ public class IdentityUtils {
 
         return 0;
     }
-
-
 
     /**
      * Validates an URI.
@@ -225,17 +209,18 @@ public class IdentityUtils {
     public static String calculateHmacSha1(String key, String value) throws SignatureException {
         String result = null;
         try {
-            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "HmacSHA1");
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(signingKey);
-            byte[] rawHmac = mac.doFinal(value.getBytes());
-//            result = Base64.getEncoder().encode(rawHmac);
-        } catch (Exception e) {
+            byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
+            result = new String(Base64.getEncoder().encode(rawHmac), StandardCharsets.UTF_8);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to create the HMAC Signature", e);
             }
             throw new SignatureException("Failed to calculate HMAC : " + e.getMessage());
         }
+
         return result;
     }
 
@@ -247,6 +232,18 @@ public class IdentityUtils {
     // May not be needed going forward
     public static String getTenantDomain(int tenantId) throws IdentityRuntimeException {
         return null;
+    }
+
+    public Map<HandlerConfigKey, HandlerConfig> getHandlerConfig() {
+        return IdentityCommonDataHolder.getInstance().getHandlerConfig();
+    }
+
+    public Map<CacheConfigKey, CacheConfig> getCacheConfig() {
+        return IdentityCommonDataHolder.getInstance().getCacheConfig();
+    }
+
+    public Map<CookieConfigKey, CookieConfig> getCookieConfig() {
+        return IdentityCommonDataHolder.getInstance().getCookieConfig();
     }
 
     // User store case sensitivity check method must come from RealmService

@@ -1,19 +1,17 @@
 /*
  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.internal.config;
@@ -25,11 +23,14 @@ import org.wso2.carbon.identity.common.util.url.URLUtils;
 
 import java.util.Properties;
 
+/**
+ * Configuration key.
+ */
 public class ConfigParser {
 
     private static Logger logger = LoggerFactory.getLogger(ConfigParser.class);
 
-    private static ConfigParser parser;
+    private static volatile ConfigParser parser;
     private static Object lock = new Object();
 
     private ConfigParser() {
@@ -48,21 +49,21 @@ public class ConfigParser {
     }
 
     /**
-     * Read configuration elements from the identity.yaml
+     * Read configuration elements from the identity.yaml.
      *
-     * @param key fully qualified element name
+     * @param key fully qualified element name.
      * @return Element text value.
      */
     public static String getProperty(String key) {
 
-        String strValue = null;
-        // implement to get property value
+        String strValue = "";
+        // TODO: implement to get property value
         strValue = fillPlaceHolders(strValue);
         return strValue;
     }
 
     /**
-     * To read properties from the identity.yaml
+     * To read properties from the identity.yaml.
      *
      * @param key
      * @return Properties defined under that configuration.
@@ -91,7 +92,7 @@ public class ConfigParser {
         IdentityCommonDataHolder.getInstance().setCacheConfig(null);
     }
 
-    private void buildCookieConfig()    {
+    private void buildCookieConfig() {
         IdentityCommonDataHolder.getInstance().setCookieConfig(null);
     }
 

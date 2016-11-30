@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.common.util.validation;
@@ -26,7 +24,6 @@ import org.wso2.carbon.identity.common.base.Constants;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.internal.config.ConfigParser;
 import org.wso2.carbon.identity.common.internal.validation.ValidationConfig;
-import org.wso2.carbon.identity.common.util.IdentityUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,10 +31,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class defines utility methods to be used with input validation
+ * This class defines utility methods to be used with input validation.
  */
 public class ValidationUtils {
 
+    public static final String DEFAULT_FILE_NAME_REGEX = "^(?!(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.[^.]*)?$)" +
+            "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
+    public static final ThreadLocal<Map<String, Object>> MAP_THREAD_LOCAL = new ThreadLocal<Map<String, Object>>() {
+        @Override
+        protected Map<String, Object> initialValue() {
+            return new HashMap();
+        }
+    };
     private static final ValidationConfig validatorConfig = new ValidationConfig();
     private static final String msgSection1 = "The provided input ";
     private static final String msgSection2 = "does not match any of the white list patterns [ %s ]";
@@ -45,29 +50,23 @@ public class ValidationUtils {
             "contains illegal characters matching one of the black list patterns [ %s ]";
     private static final String msgSection4 = " or ";
     private static final String PATTERN_NOT_REGISTERED = "No regex pattern registered for the provided key : %s";
-    public static final String DEFAULT_FILE_NAME_REGEX = "^(?!(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.[^.]*)?$)" +
-                                                         "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
-
     private static Logger logger = LoggerFactory.getLogger(ValidationUtils.class);
-
     private static volatile ValidationUtils instance = null;
 
-    public static final ThreadLocal<Map<String, Object>> threadLocals = new ThreadLocal<Map<String, Object>> () {
-
-        @Override
-        protected Map<String, Object> initialValue() {
-            return new HashMap();
+    static {
+        for (ValidatorPattern pattern : ValidatorPattern.values()) {
+            validatorConfig.addPattern(pattern.name(), pattern.getRegex());
         }
-    };
+    }
 
     private ValidationUtils() {
         ConfigParser.getInstance();
     }
 
     public static ValidationUtils getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             synchronized (ValidationUtils.class) {
-                if(instance == null) {
+                if (instance == null) {
                     instance = new ValidationUtils();
                 }
             }
@@ -76,50 +75,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Defines a predefined set of pattern list
-     */
-    public static enum ValidatorPattern {
-        DIGITS_ONLY("^[0-9]+$"),
-        ALPHABETIC_ONLY("^[a-zA-Z]+$"),
-        ALPHANUMERICS_ONLY("^[a-zA-Z0-9]+$"),
-        URL("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        EMAIL("^\\s*?(.+)@(.+?)\\s*$"),
-        WHITESPACE_EXISTS(".*\\s+.*"),
-        URI_RESERVED_EXISTS(".*[:/\\?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+.*"),
-        URI_UNSAFE_EXISTS(".*[<>%\\{\\}\\|\\^~\\[\\]`]+.*"),
-        HTML_META_EXISTS(".*[&<>\"'/]+.*"),
-        XML_META_EXISTS(".*[&<>\"']+.*"),
-        REGEX_META_EXISTS(".*[\\\\\\^\\$\\.\\|\\?\\*\\+\\(\\)\\[\\{]+.*"),
-        HTTP_URL("^(http:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        HTTPS_URL("^(https:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        FTP_URL("^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
-        REGISTRY_INVALID_CHARS_EXISTS("[~!@#;%^*()+={}|<>\\\\\"'/,]+");
-
-        private String regex;
-
-        ValidatorPattern(String regex) {
-            this.regex = regex;
-        }
-
-        public String getRegex() {
-            return regex;
-        }
-    }
-
-    static {
-        for (ValidatorPattern pattern : ValidatorPattern.values()) {
-            validatorConfig.addPattern(pattern.name(), pattern.getRegex());
-        }
-    }
-
-    /**
-     * Validates the provided input against the given white list patterns
+     * Validates the provided input against the given white list patterns.
      *
      * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @return true if matches with any of the white list patterns
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @return true if matches with any of the white list patterns.
      */
-    public static boolean isValidOverWhiteListPatterns(String input, String... whiteListPatterns) {
+    public boolean isValidOverWhiteListPatterns(String input, String... whiteListPatterns) {
         if (ArrayUtils.isEmpty(whiteListPatterns)) {
             throw new IllegalArgumentException("Should provide at least one white list pattern");
         }
@@ -144,13 +106,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Validates the provided input against the given black list patterns
+     * Validates the provided input against the given black list patterns.
      *
      * @param input             input
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return true if does not match with any of the black list patterns
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return true if does not match with any of the black list patterns.
      */
-    public static boolean isValidOverBlackListPatterns(String input, String... blackListPatterns) {
+    public boolean isValidOverBlackListPatterns(String input, String... blackListPatterns) {
         if (ArrayUtils.isEmpty(blackListPatterns)) {
             throw new IllegalArgumentException("Should provide at least one black list pattern");
         }
@@ -180,13 +142,14 @@ public class ValidationUtils {
      * will be considered as valid.
      *
      * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return isWhiteListed || isNotBlackListed
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return isWhiteListed || isNotBlackListed.
      */
-    public static boolean isValid(String input, String[] whiteListPatterns, String[] blackListPatterns) {
+    public boolean isValid(String input, String[] whiteListPatterns, String[] blackListPatterns) {
         if (ArrayUtils.isEmpty(whiteListPatterns) || ArrayUtils.isEmpty(blackListPatterns)) {
-            throw new IllegalArgumentException("Should provide at least one white list pattern and black list pattern");
+            throw new IllegalArgumentException("Should provide at least one white list pattern and black list " +
+                    "pattern.");
         }
 
         return isValidOverWhiteListPatterns(input, whiteListPatterns) ||
@@ -195,13 +158,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Returns the input if valid over the given white list patterns else throws an InputValidationException
+     * Returns the input if valid over the given white list patterns else throws an InputValidationException.
      *
      * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @return input if valid over the given white list patterns else throws an InputValidationException
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @return input if valid over the given white list patterns else throws an InputValidationException.
      */
-    public static String getValidInputOverWhiteListPatterns(String input, String... whiteListPatterns)
+    public String getValidInputOverWhiteListPatterns(String input, String... whiteListPatterns)
             throws IdentityException {
 
         if (StringUtils.isEmpty(input) || isValidOverWhiteListPatterns(input, whiteListPatterns)) {
@@ -212,13 +175,13 @@ public class ValidationUtils {
     }
 
     /**
-     * Returns the input if valid over the given black list patterns else throws an InputValidationException
+     * Returns the input if valid over the given black list patterns else throws an InputValidationException.
      *
-     * @param input             input
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return input if valid over the given black list patterns else throws an InputValidationException
+     * @param input             input.
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return input if valid over the given black list patterns else throws an InputValidationException.
      */
-    public static String getValidInputOverBlackListPatterns(String input, String... blackListPatterns)
+    public String getValidInputOverBlackListPatterns(String input, String... blackListPatterns)
             throws IdentityException {
 
         if (StringUtils.isEmpty(input) || isValidOverBlackListPatterns(input, blackListPatterns)) {
@@ -230,14 +193,14 @@ public class ValidationUtils {
 
     /**
      * Returns the input if valid over the given white list and black list patterns else throws an
-     * InputValidationException
+     * InputValidationException.
      *
-     * @param input             input
-     * @param whiteListPatterns a String array of white list pattern keys
-     * @param blackListPatterns a String array of black list pattern keys
-     * @return input if valid over the given white list and black list patterns else throws an InputValidationException
+     * @param input             input.
+     * @param whiteListPatterns a String array of white list pattern keys.
+     * @param blackListPatterns a String array of black list pattern keys.
+     * @return input if valid over the given white list and black list patterns else throws an InputValidationException.
      */
-    public static String getValidInput(String input, String[] whiteListPatterns, String[] blackListPatterns)
+    public String getValidInput(String input, String[] whiteListPatterns, String[] blackListPatterns)
             throws IdentityException {
 
         if (StringUtils.isEmpty(input) || isValid(input, whiteListPatterns, blackListPatterns)) {
@@ -255,31 +218,31 @@ public class ValidationUtils {
 
     /**
      * Adds a validation pattern and stores it against the provided key.
-     * Throws an IllegalArgumentException if pattern key or pattern is empty, or if a pattern exists for the given key
+     * Throws an IllegalArgumentException if pattern key or pattern is empty, or if a pattern exists for the given key.
      *
-     * @param key   pattern key
-     * @param regex pattern regex
+     * @param key   pattern key.
+     * @param regex pattern regex.
      */
-    public static void addPattern(String key, String regex) {
+    public void addPattern(String key, String regex) {
         validatorConfig.addPattern(key, regex);
     }
 
     /**
-     * Removes a validation pattern
+     * Removes a validation pattern.
      *
-     * @param key pattern key
+     * @param key pattern key.
      */
-    public static void removePattern(String key) {
+    public void removePattern(String key) {
         validatorConfig.removePattern(key);
     }
 
     /**
-     * Checks if a pattern exists for the provided key
+     * Checks if a pattern exists for the provided key.
      *
-     * @param key pattern key
-     * @return true if pattern exists or false if pattern does not exist
+     * @param key pattern key.
+     * @return true if pattern exists or false if pattern does not exist.
      */
-    public static boolean patternExists(String key) {
+    public boolean patternExists(String key) {
         return validatorConfig.patternExists(key);
     }
 
@@ -298,9 +261,9 @@ public class ValidationUtils {
     /**
      * Check if all provided patterns keys have a corresponding regex registered.
      *
-     * @param patterns array of pattern keys to be checked
+     * @param patterns array of pattern keys to be checked.
      */
-    private static void validatePatternKeys(String[] patterns) {
+    private void validatePatternKeys(String[] patterns) {
         for (String key : patterns) {
             if (!patternExists(key)) {
                 throw new IllegalArgumentException(String.format(PATTERN_NOT_REGISTERED, key));
@@ -308,7 +271,7 @@ public class ValidationUtils {
         }
     }
 
-    public static boolean isNotBlank(String input) {
+    public boolean isNotBlank(String input) {
         if (StringUtils.isNotBlank(input) && !Constants.NULL.equals(input.trim())) {
             return true;
         } else {
@@ -324,16 +287,47 @@ public class ValidationUtils {
         }
     }
 
-    public static boolean isValidFileName(String fileName){
-        String fileNameRegEx = null; // read filename regex from identity.yaml
+    public static boolean isValidFileName(String fileName) {
+        String fileNameRegEx = ""; // read filename regex from identity.yaml
 
-        if(isBlank(fileNameRegEx)){
+        if (isBlank(fileNameRegEx)) {
             fileNameRegEx = DEFAULT_FILE_NAME_REGEX;
         }
 
         Pattern pattern = Pattern.compile(fileNameRegEx, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE |
-                                                         Pattern.COMMENTS);
+                Pattern.COMMENTS);
         Matcher matcher = pattern.matcher(fileName);
         return matcher.matches();
+    }
+
+    /**
+     * Defines a predefined set of pattern list.
+     */
+    public static enum ValidatorPattern {
+        DIGITS_ONLY("^[0-9]+$"),
+        ALPHABETIC_ONLY("^[a-zA-Z]+$"),
+        ALPHANUMERICS_ONLY("^[a-zA-Z0-9]+$"),
+        URL("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        EMAIL("^\\s*?(.+)@(.+?)\\s*$"),
+        WHITESPACE_EXISTS(".*\\s+.*"),
+        URI_RESERVED_EXISTS(".*[:/\\?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+.*"),
+        URI_UNSAFE_EXISTS(".*[<>%\\{\\}\\|\\^~\\[\\]`]+.*"),
+        HTML_META_EXISTS(".*[&<>\"'/]+.*"),
+        XML_META_EXISTS(".*[&<>\"']+.*"),
+        REGEX_META_EXISTS(".*[\\\\\\^\\$\\.\\|\\?\\*\\+\\(\\)\\[\\{]+.*"),
+        HTTP_URL("^(http:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        HTTPS_URL("^(https:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        FTP_URL("^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?$"),
+        REGISTRY_INVALID_CHARS_EXISTS("[~!@#;%^*()+={}|<>\\\\\"'/,]+");
+
+        private String regex;
+
+        ValidatorPattern(String regex) {
+            this.regex = regex;
+        }
+
+        public String getRegex() {
+            return regex;
+        }
     }
 }

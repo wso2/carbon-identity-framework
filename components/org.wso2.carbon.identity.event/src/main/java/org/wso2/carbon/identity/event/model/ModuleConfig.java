@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.event.model;
@@ -31,19 +29,19 @@ import java.util.Properties;
 @SuppressWarnings("unused")
 public class ModuleConfig extends InitConfig {
     /**
-     * Module level properties. eg moduleName.propertyName
+     * Module level properties. eg moduleName.propertyName.
      */
     private Properties moduleProperties;
     /**
-     * List of subscriptions by the particular module
+     * List of subscriptions by the particular module.
      */
     private List<Subscription> subscriptions;
 
     /**
-     * Overridden to add module properties and subscription list
+     * Overridden to add module properties and subscription list.
      *
      * @param moduleProperties Set of properties which are configured to module level.
-     * @param subscriptions    List of subscriptions for a module
+     * @param subscriptions    List of subscriptions for a module.
      */
     public ModuleConfig(Properties moduleProperties, List<Subscription> subscriptions) {
         this.moduleProperties = moduleProperties;
@@ -52,7 +50,7 @@ public class ModuleConfig extends InitConfig {
 
     /**
      * Overridden default constructor to make sure that configuration can be initiated without module params and list
-     * of subscriptions. From this, those variables are initiated
+     * of subscriptions. From this, those variables are initiated.
      */
     public ModuleConfig() {
         moduleProperties = new Properties();
@@ -64,7 +62,7 @@ public class ModuleConfig extends InitConfig {
     }
 
     /**
-     * To get set of subscriptions configured for the module
+     * To get set of subscriptions configured for the module.
      *
      * @return A set of subscriptions.
      */

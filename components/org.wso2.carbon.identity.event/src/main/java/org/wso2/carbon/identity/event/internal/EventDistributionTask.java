@@ -1,26 +1,23 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.event.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.common.internal.IdentityCommonDataHolder;
 import org.wso2.carbon.identity.event.AbstractEventHandler;
 import org.wso2.carbon.identity.event.EventException;
 import org.wso2.carbon.identity.event.EventMessageContext;
@@ -29,6 +26,7 @@ import org.wso2.carbon.identity.event.model.Event;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -48,12 +46,12 @@ public class EventDistributionTask implements Runnable {
      */
     private List<AbstractEventHandler> notificationSendingModules;
     /**
-     * Condition to break event distribution task
+     * Condition to break event distribution task.
      */
     private volatile boolean running;
 
     /**
-     * Overridden constructor to initiate notification sending modules and thread pool size
+     * Overridden constructor to initiate notification sending modules and thread pool size.
      *
      * @param notificationSendingModules List of notification sending modules registered
      * @param threadPoolSize             Size of thread pool for notification sending components
@@ -80,22 +78,22 @@ public class EventDistributionTask implements Runnable {
                     // If the module is subscribed to the event, module will be executed.
                     if (module.isEnabled(eventContext)) {
                         // Create a runnable and submit to the thread pool for sending message.
-                        Runnable msgSender = new Runnable() {
-                            @Override
-                            public void run() {
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("Executing " + module.getName() + " on event" + event.
-                                            getEventName());
-                                }
-                                try {
-                                    module.handleEvent(event);
-                                } catch (EventException e) {
-                                    logger.error("Error while invoking notification sending module " + module.
-                                            getName(), e);
-                                }
+                        Runnable msgSender = () -> {
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Executing " + module.getName() + " on event" + event.
+                                        getEventName());
+                            }
+                            try {
+                                module.handleEvent(event);
+                            } catch (EventException e) {
+                                logger.error("Error while invoking notification sending module " + module.
+                                        getName(), e);
                             }
                         };
-                        EventDataHolder.getInstance().getThreadPool().submit(msgSender);
+                        Future future = EventDataHolder.getInstance().getThreadPool().submit(msgSender);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Task is done: " + future.isDone());
+                        }
                     }
                 }
             } catch (InterruptedException e) {

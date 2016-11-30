@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.event.internal;
@@ -23,13 +21,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Properties;
 
 /**
- * Util functionality for MessageSending Components
+ * Util functionality for MessageSending Components.
  */
 @SuppressWarnings("unused")
 public class EventUtils {
@@ -40,7 +40,7 @@ public class EventUtils {
     }
 
     /**
-     * Returns a set of properties which has keys starting with the given prefix
+     * Returns a set of properties which has keys starting with the given prefix.
      *
      * @param prefix     prefix of the property key
      * @param properties Set of properties which needs be filtered for the given prefix
@@ -50,7 +50,7 @@ public class EventUtils {
 
         if (StringUtils.isEmpty(prefix) || properties == null) {
             throw new IllegalArgumentException("Prefix and properties should not be null to extract properties with " +
-                                               "certain prefix");
+                    "certain prefix");
         }
 
         Properties subProperties = new Properties();
@@ -101,7 +101,7 @@ public class EventUtils {
         // Stop proceeding if required arguments are not present
         if (StringUtils.isEmpty(prefix) || propertiesWithFullKeys == null) {
             throw new IllegalArgumentException("Prefix and properties should not be null to get  properties with " +
-                                               "single word keys.");
+                    "single word keys.");
         }
 
         propertiesWithFullKeys = EventUtils.getPropertiesWithPrefix(prefix, propertiesWithFullKeys);
@@ -121,7 +121,7 @@ public class EventUtils {
     }
 
     /**
-     * Replace place holders in the given string with properties
+     * Replace place holders in the given string with properties.
      *
      * @param content                Original content of the message which has place holders
      * @param replaceRegexStartsWith Placeholders starting regex
@@ -144,24 +144,24 @@ public class EventUtils {
                     replaceRegexEndsWith);
             logger.debug("Replacing place holders of String " + content);
         }
-            // For each property check whether there is a place holder and replace the place
-            // holders exist.
-            for (String key : properties.stringPropertyNames()) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Replacing place holder with property key :" + key + " from value :" + properties
-                            .getProperty(key));
-                }
-                content = content.replaceAll(replaceRegexStartsWith + key + replaceRegexEndsWith,
-                        properties.getProperty(key));
-            }
+        // For each property check whether there is a place holder and replace the place
+        // holders exist.
+        for (String key : properties.stringPropertyNames()) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Place holders replaced String " + content);
+                logger.debug("Replacing place holder with property key :" + key + " from value :" + properties
+                        .getProperty(key));
             }
+            content = content.replaceAll(replaceRegexStartsWith + key + replaceRegexEndsWith,
+                    properties.getProperty(key));
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Place holders replaced String " + content);
+        }
         return content;
     }
 
     /**
-     * Read the file which is in given path and build the message template
+     * Read the file which is in given path and build the message template.
      *
      * @param filePath Path of the message template file
      * @return String which contains message template
@@ -181,7 +181,8 @@ public class EventUtils {
         }
         try {
             String currentLine;
-            bufferedReader = new BufferedReader(new FileReader(filePath));
+            bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath),
+                    StandardCharsets.UTF_8));
             StringBuilder templateBuilder = new StringBuilder();
 
             while ((currentLine = bufferedReader.readLine()) != null) {
