@@ -16,7 +16,6 @@
 
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@ page import="java.util.HashMap" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
@@ -37,7 +36,7 @@
         return;
     }
 
-    String BUNDLE = "org.wso2.carbon.identity.governance.ui.i18n.Resources";
+    String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     try {
         Enumeration<String> paramNames = request.getParameterNames();
