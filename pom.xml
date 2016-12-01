@@ -38,7 +38,7 @@
     </scm>
 
     <modules>
-        <module>components/framework</module>
+        <!--<module>components/framework</module>-->
         <module>components/authentication</module>
         <module>components/gateway</module>
     </modules>
@@ -554,7 +554,7 @@
                 <version>${identity.framework.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.common</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
@@ -697,11 +697,6 @@
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
-                <artifactId>org.wso2.carbon.identity.framework</artifactId>
-                <version>${identity.framework.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
@@ -896,6 +891,13 @@
                 <artifactId>encoder</artifactId>
                 <version>${encoder.wso2.version}</version>
             </dependency>
+
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway.framework</artifactId>
+                <version>${identity.gateway.version}</version>
+            </dependency>
             <!--Components Dependencies Ends-->
 
             <!--Composite Feature Dependency-->
@@ -1039,7 +1041,7 @@
             </dependency>
 
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
@@ -1328,7 +1330,7 @@
         <carbon.commons.imp.pkg.version>[4.4.0, 5.0.0)</carbon.commons.imp.pkg.version>
 
         <!--Carbon identity version-->
-        <identity.framework.version>5.5.0-SNAPSHOT</identity.framework.version>
+        <identity.framework.version>5.6.20</identity.framework.version>
         <carbon.identity.package.export.version>${identity.framework.version}</carbon.identity.package.export.version>
         <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
 
@@ -1528,6 +1530,9 @@
         <ehcache.version>1.5.0.wso2v3</ehcache.version>
 
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
+
+        <identity.gateway.version>5.5.0-SNAPSHOT</identity.gateway.version>
+        <identity.gateway.exp.pkg.version>${identity.gateway.version}</identity.gateway.exp.pkg.version>
 
         <project.scm.id>my-scm-server</project.scm.id>
     </properties>
