@@ -28,7 +28,7 @@
         </parameter>
 
         <operation name="associateID">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/create
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
@@ -38,7 +38,7 @@
         </operation>
 
         <operation name="getAssociatedIDs">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
@@ -48,7 +48,7 @@
         </operation>
 
         <operation name="getProfileFieldsForInternalStore">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
@@ -73,7 +73,7 @@
         </operation>
 
         <operation name="setUserProfile">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
@@ -83,7 +83,7 @@
         </operation>
 
         <operation name="getUserProfile">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userprofile/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
