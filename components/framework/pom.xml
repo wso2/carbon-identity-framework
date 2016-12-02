@@ -29,7 +29,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>framework</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - Authentication Framework Aggregator Module</name>
+    <name>WSO2 Carbon - Identity Framework Aggregator Module</name>
     <description>
         This is a Carbon bundle that represent the Authentication Framework Aggregator module.
     </description>

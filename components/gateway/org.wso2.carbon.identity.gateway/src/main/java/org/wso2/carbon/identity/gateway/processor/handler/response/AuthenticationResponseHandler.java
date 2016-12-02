@@ -1,8 +1,8 @@
 package org.wso2.carbon.identity.gateway.processor.handler.response;
 
 
-import org.wso2.carbon.identity.gateway.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.framework.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.response.FrameworkHandlerResponse;
 
 public class AuthenticationResponseHandler extends AbstractResponseHandler {
 

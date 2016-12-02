@@ -1,10 +1,10 @@
 package org.wso2.carbon.identity.gateway.processor.util;
 
 
-import org.wso2.carbon.identity.gateway.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.framework.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.framework.response.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.internal.GatewayDataHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPostHandler;
@@ -31,7 +31,7 @@ public class HandlerManager {
                                                 IdentityMessageContext identityMessageContext)
             throws FrameworkHandlerException {
         List<AbstractPreHandler> abstractPreHandlers =
-                FrameworkServiceDataHolder.getInstance().getPreHandler().get(extensionHandlerPoint);
+                GatewayDataHolder.getInstance().getPreHandler().get(extensionHandlerPoint);
         if (abstractPreHandlers != null) {
             for (AbstractPreHandler abstractPreHandler : abstractPreHandlers) {
                 if (abstractPreHandler.canHandle(identityMessageContext)) {
@@ -49,7 +49,7 @@ public class HandlerManager {
                                                  IdentityMessageContext identityMessageContext)
             throws FrameworkHandlerException {
         List<AbstractPostHandler> abstractPostHandlers =
-                FrameworkServiceDataHolder.getInstance().getPostHandler().get(extensionHandlerPoint);
+                GatewayDataHolder.getInstance().getPostHandler().get(extensionHandlerPoint);
         if (abstractPostHandlers != null) {
             for (AbstractPostHandler abstractPostHandler : abstractPostHandlers) {
                 if (abstractPostHandler.canHandle(identityMessageContext)) {
@@ -66,7 +66,7 @@ public class HandlerManager {
 
     public AuthenticationHandler getAuthenticationHandler(IdentityMessageContext messageContext) {
         List<AuthenticationHandler> authenticationHandlers =
-                FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers();
+                GatewayDataHolder.getInstance().getAuthenticationHandlers();
         if (authenticationHandlers != null) {
             for (AuthenticationHandler authenticationHandler : authenticationHandlers) {
                 if (authenticationHandler.canHandle(messageContext)) {
@@ -80,7 +80,7 @@ public class HandlerManager {
 
     public AbstractResponseHandler getResponseHandler(IdentityMessageContext messageContext) {
         List<AbstractResponseHandler> responseBuilderHandlers =
-                FrameworkServiceDataHolder.getInstance().getResponseHandlers();
+                GatewayDataHolder.getInstance().getResponseHandlers();
         if (responseBuilderHandlers != null) {
             for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
                 if (responseBuilderHandler.canHandle(messageContext)) {
@@ -94,7 +94,7 @@ public class HandlerManager {
 
     public AbstractRequestHandler getProtocolRequestHandler(IdentityMessageContext messageContext) {
         List<AbstractRequestHandler> protocolRequestHandlers =
-                FrameworkServiceDataHolder.getInstance().getRequestHandlers();
+                GatewayDataHolder.getInstance().getRequestHandlers();
         if (protocolRequestHandlers != null) {
             for (AbstractRequestHandler protocolRequestHandler : protocolRequestHandlers) {
                 if (protocolRequestHandler.canHandle(messageContext)) {

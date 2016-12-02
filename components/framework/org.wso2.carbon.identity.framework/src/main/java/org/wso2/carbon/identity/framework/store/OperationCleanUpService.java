@@ -54,7 +54,7 @@ public final class OperationCleanUpService {
     public void activateCleanUp() {
         Runnable databaseCleanUpTask = new DatabaseOperationCleanUpTask();
         scheduler.scheduleWithFixedDelay(databaseCleanUpTask, initialDelay, delayBetweenRuns,
-                                         TimeUnit.MINUTES);
+                TimeUnit.MINUTES);
     }
 
     private static final class DatabaseOperationCleanUpTask implements Runnable {
