@@ -22,9 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.gateway.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.gateway.framework.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.framework.request.IdentityRequest;
 import org.wso2.carbon.identity.gateway.framework.response.IdentityResponse;
-import org.wso2.carbon.identity.gateway.framework.internal.FrameworkServiceDataHolder;
 
 import java.util.List;
 

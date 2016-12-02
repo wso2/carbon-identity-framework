@@ -30,13 +30,14 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>gateway</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - Identity Gateway Module</name>
+    <name>WSO2 Carbon - Identity Gateway Aggregator Module</name>
     <description>
     </description>
     <url>http://wso2.org</url>
 
     <modules>
         <module>org.wso2.carbon.identity.gateway.framework</module>
+        <module>org.wso2.carbon.identity.gateway</module>
     </modules>
 
 </project>
