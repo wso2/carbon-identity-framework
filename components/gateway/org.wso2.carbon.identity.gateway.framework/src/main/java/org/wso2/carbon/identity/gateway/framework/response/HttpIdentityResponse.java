@@ -28,13 +28,13 @@ import javax.servlet.http.Cookie;
 
 public class HttpIdentityResponse {
 
-    private Map<String, String> headers = new HashMap<String, String>();
-    private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
-    private String contentType;
-    private Map<String, String[]> parameters = new HashMap<>();
-    private String body;
-    private int statusCode;
-    private String redirectURL;
+    protected Map<String, String> headers = new HashMap<String, String>();
+    protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+    protected String contentType;
+    protected Map<String, String[]> parameters = new HashMap<>();
+    protected String body;
+    protected int statusCode;
+    protected String redirectURL;
 
     protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
         this.headers = builder.headers;
@@ -88,13 +88,13 @@ public class HttpIdentityResponse {
 
     public static class HttpIdentityResponseBuilder {
 
-        private Map<String, String> headers = new HashMap<String, String>();
-        private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
-        private String contentType;
-        private Map<String, String[]> parameters = new HashMap<>();
-        private int statusCode;
-        private String redirectURL;
-        private String body;
+        protected Map<String, String> headers = new HashMap<String, String>();
+        protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+        protected String contentType;
+        protected Map<String, String[]> parameters = new HashMap<>();
+        protected int statusCode;
+        protected String redirectURL;
+        protected String body;
 
         public HttpIdentityResponseBuilder setHeaders(Map<String, String> headers) {
             this.headers = headers;
@@ -137,12 +137,10 @@ public class HttpIdentityResponse {
         }
 
         public HttpIdentityResponseBuilder addCookies(Map<String, Cookie> cookies) {
-            for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
-                if (this.cookies.containsKey(cookie.getKey())) {
-                    throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                            "cookie " + cookie.getKey());
+            if (cookies != null) {
+                for (Cookie cookie : cookies.values()) {
+                    addCookie(cookie);
                 }
-                this.cookies.put(cookie.getKey(), cookie.getValue());
             }
             return this;
         }
@@ -153,7 +151,9 @@ public class HttpIdentityResponse {
         }
 
         public HttpIdentityResponseBuilder setParameters(Map<String, String[]> parameters) {
-            this.parameters = parameters;
+            if (parameters != null) {
+                this.parameters = parameters;
+            }
             return this;
         }
 
@@ -176,12 +176,10 @@ public class HttpIdentityResponse {
         }
 
         public HttpIdentityResponseBuilder addParameters(Map<String, String[]> parameters) {
-            for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
-                if (this.parameters.containsKey(parameter.getKey())) {
-                    throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                            "key " + parameter.getKey());
+            if (parameters != null) {
+                for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
+                    addParameter(parameter.getKey(), parameter.getValue());
                 }
-                this.parameters.put(parameter.getKey(), parameter.getValue());
             }
             return this;
         }
