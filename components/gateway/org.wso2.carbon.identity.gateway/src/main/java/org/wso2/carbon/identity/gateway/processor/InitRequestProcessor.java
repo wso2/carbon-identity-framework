@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.gateway.processor;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.request.IdentityRequest;
@@ -26,8 +28,13 @@ import org.wso2.carbon.identity.framework.response.IdentityResponse.IdentityResp
  */
 public class InitRequestProcessor extends IdentityProcessor {
 
+    private static final Log log = LogFactory.getLog(InitRequestProcessor.class);
+
     @Override
     public IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
+        if (log.isDebugEnabled()) {
+            log.debug(getName() + " processed the Identity Request successfully.");
+        }
         return new IdentityResponseBuilder();
     }
 

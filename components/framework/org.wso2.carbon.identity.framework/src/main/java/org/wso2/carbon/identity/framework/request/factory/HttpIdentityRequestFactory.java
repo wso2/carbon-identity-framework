@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
 import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.request.IdentityRequest;
-import org.wso2.carbon.identity.framework.response.HttpIdentityResponse;
+import org.wso2.carbon.identity.framework.request.IdentityRequest.IdentityRequestBuilder;
+import org.wso2.carbon.identity.framework.response.HttpIdentityResponse.HttpIdentityResponseBuilder;
 
 import java.util.Enumeration;
 import java.util.Map;
@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> {
+public class HttpIdentityRequestFactory<T extends IdentityRequestBuilder> {
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
     protected Properties properties;
@@ -87,10 +87,10 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         return true;
     }
 
-    public IdentityRequest.IdentityRequestBuilder create(HttpServletRequest request, HttpServletResponse response)
+    public IdentityRequestBuilder create(HttpServletRequest request, HttpServletResponse response)
             throws FrameworkClientException {
 
-        IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request, response);
+        IdentityRequestBuilder builder = new IdentityRequestBuilder(request, response);
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
@@ -106,18 +106,24 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         }
 
         // add cookie into Identity Request
-        Cookie[] cookies = request.getCookies() == null ? new Cookie[0] : request.getCookies();
-        for (Cookie cookie : cookies) {
-            builder.addCookie(cookie.getName(), cookie);
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                builder.addCookie(cookie.getName(), cookie);
+            }
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Identity Request is build from the inbound HTTP Request.");
+        }
+
         return builder;
     }
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception,
-                                                                            HttpServletRequest request,
-                                                                            HttpServletResponse response) {
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
-                new HttpIdentityResponse.HttpIdentityResponseBuilder();
+    public HttpIdentityResponseBuilder handleException(FrameworkClientException exception,
+                                                       HttpServletRequest request,
+                                                       HttpServletResponse response) {
+        HttpIdentityResponseBuilder builder = new HttpIdentityResponseBuilder();
         builder.setStatusCode(400);
         builder.setBody(exception.getMessage());
         return builder;

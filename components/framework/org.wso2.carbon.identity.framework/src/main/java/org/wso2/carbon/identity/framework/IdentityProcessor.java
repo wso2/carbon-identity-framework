@@ -106,8 +106,8 @@ public abstract class IdentityProcessor {
 
         authenticationRequest.setRelyingParty(getRelyingPartyId());
         authenticationRequest.setType(getName());
-        authenticationRequest.setPassiveAuth((Boolean)context.getParameter(InboundConstants.PassiveAuth));
-        authenticationRequest.setForceAuth((Boolean) context.getParameter(InboundConstants.ForceAuth));
+        authenticationRequest.setPassiveAuth((Boolean)context.getParameter(InboundConstants.PASSIVE_AUTH));
+        authenticationRequest.setForceAuth((Boolean) context.getParameter(InboundConstants.FORCE_AUTH));
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
         } catch (UnsupportedEncodingException e) {

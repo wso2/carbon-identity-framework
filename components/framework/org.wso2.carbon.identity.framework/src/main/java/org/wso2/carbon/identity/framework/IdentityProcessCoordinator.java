@@ -33,11 +33,10 @@ public class IdentityProcessCoordinator {
     private static final Log log = LogFactory.getLog(IdentityProcessCoordinator.class);
 
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
-
         IdentityProcessor processor = getIdentityProcessor(identityRequest);
         if (processor != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Starting to process IdentityProcessor : " + processor.getName());
+                log.debug("Identity Request is being processed by : " + processor.getName());
             }
             return processor.process(identityRequest).build();
         } else {
