@@ -201,18 +201,17 @@ public class IdentityRequest implements Serializable {
             return response;
         }
 
-        public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {
-            this.headers = responseHeaders;
+        public IdentityRequestBuilder setHeaders(Map<String, String> headers) {
+            if (headers == null) {
+                throw FrameworkRuntimeException.error("Headers map is null.");
+            }
+            this.headers = headers;
             return this;
         }
 
         public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
-                if (this.headers.containsKey(header.getKey())) {
-                    throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                            "header " + header.getKey());
-                }
-                this.headers.put(header.getKey(), header.getValue());
+                addHeader(header.getKey(), header.getValue());
             }
             return this;
         }
@@ -227,6 +226,9 @@ public class IdentityRequest implements Serializable {
         }
 
         public IdentityRequestBuilder setCookies(Map<String, Cookie> cookies) {
+            if (cookies == null) {
+                throw FrameworkRuntimeException.error("Cookies map is null.");
+            }
             this.cookies = cookies;
             return this;
         }
@@ -242,17 +244,16 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addCookies(Map<String, Cookie> cookies) {
             for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
-                if (this.cookies.containsKey(cookie.getKey())) {
-                    throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                            "cookie " + cookie.getKey());
-                }
-                this.cookies.put(cookie.getKey(), cookie.getValue());
+                addCookie(cookie.getKey(), cookie.getValue());
             }
             return this;
         }
 
         public IdentityRequestBuilder setParameters(Map<String, String[]> parameters) {
-            this.parameters = new HashMap<>(parameters);;
+            if (parameters == null) {
+                throw FrameworkRuntimeException.error("Parameters map is null.");
+            }
+            this.parameters = parameters;
             return this;
         }
 
@@ -276,17 +277,16 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addParameters(Map<String, String[]> parameters) {
             for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
-                if (this.parameters.containsKey(parameter.getKey())) {
-                    throw FrameworkRuntimeException.error("Parameters map trying to override existing key " +
-                            parameter.getKey());
-                }
-                this.parameters.put(parameter.getKey(), parameter.getValue());
+                addParameter(parameter.getKey(), parameter.getValue());
             }
             return this;
         }
 
         public IdentityRequestBuilder setAttributes(Map<String, Object> attributes) {
-            this.attributes = new HashMap(attributes);;
+            if (attributes == null) {
+                throw FrameworkRuntimeException.error("Attributes map is null.");
+            }
+            this.attributes = attributes;
             return this;
         }
 
@@ -301,11 +301,7 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
             for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
-                if (this.attributes.containsKey(attribute.getKey())) {
-                    throw FrameworkRuntimeException.error("Attributes map trying to override existing key " +
-                                                          attribute.getKey());
-                }
-                this.attributes.put(attribute.getKey(), attribute.getValue());
+                addAttribute(attribute.getKey(), attribute.getValue());
             }
             return this;
         }
