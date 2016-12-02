@@ -80,29 +80,9 @@ public class GatewayServiceComponent {
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
 
-        //Registering processor
-        try {
-           // AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
-           // bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
-            bundleContext.registerService(IdentityProcessor.class, new InitRequestProcessor(), null);
-          //  bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
-        } catch (Throwable e) {
-            log.error(e);
-        }
-
-        //Registering this for demo perposes only
-//        bundleContext.registerService(AbstractSequenceBuildFactory.class, new DemoSequenceBuildFactory(), null);
-//        bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
-//        bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
-//        bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
-//        bundleContext.registerService(StepHandler.class, new StepHandler(), null);
-//
-//        bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
-//        bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
-//
-
+        // Register Initial Authentication Request Handler
+        bundleContext.registerService(IdentityProcessor.class, new InitRequestProcessor(), null);
         dataHolder.setBundleContext(bundleContext);
-
 
         if (log.isDebugEnabled()) {
             log.debug("Identity Gateway bundle is activated");

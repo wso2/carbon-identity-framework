@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.framework.servlet;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
-import org.wso2.carbon.identity.framework.response.factory.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
@@ -30,6 +29,7 @@ import org.wso2.carbon.identity.framework.request.IdentityRequest;
 import org.wso2.carbon.identity.framework.request.factory.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.framework.response.HttpIdentityResponse;
 import org.wso2.carbon.identity.framework.response.IdentityResponse;
+import org.wso2.carbon.identity.framework.response.factory.HttpIdentityResponseFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -103,7 +103,8 @@ public class IdentityGateway extends HttpServlet {
         }
     }
 
-    private void processHttpResponse(HttpIdentityResponse httpIdentityResponse, HttpServletRequest request,
+    private void processHttpResponse(HttpIdentityResponse httpIdentityResponse,
+                                     HttpServletRequest request,
                                      HttpServletResponse response) {
 
         for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
@@ -115,6 +116,7 @@ public class IdentityGateway extends HttpServlet {
         if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
             response.setContentType(httpIdentityResponse.getContentType());
         }
+
         if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
             try {
                 sendRedirect(response, httpIdentityResponse);
