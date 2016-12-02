@@ -46,7 +46,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.extension.ExtensionHan
 import org.wso2.carbon.identity.gateway.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.gateway.processor.request.FrameworkLoginRequestFactory;
+import org.wso2.carbon.identity.gateway.processor.request.factory.FrameworkLoginRequestFactory;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 

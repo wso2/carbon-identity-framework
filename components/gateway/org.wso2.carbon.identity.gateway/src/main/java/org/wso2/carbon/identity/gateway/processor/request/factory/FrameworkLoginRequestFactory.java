@@ -1,9 +1,10 @@
-package org.wso2.carbon.identity.gateway.processor.request;
+package org.wso2.carbon.identity.gateway.processor.request.factory;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.framework.exception.FrameworkClientException;
 import org.wso2.carbon.identity.gateway.framework.request.factory.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.framework.response.HttpIdentityResponse;
+import org.wso2.carbon.identity.gateway.processor.request.FrameworkLoginRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

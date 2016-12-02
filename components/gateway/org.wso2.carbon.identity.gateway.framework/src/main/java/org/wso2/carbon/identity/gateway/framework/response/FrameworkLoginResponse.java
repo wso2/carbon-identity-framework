@@ -22,12 +22,12 @@ import org.wso2.carbon.identity.gateway.framework.context.IdentityMessageContext
 
 public class FrameworkLoginResponse extends IdentityResponse {
 
-    private String authName;
-    private String authType;
-    private String contextKey;
-    private String relyingParty;
-    private String callbackPath;
-    private String redirectUrl;
+    protected String authName;
+    protected String authType;
+    protected String contextKey;
+    protected String relyingParty;
+    protected String callbackPath;
+    protected String redirectUrl;
 
     protected FrameworkLoginResponse(FrameworkLoginResponseBuilder builder) {
         super(builder);
@@ -65,12 +65,12 @@ public class FrameworkLoginResponse extends IdentityResponse {
 
     public static class FrameworkLoginResponseBuilder extends IdentityResponseBuilder {
 
-        private String authName;
-        private String authType;
-        private String contextKey;
-        private String relyingParty;
-        private String callbackPath;
-        private String redirectUrl;
+        protected String authName;
+        protected String authType;
+        protected String contextKey;
+        protected String relyingParty;
+        protected String callbackPath;
+        protected String redirectUrl;
 
         public FrameworkLoginResponseBuilder(IdentityMessageContext context) {
             super(context);

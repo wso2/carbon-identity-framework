@@ -97,6 +97,15 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
             builder.addHeader(headerName, request.getHeader(headerName));
         }
         builder.setParameters(request.getParameterMap());
+
+        // add request attributes into the Identity Request
+        Enumeration<String> attrNames = request.getAttributeNames();
+        while (attrNames.hasMoreElements()) {
+            String attrName = attrNames.nextElement();
+            builder.addAttribute(attrName, request.getAttribute(attrName));
+        }
+
+        // add cookie into Identity Request
         Cookie[] cookies = request.getCookies();
         for (Cookie cookie : cookies) {
             builder.addCookie(cookie.getName(), cookie);
