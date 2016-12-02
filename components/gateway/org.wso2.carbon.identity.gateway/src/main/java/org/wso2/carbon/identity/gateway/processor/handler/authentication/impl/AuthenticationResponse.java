@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 
 
-import org.wso2.carbon.identity.gateway.framework.response.IdentityResponse;
+import org.wso2.carbon.identity.framework.response.IdentityResponse;
 
 public enum AuthenticationResponse {
     AUTHENTICATED,

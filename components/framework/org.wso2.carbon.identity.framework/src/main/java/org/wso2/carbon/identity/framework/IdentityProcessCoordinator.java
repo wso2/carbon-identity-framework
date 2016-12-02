@@ -20,7 +20,11 @@ package org.wso2.carbon.identity.framework;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.internal.IdentityFrameworkDataHolder;
+import org.wso2.carbon.identity.framework.request.IdentityRequest;
+import org.wso2.carbon.identity.framework.response.IdentityResponse;
 
 import java.util.List;
 
@@ -42,7 +46,7 @@ public class IdentityProcessCoordinator {
     }
 
     private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
-        List<IdentityProcessor> processors = FrameworkServiceDataHolder.getInstance().getIdentityProcessors();
+        List<IdentityProcessor> processors = IdentityFrameworkDataHolder.getInstance().getIdentityProcessors();
 
         for (IdentityProcessor requestProcessor : processors) {
             if (requestProcessor.canHandle(identityRequest)) {

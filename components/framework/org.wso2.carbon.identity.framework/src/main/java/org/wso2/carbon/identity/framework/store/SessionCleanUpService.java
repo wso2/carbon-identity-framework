@@ -57,7 +57,7 @@ public final class SessionCleanUpService {
     public void activateCleanUp() {
         Runnable databaseCleanUpTask = new DatabaseCleanUpTask();
         scheduler.scheduleWithFixedDelay(databaseCleanUpTask, initialDelay, delayBetweenRuns,
-                                         TimeUnit.MINUTES);
+                TimeUnit.MINUTES);
 
     }
 

@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.extension;
 
 
-import org.wso2.carbon.identity.gateway.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.framework.exception.FrameworkException;
 
 public class ExtensionHandlerException extends FrameworkException {
     public ExtensionHandlerException(String message) {

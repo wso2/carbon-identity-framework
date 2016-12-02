@@ -3,13 +3,13 @@ package org.wso2.carbon.identity.gateway.processor;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.framework.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.gateway.framework.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.framework.request.IdentityRequest;
-import org.wso2.carbon.identity.gateway.framework.response.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.framework.response.IdentityResponse;
+import org.wso2.carbon.identity.framework.IdentityProcessor;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.request.IdentityRequest;
+import org.wso2.carbon.identity.framework.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.framework.response.IdentityResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
@@ -18,9 +18,9 @@ import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractReques
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
-import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.request.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.util.HandlerManager;
 
 public class AuthenticationProcessor extends IdentityProcessor {

@@ -3,15 +3,15 @@ package org.wso2.carbon.identity.gateway.context;
 
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
-import org.wso2.carbon.identity.gateway.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.model.UserClaim;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
-import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
 import java.io.Serializable;
 import java.util.List;

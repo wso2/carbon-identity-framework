@@ -12,7 +12,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.Step;
-import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
 
 public class DemoSequence extends AbstractSequence {
@@ -46,9 +46,7 @@ public class DemoSequence extends AbstractSequence {
         try {
             serviceProvider = appInfo.getServiceProviderByClientId(initialAuthenticationRequest
                             .getUniqueId(), initialAuthenticationRequest.getType(),
-                    initialAuthenticationRequest
-
-                            .getTenantDomain());
+                    initialAuthenticationRequest.getTenantDomain());
             if (serviceProvider != null) {
                 LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig =
                         serviceProvider.getLocalAndOutBoundAuthenticationConfig();

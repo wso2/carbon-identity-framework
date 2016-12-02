@@ -2,7 +2,7 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.u
 
 
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.internal.GatewayDataHolder;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
@@ -29,7 +29,7 @@ public class Utility {
     public static LocalApplicationAuthenticator getLocalApplicationAuthenticator(String name) {
         LocalApplicationAuthenticator localApplicationAuthenticator = null;
         List<LocalApplicationAuthenticator> localApplicationAuthenticators =
-                FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators();
+                GatewayDataHolder.getInstance().getLocalApplicationAuthenticators();
         for (LocalApplicationAuthenticator tmpLocalApplicationAuthenticator : localApplicationAuthenticators) {
             if (tmpLocalApplicationAuthenticator.getName().equals(name)) {
                 localApplicationAuthenticator = tmpLocalApplicationAuthenticator;
@@ -42,7 +42,7 @@ public class Utility {
     public static FederatedApplicationAuthenticator getFederatedApplicationAuthenticator(String name) {
         FederatedApplicationAuthenticator federatedApplicationAuthenticator = null;
         List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators =
-                FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators();
+                GatewayDataHolder.getInstance().getFederatedApplicationAuthenticators();
         for (FederatedApplicationAuthenticator tmpFederatedApplicationAuthenticator :
                 federatedApplicationAuthenticators) {
             if (tmpFederatedApplicationAuthenticator.getName().equals(name)) {
@@ -56,7 +56,7 @@ public class Utility {
     public static RequestPathApplicationAuthenticator getRequestPathApplicationAuthenticator(String name) {
         RequestPathApplicationAuthenticator requestPathApplicationAuthenticator = null;
         List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators =
-                FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators();
+                GatewayDataHolder.getInstance().getRequestPathApplicationAuthenticators();
         for (RequestPathApplicationAuthenticator authenticator : requestPathApplicationAuthenticators) {
             if (authenticator.getName().equals(name)) {
                 requestPathApplicationAuthenticator = authenticator;

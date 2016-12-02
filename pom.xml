@@ -38,7 +38,7 @@
     </scm>
 
     <modules>
-        <!--<module>components/framework</module>-->
+        <module>components/framework</module>
         <!--<module>components/authentication</module>-->
         <module>components/gateway</module>
     </modules>
@@ -895,7 +895,7 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
-                <artifactId>org.wso2.carbon.identity.gateway.framework</artifactId>
+                <artifactId>org.wso2.carbon.identity.framework</artifactId>
                 <version>${identity.gateway.version}</version>
             </dependency>
             <!--Components Dependencies Ends-->

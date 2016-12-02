@@ -23,11 +23,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.framework.internal.IdentityFrameworkDataHolder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -62,41 +62,41 @@ public class SessionDataStore {
     private static final String OPERATION_STORE = "STORE";
     private static final String SQL_INSERT_STORE_OPERATION =
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, " +
-            "TENANT_ID) VALUES (?,?,?,?,?,?)";
+                    "TENANT_ID) VALUES (?,?,?,?,?,?)";
     private static final String SQL_INSERT_DELETE_OPERATION =
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED) VALUES (?,?,?,?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID in (" +
-            "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE +
-            "' AND TIME_CREATED < ?)";
+                    "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE +
+                    "' AND TIME_CREATED < ?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL =
             "DELETE IDN_AUTH_SESSION_STORE_DELETE FROM IDN_AUTH_SESSION_STORE IDN_AUTH_SESSION_STORE_DELETE WHERE " +
-            "OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID IN (SELECT SESSION_ID FROM (SELECT SESSION_ID " +
-            "FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND TIME_CREATED < ?) " +
-            "IDN_AUTH_SESSION_STORE_SELECT)";
+                    "OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID IN (SELECT SESSION_ID FROM (SELECT SESSION_ID " +
+                    "FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND TIME_CREATED < ?) " +
+                    "IDN_AUTH_SESSION_STORE_SELECT)";
     private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND  TIME_CREATED < ?";
 
     private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-            " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_DB2SQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-            " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC FETCH FIRST 1 ROWS ONLY";
     private static final String SQL_DESERIALIZE_OBJECT_MSSQL =
             "SELECT TOP 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-            " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC";
     private static final String SQL_DESERIALIZE_OBJECT_POSTGRESQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-            " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_INFORMIX =
             "SELECT FIRST 1 OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? " +
-            "AND" +
-            " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+                    "AND" +
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
     private static final String SQL_DESERIALIZE_OBJECT_ORACLE =
             "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE " +
-            "SESSION_ID =? AND" +
-            " SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
+                    "SESSION_ID =? AND" +
+                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
 
     private static final String SQL_DELETE_EXPIRED_DATA_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED<?";
@@ -209,7 +209,7 @@ public class SessionDataStore {
             long sessionCleanupPeriod = IdentityUtil.getCleanUpPeriod(
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
             SessionCleanUpService sessionCleanUpService = new SessionCleanUpService(sessionCleanupPeriod / 4,
-                                                                                    sessionCleanupPeriod);
+                    sessionCleanupPeriod);
             sessionCleanUpService.activateCleanUp();
         } else {
             log.info("Session Data CleanUp Task of Authentication framework is not enabled.");
@@ -219,7 +219,7 @@ public class SessionDataStore {
                 operationCleanUpPeriod = Long.parseLong(operationCleanUpPeriodVal);
             }
             OperationCleanUpService operationCleanUpService = new OperationCleanUpService(operationCleanUpPeriod / 4,
-                                                                                          operationCleanUpPeriod);
+                    operationCleanUpPeriod);
             operationCleanUpService.activateCleanUp();
         } else {
             log.info("Session Data Operations CleanUp Task of Authentication framework is not enabled.");
@@ -258,12 +258,12 @@ public class SessionDataStore {
         try {
             if (StringUtils.isBlank(sqlSelect)) {
                 if (connection.getMetaData().getDriverName().contains("MySQL")
-                    || connection.getMetaData().getDriverName().contains("H2")) {
+                        || connection.getMetaData().getDriverName().contains("H2")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
                 } else if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
                 } else if (connection.getMetaData().getDriverName().contains("MS SQL")
-                           || connection.getMetaData().getDriverName().contains("Microsoft")) {
+                        || connection.getMetaData().getDriverName().contains("Microsoft")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
                 } else if (connection.getMetaData().getDriverName().contains("PostgreSQL")) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
@@ -371,7 +371,7 @@ public class SessionDataStore {
         long currentStandardNano = timestamp.getTime() * 1000000;
         long currentSystemNano = System.nanoTime();
 
-        currentStandardNano = currentStandardNano + (currentSystemNano - FrameworkServiceDataHolder.getInstance()
+        currentStandardNano = currentStandardNano + (currentSystemNano - IdentityFrameworkDataHolder.getInstance()
                 .getNanoTimeReference());
 
         try {
@@ -483,7 +483,7 @@ public class SessionDataStore {
             return;
         } catch (SQLException e) {
             log.error("Error while removing STORE operation data from the database for the timestamp " +
-                      timestamp.toString(), e);
+                    timestamp.toString(), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
@@ -510,7 +510,7 @@ public class SessionDataStore {
             return;
         } catch (SQLException e) {
             log.error("Error while removing DELETE operation data from the database for the timestamp " +
-                      timestamp.toString(), e);
+                    timestamp.toString(), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
 
