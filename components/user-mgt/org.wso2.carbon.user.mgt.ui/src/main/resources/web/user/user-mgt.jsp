@@ -678,7 +678,7 @@
                         <%
                             if (!Util.getUserStoreInfoForUser(userName, userRealmInfo).getPasswordsExternallyManaged() &&
                                     CarbonUIUtil.isUserAuthorized(request,
-                                            "/permission/admin/configure/security/usermgt/passwords") &&
+                                            "/permission/admin/manage/identity/usermgt/passwords") &&
                                     users[i].getEditable()) { //if passwords are managed externally do not allow to change passwords.
                                 if (userName.equals(currentUser)) {
                         %>
@@ -704,7 +704,7 @@
                                 key="edit.roles"/></a>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
                         %>
                         <a href="view-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -720,7 +720,7 @@
 
                         <%
                             if (CarbonUIUtil.isContextRegistered(config, "/identity-authorization/") &&
-                                    CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security/")) {
+                                    CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/")) {
                         %>
                         <a href="../identity-authorization/permission-root.jsp?userName=<%=Encode.forUriComponent(userName)%>&fromUserMgt=true"
                            class="icon-link"
@@ -733,7 +733,7 @@
                         <%
                             if (CarbonUIUtil.isContextRegistered(config, "/userprofile/")
                                     && CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/configure/security/usermgt/profiles")) {
+                                    "/permission/admin/manage/identity/usermgt/profiles")) {
                         %>
                         <a href="../userprofile/index.jsp?username=<%=java.net.URLEncoder.encode(userName,"UTF-8")%>&displayName=<%=java.net.URLEncoder.encode(displayName,"UTF-8")%>&fromUserMgt=true"
                            class="icon-link"
@@ -782,7 +782,7 @@
                         <%
                             if (!Util.getUserStoreInfoForUser(userName, userRealmInfo).getPasswordsExternallyManaged() &&      // TODO
                                     CarbonUIUtil.isUserAuthorized(request,
-                                            "/permission/admin/configure/security/usermgt/passwords") &&
+                                            "/permission/admin/manage/identity/usermgt/passwords") &&
                                     users[i].getEditable()) { //if passwords are managed externally do not allow to change passwords.
                                 if (userName.equals(currentUser)) {
                         %>
@@ -804,7 +804,7 @@
                         %>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
                         %>
                         <a href="edit-user-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -815,7 +815,7 @@
                         %>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
                         %>
                         <a href="view-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -827,7 +827,7 @@
 
                         <%
                             if (CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/configure/security/usermgt/users") && !userName.equals(currentUser)
+                                    "/permission/admin/manage/identity/usermgt/users") && !userName.equals(currentUser)
                                     && !userName.equals(userRealmInfo.getAdminUser()) &&
                                     users[i].getEditable()) {
                         %>
@@ -846,7 +846,7 @@
                         %>
                         <%
                             if (CarbonUIUtil.isContextRegistered(config, "/identity-authorization/") &&
-                                    CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security/")) {
+                                    CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/")) {
                         %>
                         <a href="../identity-authorization/permission-root.jsp?userName=<%=Encode.forUriComponent(userName)%>&fromUserMgt=true"
                            class="icon-link"
@@ -859,7 +859,7 @@
                         <%
                             if (CarbonUIUtil.isContextRegistered(config, "/userprofile/")
                                     && CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/configure/security/usermgt/profiles")) {
+                                    "/permission/admin/manage/identity/usermgt/profiles")) {
                         %>
                         <a href="../userprofile/index.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>&fromUserMgt=true"
                            class="icon-link" style="background-image:url(../userprofile/images/my-prof.gif);">User

@@ -64,11 +64,11 @@
         <div id="workArea">
             <table width="100%">
 
-                <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security/usermgt") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security/usermgt/users") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security/usermgt/passwords") ||
-                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security/usermgt/profiles")) {%>
+                <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity") ||
+                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt") ||
+                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/users") ||
+                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/passwords") ||
+                       CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/usermgt/profiles")) {%>
                 <tr>
                     <td>
                         <table class="styledLeft" id="internal" width="100%">
@@ -81,7 +81,7 @@
                             </tr>
 
 
-                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security")) { %>
+                            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) { %>
                             <tr>
                                 <td>
                                     <a class="icon-link"
