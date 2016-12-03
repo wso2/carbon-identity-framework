@@ -1,33 +1,35 @@
 package org.wso2.carbon.identity.gateway.handler.authentication;
 
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.framework.handler.IdentityGatewayEventHandler;
+import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
+import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MultiStepAuthenticationHandler extends IdentityGatewayEventHandler {
+public class MultiStepAuthenticationHandler extends GatewayEventHandler {
 
-    private List<IdentityGatewayEventHandler> gatewayEventHandlers = new ArrayList<>();
+    private List<GatewayEventHandler> gatewayEventHandlers = new ArrayList<>();
 
 
-    public void addIdentityGatewayEventHandler(IdentityGatewayEventHandler identityGatewayEventHandler){
-        this.gatewayEventHandlers.add(identityGatewayEventHandler);
+    public void addIdentityGatewayEventHandler(GatewayEventHandler gatewayEventHandler){
+        this.gatewayEventHandlers.add(gatewayEventHandler);
     }
 
     @Override
-    public void handle(IdentityMessageContext identityMessageContext) {
-        for (IdentityGatewayEventHandler identityGatewayEventHandler: gatewayEventHandlers){
-            if(identityGatewayEventHandler.canHandle(identityMessageContext)){
-                setNextHandler(identityGatewayEventHandler);
+    public GatewayInvocationResponse handle(IdentityMessageContext identityMessageContext) {
+        for (GatewayEventHandler gatewayEventHandler : gatewayEventHandlers){
+            if(gatewayEventHandler.canHandle(identityMessageContext)){
+                setNextHandler(gatewayEventHandler);
                 break;
             }
         }
+        return GatewayInvocationResponse.CONTINUE ;
     }
 
     @Override
     public boolean canHandle(IdentityMessageContext identityMessageContext) {
-        return false;
+        return true;
     }
 }
