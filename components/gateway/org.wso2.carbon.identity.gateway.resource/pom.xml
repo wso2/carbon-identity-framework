@@ -27,9 +27,9 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+    <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Identity Gateway</name>
+    <name>WSO2 Carbon - Identity Gateway Resource</name>
     <description>
         This is a sample implementation of a Carbon Component
         which consumes an OSGi service registered by Carbon Kernel
@@ -51,6 +51,14 @@
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -66,17 +74,25 @@
     </dependencies>
 
     <properties>
-        <private.package>org.wso2.carbon.identity.gateway.internal</private.package>
+        <private.package>
+            org.wso2.carbon.identity.gateway.resource.internal
+        </private.package>
         <export.package>
-            !org.wso2.carbon.identity.gateway.internal,
-            org.wso2.carbon.identity.gateway.*
+            !org.wso2.carbon.identity.gateway.resource.internal,
+            org.wso2.carbon.identity.gateway.resource.*
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
             org.wso2.carbon.kernel;version="${carbon.kernel.package.import.version.range}",
+            org.wso2.msf4j.*,
+            javax.ws.rs.*,
+            org.wso2.carbon.messaging.*,
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.carbon.identity.framework.*; version="${identity.framework.import.version.range}"
         </import.package>
+        <carbon.component>
+            osgi.service; objectClass="org.wso2.msf4j.Microservice"
+        </carbon.component>
     </properties>
 
 </project>

@@ -1,31 +1,28 @@
 /*
  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.framework;
 
-import org.apache.commons.lang3.StringUtils;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.request.IdentityRequest;
-import org.wso2.carbon.identity.framework.response.IdentityResponse;
-import org.wso2.carbon.identity.framework.util.IdentityGatewayUtil;
 
 import java.util.Properties;
+
+import static org.wso2.carbon.identity.framework.response.IdentityResponse.IdentityResponseBuilder;
 
 public abstract class IdentityProcessor {
 
@@ -53,7 +50,7 @@ public abstract class IdentityProcessor {
      *                            processing
      *                            IdentityRequest
      */
-    public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
+    public abstract IdentityResponseBuilder process(IdentityRequest identityRequest)
             throws FrameworkException;
 
     /**
@@ -84,8 +81,7 @@ public abstract class IdentityProcessor {
      * @param context IdentityMessageContext
      * @return IdentityResponseBuilder
      */
-    protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogin(
-            IdentityMessageContext context) {
+    protected IdentityResponseBuilder buildResponseForFrameworkLogin(IdentityMessageContext context) {
 /*
         String sessionDataKey = UUIDGenerator.generateUUID();
 
@@ -138,7 +134,7 @@ public abstract class IdentityProcessor {
      * @param context IdentityMessageContext
      * @return IdentityResponseBuilder
      */
-    protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogout(IdentityMessageContext context) {
+    protected IdentityResponseBuilder buildResponseForFrameworkLogout(IdentityMessageContext context) {
 /*
         String sessionDataKey = UUIDGenerator.generateUUID();
 
@@ -191,16 +187,16 @@ public abstract class IdentityProcessor {
      *
      * @param request IdentityRequest
      */
-    protected boolean isContextAvailable(IdentityRequest request) {
-        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
-        if (StringUtils.isNotBlank(sessionDataKey)) {
-            IdentityMessageContext context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
-            if (context != null) {
-                return true;
-            }
-        }
-        return false;
-    }
+//    protected boolean isContextAvailable(IdentityRequest request) {
+//        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+//        if (StringUtils.isNotBlank(sessionDataKey)) {
+//            IdentityMessageContext context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
+//            if (context != null) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     /**
      * Returns IdentityMessageContext if one previously existed for given IdentityRequest using {@code sessionDataKey}
@@ -209,14 +205,14 @@ public abstract class IdentityProcessor {
      * @param request IdentityRequest
      * @return IdentityMessageContext
      */
-    protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
-        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
-        IdentityMessageContext context = null;
-        if (StringUtils.isNotBlank(sessionDataKey)) {
-            context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
-        }
-        return context;
-    }
+//    protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
+//        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+//        IdentityMessageContext context = null;
+//        if (StringUtils.isNotBlank(sessionDataKey)) {
+//            context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
+//        }
+//        return context;
+//    }
 
     /**
      * Processes the IdentityMessageContext and retrieved the using {@code sessionDataKey} parameter and sets the

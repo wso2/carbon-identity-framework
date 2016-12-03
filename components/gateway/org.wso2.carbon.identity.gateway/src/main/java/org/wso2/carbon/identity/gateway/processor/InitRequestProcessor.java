@@ -16,42 +16,28 @@
 
 package org.wso2.carbon.identity.gateway.processor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
-import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.request.IdentityRequest;
-import org.wso2.carbon.identity.framework.response.IdentityResponse.IdentityResponseBuilder;
-import org.wso2.carbon.identity.gateway.handler.authentication.MultiStepAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.handler.authentication.authenticator.BasicAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.handler.response.SAMLResponseHandler;
-import org.wso2.carbon.identity.gateway.handler.validation.SAMLValidationHandler;
+import org.wso2.carbon.identity.framework.response.IdentityResponse;
+
 
 /*
     This processor handler the initial identity requests that comes to the Identity Gateway.
  */
 public class InitRequestProcessor extends IdentityProcessor {
 
-    private static final Log log = LogFactory.getLog(InitRequestProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(InitRequestProcessor.class);
 
     @Override
-    public IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
+    public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
         if (log.isDebugEnabled()) {
             log.debug(getName() + " processed the Identity Request successfully.");
         }
-
-        SAMLValidationHandler samlValidationHandler = new SAMLValidationHandler();
-        BasicAuthenticationHandler basicAuthenticationHandler = new BasicAuthenticationHandler();
-        MultiStepAuthenticationHandler multiStepAuthenticationHandler = new MultiStepAuthenticationHandler();
-        SAMLResponseHandler samlResponseHandler = new SAMLResponseHandler();
-        samlValidationHandler.setNextHandler(multiStepAuthenticationHandler);
-        multiStepAuthenticationHandler.addIdentityGatewayEventHandler(basicAuthenticationHandler);
-        basicAuthenticationHandler.setNextHandler(samlResponseHandler);
-
-        samlValidationHandler.execute(new IdentityMessageContext(identityRequest));
-
-        return new IdentityResponseBuilder();
+        return new IdentityResponse.IdentityResponseBuilder();
     }
 
     @Override

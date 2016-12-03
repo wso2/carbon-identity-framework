@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.exception;
+package org.wso2.carbon.identity.gateway.resource;
 
-public class FrameworkClientException extends FrameworkException {
+import org.wso2.carbon.identity.framework.request.builder.IdentityRequestBuilder;
+import org.wso2.msf4j.Request;
 
-    protected FrameworkClientException(String errorDescription) {
-        super(errorDescription);
+public class MSF4JIdentityRequestBuilder extends IdentityRequestBuilder {
+
+    private Request request;
+
+    public MSF4JIdentityRequestBuilder(Request request) {
+        this.request = request;
     }
 
-    protected FrameworkClientException(String errorDescription, Throwable cause) {
-        super(errorDescription, cause);
+    public Request getRequest() {
+        return request;
     }
 }

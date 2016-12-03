@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.exception;
+package org.wso2.carbon.identity.framework.util;
 
-public class FrameworkClientException extends FrameworkException {
+public class FrameworkUtil {
 
-    protected FrameworkClientException(String errorDescription) {
-        super(errorDescription);
-    }
-
-    protected FrameworkClientException(String errorDescription, Throwable cause) {
-        super(errorDescription, cause);
+    public static int comparePriory(int priority1, int priority2) {
+        if (priority1 > priority2) {
+            return 1;
+        } else if (priority1 < priority2) {
+            return -1;
+        } else {
+            return 0;
+        }
     }
 }

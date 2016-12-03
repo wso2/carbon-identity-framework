@@ -1,44 +1,42 @@
 /*
  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.wso2.carbon.identity.framework.request;
 
-import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+
+import org.wso2.carbon.identity.framework.request.builder.IdentityRequestBuilder;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Canonical representation of the request received by the Framework.
+ */
 public class IdentityRequest implements Serializable {
 
-    private static final long serialVersionUID = 5418537216546873566L;
+    private static final long serialVersionUID = -5383873912447501747L;
 
     protected Map<String, String> headers = new HashMap<>();
-    protected Map<String, Cookie> cookies = new HashMap<>();
+    //    protected Map<String, Cookie> cookies = new HashMap<>();
     protected Map<String, String[]> parameters = new HashMap<>();
-    protected Map<String, Object> attributes = new HashMap();
+    protected Map<String, Object> properties = new HashMap<>();
     protected String tenantDomain;
     protected String contextPath;
     protected String method;
@@ -51,21 +49,21 @@ public class IdentityRequest implements Serializable {
     protected String contentType;
 
 
-    protected IdentityRequest(IdentityRequestBuilder builder) {
-        this.headers = builder.headers;
-        this.cookies = builder.cookies;
-        this.parameters = builder.parameters;
-        this.attributes = builder.attributes;
-        this.tenantDomain = builder.tenantDomain;
-        this.contextPath = builder.contextPath;
-        this.method = builder.method;
-        this.pathInfo = builder.pathInfo;
-        this.pathTranslated = builder.pathTranslated;
-        this.queryString = builder.queryString;
-        this.requestURI = builder.requestURI;
-        this.requestURL = builder.requestURL;
-        this.servletPath = builder.servletPath;
-        this.contentType = builder.contentType;
+    public IdentityRequest(IdentityRequestBuilder builder) {
+        this.headers = builder.getHeaders();
+//        this.cookies = builder.cookies;
+        this.parameters = builder.getParameters();
+        this.properties = builder.getAttributes();
+        this.tenantDomain = builder.getTenantDomain();
+        this.contextPath = builder.getContextPath();
+        this.method = builder.getMethod();
+        this.pathInfo = builder.getPathInfo();
+        this.pathTranslated = builder.getPathTranslated();
+        this.queryString = builder.getQueryString();
+        this.requestURI = builder.getRequestURI();
+        this.requestURL = builder.getRequestURL();
+        this.servletPath = builder.getServletPath();
+        this.contentType = builder.getContentType();
     }
 
     public Map<String, String> getHeaderMap() {
@@ -86,14 +84,14 @@ public class IdentityRequest implements Serializable {
         return headers.get(name);
     }
 
-    public Map<String, Cookie> getCookieMap() {
-        return Collections.unmodifiableMap(cookies);
-    }
-
-    public Cookie[] getCookies() {
-        Collection<Cookie> cookies = getCookieMap().values();
-        return cookies.toArray(new Cookie[cookies.size()]);
-    }
+//    public Map<String, Cookie> getCookieMap() {
+//        return Collections.unmodifiableMap(cookies);
+//    }
+//
+//    public Cookie[] getCookies() {
+//        Collection<Cookie> cookies = getCookieMap().values();
+//        return cookies.toArray(new Cookie[cookies.size()]);
+//    }
 
     public Map<String, String[]> getParameterMap() {
         return Collections.unmodifiableMap(parameters);
@@ -106,6 +104,19 @@ public class IdentityRequest implements Serializable {
     public String[] getParameterValues(String paramName) {
         return parameters.get(paramName);
     }
+
+    public Map<String, Object> getProperties() {
+        return Collections.unmodifiableMap(properties);
+    }
+
+    public Enumeration<String> getPropertyNames() {
+        return Collections.enumeration(properties.keySet());
+    }
+
+    public Object getProperty(String paramName) {
+        return properties.get(paramName);
+    }
+
 
     public String getTenantDomain() {
         return this.tenantDomain;
@@ -157,211 +168,15 @@ public class IdentityRequest implements Serializable {
         return contentType;
     }
 
-    public String getBrowserCookieValue() {
-        String cookieValue = null;
-        Cookie cookie = this.getCookieMap().get(IdentityRequestConstants.BROWSER_COOKIE);
-        if (cookie != null) {
-            cookieValue = cookie.getValue();
-        }
-        return cookieValue;
-    }
+//    public String getBrowserCookieValue() {
+//        String cookieValue = null;
+//        Cookie cookie = this.getCookieMap().get(IdentityRequestConstants.BROWSER_COOKIE);
+//        if (cookie != null) {
+//            cookieValue = cookie.getValue();
+//        }
+//        return cookieValue;
+//    }
 
-    public static class IdentityRequestBuilder {
-
-        protected HttpServletRequest request;
-        protected HttpServletResponse response;
-        protected Map<String, String> headers = new HashMap<>();
-        protected Map<String, Cookie> cookies = new HashMap<>();
-        protected Map<String, String[]> parameters = new HashMap<>();
-        protected Map<String, Object> attributes = new HashMap();
-        protected String tenantDomain;
-        protected String contextPath;
-        protected String method;
-        protected String pathInfo;
-        protected String pathTranslated;
-        protected String queryString;
-        protected String requestURI;
-        protected StringBuffer requestURL;
-        protected String servletPath;
-        protected String contentType;
-
-
-        public IdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
-            this.request = request;
-            this.response = response;
-        }
-
-        public IdentityRequestBuilder() {
-
-        }
-
-        public HttpServletRequest getRequest() {
-            return request;
-        }
-
-        public HttpServletResponse getResponse() {
-            return response;
-        }
-
-        public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {
-            this.headers = responseHeaders;
-            return this;
-        }
-
-        public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
-            for (Map.Entry<String, String> header : headers.entrySet()) {
-                if (this.headers.containsKey(header.getKey())) {
-                    throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                            "header " + header.getKey());
-                }
-                this.headers.put(header.getKey(), header.getValue());
-            }
-            return this;
-        }
-
-        public IdentityRequestBuilder addHeader(String name, String value) {
-            if (this.headers.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                        "header " + name);
-            }
-            this.headers.put(name, value);
-            return this;
-        }
-
-        public IdentityRequestBuilder setCookies(Map<String, Cookie> cookies) {
-            this.cookies = cookies;
-            return this;
-        }
-
-        public IdentityRequestBuilder addCookie(String name, Cookie value) {
-            if (this.cookies.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                        "cookie " + name);
-            }
-            this.cookies.put(name, value);
-            return this;
-        }
-
-        public IdentityRequestBuilder addCookies(Map<String, Cookie> cookies) {
-            if (cookies != null) {
-                for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
-                    addCookie(cookie.getKey(), cookie.getValue());
-                }
-            }
-            return this;
-        }
-
-        public IdentityRequestBuilder setParameters(Map<String, String[]> parameters) {
-            this.parameters = parameters;
-            return this;
-        }
-
-        public IdentityRequestBuilder addParameter(String name, String[] values) {
-            if (this.parameters.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                        "key " + name);
-            }
-            this.parameters.put(name, values);
-            return this;
-        }
-
-        public IdentityRequestBuilder addParameter(String name, String value) {
-            if (this.parameters.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                        "key " + name);
-            }
-            this.parameters.put(name, new String[]{value});
-            return this;
-        }
-
-        public IdentityRequestBuilder addParameters(Map<String, String[]> parameters) {
-            if (parameters != null) {
-                for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
-                    addParameter(parameter.getKey(), parameter.getValue());
-                }
-            }
-            return this;
-        }
-
-        public IdentityRequestBuilder setAttributes(Map<String, Object> attributes) {
-            this.attributes = attributes;
-            return this;
-        }
-
-        public IdentityRequestBuilder addAttribute(String name, Object value) {
-            if (this.attributes.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Attributes map trying to override existing " +
-                        "key " + name);
-            }
-            this.attributes.put(name, value);
-            return this;
-        }
-
-        public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
-            if (attributes != null) {
-                for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
-                    addAttribute(attribute.getKey(), attribute.getValue());
-                }
-            }
-            return this;
-        }
-
-        public IdentityRequestBuilder setTenantDomain(String tenantDomain) {
-            this.tenantDomain = tenantDomain;
-            return this;
-        }
-
-        public IdentityRequestBuilder setContextPath(String contextPath) {
-            this.contextPath = contextPath;
-            return this;
-        }
-
-        public IdentityRequestBuilder setMethod(String method) {
-            this.method = method;
-            return this;
-        }
-
-        public IdentityRequestBuilder setPathInfo(String pathInfo) {
-            this.pathInfo = pathInfo;
-            return this;
-        }
-
-        public IdentityRequestBuilder setPathTranslated(String pathTranslated) {
-            this.pathTranslated = pathTranslated;
-            return this;
-        }
-
-        public IdentityRequestBuilder setQueryString(String queryString) {
-            this.queryString = queryString;
-            return this;
-        }
-
-        public IdentityRequestBuilder setRequestURI(String requestURI) {
-            this.requestURI = requestURI;
-            return this;
-        }
-
-        public IdentityRequestBuilder setRequestURL(StringBuffer requestURL) {
-            this.requestURL = requestURL;
-            return this;
-        }
-
-        public IdentityRequestBuilder setServletPath(String servletPath) {
-            this.servletPath = servletPath;
-            return this;
-        }
-
-        public IdentityRequestBuilder setContentType(String contentType) {
-            this.contentType = contentType;
-            return this;
-        }
-
-        public IdentityRequest build() throws FrameworkRuntimeException {
-            return new IdentityRequest(this);
-        }
-
-
-    }
 
     public static class IdentityRequestConstants {
         public static final String BROWSER_COOKIE = "SIOWTOSW";
