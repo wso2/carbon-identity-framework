@@ -546,17 +546,25 @@ public class DefaultStepHandler implements StepHandler {
             context, String authenticatorNames, String showAuthFailureReason, String retryParam, String loginPage)
             throws IOException {
 
+        String url = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
+                "&authenticators=" + URLEncoder.encode(authenticatorNames + ":" + FrameworkConstants.LOCAL, "UTF-8") + retryParam;
+
         IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
         IdentityUtil.clearIdentityErrorMsg();
 
-        if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
-            if (errorContext != null) {
-                String errorCode = errorContext.getErrorCode();
+        if (errorContext != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Identity error message context is not null");
+            }
+            String errorCode = errorContext.getErrorCode();
+
+            if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
+
                 int remainingAttempts = errorContext.getMaximumLoginAttempts() - errorContext.getFailedLoginAttempts();
 
                 if (log.isDebugEnabled()) {
                     StringBuilder debugString = new StringBuilder();
-                    debugString.append("Identity error message context is not null. Error details are as follows.");
+                    debugString.append("Error details are as follows.");
                     debugString.append("errorCode : " + errorCode + "\n");
                     debugString.append("username : " + request.getParameter("username") + "\n");
                     debugString.append("remainingAttempts : " + remainingAttempts);
@@ -595,23 +603,31 @@ public class DefaultStepHandler implements StepHandler {
                             + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
                 }
             } else {
-                return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Unknown identity error code.");
+                }
+
+                if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
+                    String redirectURL;
+                    redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
+                    )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
+                            "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+                    return redirectURL;
+
+                } else {
+                    return url;
+                }
             }
         } else {
-            String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
-            if (errorCode != null && errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
-                String redirectURL;
-                redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
-                )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                return redirectURL;
 
-            } else {
-                return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+            if (log.isDebugEnabled()) {
+                log.debug("Identity error message context is null");
             }
+
+            return url;
         }
+
         return loginPage + ("?" + context.getContextIdIncludedQueryParams() + "&authenticators=" + URLEncoder.encode
                 (authenticatorNames, "UTF-8") + retryParam);
     }
