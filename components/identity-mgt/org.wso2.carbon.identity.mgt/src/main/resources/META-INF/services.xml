@@ -30,17 +30,23 @@
 		<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
 	</service>
 
-	<!--<service name="AccountCredentialMgtConfigService" scope="transportsession">-->
-		<!--<transports>-->
-			<!--<transport>https</transport>-->
-		<!--</transports>-->
-		<!--<parameter name="ServiceClass" locked="false">-->
-			<!--org.wso2.carbon.identity.mgt.services.AccountCredentialMgtConfigService-->
-		<!--</parameter>-->
-		<!--<parameter name="adminService" locked="true">true</parameter>-->
-		<!--<parameter name="hiddenService" locked="false">true</parameter>-->
-		<!--<parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>-->
-	<!--</service>-->
+    <service name="AccountCredentialMgtConfigService" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <parameter name="ServiceClass" locked="false">
+            org.wso2.carbon.identity.mgt.services.AccountCredentialMgtConfigService
+        </parameter>
+        <operation name="saveEmailConfig">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            </parameter>
+        </operation>
+        <operation name="getEmailConfig">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            </parameter>
+        </operation>
+        <parameter name="adminService" locked="true">true</parameter>
+    </service>
 
     <service name="UserIdentityManagementAdminService" scope="transportsession">
         <transports>
