@@ -139,6 +139,16 @@
             try {
 
                 for (Claim claim : claims) {
+
+                    if(claim.getUri().trim().contains("/claims/locality") &&
+                        StringUtils.isBlank(request.getParameter(claim.getUri()))){
+
+                        Claim userClaim = new Claim();
+                        userClaim.setUri(claim.getUri());
+                        userClaim.setValue(userLocale.replace('-','_'));
+                        userClaimList.add(userClaim);
+                    }
+
                     if (StringUtils.isNotBlank(request.getParameter(claim.getUri()))) {
                         Claim userClaim = new Claim();
                         userClaim.setUri(claim.getUri());
