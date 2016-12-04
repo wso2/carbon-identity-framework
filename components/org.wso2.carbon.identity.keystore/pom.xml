@@ -56,7 +56,7 @@
         <private.package>org.wso2.carbon.identity.keystore.internal</private.package>
         <export.package>
             !org.wso2.carbon.identity.keystore.internal,
-            org.wso2.carbon.identity.keystore.*; version="${identity.base.package.export.version}"
+            org.wso2.carbon.identity.keystore.*; version="${identity.keystore.package.export.version}"
         </export.package>
         <import.package>
             org.slf4j.*; version="${slf4j.package.import.version}",

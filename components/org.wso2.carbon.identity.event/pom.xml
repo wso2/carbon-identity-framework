@@ -68,7 +68,7 @@
         <private.package>org.wso2.carbon.identity.event.internal</private.package>
         <export.package>
             !org.wso2.carbon.identity.event.internal,
-            org.wso2.carbon.identity.event.*; version="${identity.base.package.export.version}"
+            org.wso2.carbon.identity.event.*; version="${identity.event.package.export.version}"
         </export.package>
         <import.package>
             org.slf4j.*; version="${slf4j.package.import.version}",

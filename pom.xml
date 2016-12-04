@@ -61,7 +61,7 @@
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
                 <artifactId>org.wso2.carbon.core</artifactId>
-                <version>${carbon.core.version}</version>
+                <version>${carbon.kernel.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.caching</groupId>
@@ -71,7 +71,7 @@
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
                 <artifactId>org.wso2.carbon.logging</artifactId>
-                <version>5.1.0-m2</version>
+                <version>${carbon.kernel.version}</version>
             </dependency>
             <dependency>
                 <groupId>apache-collections</groupId>
@@ -110,6 +110,9 @@
     </build>
 
     <properties>
+        <carbon.kernel.version>5.1.0-m2</carbon.kernel.version>
+        <carbon.kernel.package.import.version>[5,6)</carbon.kernel.package.import.version>
+
         <slf4j.version>1.7.1</slf4j.version>
         <slf4j.package.import.version>[1.7.1,2)</slf4j.package.import.version>
         <xerces.version>2.11.0</xerces.version>
@@ -120,18 +123,16 @@
         <commons-collections.import.version.range>[3,4)</commons-collections.import.version.range>
         <commons-io.version>2.5</commons-io.version>
         <commons-io.package.import.version.range>[2.5,3)</commons-io.package.import.version.range>
-        <carbon.core.version>5.1.0-m2</carbon.core.version>
-        <carbon.core.package.import.version>[5,6)</carbon.core.package.import.version>
+
         <carbon.logging.version>5.1.0-m2</carbon.logging.version>
         <carbon.logging.package.import.version>[5,6)</carbon.logging.package.import.version>
         <carbon.caching.version>1.0.0</carbon.caching.version>
         <carbon.caching.package.import.version>[1,2)</carbon.caching.package.import.version>
-        <identity.util.package.import.version>[6,7)</identity.util.package.import.version>
-        <identity.util.package.export.version>[6,7)</identity.util.package.export.version>
-        <identity.base.package.export.version>[6,7)</identity.base.package.export.version>
-        <identity.keystore.package.export.version>[6,7)</identity.keystore.package.export.version>
 
-        <identity.keystore.package.export.version>[6,7)</identity.keystore.package.export.version>
+        <identity.event.package.export.version>${project.version}</identity.event.package.export.version>
+        <identity.common.package.export.version>${project.version}}</identity.common.package.export.version>
+        <identity.keystore.package.export.version>${project.version}</identity.keystore.package.export.version>
+
     </properties>
 
 </project>

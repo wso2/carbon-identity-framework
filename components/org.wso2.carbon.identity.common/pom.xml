@@ -64,7 +64,7 @@
         <private.package>org.wso2.carbon.identity.common.internal</private.package>
         <export.package>
             !org.wso2.carbon.identity.common.internal,
-            org.wso2.carbon.identity.common.*; version="${identity.base.package.export.version}"
+            org.wso2.carbon.identity.common.*; version="${identity.common.package.export.version}"
         </export.package>
         <import.package>
             org.slf4j.*; version="${slf4j.package.import.version}",
