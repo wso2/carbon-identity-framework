@@ -371,24 +371,24 @@
         </SCIMAuthenticators>
     </SCIM>
 
-    <Recovery>
+    <!--Recovery>
         <Notification>
             <Password>
-                <Enable>true</Enable>
+                <Enable>false</Enable>
             </Password>
             <Username>
-                <Enable>true</Enable>
+                <Enable>false</Enable>
             </Username>
             <InternallyManage>true</InternallyManage>
         </Notification>
         <Question>
             <Password>
-                <Enable>true</Enable>
+                <Enable>false</Enable>
                 <NotifyStart>true</NotifyStart>
                 <Separator>!</Separator>
                 <MinAnswers>2</MinAnswers>
                 <ReCaptcha>
-                    <Enable>false</Enable>
+                    <Enable>true</Enable>
                     <MaxFailedAttempts>3</MaxFailedAttempts>
                 </ReCaptcha>
             </Password>
@@ -403,21 +403,21 @@
     </Recovery>
 
     <EmailVerification>
-        <Enable>true</Enable>
-        <LockOnCreation>true</LockOnCreation>
+        <Enable>false</Enable>
+        <LockOnCreation>false</LockOnCreation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
     </EmailVerification>
 
     <SelfRegistration>
-        <Enable>true</Enable>
-        <LockOnCreation>true</LockOnCreation>
+        <Enable>false</Enable>
+        <LockOnCreation>false</LockOnCreation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
         <ReCaptcha>false</ReCaptcha>
-    </SelfRegistration>
+    </SelfRegistration-->
 
     <!--SessionContextCache>
         <Enable>true</Enable>
@@ -431,6 +431,9 @@
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.mgt.IdentityMgtEventListener"
                        orderId="50" enable="false"/>
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
+                       orderId="95" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
                        orderId="90" enable="true"/>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener" name="org.wso2.carbon.identity.governance.listener.IdentityStoreEventListener"
