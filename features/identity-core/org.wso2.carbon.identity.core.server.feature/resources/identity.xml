@@ -471,7 +471,7 @@
         <Resource context="(.*)/oauth2/introspect/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
         </Resource>
-        <Resource context="(.*)/entitlement/(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
         </Resource>
     </ResourceAccessControl>
@@ -481,12 +481,15 @@
     </ClientAppAuthentication>
 
     <TenantContextsToRewrite>
-        <Context>/api/identity/user/v0.9</Context>
-        <Context>/api/identity/recovery/v0.9</Context>
-        <Context>/identity/register</Context>
-        <Context>/identity/connect/register</Context>
-        <Context>/oauth2/introspect</Context>
-        <Context>/entitlement</Context>
+        <WebApp>
+            <Context>/api/identity/user/v0.9</Context>
+            <Context>/api/identity/recovery/v0.9</Context>
+            <Context>/oauth2/introspect</Context>
+            <Context>/entitlement</Context>
+        </WebApp>
+        <Servlet>
+            <Context>/identity/(.*)</Context>
+        </Servlet>
     </TenantContextsToRewrite>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->
