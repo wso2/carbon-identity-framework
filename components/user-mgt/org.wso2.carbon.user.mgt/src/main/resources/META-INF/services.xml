@@ -91,7 +91,7 @@
         </operation>
 
         <operation name="getAllUserClaimValues">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
@@ -132,12 +132,12 @@
         </operation>
 
         <operation name="getRolesOfCurrentUser">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/rolemgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
         <operation name="getUserRealmInfo">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
 
@@ -182,7 +182,7 @@
         </operation>
 
         <operation name="hasMultipleUserStores">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/usermgt
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
     </service>
