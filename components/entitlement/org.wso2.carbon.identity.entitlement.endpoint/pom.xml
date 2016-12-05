@@ -139,7 +139,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <warName>entitlement</warName>
+                    <warName>api#identity#entitlement</warName>
                 </configuration>
             </plugin>
         </plugins>
