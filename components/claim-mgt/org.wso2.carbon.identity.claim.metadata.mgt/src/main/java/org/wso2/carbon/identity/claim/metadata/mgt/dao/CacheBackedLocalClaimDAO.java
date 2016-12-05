@@ -36,7 +36,6 @@ public class CacheBackedLocalClaimDAO {
     private static Log log = LogFactory.getLog(CacheBackedLocalClaimDAO.class);
 
     LocalClaimDAO localClaimDAO;
-    Map<Integer, List<LocalClaim>> localClaims = new HashMap<>();
 
     LocalClaimInvalidationCache localClaimInvalidationCache = LocalClaimInvalidationCache.getInstance();
 
@@ -47,14 +46,14 @@ public class CacheBackedLocalClaimDAO {
 
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
 
-        List<LocalClaim> localClaimList = localClaims.get(tenantId);
+        List<LocalClaim> localClaimList = localClaimInvalidationCache.getLocalClaims(tenantId);
 
         if (localClaimList == null || localClaimInvalidationCache.isInvalid(tenantId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Cache miss for local claim list for tenant: " + tenantId);
             }
             localClaimList = localClaimDAO.getLocalClaims(tenantId);
-            localClaims.put(tenantId, localClaimList);
+            localClaimInvalidationCache.setLocalClaims(tenantId, localClaimList);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for local claim list for tenant: " + tenantId);
@@ -89,7 +88,7 @@ public class CacheBackedLocalClaimDAO {
         }
 
         List<LocalClaim> localClaimList = localClaimDAO.getLocalClaims(tenantId);
-        localClaims.put(tenantId, localClaimList);
+        localClaimInvalidationCache.setLocalClaims(tenantId, localClaimList);
         localClaimInvalidationCache.invalidate(tenantId);
     }
 }

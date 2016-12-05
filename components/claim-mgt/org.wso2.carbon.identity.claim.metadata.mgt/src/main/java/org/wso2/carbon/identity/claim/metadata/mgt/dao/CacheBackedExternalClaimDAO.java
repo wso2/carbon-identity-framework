@@ -37,7 +37,7 @@ public class CacheBackedExternalClaimDAO {
     private static Log log = LogFactory.getLog(CacheBackedExternalClaimDAO.class);
 
     ExternalClaimDAO externalClaimDAO;
-    Map<ExternalClaimCacheKey, List<ExternalClaim>> externalClaims = new HashMap<>();
+
     ExternalClaimInvalidationCache externalClaimInvalidationCache = ExternalClaimInvalidationCache.getInstance();
 
     public CacheBackedExternalClaimDAO(ExternalClaimDAO externalClaimDAO) {
@@ -49,7 +49,7 @@ public class CacheBackedExternalClaimDAO {
             ClaimMetadataException {
 
         ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalDialectURI, tenantId);
-        List<ExternalClaim> externalClaimList = externalClaims.get(cacheKey);
+        List<ExternalClaim> externalClaimList = externalClaimInvalidationCache.getExternalClaims(cacheKey);
 
         if (externalClaimList == null || externalClaimInvalidationCache.isInvalid(externalDialectURI, tenantId)) {
             if (log.isDebugEnabled()) {
@@ -57,7 +57,7 @@ public class CacheBackedExternalClaimDAO {
                         tenantId);
             }
             externalClaimList = externalClaimDAO.getExternalClaims(externalDialectURI, tenantId);
-            externalClaims.put(cacheKey, externalClaimList);
+            externalClaimInvalidationCache.setExternalClaims(cacheKey, externalClaimList);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Cache hit for external claim list for dialect: " + externalDialectURI + " in tenant: " +
@@ -101,9 +101,9 @@ public class CacheBackedExternalClaimDAO {
             log.debug("Updating external claim list for dialect: " + externalDialectURI + " in tenant: " + tenantId);
         }
 
-        externalClaimInvalidationCache.invalidate(externalDialectURI, tenantId);
         List<ExternalClaim> localClaimList = externalClaimDAO.getExternalClaims(externalDialectURI, tenantId);
-        externalClaims.put(new ExternalClaimCacheKey(externalDialectURI, tenantId), localClaimList);
+        externalClaimInvalidationCache.setExternalClaims(new ExternalClaimCacheKey(externalDialectURI, tenantId), localClaimList);
+        externalClaimInvalidationCache.invalidate(externalDialectURI, tenantId);
     }
 
 }

@@ -18,7 +18,11 @@ package org.wso2.carbon.identity.claim.metadata.mgt.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -33,6 +37,7 @@ public class ExternalClaimInvalidationCache {
             BaseCache<>(CACHE_NAME);
 
     private static final ExternalClaimInvalidationCache instance = new ExternalClaimInvalidationCache();
+    private Map<ExternalClaimCacheKey, List<ExternalClaim>> externalClaims = new HashMap<>();
     private String localUUID = UUID.randomUUID().toString();
 
     private ExternalClaimInvalidationCache() {
@@ -68,5 +73,13 @@ public class ExternalClaimInvalidationCache {
 
         localUUID = newUUID;
         invalidationCache.addToCache(new ExternalClaimCacheKey(externalDialectURI, tenantId), localUUID);
+    }
+
+    public List<ExternalClaim> getExternalClaims(ExternalClaimCacheKey key) {
+        return externalClaims.get(key);
+    }
+
+    public void setExternalClaims(ExternalClaimCacheKey key, List<ExternalClaim> externalClaims) {
+        this.externalClaims.put(key, externalClaims);
     }
 }

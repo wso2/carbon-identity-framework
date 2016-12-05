@@ -18,7 +18,11 @@ package org.wso2.carbon.identity.claim.metadata.mgt.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -32,6 +36,7 @@ public class LocalClaimInvalidationCache {
     private static final BaseCache<Integer, String> invalidationCache = new BaseCache<>(CACHE_NAME);
 
     private static final LocalClaimInvalidationCache instance = new LocalClaimInvalidationCache();
+    private Map<Integer, List<LocalClaim>> localClaims = new HashMap<>();
     private String localUUID = UUID.randomUUID().toString();
 
     private LocalClaimInvalidationCache() {
@@ -67,5 +72,13 @@ public class LocalClaimInvalidationCache {
 
         localUUID = newUUID;
         invalidationCache.addToCache(tenantId, localUUID);
+    }
+
+    public List<LocalClaim> getLocalClaims(int tenantId) {
+        return localClaims.get(tenantId);
+    }
+
+    public void setLocalClaims(int tenantId, List<LocalClaim> localClaims) {
+        this.localClaims.put(tenantId, localClaims);
     }
 }
