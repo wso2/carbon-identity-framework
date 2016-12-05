@@ -56,31 +56,27 @@
             org.wso2.carbon.identity.mgt.services.UserIdentityManagementAdminService
         </parameter>
         <operation name="getChallengeQuestionsOfUser">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
         <operation name="getAllChallengeQuestions">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
         <operation name="setChallengeQuestionsOfUser">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
         <operation name="updateUserIdentityClaims">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
         <operation name="getAllUserIdentityClaims">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/view
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
         <operation name="changeUserPassword">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
-            </parameter>
-        </operation>
-        <operation name="updateUserIdentityClaims">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/identitymgt/update
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login
             </parameter>
         </operation>
         <operation name="isReadOnlyUserStore">
