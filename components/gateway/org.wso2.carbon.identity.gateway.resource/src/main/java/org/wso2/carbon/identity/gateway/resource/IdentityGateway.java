@@ -51,7 +51,8 @@ public class IdentityGateway implements Microservice {
     @POST
     @Path("/")
     public Response process(@Context Request request, String body) {
-        return processRequest(request);
+        Response response = processRequest(request);
+        return response;
     }
 
 

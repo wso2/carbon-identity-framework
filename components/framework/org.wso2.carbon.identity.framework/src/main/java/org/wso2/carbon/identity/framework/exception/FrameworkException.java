@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.framework.exception;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 
 /**
- *  Common Exception class for exception thrown from the framework.
+ * Common Exception class for exception thrown from the framework.
  */
 public class FrameworkException extends IdentityException {
 

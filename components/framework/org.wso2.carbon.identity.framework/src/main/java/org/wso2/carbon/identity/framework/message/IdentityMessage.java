@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.core.Cookie;
 
 /**
  * Abstract Object model that carries information within the framework

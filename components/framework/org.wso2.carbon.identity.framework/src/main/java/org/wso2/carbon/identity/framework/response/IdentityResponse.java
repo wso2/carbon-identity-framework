@@ -44,6 +44,7 @@ public class IdentityResponse implements Serializable {
         public IdentityResponseBuilder() {
 
         }
+
         public IdentityResponse build() {
             return new IdentityResponse(this);
         }

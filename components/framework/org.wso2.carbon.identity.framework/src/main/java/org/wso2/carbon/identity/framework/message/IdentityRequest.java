@@ -25,7 +25,7 @@ import java.io.Serializable;
 /**
  * Immutable request message.
  */
-public class IdentityRequest<T extends IdentityRequestBuilder> extends IdentityMessage implements Serializable{
+public class IdentityRequest<T extends IdentityRequestBuilder> extends IdentityMessage implements Serializable {
 
     private static final long serialVersionUID = 2187881873309155315L;
 

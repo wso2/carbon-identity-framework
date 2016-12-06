@@ -13,7 +13,9 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.wso2</groupId>
@@ -131,7 +133,8 @@
         <carbon.kernel.package.import.version.range>[5.0.0, 6.0.0)</carbon.kernel.package.import.version.range>
 
         <carbon.identity.commons.version>6.0.0-SNAPSHOT</carbon.identity.commons.version>
-        <carbon.identity.common.import.version.range>[6.0.0-SNAPSHOT, 7.0.0)</carbon.identity.common.import.version.range>
+        <carbon.identity.common.import.version.range>[6.0.0-SNAPSHOT, 7.0.0)
+        </carbon.identity.common.import.version.range>
 
         <osgi.core.api.version>6.0.0</osgi.core.api.version>
         <equinox.osgi.services.version>3.4.0.v20140312-2051</equinox.osgi.services.version>

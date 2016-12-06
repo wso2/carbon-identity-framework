@@ -16,8 +16,12 @@
 
 package org.wso2.carbon.identity.framework.message;
 
+import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 
 public class IdentityResponse extends IdentityMessage implements Serializable {
@@ -31,9 +35,35 @@ public class IdentityResponse extends IdentityMessage implements Serializable {
     public IdentityResponse() {
     }
 
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
+    public void setHeaders(Map<String, String> requestHeaders) {
+        headers = Optional.ofNullable(requestHeaders).orElse(new HashMap<>());
     }
+
+    public void addHeader(String name, String value) {
+        // if the header name is not null and is present in the map, we throw an exception
+        headers.computeIfPresent(name, (headerName, currentHeaderValue) -> {
+            throw FrameworkRuntimeException.error("Headers map trying to override existing header " + headerName);
+        });
+        headers.put(name, value);
+    }
+
+    public void addHeaders(Map<String, String> headers) {
+        Optional.ofNullable(headers).ifPresent(x -> x.forEach(this::addHeader));
+    }
+
+
+    public void addProperty(String propertyName, Object propertyValue) {
+        // if the header name is not null and is present in the map, we throw an exception
+        properties.computeIfPresent(propertyName, (headerName, currentHeaderValue) -> {
+            throw FrameworkRuntimeException.error("Properties map trying to override existing property " + headerName);
+        });
+        properties.put(propertyName, propertyValue);
+    }
+
+    public void addProperties(Map<String, Object> attributes) {
+        Optional.ofNullable(attributes).ifPresent(propertiesMap -> propertiesMap.forEach(this::addProperty));
+    }
+
 
     public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
@@ -63,7 +93,6 @@ public class IdentityResponse extends IdentityMessage implements Serializable {
     public void setRequestURL(StringBuffer requestURL) {
         this.requestURL = requestURL;
     }
-
 
     public void setContentType(String contentType) {
         this.contentType = contentType;

@@ -125,9 +125,9 @@
                         <phase>install</phase>
                         <configuration>
                             <tasks>
-                                <delete dir="src/main/resources" />
-                                <delete dir="src/main" />
-                                <delete dir="src" />
+                                <delete dir="src/main/resources"/>
+                                <delete dir="src/main"/>
+                                <delete dir="src"/>
                             </tasks>
                         </configuration>
                         <goals>
@@ -138,8 +138,6 @@
             </plugin>
         </plugins>
     </build>
-
-
 
 
 </project>
