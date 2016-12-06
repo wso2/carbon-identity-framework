@@ -18,13 +18,6 @@
 
 package org.wso2.carbon.identity.base;
 
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Used for creating checked exceptions that can be handled.
@@ -32,176 +25,53 @@ import java.util.Map;
 public class IdentityException extends Exception {
 
     private static final long serialVersionUID = 725992116511551241L;
+    private String errorCode  = null;
 
-    protected List<ErrorInfo> errorInfoList = new ArrayList<>();
-
-    public static class ErrorInfo {
-
-        private String contextId = null;
-        private String errorCode  = null;
-        private String errorDescription = null;
-        private String userErrorDescription = null;
-        private Throwable cause = null;
-        private Map<String, Object> parameters = new HashMap<>();
-
-        private ErrorInfo(ErrorInfoBuilder builder) {
-
-            this.contextId = builder.contextId;
-            this.errorCode = builder.errorCode;
-            this.userErrorDescription = builder.userErrorDescription;
-            this.errorDescription = builder.errorDescription;
-            if(MapUtils.isNotEmpty(builder.parameters)){
-                this.parameters = builder.parameters;
-            }
-            this.cause = builder.cause;
-        }
-
-        public String getContextId() {
-            return contextId;
-        }
-
-        public String getErrorCode() {
-            return errorCode;
-        }
-
-        public String getErrorDescription() {
-            return errorDescription;
-        }
-
-        public String getUserErrorDescription() {
-            return userErrorDescription;
-        }
-
-        public Throwable getCause() {
-            return cause;
-        }
-
-        public Map<String,Object> getParameters() {
-            return this.parameters;
-        }
-
-        public Object getParameter(String key) {
-            return this.parameters.get(key);
-        }
-
-        public static class ErrorInfoBuilder {
-
-            private String contextId = null;
-            private String errorCode  = null;
-            private String errorDescription = null;
-            private String userErrorDescription = null;
-            private Throwable cause = null;
-            private Map<String, Object> parameters = new HashMap<>();
-
-            public ErrorInfoBuilder(String errorDescription) {
-                this.errorDescription = errorDescription;
-            }
-
-            public ErrorInfoBuilder contextId(String contextId) {
-                this.contextId = contextId;
-                return this;
-            }
-
-            public ErrorInfoBuilder errorCode(String errorCode) {
-                this.errorCode = errorCode;
-                return this;
-            }
-
-            public ErrorInfoBuilder userErrorDescription(String userErrorDescription) {
-                this.userErrorDescription = userErrorDescription;
-                return this;
-            }
-
-            public ErrorInfoBuilder cause(Throwable cause) {
-                this.cause = cause;
-                return this;
-            }
-
-            public ErrorInfoBuilder parameters(Map<String,Object> parameters) {
-                if(MapUtils.isNotEmpty(parameters)) {
-                    this.parameters = parameters;
-                }
-                return this;
-            }
-
-            public ErrorInfoBuilder parameter(String key, Object value) {
-                if(key != null){
-                    this.parameters.put(key, value);
-                }
-                return this;
-            }
-
-            public ErrorInfo build(){
-                return new ErrorInfo(this);
-            }
-        }
+    public IdentityException(String message) {
+        super(message);
     }
 
-    protected IdentityException(String errorDescription) {
-        super(errorDescription);
+    public IdentityException(String errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
     }
 
-    protected IdentityException(String errorDescription, Throwable cause) {
-        super(errorDescription, cause);
+    public IdentityException(String errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
     }
 
-    // This method may be used for easily migrating existing usages of IdentityException creation.
-    // However once we migrate all the usages of IdentityException to create using error(ErrorInfo) we can remove this
-    @Deprecated
-    public static IdentityException error(String errorDescription) {
-        IdentityException identityException = new IdentityException(errorDescription);
-        ErrorInfo.ErrorInfoBuilder errorInfoBuilder = new ErrorInfo.ErrorInfoBuilder(errorDescription);
-        identityException.addErrorInfo(errorInfoBuilder.build());
-        return identityException;
+    public IdentityException(String errorCode, Throwable cause) {
+        super(cause);
+        this.errorCode = errorCode;
     }
 
-    // This method may be used for easily migrating existing usages of IdentityException creation.
-    // However once we migrate all the usages of IdentityException to create using error(ErrorInfo) we can remove this
-    @Deprecated
-    public static IdentityException error(String errorDescription, Throwable cause) {
-        IdentityException identityException = new IdentityException(errorDescription, cause);
-        ErrorInfo.ErrorInfoBuilder errorInfoBuilder = new ErrorInfo.ErrorInfoBuilder(errorDescription);
-        errorInfoBuilder.cause(cause);
-        identityException.addErrorInfo(errorInfoBuilder.build());
-        return identityException;
+    public IdentityException(String errorCode, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+        this.errorCode = errorCode;
     }
 
-    public static IdentityException error(ErrorInfo errorInfo) {
-        if(errorInfo == null || StringUtils.isBlank(errorInfo.errorDescription)){
-            throw new IllegalArgumentException("ErrorInfo object is null or Error Description is blank");
-        }
-        IdentityException identityException = null;
-        if(errorInfo.getCause() != null) {
-            identityException = new IdentityException(errorInfo.getErrorDescription(), errorInfo.getCause());
-        } else {
-            identityException = new IdentityException(errorInfo.getErrorDescription());
-        }
-        identityException.addErrorInfo(errorInfo);
-        return identityException;
+    public static IdentityException error(String errorCode, String message){
+        return new IdentityException(errorCode, message);
     }
 
-    public void addErrorInfo(ErrorInfo errorInfo) {
-        if(errorInfo == null || StringUtils.isBlank(errorInfo.errorDescription)){
-            throw new IllegalArgumentException("ErrorInfo object is null or Error Description is blank");
-        }
-        this.errorInfoList.add(errorInfo);
+    public static IdentityException error(String message){
+        return new IdentityException(message);
     }
 
-    public List<ErrorInfo> getErrorInfoList() {
-        return errorInfoList;
+    public static IdentityException error(String message, Throwable cause){
+        return new IdentityException(message, cause);
     }
 
-    public String getCode() {
+    public static IdentityException error(String errorCode, String message, Throwable cause){
+        return new IdentityException(errorCode, message, cause);
+    }
 
-        StringBuilder builder = new StringBuilder();
-        for(int i = this.errorInfoList.size() - 1; i >= 0; i--) {
-            ErrorInfo info = this.errorInfoList.get(i);
-            builder.append('[');
-            builder.append(info.contextId);
-            builder.append(':');
-            builder.append(info.errorCode);
-            builder.append(']');
-        }
-        return builder.toString();
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 }
