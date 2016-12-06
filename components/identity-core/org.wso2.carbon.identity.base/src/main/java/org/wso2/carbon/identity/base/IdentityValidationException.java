@@ -25,11 +25,23 @@ public class IdentityValidationException extends IdentityException {
 
     private static final long serialVersionUID = 8331812986028679831L;
 
-    public IdentityValidationException(String message) {
-        super(message);
+    public IdentityValidationException(String errorCode) {
+        super(errorCode);
     }
 
-    public IdentityValidationException(String message, Throwable e) {
-        super(message, e);
+    public IdentityValidationException(String message, String errorCode) {
+        super(message, errorCode);
+    }
+
+    public IdentityValidationException(String message, Throwable cause, String errorCode) {
+        super(message, errorCode, cause);
+    }
+
+    public IdentityValidationException(Throwable cause, String errorCode) {
+        super(errorCode, cause);
+    }
+
+    public IdentityValidationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace, String errorCode) {
+        super(errorCode, message, cause, enableSuppression, writableStackTrace);
     }
 }
