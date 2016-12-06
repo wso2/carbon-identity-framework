@@ -22,10 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.internal.DataHolder;
-import org.wso2.carbon.identity.framework.request.IdentityRequest;
-import org.wso2.carbon.identity.framework.response.IdentityResponse;
-
-import java.util.Optional;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.IdentityResponse;
 
 public class IdentityProcessCoordinator {
 
@@ -38,7 +36,7 @@ public class IdentityProcessCoordinator {
             if (log.isDebugEnabled()) {
                 log.debug("Identity Request is being processed by : " + processor.getName());
             }
-            return processor.process(identityRequest).build();
+            return processor.process(identityRequest);
         } else {
             throw FrameworkRuntimeException.error("No IdentityProcessor found to process the request");
         }
@@ -46,12 +44,11 @@ public class IdentityProcessCoordinator {
 
     private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
 
-        Optional<IdentityProcessor> identityProcessor = dataHolder.getIdentityProcessors().stream()
+        return dataHolder.getIdentityProcessors()
+                .stream()
                 .filter(x -> x.canHandle(identityRequest))
-                .findFirst();
-
-        return identityProcessor.orElse(null);
-
+                .findFirst()
+                .orElse(null);
     }
 
 }

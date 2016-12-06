@@ -18,7 +18,8 @@ package org.wso2.carbon.identity.framework;
 
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.framework.request.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.IdentityResponse;
 
 import java.util.Properties;
 
@@ -50,7 +51,7 @@ public abstract class IdentityProcessor {
      *                            processing
      *                            IdentityRequest
      */
-    public abstract IdentityResponseBuilder process(IdentityRequest identityRequest)
+    public abstract IdentityResponse process(IdentityRequest identityRequest)
             throws FrameworkException;
 
     /**

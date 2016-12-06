@@ -17,39 +17,47 @@
 package org.wso2.carbon.identity.framework.context;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.framework.request.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.IdentityResponse;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends IdentityRequest>
-        extends MessageContext implements Serializable {
+public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends IdentityRequest,
+        T4 extends IdentityResponse> extends MessageContext implements Serializable {
 
     private static final long serialVersionUID = 104614801932285909L;
 
-
     protected T3 identityRequest;
-
+    protected T4 identityResponse;
     protected Map<T1, T2> parameters = new HashMap<>();
 
-    public IdentityMessageContext(T3 identityRequest, Map<T1, T2> parameters) {
-        super(parameters);
+
+    public IdentityMessageContext(T3 identityRequest, T4 identityResponseMessage) {
         this.identityRequest = identityRequest;
+        this.identityResponse = identityResponseMessage;
     }
 
-    public IdentityMessageContext(T3 identityRequest) {
-        super(new HashMap());
+    public IdentityMessageContext(T3 identityRequest, T4 identityResponseMessage, Map<T1, T2> parameters) {
         this.identityRequest = identityRequest;
+        this.identityResponse = identityResponseMessage;
     }
 
     public T3 getIdentityRequest() {
         return identityRequest;
     }
 
-    public void setIdentityRequest(
-            T3 identityRequest) {
+    public void setIdentityRequest(T3 identityRequest) {
         this.identityRequest = identityRequest;
+    }
+
+    public void setIdentityResponse(T4 identityResponse) {
+        this.identityResponse = identityResponse;
+    }
+
+    public T4 getIdentityResponse() {
+        return identityResponse;
     }
 
     @Override

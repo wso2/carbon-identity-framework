@@ -1,5 +1,6 @@
 package org.wso2.carbon.identity.framework.internal;
 
+import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.kernel.CarbonRuntime;
@@ -21,6 +22,8 @@ public class DataHolder {
 
     private static DataHolder instance = new DataHolder();
     private CarbonRuntime carbonRuntime;
+
+    private IdentityProcessCoordinator processCoordinator;
     private List<IdentityProcessor> identityProcessors = new ArrayList<>();
 
     private DataHolder() {

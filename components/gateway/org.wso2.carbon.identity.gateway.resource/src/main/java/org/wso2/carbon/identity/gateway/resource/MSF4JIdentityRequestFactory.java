@@ -19,13 +19,13 @@ package org.wso2.carbon.identity.gateway.resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.framework.builder.IdentityRequestBuilder;
 import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
-import org.wso2.carbon.identity.framework.request.builder.IdentityRequestBuilder;
 import org.wso2.msf4j.Request;
 
 import java.util.Properties;
-
-import static org.wso2.carbon.identity.framework.response.HttpIdentityResponse.HttpIdentityResponseBuilder;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 
 public class MSF4JIdentityRequestFactory {
@@ -50,17 +50,14 @@ public class MSF4JIdentityRequestFactory {
 
     public IdentityRequestBuilder create(Request request) throws FrameworkClientException {
 
-        IdentityRequestBuilder builder = new MSF4JIdentityRequestBuilder(request);
+        IdentityRequestBuilder builder = new IdentityRequestBuilder();
         create(builder, request);
         return builder;
     }
 
 
-    public HttpIdentityResponseBuilder handleException(FrameworkClientException exception, Request request) {
-
-        return new HttpIdentityResponseBuilder()
-                .setStatusCode(400)
-                .setBody(exception.getMessage());
+    public ResponseBuilder handleException(FrameworkClientException exception, Request request) {
+        return Response.status(400).entity(exception.getMessage());
     }
 
 
@@ -72,7 +69,7 @@ public class MSF4JIdentityRequestFactory {
         });
 
         // get all properties
-        request.getProperties().forEach(builder::addAttribute);
+        request.getProperties().forEach(builder::addProperty);
 
 
         builder.setMethod(request.getHttpMethod());
@@ -87,32 +84,6 @@ public class MSF4JIdentityRequestFactory {
         if (log.isDebugEnabled()) {
             log.debug("Identity Request is build from the inbound HTTP Request.");
         }
-
-
-//        builder.setParameters(request.getParameterMap());
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                builder.addCookie(cookie.getName(), cookie);
-//            }
-//        }
-//        String requestURI = request.getRequestURI();
-//        Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
-//        Matcher matcher = pattern.matcher(requestURI);
-//        if (matcher.find()) {
-//            builder.setTenantDomain(matcher.group(1));
-//        } else {
-//            builder.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-//        }
-//        builder.setContentType(request.getContentType());
-//        builder.setContextPath(request.getContextPath());
-//        builder.setMethod(request.getMethod());
-//        builder.setPathInfo(request.getPathInfo());
-//        builder.setPathTranslated(request.getPathTranslated());
-//        builder.setQueryString(request.getQueryString());
-//        builder.setRequestURI(requestURI);
-//        builder.setRequestURL(request.getRequestURL());
-//        builder.setServletPath(request.getServletPath());
     }
 
 

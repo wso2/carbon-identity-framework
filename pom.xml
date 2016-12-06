@@ -39,7 +39,10 @@
     <modules>
         <module>components/framework</module>
         <module>components/gateway</module>
-  </modules>
+        <module>features/org.wso2.carbon.identity.framework.feature</module>
+        <module>features/org.wso2.carbon.identity.gateway.feature</module>
+        <module>features/org.wso2.carbon.identity.gateway.resource.feature</module>
+    </modules>
 
     <dependencyManagement>
         <dependencies>
@@ -95,6 +98,16 @@
                 <artifactId>org.wso2.carbon.identity.framework</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+                <version>${identity.gateway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
+                <version>${identity.gateway.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -117,7 +130,6 @@
         <carbon.kernel.package.export.version>5.0.0</carbon.kernel.package.export.version>
         <carbon.kernel.package.import.version.range>[5.0.0, 6.0.0)</carbon.kernel.package.import.version.range>
 
-
         <carbon.identity.commons.version>6.0.0-SNAPSHOT</carbon.identity.commons.version>
         <carbon.identity.common.import.version.range>[6.0.0-SNAPSHOT, 7.0.0)</carbon.identity.common.import.version.range>
 
@@ -133,6 +145,8 @@
 
         <slf4j.version>1.7.5</slf4j.version>
         <slf4j.logging.package.import.version.range>[1.7.1, 2.0.0)</slf4j.logging.package.import.version.range>
+
+        <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
     </properties>
 
 

@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.resource;
+package org.wso2.carbon.identity.gateway.resource.util;
 
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.framework.response.IdentityResponse;
-import org.wso2.carbon.identity.framework.response.factory.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.resource.MSF4JResponseFactory;
 import org.wso2.carbon.identity.gateway.resource.internal.DataHolder;
 import org.wso2.msf4j.Request;
 
-import java.util.Optional;
-
 public class GatewayHelper {
 
-    private static DataHolder dataHolder = DataHolder.getInstance();
+    private DataHolder dataHolder = DataHolder.getInstance();
     private static GatewayHelper instance = new GatewayHelper();
 
     private GatewayHelper() {
@@ -39,30 +38,27 @@ public class GatewayHelper {
 
     public MSF4JIdentityRequestFactory pickRequestFactory(Request request) {
 
-        Optional<MSF4JIdentityRequestFactory> factory = dataHolder.getRequestFactoryList().stream()
+        return dataHolder.getRequestFactoryList().stream()
                 .filter(x -> x.canHandle(request))
-                .findFirst();
-
-        return factory.orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
 
-    public HttpIdentityResponseFactory pickIdentityResponseFactory(IdentityResponse identityResponse) {
+    public MSF4JResponseFactory pickIdentityResponseFactory(IdentityResponse identityResponse) {
 
-        Optional<HttpIdentityResponseFactory> factory = dataHolder.getResponseFactoryList().stream()
+        return dataHolder.getResponseFactoryList().stream()
                 .filter(x -> x.canHandle(identityResponse))
-                .findFirst();
-
-        return factory.orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
-    public HttpIdentityResponseFactory pickIdentityResponseFactory(FrameworkException ex) {
+    public MSF4JResponseFactory pickIdentityResponseFactory(FrameworkException ex) {
 
-        Optional<HttpIdentityResponseFactory> factory = dataHolder.getResponseFactoryList().stream()
+        return dataHolder.getResponseFactoryList().stream()
                 .filter(x -> x.canHandle(ex))
-                .findFirst();
-
-        return factory.orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     public IdentityProcessCoordinator getIdentityProcessCoordinator() {

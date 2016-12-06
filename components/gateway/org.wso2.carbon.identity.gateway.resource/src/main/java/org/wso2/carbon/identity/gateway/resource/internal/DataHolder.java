@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.response.factory.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.resource.MSF4JResponseFactory;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class DataHolder {
     private CarbonRuntime carbonRuntime;
 
     private List<MSF4JIdentityRequestFactory> requestFactoryList = new ArrayList<>();
-    private List<HttpIdentityResponseFactory> responseFactoryList = new ArrayList<>();
+    private List<MSF4JResponseFactory> responseFactoryList = new ArrayList<>();
     private IdentityProcessCoordinator processCoordinator;
 
     private DataHolder() {
@@ -92,16 +93,16 @@ public class DataHolder {
     }
 
 
-    public void addResponseFactory(HttpIdentityResponseFactory httpIdentityResponseFactory) {
-        responseFactoryList.add(httpIdentityResponseFactory);
+    public void addResponseFactory(MSF4JResponseFactory msf4JResponseFactory) {
+        responseFactoryList.add(msf4JResponseFactory);
         Collections.sort(responseFactoryList, responseFactoryComparator);
     }
 
-    public void removeResponseFactory(HttpIdentityResponseFactory httpIdentityResponseFactory) {
-        responseFactoryList.remove(httpIdentityResponseFactory);
+    public void removeResponseFactory(MSF4JResponseFactory msf4JResponseFactory) {
+        responseFactoryList.remove(msf4JResponseFactory);
     }
 
-    public List<HttpIdentityResponseFactory> getResponseFactoryList() {
+    public List<MSF4JResponseFactory> getResponseFactoryList() {
         return responseFactoryList;
     }
 
@@ -119,6 +120,6 @@ public class DataHolder {
     private Comparator<MSF4JIdentityRequestFactory> requestFactoryComparator =
             (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 
-    private Comparator<HttpIdentityResponseFactory> responseFactoryComparator =
+    private Comparator<MSF4JResponseFactory> responseFactoryComparator =
             (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 }

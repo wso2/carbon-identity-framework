@@ -23,21 +23,16 @@ import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.request.IdentityRequest;
-import org.wso2.carbon.identity.framework.response.HttpIdentityResponse;
-import org.wso2.carbon.identity.framework.response.IdentityResponse;
-import org.wso2.carbon.identity.framework.response.factory.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.resource.internal.DataHolder;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.gateway.resource.util.GatewayHelper;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
 
-import java.util.Optional;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
-import static org.wso2.carbon.identity.framework.response.HttpIdentityResponse.HttpIdentityResponseBuilder;
 
 /**
  * Identity Gateway MicroService.
@@ -56,18 +51,17 @@ public class IdentityGateway implements Microservice {
     @POST
     @Path("/")
     public Response process(@Context Request request, String body) {
-        HttpIdentityResponse response = processRequest(request);
-        return buildResponse(response);
+        return processRequest(request);
     }
 
 
-    private HttpIdentityResponse processRequest(Request request) {
+    private Response processRequest(Request request) {
 
         // pick the correct Identity Request Factory from registered ones.
         MSF4JIdentityRequestFactory requestFactory = helper.pickRequestFactory(request);
 
         IdentityRequest identityRequest;
-        HttpIdentityResponseBuilder responseBuilder;
+        Response.ResponseBuilder responseBuilder;
 
         // build the canonical IdentityRequest from the MSF4J Request.
         try {
@@ -83,11 +77,10 @@ public class IdentityGateway implements Microservice {
             return responseBuilder.build();
         }
 
-
         IdentityProcessCoordinator processCoordinator = helper.getIdentityProcessCoordinator();
-        IdentityResponse identityResponse = null;
-        HttpIdentityResponseFactory responseFactory = null;
 
+        IdentityResponse identityResponse;
+        MSF4JResponseFactory responseFactory;
         try {
             identityResponse = processCoordinator.process(identityRequest);
             if (identityResponse == null) {
@@ -109,13 +102,4 @@ public class IdentityGateway implements Microservice {
             return responseBuilder.build();
         }
     }
-
-
-    private Response buildResponse(HttpIdentityResponse identityResponse) {
-        return Response.ok().entity(identityResponse.getBody()).build();
-    }
-
-
-
-
 }

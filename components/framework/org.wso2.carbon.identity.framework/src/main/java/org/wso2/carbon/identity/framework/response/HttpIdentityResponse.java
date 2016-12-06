@@ -24,8 +24,8 @@ import java.util.Map;
 
 public class HttpIdentityResponse {
 
-    protected Map<String, String> headers = new HashMap<String, String>();
-//    protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+    protected Map<String, String> headers = new HashMap<>();
+    //    protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
     protected String contentType;
     protected Map<String, String[]> parameters = new HashMap<>();
     protected String body;
@@ -86,7 +86,7 @@ public class HttpIdentityResponse {
     public static class HttpIdentityResponseBuilder {
 
         protected Map<String, String> headers = new HashMap<String, String>();
-//        protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
+        //        protected Map<String, Cookie> cookies = new HashMap<String, Cookie>();
         protected String contentType;
         protected Map<String, String[]> parameters = new HashMap<>();
         protected int statusCode;

@@ -26,6 +26,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.response.factory.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.resource.MSF4JResponseFactory;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
 import java.util.logging.Logger;
@@ -58,6 +59,7 @@ public class ServiceComponent {
 
         // Register MSF4JRequestFactory instance as an OSGi service.
         bundleContext.registerService(MSF4JIdentityRequestFactory.class, new MSF4JIdentityRequestFactory(), null);
+        bundleContext.registerService(MSF4JResponseFactory.class, new MSF4JResponseFactory(), null);
     }
 
     /**
@@ -112,18 +114,18 @@ public class ServiceComponent {
     }
 
     @Reference(
-            name = "http.response.factory",
-            service = HttpIdentityResponseFactory.class,
+            name = "ms4j.response.factory",
+            service = MSF4JResponseFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetResponseFactory"
     )
-    protected void setResponseFactory(HttpIdentityResponseFactory httpIdentityResponseFactory) {
-        dataHolder.addResponseFactory(httpIdentityResponseFactory);
+    protected void setResponseFactory(MSF4JResponseFactory responseFactory) {
+        dataHolder.addResponseFactory(responseFactory);
     }
 
-    protected void unsetResponseFactory(HttpIdentityResponseFactory httpIdentityResponseFactory) {
-        dataHolder.removeResponseFactory(httpIdentityResponseFactory);
+    protected void unsetResponseFactory(MSF4JResponseFactory responseFactory) {
+        dataHolder.removeResponseFactory(responseFactory);
     }
 
     @Reference(

@@ -21,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.framework.request.IdentityRequest;
-import org.wso2.carbon.identity.framework.response.IdentityResponse;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.IdentityResponse;
 
 
 /*
@@ -33,11 +33,15 @@ public class InitRequestProcessor extends IdentityProcessor {
     private static final Logger log = LoggerFactory.getLogger(InitRequestProcessor.class);
 
     @Override
-    public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
+    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
         if (log.isDebugEnabled()) {
             log.debug(getName() + " processed the Identity Request successfully.");
         }
-        return new IdentityResponse.IdentityResponseBuilder();
+
+        IdentityResponse identityResponse = new IdentityResponse();
+        identityResponse.setStatusCode(200);
+        identityResponse.setBody("Processor Greets you !!!!");
+        return identityResponse;
     }
 
     @Override

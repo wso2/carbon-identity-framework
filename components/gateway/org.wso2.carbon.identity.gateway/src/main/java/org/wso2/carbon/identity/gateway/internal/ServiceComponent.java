@@ -8,8 +8,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
-import org.wso2.carbon.identity.framework.response.factory.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.processor.DefaultHttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
@@ -40,9 +38,6 @@ public class ServiceComponent {
     protected void start(BundleContext bundleContext) throws Exception {
 
         bundleContext.registerService(IdentityProcessor.class, new InitRequestProcessor(), null);
-        bundleContext.registerService(HttpIdentityResponseFactory.class, new DefaultHttpIdentityResponseFactory(),
-                null);
-
         logger.info("Service Component is activated");
 
 

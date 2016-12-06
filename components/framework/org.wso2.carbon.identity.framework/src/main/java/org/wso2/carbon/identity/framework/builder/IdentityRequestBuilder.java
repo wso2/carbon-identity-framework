@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.resource;
+package org.wso2.carbon.identity.framework.builder;
 
-import org.wso2.carbon.identity.framework.request.builder.IdentityRequestBuilder;
-import org.wso2.msf4j.Request;
+import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
 
-public class MSF4JIdentityRequestBuilder extends IdentityRequestBuilder {
+public class IdentityRequestBuilder extends IdentityMessageBuilder<IdentityRequest> {
 
-    private Request request;
-
-    public MSF4JIdentityRequestBuilder(Request request) {
-        this.request = request;
-    }
-
-    public Request getRequest() {
-        return request;
+    @Override
+    public IdentityRequest build() throws FrameworkRuntimeException {
+        return new IdentityRequest(this);
     }
 }
