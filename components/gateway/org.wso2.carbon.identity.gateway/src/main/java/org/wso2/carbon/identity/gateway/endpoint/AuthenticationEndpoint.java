@@ -16,19 +16,15 @@
 
 package org.wso2.carbon.identity.gateway.endpoint;
 
+import org.apache.commons.lang.StringUtils;
 import org.osgi.service.component.annotations.Component;
-import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.msf4j.Microservice;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
-import static org.wso2.carbon.transport.http.netty.config.YAMLTransportConfigurationBuilder.build;
 
 /**
  * Authentication Endpoint MicroService.
@@ -58,8 +54,14 @@ public class AuthenticationEndpoint implements Microservice {
 
     private String getLoginPageContent(String callbackURL, String state) {
         String response = AuthenticationEndpointUtils.getLoginPage();
-        response = response.replace("${state}", state);
-        response = response.replace("${callbackURL}", callbackURL);
+        if (StringUtils.isNotBlank(state)) {
+            response = response.replace("${state}", state);
+        }
+
+        if (StringUtils.isNotBlank(callbackURL)) {
+            response = response.replace("${callback}", callbackURL);
+        }
+
         return response;
     }
 

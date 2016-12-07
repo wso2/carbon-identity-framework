@@ -26,152 +26,96 @@ public class AuthenticationEndpointUtils {
     }
 
     private static final String LOGIN_PAGE =
-            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" " +
-                    "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" +
-                    "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+            "<!DOCTYPE html>\n" +
+                    "<html >\n" +
                     "<head>\n" +
-                    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
-                    "<title>Login</title>\n" +
-                    "<style>\n" +
-                    "/* Basics */\n" +
-                    "html, body {\n" +
-                    "    width: 100%;\n" +
-                    "    height: 100%;\n" +
-                    "    font-family: \"Helvetica Neue\", Helvetica, sans-serif;\n" +
-                    "    color: #444;\n" +
-                    "    -webkit-font-smoothing: antialiased;\n" +
-                    "    background: #f0f0f0;\n" +
+                    "  <meta charset=\"UTF-8\">\n" +
+                    "  <title>Login Form</title>\n" +
+                    "  \n" +
+                    "  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css\">\n" +
+                    "\n" +
+                    "  \n" +
+                    "      <style>\n" +
+                    "      /* NOTE: The styles were added inline because Prefixfree needs access to your styles and they must be inlined if they are on local disk! */\n" +
+                    "      @import url(http://fonts.googleapis.com/css?family=Open+Sans);\n" +
+                    ".btn { display: inline-block; *display: inline; *zoom: 1; padding: 4px 10px 4px; margin-bottom: 0; font-size: 13px; line-height: 18px; color: #333333; text-align: center;text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75); vertical-align: middle; background-color: #f5f5f5; background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6); background-image: -ms-linear-gradient(top, #ffffff, #e6e6e6); background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6)); background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6); background-image: -o-linear-gradient(top, #ffffff, #e6e6e6); background-image: linear-gradient(top, #ffffff, #e6e6e6); background-repeat: repeat-x; filter: progid:dximagetransform.microsoft.gradient(startColorstr=#ffffff, endColorstr=#e6e6e6, GradientType=0); border-color: #e6e6e6 #e6e6e6 #e6e6e6; border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25); border: 1px solid #e6e6e6; -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px; -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05); -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05); cursor: pointer; *margin-left: .3em; }\n" +
+                    ".btn:hover, .btn:active, .btn.active, .btn.disabled, .btn[disabled] { background-color: #e6e6e6; }\n" +
+                    ".btn-large { padding: 9px 14px; font-size: 15px; line-height: normal; -webkit-border-radius: 5px; -moz-border-radius: 5px; border-radius: 5px; }\n" +
+                    ".btn:hover { color: #333333; text-decoration: none; background-color: #e6e6e6; background-position: 0 -15px; -webkit-transition: background-position 0.1s linear; -moz-transition: background-position 0.1s linear; -ms-transition: background-position 0.1s linear; -o-transition: background-position 0.1s linear; transition: background-position 0.1s linear; }\n" +
+                    ".btn-primary, .btn-primary:hover { text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25); color: #ffffff; }\n" +
+                    ".btn-primary.active { color: rgba(255, 255, 255, 0.75); }\n" +
+                    ".btn-primary { background-color: #4a77d4; background-image: -moz-linear-gradient(top, #6eb6de, #4a77d4); background-image: -ms-linear-gradient(top, #6eb6de, #4a77d4); background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#6eb6de), to(#4a77d4)); background-image: -webkit-linear-gradient(top, #6eb6de, #4a77d4); background-image: -o-linear-gradient(top, #6eb6de, #4a77d4); background-image: linear-gradient(top, #6eb6de, #4a77d4); background-repeat: repeat-x; filter: progid:dximagetransform.microsoft.gradient(startColorstr=#6eb6de, endColorstr=#4a77d4, GradientType=0);  border: 1px solid #3762bc; text-shadow: 1px 1px 1px rgba(0,0,0,0.4); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.5); }\n" +
+                    ".btn-primary:hover, .btn-primary:active, .btn-primary.active, .btn-primary.disabled, .btn-primary[disabled] { filter: none; background-color: #4a77d4; }\n" +
+                    ".btn-block { width: 100%; display:block; }\n" +
+                    "\n" +
+                    "* { -webkit-box-sizing:border-box; -moz-box-sizing:border-box; -ms-box-sizing:border-box; -o-box-sizing:border-box; box-sizing:border-box; }\n" +
+                    "\n" +
+                    "html { width: 100%; height:100%; overflow:hidden; }\n" +
+                    "\n" +
+                    "body { \n" +
+                    "\twidth: 100%;\n" +
+                    "\theight:100%;\n" +
+                    "\tfont-family: 'Open Sans', sans-serif;\n" +
+                    "\tbackground: #092756;\n" +
+                    "\tbackground: -moz-radial-gradient(0% 100%, ellipse cover, rgba(104,128,138,.4) 10%,rgba(138,114,76,0) 40%),-moz-linear-gradient(top,  rgba(57,173,219,.25) 0%, rgba(42,60,87,.4) 100%), -moz-linear-gradient(-45deg,  #670d10 0%, #092756 100%);\n" +
+                    "\tbackground: -webkit-radial-gradient(0% 100%, ellipse cover, rgba(104,128,138,.4) 10%,rgba(138,114,76,0) 40%), -webkit-linear-gradient(top,  rgba(57,173,219,.25) 0%,rgba(42,60,87,.4) 100%), -webkit-linear-gradient(-45deg,  #670d10 0%,#092756 100%);\n" +
+                    "\tbackground: -o-radial-gradient(0% 100%, ellipse cover, rgba(104,128,138,.4) 10%,rgba(138,114,76,0) 40%), -o-linear-gradient(top,  rgba(57,173,219,.25) 0%,rgba(42,60,87,.4) 100%), -o-linear-gradient(-45deg,  #670d10 0%,#092756 100%);\n" +
+                    "\tbackground: -ms-radial-gradient(0% 100%, ellipse cover, rgba(104,128,138,.4) 10%,rgba(138,114,76,0) 40%), -ms-linear-gradient(top,  rgba(57,173,219,.25) 0%,rgba(42,60,87,.4) 100%), -ms-linear-gradient(-45deg,  #670d10 0%,#092756 100%);\n" +
+                    "\tbackground: -webkit-radial-gradient(0% 100%, ellipse cover, rgba(104,128,138,.4) 10%,rgba(138,114,76,0) 40%), linear-gradient(to bottom,  rgba(57,173,219,.25) 0%,rgba(42,60,87,.4) 100%), linear-gradient(135deg,  #670d10 0%,#092756 100%);\n" +
+                    "\tfilter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3E1D6D', endColorstr='#092756',GradientType=1 );\n" +
                     "}\n" +
-                    "#container {\n" +
-                    "    position: fixed;\n" +
-                    "    width: 340px;\n" +
-                    "    height: 280px;\n" +
-                    "    top: 50%;\n" +
-                    "    left: 50%;\n" +
-                    "    margin-top: -140px;\n" +
-                    "    margin-left: -170px;\n" +
-                    "\tbackground: #fff;\n" +
-                    "    border-radius: 3px;\n" +
-                    "    border: 1px solid #ccc;\n" +
-                    "    box-shadow: 0 1px 2px rgba(0, 0, 0, .1);\n" +
-                    "\t\n" +
+                    ".login { \n" +
+                    "\tposition: absolute;\n" +
+                    "\ttop: 50%;\n" +
+                    "\tleft: 50%;\n" +
+                    "\tmargin: -150px 0 0 -150px;\n" +
+                    "\twidth:300px;\n" +
+                    "\theight:300px;\n" +
                     "}\n" +
-                    "form {\n" +
-                    "    margin: 0 auto;\n" +
-                    "    margin-top: 20px;\n" +
+                    ".login h1 { color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; }\n" +
+                    "\n" +
+                    "input { \n" +
+                    "\twidth: 100%; \n" +
+                    "\tmargin-bottom: 10px; \n" +
+                    "\tbackground: rgba(0,0,0,0.3);\n" +
+                    "\tborder: none;\n" +
+                    "\toutline: none;\n" +
+                    "\tpadding: 10px;\n" +
+                    "\tfont-size: 13px;\n" +
+                    "\tcolor: #fff;\n" +
+                    "\ttext-shadow: 1px 1px 1px rgba(0,0,0,0.3);\n" +
+                    "\tborder: 1px solid rgba(0,0,0,0.3);\n" +
+                    "\tborder-radius: 4px;\n" +
+                    "\tbox-shadow: inset 0 -5px 45px rgba(100,100,100,0.2), 0 1px 1px rgba(255,255,255,0.2);\n" +
+                    "\t-webkit-transition: box-shadow .5s ease;\n" +
+                    "\t-moz-transition: box-shadow .5s ease;\n" +
+                    "\t-o-transition: box-shadow .5s ease;\n" +
+                    "\t-ms-transition: box-shadow .5s ease;\n" +
+                    "\ttransition: box-shadow .5s ease;\n" +
                     "}\n" +
-                    "label {\n" +
-                    "    color: #555;\n" +
-                    "    display: inline-block;\n" +
-                    "    margin-left: 18px;\n" +
-                    "    padding-top: 10px;\n" +
-                    "    font-size: 14px;\n" +
-                    "}\n" +
-                    "p a {\n" +
-                    "    font-size: 11px;\n" +
-                    "    color: #aaa;\n" +
-                    "    float: right;\n" +
-                    "    margin-top: -13px;\n" +
-                    "    margin-right: 20px;\n" +
-                    " -webkit-transition: all .4s ease;\n" +
-                    "    -moz-transition: all .4s ease;\n" +
-                    "    transition: all .4s ease;\n" +
-                    "}\n" +
-                    "p a:hover {\n" +
-                    "    color: #555;\n" +
-                    "}\n" +
-                    "input {\n" +
-                    "    font-family: \"Helvetica Neue\", Helvetica, sans-serif;\n" +
-                    "    font-size: 12px;\n" +
-                    "    outline: none;\n" +
-                    "}\n" +
-                    "input[type=text],\n" +
-                    "input[type=password] {\n" +
-                    "    color: #777;\n" +
-                    "    padding-left: 10px;\n" +
-                    "    margin: 10px;\n" +
-                    "    margin-top: 12px;\n" +
-                    "    margin-left: 18px;\n" +
-                    "    width: 290px;\n" +
-                    "    height: 35px;\n" +
-                    "\tborder: 1px solid #c7d0d2;\n" +
-                    "    border-radius: 2px;\n" +
-                    "    box-shadow: inset 0 1.5px 3px rgba(190, 190, 190, .4), 0 0 0 5px #f5f7f8;\n" +
-                    "-webkit-transition: all .4s ease;\n" +
-                    "    -moz-transition: all .4s ease;\n" +
-                    "    transition: all .4s ease;\n" +
-                    "\t}\n" +
-                    "input[type=text]:hover,\n" +
-                    "input[type=password]:hover {\n" +
-                    "    border: 1px solid #b6bfc0;\n" +
-                    "    box-shadow: inset 0 1.5px 3px rgba(190, 190, 190, .7), 0 0 0 5px #f5f7f8;\n" +
-                    "}\n" +
-                    "input[type=text]:focus,\n" +
-                    "input[type=password]:focus {\n" +
-                    "    border: 1px solid #a8c9e4;\n" +
-                    "    box-shadow: inset 0 1.5px 3px rgba(190, 190, 190, .4), 0 0 0 5px #e6f2f9;\n" +
-                    "}\n" +
-                    "#lower {\n" +
-                    "    background: #2B507D;\n" +
-                    "    width: 100%;\n" +
-                    "    height: 64px;\n" +
-                    "    margin-top: 20px;\n" +
-                    "\t  box-shadow: inset 0 1px 1px #fff;\n" +
-                    "    border-top: 1px solid #ccc;\n" +
-                    "    border-bottom-right-radius: 3px;\n" +
-                    "    border-bottom-left-radius: 3px;\n" +
-                    "}\n" +
-                    "input[type=checkbox] {\n" +
-                    "    margin-left: 20px;\n" +
-                    "    margin-top: 30px;\n" +
-                    "}\n" +
-                    ".check {\n" +
-                    "    margin-left: 3px;\n" +
-                    "\tfont-size: 11px;\n" +
-                    "    color: #444;\n" +
-                    "    text-shadow: 0 1px 0 #fff;\n" +
-                    "}\n" +
-                    "input[type=submit] {\n" +
-                    "    float: right;\n" +
-                    "    margin-right: 20px;\n" +
-                    "    margin-top: 20px;\n" +
-                    "    width: 80px;\n" +
-                    "    height: 30px;\n" +
-                    "font-size: 14px;\n" +
-                    "    font-weight: bold;\n" +
-                    "    color: #fff;\n" +
-                    "    background-color: #F36C0C; /*IE fallback*/\n" +
-                    "    border-radius: 5px;\n" +
-                    "    border: 1px solid #FFFFFF;\n" +
-                    "    cursor: pointer;\n" +
-                    "}\n" +
-                    "input[type=submit]:hover {\n" +
-                    "    background-color: #000000;\n" +
-                    "}\n" +
-                    "input[type=submit]:active {\n" +
-                    "    background-color: #F36C0C;\n" +
-                    "}\n" +
-                    "</style>\n" +
+                    "input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgba(255,255,255,0.2); }\n" +
+                    "\n" +
+                    "    </style>\n" +
+                    "\n" +
+                    "  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js\"></script>\n" +
                     "\n" +
                     "</head>\n" +
                     "\n" +
                     "<body>\n" +
-                    "    <!-- Begin Page Content -->\n" +
-                    "    <div id=\"container\">\n" +
-                    "        <form method=\"POST\" action=\"${callbackURL}\">\n" +
-                    "            <label for=\"username\">Username:</label>\n" +
-                    "            <input type=\"text\" id=\"username\" name=\"username\">\n" +
-                    "            <label for=\"password\">Password:</label>\n" +
-                    "            <input type=\"password\" id=\"password\" name=\"password\">\n" +
-                    "            <div id=\"lower\">\n" +
-                    "                <input type=\"submit\" value=\"Login\">\n" +
-                    "            </div><!--/ lower-->\n" +
-                    "            <input type='hidden' name='state' value='${state}'>" +
-                    "        </form>\n" +
-                    "    </div><!--/ container-->\n" +
-                    "    <!-- End Page Content -->\n" +
+                    "  <div class=\"login\">\n" +
+                    "\t<h1>Login</h1>\n" +
+                    "    <form method=\"post\" action=\"${callback}\">\n" +
+                    "    \t<input type=\"text\" name=\"u\" placeholder=\"Username\" required=\"required\" />\n" +
+                    "        <input type=\"password\" name=\"p\" placeholder=\"Password\" required=\"required\" />\n" +
+                    "      \t  <input type='hidden' name='state' value='${state}'>\n" +
+                    "        <button type=\"submit\" class=\"btn btn-primary btn-block btn-large\">Let me in.</button>\n" +
+                    "    </form>\n" +
+                    "</div>\n" +
+                    "  \n" +
+                    "    <script src=\"js/index.js\"></script>\n" +
+                    "\n" +
                     "</body>\n" +
-                    "</html>\n";
+                    "</html>";
 
 
     public static String getACSURL(String state) {
