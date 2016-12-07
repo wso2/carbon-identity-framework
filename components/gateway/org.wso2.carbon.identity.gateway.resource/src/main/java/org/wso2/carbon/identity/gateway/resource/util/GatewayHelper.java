@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.gateway.resource.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
@@ -23,11 +25,19 @@ import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.resource.MSF4JResponseFactory;
 import org.wso2.carbon.identity.gateway.resource.internal.DataHolder;
 import org.wso2.msf4j.Request;
+import org.wso2.msf4j.util.BufferUtil;
+
+import java.nio.ByteBuffer;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH;
 
 public class GatewayHelper {
 
     private DataHolder dataHolder = DataHolder.getInstance();
     private static GatewayHelper instance = new GatewayHelper();
+
+    private Logger logger = LoggerFactory.getLogger(GatewayHelper.class);
 
     private GatewayHelper() {
     }
@@ -63,5 +73,17 @@ public class GatewayHelper {
 
     public IdentityProcessCoordinator getIdentityProcessCoordinator() {
         return dataHolder.getProcessCoordinator();
+    }
+
+    public String readRequestBody(Request request) {
+
+//        String contentLengthValue = request.getHeader(CONTENT_LENGTH);
+//
+//        if (contentLengthValue != null) {
+//            ByteBuffer byteBuffer = BufferUtil.merge(request.getFullMessageBody());
+//            return new String(byteBuffer.array(), UTF_8);
+//        }
+        return String.valueOf(request.getProperty("body"));
+//        return "";
     }
 }

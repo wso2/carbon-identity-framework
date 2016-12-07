@@ -33,7 +33,6 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
     protected T4 identityResponse;
     protected Map<T1, T2> parameters = new HashMap<>();
 
-
     public IdentityMessageContext(T3 identityRequest, T4 identityResponseMessage) {
         this.identityRequest = identityRequest;
         this.identityResponse = identityResponseMessage;
@@ -64,4 +63,13 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
     public Map<T1, T2> getParameters() {
         return parameters;
     }
+
+    public void addParameter(T1 key, T2 value) {
+        parameters.putIfAbsent(key, value);
+    }
+
+    public T2 getParameter(T1 key) {
+        return parameters.getOrDefault(key, null);
+    }
+
 }

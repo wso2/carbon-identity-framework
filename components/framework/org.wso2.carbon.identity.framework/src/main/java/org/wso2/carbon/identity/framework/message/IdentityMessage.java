@@ -45,6 +45,8 @@ public abstract class IdentityMessage {
 
     protected String contentType;
 
+    protected String body;
+
     // TODO : ADD COOKIE SUPPORT
 
 
@@ -110,4 +112,7 @@ public abstract class IdentityMessage {
         return contentType;
     }
 
+    public String getBody() {
+        return body;
+    }
 }

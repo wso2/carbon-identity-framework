@@ -33,12 +33,11 @@ public class IdentityRequest<T extends IdentityRequestBuilder> extends IdentityM
         this.headers = builder.getHeaders();
         this.properties = builder.getProperties();
         this.method = builder.getMethod();
-        this.pathInfo = builder.getPathInfo();
-        this.pathTranslated = builder.getPathTranslated();
         this.queryString = builder.getQueryString();
         this.requestURI = builder.getRequestURI();
         this.requestURL = builder.getRequestURL();
         this.contentType = builder.getContentType();
+        this.body = builder.getBody();
     }
 
 }

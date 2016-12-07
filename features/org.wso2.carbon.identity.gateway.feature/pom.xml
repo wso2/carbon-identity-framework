@@ -39,6 +39,26 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.gateway</artifactId>
         </dependency>
+        <dependency>
+            <groupId>opensaml.wso2</groupId>
+            <artifactId>opensaml2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xerces.wso2</groupId>
+            <artifactId>xercesImpl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ws.security.wso2</groupId>
+            <artifactId>wss4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
     </dependencies>
 
 
@@ -104,6 +124,26 @@
                                 <bundle>
                                     <symbolicName>org.wso2.carbon.identity.gateway</symbolicName>
                                     <version>${identity.gateway.version}</version>
+                                </bundle>
+                                <bundle>
+                                    <symbolicName>xercesImpl</symbolicName>
+                                    <version>${xerces.wso2.version}</version>
+                                </bundle>
+                                <bundle>
+                                    <symbolicName>opensaml2</symbolicName>
+                                    <version>${opensaml2.wso2.version}</version>
+                                </bundle>
+                                <bundle>
+                                    <symbolicName>wss4j</symbolicName>
+                                    <version>${wss4j.wso2.version}</version>
+                                </bundle>
+                                <bundle>
+                                    <symbolicName>commons-collections</symbolicName>
+                                    <version>${commons.collections.wso2.version}</version>
+                                </bundle>
+                                <bundle>
+                                    <symbolicName>commons-lang</symbolicName>
+                                    <version>${commons.lang.version}</version>
                                 </bundle>
                             </bundles>
                             <importFeatures>

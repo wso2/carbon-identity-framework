@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import org.wso2.carbon.identity.gateway.handler.authentication.MultiStepAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.authentication.authenticator.BasicAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.handler.response.SAMLResponseHandler;
-import org.wso2.carbon.identity.gateway.handler.validation.SAMLValidationHandler;
+import org.wso2.carbon.identity.gateway.handler.response.saml.SAMLResponseHandler;
+import org.wso2.carbon.identity.gateway.handler.validation.saml.SAMLValidationHandler;
 
 
 /*

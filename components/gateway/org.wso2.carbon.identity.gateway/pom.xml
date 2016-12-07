@@ -63,6 +63,30 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.framework</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>opensaml.wso2</groupId>
+            <artifactId>opensaml2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xerces.wso2</groupId>
+            <artifactId>xercesImpl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
+
     </dependencies>
 
     <properties>
@@ -75,8 +99,21 @@
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
             org.wso2.carbon.kernel;version="${carbon.kernel.package.import.version.range}",
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
+            org.wso2.msf4j.*,
+            javax.ws.rs.*,
+            org.opensaml.*,
+            org.joda.*,
+            org.apache.xerces.util; resolution:=optional,
+            javax.xml.*,
+            org.xml.*,
+            org.w3c.dom.*; resolution:=optional,
+            org.apache.commons.lang.*,
+            org.wso2.carbon.kernel.utils.*; version="${carbon.kernel.package.import.version.range}",
             org.wso2.carbon.identity.framework.*; version="${identity.framework.import.version.range}"
         </import.package>
+        <carbon.component>
+            osgi.service; objectClass="org.wso2.msf4j.Microservice"
+        </carbon.component>
     </properties>
 
 </project>

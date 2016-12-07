@@ -56,16 +56,17 @@ public abstract class IdentityMessageBuilder<T extends IdentityMessage> {
     protected String method;
 
     // TODO : Do we need these?
-    protected String pathInfo;
-    protected String pathTranslated;
     protected String queryString;
+
     protected String requestURI;
+
     protected StringBuffer requestURL;
-    protected String servletPath;
+
     protected String contentType;
 
     // TODO ADD COOKIE ADDING SUPPORT
 
+    protected String body;
 
     public IdentityMessageBuilder setHeaders(Map<String, String> requestHeaders) {
         headers = Optional.ofNullable(requestHeaders).orElse(new HashMap<>());
@@ -120,16 +121,6 @@ public abstract class IdentityMessageBuilder<T extends IdentityMessage> {
         return this;
     }
 
-    public IdentityMessageBuilder setPathInfo(String pathInfo) {
-        this.pathInfo = pathInfo;
-        return this;
-    }
-
-    public IdentityMessageBuilder setPathTranslated(String pathTranslated) {
-        this.pathTranslated = pathTranslated;
-        return this;
-    }
-
     public IdentityMessageBuilder setQueryString(String queryString) {
         this.queryString = queryString;
         return this;
@@ -145,14 +136,14 @@ public abstract class IdentityMessageBuilder<T extends IdentityMessage> {
         return this;
     }
 
-    public IdentityMessageBuilder setServletPath(String servletPath) {
-        this.servletPath = servletPath;
-        return this;
-    }
 
     public IdentityMessageBuilder setContentType(String contentType) {
         this.contentType = contentType;
         return this;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 
     public abstract T build() throws FrameworkRuntimeException;
@@ -185,14 +176,6 @@ public abstract class IdentityMessageBuilder<T extends IdentityMessage> {
         return method;
     }
 
-    public String getPathInfo() {
-        return pathInfo;
-    }
-
-    public String getPathTranslated() {
-        return pathTranslated;
-    }
-
     public String getQueryString() {
         return queryString;
     }
@@ -205,11 +188,11 @@ public abstract class IdentityMessageBuilder<T extends IdentityMessage> {
         return requestURL;
     }
 
-    public String getServletPath() {
-        return servletPath;
-    }
-
     public String getContentType() {
         return contentType;
+    }
+
+    public String getBody() {
+        return body;
     }
 }

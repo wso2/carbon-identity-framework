@@ -16,6 +16,11 @@
 
 package org.wso2.carbon.identity.framework.util;
 
+import org.wso2.carbon.identity.framework.FrameworkConstants;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
+
+import java.util.UUID;
+
 public class FrameworkUtil {
 
     public static int comparePriory(int priority1, int priority2) {
@@ -26,5 +31,18 @@ public class FrameworkUtil {
         } else {
             return 0;
         }
+    }
+
+    public static String generateSessionIdentifier() {
+        return UUID.randomUUID().toString();
+    }
+
+
+    public static void addSessionIdentifierToContext(IdentityMessageContext context, String sessionId) {
+        context.addParameter(FrameworkConstants.SESSION_ID, sessionId);
+    }
+
+    public static String getSessionIdentifier(IdentityMessageContext context) {
+        return String.valueOf(context.getParameter(FrameworkConstants.SESSION_ID));
     }
 }

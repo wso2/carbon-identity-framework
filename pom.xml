@@ -110,6 +110,37 @@
                 <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
                 <version>${identity.gateway.version}</version>
             </dependency>
+
+
+
+            <!-- SAML dependencies -->
+            <dependency>
+                <groupId>opensaml.wso2</groupId>
+                <artifactId>opensaml2</artifactId>
+                <version>${opensaml2.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>xerces.wso2</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>${xerces.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ws.security.wso2</groupId>
+                <artifactId>wss4j</artifactId>
+                <version>${wss4j.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.orbit.commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons.collections.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang.wso2</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons.lang.version}</version>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
@@ -123,13 +154,13 @@
         <identity.framework.import.version.range>[1.0.0,2.0.0)</identity.framework.import.version.range>
 
         <identity.gateway.version>${project.version}</identity.gateway.version>
-        <identity.gateway.export.version>${identity.framework.version}</identity.gateway.export.version>
+        <identity.gateway.export.version>${identity.gateway.version}</identity.gateway.export.version>
         <identity.gateway.import.version.range>[1.0.0,2.0.0)</identity.gateway.import.version.range>
 
 
         <!-- Carbon platform version comes here-->
-        <carbon.kernel.version>5.0.0</carbon.kernel.version>
-        <carbon.kernel.package.export.version>5.0.0</carbon.kernel.package.export.version>
+        <carbon.kernel.version>5.1.0</carbon.kernel.version>
+        <carbon.kernel.package.export.version>5.1.0</carbon.kernel.package.export.version>
         <carbon.kernel.package.import.version.range>[5.0.0, 6.0.0)</carbon.kernel.package.import.version.range>
 
         <carbon.identity.commons.version>6.0.0-SNAPSHOT</carbon.identity.commons.version>
@@ -145,6 +176,11 @@
         <msf4j.core.version>2.1.0</msf4j.core.version>
         <rs-api.version>2.0</rs-api.version>
 
+        <opensaml2.wso2.version>2.4.1.wso2v1</opensaml2.wso2.version>
+        <xerces.wso2.version>2.8.1.wso2v2</xerces.wso2.version>
+        <wss4j.wso2.version>1.5.11.wso2v11</wss4j.wso2.version>
+        <commons.collections.wso2.version>3.2.2.wso2v1</commons.collections.wso2.version>
+        <commons.lang.version>2.6.0.wso2v1</commons.lang.version>
 
         <slf4j.version>1.7.5</slf4j.version>
         <slf4j.logging.package.import.version.range>[1.7.1, 2.0.0)</slf4j.logging.package.import.version.range>

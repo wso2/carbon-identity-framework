@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.builder.IdentityRequestBuilder;
 import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
+import org.wso2.carbon.identity.gateway.resource.util.GatewayHelper;
 import org.wso2.msf4j.Request;
 
 import java.util.Properties;
@@ -75,6 +76,8 @@ public class MSF4JIdentityRequestFactory {
         builder.setMethod(request.getHttpMethod());
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
+
+        builder.setBody(GatewayHelper.getInstance().readRequestBody(request));
 
         // TODO : handle cookies
 
