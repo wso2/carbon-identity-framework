@@ -32,7 +32,7 @@ import java.util.Map;
 public class IdentityRuntimeException extends RuntimeException {
 
     private static final long serialVersionUID = -5872545821846152596L;
-    private String errorCode  = null;
+    private String errorCode = null;
 
 
     public IdentityRuntimeException(String message) {
@@ -59,21 +59,64 @@ public class IdentityRuntimeException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public static IdentityRuntimeException error(String errorCode, String message){
-        return new IdentityRuntimeException(errorCode, message);
-    }
-
-    public static IdentityRuntimeException error(String message){
+    public static IdentityRuntimeException error(String message) {
         return new IdentityRuntimeException(message);
     }
 
-    public static IdentityRuntimeException error(String message, Throwable cause){
+    public static IdentityRuntimeException error(String errorCode, String message) {
+        return new IdentityRuntimeException(errorCode, message);
+    }
+
+    public static IdentityRuntimeException error(String message, Throwable cause) {
         return new IdentityRuntimeException(message, cause);
     }
 
-    public static IdentityRuntimeException error(String errorCode, String message, Throwable cause){
+    public static IdentityRuntimeException error(String errorCode, String message,
+                                                 Throwable cause) {
         return new IdentityRuntimeException(errorCode, message, cause);
+    }public static <T extends IdentityRuntimeException> T error(Class<T> exceptionClass, String message) {
+        T exception = null;
+        try {
+            exception = exceptionClass.getConstructor(String.class).newInstance(message);
+        } catch (Exception e) {
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+        }
+        return exception;
     }
+
+    public static <T extends IdentityRuntimeException> T error(Class<T> exceptionClass, String errorCode, String message) {
+        T exception = null;
+        try {
+            exception = exceptionClass.getConstructor(String.class, String.class).newInstance(errorCode, message);
+        } catch (Exception e) {
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+        }
+        return exception;
+    }
+
+    public static <T extends IdentityRuntimeException> T error(Class<T> exceptionClass, String message, Throwable cause) {
+        T exception = null;
+        try {
+            exception = exceptionClass.getConstructor(String.class, Throwable.class).newInstance(message, cause);
+        } catch (Exception e) {
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+        }
+        return exception;
+    }
+
+    public static <T extends IdentityRuntimeException> T error(Class<T> exceptionClass, String errorCode, String message,
+                                                        Throwable cause) {
+        T exception = null;
+        try {
+            exception = exceptionClass.getConstructor(String.class, String.class, Throwable.class).
+                    newInstance(errorCode, message, cause);
+        } catch (Exception e) {
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+        }
+        return exception;
+    }
+
+
 
     public String getErrorCode() {
         return errorCode;
@@ -82,5 +125,5 @@ public class IdentityRuntimeException extends RuntimeException {
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
     }
-    
+
 }
