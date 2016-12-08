@@ -17,9 +17,7 @@
 package org.wso2.carbon.identity.gateway.util;
 
 import org.opensaml.DefaultBootstrap;
-import org.opensaml.common.xml.SAMLConstants;
 import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.NameIDType;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;

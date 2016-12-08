@@ -43,6 +43,22 @@ public class FrameworkUtil {
     }
 
     public static String getSessionIdentifier(IdentityMessageContext context) {
-        return String.valueOf(context.getParameter(FrameworkConstants.SESSION_ID));
+        Object sessionId = context.getParameter(FrameworkConstants.SESSION_ID);
+        return sessionId != null ? String.valueOf(context.getParameter(FrameworkConstants.SESSION_ID)) : null;
+    }
+
+    public static IdentityMessageContext mergeContext(IdentityMessageContext newContext,
+                                                      IdentityMessageContext oldContext) {
+
+        // Copy the data from old context
+        newContext.setInitialIdentityRequest(oldContext.getInitialIdentityRequest());
+        newContext.setIdentityResponse(oldContext.getIdentityResponse());
+        newContext.addParameters(oldContext.getParameters());
+
+        // restore current state from the old context.
+        newContext.setCurrentHandler(oldContext.getCurrentHandler());
+        newContext.setCurrentHandlerStatus(oldContext.getCurrentHandlerStatus());
+
+        return newContext;
     }
 }

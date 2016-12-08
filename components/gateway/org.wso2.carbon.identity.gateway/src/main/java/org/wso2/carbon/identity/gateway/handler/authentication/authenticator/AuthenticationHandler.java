@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.handler.callback;
+package org.wso2.carbon.identity.gateway.handler.authentication.authenticator;
 
-import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
+public interface AuthenticationHandler {
 
-public abstract class GatewayCallbackHandler extends GatewayEventHandler {
-    protected int priority;
+    boolean isSubjectStep();
 
-    public abstract int getPriority();
+    boolean isClaimsRequired();
 }

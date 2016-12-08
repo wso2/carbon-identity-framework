@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.gateway.resource.util.GatewayHelper;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
 
+import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -58,7 +59,13 @@ public class IdentityGateway implements Microservice {
 
     @POST
     @Path("callback")
-    public Response callback(@Context Request request) {
+    public Response callback(@Context Request request,
+                             @FormParam("username") String username,
+                             @FormParam("password") String password,
+                             @FormParam("state") String state) {
+        request.setProperty("username", username);
+        request.setProperty("password", password);
+        request.setProperty("state", state);
         return processRequest(request);
     }
 

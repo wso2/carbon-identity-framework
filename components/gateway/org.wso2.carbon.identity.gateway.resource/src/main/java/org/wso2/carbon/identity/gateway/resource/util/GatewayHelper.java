@@ -25,12 +25,6 @@ import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.resource.MSF4JResponseFactory;
 import org.wso2.carbon.identity.gateway.resource.internal.DataHolder;
 import org.wso2.msf4j.Request;
-import org.wso2.msf4j.util.BufferUtil;
-
-import java.nio.ByteBuffer;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH;
 
 public class GatewayHelper {
 
@@ -84,6 +78,5 @@ public class GatewayHelper {
 //            return new String(byteBuffer.array(), UTF_8);
 //        }
         return String.valueOf(request.getProperty("body"));
-//        return "";
     }
 }

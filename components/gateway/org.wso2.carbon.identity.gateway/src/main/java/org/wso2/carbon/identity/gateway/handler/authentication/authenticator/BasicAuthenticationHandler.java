@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
+import org.wso2.carbon.identity.framework.handler.GatewayHandlerStatus;
 import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
@@ -29,6 +30,8 @@ import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import javax.ws.rs.core.HttpHeaders;
 
 public class BasicAuthenticationHandler extends GatewayEventHandler {
@@ -39,21 +42,39 @@ public class BasicAuthenticationHandler extends GatewayEventHandler {
     private final String AUTH_ENDPOINT = "http://localhost:9090/authenticate";
     private final String CALLBACK = "http://localhost:9090/identity/callback";
 
+    private final String USERNAME = "username";
+    private final String PASSWORD = "password";
+
 
     @Override
     public GatewayInvocationResponse handle(IdentityMessageContext context) {
 
         String sessionID = FrameworkUtil.getSessionIdentifier(context);
-
         if (StringUtils.isNotBlank(sessionID)) {
-            IdentityResponse response = context.getIdentityResponse();
+            Map<String, Object> properties = context.getCurrentIdentityRequest().getProperties();
 
-            // build the authentication endpoint url
-            String redirectUrl = buildAuthenticationEndpointURL(AUTH_ENDPOINT, sessionID, CALLBACK);
-            response.setStatusCode(302);
-            response.addHeader(HttpHeaders.LOCATION, redirectUrl);
 
-            return GatewayInvocationResponse.REDIRECT;
+            if (properties.containsKey(USERNAME) && properties.containsKey(PASSWORD)) {
+                // this is a callback request so we try to authenticate the user.
+                return handleAuthentication(
+                        String.valueOf(properties.get(USERNAME)),
+                        String.valueOf(properties.get(PASSWORD)),
+                        (Map<String, Object>) context.getParameter(sessionID)
+                );
+
+
+            } else {
+                // This is an initial request to the Basic Auth Handler, so redirect to login page.
+                IdentityResponse response = context.getIdentityResponse();
+
+                // build the authentication endpoint url
+                String redirectUrl = buildAuthenticationEndpointURL(AUTH_ENDPOINT, sessionID, CALLBACK);
+                response.setStatusCode(302);
+                response.addHeader(HttpHeaders.LOCATION, redirectUrl);
+
+                context.setCurrentHandlerStatus(GatewayHandlerStatus.INCOMPLETE);
+                return GatewayInvocationResponse.REDIRECT;
+            }
 
         } else {
             logger.error("Session Context Information Not Available.");
@@ -81,5 +102,27 @@ public class BasicAuthenticationHandler extends GatewayEventHandler {
             }
         }
         return url;
+    }
+
+
+    private GatewayInvocationResponse handleAuthentication(String username,
+                                                           String password,
+                                                           Map<String, Object> authContextMap) {
+
+        if ("admin".equalsIgnoreCase(username) && "admin".equalsIgnoreCase(password)) {
+            // authenticated, lets set the subject and claims
+            authContextMap.put("subject", username);
+
+            Map<String, String> claimMap = new HashMap<>();
+            claimMap.put("role", "admin");
+            claimMap.put("email", "admin@wso2.com");
+            authContextMap.put("claims", claimMap);
+
+            return GatewayInvocationResponse.CONTINUE;
+
+        } else {
+            return GatewayInvocationResponse.ERROR;
+        }
+
     }
 }

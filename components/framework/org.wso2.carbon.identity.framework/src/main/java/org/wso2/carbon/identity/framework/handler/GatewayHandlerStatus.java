@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.handler.callback;
+package org.wso2.carbon.identity.framework.handler;
 
-import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
-
-public abstract class GatewayCallbackHandler extends GatewayEventHandler {
-    protected int priority;
-
-    public abstract int getPriority();
+/**
+ * Enums required to indicate the current processing state of a handler.
+ */
+public enum GatewayHandlerStatus {
+    STARTED, COMPLETE, INCOMPLETE
 }

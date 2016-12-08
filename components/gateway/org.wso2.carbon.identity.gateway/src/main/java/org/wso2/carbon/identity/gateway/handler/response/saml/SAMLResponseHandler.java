@@ -68,6 +68,7 @@ import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -111,7 +112,10 @@ public class SAMLResponseHandler extends GatewayEventHandler {
                     throw new IllegalArgumentException("Cannot find the SAML Authentication Request in the context.");
                 }
 
-                String samlReponse = buildSAMLResponse(authnRequest, ACS_URL, "dummy", null);
+                String subject = (String) contextMap.getOrDefault("subject", null);
+                Map<String, String> claimMap = (Map<String, String>) contextMap.getOrDefault("claims", new HashMap<>());
+
+                String samlReponse = buildSAMLResponse(authnRequest, ACS_URL, subject, claimMap);
                 if (StringUtils.isBlank(samlReponse)) {
                     throw new IllegalArgumentException("Cannot build a SAML Response.");
                 }
@@ -176,7 +180,7 @@ public class SAMLResponseHandler extends GatewayEventHandler {
         Assertion assertion = new AssertionBuilder().buildObject();
         assertion.setID(UUID.randomUUID().toString());
         assertion.setVersion(SAMLVersion.VERSION_20);
-        assertion.setIssuer(issuer);
+        assertion.setIssuer(SAMLUtils.getIssuer(SAML_ISSUER, NameIDType.ENTITY));
         assertion.setIssueInstant(issueInstant);
 
         /*

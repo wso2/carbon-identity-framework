@@ -112,7 +112,6 @@
             </dependency>
 
 
-
             <!-- SAML dependencies -->
             <dependency>
                 <groupId>opensaml.wso2</groupId>

@@ -42,7 +42,7 @@ public class IdentityResponse extends IdentityMessage implements Serializable {
     public void addHeader(String name, String value) {
         // if the header name is not null and is present in the map, we throw an exception
         headers.computeIfPresent(name, (headerName, currentHeaderValue) -> {
-            throw FrameworkRuntimeException.error("Headers map trying to override existing header " + headerName);
+            throw FrameworkRuntimeException.error("Headers map trying to override existing header : " + headerName);
         });
         headers.put(name, value);
     }

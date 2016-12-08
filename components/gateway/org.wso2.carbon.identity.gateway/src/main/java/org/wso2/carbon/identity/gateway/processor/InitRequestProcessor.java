@@ -20,14 +20,18 @@ package org.wso2.carbon.identity.gateway.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
+import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.handler.authentication.MultiStepAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.authentication.authenticator.BasicAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.response.saml.SAMLResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.validation.saml.SAMLValidationHandler;
+
+import java.util.HashMap;
 
 
 /*
@@ -41,13 +45,26 @@ public class InitRequestProcessor extends IdentityProcessor {
     @Override
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
         if (log.isDebugEnabled()) {
-            log.debug(getName() + " processed the Identity Request successfully.");
+            log.debug(getName() + " starting to process the initial Identity Request.");
         }
 
         // Build the message context
         IdentityMessageContext context = new IdentityMessageContext(identityRequest, new IdentityResponse());
+        context.setInitialIdentityRequest(identityRequest);
 
-        // Build a handler chain
+        // Create a sessionId and add it to the message context
+        String sessionId = FrameworkUtil.generateSessionIdentifier();
+        FrameworkUtil.addSessionIdentifierToContext(context, sessionId);
+
+        // add the context reference to the cache.
+        IdentityMessageContextCache.getInstance().put(sessionId, context);
+
+        // Add an authentication context map TODO: this should be initialized by the context
+        context.addParameter(sessionId, new HashMap<>());
+
+        /*
+            Handler Chain Begin
+        */
         SAMLValidationHandler samlValidationHandler = new SAMLValidationHandler();
 
         MultiStepAuthenticationHandler multiStepAuthenticationHandler = new MultiStepAuthenticationHandler();
@@ -58,6 +75,9 @@ public class InitRequestProcessor extends IdentityProcessor {
         samlValidationHandler.setNextHandler(multiStepAuthenticationHandler);
         multiStepAuthenticationHandler.addIdentityGatewayEventHandler(basicAuthenticationHandler);
         basicAuthenticationHandler.setNextHandler(samlResponseHandler);
+        /*
+            Handler Chain End
+         */
 
         // start executing the handler chain
         samlValidationHandler.execute(context);
