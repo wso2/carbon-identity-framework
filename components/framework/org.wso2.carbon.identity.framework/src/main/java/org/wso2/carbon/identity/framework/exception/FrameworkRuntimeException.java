@@ -24,11 +24,11 @@ import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
  */
 public class FrameworkRuntimeException extends IdentityRuntimeException {
 
-    protected FrameworkRuntimeException(String errorDescription) {
+    public FrameworkRuntimeException(String errorDescription) {
         super(errorDescription);
     }
 
-    protected FrameworkRuntimeException(String errorDescription, Throwable cause) {
+    public FrameworkRuntimeException(String errorDescription, Throwable cause) {
         super(errorDescription, cause);
     }
 

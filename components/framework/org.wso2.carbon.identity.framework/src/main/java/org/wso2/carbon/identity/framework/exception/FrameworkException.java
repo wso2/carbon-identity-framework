@@ -23,11 +23,11 @@ import org.wso2.carbon.identity.common.base.exception.IdentityException;
  */
 public class FrameworkException extends IdentityException {
 
-    protected FrameworkException(String errorDescription) {
+    public FrameworkException(String errorDescription) {
         super(errorDescription);
     }
 
-    protected FrameworkException(String errorDescription, Throwable cause) {
+    public FrameworkException(String errorDescription, Throwable cause) {
         super(errorDescription, cause);
     }
 }

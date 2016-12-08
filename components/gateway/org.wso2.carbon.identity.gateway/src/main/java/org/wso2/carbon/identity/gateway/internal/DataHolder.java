@@ -5,6 +5,7 @@ import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -73,6 +74,10 @@ public class DataHolder {
      */
     public void addGatewayCallbackHandler(GatewayCallbackHandler gatewayCallbackHandler) {
         gatewayCallbackHandlers.add(gatewayCallbackHandler);
+        Collections.sort(gatewayCallbackHandlers, callbackHandlerComparator);
     }
 
+
+    private static Comparator<GatewayCallbackHandler> callbackHandlerComparator =
+            (handler1, handler2) -> FrameworkUtil.comparePriory(handler1.getPriority(), handler2.getPriority());
 }

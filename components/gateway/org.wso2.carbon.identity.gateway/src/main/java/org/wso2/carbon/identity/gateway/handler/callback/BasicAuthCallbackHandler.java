@@ -37,7 +37,6 @@ public class BasicAuthCallbackHandler extends GatewayCallbackHandler {
 
         // set it as my next handler
 
-
         return GatewayInvocationResponse.CONTINUE;
     }
 
