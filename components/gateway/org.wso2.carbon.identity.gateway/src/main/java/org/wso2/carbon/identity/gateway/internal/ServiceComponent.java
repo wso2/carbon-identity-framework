@@ -8,6 +8,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
@@ -79,5 +80,27 @@ public class ServiceComponent {
      */
     protected void unsetCarbonRuntime(CarbonRuntime carbonRuntime) {
         DataHolder.getInstance().setCarbonRuntime(null);
+    }
+
+
+    /**
+     * This bind method will be called when {@link GatewayCallbackHandler} OSGi services are registered
+     *
+     * @param callbackHandler {@link GatewayCallbackHandler} OSGi service instance.
+     */
+    @Reference(
+            name = "gateway.callback.handler",
+            service = GatewayCallbackHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetCallbackHandler"
+    )
+    protected void setCallbackHandler(GatewayCallbackHandler callbackHandler) {
+        DataHolder.getInstance().addGatewayCallbackHandler(callbackHandler);
+    }
+
+
+    protected void unsetCallbackHandler(GatewayCallbackHandler callbackHandler) {
+        DataHolder.getInstance().addGatewayCallbackHandler(null);
     }
 }

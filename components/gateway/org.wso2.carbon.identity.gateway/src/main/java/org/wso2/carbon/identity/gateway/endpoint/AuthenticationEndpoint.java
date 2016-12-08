@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.osgi.service.component.annotations.Component;
 import org.wso2.msf4j.Microservice;
 
+import java.io.IOException;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
@@ -41,7 +42,13 @@ public class AuthenticationEndpoint implements Microservice {
     @GET
     @Path("/")
     public Response getLoginPage(@QueryParam("callback") String callback, @QueryParam("state") String sessionId) {
-        String loginPage = getLoginPageContent(callback, sessionId);
+        String loginPage;
+
+        try {
+            loginPage = getLoginPageContent(callback, sessionId);
+        } catch (IOException e) {
+            return Response.serverError().build();
+        }
 
         return Response
                 .ok()
@@ -52,7 +59,7 @@ public class AuthenticationEndpoint implements Microservice {
     }
 
 
-    private String getLoginPageContent(String callbackURL, String state) {
+    private String getLoginPageContent(String callbackURL, String state) throws IOException {
         String response = AuthenticationEndpointUtils.getLoginPage();
         if (StringUtils.isNotBlank(state)) {
             response = response.replace("${state}", state);

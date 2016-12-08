@@ -68,8 +68,9 @@ public class SAMLValidationHandler extends GatewayEventHandler {
 
         if ("POST".equalsIgnoreCase(method)) {
 
-            String urlDecodedRequest = null;
+            String urlDecodedRequest;
             try {
+                // TODO: handle this properly
                 urlDecodedRequest = URLDecoder.decode(encodedRequest.split("=", 2)[1], UTF_8.name());
                 String decodedRequest = new String(Base64.getDecoder().decode(urlDecodedRequest), UTF_8);
                 if (logger.isDebugEnabled()) {

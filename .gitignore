@@ -1,4 +1,3 @@
-*.class
 .classpath
 .settings
 .project
@@ -11,7 +10,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.ear
 

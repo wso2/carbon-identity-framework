@@ -1,7 +1,12 @@
 package org.wso2.carbon.identity.gateway.internal;
 
+import org.wso2.carbon.identity.framework.util.FrameworkUtil;
+import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -15,6 +20,8 @@ public class DataHolder {
 
     private static DataHolder instance = new DataHolder();
     private CarbonRuntime carbonRuntime;
+
+    private List<GatewayCallbackHandler> gatewayCallbackHandlers = new ArrayList<>();
 
     private DataHolder() {
 
@@ -47,4 +54,25 @@ public class DataHolder {
     public void setCarbonRuntime(CarbonRuntime carbonRuntime) {
         this.carbonRuntime = carbonRuntime;
     }
+
+
+    /**
+     * Returns the {@link GatewayCallbackHandler} services which gets set through a service component.
+     *
+     * @return GatewayCallbackHandler Service
+     */
+    public List<GatewayCallbackHandler> getGatewayCallbackHandlers() {
+        return gatewayCallbackHandlers;
+    }
+
+    /**
+     * This method is for add a {@link GatewayCallbackHandler} service. This method is used by
+     * ServiceComponent.
+     *
+     * @param gatewayCallbackHandler The reference being passed through ServiceComponent
+     */
+    public void addGatewayCallbackHandler(GatewayCallbackHandler gatewayCallbackHandler) {
+        gatewayCallbackHandlers.add(gatewayCallbackHandler);
+    }
+
 }
