@@ -146,7 +146,7 @@
         .trigger-title {
             float: left;
             display: block;
-            min-width: 300px;
+            min-width: 36%;
             vertical-align: bottom;
         }
 

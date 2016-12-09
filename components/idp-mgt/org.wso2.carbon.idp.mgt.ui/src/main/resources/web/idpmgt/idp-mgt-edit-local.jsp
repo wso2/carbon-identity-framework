@@ -621,9 +621,6 @@ jQuery(document).ready(function(){
                     <%
                     org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            if (connectorProperties[k] == null) {
-                                continue;
-                            }
                             String value = connectorProperties[k].getValue();%>
                         <tr>
                             <td style="width: 500px;">
