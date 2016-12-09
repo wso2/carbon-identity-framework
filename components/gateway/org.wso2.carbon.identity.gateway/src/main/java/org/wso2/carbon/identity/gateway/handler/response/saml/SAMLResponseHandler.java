@@ -94,7 +94,7 @@ public class SAMLResponseHandler extends GatewayEventHandler {
     @Override
     public GatewayInvocationResponse handle(IdentityMessageContext context) {
 
-        String sessionID = FrameworkUtil.getSessionIdentifier(context);
+        String sessionID = context.getSessionDataKey();
 
         try {
             if (StringUtils.isNotBlank(sessionID)) {

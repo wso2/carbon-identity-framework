@@ -65,7 +65,7 @@ public class BasicAuthenticationHandler extends GatewayEventHandler implements A
     @Override
     public GatewayInvocationResponse handle(IdentityMessageContext context) {
 
-        String sessionID = FrameworkUtil.getSessionIdentifier(context);
+        String sessionID = context.getSessionDataKey();
         if (StringUtils.isNotBlank(sessionID)) {
 
             if (isCallback(context)) {

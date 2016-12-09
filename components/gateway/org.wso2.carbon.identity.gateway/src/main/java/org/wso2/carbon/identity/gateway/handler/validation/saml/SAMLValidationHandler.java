@@ -76,10 +76,11 @@ public class SAMLValidationHandler extends GatewayEventHandler {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Decoded SAML request: " + decodedRequest);
                 }
+
                 AuthnRequest samlAuthenticationRequest = buildSAMLRequest(decodedRequest);
 
                 // Review this approach
-                String sessionId = FrameworkUtil.getSessionIdentifier(context);
+                String sessionId = context.getSessionDataKey();
                 Map<String, Object> authContextMap =
                         (Map<String, Object>) Optional.ofNullable(context.getParameter(sessionId)).orElseThrow(() ->
                                 new RuntimeException("Unable to find the authentication context map."));
