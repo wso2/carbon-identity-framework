@@ -19,31 +19,32 @@ package org.wso2.carbon.identity.gateway.resource.internal;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
-import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.resource.MSF4JResponseFactory;
-import org.wso2.carbon.kernel.CarbonRuntime;
+import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
- * DataHolder to hold org.wso2.carbon.kernel.CarbonRuntime instance referenced through
- * org.wso2.carbon.helloworld.internal.ServiceComponent.
+ * DataHolder to hold service instances required by org.wso2.carbon.identity.gateway.resource component.
  *
  * @since 1.0.0
  */
 public class DataHolder {
-    Logger logger = Logger.getLogger(DataHolder.class.getName());
 
     private static DataHolder instance = new DataHolder();
-    private CarbonRuntime carbonRuntime;
 
-    private List<MSF4JIdentityRequestFactory> requestFactoryList = new ArrayList<>();
-    private List<MSF4JResponseFactory> responseFactoryList = new ArrayList<>();
+    private List<MSF4JIdentityRequestBuilderFactory> requestFactoryList = new ArrayList<>();
+    private List<MSF4JResponseBuilderFactory> responseFactoryList = new ArrayList<>();
     private IdentityProcessCoordinator processCoordinator;
+
+    private Comparator<MSF4JIdentityRequestBuilderFactory> requestFactoryComparator =
+            (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
+
+    private Comparator<MSF4JResponseBuilderFactory> responseFactoryComparator =
+            (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 
     private DataHolder() {
 
@@ -55,70 +56,102 @@ public class DataHolder {
      * @return The DataHolder instance of this singleton class
      */
     public static DataHolder getInstance() {
+
         return instance;
     }
 
-    /**
-     * Returns the CarbonRuntime service which gets set through a service component.
-     *
-     * @return CarbonRuntime Service
-     */
-    public CarbonRuntime getCarbonRuntime() {
-        return carbonRuntime;
-    }
 
     /**
-     * This method is for setting the CarbonRuntime service. This method is used by
-     * ServiceComponent.
+     * Add a {@link MSF4JIdentityRequestBuilderFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link MSF4JIdentityRequestBuilderFactory} registers.
      *
-     * @param carbonRuntime The reference being passed through ServiceComponent
+     * @param requestBuilderFactory @MSF4JIdentityRequestBuilderFactory instance added.
      */
-    public void setCarbonRuntime(CarbonRuntime carbonRuntime) {
-        this.carbonRuntime = carbonRuntime;
-    }
+    public void addRequestFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
 
-
-    public void addRequestFactory(MSF4JIdentityRequestFactory requestFactory) {
-        requestFactoryList.add(requestFactory);
+        requestFactoryList.add(requestBuilderFactory);
         Collections.sort(requestFactoryList, requestFactoryComparator);
     }
 
-    public void removeRequestFactory(MSF4JIdentityRequestFactory requestFactory) {
-        requestFactoryList.remove(requestFactory);
+
+    /**
+     * Remove a {@link MSF4JIdentityRequestBuilderFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link MSF4JIdentityRequestBuilderFactory} unregisters.
+     *
+     * @param requestBuilderFactory @MSF4JIdentityRequestBuilderFactory removed.
+     */
+    public void removeRequestFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
+
+        requestFactoryList.remove(requestBuilderFactory);
     }
 
-    public List<MSF4JIdentityRequestFactory> getRequestFactoryList() {
+
+    /**
+     * Return a list registered @{@link MSF4JIdentityRequestBuilderFactory} services.
+     *
+     * @return list of @{@link MSF4JIdentityRequestBuilderFactory} services.
+     */
+    public List<MSF4JIdentityRequestBuilderFactory> getRequestFactoryList() {
+
         return requestFactoryList;
     }
 
 
-    public void addResponseFactory(MSF4JResponseFactory msf4JResponseFactory) {
-        responseFactoryList.add(msf4JResponseFactory);
+    /**
+     * Add a {@link MSF4JResponseBuilderFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link MSF4JResponseBuilderFactory} registers.
+     *
+     * @param responseBuilderFactory @{@link MSF4JResponseBuilderFactory} instance added.
+     */
+    public void addResponseFactory(MSF4JResponseBuilderFactory responseBuilderFactory) {
+
+        responseFactoryList.add(responseBuilderFactory);
         Collections.sort(responseFactoryList, responseFactoryComparator);
     }
 
-    public void removeResponseFactory(MSF4JResponseFactory msf4JResponseFactory) {
-        responseFactoryList.remove(msf4JResponseFactory);
+    /**
+     * Remove a {@link MSF4JResponseBuilderFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link MSF4JResponseBuilderFactory} un-registers.
+     *
+     * @param responseBuilderFactory @{@link MSF4JResponseBuilderFactory} instance removed.
+     */
+    public void removeResponseFactory(MSF4JResponseBuilderFactory responseBuilderFactory) {
+
+        responseFactoryList.remove(responseBuilderFactory);
     }
 
-    public List<MSF4JResponseFactory> getResponseFactoryList() {
+    /**
+     * Return a list registered @{@link MSF4JResponseBuilderFactory} services.
+     *
+     * @return list of @{@link MSF4JResponseBuilderFactory} services.
+     */
+    public List<MSF4JResponseBuilderFactory> getResponseFactoryList() {
+
         return responseFactoryList;
     }
 
+    /**
+     * Get the registered @{@link IdentityProcessCoordinator} OSGi service for consumption.
+     *
+     * @return IdentityProcessCoordinator instance set by the ServiceComponent.
+     */
     public IdentityProcessCoordinator getProcessCoordinator() {
+
         if (processCoordinator == null) {
-            throw FrameworkRuntimeException.error("Identity Process Co-ordinator cannot be null.");
+            throw FrameworkRuntimeException.error("Identity Process Coordinator cannot be null.");
         }
         return processCoordinator;
     }
 
+    /**
+     * Set the {@link IdentityProcessCoordinator} service instance. This will be used by the ServiceComponent
+     * when a @{@link IdentityProcessCoordinator} registers.
+     *
+     * @param processCoordinator {@link IdentityProcessCoordinator} service registered.
+     */
     public void setProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
+
         this.processCoordinator = processCoordinator;
     }
 
-    private Comparator<MSF4JIdentityRequestFactory> requestFactoryComparator =
-            (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
-
-    private Comparator<MSF4JResponseFactory> responseFactoryComparator =
-            (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 }

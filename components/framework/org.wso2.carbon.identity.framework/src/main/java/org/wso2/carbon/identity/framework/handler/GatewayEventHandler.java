@@ -45,15 +45,17 @@ public abstract class GatewayEventHandler {
         return this.prevHandler;
     }
 
-    public void execute(IdentityMessageContext identityMessageContext) {
+    public void execute(IdentityMessageContext context) {
         GatewayInvocationResponse gatewayInvocationResponse = CONTINUE;
 
-        if (canHandle(identityMessageContext)) {
-            gatewayInvocationResponse = handle(identityMessageContext);
+        if (canHandle(context)) {
+            context.setCurrentHandler(this);
+            context.setCurrentHandlerStatus(GatewayHandlerStatus.STARTED);
+            gatewayInvocationResponse = handle(context);
         }
 
         if (getNextHandler() != null && gatewayInvocationResponse.name().equals(CONTINUE.name())) {
-            getNextHandler().execute(identityMessageContext);
+            getNextHandler().execute(context);
         }
     }
 

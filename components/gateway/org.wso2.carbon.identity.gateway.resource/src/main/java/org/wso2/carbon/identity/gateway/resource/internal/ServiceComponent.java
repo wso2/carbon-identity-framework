@@ -24,15 +24,16 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
-import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.resource.MSF4JResponseFactory;
-import org.wso2.carbon.kernel.CarbonRuntime;
+import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactoryImpl;
+import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactoryImpl;
 
 import java.util.logging.Logger;
 
 /**
- * Service component to consume CarbonRuntime instance which has been registered as an OSGi service
- * by Carbon Kernel.
+ * Service component to consume OSGi services required by
+ * {@link org.wso2.carbon.identity.gateway.resource.IdentityGateway} MicroService.
  *
  * @since 1.0.0
  */
@@ -54,79 +55,88 @@ public class ServiceComponent {
      */
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
-        logger.info("Service Component is activated");
 
         // Register MSF4JRequestFactory instance as an OSGi service.
-        bundleContext.registerService(MSF4JIdentityRequestFactory.class, new MSF4JIdentityRequestFactory(), null);
-        bundleContext.registerService(MSF4JResponseFactory.class, new MSF4JResponseFactory(), null);
+        bundleContext.registerService(MSF4JIdentityRequestBuilderFactory.class, new MSF4JIdentityRequestFactoryImpl(),
+                null);
+        bundleContext.registerService(MSF4JResponseBuilderFactory.class, new MSF4JResponseBuilderFactoryImpl(), null);
+
+        logger.info("Service Component is activated");
     }
 
     /**
      * This is the deactivation method of ServiceComponent. This will be called when this component
-     * is being stopped or references are satisfied during runtime.
+     * is being stopped or references are not satisfied during runtime.
      *
      * @throws Exception this will be thrown if an issue occurs while executing the de-activate method
      */
     @Deactivate
     protected void stop() throws Exception {
+
         logger.info("Service Component is deactivated");
     }
 
     /**
-     * This bind method will be called when CarbonRuntime OSGi service is registered.
+     * This bind method will be called when {@link MSF4JIdentityRequestBuilderFactory} OSGi services are registered.
      *
-     * @param carbonRuntime The CarbonRuntime instance registered by Carbon Kernel as an OSGi service
+     * @param requestBuilderFactory {@link MSF4JIdentityRequestBuilderFactory} instance registered as an OSGi service
      */
     @Reference(
-            name = "carbon.runtime.service",
-            service = CarbonRuntime.class,
-            cardinality = ReferenceCardinality.MANDATORY,
+            name = "msf4j.identity.request.builder.factory",
+            service = MSF4JIdentityRequestBuilderFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetCarbonRuntime"
+            unbind = "unsetRequestBuilderFactory"
     )
-    protected void setCarbonRuntime(CarbonRuntime carbonRuntime) {
-        dataHolder.setCarbonRuntime(carbonRuntime);
+    protected void setRequestBuilderFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
+
+        dataHolder.addRequestFactory(requestBuilderFactory);
     }
 
     /**
-     * This is the unbind method which gets called at the un-registration of CarbonRuntime OSGi service.
+     * This is the unbind method which gets called at the un-registration of {@link MSF4JIdentityRequestBuilderFactory}
+     * OSGi service.
      *
-     * @param carbonRuntime The CarbonRuntime instance registered by Carbon Kernel as an OSGi service
+     * @param requestBuilderFactory {@link MSF4JIdentityRequestBuilderFactory} OSGi service.
      */
-    protected void unsetCarbonRuntime(CarbonRuntime carbonRuntime) {
-        DataHolder.getInstance().setCarbonRuntime(null);
+    protected void unsetRequestBuilderFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
+
+        dataHolder.removeRequestFactory(requestBuilderFactory);
     }
 
+    /**
+     * This bind method will be called when {@link MSF4JResponseBuilderFactory} OSGi services are registered.
+     *
+     * @param responseFactory The {@link MSF4JResponseBuilderFactoryImpl} instance registered as an OSGi service
+     */
     @Reference(
-            name = "msf4j.http.request.factory",
-            service = MSF4JIdentityRequestFactory.class,
+            name = "msf4j.response.builder.factory",
+            service = MSF4JResponseBuilderFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRequestFactory"
+            unbind = "unsetResponseBuilderFactory"
     )
-    protected void setRequestFactory(MSF4JIdentityRequestFactory requestFactory) {
-        dataHolder.addRequestFactory(requestFactory);
-    }
+    protected void setResponseBuilderFactory(MSF4JResponseBuilderFactory responseFactory) {
 
-    protected void unsetRequestFactory(MSF4JIdentityRequestFactory requestFactory) {
-        dataHolder.removeRequestFactory(requestFactory);
-    }
-
-    @Reference(
-            name = "ms4j.response.factory",
-            service = MSF4JResponseFactory.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetResponseFactory"
-    )
-    protected void setResponseFactory(MSF4JResponseFactory responseFactory) {
         dataHolder.addResponseFactory(responseFactory);
     }
 
-    protected void unsetResponseFactory(MSF4JResponseFactory responseFactory) {
-        dataHolder.removeResponseFactory(responseFactory);
+    /**
+     * This is the unbind method which gets called at the un-registration of a {@link MSF4JResponseBuilderFactory}
+     * OSGi service.
+     *
+     * @param responseBuilderFactory The {@link MSF4JResponseBuilderFactory} instance registered as an OSGi service
+     */
+    protected void unsetResponseBuilderFactory(MSF4JResponseBuilderFactory responseBuilderFactory) {
+
+        dataHolder.removeResponseFactory(responseBuilderFactory);
     }
 
+    /**
+     * This bind method will be called when {@link IdentityProcessCoordinator} OSGi service is registered.
+     *
+     * @param processCoordinator The {@link IdentityProcessCoordinator} instance registered as an OSGi service
+     */
     @Reference(
             name = "identity.process.coordinator",
             service = IdentityProcessCoordinator.class,
@@ -135,10 +145,18 @@ public class ServiceComponent {
             unbind = "unsetIdentityProcessCoordinator"
     )
     protected void setIdentityProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
+
         dataHolder.setProcessCoordinator(processCoordinator);
     }
 
+    /**
+     * This is the unbind method which gets called at the un-registration of {@link IdentityProcessCoordinator}
+     * OSGi service.
+     *
+     * @param processCoordinator The {@link IdentityProcessCoordinator} instance registered as an OSGi service
+     */
     protected void unsetIdentityProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
+
         dataHolder.setProcessCoordinator(null);
     }
 

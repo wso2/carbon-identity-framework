@@ -16,28 +16,39 @@
 
 package org.wso2.carbon.identity.gateway.handler.callback;
 
+import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
 import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
+import org.wso2.carbon.identity.framework.util.FrameworkUtil;
+
+import java.util.Optional;
 
 
 public class BasicAuthCallbackHandler extends GatewayCallbackHandler {
 
     @Override
-    public GatewayInvocationResponse handle(IdentityMessageContext identityMessageContext) {
+    public GatewayInvocationResponse handle(IdentityMessageContext context) {
+
         // identify the state value
+        String state = String.valueOf(
+                Optional.ofNullable(context.getCurrentIdentityRequest().getProperty("state"))
+                        .orElseThrow(() -> new RuntimeException("Unable to process the callback for Basic Auth."))
+        );
 
         // load the context
+        IdentityMessageContext oldContext = Optional.ofNullable(IdentityMessageContextCache.getInstance().get(state))
+                .orElseThrow(() -> new RuntimeException("Unable to find the persisted context for identifier : " +
+                        state));
 
         // merge the new context with old context
+        FrameworkUtil.mergeContext(context, oldContext);
 
-        // load the handler chain
-
-        // get the handler that should be executed next
+        // get the handler that should resume the flow.
+        GatewayEventHandler nextHandler = context.getCurrentHandler();
 
         // set it as my next handler
-
-
+        this.setNextHandler(nextHandler);
         return GatewayInvocationResponse.CONTINUE;
     }
 
@@ -45,11 +56,12 @@ public class BasicAuthCallbackHandler extends GatewayCallbackHandler {
     @Override
     public boolean canHandle(IdentityMessageContext identityMessageContext) {
         // need to say I can handle this request
-        return false;
+        return true;
     }
 
     @Override
     public int getPriority() {
+
         return 100;
     }
 }

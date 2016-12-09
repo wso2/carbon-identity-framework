@@ -18,11 +18,11 @@ package org.wso2.carbon.identity.framework.exception;
 
 public class FrameworkClientException extends FrameworkException {
 
-    protected FrameworkClientException(String errorDescription) {
+    public FrameworkClientException(String errorDescription) {
         super(errorDescription);
     }
 
-    protected FrameworkClientException(String errorDescription, Throwable cause) {
+    public FrameworkClientException(String errorDescription, Throwable cause) {
         super(errorDescription, cause);
     }
 }

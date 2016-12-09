@@ -27,6 +27,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+
 /**
  * Authentication Endpoint MicroService.
  */
@@ -39,13 +41,29 @@ import javax.ws.rs.core.Response;
 public class AuthenticationEndpoint implements Microservice {
 
 
+    /**
+     * Provides the login page for authentication after setting the necessary callback url to which the response will
+     * be posted to.
+     *
+     * @param callback       URL to which the response will be sent as a POST.
+     * @param sessionDataKey correlation key that helps to identify the request context.
+     * @return HTML login page.
+     */
     @GET
     @Path("/")
-    public Response getLoginPage(@QueryParam("callback") String callback, @QueryParam("state") String sessionId) {
-        String loginPage;
+    public Response getLoginPage(@QueryParam("callback") String callback, @QueryParam("state") String sessionDataKey) {
 
+        if (StringUtils.isBlank(callback)) {
+            return handleBadRequest("Mandatory 'callback' parameter is missing in the request parameters.");
+        }
+
+        if (StringUtils.isBlank(sessionDataKey)) {
+            return handleBadRequest("Mandatory 'sessionDataKey' parameter missing in request parameters.");
+        }
+
+        String loginPage;
         try {
-            loginPage = getLoginPageContent(callback, sessionId);
+            loginPage = getLoginPageContent(callback, sessionDataKey);
         } catch (IOException e) {
             return Response.serverError().build();
         }
@@ -60,6 +78,7 @@ public class AuthenticationEndpoint implements Microservice {
 
 
     private String getLoginPageContent(String callbackURL, String state) throws IOException {
+
         String response = AuthenticationEndpointUtils.getLoginPage();
         if (StringUtils.isNotBlank(state)) {
             response = response.replace("${state}", state);
@@ -70,6 +89,12 @@ public class AuthenticationEndpoint implements Microservice {
         }
 
         return response;
+    }
+
+
+    private Response handleBadRequest(String errorMessage) {
+
+        return Response.status(BAD_REQUEST).entity(errorMessage).build();
     }
 
 

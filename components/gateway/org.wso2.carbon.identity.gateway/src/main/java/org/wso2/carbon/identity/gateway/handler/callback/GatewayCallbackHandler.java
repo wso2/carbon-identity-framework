@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.gateway.handler.callback;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
 
 public abstract class GatewayCallbackHandler extends GatewayEventHandler {
-    protected  int priority;
+    protected int priority;
 
     public abstract int getPriority();
 }

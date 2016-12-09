@@ -14,20 +14,28 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.exception;
+package org.wso2.carbon.identity.framework.handler.auth;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.model.User;
+import org.wso2.carbon.identity.framework.model.UserClaim;
 
-/**
- * Common Exception class for exception thrown from the framework.
- */
-public class FrameworkException extends IdentityException {
+import java.util.Map;
 
-    public FrameworkException(String errorDescription) {
-        super(errorDescription);
-    }
+public interface Authenticator {
 
-    public FrameworkException(String errorDescription, Throwable cause) {
-        super(errorDescription, cause);
-    }
+    boolean isSubjectStep();
+
+    boolean isAttributeStep();
+
+    String getUniqueIdentifier();
+
+    boolean isCallback(IdentityMessageContext context);
+
+    boolean isAuthenticated();
+
+    Map<String, UserClaim> getUserClaims();
+
+    User getAuthenticatedUser();
+    
 }

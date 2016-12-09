@@ -17,9 +17,7 @@
 package org.wso2.carbon.identity.gateway.util;
 
 import org.opensaml.DefaultBootstrap;
-import org.opensaml.common.xml.SAMLConstants;
 import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.NameIDType;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
@@ -46,6 +44,7 @@ public class SAMLUtils {
 
 
     public static void doBootstrap() {
+
         if (!isBootStrapped) {
             try {
                 DefaultBootstrap.bootstrap();
@@ -57,6 +56,7 @@ public class SAMLUtils {
     }
 
     public static String getHTMLResponseBody(String samlResponse) {
+
         return "<html>\n" +
                 "\t<body>\n" +
                 "        \t<p>You are now redirected to $url \n" +
@@ -75,6 +75,7 @@ public class SAMLUtils {
     }
 
     public static Issuer getIssuer(String issuerName, String format) {
+
         Issuer issuer = new IssuerBuilder().buildObject();
         issuer.setValue(issuerName);
         issuer.setFormat(format);

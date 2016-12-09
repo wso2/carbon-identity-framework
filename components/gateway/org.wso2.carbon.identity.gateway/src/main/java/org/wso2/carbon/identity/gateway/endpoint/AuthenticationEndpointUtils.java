@@ -27,8 +27,13 @@ import java.util.stream.Collectors;
  */
 class AuthenticationEndpointUtils {
 
+    private static final String DEFAULT_LOGIN_PAGE = "login.html";
+
     static String getLoginPage() throws IOException {
-        InputStream inputStream = AuthenticationEndpointUtils.class.getClassLoader().getResourceAsStream("login.html");
+
+        InputStream inputStream = AuthenticationEndpointUtils.class.getClassLoader()
+                .getResourceAsStream(DEFAULT_LOGIN_PAGE);
+
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
             return buffer.lines().collect(Collectors.joining("\n"));
         }

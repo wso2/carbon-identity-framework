@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.exception;
+package org.wso2.carbon.identity.framework.handler.auth;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
-
-/**
- * Common Exception class for exception thrown from the framework.
- */
-public class FrameworkException extends IdentityException {
-
-    public FrameworkException(String errorDescription) {
-        super(errorDescription);
-    }
-
-    public FrameworkException(String errorDescription, Throwable cause) {
-        super(errorDescription, cause);
-    }
+public interface LocalAuthenticator extends Authenticator{
 }

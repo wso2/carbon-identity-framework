@@ -5,6 +5,7 @@ import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -33,6 +34,7 @@ public class DataHolder {
      * @return The DataHolder instance of this singleton class
      */
     public static DataHolder getInstance() {
+
         return instance;
     }
 
@@ -42,6 +44,7 @@ public class DataHolder {
      * @return CarbonRuntime Service
      */
     public CarbonRuntime getCarbonRuntime() {
+
         return carbonRuntime;
     }
 
@@ -52,6 +55,7 @@ public class DataHolder {
      * @param carbonRuntime The reference being passed through ServiceComponent
      */
     public void setCarbonRuntime(CarbonRuntime carbonRuntime) {
+
         this.carbonRuntime = carbonRuntime;
     }
 
@@ -62,6 +66,7 @@ public class DataHolder {
      * @return GatewayCallbackHandler Service
      */
     public List<GatewayCallbackHandler> getGatewayCallbackHandlers() {
+
         return gatewayCallbackHandlers;
     }
 
@@ -72,7 +77,12 @@ public class DataHolder {
      * @param gatewayCallbackHandler The reference being passed through ServiceComponent
      */
     public void addGatewayCallbackHandler(GatewayCallbackHandler gatewayCallbackHandler) {
+
         gatewayCallbackHandlers.add(gatewayCallbackHandler);
+        Collections.sort(gatewayCallbackHandlers, callbackHandlerComparator);
     }
 
+
+    private static Comparator<GatewayCallbackHandler> callbackHandlerComparator =
+            (handler1, handler2) -> FrameworkUtil.comparePriory(handler1.getPriority(), handler2.getPriority());
 }

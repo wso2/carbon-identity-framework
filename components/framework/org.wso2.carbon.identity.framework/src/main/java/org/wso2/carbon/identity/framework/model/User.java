@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.exception;
+package org.wso2.carbon.identity.framework.model;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Common Exception class for exception thrown from the framework.
- */
-public class FrameworkException extends IdentityException {
+public abstract class User implements Serializable {
 
-    public FrameworkException(String errorDescription) {
-        super(errorDescription);
+    private String userIdentifier;
+    private User attributeStepUser = this;
+
+    public String getUserIdentifier() {
+        return userIdentifier;
     }
 
-    public FrameworkException(String errorDescription, Throwable cause) {
-        super(errorDescription, cause);
+    public void setUserIdentifier(String userIdentifier) {
+        this.userIdentifier = userIdentifier;
     }
+
+    public abstract Map<String, UserClaim> getUserClaims();
+
 }

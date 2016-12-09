@@ -40,8 +40,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -61,7 +61,7 @@ public class SAMLValidationHandler extends GatewayEventHandler {
     @Override
     public GatewayInvocationResponse handle(IdentityMessageContext context) {
 
-        IdentityRequest identityRequest = context.getIdentityRequest();
+        IdentityRequest identityRequest = context.getCurrentIdentityRequest();
 
         String encodedRequest = identityRequest.getBody();
         String method = identityRequest.getMethod();
@@ -76,18 +76,17 @@ public class SAMLValidationHandler extends GatewayEventHandler {
                 if (logger.isDebugEnabled()) {
                     logger.debug("Decoded SAML request: " + decodedRequest);
                 }
+
                 AuthnRequest samlAuthenticationRequest = buildSAMLRequest(decodedRequest);
 
+                // Review this approach
+                String sessionId = context.getSessionDataKey();
+                Map<String, Object> authContextMap =
+                        (Map<String, Object>) Optional.ofNullable(context.getParameter(sessionId)).orElseThrow(() ->
+                                new RuntimeException("Unable to find the authentication context map."));
+
                 // add the built request to the authentication context map
-                Map<String, Object> authContextMap = new HashMap<>();
                 authContextMap.put(SAML_AUTH_REQUEST, samlAuthenticationRequest);
-
-                // add the authentication context map to message context passed across handlers
-                String sessionId = FrameworkUtil.generateSessionIdentifier();
-                context.addParameter(sessionId, authContextMap);
-
-                // add the sessionIdentifier to the message context.
-                FrameworkUtil.addSessionIdentifierToContext(context, sessionId);
 
             } catch (IOException |
                     UnmarshallingException |
@@ -105,6 +104,7 @@ public class SAMLValidationHandler extends GatewayEventHandler {
 
     @Override
     public boolean canHandle(IdentityMessageContext identityMessageContext) {
+
         return true;
     }
 

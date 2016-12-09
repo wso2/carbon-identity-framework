@@ -8,7 +8,9 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.handler.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
+import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
 import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
 import org.wso2.carbon.kernel.CarbonRuntime;
 
@@ -38,10 +40,14 @@ public class ServiceComponent {
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
 
+        // register processors
         bundleContext.registerService(IdentityProcessor.class, new InitRequestProcessor(), null);
+        bundleContext.registerService(IdentityProcessor.class, new CallbackProcessor(), null);
+
+        // registering callback handlers
+        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(), null);
+
         logger.info("Service Component is activated");
-
-
     }
 
     /**
@@ -52,6 +58,7 @@ public class ServiceComponent {
      */
     @Deactivate
     protected void stop() throws Exception {
+
         logger.info("Service Component is deactivated");
 
 
@@ -70,6 +77,7 @@ public class ServiceComponent {
             unbind = "unsetCarbonRuntime"
     )
     protected void setCarbonRuntime(CarbonRuntime carbonRuntime) {
+
         DataHolder.getInstance().setCarbonRuntime(carbonRuntime);
     }
 
@@ -79,6 +87,7 @@ public class ServiceComponent {
      * @param carbonRuntime The CarbonRuntime instance registered by Carbon Kernel as an OSGi service
      */
     protected void unsetCarbonRuntime(CarbonRuntime carbonRuntime) {
+
         DataHolder.getInstance().setCarbonRuntime(null);
     }
 
@@ -96,11 +105,13 @@ public class ServiceComponent {
             unbind = "unsetCallbackHandler"
     )
     protected void setCallbackHandler(GatewayCallbackHandler callbackHandler) {
+
         DataHolder.getInstance().addGatewayCallbackHandler(callbackHandler);
     }
 
 
     protected void unsetCallbackHandler(GatewayCallbackHandler callbackHandler) {
+
         DataHolder.getInstance().addGatewayCallbackHandler(null);
     }
 }

@@ -17,40 +17,52 @@
 package org.wso2.carbon.identity.gateway.processor;
 
 import org.wso2.carbon.identity.framework.IdentityProcessor;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
+import org.wso2.carbon.identity.gateway.internal.DataHolder;
 
 /**
  * Handle callbacks coming into the Identity Gateway
  */
-public class CallbackProcessor extends IdentityProcessor{
+public class CallbackProcessor extends IdentityProcessor {
 
 
     @Override
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
+
+        IdentityMessageContext context = new IdentityMessageContext(identityRequest, new IdentityResponse());
+
         // get registered callback handlers.
-        // call the can handle method.
-        return null;
+        GatewayCallbackHandler handler = DataHolder.getInstance().getGatewayCallbackHandlers()
+                .stream()
+                .filter(x -> x.canHandle(context))
+                .findFirst()
+                .orElseThrow(() -> new FrameworkException("Unable to find a handler to process the callback"));
+
+        handler.execute(context);
+        return context.getIdentityResponse();
     }
 
     @Override
     public String getName() {
-        return null;
+
+        return "CallbackProcessor";
     }
 
     @Override
     public int getPriority() {
-        return 0;
+
+        return 50;
     }
 
     @Override
     public boolean canHandle(IdentityRequest identityRequest) {
         // if the request url contains identity/callback
-        return false;
+        return identityRequest.getRequestURI().contains("callback");
     }
-
-
 
 
 }

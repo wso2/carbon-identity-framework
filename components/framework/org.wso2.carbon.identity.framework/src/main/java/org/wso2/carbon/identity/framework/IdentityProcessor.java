@@ -87,16 +87,16 @@ public abstract class IdentityProcessor {
         String sessionDataKey = UUIDGenerator.generateUUID();
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        IdentityRequest identityRequest = context.getRequest();
+        IdentityRequest currentIdentityRequest = context.getRequest();
 
-        Map<String, String[]> parameterMap = identityRequest.getParameterMap();
+        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
 
         parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
         parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
 
         authenticationRequest.appendRequestQueryParams(parameterMap);
 
-        for (Object entry : identityRequest.getHeaderMap().keySet()) {
+        for (Object entry : currentIdentityRequest.getHeaderMap().keySet()) {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
@@ -140,16 +140,16 @@ public abstract class IdentityProcessor {
         String sessionDataKey = UUIDGenerator.generateUUID();
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        IdentityRequest identityRequest = context.getRequest();
+        IdentityRequest currentIdentityRequest = context.getRequest();
 
-        Map<String, String[]> parameterMap = identityRequest.getParameterMap();
+        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
 
         parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
         parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
 
         authenticationRequest.appendRequestQueryParams(parameterMap);
 
-        for (Object entry : identityRequest.getHeaderMap().keySet()) {
+        for (Object entry : currentIdentityRequest.getHeaderMap().keySet()) {
             authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
                     ((Map.Entry<String, String>)entry).getValue());
         }
@@ -225,7 +225,7 @@ public abstract class IdentityProcessor {
     /*protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context) {
 
         String sessionDataKey =
-                context.getIdentityRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+                context.getCurrentIdentityRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
         if (entry != null) {
