@@ -137,6 +137,8 @@ public class IdentityCoreServiceComponent {
             String migrateIdentityDB = System.getProperty("migrateIdentityDB");
             String migrateClaimData = System.getProperty("migrateClaimData");
             String migrateUMDB = System.getProperty("migrateUMDB");
+            String migratePermissionData = System.getProperty("migratePermissionData");
+
             String component = System.getProperty("component");
 
             try {
@@ -157,7 +159,13 @@ public class IdentityCoreServiceComponent {
                         Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
                         c.getMethod("migrateClaimData").invoke(c.newInstance());
                         log.info("Migrated the claim management data");
+                    } else if (Boolean.parseBoolean(migratePermissionData)) {
+                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
+                        Object instance = c.newInstance();
+                        c.getMethod("migratePermissionData").invoke(instance);
+                        log.info("Migrated the permission data.");
                     }
+
                 }
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
