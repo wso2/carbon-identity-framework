@@ -21,31 +21,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.builder.IdentityRequestBuilder;
 import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.resource.util.GatewayHelper;
+import org.wso2.carbon.identity.gateway.resource.util.GatewayUtil;
 import org.wso2.msf4j.Request;
 
-import java.util.Properties;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+/**
+ * Default factory implementation of {@link MSF4JResponseBuilderFactory}
+ */
+public class MSF4JIdentityRequestFactoryImpl implements MSF4JIdentityRequestBuilderFactory {
 
-public class MSF4JIdentityRequestFactory {
-
-    private static Logger log = LoggerFactory.getLogger(MSF4JIdentityRequestFactory.class);
-    protected Properties properties;
-
-    public static final String TENANT_DOMAIN_PATTERN = "/t/([^/]+)";
-
+    private static Logger logger = LoggerFactory.getLogger(MSF4JIdentityRequestFactoryImpl.class);
 
     public String getName() {
-        return "MSF4JIdentityRequestFactory";
+
+        return getClass().getSimpleName();
     }
 
     public int getPriority() {
+
         return 100;
     }
 
     public boolean canHandle(Request request) {
+
         return true;
     }
 
@@ -58,6 +58,7 @@ public class MSF4JIdentityRequestFactory {
 
 
     public ResponseBuilder handleException(FrameworkClientException exception, Request request) {
+
         return Response.status(400).entity(exception.getMessage());
     }
 
@@ -77,15 +78,15 @@ public class MSF4JIdentityRequestFactory {
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
 
-        builder.setBody(GatewayHelper.getInstance().readRequestBody(request));
+        builder.setBody(GatewayUtil.readRequestBody(request));
 
         // TODO : handle cookies
 
 
         // TODO: extract SP, tenant info, and others
 
-        if (log.isDebugEnabled()) {
-            log.debug("Identity Request is build from the inbound HTTP Request.");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Identity Request is build from the inbound HTTP Request.");
         }
     }
 

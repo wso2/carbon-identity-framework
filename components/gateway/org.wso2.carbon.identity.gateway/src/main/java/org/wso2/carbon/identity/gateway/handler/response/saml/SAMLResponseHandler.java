@@ -140,6 +140,7 @@ public class SAMLResponseHandler extends GatewayEventHandler {
 
     @Override
     public boolean canHandle(IdentityMessageContext identityMessageContext) {
+
         return true;
     }
 

@@ -25,11 +25,14 @@ import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends IdentityRequest,
         T4 extends IdentityResponse> extends MessageContext implements Serializable {
 
     private static final long serialVersionUID = -3000397944848547943L;
+
+    protected String sessionDataKey;
 
     protected T3 initialIdentityRequest;
 
@@ -39,9 +42,13 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
     protected GatewayEventHandler currentHandler;
     protected GatewayHandlerStatus currentHandlerStatus;
 
+    protected AuthenticationContext authenticationContext;
+
     public IdentityMessageContext(T3 identityRequest, T4 identityResponseMessage) {
         this.currentIdentityRequest = identityRequest;
         this.identityResponse = identityResponseMessage;
+        authenticationContext = new AuthenticationContext();
+        sessionDataKey = UUID.randomUUID().toString();
     }
 
     public IdentityMessageContext(T3 identityRequest, T4 identityResponseMessage, Map<T1, T2> parameters) {
@@ -115,5 +122,17 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
 
     public void setInitialIdentityRequest(T3 initialIdentityRequest) {
         this.initialIdentityRequest = initialIdentityRequest;
+    }
+
+    public AuthenticationContext getAuthenticationContext() {
+        return authenticationContext;
+    }
+
+    public String getSessionDataKey() {
+        return sessionDataKey;
+    }
+
+    public void setSessionDataKey(String sessionDataKey) {
+        this.sessionDataKey = sessionDataKey;
     }
 }

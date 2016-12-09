@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.handler.authentication.authenticator;
+package org.wso2.carbon.identity.framework.model;
 
-public interface AuthenticationHandler {
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
-    boolean isSubjectStep();
+public abstract class User implements Serializable {
 
-    boolean isClaimsRequired();
+    private String userIdentifier;
+    private User attributeStepUser = this;
+
+    public String getUserIdentifier() {
+        return userIdentifier;
+    }
+
+    public void setUserIdentifier(String userIdentifier) {
+        this.userIdentifier = userIdentifier;
+    }
+
+    public abstract Map<String, UserClaim> getUserClaims();
+
 }

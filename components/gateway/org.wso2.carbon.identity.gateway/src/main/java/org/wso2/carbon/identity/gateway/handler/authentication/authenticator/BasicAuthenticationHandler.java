@@ -24,7 +24,10 @@ import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
 import org.wso2.carbon.identity.framework.handler.GatewayHandlerStatus;
 import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
+import org.wso2.carbon.identity.framework.handler.auth.Authenticator;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.model.User;
+import org.wso2.carbon.identity.framework.model.UserClaim;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -32,9 +35,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.ws.rs.core.HttpHeaders;
 
-public class BasicAuthenticationHandler extends GatewayEventHandler {
+public class BasicAuthenticationHandler extends GatewayEventHandler implements Authenticator {
 
     private Logger logger = LoggerFactory.getLogger(BasicAuthenticationHandler.class);
 
@@ -45,17 +49,28 @@ public class BasicAuthenticationHandler extends GatewayEventHandler {
     private final String USERNAME = "username";
     private final String PASSWORD = "password";
 
+    protected String uniqueIdentifier = UUID.randomUUID().toString();
+    protected boolean isUserAuthenticated = false;
+    protected User authenticatedUser;
+    private Map<String, UserClaim> claimMap = new HashMap<>();
+
+    public BasicAuthenticationHandler() {
+
+        uniqueIdentifier = UUID.randomUUID().toString();
+        isUserAuthenticated = false;
+        authenticatedUser = null;
+        claimMap = new HashMap<>();
+    }
 
     @Override
     public GatewayInvocationResponse handle(IdentityMessageContext context) {
 
         String sessionID = FrameworkUtil.getSessionIdentifier(context);
         if (StringUtils.isNotBlank(sessionID)) {
-            Map<String, Object> properties = context.getCurrentIdentityRequest().getProperties();
 
-
-            if (properties.containsKey(USERNAME) && properties.containsKey(PASSWORD)) {
+            if (isCallback(context)) {
                 // this is a callback request so we try to authenticate the user.
+                Map<String, Object> properties = context.getCurrentIdentityRequest().getProperties();
                 return handleAuthentication(
                         String.valueOf(properties.get(USERNAME)),
                         String.valueOf(properties.get(PASSWORD)),
@@ -84,6 +99,7 @@ public class BasicAuthenticationHandler extends GatewayEventHandler {
 
     @Override
     public boolean canHandle(IdentityMessageContext identityMessageContext) {
+
         return true;
     }
 
@@ -118,11 +134,74 @@ public class BasicAuthenticationHandler extends GatewayEventHandler {
             claimMap.put("email", "admin@wso2.com");
             authContextMap.put("claims", claimMap);
 
+            isUserAuthenticated = true;
             return GatewayInvocationResponse.CONTINUE;
-
         } else {
             return GatewayInvocationResponse.ERROR;
         }
 
+    }
+
+    @Override
+    public boolean isSubjectStep() {
+
+        return true;
+    }
+
+    @Override
+    public boolean isAttributeStep() {
+
+        return true;
+    }
+
+    @Override
+    public String getUniqueIdentifier() {
+
+        return uniqueIdentifier;
+    }
+
+    @Override
+    public boolean isCallback(IdentityMessageContext context) {
+
+        Map<String, Object> properties = context.getCurrentIdentityRequest().getProperties();
+        return properties.containsKey(USERNAME) && properties.containsKey(PASSWORD);
+    }
+
+    @Override
+    public boolean isAuthenticated() {
+
+        return isUserAuthenticated;
+    }
+
+    @Override
+    public Map<String, UserClaim> getUserClaims() {
+
+        return claimMap;
+    }
+
+    @Override
+    public User getAuthenticatedUser() {
+
+        return authenticatedUser;
+    }
+
+    public void setUniqueIdentifier(String uniqueIdentifier) {
+
+        this.uniqueIdentifier = uniqueIdentifier;
+    }
+
+    public void setUserAuthenticated(boolean userAuthenticated) {
+
+        isUserAuthenticated = userAuthenticated;
+    }
+
+    public void setAuthenticatedUser(User authenticatedUser) {
+
+        this.authenticatedUser = authenticatedUser;
+    }
+
+    public void setClaimMap(Map<String, UserClaim> claimMap) {
+
+        this.claimMap = claimMap;
     }
 }

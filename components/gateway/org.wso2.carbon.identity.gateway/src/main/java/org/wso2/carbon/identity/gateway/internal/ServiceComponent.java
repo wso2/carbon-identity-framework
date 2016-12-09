@@ -58,6 +58,7 @@ public class ServiceComponent {
      */
     @Deactivate
     protected void stop() throws Exception {
+
         logger.info("Service Component is deactivated");
 
 
@@ -76,6 +77,7 @@ public class ServiceComponent {
             unbind = "unsetCarbonRuntime"
     )
     protected void setCarbonRuntime(CarbonRuntime carbonRuntime) {
+
         DataHolder.getInstance().setCarbonRuntime(carbonRuntime);
     }
 
@@ -85,6 +87,7 @@ public class ServiceComponent {
      * @param carbonRuntime The CarbonRuntime instance registered by Carbon Kernel as an OSGi service
      */
     protected void unsetCarbonRuntime(CarbonRuntime carbonRuntime) {
+
         DataHolder.getInstance().setCarbonRuntime(null);
     }
 
@@ -102,11 +105,13 @@ public class ServiceComponent {
             unbind = "unsetCallbackHandler"
     )
     protected void setCallbackHandler(GatewayCallbackHandler callbackHandler) {
+
         DataHolder.getInstance().addGatewayCallbackHandler(callbackHandler);
     }
 
 
     protected void unsetCallbackHandler(GatewayCallbackHandler callbackHandler) {
+
         DataHolder.getInstance().addGatewayCallbackHandler(null);
     }
 }

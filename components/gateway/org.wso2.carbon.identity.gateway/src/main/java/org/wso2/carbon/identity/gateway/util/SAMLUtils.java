@@ -44,6 +44,7 @@ public class SAMLUtils {
 
 
     public static void doBootstrap() {
+
         if (!isBootStrapped) {
             try {
                 DefaultBootstrap.bootstrap();
@@ -55,6 +56,7 @@ public class SAMLUtils {
     }
 
     public static String getHTMLResponseBody(String samlResponse) {
+
         return "<html>\n" +
                 "\t<body>\n" +
                 "        \t<p>You are now redirected to $url \n" +
@@ -73,6 +75,7 @@ public class SAMLUtils {
     }
 
     public static Issuer getIssuer(String issuerName, String format) {
+
         Issuer issuer = new IssuerBuilder().buildObject();
         issuer.setValue(issuerName);
         issuer.setFormat(format);

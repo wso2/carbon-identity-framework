@@ -22,21 +22,28 @@ import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-public class MSF4JResponseFactory {
+/**
+ * Default factory implementation of {@link MSF4JResponseBuilderFactory}
+ */
+public class MSF4JResponseBuilderFactoryImpl implements MSF4JResponseBuilderFactory {
 
     public String getName() {
-        return null;
+
+        return getClass().getSimpleName();
     }
 
     public int getPriority() {
-        return 0;
+
+        return 100;
     }
 
     public boolean canHandle(IdentityResponse identityResponse) {
+
         return true;
     }
 
     public boolean canHandle(FrameworkException exception) {
+
         return true;
     }
 
@@ -55,6 +62,7 @@ public class MSF4JResponseFactory {
     }
 
     public ResponseBuilder handleException(FrameworkException exception) {
+
         return Response.status(500).entity(exception.getMessage());
     }
 

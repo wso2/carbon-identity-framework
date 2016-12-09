@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 class AuthenticationEndpointUtils {
 
     static String getLoginPage() throws IOException {
+
         InputStream inputStream = AuthenticationEndpointUtils.class.getClassLoader().getResourceAsStream("login.html");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
             return buffer.lines().collect(Collectors.joining("\n"));

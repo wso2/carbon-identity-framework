@@ -48,11 +48,13 @@ public class CallbackProcessor extends IdentityProcessor {
 
     @Override
     public String getName() {
+
         return "CallbackProcessor";
     }
 
     @Override
     public int getPriority() {
+
         return 50;
     }
 

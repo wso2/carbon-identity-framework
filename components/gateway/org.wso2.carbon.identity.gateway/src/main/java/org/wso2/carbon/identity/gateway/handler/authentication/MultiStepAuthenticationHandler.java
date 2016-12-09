@@ -30,11 +30,13 @@ public class MultiStepAuthenticationHandler extends GatewayEventHandler {
 
 
     public void addIdentityGatewayEventHandler(GatewayEventHandler gatewayEventHandler) {
+
         this.gatewayEventHandlers.add(gatewayEventHandler);
     }
 
     @Override
     public GatewayInvocationResponse handle(IdentityMessageContext identityMessageContext) {
+
         for (GatewayEventHandler gatewayEventHandler : gatewayEventHandlers) {
             if (gatewayEventHandler.canHandle(identityMessageContext)) {
                 setNextHandler(gatewayEventHandler);
@@ -46,6 +48,7 @@ public class MultiStepAuthenticationHandler extends GatewayEventHandler {
 
     @Override
     public boolean canHandle(IdentityMessageContext identityMessageContext) {
+
         return true;
     }
 }

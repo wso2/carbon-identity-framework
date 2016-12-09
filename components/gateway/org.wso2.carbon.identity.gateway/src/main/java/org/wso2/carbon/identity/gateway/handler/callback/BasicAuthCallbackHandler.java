@@ -61,6 +61,7 @@ public class BasicAuthCallbackHandler extends GatewayCallbackHandler {
 
     @Override
     public int getPriority() {
+
         return 100;
     }
 }

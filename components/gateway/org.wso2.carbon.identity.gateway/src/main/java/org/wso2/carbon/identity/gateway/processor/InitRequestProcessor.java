@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
-import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.handler.authentication.MultiStepAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.authentication.authenticator.BasicAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.response.saml.SAMLResponseHandler;
@@ -44,6 +43,7 @@ public class InitRequestProcessor extends IdentityProcessor {
     @SuppressWarnings("unchecked")
     @Override
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
+
         if (log.isDebugEnabled()) {
             log.debug(getName() + " starting to process the initial Identity Request.");
         }
@@ -52,15 +52,14 @@ public class InitRequestProcessor extends IdentityProcessor {
         IdentityMessageContext context = new IdentityMessageContext(identityRequest, new IdentityResponse());
         context.setInitialIdentityRequest(identityRequest);
 
-        // Create a sessionId and add it to the message context
-        String sessionId = FrameworkUtil.generateSessionIdentifier();
-        FrameworkUtil.addSessionIdentifierToContext(context, sessionId);
+        // Create a sessionDataKey and add it to the message context
+        String sessionDataKey = context.getSessionDataKey();
 
         // add the context reference to the cache.
-        IdentityMessageContextCache.getInstance().put(sessionId, context);
+        IdentityMessageContextCache.getInstance().put(sessionDataKey, context);
 
         // Add an authentication context map TODO: this should be initialized by the context
-        context.addParameter(sessionId, new HashMap<>());
+        context.addParameter(sessionDataKey, new HashMap<>());
 
         /*
             Handler Chain Begin
@@ -81,22 +80,24 @@ public class InitRequestProcessor extends IdentityProcessor {
 
         // start executing the handler chain
         samlValidationHandler.execute(context);
-
         return context.getIdentityResponse();
     }
 
     @Override
     public String getName() {
+
         return "InitialRequestProcessor";
     }
 
     @Override
     public int getPriority() {
+
         return 100;
     }
 
     @Override
     public boolean canHandle(IdentityRequest identityRequest) {
+
         return true;
     }
 }

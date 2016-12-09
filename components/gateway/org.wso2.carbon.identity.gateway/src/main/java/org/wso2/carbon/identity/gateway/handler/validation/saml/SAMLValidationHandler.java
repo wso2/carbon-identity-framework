@@ -103,6 +103,7 @@ public class SAMLValidationHandler extends GatewayEventHandler {
 
     @Override
     public boolean canHandle(IdentityMessageContext identityMessageContext) {
+
         return true;
     }
 

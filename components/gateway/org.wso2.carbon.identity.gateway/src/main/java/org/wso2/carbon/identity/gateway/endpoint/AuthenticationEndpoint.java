@@ -42,6 +42,7 @@ public class AuthenticationEndpoint implements Microservice {
     @GET
     @Path("/")
     public Response getLoginPage(@QueryParam("callback") String callback, @QueryParam("state") String sessionId) {
+
         String loginPage;
 
         try {
@@ -60,6 +61,7 @@ public class AuthenticationEndpoint implements Microservice {
 
 
     private String getLoginPageContent(String callbackURL, String state) throws IOException {
+
         String response = AuthenticationEndpointUtils.getLoginPage();
         if (StringUtils.isNotBlank(state)) {
             response = response.replace("${state}", state);
