@@ -16,10 +16,46 @@
 
 package org.wso2.carbon.identity.gateway.handler.callback;
 
+import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
+import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
+import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 
-public abstract class GatewayCallbackHandler extends GatewayEventHandler {
-    protected int priority;
+import java.util.Optional;
 
-    public abstract int getPriority();
+/**
+ * Abstract implementation of {@link GatewayCallbackHandler}
+ */
+public abstract class AbstractGatewayCallbackHandler extends GatewayEventHandler implements GatewayCallbackHandler {
+
+
+    @Override
+    public GatewayInvocationResponse handle(IdentityMessageContext context) {
+
+        String sessionDataKey = getSessionIdentifier(context.getCurrentIdentityRequest());
+
+        // load the context
+        IdentityMessageContext oldContext = Optional.ofNullable(IdentityMessageContextCache.getInstance().get(sessionDataKey))
+                .orElseThrow(() -> new FrameworkRuntimeException(
+                        "Invalid SessionDataKey provided. Unable to find the persisted context for identifier : " +
+                                sessionDataKey));
+
+        // merge the new context with old context
+        FrameworkUtil.mergeContext(context, oldContext);
+
+        // get the handler that should resume the flow.
+        GatewayEventHandler nextHandler = context.getCurrentHandler();
+
+        // set it as my next handler
+        this.setNextHandler(nextHandler);
+        return GatewayInvocationResponse.CONTINUE;
+    }
+
+    @Override
+    public boolean canHandle(IdentityMessageContext identityMessageContext) {
+
+        return true;
+    }
 }

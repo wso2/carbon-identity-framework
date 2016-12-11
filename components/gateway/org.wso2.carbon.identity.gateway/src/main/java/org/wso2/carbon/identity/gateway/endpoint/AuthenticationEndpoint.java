@@ -51,7 +51,8 @@ public class AuthenticationEndpoint implements Microservice {
      */
     @GET
     @Path("/")
-    public Response getLoginPage(@QueryParam("callback") String callback, @QueryParam("state") String sessionDataKey) {
+    public Response getLoginPage(@QueryParam("callback") String callback,
+                                 @QueryParam("sessionDataKey") String sessionDataKey) {
 
         if (StringUtils.isBlank(callback)) {
             return handleBadRequest("Mandatory 'callback' parameter is missing in the request parameters.");
@@ -81,7 +82,7 @@ public class AuthenticationEndpoint implements Microservice {
 
         String response = AuthenticationEndpointUtils.getLoginPage();
         if (StringUtils.isNotBlank(state)) {
-            response = response.replace("${state}", state);
+            response = response.replace("${sessionDataKey}", state);
         }
 
         if (StringUtils.isNotBlank(callbackURL)) {

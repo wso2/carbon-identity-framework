@@ -16,41 +16,15 @@
 
 package org.wso2.carbon.identity.gateway.handler.callback;
 
-import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.framework.FrameworkConstants;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
-import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
-import org.wso2.carbon.identity.framework.util.FrameworkUtil;
-
-import java.util.Optional;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
 
 
-public class BasicAuthCallbackHandler extends GatewayCallbackHandler {
-
-    @Override
-    public GatewayInvocationResponse handle(IdentityMessageContext context) {
-
-        // identify the state value
-        String state = String.valueOf(
-                Optional.ofNullable(context.getCurrentIdentityRequest().getProperty("state"))
-                        .orElseThrow(() -> new RuntimeException("Unable to process the callback for Basic Auth."))
-        );
-
-        // load the context
-        IdentityMessageContext oldContext = Optional.ofNullable(IdentityMessageContextCache.getInstance().get(state))
-                .orElseThrow(() -> new RuntimeException("Unable to find the persisted context for identifier : " +
-                        state));
-
-        // merge the new context with old context
-        FrameworkUtil.mergeContext(context, oldContext);
-
-        // get the handler that should resume the flow.
-        GatewayEventHandler nextHandler = context.getCurrentHandler();
-
-        // set it as my next handler
-        this.setNextHandler(nextHandler);
-        return GatewayInvocationResponse.CONTINUE;
-    }
+/**
+ * I help to retrieve the sessionDataKey from the from the callback request received from the authentication endpoint.
+ */
+public class BasicAuthCallbackHandler extends AbstractGatewayCallbackHandler implements GatewayCallbackHandler {
 
 
     @Override
@@ -63,5 +37,17 @@ public class BasicAuthCallbackHandler extends GatewayCallbackHandler {
     public int getPriority() {
 
         return 100;
+    }
+
+    @Override
+    public boolean canExtractSessionIdentifier(IdentityRequest request) {
+
+        return request.getProperty(FrameworkConstants.SESSION_DATA_KEY) != null;
+    }
+
+    @Override
+    public String getSessionIdentifier(IdentityRequest request) {
+
+        return String.valueOf(request.getProperty(FrameworkConstants.SESSION_DATA_KEY));
     }
 }

@@ -61,10 +61,10 @@ import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
+import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
 import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
-import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 
 import java.util.Base64;
@@ -76,7 +76,7 @@ import javax.naming.ConfigurationException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.ws.rs.core.Response.Status.OK;
-import static org.wso2.carbon.identity.gateway.handler.validation.saml.SAMLConstants.SAML_AUTH_REQUEST;
+import static org.wso2.carbon.identity.gateway.SAMLConstants.SAML_AUTH_REQUEST;
 
 public class SAMLResponseHandler extends GatewayEventHandler {
 
@@ -109,7 +109,7 @@ public class SAMLResponseHandler extends GatewayEventHandler {
                 if (request != null && request instanceof AuthnRequest) {
                     authnRequest = (AuthnRequest) request;
                 } else {
-                    throw new IllegalArgumentException("Cannot find the SAML Authentication Request in the context.");
+                    throw new FrameworkRuntimeException("Cannot find the SAML Authentication Request in the context.");
                 }
 
                 String subject = (String) contextMap.getOrDefault("subject", null);

@@ -2,7 +2,6 @@ package org.wso2.carbon.identity.gateway.internal;
 
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
-import org.wso2.carbon.kernel.CarbonRuntime;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,8 +10,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * DataHolder to hold org.wso2.carbon.kernel.CarbonRuntime instance referenced through
- * org.wso2.carbon.helloworld.internal.ServiceComponent.
+ * DataHolder to hold the OSGi services consumed by the Identity Gateway component.
  *
  * @since 1.0.0-SNAPSHOT
  */
@@ -20,8 +18,6 @@ public class DataHolder {
     Logger logger = Logger.getLogger(DataHolder.class.getName());
 
     private static DataHolder instance = new DataHolder();
-    private CarbonRuntime carbonRuntime;
-
     private List<GatewayCallbackHandler> gatewayCallbackHandlers = new ArrayList<>();
 
     private DataHolder() {
@@ -36,27 +32,6 @@ public class DataHolder {
     public static DataHolder getInstance() {
 
         return instance;
-    }
-
-    /**
-     * Returns the CarbonRuntime service which gets set through a service component.
-     *
-     * @return CarbonRuntime Service
-     */
-    public CarbonRuntime getCarbonRuntime() {
-
-        return carbonRuntime;
-    }
-
-    /**
-     * This method is for setting the CarbonRuntime service. This method is used by
-     * ServiceComponent.
-     *
-     * @param carbonRuntime The reference being passed through ServiceComponent
-     */
-    public void setCarbonRuntime(CarbonRuntime carbonRuntime) {
-
-        this.carbonRuntime = carbonRuntime;
     }
 
 

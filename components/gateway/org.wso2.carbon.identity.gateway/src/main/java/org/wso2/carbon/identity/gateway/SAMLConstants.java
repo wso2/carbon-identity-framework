@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.handler.validation.saml;
+package org.wso2.carbon.identity.gateway;
 
 public class SAMLConstants {
 

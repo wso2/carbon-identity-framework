@@ -23,29 +23,34 @@ import static org.wso2.carbon.identity.framework.handler.GatewayInvocationRespon
 /**
  * Abstract representation of a handler executed within a gateway sequence.
  */
-public abstract class GatewayEventHandler {
+public abstract class GatewayEventHandler implements GatewayHandler {
 
     private GatewayEventHandler prevHandler = null;
     private GatewayEventHandler nextHandler = null;
 
     public void setNextHandler(GatewayEventHandler nextHandler) {
+
         this.nextHandler = nextHandler;
         this.nextHandler.setPrevHandler(this);
     }
 
     public GatewayEventHandler getNextHandler() {
+
         return this.nextHandler;
     }
 
     protected void setPrevHandler(GatewayEventHandler prevHandler) {
+
         this.prevHandler = prevHandler;
     }
 
     public GatewayEventHandler getPrevHandler() {
+
         return this.prevHandler;
     }
 
     public void execute(IdentityMessageContext context) {
+
         GatewayInvocationResponse gatewayInvocationResponse = CONTINUE;
 
         if (canHandle(context)) {

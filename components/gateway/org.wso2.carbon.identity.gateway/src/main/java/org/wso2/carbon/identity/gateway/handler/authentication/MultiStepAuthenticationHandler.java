@@ -23,7 +23,9 @@ import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * This authenticator provides the ability to do multi option authentication in a step.
+ */
 public class MultiStepAuthenticationHandler extends GatewayEventHandler {
 
     private List<GatewayEventHandler> gatewayEventHandlers = new ArrayList<>();

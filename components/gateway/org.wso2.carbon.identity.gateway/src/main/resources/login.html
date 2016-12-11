@@ -191,7 +191,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <form method="post" action="${callback}">
         <input type="text" name="username" placeholder="Username" required="required"/>
         <input type="password" name="password" placeholder="Password" required="required"/>
-        <input type="hidden" name="state" value="${state}">
+        <input type="hidden" name="state" value="${sessionDataKey}">
         <button type="submit" class="btn btn-primary btn-block btn-large">Login</button>
     </form>
 </div>

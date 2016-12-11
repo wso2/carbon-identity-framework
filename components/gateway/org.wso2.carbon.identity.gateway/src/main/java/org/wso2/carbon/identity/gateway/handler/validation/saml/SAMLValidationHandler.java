@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.gateway.handler.validation.saml;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.xerces.util.SecurityManager;
 import org.opensaml.Configuration;
 import org.opensaml.saml2.core.AuthnRequest;
@@ -31,17 +32,18 @@ import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
 import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
-import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 import org.xml.sax.SAXException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
+import javax.ws.rs.HttpMethod;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -50,7 +52,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
 import static org.apache.xerces.impl.Constants.SECURITY_MANAGER_PROPERTY;
 import static org.apache.xerces.impl.Constants.XERCES_PROPERTY_PREFIX;
-import static org.wso2.carbon.identity.gateway.handler.validation.saml.SAMLConstants.SAML_AUTH_REQUEST;
+import static org.wso2.carbon.identity.gateway.SAMLConstants.SAML_AUTH_REQUEST;
 
 public class SAMLValidationHandler extends GatewayEventHandler {
 
@@ -66,13 +68,15 @@ public class SAMLValidationHandler extends GatewayEventHandler {
         String encodedRequest = identityRequest.getBody();
         String method = identityRequest.getMethod();
 
-        if ("POST".equalsIgnoreCase(method)) {
-
-            String urlDecodedRequest;
+        // we are expecting to handle SAML POST binding request
+        if (StringUtils.equalsIgnoreCase(HttpMethod.POST, method)) {
             try {
-                // TODO: handle this properly
-                urlDecodedRequest = URLDecoder.decode(encodedRequest.split("=", 2)[1], UTF_8.name());
-                String decodedRequest = new String(Base64.getDecoder().decode(urlDecodedRequest), UTF_8);
+                String decodedRequest = getBase64DecodedSamlRequest(encodedRequest);
+                if (decodedRequest == null) {
+                    logger.error("Error decoding the SAML Request.");
+                    return GatewayInvocationResponse.ERROR;
+                }
+
                 if (logger.isDebugEnabled()) {
                     logger.debug("Decoded SAML request: " + decodedRequest);
                 }
@@ -96,7 +100,11 @@ public class SAMLValidationHandler extends GatewayEventHandler {
                 logger.error("Error building the SAML Authentication Request.", e);
                 return GatewayInvocationResponse.ERROR;
             }
-
+        } else if (StringUtils.equalsIgnoreCase(method, HttpMethod.GET)) {
+            // TODO : handle SAML HTTP-Redirect binding
+            return GatewayInvocationResponse.SUSPEND;
+        } else {
+            return GatewayInvocationResponse.ERROR;
         }
 
         return GatewayInvocationResponse.CONTINUE;
@@ -137,5 +145,23 @@ public class SAMLValidationHandler extends GatewayEventHandler {
             return (AuthnRequest) unmarshaller.unmarshall(element);
         }
 
+    }
+
+
+    /**
+     * get the base64 decoded SAML Request String from the url encoded request body.
+     *
+     * @param urlEncodedRequest URL encoded request parameters.
+     * @return base64 decoded SAML Request String.
+     * @throws UnsupportedEncodingException
+     */
+    private String getBase64DecodedSamlRequest(String urlEncodedRequest) throws UnsupportedEncodingException {
+
+        String[] encodedParams = Optional.ofNullable(urlEncodedRequest).orElse("").split("=", 2);
+        if (encodedParams.length == 2) {
+            String urlDecodedSAMLRequest = URLDecoder.decode(encodedParams[1], UTF_8.name());
+            return new String(Base64.getDecoder().decode(urlDecodedSAMLRequest), UTF_8);
+        }
+        return null;
     }
 }

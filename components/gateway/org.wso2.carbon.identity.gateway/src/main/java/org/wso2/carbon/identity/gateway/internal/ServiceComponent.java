@@ -7,14 +7,14 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.handler.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
 import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
-import org.wso2.carbon.kernel.CarbonRuntime;
 
-import java.util.logging.Logger;
 
 /**
  * Service component to consume CarbonRuntime instance which has been registered as an OSGi service
@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 )
 public class ServiceComponent {
 
-    private Logger logger = Logger.getLogger(ServiceComponent.class.getName());
+    private Logger logger = LoggerFactory.getLogger(ServiceComponent.class);
 
     /**
      * This is the activation method of ServiceComponent. This will be called when its references are
@@ -60,35 +60,6 @@ public class ServiceComponent {
     protected void stop() throws Exception {
 
         logger.info("Service Component is deactivated");
-
-
-    }
-
-    /**
-     * This bind method will be called when CarbonRuntime OSGi service is registered.
-     *
-     * @param carbonRuntime The CarbonRuntime instance registered by Carbon Kernel as an OSGi service
-     */
-    @Reference(
-            name = "carbon.runtime.service",
-            service = CarbonRuntime.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetCarbonRuntime"
-    )
-    protected void setCarbonRuntime(CarbonRuntime carbonRuntime) {
-
-        DataHolder.getInstance().setCarbonRuntime(carbonRuntime);
-    }
-
-    /**
-     * This is the unbind method which gets called at the un-registration of CarbonRuntime OSGi service.
-     *
-     * @param carbonRuntime The CarbonRuntime instance registered by Carbon Kernel as an OSGi service
-     */
-    protected void unsetCarbonRuntime(CarbonRuntime carbonRuntime) {
-
-        DataHolder.getInstance().setCarbonRuntime(null);
     }
 
 
@@ -102,15 +73,21 @@ public class ServiceComponent {
             service = GatewayCallbackHandler.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetCallbackHandler"
+            unbind = "unsetGatewayCallbackHandler"
     )
-    protected void setCallbackHandler(GatewayCallbackHandler callbackHandler) {
+    protected void setGatewayCallbackHandler(GatewayCallbackHandler callbackHandler) {
 
         DataHolder.getInstance().addGatewayCallbackHandler(callbackHandler);
     }
 
-
-    protected void unsetCallbackHandler(GatewayCallbackHandler callbackHandler) {
+    /**
+     * This is the unbind method which gets called at the un-registration of {@link GatewayCallbackHandler}
+     * OSGi service.
+     *
+     * @param gatewayCallbackHandler The {@link GatewayCallbackHandler} instance registered by Carbon Kernel as
+     *                               an OSGi service
+     */
+    protected void unsetGatewayCallbackHandler(GatewayCallbackHandler gatewayCallbackHandler) {
 
         DataHolder.getInstance().addGatewayCallbackHandler(null);
     }

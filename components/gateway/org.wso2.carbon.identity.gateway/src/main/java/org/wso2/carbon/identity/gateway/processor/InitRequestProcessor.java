@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import org.wso2.carbon.identity.gateway.handler.authentication.MultiStepAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.authentication.authenticator.BasicAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.response.saml.SAMLResponseHandler;
+import org.wso2.carbon.identity.gateway.handler.util.SessionDataCleanupHandler;
 import org.wso2.carbon.identity.gateway.handler.validation.saml.SAMLValidationHandler;
 
 import java.util.HashMap;
@@ -70,10 +71,13 @@ public class InitRequestProcessor extends IdentityProcessor {
         BasicAuthenticationHandler basicAuthenticationHandler = new BasicAuthenticationHandler();
 
         SAMLResponseHandler samlResponseHandler = new SAMLResponseHandler();
+        SessionDataCleanupHandler cleanupHandler = new SessionDataCleanupHandler();
 
         samlValidationHandler.setNextHandler(multiStepAuthenticationHandler);
         multiStepAuthenticationHandler.addIdentityGatewayEventHandler(basicAuthenticationHandler);
         basicAuthenticationHandler.setNextHandler(samlResponseHandler);
+        samlResponseHandler.setNextHandler(cleanupHandler);
+
         /*
             Handler Chain End
          */

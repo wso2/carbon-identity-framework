@@ -80,6 +80,9 @@ public class MSF4JIdentityRequestFactoryImpl implements MSF4JIdentityRequestBuil
 
         builder.setBody(GatewayUtil.readRequestBody(request));
 
+
+        // TODO : handle request parameters as well.
+
         // TODO : handle cookies
 
 

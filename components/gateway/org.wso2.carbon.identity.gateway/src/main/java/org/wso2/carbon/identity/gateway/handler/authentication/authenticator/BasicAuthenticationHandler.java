@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.gateway.handler.authentication.authenticator;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.framework.FrameworkConstants;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
 import org.wso2.carbon.identity.framework.handler.GatewayHandlerStatus;
@@ -28,7 +29,6 @@ import org.wso2.carbon.identity.framework.handler.auth.Authenticator;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import org.wso2.carbon.identity.framework.model.User;
 import org.wso2.carbon.identity.framework.model.UserClaim;
-import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -38,6 +38,9 @@ import java.util.Map;
 import java.util.UUID;
 import javax.ws.rs.core.HttpHeaders;
 
+/**
+ * Basic(Username, Password) authentication handler.
+ */
 public class BasicAuthenticationHandler extends GatewayEventHandler implements Authenticator {
 
     private Logger logger = LoggerFactory.getLogger(BasicAuthenticationHandler.class);
@@ -107,12 +110,13 @@ public class BasicAuthenticationHandler extends GatewayEventHandler implements A
     private static String buildAuthenticationEndpointURL(String url, String state, String callback) {
 
         if (StringUtils.isNotBlank(state)) {
-            url = url + "?state=" + state;
+            url = url + "?" + FrameworkConstants.SESSION_DATA_KEY + "=" + state;
         }
 
         if (StringUtils.isNotBlank(callback)) {
             try {
-                url = url + "&callback=" + URLEncoder.encode(callback, StandardCharsets.UTF_8.name());
+                url = url + "&" + FrameworkConstants.CALLBACK + "=" +
+                        URLEncoder.encode(callback, StandardCharsets.UTF_8.name());
             } catch (UnsupportedEncodingException e) {
                 url = null;
             }

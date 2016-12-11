@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.handler.sso;
+package org.wso2.carbon.identity.gateway.handler.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
 /**
  * I cleanup the session data after the handle sequence is ended.
  */
-public class SessionDataCleanupHandler extends GatewayEventHandler{
+public class SessionDataCleanupHandler extends GatewayEventHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionDataCleanupHandler.class);
 

@@ -18,5 +18,6 @@ package org.wso2.carbon.identity.framework;
 
 public class FrameworkConstants {
 
-    public static final String SESSION_ID = "sessionID";
+    public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String CALLBACK = "callback";
 }
