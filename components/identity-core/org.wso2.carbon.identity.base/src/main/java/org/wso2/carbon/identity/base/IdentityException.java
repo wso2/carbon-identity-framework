@@ -33,110 +33,6 @@ public class IdentityException extends Exception {
 
     private static final long serialVersionUID = 725992116511551241L;
 
-    protected List<ErrorInfo> errorInfoList = new ArrayList<>();
-
-    public static class ErrorInfo {
-
-        private String contextId = null;
-        private String errorCode  = null;
-        private String errorDescription = null;
-        private String userErrorDescription = null;
-        private Throwable cause = null;
-        private Map<String, Object> parameters = new HashMap<>();
-
-        private ErrorInfo(ErrorInfoBuilder builder) {
-
-            this.contextId = builder.contextId;
-            this.errorCode = builder.errorCode;
-            this.userErrorDescription = builder.userErrorDescription;
-            this.errorDescription = builder.errorDescription;
-            if(MapUtils.isNotEmpty(builder.parameters)){
-                this.parameters = builder.parameters;
-            }
-            this.cause = builder.cause;
-        }
-
-        public String getContextId() {
-            return contextId;
-        }
-
-        public String getErrorCode() {
-            return errorCode;
-        }
-
-        public String getErrorDescription() {
-            return errorDescription;
-        }
-
-        public String getUserErrorDescription() {
-            return userErrorDescription;
-        }
-
-        public Throwable getCause() {
-            return cause;
-        }
-
-        public Map<String,Object> getParameters() {
-            return this.parameters;
-        }
-
-        public Object getParameter(String key) {
-            return this.parameters.get(key);
-        }
-
-        public static class ErrorInfoBuilder {
-
-            private String contextId = null;
-            private String errorCode  = null;
-            private String errorDescription = null;
-            private String userErrorDescription = null;
-            private Throwable cause = null;
-            private Map<String, Object> parameters = new HashMap<>();
-
-            public ErrorInfoBuilder(String errorDescription) {
-                this.errorDescription = errorDescription;
-            }
-
-            public ErrorInfoBuilder contextId(String contextId) {
-                this.contextId = contextId;
-                return this;
-            }
-
-            public ErrorInfoBuilder errorCode(String errorCode) {
-                this.errorCode = errorCode;
-                return this;
-            }
-
-            public ErrorInfoBuilder userErrorDescription(String userErrorDescription) {
-                this.userErrorDescription = userErrorDescription;
-                return this;
-            }
-
-            public ErrorInfoBuilder cause(Throwable cause) {
-                this.cause = cause;
-                return this;
-            }
-
-            public ErrorInfoBuilder parameters(Map<String,Object> parameters) {
-                if(MapUtils.isNotEmpty(parameters)) {
-                    this.parameters = parameters;
-                }
-                return this;
-            }
-
-            public ErrorInfoBuilder parameter(String key, Object value) {
-                if(key != null){
-                    this.parameters.put(key, value);
-                }
-                return this;
-            }
-
-            public ErrorInfo build(){
-                return new ErrorInfo(this);
-            }
-        }
-    }
-
     protected IdentityException(String errorDescription) {
         super(errorDescription);
     }
@@ -149,59 +45,13 @@ public class IdentityException extends Exception {
     // However once we migrate all the usages of IdentityException to create using error(ErrorInfo) we can remove this
     @Deprecated
     public static IdentityException error(String errorDescription) {
-        IdentityException identityException = new IdentityException(errorDescription);
-        ErrorInfo.ErrorInfoBuilder errorInfoBuilder = new ErrorInfo.ErrorInfoBuilder(errorDescription);
-        identityException.addErrorInfo(errorInfoBuilder.build());
-        return identityException;
+        return new IdentityException(errorDescription);
     }
 
     // This method may be used for easily migrating existing usages of IdentityException creation.
     // However once we migrate all the usages of IdentityException to create using error(ErrorInfo) we can remove this
     @Deprecated
     public static IdentityException error(String errorDescription, Throwable cause) {
-        IdentityException identityException = new IdentityException(errorDescription, cause);
-        ErrorInfo.ErrorInfoBuilder errorInfoBuilder = new ErrorInfo.ErrorInfoBuilder(errorDescription);
-        errorInfoBuilder.cause(cause);
-        identityException.addErrorInfo(errorInfoBuilder.build());
-        return identityException;
-    }
-
-    public static IdentityException error(ErrorInfo errorInfo) {
-        if(errorInfo == null || StringUtils.isBlank(errorInfo.errorDescription)){
-            throw new IllegalArgumentException("ErrorInfo object is null or Error Description is blank");
-        }
-        IdentityException identityException = null;
-        if(errorInfo.getCause() != null) {
-            identityException = new IdentityException(errorInfo.getErrorDescription(), errorInfo.getCause());
-        } else {
-            identityException = new IdentityException(errorInfo.getErrorDescription());
-        }
-        identityException.addErrorInfo(errorInfo);
-        return identityException;
-    }
-
-    public void addErrorInfo(ErrorInfo errorInfo) {
-        if(errorInfo == null || StringUtils.isBlank(errorInfo.errorDescription)){
-            throw new IllegalArgumentException("ErrorInfo object is null or Error Description is blank");
-        }
-        this.errorInfoList.add(errorInfo);
-    }
-
-    public List<ErrorInfo> getErrorInfoList() {
-        return errorInfoList;
-    }
-
-    public String getCode() {
-
-        StringBuilder builder = new StringBuilder();
-        for(int i = this.errorInfoList.size() - 1; i >= 0; i--) {
-            ErrorInfo info = this.errorInfoList.get(i);
-            builder.append('[');
-            builder.append(info.contextId);
-            builder.append(':');
-            builder.append(info.errorCode);
-            builder.append(']');
-        }
-        return builder.toString();
+        return new IdentityException(errorDescription, cause);
     }
 }
