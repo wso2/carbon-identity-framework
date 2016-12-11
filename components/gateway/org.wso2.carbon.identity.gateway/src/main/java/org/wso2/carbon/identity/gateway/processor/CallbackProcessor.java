@@ -33,15 +33,15 @@ public class CallbackProcessor extends IdentityProcessor {
     @Override
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
 
-        IdentityMessageContext context = new IdentityMessageContext(identityRequest, new IdentityResponse());
 
         // get registered callback handlers.
         GatewayCallbackHandler handler = DataHolder.getInstance().getGatewayCallbackHandlers()
                 .stream()
-                .filter(x -> x.canHandle(context))
+                .filter(x -> x.canExtractSessionIdentifier(identityRequest))
                 .findFirst()
                 .orElseThrow(() -> new FrameworkException("Unable to find a handler to process the callback"));
 
+        IdentityMessageContext context = new IdentityMessageContext(identityRequest, new IdentityResponse());
         handler.execute(context);
         return context.getIdentityResponse();
     }

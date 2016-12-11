@@ -18,6 +18,15 @@ package org.wso2.carbon.identity.framework.util;
 
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 public class FrameworkUtil {
 
     public static int comparePriory(int priority1, int priority2) {
@@ -46,5 +55,55 @@ public class FrameworkUtil {
         newContext.setCurrentHandlerStatus(oldContext.getCurrentHandlerStatus());
 
         return newContext;
+    }
+
+
+    public static Map<String, String> getQueryParamMap(String requestUri) {
+
+        if (Optional.ofNullable(requestUri).isPresent()) {
+            Map<String, String> queryMap = new HashMap<>();
+            return splitQuery(
+                    Arrays.stream(requestUri.split("\\?"))
+                            .skip(1)
+                            .findFirst()
+                            .orElse(null)
+            );
+        }
+
+        return Collections.emptyMap();
+    }
+
+
+    public static Map<String, String> splitQuery(String queryString) {
+
+        if (Optional.ofNullable(queryString).isPresent()) {
+            Map<String, String> queryMap = new HashMap<>();
+            Arrays.stream(queryString.split("&"))
+                    .map(FrameworkUtil::splitQueryParameter)
+                    .filter(x -> x.getKey() != null && x.getValue() != null)
+                    .forEach(x -> queryMap.put(x.getKey(), x.getValue()));
+
+            return queryMap;
+        }
+
+        return Collections.emptyMap();
+    }
+
+    private static SimpleEntry<String, String> splitQueryParameter(String queryPairString) {
+
+        int idx = queryPairString.indexOf("=");
+        String key = idx > 0 ? queryPairString.substring(0, idx) : queryPairString;
+        String value = idx > 0 && queryPairString.length() > idx + 1 ? queryPairString.substring(idx + 1) : null;
+        return new SimpleEntry<>(urlDecode(key), urlDecode(value));
+    }
+
+
+    public static String urlDecode(final String encoded) {
+
+        try {
+            return encoded == null ? null : URLDecoder.decode(encoded, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("Impossible: UTF-8 is a required encoding", e);
+        }
     }
 }

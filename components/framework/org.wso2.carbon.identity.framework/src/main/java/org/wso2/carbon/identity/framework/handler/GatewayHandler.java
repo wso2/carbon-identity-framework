@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.handler.validation.saml;
+package org.wso2.carbon.identity.framework.handler;
 
-public class SAMLConstants {
+import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 
-    public static final String SAML_AUTH_REQUEST = "SAMLAuthenticationRequest";
+public interface GatewayHandler {
+
+    GatewayEventHandler getNextHandler();
+
+    GatewayEventHandler getPrevHandler();
+
+    void execute(IdentityMessageContext context);
+
+    GatewayInvocationResponse handle(IdentityMessageContext identityMessageContext);
+
+    boolean canHandle(IdentityMessageContext identityMessageContext);
 }

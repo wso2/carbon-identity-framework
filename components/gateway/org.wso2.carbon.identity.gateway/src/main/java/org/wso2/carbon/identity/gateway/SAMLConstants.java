@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework;
+package org.wso2.carbon.identity.gateway;
 
-public class FrameworkConstants {
+public class SAMLConstants {
 
-    public static final String SESSION_DATA_KEY = "sessionDataKey";
-    public static final String CALLBACK = "callback";
+    public static final String SAML_AUTH_REQUEST = "SAMLAuthenticationRequest";
 }

@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.gateway.resource;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.framework.FrameworkConstants;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
 import org.wso2.carbon.identity.framework.exception.FrameworkException;
@@ -30,6 +31,7 @@ import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
 
 import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -74,6 +76,14 @@ public class IdentityGateway implements Microservice {
     }
 
 
+    @GET
+    @Path("/")
+    public Response process(@Context Request request) {
+
+        return process(request, null);
+    }
+
+
     /**
      * Entry point for all subsequent requests/callbacks coming into the gateway after redirection/federation etc.
      *
@@ -92,7 +102,7 @@ public class IdentityGateway implements Microservice {
 
         request.setProperty("username", username);
         request.setProperty("password", password);
-        request.setProperty("state", state);
+        request.setProperty(FrameworkConstants.SESSION_DATA_KEY, state);
         try {
             return processRequest(request);
         } catch (FrameworkException ex) {

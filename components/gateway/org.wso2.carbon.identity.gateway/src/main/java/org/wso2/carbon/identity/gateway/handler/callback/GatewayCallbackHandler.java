@@ -16,10 +16,25 @@
 
 package org.wso2.carbon.identity.gateway.handler.callback;
 
-import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
+import org.wso2.carbon.identity.framework.handler.GatewayHandler;
+import org.wso2.carbon.identity.framework.message.IdentityRequest;
 
-public abstract class GatewayCallbackHandler extends GatewayEventHandler {
-    protected int priority;
+/**
+ * Provides the capability to extract the current request context identifier in a protocol specific manner
+ * from the subsequent requests coming into the gateway.
+ * <p>
+ * For example, if the subsequent request coming into the gateway is an OIDC Response from a federated IDP an OIDC
+ * specific callback handler implementation will extract the session identifier from the 'state' parameter of the
+ * OIDC response.
+ * <p>
+ * Once the session identifier is extracted, this handler will restore the context and continues the execution of the
+ * handler chain.
+ */
+public interface GatewayCallbackHandler extends GatewayHandler{
 
-    public abstract int getPriority();
+    int getPriority();
+
+    boolean canExtractSessionIdentifier(IdentityRequest request);
+
+    String getSessionIdentifier(IdentityRequest request);
 }

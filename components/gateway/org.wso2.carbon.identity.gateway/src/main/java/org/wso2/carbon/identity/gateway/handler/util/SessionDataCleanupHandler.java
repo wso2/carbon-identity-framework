@@ -14,37 +14,35 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.handler.authentication;
+package org.wso2.carbon.identity.gateway.handler.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
 import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * This authenticator provides the ability to do multi option authentication in a step.
+ * I cleanup the session data after the handle sequence is ended.
  */
-public class MultiStepAuthenticationHandler extends GatewayEventHandler {
+public class SessionDataCleanupHandler extends GatewayEventHandler {
 
-    private List<GatewayEventHandler> gatewayEventHandlers = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(SessionDataCleanupHandler.class);
 
-
-    public void addIdentityGatewayEventHandler(GatewayEventHandler gatewayEventHandler) {
-
-        this.gatewayEventHandlers.add(gatewayEventHandler);
-    }
 
     @Override
-    public GatewayInvocationResponse handle(IdentityMessageContext identityMessageContext) {
+    public GatewayInvocationResponse handle(IdentityMessageContext context) {
 
-        for (GatewayEventHandler gatewayEventHandler : gatewayEventHandlers) {
-            if (gatewayEventHandler.canHandle(identityMessageContext)) {
-                setNextHandler(gatewayEventHandler);
-                break;
-            }
+        // All I do is to clean up the current context from cache.
+        String sessionDataKey = context.getSessionDataKey();
+        IdentityMessageContextCache.getInstance().clear(sessionDataKey);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Clean up session data for key : " + sessionDataKey);
         }
+
+
         return GatewayInvocationResponse.CONTINUE;
     }
 
