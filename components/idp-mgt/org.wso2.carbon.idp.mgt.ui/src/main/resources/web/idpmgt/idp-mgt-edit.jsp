@@ -5842,7 +5842,7 @@
 
                     <h2 id="custom_auth_head_"<%=fedConfig.getDisplayName() %> class="sectionSeperator trigger active"
                         style="background-color: beige;">
-                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName() %>Configuration</a>
+                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName()%> Configuration</a>
                         <% if (isEnabled) { %>
                         <div id="custom_auth_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
                              style="float:right;padding-right: 5px;padding-top: 5px;"><img src="images/ok.png"
