@@ -134,38 +134,13 @@ public class IdentityCoreServiceComponent {
             UmPersistenceManager.getInstance();
 
             String migrate = System.getProperty("migrate");
-            String migrateIdentityDB = System.getProperty("migrateIdentityDB");
-            String migrateClaimData = System.getProperty("migrateClaimData");
-            String migrateUMDB = System.getProperty("migrateUMDB");
-            String migratePermissionData = System.getProperty("migratePermissionData");
-
             String component = System.getProperty("component");
-
             try {
-                if (component != null && component.contains("identity")) {
-                    if (Boolean.parseBoolean(migrate)) {
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("databaseMigration").invoke(c.newInstance());
-                        log.info("Migrated the identity and user management databases");
-                    } else if (Boolean.parseBoolean(migrateIdentityDB)) {
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateIdentityDB").invoke(c.newInstance());
-                        log.info("Migrated the identity database");
-                    } else if (Boolean.parseBoolean(migrateUMDB)) {
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateUMDB").invoke(c.newInstance());
-                        log.info("Migrated the user management database");
-                    } else if (Boolean.parseBoolean(migrateClaimData)) {
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateClaimData").invoke(c.newInstance());
-                        log.info("Migrated the claim management data");
-                    } else if (Boolean.parseBoolean(migratePermissionData)) {
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        Object instance = c.newInstance();
-                        c.getMethod("migratePermissionData").invoke(instance);
-                        log.info("Migrated the permission data.");
-                    }
-
+                if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
+                    //Directly call migration client here and selectively check for component migrations at client
+                    Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
+                    c.getMethod("databaseMigration").invoke(c.newInstance());
+                    log.info("Migrated the identity and user management databases");
                 }
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
