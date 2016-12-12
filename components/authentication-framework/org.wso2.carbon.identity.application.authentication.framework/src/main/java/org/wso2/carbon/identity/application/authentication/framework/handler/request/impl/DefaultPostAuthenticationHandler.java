@@ -181,8 +181,8 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
         AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
 
         for (String key : requestParams.keySet()) {
-            if (key.startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM)) {
-                String claim = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM.length());
+            if (key.startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
+                String claim = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
                 String claimUri = key.substring(key.lastIndexOf('/') + 1);
                 claims.put(claim, requestParams.get(key)[0]);
                 claimsForContext.put(claimUri, requestParams.get(key)[0]);
