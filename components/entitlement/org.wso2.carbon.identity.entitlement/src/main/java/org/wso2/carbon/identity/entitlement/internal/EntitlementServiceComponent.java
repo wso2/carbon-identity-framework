@@ -155,13 +155,14 @@ public class EntitlementServiceComponent {
         httpServiceInstance = httpService;
     }
 
-    *//**
+    */
+
+    /**
      * @param httpService
      *//*
     protected void unsetHttpService(HttpService httpService) {
         httpServiceInstance = null;
     }*/
-
     public static NotificationSender getNotificationSender() {
         return EntitlementServiceComponent.notificationSender;
     }
@@ -209,54 +210,52 @@ public class EntitlementServiceComponent {
 
             if (startUpPolicyAdding != null && Boolean.parseBoolean(startUpPolicyAdding)) {
 
-                    File policyFolder = null;
-                    String policyPathFromConfig = entitlementConfig.getEngineProperties().getProperty(
-                            PDPConstants.FILESYSTEM_POLICY_PATH);
+                File policyFolder = null;
+                String policyPathFromConfig = entitlementConfig.getEngineProperties().getProperty(
+                        PDPConstants.FILESYSTEM_POLICY_PATH);
 
-                    if (StringUtils.isNotBlank(policyPathFromConfig)) {
-                        policyFolder = new File(policyPathFromConfig);
-                    }
+                if (StringUtils.isNotBlank(policyPathFromConfig)) {
+                    policyFolder = new File(policyPathFromConfig);
+                }
 
-                    if (policyFolder != null && !policyFolder.exists()) {
-                        log.warn("Defined policy directory location is not exit. " +
-                                "Therefore using default policy location");
-                    }
+                if (policyFolder != null && !policyFolder.exists()) {
+                    log.warn("Defined policy directory location is not exit. " +
+                            "Therefore using default policy location");
+                }
 
-                    if (policyPathFromConfig == null || (policyFolder != null && !policyFolder.exists())) {
-                        policyFolder = new File(CarbonUtils.getCarbonHome() + File.separator
-                                + "repository" + File.separator + "resources" + File.separator
-                                + "identity" + File.separator + "policies" + File.separator + "xacml");
+                if (policyPathFromConfig == null || (policyFolder != null && !policyFolder.exists())) {
+                    policyFolder = new File(CarbonUtils.getCarbonHome() + File.separator
+                            + "repository" + File.separator + "resources" + File.separator
+                            + "identity" + File.separator + "policies" + File.separator + "xacml");
 
-                    }
+                }
 
-                    boolean customPolicies = false;
+                boolean customPolicies = false;
 
-                    if (policyFolder != null && policyFolder.exists()) {
-                        for (File policyFile : policyFolder.listFiles()) {
-                            if (policyFile.isFile()) {
-                                PolicyDTO policyDTO = new PolicyDTO();
-                                policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
-                                if(!policyIdList.contains(policyDTO.getPolicyId())) {
-                                    try {
-                                        EntitlementUtil.addFilesystemPolicy(policyDTO,
-                                                                            registryService
-                                                                                    .getGovernanceSystemRegistry(),
-                                                                            true);
-                                    } catch (Exception e) {
-                                        // log and ignore
-                                        log.error("Error while adding XACML policies", e);
-                                    }
+                if (policyFolder != null && policyFolder.exists()) {
+                    for (File policyFile : policyFolder.listFiles()) {
+                        if (policyFile.isFile()) {
+                            PolicyDTO policyDTO = new PolicyDTO();
+                            policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
+                            if (!policyIdList.contains(policyDTO.getPolicyId())) {
+                                try {
+                                    EntitlementUtil.addFilesystemPolicy(policyDTO, registryService
+                                            .getGovernanceSystemRegistry(), true);
+                                } catch (Exception e) {
+                                    // log and ignore
+                                    log.error("Error while adding XACML policies", e);
                                 }
-                                customPolicies = true;
-
                             }
+                            customPolicies = true;
+
                         }
                     }
+                }
 
-                    if (!customPolicies) {
-                        // load default policies
-                        EntitlementUtil.addSamplePolicies(registryService.getGovernanceSystemRegistry());
-                    }
+                if (!customPolicies) {
+                    // load default policies
+                    EntitlementUtil.addSamplePolicies(registryService.getGovernanceSystemRegistry());
+                }
 
             }
             // Cache clearing listener is always registered since cache clearing is a must when
