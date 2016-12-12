@@ -52,7 +52,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultPostAuthenticationHandler implements PostAuthenticationHandler{
+public class DefaultPostAuthenticationHandler implements PostAuthenticationHandler {
 
     private static final Log log = LogFactory.getLog(DefaultPostAuthenticationHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
@@ -127,7 +127,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
             }
         }
 
-        Map<String,String> mandatoryClaims =
+        Map<String, String> mandatoryClaims =
                 context.getSequenceConfig().getApplicationConfig().getMandatoryClaimMappings();
 
         String missingClaims = getMissingClaims(mappedAttrs, mandatoryClaims);
@@ -174,19 +174,22 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
         }
 
         Map<String, String> claims = new HashMap<String, String>();
+        Map<String, String> claimsForContext = new HashMap<String, String>();
         Map<String, String[]> requestParams = request.getParameterMap();
         boolean persistClaims = false;
 
         AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
 
         for (String key : requestParams.keySet()) {
-            if (key.startsWith("claim_mand_")) {
-                String claim = key.substring("claim_mand_".length());
+            if (key.startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM)) {
+                String claim = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM.length());
+                String claimUri = key.substring(key.lastIndexOf('/') + 1);
                 claims.put(claim, requestParams.get(key)[0]);
+                claimsForContext.put(claimUri, requestParams.get(key)[0]);
             }
         }
 
-        Map<ClaimMapping, String> authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(claims);
+        Map<ClaimMapping, String> authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(claimsForContext);
         authenticatedUserAttributes.putAll(user.getUserAttributes());
 
         for (Map.Entry<Integer, StepConfig> entry : context.getSequenceConfig().getStepMap().entrySet()) {
@@ -266,7 +269,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
 
     }
 
-    private String getMissingClaims(Map<String,String> mappedAttrs, Map<String,String> mandatoryClaims) {
+    private String getMissingClaims(Map<String, String> mappedAttrs, Map<String, String> mandatoryClaims) {
 
         StringBuilder missingClaimsString = new StringBuilder();
         for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
