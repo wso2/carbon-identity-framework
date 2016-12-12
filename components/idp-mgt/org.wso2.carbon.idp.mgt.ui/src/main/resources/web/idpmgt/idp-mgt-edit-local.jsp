@@ -192,13 +192,26 @@ jQuery(document).ready(function(){
 })
 
     initSections("");
-    function idpMgtUpdate(){
-        if(doValidation()){
-            jQuery('#idp-mgt-edit-local-form').submit();
+function idpMgtUpdate() {
+    $.ajax({
+        type: "POST",
+        url: 'idp-mgt-edit-finish-local-ajaxprocessor.jsp',
+        data: $("#idp-mgt-edit-local-form").serialize(),
+        success: function (data) {
+
+            $.ajax({
+                type: 'POST',
+                url: 'update_governance_config_ajaxprocessor.jsp',
+                data: $("#addGovernanceConfigurationForm").serialize(),
+                success: function (data) {
+                    location.href = "idp-mgt-list.jsp"
+                }
+            });
         }
-        jQuery('#addGovernanceConfigurationForm').submit();
-    }
-    function idpMgtCancel(){
+    });
+}
+
+function idpMgtCancel(){
         location.href = "idp-mgt-list.jsp"
     }
     function doValidation() {
