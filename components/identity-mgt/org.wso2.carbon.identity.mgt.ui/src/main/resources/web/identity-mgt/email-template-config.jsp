@@ -27,6 +27,7 @@
 <%@page import="org.wso2.carbon.identity.mgt.stub.dto.EmailTemplateDTO"%>
 <%@page import="org.wso2.carbon.identity.mgt.ui.AccountCredentialMgtConfigClient"%>
 <%@page import="org.wso2.carbon.identity.mgt.ui.EmailConfigDTO"%>
+<%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%@page import="org.wso2.carbon.ui.CarbonUIMessage"%>
 <%@page import="org.wso2.carbon.ui.CarbonUIUtil"%>
 <script type="text/javascript" src="extensions/js/vui.js"></script>
@@ -91,8 +92,8 @@
 	function updateFields(elm){
 		var $selectedOption = jQuery(elm).find(":selected");
 		jQuery('#emailSubject').val($selectedOption.attr('data-subject'));
-		jQuery('#emailBody').val($selectedOption.attr('data-body'));
-		jQuery('#emailFooter').val($selectedOption.attr('data-footer'));
+		jQuery('#emailBody').html($selectedOption.attr('data-body'));
+		jQuery('#emailFooter').html($selectedOption.attr('data-footer'));
 		jQuery('#templateName').val($selectedOption.attr('data-templateName'));
 		
 	}
@@ -157,10 +158,10 @@
 	                                %>
 										<option 
 										value="<%=i%>" 
-										data-subject="<%=Encode.forHtmlContent(emailSubject)%>"
-										data-body="<%=Encode.forHtmlContent(emailBody)%>"
-										data-footer="<%=Encode.forHtmlContent(emailFooter)%>"
-										data-templateName="<%=Encode.forHtmlContent(templateName)%>"
+										data-subject="<%=StringEscapeUtils.escapeHtml(Encode.forHtmlContent(emailSubject))%>"
+										data-body="<%=StringEscapeUtils.escapeHtml(Encode.forHtmlContent(emailBody))%>"
+										data-footer="<%=StringEscapeUtils.escapeHtml(Encode.forHtmlContent(emailFooter))%>"
+										data-templateName="<%=StringEscapeUtils.escapeHtml(Encode.forHtmlContent(templateName))%>"
 										><%=Encode.forHtmlContent(template.getDisplayName())%></option>
 									<% 
 									}									
