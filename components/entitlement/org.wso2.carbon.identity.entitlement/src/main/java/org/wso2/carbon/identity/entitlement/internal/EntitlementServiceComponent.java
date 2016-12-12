@@ -17,7 +17,10 @@
 */
 package org.wso2.carbon.identity.entitlement.internal;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.thrift.server.TServer;
@@ -50,6 +53,9 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -194,14 +200,20 @@ public class EntitlementServiceComponent {
             String startUpPolicyAdding = entitlementConfig.getEngineProperties().getProperty(
                     PDPConstants.START_UP_POLICY_ADDING);
 
+            List<String> policyIdList = new ArrayList<>();
+
+            if (papPolicyStore != null && ArrayUtils.isNotEmpty(papPolicyStore.getAllPolicyIds())) {
+                String[] allPolicyIds = papPolicyStore.getAllPolicyIds();
+                policyIdList = Arrays.asList(allPolicyIds);
+            }
+
             if (startUpPolicyAdding != null && Boolean.parseBoolean(startUpPolicyAdding)) {
-                if (papPolicyStore.getAllPolicyIds() == null
-                        || papPolicyStore.getAllPolicyIds().length == 0) {
+
                     File policyFolder = null;
                     String policyPathFromConfig = entitlementConfig.getEngineProperties().getProperty(
                             PDPConstants.FILESYSTEM_POLICY_PATH);
 
-                    if (policyPathFromConfig != null && policyPathFromConfig.trim().length() > 0) {
+                    if (StringUtils.isNotBlank(policyPathFromConfig)) {
                         policyFolder = new File(policyPathFromConfig);
                     }
 
@@ -224,12 +236,16 @@ public class EntitlementServiceComponent {
                             if (policyFile.isFile()) {
                                 PolicyDTO policyDTO = new PolicyDTO();
                                 policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
-                                try {
-                                    EntitlementUtil.addFilesystemPolicy(policyDTO,
-                                            registryService.getGovernanceSystemRegistry(), true);
-                                } catch (Exception e) {
-                                    // log and ignore
-                                    log.error("Error while adding XACML policies", e);
+                                if(!policyIdList.contains(policyDTO.getPolicyId())) {
+                                    try {
+                                        EntitlementUtil.addFilesystemPolicy(policyDTO,
+                                                                            registryService
+                                                                                    .getGovernanceSystemRegistry(),
+                                                                            true);
+                                    } catch (Exception e) {
+                                        // log and ignore
+                                        log.error("Error while adding XACML policies", e);
+                                    }
                                 }
                                 customPolicies = true;
 
@@ -241,7 +257,7 @@ public class EntitlementServiceComponent {
                         // load default policies
                         EntitlementUtil.addSamplePolicies(registryService.getGovernanceSystemRegistry());
                     }
-                }
+
             }
             // Cache clearing listener is always registered since cache clearing is a must when
             // an update happens of user attributes
