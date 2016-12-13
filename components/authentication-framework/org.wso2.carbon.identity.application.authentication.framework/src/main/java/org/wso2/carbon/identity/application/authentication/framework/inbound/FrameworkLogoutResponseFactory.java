@@ -23,11 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory {
 
     @Override
-    public String getName() {
-        return null;
-    }
-
-    @Override
     public boolean canHandle(IdentityResponse identityResponse) {
         if(identityResponse instanceof FrameworkLogoutResponse) {
             return true;

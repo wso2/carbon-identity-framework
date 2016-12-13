@@ -185,7 +185,11 @@ public class User implements Serializable {
     public int hashCode() {
         int result = tenantDomain.hashCode();
         result = 31 * result + userStoreDomain.hashCode();
-        result = 31 * result + userName.hashCode();
+        if(IdentityUtil.isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain))) {
+            result = 31 * result + userName.hashCode();
+        } else {
+            result = 31 * result + userName.toLowerCase().hashCode();
+        }
         return result;
     }
 

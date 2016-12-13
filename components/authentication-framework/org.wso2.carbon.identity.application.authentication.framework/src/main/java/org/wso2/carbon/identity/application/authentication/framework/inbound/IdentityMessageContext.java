@@ -41,6 +41,15 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
         this.request = request;
     }
 
+   /**
+    * This constructor is deprecated because any processor using {@link IdentityMessageContext} must create a
+    * {@link IdentityRequest} object.
+    */
+    @Deprecated
+    public IdentityMessageContext() {
+
+    }
+
 	public IdentityRequest getRequest() {
 		return request;
 	}
