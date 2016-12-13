@@ -22,10 +22,14 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimPropertyDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ExternalClaimDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.LocalClaimDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.AttributeMapping;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.claim.ClaimMapping;
 
@@ -181,7 +185,8 @@ public class ClaimMetadataUtils {
         return externalClaim;
     }
 
-    public static ClaimMapping convertLocalClaimToClaimMapping(LocalClaim localClaim) {
+    public static ClaimMapping convertLocalClaimToClaimMapping(LocalClaim localClaim, int tenantId) throws
+            UserStoreException {
 
         ClaimMapping claimMapping = new ClaimMapping();
 
@@ -241,17 +246,27 @@ public class ClaimMetadataUtils {
             claimMapping.setMappedAttribute(attributeMapping.getUserStoreDomain(), attributeMapping.getAttributeName());
         }
 
+        if (claimProperties.containsKey(ClaimConstants.DEFAULT_ATTRIBUTE)) {
+            claimMapping.setMappedAttribute(claimProperties.get(ClaimConstants.DEFAULT_ATTRIBUTE));
+        } else {
+            UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
+                    .getTenantUserRealm(tenantId);
+            String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
+                    (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            claimMapping.setMappedAttribute(localClaim.getMappedAttribute(primaryDomainName));
+        }
+
         return claimMapping;
     }
 
     public static ClaimMapping convertExternalClaimToClaimMapping(ExternalClaim externalClaim, List<LocalClaim>
-            localClaims) {
+            localClaims, int tenantId) throws UserStoreException {
 
         ClaimMapping claimMapping = new ClaimMapping();
 
         for (LocalClaim localClaim : localClaims) {
             if (externalClaim.getMappedLocalClaim().equalsIgnoreCase(localClaim.getClaimURI())) {
-                claimMapping = convertLocalClaimToClaimMapping(localClaim);
+                claimMapping = convertLocalClaimToClaimMapping(localClaim, tenantId);
                 break;
             }
         }
