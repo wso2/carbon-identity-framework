@@ -171,6 +171,12 @@
                             </div>
                             <%}%>
 
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 ">
+                                <label class="control-label">Tenant Domain</label>
+                                <input id="tenant-domain" type="text" name="tenantDomain"
+                                       class="form-control ">
+                            </div>
+
                             <td>&nbsp;&nbsp;</td>
                             <input type="hidden" , id="isUsernameRecovery" , name="isUsernameRecovery" value="true">
 

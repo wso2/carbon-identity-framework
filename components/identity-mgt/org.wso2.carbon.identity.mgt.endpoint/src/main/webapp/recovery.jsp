@@ -39,6 +39,7 @@
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmationKey");
     String callback = request.getParameter("callback");
+    String tenantDomain = request.getParameter("tenantDomain");
 
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
@@ -86,7 +87,7 @@
         }
 
         try {
-            usernameRecoveryApi.recoverUsernamePost(claimDTOList, null, null);
+            usernameRecoveryApi.recoverUsernamePost(claimDTOList, tenantDomain, null);
             request.setAttribute("callback", callback);
             request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
         } catch (ApiException e) {
