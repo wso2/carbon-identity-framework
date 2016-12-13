@@ -255,6 +255,7 @@
         </SAML2Grant>
         <OpenIDConnect>
             <IDTokenBuilder>org.wso2.carbon.identity.openidconnect.DefaultIDTokenBuilder</IDTokenBuilder>
+            <SignatureAlgorithm>SHA256withRSA</SignatureAlgorithm>
 
             <!-- Comment out to add Audience values to the JWT token (id_token)  -->
             <!--Audiences>
