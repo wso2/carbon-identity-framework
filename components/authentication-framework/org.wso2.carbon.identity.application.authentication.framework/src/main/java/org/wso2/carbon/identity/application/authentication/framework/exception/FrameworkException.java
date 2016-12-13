@@ -28,15 +28,15 @@ public class FrameworkException extends IdentityException {
         super(message);
     }
 
+    public FrameworkException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public FrameworkException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public static FrameworkException error(String message) {
-        return new FrameworkException(message);
-    }
-
-    public static FrameworkException error(String message, Throwable cause) {
-        return new FrameworkException(message, cause);
+    public FrameworkException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
     }
 }
