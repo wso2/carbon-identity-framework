@@ -969,34 +969,29 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "            </supportedAttributeIds>\n" +
                "        </category>\n" +
                "        <category>\n" +
-               "            <name>ServiceProvider</name>\n" +
+               "            <name>AuthnContext</name>\n" +
                "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>auth-ctx-id</attributeId>\n" +
+               "                <attributeId>inbound-auth-protocol</attributeId>\n" +
+               "                <attributeId>client-ip</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>ServiceProvider</name>\n" +
+               "            <uri>http://wso2.org/identity/sp</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>sp-name</attributeId>\n" +
                "                <attributeId>sp-tenant-domain</attributeId>\n" +
                "            </supportedAttributeIds>\n" +
                "        </category>\n" +
                "        <category>\n" +
-               "            <name>User</name>\n" +
-               "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <name>IdentityUser</name>\n" +
+               "            <uri>http://wso2.org/identity/user</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>username</attributeId>\n" +
-               "                <attributeId>userstore-domain</attributeId>\n" +
+               "                <attributeId>user-store-domain</attributeId>\n" +
                "                <attributeId>user-tenant-domain</attributeId>\n" +
-               "            </supportedAttributeIds>\n" +
-               "        </category>\n" +
-               "        <category>\n" +
-               "            <name>UserInfo</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/user</uri>\n" +
-               "            <supportedAttributeIds>\n" +
-               "                <attributeId>username</attributeId>\n" +
-               "                <attributeId>tenant-domain</attributeId>\n" +
-               "            </supportedAttributeIds>\n" +
-               "        </category>\n" +
-               "        <category>\n" +
-               "            <name>Claims</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/claims</uri>\n" +
-               "            <supportedAttributeIds>\n" +
                "                <attributeId>emailaddress</attributeId>\n" +
                "                <attributeId>age</attributeId>\n" +
                "                <attributeId>lastname</attributeId>\n" +
@@ -1004,12 +999,13 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "                <attributeId>organization</attributeId>\n" +
                "                <attributeId>telephone</attributeId>\n" +
                "                <attributeId>IM</attributeId>\n" +
-               "                <attributeId>country</attributeId>\n" +
-               "            </supportedAttributeIds>\n" +
+               "                <attributeId>country</attributeId>\n" +               "            </supportedAttributeIds>\n" +
+               "                <attributeId>mobile</attributeId>\n" +               "            " +
+                "</supportedAttributeIds>\n" +
                "        </category>\n" +
                "        <category>\n" +
                "            <name>IdentityProvider</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/idp</uri>\n" +
+               "            <uri>http://wso2.org/identity/idp</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>idp-name</attributeId>\n" +
                "                <attributeId>connector-type</attributeId>\n" +
@@ -1017,7 +1013,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "        </category>\n" +
                "        <category>\n" +
                "            <name>IdentityAction</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/identity-action</uri>\n" +
+               "            <uri>http://wso2.org/identity/identity-action</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>action-name</attributeId>\n" +
                "            </supportedAttributeIds>\n" +
@@ -1073,83 +1069,103 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
+               "            <name>auth-ctx-id</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/auth-ctx-id</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>inbound-auth-protocol</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/inbound-auth-protocol</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>client-ip</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/client-ip</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
                "            <name>sp-name</name>\n" +
-               "            <uri>http://wso2.org/identity/auth/sp-name</uri>\n" +
+               "            <uri>http://wso2.org/identity/sp/sp-name</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>sp-tenant-domain</name>\n" +
-               "            <uri>http://wso2.org/identity/auth/sp-domain</uri>\n" +
+               "            <uri>http://wso2.org/identity/auth/sp-tenant-domain</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>username</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:username</uri>\n" +
+               "            <uri>http://wso2.org/identity/user/username</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
-               "            <name>tenant-domain</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:tenant-domain</uri>\n" +
+               "            <name>user-store-domain</name>\n" +
+               "            <uri>http://wso2.org/identity/user/user-store-domain</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>user-tenant-domain</name>\n" +
+               "            <uri>http://wso2.org/identity/user/user-tenant-domain</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>age</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/age</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/age</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>lastname</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/lastname</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/lastname</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>givenname</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/givenname</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/givenname</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>organization</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/organization</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/organization</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>telephone</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/telephone</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/telephone</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>IM</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/im</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/im</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>country</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/country</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/country</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
-               "            <name>country</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/mobile</uri>\n" +
+               "            <name>mobile</name>\n" +
+               "            <uri>http://wso2.org/identity/claims/mobile</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>emailaddress</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/emailaddress</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/emailaddress</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>idp-name</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:idp-name</uri>\n" +
+               "            <uri>http://wso2.org/identity/idp/idp-name</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>connector-type</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:connector-type</uri>\n" +
+               "            <uri>http://wso2.org/identity/idp/connector-type</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>action-name</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/identity-action:action-name</uri>\n" +
+               "            <uri>http://wso2.org/identity/identity-action/action-name</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "    </attributeIds>\n" +
@@ -1370,34 +1386,29 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "            </supportedAttributeIds>\n" +
                "        </category>\n" +
                "        <category>\n" +
-               "            <name>ServiceProvider</name>\n" +
+               "            <name>AuthnContext</name>\n" +
                "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <supportedAttributeIds>\n" +
+               "                <attributeId>auth-ctx-id</attributeId>\n" +
+               "                <attributeId>inbound-auth-protocol</attributeId>\n" +
+               "                <attributeId>client-ip</attributeId>\n" +
+               "            </supportedAttributeIds>\n" +
+               "        </category>\n" +
+               "        <category>\n" +
+               "            <name>ServiceProvider</name>\n" +
+               "            <uri>http://wso2.org/identity/sp</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>sp-name</attributeId>\n" +
                "                <attributeId>sp-tenant-domain</attributeId>\n" +
                "            </supportedAttributeIds>\n" +
                "        </category>\n" +
                "        <category>\n" +
-               "            <name>User</name>\n" +
-               "            <uri>http://wso2.org/identity/auth</uri>\n" +
+               "            <name>IdentityUser</name>\n" +
+               "            <uri>http://wso2.org/identity/user</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>username</attributeId>\n" +
-               "                <attributeId>userstore-domain</attributeId>\n" +
+               "                <attributeId>user-store-domain</attributeId>\n" +
                "                <attributeId>user-tenant-domain</attributeId>\n" +
-               "            </supportedAttributeIds>\n" +
-               "        </category>\n" +
-               "        <category>\n" +
-               "            <name>UserInfo</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/user</uri>\n" +
-               "            <supportedAttributeIds>\n" +
-               "                <attributeId>username</attributeId>\n" +
-               "                <attributeId>tenant-domain</attributeId>\n" +
-               "            </supportedAttributeIds>\n" +
-               "        </category>\n" +
-               "        <category>\n" +
-               "            <name>Claims</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/claims</uri>\n" +
-               "            <supportedAttributeIds>\n" +
                "                <attributeId>emailaddress</attributeId>\n" +
                "                <attributeId>age</attributeId>\n" +
                "                <attributeId>lastname</attributeId>\n" +
@@ -1406,11 +1417,12 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "                <attributeId>telephone</attributeId>\n" +
                "                <attributeId>IM</attributeId>\n" +
                "                <attributeId>country</attributeId>\n" +
+               "                <attributeId>mobile</attributeId>\n" +
                "            </supportedAttributeIds>\n" +
                "        </category>\n" +
                "        <category>\n" +
                "            <name>IdentityProvider</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/idp</uri>\n" +
+               "            <uri>http://wso2.org/identity/idp</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>idp-name</attributeId>\n" +
                "                <attributeId>connector-type</attributeId>\n" +
@@ -1418,7 +1430,7 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "        </category>\n" +
                "        <category>\n" +
                "            <name>IdentityAction</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/identity-action</uri>\n" +
+               "            <uri>http://wso2.org/identity/identity-action</uri>\n" +
                "            <supportedAttributeIds>\n" +
                "                <attributeId>action-name</attributeId>\n" +
                "            </supportedAttributeIds>\n" +
@@ -1474,98 +1486,103 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "            <dataType>http://www.w3.org/2001/XMLSchema#integer</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
+               "            <name>auth-ctx-id</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/auth-ctx-id</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>inbound-auth-protocol</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/inbound-auth-protocol</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
+               "            <name>client-ip</name>\n" +
+               "            <uri>http://wso2.org/identity/auth/client-ip</uri>\n" +
+               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
+               "        </attributeId>\n" +
+               "        <attributeId>\n" +
                "            <name>sp-name</name>\n" +
-               "            <uri>http://wso2.org/identity/auth/sp-name</uri>\n" +
+               "            <uri>http://wso2.org/identity/sp/sp-name</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>sp-tenant-domain</name>\n" +
-               "            <uri>http://wso2.org/identity/auth/sp-domain</uri>\n" +
+               "            <uri>http://wso2.org/identity/auth/sp-tenant-domain</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>username</name>\n" +
-               "            <uri>http://wso2.org/identity/auth/username</uri>\n" +
+               "            <uri>http://wso2.org/identity/user/username</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
-               "            <name>userstore-domain</name>\n" +
-               "            <uri>http://wso2.org/identity/auth/userstore-domain</uri>\n" +
+               "            <name>user-store-domain</name>\n" +
+               "            <uri>http://wso2.org/identity/user/user-store-domain</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>user-tenant-domain</name>\n" +
-               "            <uri>http://wso2.org/identity/auth/user-tenant-domain</uri>\n" +
-               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-               "        </attributeId>\n" +
-               "        <attributeId>\n" +
-               "            <name>username</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:username</uri>\n" +
-               "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
-               "        </attributeId>\n" +
-               "        <attributeId>\n" +
-               "            <name>tenant-domain</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/user:tenant-domain</uri>\n" +
+               "            <uri>http://wso2.org/identity/user/user-tenant-domain</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>age</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/age</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/age</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>lastname</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/lastname</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/lastname</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>givenname</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/givenname</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/givenname</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>organization</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/organization</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/organization</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>telephone</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/telephone</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/telephone</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>IM</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/im</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/im</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>country</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/country</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/country</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
-               "            <name>country</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/mobile</uri>\n" +
+               "            <name>mobile</name>\n" +
+               "            <uri>http://wso2.org/identity/claims/mobile</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>emailaddress</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/claims:http://wso2.org/claims/emailaddress</uri>\n" +
+               "            <uri>http://wso2.org/identity/claims/emailaddress</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>idp-name</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:idp-name</uri>\n" +
+               "            <uri>http://wso2.org/identity/idp/idp-name</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>connector-type</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/idp:connector-type</uri>\n" +
+               "            <uri>http://wso2.org/identity/idp/connector-type</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "        <attributeId>\n" +
                "            <name>action-name</name>\n" +
-               "            <uri>urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/identity-action:action-name</uri>\n" +
+               "            <uri>http://wso2.org/identity/identity-action/action-name</uri>\n" +
                "            <dataType>http://www.w3.org/2001/XMLSchema#string</dataType>\n" +
                "        </attributeId>\n" +
                "    </attributeIds>\n" +
