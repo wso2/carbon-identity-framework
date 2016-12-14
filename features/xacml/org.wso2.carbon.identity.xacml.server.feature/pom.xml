@@ -113,7 +113,7 @@
                                     <type>war</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
-                                    <destFileName>entitlement.war</destFileName>
+                                    <destFileName>api#identity#entitlement.war</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -137,8 +137,6 @@
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server
-                                    </propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false
                                     </propertyDef>
                                 </properties>
                             </adviceFile>

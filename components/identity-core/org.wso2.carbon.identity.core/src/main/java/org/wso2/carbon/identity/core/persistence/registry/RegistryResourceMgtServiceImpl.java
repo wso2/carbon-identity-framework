@@ -28,7 +28,6 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 
-import static org.wso2.carbon.identity.base.IdentityRuntimeException.ErrorInfo.ErrorInfoBuilder;
 
 /**
  * A Util OSGi service that exposes Registry resource management functionality based on locale.
@@ -109,7 +108,7 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             return resource;
         } catch (RegistryException e) {
             String errorMsg = String.format(ERROR_GET_RESOURCE, path, tenantDomain);
-            throw buildIdentityRuntimeException(errorMsg, e);
+            throw IdentityRuntimeException.error(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -128,7 +127,7 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             }
         } catch (RegistryException e) {
             String errorMsg = String.format(ERROR_PERSIST_RESOURCE, tenantDomain, path);
-            throw buildIdentityRuntimeException(errorMsg, e);
+            throw IdentityRuntimeException.error(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -144,7 +143,7 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             if (registry.get(path) != null) {
                 // resource already exists at the path so we throw an exception
                 String errorMsg = String.format(ERROR_ADD_RESOURCE, tenantDomain, path);
-                throw buildIdentityRuntimeException(errorMsg, null);
+                throw IdentityRuntimeException.error(errorMsg);
             }
             registry.put(path, identityResource);
             if (log.isDebugEnabled()) {
@@ -152,7 +151,7 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             }
         } catch (RegistryException e) {
             String errorMsg = String.format(ERROR_PERSIST_RESOURCE, tenantDomain, path);
-            throw buildIdentityRuntimeException(errorMsg, e);
+            throw IdentityRuntimeException.error(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -169,11 +168,11 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             } else {
                 String errorMsg = String.format(ERROR_NO_RESOURCE_FOUND, path, tenantDomain);
                 log.error(errorMsg);
-                throw buildIdentityRuntimeException(errorMsg, null);
+                throw IdentityRuntimeException.error(errorMsg);
             }
         } catch (RegistryException e) {
             String errorMsg = String.format(ERROR_DELETE_RESOURCE, tenantDomain, path);
-            throw buildIdentityRuntimeException(errorMsg, e);
+            throw IdentityRuntimeException.error(errorMsg, e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -188,20 +187,12 @@ public class RegistryResourceMgtServiceImpl implements RegistryResourceMgtServic
             return registry.resourceExists(path);
         } catch (RegistryException e) {
             String errorMsg = "Error when checking for resource existence at %s in %s tenant domain.";
-            throw buildIdentityRuntimeException(String.format(errorMsg, path, tenantDomain), e);
+            throw IdentityRuntimeException.error(String.format(errorMsg, path, tenantDomain), e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
     }
 
-    private IdentityRuntimeException buildIdentityRuntimeException(String errorDescription, Throwable throwable) {
-        ErrorInfoBuilder errorInfoBuilder = new ErrorInfoBuilder(errorDescription);
-        if (throwable != null) {
-            errorInfoBuilder.cause(throwable);
-        }
-        log.error(errorDescription);
-        return IdentityRuntimeException.error(errorInfoBuilder.build());
-    }
 
     private Registry getRegistryForTenant(String tenantDomain) throws RegistryException {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
