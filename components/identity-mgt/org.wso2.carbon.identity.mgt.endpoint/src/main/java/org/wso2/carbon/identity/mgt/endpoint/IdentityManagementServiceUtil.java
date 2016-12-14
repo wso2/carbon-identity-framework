@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.securevault.SecretResolver;
@@ -223,7 +224,7 @@ public class IdentityManagementServiceUtil {
             return null;
         }
 
-        String userStoreDomain = IdentityUtil.extractDomainFromName(userName);
+        String userStoreDomain = extractDomainFromName(userName);
         String tenantDomain = MultitenantUtils.getTenantDomain(userName);
         String userNameWithoutTenantDomainAndUserStoreDomain = MultitenantUtils
                 .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(userName));
@@ -242,5 +243,14 @@ public class IdentityManagementServiceUtil {
 
     public char[] getAppPassword() {
         return appPassword;
+    }
+
+    private String extractDomainFromName(String nameWithDomain) {
+        if (nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
+            String domain = nameWithDomain.substring(0, nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR));
+            return domain.toUpperCase();
+        } else {
+            return null;
+        }
     }
 }
