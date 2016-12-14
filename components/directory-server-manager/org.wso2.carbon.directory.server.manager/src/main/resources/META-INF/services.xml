@@ -25,30 +25,30 @@
             org.wso2.carbon.directory.server.manager.DirectoryServerManager
         </parameter>
         <operation name="listServicePrinciples">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
         </operation>
         <operation name="addServer">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
         </operation>
         <operation name="removeServer">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
         </operation>
         <operation name="changePassword">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
         </operation>
        <operation name="isExistingServicePrinciple">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
         </operation>
        <operation name="getPasswordConformanceRegularExpression">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
        </operation>
        <operation name="getServiceNameConformanceRegularExpression">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
        </operation>
        <operation name="isKDCEnabled">
-            <parameter name="AuthorizationAction" locked="true">/permission/admin/configure/security,/permission/admin/manage/modify/service</parameter>
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity,/permission/admin/manage/modify/service</parameter>
        </operation>
-        <parameter name="AuthorizationAction" locked="false">/permission/admin/configure/security</parameter>
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity</parameter>
     </service>
     
     <parameter name="adminService" locked="true">true</parameter>

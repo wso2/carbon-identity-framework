@@ -26,6 +26,8 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
@@ -79,7 +81,16 @@ public class SelfRegisterApi {
             throw new ApiException(400, "Missing the required parameter 'user' when calling mePost");
         }
 
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        if (StringUtils.isNotBlank(user.getUser().getTenantDomain())) {
+            tenantDomain = user.getUser().getTenantDomain();
+        }
 
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/"+tenantDomain+"/api/identity/user/v0.9");
+        }
         apiClient.setBasePath(basePath);
 
         // create path and map variables
@@ -125,6 +136,17 @@ public class SelfRegisterApi {
         // verify the required parameter 'user' is set
         if (user == null) {
             throw new ApiException(400, "Missing the required parameter 'user' when calling resendCodePost(Async)");
+        }
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        if (StringUtils.isNotBlank(user.getUser().getTenantDomain())) {
+            tenantDomain = user.getUser().getTenantDomain();
+        }
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+                            "t/"+tenantDomain+"/api/identity/user/v0.9");
         }
 
         apiClient.setBasePath(basePath);

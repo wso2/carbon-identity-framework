@@ -115,7 +115,7 @@
                     (ConfigurationContext) config.getServletContext()
                                                  .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             UserAdminClient client = new UserAdminClient(cookie, backendServerURL, configContext);
-            roleType = roleBean.getRoleType();
+            roleType = roleBean.getDomain();
 
             if (filter.length() > 0) {
                 FlaggedName[] datas;

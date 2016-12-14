@@ -381,7 +381,7 @@
                     }
                     Property isEnableAssertionSignatureValidationProp =
                             IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                                    IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
+                                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
                     if (isEnableAssertionSignatureValidationProp != null) {
                         isEnablePassiveSTSAssertionSignatureValidation =
                                 Boolean.parseBoolean(isEnableAssertionSignatureValidationProp.getValue());
@@ -3941,6 +3941,14 @@
 
         }
 
+        if ($('#meta_data_saml').val() != ""  && !jQuery('#saml2SSOEnabled').attr('checked') ) {
+            if ($('#spEntityId').val() == "") {
+                CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
+                return false;
+            }
+
+        }
+
         if (jQuery('#oidcEnabled').attr('checked')) {
 
             if ($('#authzUrl').val() == "") {
@@ -4831,27 +4839,25 @@
                         </div>
                         <div id="saml_mode_selction_section">
                             <table class="carbonFormTable" width="100%">
-                                <thead>
-                                <tr>
-                                    <th><fmt:message key="saml.sso.select.mode"/></th>
-                                </tr>
-                                </thead>
+
                                 <tbody>
                                 <tr>
-                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.manual'/>:<span
+                                    <td class="leftCol-med labelField"><fmt:message key='saml.sso.select.mode'/><span
                                             ></span></td>
                                     <td>
-                                        <input type="radio"  name="saml_ui_mode"  value="manual" onclick="
+                                        <input type="radio" checked="checked" name="saml_ui_mode"  value="manual"
+                                               onclick="
                                         $('#manual_section').show(); $('#metadata_section').hide();">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.file'/>:<span
-                                            ></span></td>
+                                        <fmt:message key='saml.mode.manual'/>
 
-                                    <td>
+
                                         <input type="radio" name="saml_ui_mode" value="file" onclick="
                                     $('#manual_section').hide(); $('#metadata_section').show();">
+                                        <fmt:message key='saml.mode.file'/>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='help.metadata.select.mode'/>
+                                        </div>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -4862,11 +4868,7 @@
 
                         <div id="manual_section">
                             <table class="carbonFormTable" width="100%">
-                                <thead>
-                                <tr>
-                                    <th><fmt:message key="saml.sso.manual.mode"/></th>
-                                </tr>
-                                </thead>
+
                                 <tbody>
                                 <br>
                                 <tr>
@@ -5370,7 +5372,7 @@
                             </table>
                         </div>
                         <script>
-                            $('#manual_section').hide();
+                            $('#manual_section').show();
                             $('#metadata_section').hide();
                         </script>
 
@@ -5728,7 +5730,7 @@
                                     <div id="showHideButtonDivId" style="border:1px solid rgb(88, 105, 125);"
                                          class="leftCol-med">
                                         <input id="fbClientSecret" name="fbClientSecret" type="password"
-                                               autocomplete="off" value="<%=Encode.forHtmlAttribute(fbClientSecret)%>"
+                                               autocomplete="false" value="<%=Encode.forHtmlAttribute(fbClientSecret)%>"
                                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                                         <span id="showHideButtonId" style=" float: right; padding-right: 5px;">
        								<a style="margin-top: 5px;" class="showHideBtn"
@@ -5840,7 +5842,7 @@
 
                     <h2 id="custom_auth_head_"<%=fedConfig.getDisplayName() %> class="sectionSeperator trigger active"
                         style="background-color: beige;">
-                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName() %>Configuration</a>
+                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName()%> Configuration</a>
                         <% if (isEnabled) { %>
                         <div id="custom_auth_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
                              style="float:right;padding-right: 5px;padding-top: 5px;"><img src="images/ok.png"
@@ -5925,7 +5927,7 @@
                                          class="leftCol-med">
                                         <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                                               type="password" autocomplete="off"
+                                               type="password" autocomplete="false"
                                                value="<%=prop.getValue()%>"
                                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                                         <span id="showHideButtonId"
@@ -5940,7 +5942,7 @@
                                          class="leftCol-med">
                                         <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                                               type="password" autocomplete="off"
+                                               type="password" autocomplete="false"
                                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                                         <span id="showHideButtonId"
                                               style=" float: right; padding-right: 5px;">
@@ -6353,7 +6355,7 @@
                                         key='sf.provisioning.client.secret'/>:<span
                                         class="required">*</span></td>
                                 <td><input class="text-box-big" id="sf-client-secret"
-                                           name="sf-client-secret" type="password" autocomplete="off"
+                                           name="sf-client-secret" type="password" autocomplete="false"
                                            value=<%=Encode.forHtmlAttribute(sfClientSecret) %>></td>
                             </tr>
                             <tr>
@@ -6369,7 +6371,7 @@
                                         key='sf.provisioning.password'/>:<span
                                         class="required">*</span></td>
                                 <td><input class="text-box-big" id="sf-password"
-                                           name="sf-password" type="password" autocomplete="off"
+                                           name="sf-password" type="password" autocomplete="false"
                                            value=<%=Encode.forHtmlAttribute(sfPassword) %>></td>
                             </tr>
                             <tr>
@@ -6490,7 +6492,7 @@
                                         key='scim.provisioning.user.password'/>:<span
                                         class="required">*</span></td>
                                 <td><input class="text-box-big" id="scim-password"
-                                           name="scim-password" type="password" autocomplete="off"
+                                           name="scim-password" type="password" autocomplete="false"
                                            value=<%=Encode.forHtmlAttribute(scimPassword) %>></td>
                             </tr>
                             <tr>
@@ -6608,7 +6610,7 @@
                                         key='spml.provisioning.user.password'/>:
                                 </td>
                                 <td><input class="text-box-big" id="spml-password"
-                                           name="spml-password" type="password" autocomplete="off"
+                                           name="spml-password" type="password" autocomplete="false"
                                            value=<%=Encode.forHtmlAttribute(spmlPassword) %>></td>
                             </tr>
                             <tr>
@@ -6714,7 +6716,7 @@
                                          class="leftCol-med">
                                         <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                                               type="password" autocomplete="off"
+                                               type="password" autocomplete="false"
                                                value="<%=prop.getValue()%>"
                                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                                         <span id="showHideButtonId"
@@ -6729,7 +6731,7 @@
                                          class="leftCol-med">
                                         <input id="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                                name="cust_pro_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
-                                               type="password" autocomplete="off"
+                                               type="password" autocomplete="false"
                                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                                         <span id="showHideButtonId"
                                               style=" float: right; padding-right: 5px;">

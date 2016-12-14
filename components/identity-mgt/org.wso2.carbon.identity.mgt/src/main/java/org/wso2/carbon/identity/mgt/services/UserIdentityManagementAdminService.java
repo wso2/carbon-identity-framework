@@ -287,7 +287,7 @@ public class UserIdentityManagementAdminService {
             }
             boolean isAuthorized = false;
             try {
-                isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/configure/security",
+                isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/manage/identity/identitymgt/view",
                         CarbonConstants.UI_PERMISSION_ACTION);
             } catch (UserStoreException e) {
                     throw new IdentityMgtServiceException("Error occurred while checking access level for " +
@@ -422,7 +422,7 @@ public class UserIdentityManagementAdminService {
             }
             boolean isAuthorized = false;
             try {
-                isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/configure/security",
+                isAuthorized = authzManager.isUserAuthorized(loggedInName, "/permission/admin/manage/identity/identitymgt/update",
                         CarbonConstants.UI_PERMISSION_ACTION);
             } catch (UserStoreException e) {
                 throw new IdentityMgtServiceException("Error occurred while checking access level for " +

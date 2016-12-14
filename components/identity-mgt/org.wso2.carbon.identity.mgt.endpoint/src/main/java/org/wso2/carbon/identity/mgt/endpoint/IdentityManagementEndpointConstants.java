@@ -34,6 +34,8 @@ public class IdentityManagementEndpointConstants {
         public static final String SERVICE_ACCESS_USERNAME = "identity.server.service.access.username";
         public static final String SERVICE_ACCESS_PASSWORD = "identity.server.service.access.password";
         public static final String SERVICE_CONTEXT_URL = "identity.server.service.contextURL";
+        public static final String APP_NAME = "app.name";
+        public static final String APP_PASSWORD = "app.password";
     }
 
     public static final class ServiceEndpoints {

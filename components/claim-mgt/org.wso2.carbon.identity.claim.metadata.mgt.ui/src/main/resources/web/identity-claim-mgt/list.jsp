@@ -40,7 +40,7 @@
         ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
         claimDialects = client.getClaimDialects();
     } catch (Exception e) {
-        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
+        String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
         String message = resourceBundle.getString("error.while.loading.claim.dialects");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
@@ -74,7 +74,7 @@
         <div id="workArea">
 
             <script type="text/javascript">
-                function removeItem(externalClaimDialectURI) {
+                function removeItem(externalClaimDialectURI, externalClaimDialectURIForMessage) {
 
                     function doDelete() {
                         $.ajax({
@@ -93,8 +93,8 @@
                         });
                     }
 
-                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + externalClaimDialectURI +
-                            '<fmt:message key="remove.message2"/>', doDelete, null);
+                    CARBON.showConfirmationDialog('<fmt:message key="remove.message0"/> ' +
+                            externalClaimDialectURIForMessage + '<fmt:message key="remove.message2"/>', doDelete, null);
                 }
             </script>
 
@@ -133,7 +133,7 @@
                     </td>
                     <td width="50%">
                         <a title="<fmt:message key='remove.claim.dialect'/>"
-                           onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(claimDialectURI))%>');return false;"
+                           onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(claimDialectURI))%>', '<%=Encode.forJavaScriptAttribute(claimDialectURI)%>');return false;"
                            href="#" style="background-image: url(images/delete.gif);"
                            class="icon-link"><fmt:message key='delete'/></a>
                     </td>

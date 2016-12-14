@@ -22,6 +22,15 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="java.text.MessageFormat" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <style>
     .sectionHelp {
@@ -30,30 +39,82 @@
 </style>
 
 <%
+    String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+    ConfigurationContext configContext = (ConfigurationContext)
+            config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+    String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+
+
     String externalClaimURI = request.getParameter("externalClaimURI");
     String externalClaimDialectURI = request.getParameter("externalClaimDialectURI");
+    List<String> availableLocalClaimsURIs = new ArrayList<String>();
+    String mappedLocalClaimURI = null;
 
     ExternalClaimDTO[] externalClaims = null;
     externalClaims = (ExternalClaimDTO[])session.getAttribute("externalClaims-"+ externalClaimDialectURI);
 
-    ExternalClaimDTO externalClaim = null;
-    for (int i = 0; i < externalClaims.length; i++) {
-        if (externalClaims[i].getExternalClaimURI().equals(externalClaimURI)) {
-            externalClaim = externalClaims[i];
-            break;
+    try {
+        ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
+
+        if (externalClaims == null) {
+            externalClaims = client.getExternalClaims(externalClaimDialectURI);
+        }
+
+        ExternalClaimDTO externalClaim = null;
+        if (externalClaims != null) {
+            for (ExternalClaimDTO externalClaimDTO : externalClaims) {
+                if (externalClaimDTO.getExternalClaimURI().equals(externalClaimURI)) {
+                    externalClaim = externalClaimDTO;
+                    break;
+                }
+            }
+        }
+
+        if (externalClaim == null) {
+            String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
+            ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
+            String unformatted = resourceBundle.getString("error.while.loading.external.claim");
+                String message = MessageFormat.format(unformatted, new Object[]{Encode.forHtmlContent(externalClaimURI)});
+
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+            String forwardTo = "../admin/error.jsp";
+
+%>
+<script type="text/javascript">
+    function forward() {
+        location.href = "<%=forwardTo%>";
+    }
+
+    forward();
+</script>
+<%
+    } else {
+
+        mappedLocalClaimURI = externalClaim.getMappedLocalClaimURI();
+
+        LocalClaimDTO[] availableLocalClaims = client.getLocalClaims();
+        if (availableLocalClaims != null) {
+            for (LocalClaimDTO localClaim : availableLocalClaims) {
+                availableLocalClaimsURIs.add(localClaim.getLocalClaimURI());
+            }
+        }
+
+        if (externalClaims != null) {
+            for (ExternalClaimDTO externalClaimDTO : externalClaims) {
+                if (!externalClaimDTO.getExternalClaimURI().equalsIgnoreCase(externalClaim.getExternalClaimURI())) {
+                    availableLocalClaimsURIs.remove(externalClaimDTO.getMappedLocalClaimURI());
+                }
+            }
         }
     }
 
-    if (externalClaim == null) {
-        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-
-        String unformatted = resourceBundle.getString("error.while.loading.external.claim");
-        String message = MessageFormat.format(unformatted, new Object[]{Encode.forHtmlContent(externalClaimURI)});
-
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        String forwardTo = "../admin/error.jsp";
-
+} catch (Exception e) {
+    String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    String message = resourceBundle.getString("error.while.loading.claim.details");
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+    String forwardTo = "../admin/error.jsp";
 %>
 <script type="text/javascript">
     function forward() {
@@ -82,27 +143,8 @@
         <div id="workArea">
 
             <script type="text/javascript">
-                String.prototype.format = function (args) {
-                    var str = this;
-                    return str.replace(String.prototype.format.regex, function (item) {
-                        var intVal = parseInt(item.substring(1, item.length - 1));
-                        var replace;
-                        if (intVal >= 0) {
-                            replace = args[intVal];
-                        } else if (intVal === -1) {
-                            replace = "{";
-                        } else if (intVal === -2) {
-                            replace = "}";
-                        } else {
-                            replace = "";
-                        }
-                        return replace;
-                    });
-                };
-                String.prototype.format.regex = new RegExp("{-?[0-9]+}", "g");
 
-
-                function removeItem(externalClaimDialectURI, externalClaimURI) {
+                function removeItem(externalClaimDialectURI, externalClaimURI, externalClaimURIForMessage) {
 
                     function doDelete() {
                         $.ajax({
@@ -123,7 +165,7 @@
                         });
                     }
 
-                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + externalClaimURI +
+                    CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/> ' + externalClaimURIForMessage +
                             '<fmt:message key="remove.message2"/>', doDelete, null);
                 }
 
@@ -133,19 +175,6 @@
                     if (value == '') {
                         CARBON.showWarningDialog('<fmt:message key="mapped.local.claim.uri.is.required"/>');
                         return false;
-                    } else if (value.length > 100) {
-                        CARBON.showWarningDialog('<fmt:message key="mapped.local.claim.uri.is.too.long"/>');
-                        return false;
-                    }
-
-                    var unsafeCharPattern = /[<>`\"]/;
-                    var elements = document.getElementsByTagName("input");
-                    for (i = 0; i < elements.length; i++) {
-                        if ((elements[i].type === 'text' || elements[i].type === 'password') &&
-                                elements[i].value != null && elements[i].value.match(unsafeCharPattern) != null) {
-                            CARBON.showWarningDialog("<fmt:message key="unsafe.char.validation.msg"/>");
-                            return false;
-                        }
                     }
 
                     document.updateclaim.submit();
@@ -156,7 +185,8 @@
                 <a href="#" class="icon-link deleteLink"
                    style="background-image:url(../identity-claim-mgt/images/delete.gif);"
                    onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimDialectURI))%>',
-                           '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimURI))%>');return
+                           '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(externalClaimURI))%>',
+                           '<%=Encode.forJavaScriptAttribute(externalClaimURI)%>');return
                            false;"><fmt:message key='delete.external.claim'/>
                 </a>
             </div>
@@ -177,8 +207,8 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='dialect.uri'/></td>
-                                    <td
-                                            class="leftCol-big"><input type="text" name="externalClaimDialectURI"
+                                    <td class="leftCol-small"><%=Encode.forHtmlContent(externalClaimDialectURI)%></td>
+                                    <td class="leftCol-big" hidden><input type="text" name="externalClaimDialectURI"
                                                                        id="externalClaimDialectURI"
                                                                        value="<%=Encode.forHtmlAttribute(externalClaimDialectURI)%>"
                                                                        readonly class="text-box-big"/></td>
@@ -186,22 +216,36 @@
                                 </tr>
 
                                 <tr>
-                                    <td class="leftCol-small"><fmt:message key='claim.uri'/><font
-                                            class="required">*</font></td>
-                                    <td class="leftCol-big"><input type="text" name="externalClaimURI"
-                                               id="externalClaimURI"
-                                               value="<%=Encode.forHtmlAttribute(externalClaimURI)%>"
-                                               readonly class="text-box-big"/></td>
+                                    <td class="leftCol-small"><fmt:message key='claim.uri'/></td>
+                                    <td class="leftCol-small"><%=Encode.forHtmlContent(externalClaimURI)%></td>
+                                    <td class="leftCol-big" hidden><input type="text" name="externalClaimURI"
+                                                                   id="externalClaimURI"
+                                                                   value="<%=Encode.forHtmlAttribute(externalClaimURI)%>"
+                                                                   readonly class="text-box-big"/></td>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='mapped.local.claim'/><font
-                                            class="required">*</font></td>
-                                    <td class="leftCol-big"><input type="text" name="mappedLocalClaimURI"
-                                                                   id="mappedLocalClaimURI"
-                                                                   value="<%=Encode.forHtmlAttribute(externalClaim.getMappedLocalClaimURI())%>"
-                                                                   class="text-box-big"/></td>
+                                            color="red">*</font></td>
+                                    <td class="leftCol-big">
+                                        <select id="mappedLocalClaimURI" name="mappedLocalClaimURI">
+                                            <%
+                                                for (String localClaimURI : availableLocalClaimsURIs) {
+                                                    if (StringUtils.isNotBlank(mappedLocalClaimURI) &&
+                                                            mappedLocalClaimURI.equalsIgnoreCase(localClaimURI)) {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(localClaimURI)%>" selected><%=Encode.forHtmlContent(localClaimURI)%></option>
+                                            <%
+                                            } else {
+                                            %>
+                                            <option value="<%=Encode.forHtmlAttribute(localClaimURI)%>"><%=Encode.forHtmlContent(localClaimURI)%></option>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                        </select>
+                                    </td>
                                 </tr>
                             </table>
                         </td>

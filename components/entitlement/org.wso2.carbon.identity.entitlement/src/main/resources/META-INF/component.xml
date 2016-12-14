@@ -26,6 +26,12 @@
             <ResourceId>/permission/admin/manage/identity/entitlement</ResourceId>
         </ManagementPermission>
 
+        <!--Entitlement PAP-->
+        <ManagementPermission>
+            <DisplayName>Entitlement PAP Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap</ResourceId>
+        </ManagementPermission>
+
         <!--Entitlement Policy-->
         <ManagementPermission>
             <DisplayName>Entitlement Policy Management</DisplayName>

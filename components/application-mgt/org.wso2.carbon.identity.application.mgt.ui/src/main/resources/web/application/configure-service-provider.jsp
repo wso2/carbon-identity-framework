@@ -409,6 +409,25 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
 	});
 }
 
+function updateBeanAndPostTo(postURL, data) {
+	$.ajax({
+		type: "POST",
+		url: 'update-application-bean.jsp?spName=<%=Encode.forUriComponent(spName)%>',
+		data: $("#configure-sp-form").serialize(),
+		success: function () {
+
+			$.ajax({
+				type: 'POST',
+				url: postURL,
+				data: data,
+				success: function(data, textStatus, request){
+					window.location = request.getResponseHeader('redirectUrl');
+				}
+
+			});
+		}
+	});
+}
     function onSamlSsoClick() {
 		var spName = document.getElementById("oldSPName").value;
 		if( spName != '') {
@@ -1173,7 +1192,7 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 			}
                                 		  if(oauthConsumerSecret != null){%>
                                 				<div>
-                                					<input style="border: none; background: white;" type="password" id="oauthConsumerSecret" name="oauthConsumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"readonly="readonly">
+                                					<input style="border: none; background: white;" type="password" autocomplete="false" id="oauthConsumerSecret" name="oauthConsumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"readonly="readonly">
                                 					<span style="float: right;">
                                 						<a style="margin-top: 5px;" class="showHideBtn" onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
                                 					</span>
@@ -1182,9 +1201,20 @@ function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
                                 	</td>
                                     <td style="white-space: nowrap;">
                                         <a title="Edit Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"  class="icon-link" style="background-image: url(../admin/images/edit.gif)">Edit</a>
-                                        <a title="Revoke Service Providers" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');" class="icon-link" style="background-image: url(images/disabled.png)">Revoke</a>
-                                        <a title="Regenerate Secret Key" onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');" class="icon-link" style="background-image: url(images/enabled.png)">Regenerate Secret</a>
-                                        <a title="Delete Service Providers"
+
+
+
+										<a title="Revoke Service Providers"
+										   onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');" class="icon-link" style="background-image: url(images/disabled.png)">Revoke</a>
+
+
+
+										<a title="Regenerate Secret Key"
+										   onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');" class="icon-link" style="background-image: url(images/enabled.png)">Regenerate Secret</a>
+
+
+
+										<a title="Delete Service Providers"
                                            onclick="updateBeanAndPost('../oauth/remove-app-ajaxprocessor.jsp',
                                                    'consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>',
                                                    'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&oauthapp=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"

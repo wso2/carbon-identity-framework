@@ -1,0 +1,107 @@
+
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="sample-provisioning-policy"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable" Version="1.0">
+    <Description>Template policy for Rule based provisioning.
+    </Description>
+    <Target>
+        <AnyOf>
+            <AllOf>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">provisioning</AttributeValue>
+                    <AttributeDesignator
+                            AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/identity-action:action-name"
+                            Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/identity-action"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                </Match>
+            </AllOf>
+        </AnyOf>
+    </Target>
+    <Rule Effect="Permit" RuleId="add-user-check">
+        <Target>
+            <AnyOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">POST
+                        </AttributeValue>
+                        <AttributeDesignator
+                                AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/provisioning:provision-operation"
+                                Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/provisioning"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Match>
+                </AllOf>
+            </AnyOf>
+        </Target>
+        <Condition>
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                        <AttributeDesignator
+                                AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/auth:sp-tenant-domain"
+                                Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/auth"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Apply>
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">carbon.super</AttributeValue>
+                </Apply>
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-bag">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">[admin</AttributeValue>
+                    </Apply>
+                    <AttributeDesignator
+                            AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/provisioning:claim-group"
+                            Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/provisioning"
+                            DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                </Apply>
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                        <AttributeDesignator
+                                AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/auth:sp-name"
+                                Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/auth"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Apply>
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wso2carbon-local-sp
+                    </AttributeValue>
+                </Apply>
+            </Apply>
+        </Condition>
+    </Rule>
+    <Rule Effect="Permit" RuleId="update-user-check">
+        <Target>
+            <AnyOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">PUT
+                        </AttributeValue>
+                        <AttributeDesignator
+                                AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/provisioning:provision-operation"
+                                Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/provisioning"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Match>
+                </AllOf>
+            </AnyOf>
+        </Target>
+        <Condition>
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:and">
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                        <AttributeDesignator
+                                AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/auth:sp-tenant-domain"
+                                Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/auth"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Apply>
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">carbon.super</AttributeValue>
+                </Apply>
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-one-and-only">
+                        <AttributeDesignator
+                                AttributeId="urn:oasis:names:tc:xacml:1.0:http://wso2.org/identity/auth:sp-name"
+                                Category="urn:oasis:names:tc:xacml:3.0:attribute-category:http://wso2.org/identity/auth"
+                                DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Apply>
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">wso2carbon-local-sp
+                    </AttributeValue>
+                </Apply>
+            </Apply>
+        </Condition>
+    </Rule>
+    <Rule Effect="Deny" RuleId="deny-rule"/>
+</Policy>

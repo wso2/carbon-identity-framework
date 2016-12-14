@@ -48,7 +48,7 @@
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
                     securityQuestionApi.securityQuestionGet(user.getUsername(), user.getRealm(), user.getTenantDomain());
-            IdentityManagementEndpointUtil.addReCaptchaHeaders(request, initiateQuestionResponse.getResponseHeaders());
+            IdentityManagementEndpointUtil.addReCaptchaHeaders(request, securityQuestionApi.getApiClient().getResponseHeaders());
             session.setAttribute("initiateChallengeQuestionResponse", initiateQuestionResponse);
             request.getRequestDispatcher("/viewsecurityquestions.do").forward(request, response);
         } catch (ApiException e) {
@@ -96,7 +96,7 @@
         try {
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
-                    securityQuestionApi.validateAnswerPost(answerVerificationRequest);
+                    securityQuestionApi.validateAnswerPost(answerVerificationRequest, requestHeaders);
 
             if ("validate-answer".equalsIgnoreCase(initiateQuestionResponse.getLink().getRel())) {
                 session.setAttribute("initiateChallengeQuestionResponse", initiateQuestionResponse);
@@ -160,7 +160,7 @@
         try {
             SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
             InitiateQuestionResponse initiateQuestionResponse =
-                    securityQuestionApi.validateAnswerPost(answerVerificationRequest);
+                    securityQuestionApi.validateAnswerPost(answerVerificationRequest, requestHeaders);
 
             session.setAttribute("confirmationKey", initiateQuestionResponse.getKey());
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);

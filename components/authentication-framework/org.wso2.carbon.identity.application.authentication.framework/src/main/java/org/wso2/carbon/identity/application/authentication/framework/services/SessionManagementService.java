@@ -22,6 +22,11 @@ import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 public class SessionManagementService extends AbstractAdmin {
 
@@ -31,6 +36,21 @@ public class SessionManagementService extends AbstractAdmin {
 
         if (StringUtils.isBlank(sessionId)) {
             return false;
+        }
+
+        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null && FrameworkServiceDataHolder
+                .getInstance().getAuthnDataPublisherProxy().isEnabled(null)) {
+            // Retrieve session information from cache in order to publish event
+            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+            if (sessionContext != null) {
+                Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+                AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+                if (authenticatedUserObj != null) {
+                    authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+                }
+                FrameworkUtils.publishSessionEvent(sessionId, null, null, sessionContext, authenticatedUser,
+                        FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE);
+            }
         }
 
         SessionContextCache.getInstance().clearCacheEntry(sessionId);

@@ -25,6 +25,11 @@ import java.util.Comparator;
 /**
  * Comparator implementation to sort the <code>ModulePropertyDTO</code> object array
  */
+
+/**
+ *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
+ */
+@Deprecated
 public class PropertyDTOComparator implements Comparator {
 
     @Override

@@ -29,6 +29,14 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.utils.ClaimConstants" %>
+<%@ page import="org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
+<%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
 
 <style>
     .sectionHelp {
@@ -37,22 +45,14 @@
 </style>
 
 <%
+    String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+    ConfigurationContext configContext = (ConfigurationContext)
+            config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+    String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+
     String localClaimURI = request.getParameter("localClaimURI");
 
-    LocalClaimDTO[] localClaims = null;
-    localClaims = (LocalClaimDTO[])session.getAttribute("localClaims");
-
-    if (localClaims == null) {
-        localClaims = new LocalClaimDTO[0];
-    }
-
-    LocalClaimDTO localClaim = null;
-    for (int i = 0; i < localClaims.length; i++) {
-        if (localClaims[i].getLocalClaimURI().equals(localClaimURI)) {
-            localClaim = localClaims[i];
-            break;
-        }
-    }
+    LocalClaimDTO[] localClaims = (LocalClaimDTO[])session.getAttribute("localClaims");
 
     String displayName = null;
     String description = null;
@@ -65,72 +65,117 @@
     AttributeMappingDTO[] attributeMappings = null;
     Properties claimProperties = new Properties();
 
-    if (localClaim != null) {
+    String[] domainNames = null;
+    UserRealmInfo userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
 
-        attributeMappings = localClaim.getAttributeMappings();
-        ClaimPropertyDTO[] claimPropertyDTOs = localClaim.getClaimProperties();
+    try {
 
-        if (attributeMappings == null) {
-            attributeMappings = new AttributeMappingDTO[0];
+        if (localClaims == null) {
+            ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
+            localClaims = client.getLocalClaims();
+            session.setAttribute("localClaims", localClaims);
         }
 
-        if (claimPropertyDTOs == null) {
-            claimPropertyDTOs = new ClaimPropertyDTO[0];
+        LocalClaimDTO localClaim = null;
+        for (int i = 0; i < localClaims.length; i++) {
+            if (localClaims[i].getLocalClaimURI().equals(localClaimURI)) {
+                localClaim = localClaims[i];
+                break;
+            }
         }
 
-        for (int j = 0; j < claimPropertyDTOs.length; j++) {
-            claimProperties.put(claimPropertyDTOs[j].getPropertyName(),
-                    claimPropertyDTOs[j].getPropertyValue());
-        }
+        if (localClaim != null) {
+
+            attributeMappings = localClaim.getAttributeMappings();
+            ClaimPropertyDTO[] claimPropertyDTOs = localClaim.getClaimProperties();
+
+            if (attributeMappings == null) {
+                attributeMappings = new AttributeMappingDTO[0];
+            }
+
+            if (claimPropertyDTOs == null) {
+                claimPropertyDTOs = new ClaimPropertyDTO[0];
+            }
+
+            for (int j = 0; j < claimPropertyDTOs.length; j++) {
+                claimProperties.put(claimPropertyDTOs[j].getPropertyName(),
+                        claimPropertyDTOs[j].getPropertyValue());
+            }
 
 
-        if (claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
-            displayName = claimProperties.getProperty(ClaimConstants.DISPLAY_NAME_PROPERTY);
-            claimProperties.remove(ClaimConstants.DISPLAY_NAME_PROPERTY);
-        }
+            if (claimProperties.containsKey(ClaimConstants.DISPLAY_NAME_PROPERTY)) {
+                displayName = claimProperties.getProperty(ClaimConstants.DISPLAY_NAME_PROPERTY);
+                claimProperties.remove(ClaimConstants.DISPLAY_NAME_PROPERTY);
+            }
 
-        if (claimProperties.containsKey(ClaimConstants.DESCRIPTION_PROPERTY)) {
-            description = claimProperties.getProperty(ClaimConstants.DESCRIPTION_PROPERTY);
-            claimProperties.remove(ClaimConstants.DESCRIPTION_PROPERTY);
-        }
+            if (claimProperties.containsKey(ClaimConstants.DESCRIPTION_PROPERTY)) {
+                description = claimProperties.getProperty(ClaimConstants.DESCRIPTION_PROPERTY);
+                claimProperties.remove(ClaimConstants.DESCRIPTION_PROPERTY);
+            }
 
-        if (claimProperties.containsKey(ClaimConstants.REGULAR_EXPRESSION_PROPERTY)) {
-            regex = claimProperties.getProperty(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
-            claimProperties.remove(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
-        }
+            if (claimProperties.containsKey(ClaimConstants.REGULAR_EXPRESSION_PROPERTY)) {
+                regex = claimProperties.getProperty(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
+                claimProperties.remove(ClaimConstants.REGULAR_EXPRESSION_PROPERTY);
+            }
 
-        if (claimProperties.containsKey(ClaimConstants.DISPLAY_ORDER_PROPERTY)) {
-            displayOrder = claimProperties.getProperty(ClaimConstants.DISPLAY_ORDER_PROPERTY);
-            claimProperties.remove(ClaimConstants.DISPLAY_ORDER_PROPERTY);
+            if (claimProperties.containsKey(ClaimConstants.DISPLAY_ORDER_PROPERTY)) {
+                displayOrder = claimProperties.getProperty(ClaimConstants.DISPLAY_ORDER_PROPERTY);
+                claimProperties.remove(ClaimConstants.DISPLAY_ORDER_PROPERTY);
+            } else {
+                displayOrder = "0";
+            }
+
+            if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+                supportedByDefault = claimProperties.getProperty(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
+                claimProperties.remove(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
+            }
+
+            if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+                required = claimProperties.getProperty(ClaimConstants.REQUIRED_PROPERTY);
+                claimProperties.remove(ClaimConstants.REQUIRED_PROPERTY);
+            }
+
+            if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+                readonly = claimProperties.getProperty(ClaimConstants.READ_ONLY_PROPERTY);
+                claimProperties.remove(ClaimConstants.READ_ONLY_PROPERTY);
+            }
+
+            if (userRealmInfo == null) {
+                UserAdminClient userAdminClient = new UserAdminClient(cookie, serverURL, configContext);
+                userRealmInfo = userAdminClient.getUserRealmInfo();
+                session.setAttribute(UserAdminUIConstants.USER_STORE_INFO, userRealmInfo);
+            }
+
+            if (userRealmInfo != null) {
+                domainNames = userRealmInfo.getDomainNames();
+            }
+
         } else {
-            displayOrder = "0";
+            String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
+            ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
+            String unformatted = resourceBundle.getString("error.while.loading.local.claim");
+            String message = MessageFormat.format(unformatted, new Object[]{Encode.forHtmlContent(localClaimURI)});
+
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+            String forwardTo = "../admin/error.jsp";
+
+%>
+<script type="text/javascript">
+    function forward() {
+        location.href = "<%=forwardTo%>";
+    }
+
+    forward();
+</script>
+<%
         }
-
-        if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
-            supportedByDefault = claimProperties.getProperty(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
-            claimProperties.remove(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY);
-        }
-
-        if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
-            required = claimProperties.getProperty(ClaimConstants.REQUIRED_PROPERTY);
-            claimProperties.remove(ClaimConstants.REQUIRED_PROPERTY);
-        }
-
-        if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
-            readonly = claimProperties.getProperty(ClaimConstants.READ_ONLY_PROPERTY);
-            claimProperties.remove(ClaimConstants.READ_ONLY_PROPERTY);
-        }
-
-    } else {
-        String BUNDLE = "org.wso2.carbon.claim.mgt.ui.i18n.Resources";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-
-        String unformatted = resourceBundle.getString("error.while.loading.local.claim");
-        String message = MessageFormat.format(unformatted, new Object[]{Encode.forHtmlContent(localClaimURI)});
-
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-        String forwardTo = "../admin/error.jsp";
-
+} catch (Exception e) {
+    String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+    String message = resourceBundle.getString("error.while.loading.claim.details");
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+    String forwardTo = "../admin/error.jsp";
 %>
 <script type="text/javascript">
     function forward() {
@@ -166,8 +211,19 @@
                     jQuery('#attributeAddLink').click(function(){
                         attributeMappingRowID++;
                         jQuery('#attributeAddTable').append(jQuery('<tr><td class="leftCol-big">' +
-                                '<input style="width: 98%;" type="text" id="userstore_'+ attributeMappingRowID +
-                                '" name="userstore_' + attributeMappingRowID + '"/></td>' +
+                                '<select style="width: 98%;" id="userstore_'+ attributeMappingRowID +
+                                '" name="userstore_' + attributeMappingRowID + '">' +
+                                <%
+                                    if (domainNames != null && domainNames.length > 0) {
+                                        for (String domainName : domainNames) {
+                                %>
+                                '<option value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(domainName))%>">' +
+                                '<%=Encode.forJavaScript(Encode.forHtmlContent(domainName))%></option>' +
+                                <%
+                                        }
+                                    }
+                                %>
+                                '</select></td>' +
 
                                 '<td class="leftCol-big">' +
                                 '<input style="width: 98%;" type="text" id="attribute_'+ attributeMappingRowID +
@@ -213,25 +269,6 @@
                     jQuery(obj).parent().parent().remove();
                 }
 
-                String.prototype.format = function (args) {
-                    var str = this;
-                    return str.replace(String.prototype.format.regex, function (item) {
-                        var intVal = parseInt(item.substring(1, item.length - 1));
-                        var replace;
-                        if (intVal >= 0) {
-                            replace = args[intVal];
-                        } else if (intVal === -1) {
-                            replace = "{";
-                        } else if (intVal === -2) {
-                            replace = "}";
-                        } else {
-                            replace = "";
-                        }
-                        return replace;
-                    });
-                };
-                String.prototype.format.regex = new RegExp("{-?[0-9]+}", "g");
-
                 function setType(chk, hidden) {
                     var val = document.getElementById(chk).checked;
                     var hiddenElement = document.getElementById(hidden);
@@ -243,7 +280,7 @@
                     }
                 }
 
-                function removeItem(localClaimURI, localClaimslength) {
+                function removeItem(localClaimURI, localClaimURIForMessage, localClaimslength) {
                     if (localClaimslength <= 1) {
                         CARBON.showWarningDialog('<fmt:message key="cannot.remove.default.carbon.dialect.all.claims"/>');
                         return false;
@@ -265,8 +302,8 @@
                             });
                         }
 
-                        CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/>' + localClaimURI +
-                                '<fmt:message key="remove.message2"/>', doDelete, null);
+                        CARBON.showConfirmationDialog('<fmt:message key="remove.message1"/> ' +
+                                localClaimURIForMessage + '<fmt:message key="remove.message2"/>', doDelete, null);
                     }
                 }
 
@@ -292,14 +329,23 @@
                         return false;
                     }
 
-                    <%--var value = document.getElementsByName("mappedAttribute")[0].value;--%>
-                    <%--if (value == '') {--%>
-                        <%--CARBON.showWarningDialog('<fmt:message key="attribute.is.required"/>');--%>
-                        <%--return false;--%>
-                    <%--} else if (value.length > 300) {--%>
-                        <%--CARBON.showWarningDialog('<fmt:message key="attr.id.is.too.long"/>');--%>
-                        <%--return false;--%>
-                    <%--}--%>
+                    var attributeAddTable = document.getElementById('attributeAddTable').tBodies[0];
+                    var attributeAddTableRowCount = attributeAddTable.rows.length;
+
+                    if (attributeAddTableRowCount <= 0) {
+                        CARBON.showWarningDialog('<fmt:message key="attribute.mapping.is.required"/>');
+                        return false;
+                    } else {
+                        for (var i = 0; i < attributeAddTableRowCount; i++) {
+                            var row = attributeAddTable.rows[i];
+                            var mappedAttributeValue = row.getElementsByTagName("input")[0].value;
+
+                            if (mappedAttributeValue == '') {
+                                CARBON.showWarningDialog('<fmt:message key="attribute.mapping.cannot.be.empty"/>');
+                                return false;
+                            }
+                        }
+                    }
 
                     var value = document.getElementsByName("displayOrder")[0].value;
                     if (value != '') {
@@ -327,37 +373,6 @@
                         }
                     }
 
-                    //Mapped Attributes Validation
-                    <%--var value = document.getElementsByName("mappedAttribute")[0].value;--%>
-                    <%--var mappedAttributes = value.split(";");--%>
-                    <%--var domainSeparator = "/";--%>
-                    <%--for (var i = 0; i < mappedAttributes.length; i++) {--%>
-                        <%--var index = mappedAttributes[i].indexOf(domainSeparator);--%>
-                        <%--if (index >= 0) { //has domain--%>
-                            <%--var lastIndex = mappedAttributes[i].lastIndexOf(domainSeparator);--%>
-                            <%--if (index == 0) {--%>
-                                <%--//domain separator cannot be the first letter of the mapped attribute--%>
-                                <%--var message = '<fmt:message key="attribute.domain.required"/>';--%>
-                                <%--message = message.format([mappedAttributes[i]]);--%>
-                                <%--CARBON.showWarningDialog(message);--%>
-                                <%--return false;--%>
-                            <%--}--%>
-                            <%--else if (index != lastIndex) {--%>
-                                <%--//mapped attribute cannot have duplicated domainSeparator--%>
-                                <%--var message = '<fmt:message key="attribute.domain.separator.duplicate"/>';--%>
-                                <%--message = message.format([mappedAttributes[i]]);--%>
-                                <%--CARBON.showWarningDialog(message);--%>
-                                <%--return false;--%>
-                            <%--} else if (index == (mappedAttributes[i].length - 1)) {--%>
-                                <%--//domain separator cannot be the last character of the mapped attribute--%>
-                                <%--var message = '<fmt:message key="attribute.domain.mapped.attribute.required"/>';--%>
-                                <%--message = message.format([mappedAttributes[i]]);--%>
-                                <%--CARBON.showWarningDialog(message);--%>
-                                <%--return false;--%>
-                            <%--}--%>
-                        <%--}--%>
-                    <%--}--%>
-
                     var numberOfAttributeMappings = attributeMappingRowID + 1;
                     document.getElementById('number_of_AttributeMappings').value=numberOfAttributeMappings;
 
@@ -372,6 +387,7 @@
             <a href="#" class="icon-link deleteLink"
                style="background-image:url(../identity-claim-mgt/images/delete.gif);"
                onclick="removeItem('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(localClaimURI))%>',
+                       '<%=Encode.forJavaScriptAttribute(localClaimURI)%>',
                        '<%=Encode.forJavaScriptAttribute(String.valueOf(localClaims.length))%>');return
                        false;"><fmt:message key='delete.local.claim'/>
             </a>
@@ -392,15 +408,16 @@
 
                                 <tr>
                                     <td class="leftCol-small"><fmt:message key='dialect.uri'/></td>
-                                    <td class="leftCol-big">
+                                    <td class="leftCol-big"><%=Encode.forHtmlContent(UserCoreConstants.DEFAULT_CARBON_DIALECT)%></td>
+                                    <td class="leftCol-big" hidden>
                                         <label type="text" name="dialect" id="dialect"><%=Encode.forHtmlContent(UserCoreConstants.DEFAULT_CARBON_DIALECT)%></label>
                                     </td>
                                 </tr>
 
                                 <tr>
-                                    <td class="leftCol-small"><fmt:message key='claim.uri'/><font
-                                            class="required">*</font></td>
-                                    <td class="leftCol-big">
+                                    <td class="leftCol-small"><fmt:message key='claim.uri'/></td>
+                                    <td class="leftCol-big"><%=Encode.forHtmlContent(localClaimURI)%></td>
+                                    <td class="leftCol-big" hidden>
                                         <input type="text" name="localClaimURI" id="localClaimURI"
                                                value="<%=Encode.forHtmlAttribute(localClaimURI)%>" readonly
                                                class="text-box-big"/>
@@ -450,10 +467,29 @@
                                             %>
                                             <tr>
                                                 <td class="leftCol-big">
-                                                    <input style="width: 98%;" type="text"
-                                                           value="<%=Encode.forHtmlAttribute(userStoreDomainName)%>"
-                                                           id="userstore_<%=attributeCounter%>"
-                                                           name="userstore_<%=attributeCounter%>"/>
+                                                    <select style="width: 98%;"
+                                                            id="userstore_<%=attributeCounter%>"
+                                                            name="userstore_<%=attributeCounter%>"/>
+                                                        <%
+                                                            if (domainNames != null && domainNames.length > 0) {
+                                                                for (String domainName : domainNames) {
+                                                                    if (domainName.equalsIgnoreCase(userStoreDomainName)) {
+                                                        %>
+                                                    <option value="<%=Encode.forHtmlAttribute(domainName)%>" selected>
+                                                        <%=Encode.forHtmlContent(domainName)%>
+                                                    </option>
+                                                    <%
+                                                                    } else {
+                                                    %>
+                                                    <option value="<%=Encode.forHtmlAttribute(domainName)%>">
+                                                        <%=Encode.forHtmlContent(domainName)%>
+                                                    </option>
+                                                    <%
+                                                                    }
+                                                                }
+                                                            }
+                                                        %>
+                                                    </select>
                                                 </td>
                                                 <td class="leftCol-big">
                                                     <input style="width: 98%;" type="text"

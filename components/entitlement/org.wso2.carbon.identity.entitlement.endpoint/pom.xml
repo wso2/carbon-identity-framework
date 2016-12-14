@@ -22,7 +22,7 @@
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>entitlement</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>5.6.8-SNAPSHOT</version>
+        <version>5.6.48-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
@@ -139,7 +139,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <warName>entitlement</warName>
+                    <warName>api#identity#entitlement</warName>
                 </configuration>
             </plugin>
         </plugins>

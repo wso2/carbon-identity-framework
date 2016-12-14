@@ -78,7 +78,7 @@
         <property name="resourcePackage" value="org.wso2.carbon.identity.entitlement.endpoint.resources"/>
         <property name="version" value="1.0.0"/>
         <property name="host" value="localhost:9443"/>
-        <property name="basePath" value="/entitlement/entitlement/Decision"/>
+        <property name="basePath" value="/entitlement/Decision"/>
         <property name="title" value="WSO2 Entitlement Endpoint"/>
         <property name="description" value="Access Entitlement Service through REST methods"/>
         <property name="contact" value="dev@wso2.org"/>

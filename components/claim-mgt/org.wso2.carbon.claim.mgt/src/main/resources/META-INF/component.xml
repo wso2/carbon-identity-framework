@@ -23,6 +23,10 @@
         </ManagementPermission>
 
         <ManagementPermission>
+            <DisplayName>Claim</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/claimmgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
             <DisplayName>Claim Management</DisplayName>
             <ResourceId>/permission/admin/manage/identity/claimmgt/claim</ResourceId>
         </ManagementPermission>
