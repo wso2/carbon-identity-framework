@@ -37,6 +37,7 @@
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <style>
     .sectionHelp {
