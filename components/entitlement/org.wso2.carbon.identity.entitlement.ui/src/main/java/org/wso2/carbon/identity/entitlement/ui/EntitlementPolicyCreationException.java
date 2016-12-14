@@ -20,6 +20,10 @@ package org.wso2.carbon.identity.entitlement.ui;
 
 import org.wso2.carbon.identity.base.IdentityException;
 
+/**
+ *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
+ */
+@Deprecated
 public class EntitlementPolicyCreationException extends IdentityException {
 
     private static final long serialVersionUID = -574465923080421499L;
