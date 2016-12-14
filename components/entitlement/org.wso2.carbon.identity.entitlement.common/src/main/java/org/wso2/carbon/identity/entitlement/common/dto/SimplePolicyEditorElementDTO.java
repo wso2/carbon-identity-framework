@@ -16,12 +16,11 @@
 * under the License.
 */
 
-package org.wso2.carbon.identity.entitlement.ui.dto;
+package org.wso2.carbon.identity.entitlement.common.dto;
 
 /**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
+ *
  */
-@Deprecated
 public class SimplePolicyEditorElementDTO {
 
     private String userAttributeId;

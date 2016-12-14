@@ -15,16 +15,11 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.wso2.carbon.identity.entitlement.ui;
+package org.wso2.carbon.identity.entitlement.common;
 
 /**
  * Policy editor related constants
  */
-
-/**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class PolicyEditorConstants {
 
 

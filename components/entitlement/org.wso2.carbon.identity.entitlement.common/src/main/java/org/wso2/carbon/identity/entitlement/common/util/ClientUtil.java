@@ -15,21 +15,19 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.wso2.carbon.identity.entitlement.ui.util;
+package org.wso2.carbon.identity.entitlement.common.util;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMNamespace;
 import org.apache.axiom.om.impl.llom.util.AXIOMUtil;
+import org.wso2.carbon.identity.entitlement.common.EntitlementPolicyConstants;
 import org.wso2.carbon.identity.entitlement.stub.dto.StatusHolder;
-import org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyConstants;
 
 import javax.xml.namespace.QName;
 
-
 /**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
+ *
  */
-@Deprecated
 public class ClientUtil {
 
     /**

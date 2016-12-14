@@ -16,7 +16,7 @@
 * under the License.
 */
 
-package org.wso2.carbon.identity.entitlement.ui.util;
+package org.wso2.carbon.identity.entitlement.common.util;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
@@ -44,22 +44,22 @@ import org.wso2.balana.utils.policy.dto.PolicyElementDTO;
 import org.wso2.balana.utils.policy.dto.RuleElementDTO;
 import org.wso2.balana.utils.policy.dto.TargetElementDTO;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.common.EntitlementPolicyConstants;
+import org.wso2.carbon.identity.entitlement.common.EntitlementPolicyCreationException;
+import org.wso2.carbon.identity.entitlement.common.PolicyEditorConstants;
 import org.wso2.carbon.identity.entitlement.common.PolicyEditorEngine;
 import org.wso2.carbon.identity.entitlement.common.PolicyEditorException;
+import org.wso2.carbon.identity.entitlement.common.dto.ExtendAttributeDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.ObligationDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.PolicyDTO;
 import org.wso2.carbon.identity.entitlement.common.dto.PolicyEditorDataHolder;
-import org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyConstants;
-import org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyCreationException;
-import org.wso2.carbon.identity.entitlement.ui.PolicyEditorConstants;
-import org.wso2.carbon.identity.entitlement.ui.dto.ExtendAttributeDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.ObligationDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.PolicyDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.PolicyRefIdDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.PolicySetDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.RowDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.RuleDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.SimplePolicyEditorDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.SimplePolicyEditorElementDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.TargetDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.PolicyRefIdDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.PolicySetDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.RowDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.RuleDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.SimplePolicyEditorDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.SimplePolicyEditorElementDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.TargetDTO;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -75,11 +75,6 @@ import java.util.UUID;
 /**
  * Util class that helps to create the XACML policy which is defined by the XACML basic policy editor
  */
-
-/**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class PolicyEditorUtil {
 
     private static Log log = LogFactory.getLog(PolicyEditorUtil.class);

@@ -16,19 +16,20 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.ui;
+package org.wso2.carbon.identity.entitlement.common;
 
 import org.wso2.balana.utils.policy.dto.BasicRuleDTO;
 import org.wso2.balana.utils.policy.dto.BasicTargetDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.ExtendAttributeDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.ObligationDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.PolicyRefIdDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.PolicySetDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.RuleDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.TargetDTO;
 import org.wso2.carbon.identity.entitlement.stub.dto.EntitlementFinderDataHolder;
 import org.wso2.carbon.identity.entitlement.stub.dto.EntitlementTreeNodeDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.ExtendAttributeDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.ObligationDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.PolicyRefIdDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.PolicySetDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.RuleDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.SimplePolicyEditorDTO;
-import org.wso2.carbon.identity.entitlement.ui.dto.TargetDTO;
+import org.wso2.carbon.identity.entitlement.common.dto.SimplePolicyEditorDTO;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,11 +44,6 @@ import java.util.Set;
  * This Bean is used to keep the user data temporary while travelling through
  * the UI wizard
  */
-
-/**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class EntitlementPolicyBean {
 
     public Map<String, String> functionIdMap = new HashMap<String, String>();
