@@ -16,24 +16,20 @@
 package org.wso2.carbon.identity.provisioning.rules;
 
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.wso2.balana.utils.exception.PolicyBuilderException;
 import org.wso2.balana.utils.policy.PolicyBuilder;
 import org.wso2.balana.utils.policy.dto.RequestElementDTO;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
-import org.wso2.carbon.identity.entitlement.common.EntitlementPolicyConstants;
-import org.wso2.carbon.identity.entitlement.common.dto.RequestDTO;
-import org.wso2.carbon.identity.entitlement.common.dto.RowDTO;
-import org.wso2.carbon.identity.entitlement.common.util.PolicyCreatorUtil;
-import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
+import org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyConstants;
+import org.wso2.carbon.identity.entitlement.ui.dto.RequestDTO;
+import org.wso2.carbon.identity.entitlement.ui.dto.RowDTO;
+import org.wso2.carbon.identity.entitlement.ui.util.PolicyCreatorUtil;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
-import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
 import org.wso2.carbon.identity.provisioning.internal.ProvisioningServiceDataHolder;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -75,18 +71,15 @@ public class XACMLBasedRuleHandler {
     }
 
 
-    public boolean isAllowedToProvision(String tenantDomainName, ProvisioningEntity provisioningEntity,
-                                        ServiceProvider serviceProvider,
-                                        String idPName,
-                                        String connectorType) {
+    public boolean isAuthorized(String tenantDomainName, ProvisioningEntity provisioningEntity, String idPName,
+                                String connectorType) {
 
         if (log.isDebugEnabled()) {
             log.debug("In policy provisioning flow...");
         }
 
         try {
-            RequestDTO requestDTO = createRequestDTO(tenantDomainName, provisioningEntity, serviceProvider,
-                                                     idPName, connectorType);
+            RequestDTO requestDTO = createRequestDTO(tenantDomainName, provisioningEntity, idPName, connectorType);
             RequestElementDTO requestElementDTO = PolicyCreatorUtil.createRequestElementDTO(requestDTO);
 
             String requestString = PolicyBuilder.getInstance().buildRequest(requestElementDTO);
@@ -114,31 +107,22 @@ public class XACMLBasedRuleHandler {
     }
 
 
-    private RequestDTO createRequestDTO(String tenantDomainName, ProvisioningEntity provisioningEntity,
-                                        ServiceProvider serviceProvider,
-                                        String idPName,
+    private RequestDTO createRequestDTO(String tenantDomainName, ProvisioningEntity provisioningEntity, String idPName,
                                         String connectorType) {
+
         List<RowDTO> rowDTOs = new ArrayList<>();
         //Setting up user-info category
         RowDTO tenatDomainDTO =
                 createRowDTO(tenantDomainName, EntitlementPolicyConstants.STRING_DATA_TYPE, "tenant-domain",
                              "http://wso2.org/identity/user");
         RowDTO userDTO =
-
-                createRowDTO(provisioningEntity.getEntityName(), EntitlementPolicyConstants.STRING_DATA_TYPE,
-                             "username",
+                createRowDTO(provisioningEntity.getEntityName(), EntitlementPolicyConstants.STRING_DATA_TYPE, "username",
                              "http://wso2.org/identity/user");
-        RowDTO spNameDTO =
-                createRowDTO(serviceProvider.getApplicationName(),
-                             EntitlementPolicyConstants.STRING_DATA_TYPE, "sp-name", "http://wso2.org/identity/auth");
-        RowDTO spTenantDomainNameDTO =
-                createRowDTO(serviceProvider.getOwner().getTenantDomain(), EntitlementPolicyConstants.STRING_DATA_TYPE,
-                             "sp-tenant-domain",
-                             "http://wso2.org/identity/auth");
         RowDTO idpNameDTO =
                 createRowDTO(idPName, EntitlementPolicyConstants.STRING_DATA_TYPE, "idp-name", "http://wso2" +
                                                                                                ".org/identity/idp");
         RowDTO provisioningFlowDTO =
+
                 createRowDTO("provisioning", EntitlementPolicyConstants.STRING_DATA_TYPE,
                              "action-name", "http://wso2.org/identity/identity-action");
         if (provisioningEntity.getOperation().equals(ProvisioningOperation.POST)) {
@@ -157,39 +141,35 @@ public class XACMLBasedRuleHandler {
         RowDTO connectorTypeDTO =
                 createRowDTO(connectorType, EntitlementPolicyConstants.STRING_DATA_TYPE, "connector-type",
                              "http://wso2.org/identity/idp");
-        if (provisioningEntity.getInboundAttributes() != null) {
-            Iterator<Map.Entry<String, String>> claimIterator = provisioningEntity.getInboundAttributes().entrySet
-                    ().iterator();
-            while (claimIterator.hasNext()) {
-                Map.Entry<String, String> claim = claimIterator.next();
-                String claimUri = claim.getKey();
-                String claimValue = claim.getValue();
-                RowDTO claimRowDTO =
-                        createRowDTO(claimValue, EntitlementPolicyConstants.STRING_DATA_TYPE,
-                                     claimUri, "http://wso2.org/identity/claims");
-                rowDTOs.add(claimRowDTO);
-            }
+
+        Iterator<Map.Entry<String, String>> claimIterator = provisioningEntity.getInboundAttributes().entrySet
+                ().iterator();
+        while (claimIterator.hasNext()) {
+            Map.Entry<String, String> claim = claimIterator.next();
+            String claimUri = claim.getKey();
+            String claimValue = claim.getValue();
+            RowDTO claimRowDTO =
+                    createRowDTO(claimValue, EntitlementPolicyConstants.STRING_DATA_TYPE, claimUri, "http://wso2" +
+                                                                                                    ".org/identity/claims");
+            rowDTOs.add(claimRowDTO);
         }
+
         RowDTO environmentTypeDTO =
                 createRowDTO(tenantDomainName, EntitlementPolicyConstants.STRING_DATA_TYPE, "environment-id",
                              "environment");
         RowDTO dateDTO =
-                createRowDTO(getCurrentDateTime(ProvisioningRuleConstanats.DATE_FORMAT), EntitlementPolicyConstants
+                createRowDTO(getCurrentDateTime("yyyy/MM/dd"), EntitlementPolicyConstants
                                      .STRING_DATA_TYPE,
-                             "current-date",
+                             "current-time",
                              "environment");
         RowDTO timeDTO =
-                createRowDTO(getCurrentDateTime(ProvisioningRuleConstanats.TIME_FORMAT), EntitlementPolicyConstants
-                                     .STRING_DATA_TYPE,
-                             "current-time", "environment");
+                createRowDTO(getCurrentDateTime("HH:mm:ss"), EntitlementPolicyConstants.STRING_DATA_TYPE,
+                             "current-date", "environment");
         RowDTO dateTimeDTO =
-                createRowDTO(getCurrentDateTime(ProvisioningRuleConstanats.DATE_TIME_FORMAT), EntitlementPolicyConstants
-                                     .STRING_DATA_TYPE, "current-dateTime",
+                createRowDTO(getCurrentDateTime("yyyy/MM/dd HH:mm:ss"), EntitlementPolicyConstants.STRING_DATA_TYPE, "current-dateTime",
                              "environment");
         rowDTOs.add(tenatDomainDTO);
         rowDTOs.add(userDTO);
-        rowDTOs.add(spNameDTO);
-        rowDTOs.add(spTenantDomainNameDTO);
         rowDTOs.add(idpNameDTO);
         rowDTOs.add(provisioningFlowDTO);
         rowDTOs.add(connectorTypeDTO);
@@ -197,7 +177,6 @@ public class XACMLBasedRuleHandler {
         rowDTOs.add(dateDTO);
         rowDTOs.add(timeDTO);
         rowDTOs.add(dateTimeDTO);
-        rowDTOs.add(provisioningOperationDTO);
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setRowDTOs(rowDTOs);
         return requestDTO;
@@ -208,8 +187,8 @@ public class XACMLBasedRuleHandler {
         RowDTO rowDTOTenant = new RowDTO();
         rowDTOTenant.setAttributeValue(resourceName);
         rowDTOTenant.setAttributeDataType(dataType);
-        rowDTOTenant.setAttributeId(ProvisioningRuleConstanats.XACML_ATTRIBUTE_ID + categoryValue + ":" + attributeId);
-        rowDTOTenant.setCategory(ProvisioningRuleConstanats.XACML_ATTRIBUTE_CATAGORY.concat(categoryValue));
+        rowDTOTenant.setAttributeId("urn:oasis:names:tc:xacml:1.0:" + categoryValue + ":" + attributeId);
+        rowDTOTenant.setCategory("urn:oasis:names:tc:xacml:3.0:attribute-category:".concat(categoryValue));
         return rowDTOTenant;
     }
 
@@ -217,13 +196,13 @@ public class XACMLBasedRuleHandler {
 
         try {
             DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            // DocumentBuilder db = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
+           // DocumentBuilder db = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
             InputSource is = new InputSource();
             is.setCharacterStream(new StringReader(xacmlResponse));
             Document doc = db.parse(is);
 
             XPath xpath = XPathFactory.newInstance().newXPath();
-            XPathExpression expr = xpath.compile(ProvisioningRuleConstanats.XACML_RESPONSE_RESULT_XPATH);
+            XPathExpression expr = xpath.compile("/Response/Result/Decision/text()");
             String decision = (String) expr.evaluate(doc, XPathConstants.STRING);
             if (decision.equalsIgnoreCase(EntitlementPolicyConstants.RULE_EFFECT_PERMIT)
                 || decision.equalsIgnoreCase(EntitlementPolicyConstants.RULE_EFFECT_NOT_APPLICABLE)) {

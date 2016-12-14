@@ -21,10 +21,6 @@ package org.wso2.carbon.identity.entitlement.ui.dto;
 /**
  * encapsulates obligation and advice expression data that requires for policy editor
  */
-/**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class ObligationDTO {
 
     private String type;

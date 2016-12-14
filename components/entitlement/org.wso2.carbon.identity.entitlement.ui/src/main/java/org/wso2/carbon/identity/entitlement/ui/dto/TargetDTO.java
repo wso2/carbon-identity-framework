@@ -22,9 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
+ *
  */
-@Deprecated
 public class TargetDTO {
 
     private List<RowDTO> rowDTOList = new ArrayList<RowDTO>();
