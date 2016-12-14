@@ -43,11 +43,6 @@ import java.util.Set;
  * This Bean is used to keep the user data temporary while travelling through
  * the UI wizard
  */
-
-/**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class EntitlementPolicyBean {
 
     public Map<String, String> functionIdMap = new HashMap<String, String>();
