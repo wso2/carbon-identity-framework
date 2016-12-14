@@ -18,18 +18,15 @@ package org.wso2.carbon.identity.entitlement.common;
 
 import org.wso2.carbon.identity.base.IdentityException;
 
-/**
- *
- */
-public class PolicyEditorException extends IdentityException {
+public class EntitlementPolicyCreationException extends IdentityException {
 
-    private static final long serialVersionUID = -4965068674464842386L;
+    private static final long serialVersionUID = -574465923080421499L;
 
-    public PolicyEditorException(String message) {
+    public EntitlementPolicyCreationException(String message) {
         super(message);
     }
 
-    public PolicyEditorException(String message, Throwable e) {
+    public EntitlementPolicyCreationException(String message, Throwable e) {
         super(message, e);
     }
 }

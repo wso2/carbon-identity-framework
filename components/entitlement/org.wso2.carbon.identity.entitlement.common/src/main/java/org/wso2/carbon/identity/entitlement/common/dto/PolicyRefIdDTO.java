@@ -14,22 +14,40 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.common;
-
-import org.wso2.carbon.identity.base.IdentityException;
+package org.wso2.carbon.identity.entitlement.common.dto;
 
 /**
  *
  */
-public class PolicyEditorException extends IdentityException {
+public class PolicyRefIdDTO {
 
-    private static final long serialVersionUID = -4965068674464842386L;
+    private String id;
 
-    public PolicyEditorException(String message) {
-        super(message);
+    private boolean referenceOnly;
+
+    private boolean policySet;
+
+    public String getId() {
+        return id;
     }
 
-    public PolicyEditorException(String message, Throwable e) {
-        super(message, e);
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public boolean isPolicySet() {
+        return policySet;
+    }
+
+    public void setPolicySet(boolean policySet) {
+        this.policySet = policySet;
+    }
+
+    public boolean isReferenceOnly() {
+        return referenceOnly;
+    }
+
+    public void setReferenceOnly(boolean referenceOnly) {
+        this.referenceOnly = referenceOnly;
     }
 }
