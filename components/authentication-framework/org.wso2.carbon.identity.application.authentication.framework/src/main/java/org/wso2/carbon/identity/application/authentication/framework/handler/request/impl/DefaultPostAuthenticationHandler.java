@@ -180,12 +180,35 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
 
         AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
 
+        Map<String, String> carbonToSPClaimMapping = new HashMap<>();
+        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
+
+        if (userAttributes != null) {
+
+            Map<String, String> spToCarbonClaimMapping = new HashMap<>();
+            Object object = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
+
+            if (object != null && object instanceof Map) {
+                spToCarbonClaimMapping = (Map<String, String>) object;
+            }
+
+            for (Map.Entry<String, String> entry : spToCarbonClaimMapping.entrySet()) {
+                carbonToSPClaimMapping.put(entry.getValue(), entry.getKey());
+            }
+        }
+
+
         for (String key : requestParams.keySet()) {
             if (key.startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
-                String claim = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
-                String claimUri = key.substring(key.lastIndexOf('/') + 1);
-                claims.put(claim, requestParams.get(key)[0]);
-                claimsForContext.put(claimUri, requestParams.get(key)[0]);
+                String localClaimURI = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
+                String spClaimURI = carbonToSPClaimMapping.get(localClaimURI);
+
+                claims.put(localClaimURI, requestParams.get(key)[0]);
+                if (spClaimURI != null) {
+                    claimsForContext.put(spClaimURI, requestParams.get(key)[0]);
+                } else {
+                    log.debug("Claim " + localClaimURI + " is not supported in the specified scope.");
+                }
             }
         }
 
