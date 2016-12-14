@@ -21,10 +21,6 @@ package org.wso2.carbon.identity.entitlement.ui.dto;
 /**
  * extended attribute value element
  */
-/**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class ExtendAttributeDTO {
 
     private String id;

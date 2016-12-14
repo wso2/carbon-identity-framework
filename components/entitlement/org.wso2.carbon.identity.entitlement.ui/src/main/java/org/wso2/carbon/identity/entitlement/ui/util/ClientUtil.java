@@ -25,11 +25,9 @@ import org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyConstants;
 
 import javax.xml.namespace.QName;
 
-
 /**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
+ *
  */
-@Deprecated
 public class ClientUtil {
 
     /**

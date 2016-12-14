@@ -21,11 +21,6 @@ package org.wso2.carbon.identity.entitlement.ui;
 /**
  * Constants related with XACML policy such as per-defined Element Names and NameSpaces
  */
-
-/**
- *  @deprecated  As of release 5.3.0, moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class EntitlementPolicyConstants {
 
     public static final int DEFAULT_ITEMS_PER_PAGE = 10;
