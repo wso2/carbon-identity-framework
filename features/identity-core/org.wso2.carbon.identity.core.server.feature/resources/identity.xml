@@ -499,10 +499,6 @@
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
         </Resource>
-        <Resource context="(.*)/IdentityApplicationManagementService(.*)" secured="true"
-                  http-method="all">
-            <Permissions>/permission/admin/manage/identity/attributequery</Permissions>
-        </Resource>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
