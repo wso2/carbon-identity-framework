@@ -19,20 +19,19 @@ package org.wso2.carbon.identity.gateway.handler.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
-import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.framework.handler.GatewayEventHandler;
-import org.wso2.carbon.identity.framework.handler.GatewayInvocationResponse;
+import org.wso2.carbon.identity.framework.handler.AbstractHandler;
+import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 
 /**
  * I cleanup the session data after the handle sequence is ended.
  */
-public class SessionDataCleanupHandler extends GatewayEventHandler {
+public class SessionDataCleanupHandler extends AbstractHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionDataCleanupHandler.class);
 
 
     @Override
-    public GatewayInvocationResponse handle(IdentityMessageContext context) {
+    public HandlerResponseStatus handle(MessageContext context) {
 
         // All I do is to clean up the current context from cache.
         String sessionDataKey = context.getSessionDataKey();
@@ -43,11 +42,11 @@ public class SessionDataCleanupHandler extends GatewayEventHandler {
         }
 
 
-        return GatewayInvocationResponse.CONTINUE;
+        return HandlerResponseStatus.CONTINUE;
     }
 
     @Override
-    public boolean canHandle(IdentityMessageContext identityMessageContext) {
+    public boolean canHandle(MessageContext messageContext) {
 
         return true;
     }

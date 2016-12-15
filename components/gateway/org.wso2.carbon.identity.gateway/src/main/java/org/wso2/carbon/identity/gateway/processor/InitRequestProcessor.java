@@ -21,15 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
-import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
-import org.wso2.carbon.identity.gateway.handler.authentication.MultiStepAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.handler.authentication.authenticator.BasicAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.handler.response.saml.SAMLResponseHandler;
+import org.wso2.carbon.identity.gateway.element.authentication.handler.MultiStepAuthenticationHandler;
+import org.wso2.carbon.identity.gateway.element.authentication.handler.BasicAuthenticationHandler;
+import org.wso2.carbon.identity.gateway.element.response.SAMLResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.util.SessionDataCleanupHandler;
-import org.wso2.carbon.identity.gateway.handler.validation.saml.SAMLValidationHandler;
+import org.wso2.carbon.identity.gateway.element.validation.SAMLValidationHandler;
 
 import java.util.HashMap;
 
@@ -50,7 +49,7 @@ public class InitRequestProcessor extends IdentityProcessor {
         }
 
         // Build the message context
-        IdentityMessageContext context = new IdentityMessageContext(identityRequest, new IdentityResponse());
+        MessageContext context = new MessageContext(identityRequest, new IdentityResponse());
         context.setInitialIdentityRequest(identityRequest);
 
         // Create a sessionDataKey and add it to the message context
@@ -82,7 +81,7 @@ public class InitRequestProcessor extends IdentityProcessor {
             Handler Chain End
          */
 
-        // start executing the handler chain
+        // start executing the handler element
         samlValidationHandler.execute(context);
         return context.getIdentityResponse();
     }

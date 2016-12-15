@@ -31,6 +31,8 @@ public abstract class IdentityMessage {
 
     protected Map<String, Object> properties = new HashMap<>();
 
+    protected Map<String, Object> attributes = new HashMap<>();
+
     protected String method;
 
     protected String pathInfo;

@@ -16,7 +16,7 @@
 
 package org.wso2.carbon.identity.framework.builder;
 
-import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.message.IdentityMessage;
 
 import java.util.HashMap;

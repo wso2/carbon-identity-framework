@@ -18,17 +18,16 @@ package org.wso2.carbon.identity.framework.cache;
 
 import org.wso2.carbon.identity.common.base.cache.AbstractCacheEntryListener;
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
-import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Cache to hold {@link IdentityMessageContext} instances for correlation purposes.
+ * Cache to hold {@link MessageContext} instances for correlation purposes.
  */
-public class IdentityMessageContextCache extends BaseCache<String, IdentityMessageContext> {
+public class IdentityMessageContextCache extends BaseCache<String, MessageContext> {
 
-    private Map<String, IdentityMessageContext> cache = new HashMap<>();
+    private Map<String, MessageContext> cache = new HashMap<>();
     private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
     private static IdentityMessageContextCache instance = new IdentityMessageContextCache
             (IDENTITY_MESSAGE_CONTEXT_CACHE);
@@ -42,12 +41,12 @@ public class IdentityMessageContextCache extends BaseCache<String, IdentityMessa
     }
 
     @Override
-    public void put(String key, IdentityMessageContext entry) {
+    public void put(String key, MessageContext entry) {
         cache.put(key, entry);
     }
 
     @Override
-    public IdentityMessageContext get(String key) {
+    public MessageContext get(String key) {
         return cache.get(key);
     }
 
