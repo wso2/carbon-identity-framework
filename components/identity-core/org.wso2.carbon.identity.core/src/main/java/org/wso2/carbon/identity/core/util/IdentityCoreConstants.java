@@ -53,6 +53,8 @@ public class IdentityCoreConstants {
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE = "17007";
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_MISMATCHED_ERROR_CODE = "17008";
 
+    public static final String USER_ACCOUNT_STATE = "UserAccountState";
+
     private IdentityCoreConstants(){
     }
 }
