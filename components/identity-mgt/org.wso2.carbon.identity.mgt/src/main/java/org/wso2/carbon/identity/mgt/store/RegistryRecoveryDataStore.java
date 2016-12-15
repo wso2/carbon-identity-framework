@@ -33,11 +33,16 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.exceptions.ResourceNotFoundException;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 
 public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
 
     private static final Log log = LogFactory.getLog(RegistryRecoveryDataStore.class);
+
+    private static final String USE_HASHED_USERNAME_PROPERTY = "UserInfoRecovery.UseHashedUserNames";
+    private static final String USERNAME_HASH_ALG_PROPERTY = "UserInfoRecovery.UsernameHashAlg";
 
     @Override
     public void store(UserRecoveryDataDO recoveryDataDO) throws IdentityException {
@@ -253,6 +258,19 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
             log.error("Error while deleting the old confirmation code. Unable to find data collection in registry." + e);
         }
 
+        //Introduced property to fix resource not being introduced deleted when special characters are present.
+        String userNameToValidate = userName;
+        String useHashedUserName =
+                IdentityMgtConfig.getInstance().getProperty(USE_HASHED_USERNAME_PROPERTY);
+        if (Boolean.parseBoolean(useHashedUserName)) {
+            String hashAlg = IdentityMgtConfig.getInstance().getProperty(USERNAME_HASH_ALG_PROPERTY);
+            try {
+                userNameToValidate = hashString(userName, hashAlg);
+            } catch (NoSuchAlgorithmException e) {
+                log.error("Invalid hash algorithm " + hashAlg, e);
+            }
+        }
+
         try {
             if (collection != null) {
                 String[] resources = collection.getChildren();
@@ -260,7 +278,7 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
                     String[] splittedResource = resource.split("___");
                     if (splittedResource.length == 3) {
                         //PRIMARY USER STORE
-                        if (resource.contains("___" + userName.toLowerCase() + "___")) {
+                        if (resource.contains("___" + userNameToValidate.toLowerCase() + "___")) {
 
                             registry.beginTransaction();
                             // Check whether the resource still exists for concurrent cases.
@@ -284,5 +302,17 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
         } catch (RegistryException e) {
             log.error("Error while deleting the old confirmation code \n" + e);
         }
+    }
+
+    private String hashString(String userName, String alg) throws NoSuchAlgorithmException {
+
+        MessageDigest messageDigest = MessageDigest.getInstance(alg);
+        byte[] in = messageDigest.digest(userName.getBytes());
+        final StringBuilder builder = new StringBuilder();
+        for (byte b : in) {
+            builder.append(String.format("%02x", b));
+        }
+        return builder.toString();
+
     }
 }
