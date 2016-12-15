@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 
-public class IdentityResponse extends IdentityMessage implements Serializable {
+public class Response extends IdentityMessage implements Serializable {
 
 
     private static final long serialVersionUID = -4486397485075114597L;
@@ -32,7 +32,7 @@ public class IdentityResponse extends IdentityMessage implements Serializable {
     protected int statusCode;
 
 
-    public IdentityResponse() {
+    public Response() {
     }
 
     public void setHeaders(Map<String, String> requestHeaders) {

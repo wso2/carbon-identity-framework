@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.builder;
+package org.wso2.carbon.identity.gateway.message;
 
-import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.Response;
 
-public class IdentityRequestBuilder extends IdentityMessageBuilder<IdentityRequest> {
-
-    @Override
-    public IdentityRequest build() throws FrameworkRuntimeException {
-        return new IdentityRequest(this);
-    }
+public class GatewayResponse extends Response {
 }

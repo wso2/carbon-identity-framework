@@ -18,7 +18,7 @@ package org.wso2.carbon.identity.gateway.element.callback;
 
 import org.wso2.carbon.identity.framework.FrameworkConstants;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.Request;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
 
@@ -46,13 +46,13 @@ public class BasicAuthCallbackHandler extends AbstractCallbackHandler implements
     }
 
     @Override
-    public boolean canExtractSessionIdentifier(IdentityRequest request) {
+    public boolean canExtractSessionIdentifier(Request request) {
 
         return request.getProperty(FrameworkConstants.SESSION_DATA_KEY) != null;
     }
 
     @Override
-    public String getSessionIdentifier(IdentityRequest request) {
+    public String getSessionIdentifier(Request request) {
 
         return String.valueOf(request.getProperty(FrameworkConstants.SESSION_DATA_KEY));
     }

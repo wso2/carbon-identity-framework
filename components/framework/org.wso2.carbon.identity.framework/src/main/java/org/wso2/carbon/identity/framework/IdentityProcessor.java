@@ -16,12 +16,12 @@
 
 package org.wso2.carbon.identity.framework;
 
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.message.Request;
+import org.wso2.carbon.identity.framework.message.Response;
 
 import java.util.Properties;
 
-public abstract class IdentityProcessor {
+public abstract class IdentityProcessor<T1 extends > {
 
     protected Properties properties = new Properties();
 
@@ -37,17 +37,17 @@ public abstract class IdentityProcessor {
     }
 
     /**
-     * Process IdentityRequest
+     * Process Request
      *
-     * @param identityRequest IdentityRequest
+     * @param identityRequest Request
      * @return IdentityResponseBuilder
      * @throws FrameworkException Error
      *                            occurred
      *                            while
      *                            processing
-     *                            IdentityRequest
+     *                            Request
      */
-    public abstract IdentityResponse process(IdentityRequest identityRequest)
+    public abstract Response process(Request identityRequest)
             throws FrameworkException;
 
     /**
@@ -65,12 +65,12 @@ public abstract class IdentityProcessor {
     public abstract int getPriority();
 
     /**
-     * Tells if this processor can handle this IdentityRequest
+     * Tells if this processor can handle this Request
      *
-     * @param identityRequest IdentityRequest
+     * @param identityRequest Request
      * @return can/not handle
      */
-    public abstract boolean canHandle(IdentityRequest identityRequest);
+    public abstract boolean canHandle(Request identityRequest);
 //
 //    /**
 //     * Get IdentityResponseBuilder for framework login
@@ -83,7 +83,7 @@ public abstract class IdentityProcessor {
 //        String sessionDataKey = UUIDGenerator.generateUUID();
 //
 //        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-//        IdentityRequest currentIdentityRequest = context.getRequest();
+//        Request currentIdentityRequest = context.getRequest();
 //
 //        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
 //
@@ -136,7 +136,7 @@ public abstract class IdentityProcessor {
 //        String sessionDataKey = UUIDGenerator.generateUUID();
 //
 //        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-//        IdentityRequest currentIdentityRequest = context.getRequest();
+//        Request currentIdentityRequest = context.getRequest();
 //
 //        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
 //
@@ -180,11 +180,11 @@ public abstract class IdentityProcessor {
 //    }
 
     /**
-     * Checks if previous MessageContext exists for given IdentityRequest using {@code sessionDataKey} parameter
+     * Checks if previous MessageContext exists for given Request using {@code sessionDataKey} parameter
      *
-     * @param request IdentityRequest
+     * @param request Request
      */
-//    protected boolean isContextAvailable(IdentityRequest request) {
+//    protected boolean isContextAvailable(Request request) {
 //        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
 //        if (StringUtils.isNotBlank(sessionDataKey)) {
 //            MessageContext context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
@@ -196,13 +196,13 @@ public abstract class IdentityProcessor {
 //    }
 
     /**
-     * Returns MessageContext if one previously existed for given IdentityRequest using {@code sessionDataKey}
+     * Returns MessageContext if one previously existed for given Request using {@code sessionDataKey}
      * parameter
      *
-     * @param request IdentityRequest
+     * @param request Request
      * @return MessageContext
      */
-//    protected MessageContext getContextIfAvailable(IdentityRequest request) {
+//    protected MessageContext getContextIfAvailable(Request request) {
 //        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
 //        MessageContext context = null;
 //        if (StringUtils.isNotBlank(sessionDataKey)) {

@@ -19,8 +19,8 @@ package org.wso2.carbon.identity.gateway.context;
 import org.wso2.carbon.identity.framework.context.MessageContext;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.gateway.message.GatewayRequest;
+import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends IdentityRequest,
-        T4 extends IdentityResponse> extends MessageContext implements Serializable {
+public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends GatewayRequest,
+        T4 extends GatewayResponse> extends MessageContext implements Serializable {
 
     private static final long serialVersionUID = -3000397944848547943L;
 

@@ -20,15 +20,15 @@ package org.wso2.carbon.identity.framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.internal.DataHolder;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.message.Request;
+import org.wso2.carbon.identity.framework.message.Response;
 
 public class IdentityProcessCoordinator {
 
     private static final Logger log = LoggerFactory.getLogger(IdentityProcessCoordinator.class);
     private DataHolder dataHolder = DataHolder.getInstance();
 
-    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
+    public Response process(Request identityRequest) throws FrameworkException {
         IdentityProcessor processor = getIdentityProcessor(identityRequest);
         if (processor != null) {
             if (log.isDebugEnabled()) {
@@ -40,7 +40,7 @@ public class IdentityProcessCoordinator {
         }
     }
 
-    private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
+    private IdentityProcessor getIdentityProcessor(Request identityRequest) {
 
         return dataHolder.getIdentityProcessors()
                 .stream()
