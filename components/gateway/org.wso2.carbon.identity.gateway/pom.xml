@@ -109,7 +109,8 @@
             org.w3c.dom.*; resolution:=optional,
             org.apache.commons.lang.*,
             org.wso2.carbon.kernel.utils.*; version="${carbon.kernel.package.import.version.range}",
-            org.wso2.carbon.identity.framework.*; version="${identity.framework.import.version.range}"
+            org.wso2.carbon.identity.framework.*; version="${identity.framework.import.version.range}",
+            org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}"
         </import.package>
         <carbon.component>
             osgi.service; objectClass="org.wso2.msf4j.Microservice"

@@ -10,8 +10,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.handler.callback.BasicAuthCallbackHandler;
-import org.wso2.carbon.identity.gateway.handler.callback.GatewayCallbackHandler;
+import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
+import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
 import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
 
@@ -45,7 +45,7 @@ public class ServiceComponent {
         bundleContext.registerService(IdentityProcessor.class, new CallbackProcessor(), null);
 
         // registering callback handlers
-        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(), null);
+        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(null), null);
 
         logger.info("Service Component is activated");
     }

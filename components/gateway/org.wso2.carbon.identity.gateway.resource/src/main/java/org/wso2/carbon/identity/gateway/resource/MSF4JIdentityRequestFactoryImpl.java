@@ -19,11 +19,14 @@ package org.wso2.carbon.identity.gateway.resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.framework.builder.IdentityRequestBuilder;
-import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
+import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.resource.util.GatewayUtil;
 import org.wso2.msf4j.Request;
 
+import java.io.UnsupportedEncodingException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -78,19 +81,51 @@ public class MSF4JIdentityRequestFactoryImpl implements MSF4JIdentityRequestBuil
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
 
-        builder.setBody(GatewayUtil.readRequestBody(request));
 
+        // handle queryParams
+        FrameworkUtil.getQueryParamMap(request.getUri()).forEach(builder::addProperty);
+
+        // Handle the message body
+        String contentType = request.getContentType();
+        String body = GatewayUtil.readRequestBody(request);
+
+        // if it a form we add the form key,values as properties.
+        if (isFormParamRequest(contentType)) {
+            try {
+                handleFormParams(body, builder);
+            } catch (UnsupportedEncodingException e) {
+                logger.error("Error handling form parameters.");
+            }
+        } else {
+            builder.setBody(body);
+        }
 
         // TODO : handle request parameters as well.
-
         // TODO : handle cookies
-
-
         // TODO: extract SP, tenant info, and others
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Identity Request is build from the inbound HTTP Request.");
+            logger.debug("Identity Request Builder created from the inbound HTTP Request.");
         }
+    }
+
+    private void handleFormParams(String requestBody, IdentityRequestBuilder requestBuilder)
+            throws UnsupportedEncodingException {
+
+        FrameworkUtil.splitQuery(requestBody).forEach(requestBuilder::addProperty);
+
+
+//        new QueryStringDecoderUtil(requestBody, false).parameters()
+//                .forEach((x, y) -> {
+//                    if (!y.isEmpty()) {
+//                        requestBuilder.addProperty(x, y.get(0));
+//                    }
+//                });
+    }
+
+    private boolean isFormParamRequest(String contentType) {
+
+        return MediaType.APPLICATION_FORM_URLENCODED.equalsIgnoreCase(contentType);
     }
 
 
