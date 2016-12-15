@@ -28,17 +28,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends GatewayRequest,
-        T4 extends GatewayResponse> extends MessageContext implements Serializable {
+public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext implements Serializable {
 
     private static final long serialVersionUID = -3000397944848547943L;
 
     protected String sessionDataKey;
 
-    protected T3 initialIdentityRequest;
+    protected GatewayRequest initialIdentityRequest;
 
-    protected T3 currentIdentityRequest;
-    protected T4 identityResponse;
+    protected GatewayRequest currentIdentityRequest;
+    protected GatewayResponse identityResponse;
 
     protected AbstractHandler currentHandler;
     protected HandlerResponseStatus handlerResponseStatus;
@@ -46,14 +45,14 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
     protected Map<String, ? extends GatewayMessageContext> messageContexts = new HashMap<>();
 
 
-    public GatewayMessageContext(T3 identityRequest, T4 identityResponseMessage) {
+    public GatewayMessageContext(GatewayRequest identityRequest, GatewayResponse identityResponseMessage) {
 
         this.currentIdentityRequest = identityRequest;
         this.identityResponse = identityResponseMessage;
         sessionDataKey = UUID.randomUUID().toString();
     }
 
-    public GatewayMessageContext(T3 identityRequest, T4 identityResponseMessage, Map<T1, T2> parameters) {
+    public GatewayMessageContext(GatewayRequest identityRequest, GatewayResponse identityResponseMessage, Map<T1, T2> parameters) {
 
         this(identityRequest, identityResponseMessage);
         Optional.ofNullable(parameters).ifPresent(x -> {
@@ -61,22 +60,22 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
         });
     }
 
-    public T3 getCurrentIdentityRequest() {
+    public GatewayRequest getCurrentIdentityRequest() {
 
         return currentIdentityRequest;
     }
 
-    public void setCurrentIdentityRequest(T3 currentIdentityRequest) {
+    public void setCurrentIdentityRequest(GatewayRequest currentIdentityRequest) {
 
         this.currentIdentityRequest = currentIdentityRequest;
     }
 
-    public void setIdentityResponse(T4 identityResponse) {
+    public void setIdentityResponse(GatewayResponse identityResponse) {
 
         this.identityResponse = identityResponse;
     }
 
-    public T4 getIdentityResponse() {
+    public GatewayResponse getIdentityResponse() {
 
         return identityResponse;
     }
@@ -132,12 +131,12 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
         this.handlerResponseStatus = handlerResponseStatus;
     }
 
-    public T3 getInitialIdentityRequest() {
+    public GatewayRequest getInitialIdentityRequest() {
 
         return initialIdentityRequest;
     }
 
-    public void setInitialIdentityRequest(T3 initialIdentityRequest) {
+    public void setInitialIdentityRequest(GatewayRequest initialIdentityRequest) {
 
         this.initialIdentityRequest = initialIdentityRequest;
     }
