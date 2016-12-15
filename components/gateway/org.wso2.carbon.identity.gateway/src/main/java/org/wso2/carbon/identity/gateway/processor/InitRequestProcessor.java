@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.gateway.element.authentication.handler.MultiStep
 import org.wso2.carbon.identity.gateway.element.response.SAMLResponseHandler;
 import org.wso2.carbon.identity.gateway.element.validation.SAMLValidationHandler;
 import org.wso2.carbon.identity.gateway.element.SessionDataCleanupHandler;
+import org.wso2.carbon.identity.gateway.message.GatewayRequest;
+import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
 import java.util.HashMap;
 
@@ -39,20 +41,19 @@ import java.util.HashMap;
 /*
     This processor handler the initial identity requests that comes to the Identity Gateway.
  */
-public class InitRequestProcessor extends IdentityProcessor {
+public class InitRequestProcessor extends IdentityProcessor<GatewayRequest> {
 
     private static final Logger log = LoggerFactory.getLogger(InitRequestProcessor.class);
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Response process(Request identityRequest) throws FrameworkException {
+    public Response process(GatewayRequest identityRequest) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug(getName() + " starting to process the initial Identity Request.");
         }
 
         // Build the message context
-        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new Response());
+        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new GatewayResponse());
         context.setInitialIdentityRequest(identityRequest);
 
         // Create a sessionDataKey and add it to the message context

@@ -24,15 +24,17 @@ import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.internal.DataHolder;
+import org.wso2.carbon.identity.gateway.message.GatewayRequest;
+import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
 /**
  * Handle callbacks coming into the Identity Gateway
  */
-public class CallbackProcessor extends IdentityProcessor {
+public class CallbackProcessor extends IdentityProcessor<GatewayRequest> {
 
 
     @Override
-    public Response process(Request identityRequest) throws FrameworkException {
+    public Response process(GatewayRequest identityRequest) throws FrameworkException {
 
         // get registered callback handlers.
         GatewayCallbackHandler handler = DataHolder.getInstance().getGatewayCallbackHandlers()
@@ -41,7 +43,7 @@ public class CallbackProcessor extends IdentityProcessor {
                 .findFirst()
                 .orElseThrow(() -> new FrameworkException("Unable to find a handler to process the callback"));
 
-        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new Response());
+        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new GatewayResponse());
         ((AbstractHandler) handler).execute(context);
         return context.getIdentityResponse();
     }
