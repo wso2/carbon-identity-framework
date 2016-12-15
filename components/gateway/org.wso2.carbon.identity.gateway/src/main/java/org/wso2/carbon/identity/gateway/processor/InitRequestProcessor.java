@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.message.Request;
+import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
@@ -45,14 +45,14 @@ public class InitRequestProcessor extends IdentityProcessor {
 
     @SuppressWarnings("unchecked")
     @Override
-    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
+    public Response process(Request identityRequest) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug(getName() + " starting to process the initial Identity Request.");
         }
 
         // Build the message context
-        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new IdentityResponse());
+        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new Response());
         context.setInitialIdentityRequest(identityRequest);
 
         // Create a sessionDataKey and add it to the message context
@@ -104,7 +104,7 @@ public class InitRequestProcessor extends IdentityProcessor {
     }
 
     @Override
-    public boolean canHandle(IdentityRequest identityRequest) {
+    public boolean canHandle(Request identityRequest) {
 
         return true;
     }

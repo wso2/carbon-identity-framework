@@ -34,7 +34,6 @@ import org.opensaml.saml2.core.Conditions;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.NameID;
 import org.opensaml.saml2.core.NameIDType;
-import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.Status;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.Subject;
@@ -65,7 +64,7 @@ import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 
@@ -130,7 +129,7 @@ public class SAMLResponseHandler extends AbstractHandler<HandlerIdentifier, Hand
 
                 String samlHtmlResponseBody = SAMLUtils.getHTMLResponseBody(samlReponse);
 
-                IdentityResponse response = context.getIdentityResponse();
+                Response response = context.getIdentityResponse();
                 response.setStatusCode(OK.getStatusCode());
                 response.setBody(samlHtmlResponseBody);
 
@@ -158,7 +157,7 @@ public class SAMLResponseHandler extends AbstractHandler<HandlerIdentifier, Hand
                                      String subjectIdentifier,
                                      Map<String, String> claimMap) throws ConfigurationException {
 
-        Response response = new ResponseBuilder().buildObject();
+        org.opensaml.saml2.core.Response response = new ResponseBuilder().buildObject();
 
         response.setID(UUID.randomUUID().toString());
         response.setVersion(SAMLVersion.VERSION_20);

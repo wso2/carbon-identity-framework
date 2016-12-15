@@ -16,7 +16,7 @@
 
 package org.wso2.carbon.identity.gateway.element.callback;
 
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.Request;
 
 /**
  * Provides the capability to extract the current request context identifier in a protocol specific manner
@@ -33,7 +33,7 @@ public interface GatewayCallbackHandler{
 
     int getPriority();
 
-    boolean canExtractSessionIdentifier(IdentityRequest request);
+    boolean canExtractSessionIdentifier(Request request);
 
-    String getSessionIdentifier(IdentityRequest request);
+    String getSessionIdentifier(Request request);
 }

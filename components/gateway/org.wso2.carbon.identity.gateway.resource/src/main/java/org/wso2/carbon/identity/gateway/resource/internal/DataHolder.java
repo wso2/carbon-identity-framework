@@ -16,11 +16,11 @@
 
 package org.wso2.carbon.identity.gateway.resource.internal;
 
-import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
-import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.resource.GatewayRequestFactory;
+import org.wso2.carbon.identity.gateway.resource.GatewayResponseBuilderFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,14 +36,14 @@ public class DataHolder {
 
     private static DataHolder instance = new DataHolder();
 
-    private List<MSF4JIdentityRequestBuilderFactory> requestFactoryList = new ArrayList<>();
-    private List<MSF4JResponseBuilderFactory> responseFactoryList = new ArrayList<>();
+    private List<GatewayRequestFactory> requestFactoryList = new ArrayList<>();
+    private List<GatewayResponseBuilderFactory> responseFactoryList = new ArrayList<>();
     private IdentityProcessCoordinator processCoordinator;
 
-    private Comparator<MSF4JIdentityRequestBuilderFactory> requestFactoryComparator =
+    private Comparator<GatewayRequestFactory> requestFactoryComparator =
             (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 
-    private Comparator<MSF4JResponseBuilderFactory> responseFactoryComparator =
+    private Comparator<GatewayResponseBuilderFactory> responseFactoryComparator =
             (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 
     private DataHolder() {
@@ -62,12 +62,12 @@ public class DataHolder {
 
 
     /**
-     * Add a {@link MSF4JIdentityRequestBuilderFactory} service instance. This will be used by the ServiceComponent
-     * when a @{@link MSF4JIdentityRequestBuilderFactory} registers.
+     * Add a {@link GatewayRequestFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link GatewayRequestFactory} registers.
      *
-     * @param requestBuilderFactory @MSF4JIdentityRequestBuilderFactory instance added.
+     * @param requestBuilderFactory @GatewayRequestFactory instance added.
      */
-    public void addRequestFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
+    public void addRequestFactory(GatewayRequestFactory requestBuilderFactory) {
 
         requestFactoryList.add(requestBuilderFactory);
         Collections.sort(requestFactoryList, requestFactoryComparator);
@@ -75,57 +75,57 @@ public class DataHolder {
 
 
     /**
-     * Remove a {@link MSF4JIdentityRequestBuilderFactory} service instance. This will be used by the ServiceComponent
-     * when a @{@link MSF4JIdentityRequestBuilderFactory} unregisters.
+     * Remove a {@link GatewayRequestFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link GatewayRequestFactory} unregisters.
      *
-     * @param requestBuilderFactory @MSF4JIdentityRequestBuilderFactory removed.
+     * @param requestBuilderFactory @GatewayRequestFactory removed.
      */
-    public void removeRequestFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
+    public void removeRequestFactory(GatewayRequestFactory requestBuilderFactory) {
 
         requestFactoryList.remove(requestBuilderFactory);
     }
 
 
     /**
-     * Return a list registered @{@link MSF4JIdentityRequestBuilderFactory} services.
+     * Return a list registered @{@link GatewayRequestFactory} services.
      *
-     * @return list of @{@link MSF4JIdentityRequestBuilderFactory} services.
+     * @return list of @{@link GatewayRequestFactory} services.
      */
-    public List<MSF4JIdentityRequestBuilderFactory> getRequestFactoryList() {
+    public List<GatewayRequestFactory> getRequestFactoryList() {
 
         return requestFactoryList;
     }
 
 
     /**
-     * Add a {@link MSF4JResponseBuilderFactory} service instance. This will be used by the ServiceComponent
-     * when a @{@link MSF4JResponseBuilderFactory} registers.
+     * Add a {@link GatewayResponseBuilderFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link GatewayResponseBuilderFactory} registers.
      *
-     * @param responseBuilderFactory @{@link MSF4JResponseBuilderFactory} instance added.
+     * @param responseBuilderFactory @{@link GatewayResponseBuilderFactory} instance added.
      */
-    public void addResponseFactory(MSF4JResponseBuilderFactory responseBuilderFactory) {
+    public void addResponseFactory(GatewayResponseBuilderFactory responseBuilderFactory) {
 
         responseFactoryList.add(responseBuilderFactory);
         Collections.sort(responseFactoryList, responseFactoryComparator);
     }
 
     /**
-     * Remove a {@link MSF4JResponseBuilderFactory} service instance. This will be used by the ServiceComponent
-     * when a @{@link MSF4JResponseBuilderFactory} un-registers.
+     * Remove a {@link GatewayResponseBuilderFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link GatewayResponseBuilderFactory} un-registers.
      *
-     * @param responseBuilderFactory @{@link MSF4JResponseBuilderFactory} instance removed.
+     * @param responseBuilderFactory @{@link GatewayResponseBuilderFactory} instance removed.
      */
-    public void removeResponseFactory(MSF4JResponseBuilderFactory responseBuilderFactory) {
+    public void removeResponseFactory(GatewayResponseBuilderFactory responseBuilderFactory) {
 
         responseFactoryList.remove(responseBuilderFactory);
     }
 
     /**
-     * Return a list registered @{@link MSF4JResponseBuilderFactory} services.
+     * Return a list registered @{@link GatewayResponseBuilderFactory} services.
      *
-     * @return list of @{@link MSF4JResponseBuilderFactory} services.
+     * @return list of @{@link GatewayResponseBuilderFactory} services.
      */
-    public List<MSF4JResponseBuilderFactory> getResponseFactoryList() {
+    public List<GatewayResponseBuilderFactory> getResponseFactoryList() {
 
         return responseFactoryList;
     }

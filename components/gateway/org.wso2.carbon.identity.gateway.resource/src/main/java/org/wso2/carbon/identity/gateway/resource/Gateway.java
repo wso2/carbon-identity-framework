@@ -23,17 +23,14 @@ import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
-import org.wso2.carbon.identity.gateway.resource.util.GatewayUtil;
+import org.wso2.carbon.identity.framework.message.Request;
+import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.msf4j.Microservice;
-import org.wso2.msf4j.Request;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -42,14 +39,14 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
  * Identity Gateway MicroService. This serves as the endpoint for all requests that come into the Identity Gateway.
  */
 @Component(
-        name = "org.wso2.carbon.identity.framework.resource.IdentityGateway",
+        name = "org.wso2.carbon.identity.framework.resource.Gateway",
         service = Microservice.class,
         immediate = true
 )
-@Path("/identity")
-public class IdentityGateway implements Microservice {
+@Path("/gateway")
+public class Gateway implements Microservice {
 
-    private static Logger logger = LoggerFactory.getLogger(IdentityGateway.class);
+    private static Logger logger = LoggerFactory.getLogger(Gateway.class);
     private static final String ERROR_PROCESSING_REQUEST = "Error Processing Request.";
     private static final String INVALID_REQUEST = "Invalid or Malformed Request.";
 
@@ -61,7 +58,7 @@ public class IdentityGateway implements Microservice {
      */
     @POST
     @Path("/")
-    public Response processPost(@Context Request request) {
+    public javax.ws.rs.core.Response processPost(@Context org.wso2.msf4j.Request request) {
 
         try {
             return processRequest(request);
@@ -74,7 +71,7 @@ public class IdentityGateway implements Microservice {
 
     @GET
     @Path("/")
-    public Response processGet(@Context Request request) {
+    public javax.ws.rs.core.Response processGet(@Context org.wso2.msf4j.Request request) {
 
         return processPost(request);
     }
@@ -86,8 +83,8 @@ public class IdentityGateway implements Microservice {
      * @return
      */
     @POST
-    @Path("callback")
-    public Response callback(@Context Request request) {
+    @Path("/callback")
+    public javax.ws.rs.core.Response callback(@Context org.wso2.msf4j.Request request) {
 
         try {
             return processRequest(request);
@@ -98,31 +95,39 @@ public class IdentityGateway implements Microservice {
     }
 
 
+    @GET
+    @Path("/callback")
+    public javax.ws.rs.core.Response callbackGet(@Context org.wso2.msf4j.Request request) {
+
+        return callback(request);
+    }
+
+
     /**
-     * Process the {@link Request} received by Identity Gateway endpoint.
+     * Process the {@link org.wso2.msf4j.Request} received by Identity Gateway endpoint.
      *
-     * @param request {@link Request} received by the Identity Gateway.
-     * @return @{@link Response} to be sent to the client.
+     * @param request {@link org.wso2.msf4j.Request} received by the Identity Gateway.
+     * @return @{@link javax.ws.rs.core.Response} to be sent to the client.
      */
-    private Response processRequest(Request request) throws FrameworkException {
+    private javax.ws.rs.core.Response processRequest(org.wso2.msf4j.Request request) throws FrameworkException {
 
         /*
-            Pick a registered MSF4JIdentityRequestFactoryImpl that can handle the request that came into the Identity
+            Pick a registered GatewayRequestFactory that can handle the request that came into the Identity
             Gateway.
          */
-        MSF4JIdentityRequestBuilderFactory requestFactory = GatewayUtil.pickRequestFactory(request);
+        GatewayRequestFactory requestFactory = GatewayFactoryManager.pickRequestFactory(request);
 
 
-        IdentityRequest identityRequest;
+        Request identityRequest;
         ResponseBuilder responseBuilder;
 
         /*
-            We use the IdentityRequestBuilder returned by the factory to create an IdentityRequest which is the
+            We use the IdentityRequestBuilder returned by the factory to create an Request which is the
             canonical representation of the request received by the Identity Gateway. This canonical representation
             will be used in request to the Identity Framework.
          */
         try {
-            identityRequest = requestFactory.create(request).build();
+            identityRequest = requestFactory.getGatewayRequest(request);
             if (identityRequest == null) {
                 logger.error("Could not build the Identity Request.");
                 throw new FrameworkRuntimeException(ERROR_PROCESSING_REQUEST);
@@ -133,37 +138,37 @@ public class IdentityGateway implements Microservice {
             if (responseBuilder == null) {
                 logger.error("Unable to find a builder to build a response for client. Building with default error " +
                         "response builder");
-                responseBuilder = Response.status(BAD_REQUEST);
+                responseBuilder = javax.ws.rs.core.Response.status(BAD_REQUEST);
             }
             return responseBuilder.build();
         }
 
-        IdentityProcessCoordinator processCoordinator = GatewayUtil.getIdentityProcessCoordinator();
+        IdentityProcessCoordinator processCoordinator = GatewayFactoryManager.getIdentityProcessCoordinator();
 
-        IdentityResponse identityResponse;
-        MSF4JResponseBuilderFactory responseFactory;
+        Response response;
+        GatewayResponseBuilderFactory responseFactory;
         /*
-            Process the IdentityRequest by handing it over to the IdentityProcessCoordinator.
-            IdentityProcessCoordinator will send the IdentityRequest through the framework and return an
-            IdentityResponse.
+            Process the Request by handing it over to the IdentityProcessCoordinator.
+            IdentityProcessCoordinator will send the Request through the framework and return an
+            Response.
          */
         try {
-            identityResponse = processCoordinator.process(identityRequest);
-            if (identityResponse == null) {
+            response = processCoordinator.process(identityRequest);
+            if (response == null) {
                 logger.error("Framework returned a null response. We can't proceed further.");
                 return getDefaultServerErrorResponseBuilder(ERROR_PROCESSING_REQUEST).build();
             }
 
             /*
-               Pick the MSF4JResponseBuilderFactoryImpl that can provide us with a JAX-RS response builder to build
+               Pick the GatewayResponseBuilderFactory that can provide us with a JAX-RS response builder to build
                the Response to be sent to the client.
              */
-            responseFactory = GatewayUtil.pickIdentityResponseFactory(identityResponse);
-            responseBuilder = responseFactory.create(identityResponse);
+            responseFactory = GatewayFactoryManager.pickIdentityResponseFactory(response);
+            responseBuilder = responseFactory.create(response);
             return responseBuilder.build();
 
         } catch (FrameworkException e) {
-            responseFactory = GatewayUtil.pickIdentityResponseFactory(e);
+            responseFactory = GatewayFactoryManager.pickIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if (responseBuilder == null) {
                 logger.error("No response builder to build a response to be sent to the client.");
@@ -175,12 +180,12 @@ public class IdentityGateway implements Microservice {
 
     /**
      * We need a default ResponseBuilder to build a Response to be sent to the client in cases where we can't obtain
-     * a response builder factory or something goes wrong when trying to process the IdentityRequest.
+     * a response builder factory or something goes wrong when trying to process the Request.
      *
      * @return
      */
     private ResponseBuilder getDefaultServerErrorResponseBuilder(String message) {
 
-        return Response.serverError();
+        return javax.ws.rs.core.Response.serverError();
     }
 }

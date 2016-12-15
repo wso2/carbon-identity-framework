@@ -31,8 +31,9 @@ import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
+import org.wso2.carbon.identity.framework.message.Request;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 import org.xml.sax.SAXException;
 
@@ -75,7 +76,7 @@ public class SAMLValidationHandler extends
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext context) {
 
-        IdentityRequest identityRequest = context.getCurrentIdentityRequest();
+        GatewayRequest identityRequest = context.getCurrentIdentityRequest();
         String method = identityRequest.getMethod();
 
         if (HttpMethod.POST.equalsIgnoreCase(method) || HttpMethod.GET.equalsIgnoreCase(method)) {

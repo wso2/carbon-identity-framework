@@ -19,10 +19,9 @@ package org.wso2.carbon.identity.gateway.processor;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.framework.message.IdentityRequest;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.message.Request;
+import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.callback.AbstractCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.internal.DataHolder;
 
@@ -33,7 +32,7 @@ public class CallbackProcessor extends IdentityProcessor {
 
 
     @Override
-    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
+    public Response process(Request identityRequest) throws FrameworkException {
 
         // get registered callback handlers.
         GatewayCallbackHandler handler = DataHolder.getInstance().getGatewayCallbackHandlers()
@@ -42,7 +41,7 @@ public class CallbackProcessor extends IdentityProcessor {
                 .findFirst()
                 .orElseThrow(() -> new FrameworkException("Unable to find a handler to process the callback"));
 
-        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new IdentityResponse());
+        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new Response());
         ((AbstractHandler) handler).execute(context);
         return context.getIdentityResponse();
     }
@@ -60,9 +59,10 @@ public class CallbackProcessor extends IdentityProcessor {
     }
 
     @Override
-    public boolean canHandle(IdentityRequest identityRequest) {
+    public boolean canHandle(Request identityRequest) {
         // if the request url contains identity/callback
-        return identityRequest.getRequestURI().contains("callback");
+//        return identityRequest.getRequestURI().contains("callback");
+        return true;
     }
 
 

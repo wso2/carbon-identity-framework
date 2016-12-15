@@ -24,16 +24,15 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
-import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestFactoryImpl;
-import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactoryImpl;
+import org.wso2.carbon.identity.gateway.resource.Gateway;
+import org.wso2.carbon.identity.gateway.resource.GatewayRequestFactory;
+import org.wso2.carbon.identity.gateway.resource.GatewayResponseBuilderFactory;
 
 import java.util.logging.Logger;
 
 /**
  * Service component to consume OSGi services required by
- * {@link org.wso2.carbon.identity.gateway.resource.IdentityGateway} MicroService.
+ * {@link Gateway} MicroService.
  *
  * @since 1.0.0
  */
@@ -57,9 +56,9 @@ public class ServiceComponent {
     protected void start(BundleContext bundleContext) throws Exception {
 
         // Register MSF4JRequestFactory instance as an OSGi service.
-        bundleContext.registerService(MSF4JIdentityRequestBuilderFactory.class, new MSF4JIdentityRequestFactoryImpl(),
+        bundleContext.registerService(GatewayRequestFactory.class, new GatewayRequestFactory(),
                 null);
-        bundleContext.registerService(MSF4JResponseBuilderFactory.class, new MSF4JResponseBuilderFactoryImpl(), null);
+        bundleContext.registerService(GatewayResponseBuilderFactory.class, new GatewayResponseBuilderFactory(), null);
 
         logger.info("Service Component is activated");
     }
@@ -77,57 +76,57 @@ public class ServiceComponent {
     }
 
     /**
-     * This bind method will be called when {@link MSF4JIdentityRequestBuilderFactory} OSGi services are registered.
+     * This bind method will be called when {@link GatewayRequestFactory} OSGi services are registered.
      *
-     * @param requestBuilderFactory {@link MSF4JIdentityRequestBuilderFactory} instance registered as an OSGi service
+     * @param requestBuilderFactory {@link GatewayRequestFactory} instance registered as an OSGi service
      */
     @Reference(
             name = "msf4j.identity.request.builder.factory",
-            service = MSF4JIdentityRequestBuilderFactory.class,
+            service = GatewayRequestFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetRequestBuilderFactory"
     )
-    protected void setRequestBuilderFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
+    protected void setRequestBuilderFactory(GatewayRequestFactory requestBuilderFactory) {
 
         dataHolder.addRequestFactory(requestBuilderFactory);
     }
 
     /**
-     * This is the unbind method which gets called at the un-registration of {@link MSF4JIdentityRequestBuilderFactory}
+     * This is the unbind method which gets called at the un-registration of {@link GatewayRequestFactory}
      * OSGi service.
      *
-     * @param requestBuilderFactory {@link MSF4JIdentityRequestBuilderFactory} OSGi service.
+     * @param requestBuilderFactory {@link GatewayRequestFactory} OSGi service.
      */
-    protected void unsetRequestBuilderFactory(MSF4JIdentityRequestBuilderFactory requestBuilderFactory) {
+    protected void unsetRequestBuilderFactory(GatewayRequestFactory requestBuilderFactory) {
 
         dataHolder.removeRequestFactory(requestBuilderFactory);
     }
 
     /**
-     * This bind method will be called when {@link MSF4JResponseBuilderFactory} OSGi services are registered.
+     * This bind method will be called when {@link GatewayResponseBuilderFactory} OSGi services are registered.
      *
-     * @param responseFactory The {@link MSF4JResponseBuilderFactoryImpl} instance registered as an OSGi service
+     * @param responseFactory The {@link GatewayResponseBuilderFactory} instance registered as an OSGi service
      */
     @Reference(
             name = "msf4j.response.builder.factory",
-            service = MSF4JResponseBuilderFactory.class,
+            service = GatewayResponseBuilderFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetResponseBuilderFactory"
     )
-    protected void setResponseBuilderFactory(MSF4JResponseBuilderFactory responseFactory) {
+    protected void setResponseBuilderFactory(GatewayResponseBuilderFactory responseFactory) {
 
         dataHolder.addResponseFactory(responseFactory);
     }
 
     /**
-     * This is the unbind method which gets called at the un-registration of a {@link MSF4JResponseBuilderFactory}
+     * This is the unbind method which gets called at the un-registration of a {@link GatewayResponseBuilderFactory}
      * OSGi service.
      *
-     * @param responseBuilderFactory The {@link MSF4JResponseBuilderFactory} instance registered as an OSGi service
+     * @param responseBuilderFactory The {@link GatewayResponseBuilderFactory} instance registered as an OSGi service
      */
-    protected void unsetResponseBuilderFactory(MSF4JResponseBuilderFactory responseBuilderFactory) {
+    protected void unsetResponseBuilderFactory(GatewayResponseBuilderFactory responseBuilderFactory) {
 
         dataHolder.removeResponseFactory(responseBuilderFactory);
     }

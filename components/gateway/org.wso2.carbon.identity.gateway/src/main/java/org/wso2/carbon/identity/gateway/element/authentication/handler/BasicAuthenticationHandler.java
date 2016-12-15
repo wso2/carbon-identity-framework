@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
-import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.framework.model.User;
 import org.wso2.carbon.identity.framework.model.UserClaim;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
@@ -141,7 +141,7 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends
 
     private HandlerResponseStatus redirectToLoginPage(GatewayMessageContext context, String sessionID) {
         // This is an initial request to the Basic Auth Handler, so redirect to login page.
-        IdentityResponse response = context.getIdentityResponse();
+        Response response = context.getIdentityResponse();
 
         // build the authentication endpoint url
         String redirectUrl = buildAuthenticationEndpointURL(AUTH_ENDPOINT, sessionID, CALLBACK);
