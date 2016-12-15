@@ -18,7 +18,7 @@ package org.wso2.carbon.identity.framework.response.factory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.response.IdentityResponse;
 
 import static org.wso2.carbon.identity.framework.response.HttpIdentityResponse.HttpIdentityResponseBuilder;

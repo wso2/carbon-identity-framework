@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.framework.util;
 
-import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.AbstractMap.SimpleEntry;
@@ -41,21 +39,6 @@ public class FrameworkUtil {
     }
 
 
-    public static IdentityMessageContext mergeContext(IdentityMessageContext newContext,
-                                                      IdentityMessageContext oldContext) {
-
-        // Copy the data from old context
-        newContext.setSessionDataKey(oldContext.getSessionDataKey());
-        newContext.setInitialIdentityRequest(oldContext.getInitialIdentityRequest());
-        newContext.setIdentityResponse(oldContext.getIdentityResponse());
-        newContext.addParameters(oldContext.getParameters());
-
-        // restore current state from the old context.
-        newContext.setCurrentHandler(oldContext.getCurrentHandler());
-        newContext.setCurrentHandlerStatus(oldContext.getCurrentHandlerStatus());
-
-        return newContext;
-    }
 
 
     public static Map<String, String> getQueryParamMap(String requestUri) {

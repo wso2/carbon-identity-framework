@@ -17,8 +17,7 @@
 package org.wso2.carbon.identity.gateway.resource.internal;
 
 import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
-import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.util.FrameworkUtil;
+import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactory;
 

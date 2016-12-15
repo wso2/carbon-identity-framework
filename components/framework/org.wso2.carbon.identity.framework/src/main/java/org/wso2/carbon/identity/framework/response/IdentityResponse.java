@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.framework.response;
 
-import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
-
 import java.io.Serializable;
 
 /*
@@ -27,7 +25,7 @@ public class IdentityResponse implements Serializable {
 
     private static final long serialVersionUID = 1348704275109461974L;
 
-    protected IdentityMessageContext context;
+    protected MessageContext context;
 
     protected IdentityResponse(IdentityResponseBuilder builder) {
         this.context = builder.context;
@@ -35,9 +33,9 @@ public class IdentityResponse implements Serializable {
 
     public static class IdentityResponseBuilder {
 
-        protected IdentityMessageContext context;
+        protected MessageContext context;
 
-        public IdentityResponseBuilder(IdentityMessageContext context) {
+        public IdentityResponseBuilder(MessageContext context) {
             this.context = context;
         }
 

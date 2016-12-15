@@ -16,8 +16,8 @@
 
 package org.wso2.carbon.identity.framework.response.factory;
 
-import org.wso2.carbon.identity.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.framework.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.FrameworkException;
+import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.response.IdentityResponse;
 
 import java.util.Properties;

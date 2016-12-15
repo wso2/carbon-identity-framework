@@ -16,7 +16,7 @@
 
 package org.wso2.carbon.identity.gateway.resource;
 
-import org.wso2.carbon.identity.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
 
 import javax.ws.rs.core.Response;

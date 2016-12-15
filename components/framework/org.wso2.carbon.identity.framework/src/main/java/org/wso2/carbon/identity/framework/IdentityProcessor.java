@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.framework;
 
-import org.wso2.carbon.identity.framework.context.IdentityMessageContext;
-import org.wso2.carbon.identity.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
 
@@ -79,10 +77,10 @@ public abstract class IdentityProcessor {
     /**
      * Get IdentityResponseBuilder for framework login
      *
-     * @param context IdentityMessageContext
+     * @param context MessageContext
      * @return IdentityResponseBuilder
      */
-    protected IdentityResponseBuilder buildResponseForFrameworkLogin(IdentityMessageContext context) {
+    protected IdentityResponseBuilder buildResponseForFrameworkLogin(MessageContext context) {
 /*
         String sessionDataKey = UUIDGenerator.generateUUID();
 
@@ -132,10 +130,10 @@ public abstract class IdentityProcessor {
     /**
      * Get IdentityResponseBuilder for framework logout
      *
-     * @param context IdentityMessageContext
+     * @param context MessageContext
      * @return IdentityResponseBuilder
      */
-    protected IdentityResponseBuilder buildResponseForFrameworkLogout(IdentityMessageContext context) {
+    protected IdentityResponseBuilder buildResponseForFrameworkLogout(MessageContext context) {
 /*
         String sessionDataKey = UUIDGenerator.generateUUID();
 
@@ -184,14 +182,14 @@ public abstract class IdentityProcessor {
     }
 
     /**
-     * Checks if previous IdentityMessageContext exists for given IdentityRequest using {@code sessionDataKey} parameter
+     * Checks if previous MessageContext exists for given IdentityRequest using {@code sessionDataKey} parameter
      *
      * @param request IdentityRequest
      */
 //    protected boolean isContextAvailable(IdentityRequest request) {
 //        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
 //        if (StringUtils.isNotBlank(sessionDataKey)) {
-//            IdentityMessageContext context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
+//            MessageContext context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
 //            if (context != null) {
 //                return true;
 //            }
@@ -200,15 +198,15 @@ public abstract class IdentityProcessor {
 //    }
 
     /**
-     * Returns IdentityMessageContext if one previously existed for given IdentityRequest using {@code sessionDataKey}
+     * Returns MessageContext if one previously existed for given IdentityRequest using {@code sessionDataKey}
      * parameter
      *
      * @param request IdentityRequest
-     * @return IdentityMessageContext
+     * @return MessageContext
      */
-//    protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
+//    protected MessageContext getContextIfAvailable(IdentityRequest request) {
 //        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
-//        IdentityMessageContext context = null;
+//        MessageContext context = null;
 //        if (StringUtils.isNotBlank(sessionDataKey)) {
 //            context = IdentityGatewayUtil.getContextFromCache(sessionDataKey);
 //        }
@@ -216,13 +214,13 @@ public abstract class IdentityProcessor {
 //    }
 
     /**
-     * Processes the IdentityMessageContext and retrieved the using {@code sessionDataKey} parameter and sets the
+     * Processes the MessageContext and retrieved the using {@code sessionDataKey} parameter and sets the
      * AuthenticationResponse to message context if found in AuthenticationResultCache
      *
-     * @param context IdentityMessageContext
+     * @param context MessageContext
      * @return AuthenticationResponse
      */
-    /*protected AuthenticationResult processResponseFromFrameworkLogin(IdentityMessageContext context) {
+    /*protected AuthenticationResult processResponseFromFrameworkLogin(MessageContext context) {
 
         String sessionDataKey =
                 context.getCurrentIdentityRequest().getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);

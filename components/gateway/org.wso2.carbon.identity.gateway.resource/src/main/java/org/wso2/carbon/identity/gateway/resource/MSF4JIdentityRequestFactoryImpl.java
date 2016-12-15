@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.gateway.resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.builder.IdentityRequestBuilder;
-import org.wso2.carbon.identity.framework.exception.FrameworkClientException;
+import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.gateway.resource.util.GatewayUtil;
 import org.wso2.msf4j.Request;
 
