@@ -18,6 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.endpoint.util;
 
+import org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+
 /**
  * AuthenticationEndpointUtil defines utility methods used across the authenticationendpoint web application.
  */
@@ -84,6 +89,31 @@ public class AuthenticationEndpointUtil {
             }
         }
         return cleanedQueryString.toString();
+    }
+
+
+    /**
+     * Build user object from complete username
+     * @param userName
+     * @return
+     */
+    public static UserDTO getUser(String userName) {
+
+        if (userName == null) {
+            return null;
+        }
+
+        String userStoreDomain = IdentityUtil.extractDomainFromName(userName);
+        String tenantDomain = MultitenantUtils.getTenantDomain(userName);
+        String userNameWithoutTenantDomainAndUserStoreDomain = MultitenantUtils
+                .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(userName));
+
+        UserDTO user = new UserDTO();
+        user.setUsername(userNameWithoutTenantDomainAndUserStoreDomain);
+        user.setRealm(userStoreDomain);
+        user.setTenantDomain(tenantDomain);
+
+        return user;
     }
 
 }
