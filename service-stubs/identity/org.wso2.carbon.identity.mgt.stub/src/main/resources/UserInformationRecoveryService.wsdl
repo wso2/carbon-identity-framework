@@ -1,16 +1,7 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://services.mgt.identity.carbon.wso2.org"
-                  xmlns:ax2310="http://base.identity.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                  xmlns:ax2313="http://beans.mgt.identity.carbon.wso2.org/xsd"
-                  xmlns:ax2314="http://dto.mgt.identity.carbon.wso2.org/xsd" xmlns:ax2315="http://util.java/xsd"
-                  xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl"
-                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
-                  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
-                  targetNamespace="http://services.mgt.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://services.mgt.identity.carbon.wso2.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ax2358="http://beans.mgt.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2355="http://base.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ax2359="http://dto.mgt.identity.carbon.wso2.org/xsd" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2360="http://mail.mgt.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ax2354="http://mgt.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ax2364="http://beans.mgt.captcha.carbon.wso2.org/xsd" targetNamespace="http://services.mgt.identity.carbon.wso2.org">
     <wsdl:documentation>UserInformationRecoveryService</wsdl:documentation>
     <wsdl:types>
-        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
-                   targetNamespace="http://beans.mgt.captcha.carbon.wso2.org/xsd">
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://beans.mgt.captcha.carbon.wso2.org/xsd">
             <xs:complexType name="CaptchaInfoBean">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="imagePath" nillable="true" type="xs:string"/>
@@ -19,11 +10,7 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2312="http://mgt.identity.carbon.wso2.org/xsd"
-                   xmlns:ax2320="http://beans.mgt.captcha.carbon.wso2.org/xsd"
-                   xmlns:ax2321="http://dto.mgt.identity.carbon.wso2.org/xsd"
-                   attributeFormDefault="qualified"
-                   elementFormDefault="qualified" targetNamespace="http://services.mgt.identity.carbon.wso2.org">
+        <xs:schema xmlns:ax2367="http://base.identity.carbon.wso2.org/xsd" xmlns:ax2366="http://dto.mgt.identity.carbon.wso2.org/xsd" xmlns:ax2357="http://mgt.identity.carbon.wso2.org/xsd" xmlns:ax2363="http://beans.mgt.identity.carbon.wso2.org/xsd" xmlns:ax2365="http://beans.mgt.captcha.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://services.mgt.identity.carbon.wso2.org">
             <xs:import namespace="http://mgt.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://beans.mgt.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://beans.mgt.captcha.carbon.wso2.org/xsd"/>
@@ -32,8 +19,66 @@
             <xs:element name="UserInformationRecoveryServiceIdentityMgtServiceException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityMgtServiceException" nillable="true"
-                                    type="ax2312:IdentityMgtServiceException"/>
+                        <xs:element minOccurs="0" name="IdentityMgtServiceException" nillable="true" type="ax2357:IdentityMgtServiceException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="sendRecoveryNotification">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="key" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="notificationType" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="sendRecoveryNotificationResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCaptcha">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCaptchaResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2365:CaptchaInfoBean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="verifyUser">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2365:CaptchaInfoBean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="verifyUserResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="verifyConfirmationCode">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="code" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2365:CaptchaInfoBean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="verifyConfirmationCodeResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -49,52 +94,22 @@
             <xs:element name="updatePasswordResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="verifyConfirmationCode">
+            <xs:element name="getUserChallengeQuestionIds">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="code" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2320:CaptchaInfoBean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="verifyConfirmationCodeResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllChallengeQuestions">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getAllChallengeQuestionsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true"
-                                    type="ax2321:ChallengeQuestionDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getUserChallengeQuestions">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="confirmation" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getUserChallengeQuestionsResponse">
+            <xs:element name="getUserChallengeQuestionIdsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true"
-                                    type="ax2321:UserChallengesCollectionDTO"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2366:ChallengeQuestionIdsDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -110,22 +125,22 @@
             <xs:element name="getUserChallengeQuestionResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2321:UserChallengesDTO"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2366:UserChallengesDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getUserChallengeQuestionIds">
+            <xs:element name="getUserChallengeQuestions">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="confirmation" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getUserChallengeQuestionIdsResponse">
+            <xs:element name="getUserChallengeQuestionsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2321:ChallengeQuestionIdsDTO"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2366:UserChallengesCollectionDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -142,7 +157,7 @@
             <xs:element name="verifyUserChallengeAnswerResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -151,66 +166,33 @@
                     <xs:sequence>
                         <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="confirmation" nillable="true" type="xs:string"/>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="userChallengesDTOs" nillable="true"
-                                    type="ax2321:UserChallengesDTO"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="userChallengesDTOs" nillable="true" type="ax2366:UserChallengesDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="verifyUserChallengeAnswersResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getCaptcha">
+            <xs:element name="getAllChallengeQuestions">
                 <xs:complexType>
                     <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getCaptchaResponse">
+            <xs:element name="getAllChallengeQuestionsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2320:CaptchaInfoBean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="verifyUser">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2320:CaptchaInfoBean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="verifyUserResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="sendRecoveryNotification">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="key" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="notificationType" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="sendRecoveryNotificationResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2366:ChallengeQuestionDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="UserInformationRecoveryServiceIdentityException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityException" nillable="true"
-                                    type="ax2310:IdentityException"/>
+                        <xs:element minOccurs="0" name="IdentityException" nillable="true" type="ax2367:IdentityException"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -224,17 +206,15 @@
             <xs:element name="getUserIdentitySupportedClaimsResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true"
-                                    type="ax2321:UserIdentityClaimDTO"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2366:UserIdentityClaimDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="verifyAccount">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="claims" nillable="true"
-                                    type="ax2321:UserIdentityClaimDTO"/>
-                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2320:CaptchaInfoBean"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="claims" nillable="true" type="ax2366:UserIdentityClaimDTO"/>
+                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2365:CaptchaInfoBean"/>
                         <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
@@ -242,7 +222,7 @@
             <xs:element name="verifyAccountResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -251,8 +231,7 @@
                     <xs:sequence>
                         <xs:element minOccurs="0" name="userName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="password" nillable="true" type="xs:string"/>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="claims" nillable="true"
-                                    type="ax2321:UserIdentityClaimDTO"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="claims" nillable="true" type="ax2366:UserIdentityClaimDTO"/>
                         <xs:element minOccurs="0" name="profileName" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                     </xs:sequence>
@@ -261,7 +240,7 @@
             <xs:element name="registerUserResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -278,7 +257,7 @@
             <xs:element name="resendSignUpConfiramtionCodeResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -287,7 +266,7 @@
                     <xs:sequence>
                         <xs:element minOccurs="0" name="username" nillable="true" type="xs:string"/>
                         <xs:element minOccurs="0" name="code" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2320:CaptchaInfoBean"/>
+                        <xs:element minOccurs="0" name="captcha" nillable="true" type="ax2365:CaptchaInfoBean"/>
                         <xs:element minOccurs="0" name="tenantDomain" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
@@ -295,22 +274,13 @@
             <xs:element name="confirmUserSelfRegistrationResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2313:VerificationBean"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2358:VerificationBean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
         </xs:schema>
-        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
-                   targetNamespace="http://util.java/xsd">
-            <xs:complexType abstract="true" name="Map">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="empty" type="xs:boolean"/>
-                </xs:sequence>
-            </xs:complexType>
-        </xs:schema>
-        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
-                   targetNamespace="http://dto.mgt.identity.carbon.wso2.org/xsd">
-            <xs:import namespace="http://util.java/xsd"/>
+        <xs:schema xmlns:ax2361="http://mail.mgt.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.mgt.identity.carbon.wso2.org/xsd">
+            <xs:import namespace="http://mail.mgt.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="NotificationDataDTO">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="domainName" nillable="true" type="xs:string"/>
@@ -321,24 +291,15 @@
                     <xs:element minOccurs="0" name="notificationSent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="notificationSubject" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="notificationType" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="transportHeaders" nillable="true" type="ax2315:Map"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="transportHeaders" nillable="true" type="ax2361:TransportHeader"/>
                     <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="ChallengeQuestionDTO">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="order" type="xs:int"/>
-                    <xs:element minOccurs="0" name="promoteQuestion" type="xs:boolean"/>
-                    <xs:element minOccurs="0" name="question" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="questionSetId" nillable="true" type="xs:string"/>
-                </xs:sequence>
-            </xs:complexType>
-            <xs:complexType name="UserChallengesCollectionDTO">
+            <xs:complexType name="ChallengeQuestionIdsDTO">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="error" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="ids" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="key" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="userChallengesDTOs" nillable="true"
-                                type="ax2314:UserChallengesDTO"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="UserChallengesDTO">
@@ -353,11 +314,19 @@
                     <xs:element minOccurs="0" name="verfied" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
-            <xs:complexType name="ChallengeQuestionIdsDTO">
+            <xs:complexType name="UserChallengesCollectionDTO">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="error" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="ids" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="key" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="userChallengesDTOs" nillable="true" type="ax2359:UserChallengesDTO"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ChallengeQuestionDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="order" type="xs:int"/>
+                    <xs:element minOccurs="0" name="promoteQuestion" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="question" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="questionSetId" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="UserIdentityClaimDTO">
@@ -369,56 +338,59 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema attributeFormDefault="qualified"
-                   elementFormDefault="qualified" targetNamespace="http://beans.mgt.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2362="http://dto.mgt.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://beans.mgt.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://dto.mgt.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="VerificationBean">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="error" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="key" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="notificationData" nillable="true"
-                                type="ax2314:NotificationDataDTO"/>
+                    <xs:element minOccurs="0" name="notificationData" nillable="true" type="ax2359:NotificationDataDTO"/>
                     <xs:element minOccurs="0" name="redirectPath" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="verified" type="xs:boolean"/>
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified"
-                   targetNamespace="http://base.identity.carbon.wso2.org/xsd">
-            <xs:complexType name="IdentityException">
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mail.mgt.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="TransportHeader">
                 <xs:sequence>
-                    <xs:element minOccurs="0" name="code" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="errorInfoList" nillable="true" type="xs:anyType"/>
+                    <xs:element minOccurs="0" name="headerName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="headerValue" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema attributeFormDefault="qualified"
-                   elementFormDefault="qualified" targetNamespace="http://mgt.identity.carbon.wso2.org/xsd">
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityException">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="errorCode" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ax2356="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="IdentityMgtServiceException">
                 <xs:complexContent>
-                    <xs:extension base="ax2310:IdentityException">
+                    <xs:extension base="ax2356:IdentityException">
                         <xs:sequence/>
                     </xs:extension>
                 </xs:complexContent>
             </xs:complexType>
         </xs:schema>
     </wsdl:types>
-    <wsdl:message name="sendRecoveryNotificationRequest">
-        <wsdl:part name="parameters" element="ns:sendRecoveryNotification"/>
-    </wsdl:message>
-    <wsdl:message name="sendRecoveryNotificationResponse">
-        <wsdl:part name="parameters" element="ns:sendRecoveryNotificationResponse"/>
-    </wsdl:message>
-    <wsdl:message name="UserInformationRecoveryServiceIdentityMgtServiceException">
-        <wsdl:part name="parameters" element="ns:UserInformationRecoveryServiceIdentityMgtServiceException"/>
-    </wsdl:message>
     <wsdl:message name="getAllChallengeQuestionsRequest">
         <wsdl:part name="parameters" element="ns:getAllChallengeQuestions"/>
     </wsdl:message>
     <wsdl:message name="getAllChallengeQuestionsResponse">
         <wsdl:part name="parameters" element="ns:getAllChallengeQuestionsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UserInformationRecoveryServiceIdentityMgtServiceException">
+        <wsdl:part name="parameters" element="ns:UserInformationRecoveryServiceIdentityMgtServiceException"/>
+    </wsdl:message>
+    <wsdl:message name="sendRecoveryNotificationRequest">
+        <wsdl:part name="parameters" element="ns:sendRecoveryNotification"/>
+    </wsdl:message>
+    <wsdl:message name="sendRecoveryNotificationResponse">
+        <wsdl:part name="parameters" element="ns:sendRecoveryNotificationResponse"/>
     </wsdl:message>
     <wsdl:message name="getCaptchaRequest">
         <wsdl:part name="parameters" element="ns:getCaptcha"/>
@@ -508,135 +480,91 @@
         <wsdl:part name="parameters" element="ns:verifyUserResponse"/>
     </wsdl:message>
     <wsdl:portType name="UserInformationRecoveryServicePortType">
-        <wsdl:operation name="sendRecoveryNotification">
-            <wsdl:input message="ns:sendRecoveryNotificationRequest" wsaw:Action="urn:sendRecoveryNotification"/>
-            <wsdl:output message="ns:sendRecoveryNotificationResponse"
-                         wsaw:Action="urn:sendRecoveryNotificationResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:sendRecoveryNotificationUserInformationRecoveryServiceIdentityMgtServiceException"/>
-        </wsdl:operation>
         <wsdl:operation name="getAllChallengeQuestions">
             <wsdl:input message="ns:getAllChallengeQuestionsRequest" wsaw:Action="urn:getAllChallengeQuestions"/>
-            <wsdl:output message="ns:getAllChallengeQuestionsResponse"
-                         wsaw:Action="urn:getAllChallengeQuestionsResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:getAllChallengeQuestionsUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:output message="ns:getAllChallengeQuestionsResponse" wsaw:Action="urn:getAllChallengeQuestionsResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:getAllChallengeQuestionsUserInformationRecoveryServiceIdentityMgtServiceException"/>
+        </wsdl:operation>
+        <wsdl:operation name="sendRecoveryNotification">
+            <wsdl:input message="ns:sendRecoveryNotificationRequest" wsaw:Action="urn:sendRecoveryNotification"/>
+            <wsdl:output message="ns:sendRecoveryNotificationResponse" wsaw:Action="urn:sendRecoveryNotificationResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:sendRecoveryNotificationUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="getCaptcha">
             <wsdl:input message="ns:getCaptchaRequest" wsaw:Action="urn:getCaptcha"/>
             <wsdl:output message="ns:getCaptchaResponse" wsaw:Action="urn:getCaptchaResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:getCaptchaUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:getCaptchaUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="verifyConfirmationCode">
             <wsdl:input message="ns:verifyConfirmationCodeRequest" wsaw:Action="urn:verifyConfirmationCode"/>
             <wsdl:output message="ns:verifyConfirmationCodeResponse" wsaw:Action="urn:verifyConfirmationCodeResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:verifyConfirmationCodeUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:verifyConfirmationCodeUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="getUserChallengeQuestionIds">
             <wsdl:input message="ns:getUserChallengeQuestionIdsRequest" wsaw:Action="urn:getUserChallengeQuestionIds"/>
-            <wsdl:output message="ns:getUserChallengeQuestionIdsResponse"
-                         wsaw:Action="urn:getUserChallengeQuestionIdsResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:getUserChallengeQuestionIdsUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:output message="ns:getUserChallengeQuestionIdsResponse" wsaw:Action="urn:getUserChallengeQuestionIdsResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:getUserChallengeQuestionIdsUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="getUserChallengeQuestion">
             <wsdl:input message="ns:getUserChallengeQuestionRequest" wsaw:Action="urn:getUserChallengeQuestion"/>
-            <wsdl:output message="ns:getUserChallengeQuestionResponse"
-                         wsaw:Action="urn:getUserChallengeQuestionResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:getUserChallengeQuestionUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:output message="ns:getUserChallengeQuestionResponse" wsaw:Action="urn:getUserChallengeQuestionResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:getUserChallengeQuestionUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="confirmUserSelfRegistration">
             <wsdl:input message="ns:confirmUserSelfRegistrationRequest" wsaw:Action="urn:confirmUserSelfRegistration"/>
-            <wsdl:output message="ns:confirmUserSelfRegistrationResponse"
-                         wsaw:Action="urn:confirmUserSelfRegistrationResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:confirmUserSelfRegistrationUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:output message="ns:confirmUserSelfRegistrationResponse" wsaw:Action="urn:confirmUserSelfRegistrationResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:confirmUserSelfRegistrationUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="verifyUserChallengeAnswer">
             <wsdl:input message="ns:verifyUserChallengeAnswerRequest" wsaw:Action="urn:verifyUserChallengeAnswer"/>
-            <wsdl:output message="ns:verifyUserChallengeAnswerResponse"
-                         wsaw:Action="urn:verifyUserChallengeAnswerResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:verifyUserChallengeAnswerUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:output message="ns:verifyUserChallengeAnswerResponse" wsaw:Action="urn:verifyUserChallengeAnswerResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:verifyUserChallengeAnswerUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="resendSignUpConfiramtionCode">
-            <wsdl:input message="ns:resendSignUpConfiramtionCodeRequest"
-                        wsaw:Action="urn:resendSignUpConfiramtionCode"/>
-            <wsdl:output message="ns:resendSignUpConfiramtionCodeResponse"
-                         wsaw:Action="urn:resendSignUpConfiramtionCodeResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:resendSignUpConfiramtionCodeUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:input message="ns:resendSignUpConfiramtionCodeRequest" wsaw:Action="urn:resendSignUpConfiramtionCode"/>
+            <wsdl:output message="ns:resendSignUpConfiramtionCodeResponse" wsaw:Action="urn:resendSignUpConfiramtionCodeResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:resendSignUpConfiramtionCodeUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="getUserChallengeQuestions">
             <wsdl:input message="ns:getUserChallengeQuestionsRequest" wsaw:Action="urn:getUserChallengeQuestions"/>
-            <wsdl:output message="ns:getUserChallengeQuestionsResponse"
-                         wsaw:Action="urn:getUserChallengeQuestionsResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:getUserChallengeQuestionsUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:output message="ns:getUserChallengeQuestionsResponse" wsaw:Action="urn:getUserChallengeQuestionsResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:getUserChallengeQuestionsUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="verifyUserChallengeAnswers">
             <wsdl:input message="ns:verifyUserChallengeAnswersRequest" wsaw:Action="urn:verifyUserChallengeAnswers"/>
-            <wsdl:output message="ns:verifyUserChallengeAnswersResponse"
-                         wsaw:Action="urn:verifyUserChallengeAnswersResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:verifyUserChallengeAnswersUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:output message="ns:verifyUserChallengeAnswersResponse" wsaw:Action="urn:verifyUserChallengeAnswersResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:verifyUserChallengeAnswersUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="updatePassword">
             <wsdl:input message="ns:updatePasswordRequest" wsaw:Action="urn:updatePassword"/>
             <wsdl:output message="ns:updatePasswordResponse" wsaw:Action="urn:updatePasswordResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:updatePasswordUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:updatePasswordUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="registerUser">
             <wsdl:input message="ns:registerUserRequest" wsaw:Action="urn:registerUser"/>
             <wsdl:output message="ns:registerUserResponse" wsaw:Action="urn:registerUserResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:registerUserUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:registerUserUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="getUserIdentitySupportedClaims">
-            <wsdl:input message="ns:getUserIdentitySupportedClaimsRequest"
-                        wsaw:Action="urn:getUserIdentitySupportedClaims"/>
-            <wsdl:output message="ns:getUserIdentitySupportedClaimsResponse"
-                         wsaw:Action="urn:getUserIdentitySupportedClaimsResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityException"
-                        name="UserInformationRecoveryServiceIdentityException"
-                        wsaw:Action="urn:getUserIdentitySupportedClaimsUserInformationRecoveryServiceIdentityException"/>
+            <wsdl:input message="ns:getUserIdentitySupportedClaimsRequest" wsaw:Action="urn:getUserIdentitySupportedClaims"/>
+            <wsdl:output message="ns:getUserIdentitySupportedClaimsResponse" wsaw:Action="urn:getUserIdentitySupportedClaimsResponse"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityException" name="UserInformationRecoveryServiceIdentityException" wsaw:Action="urn:getUserIdentitySupportedClaimsUserInformationRecoveryServiceIdentityException"/>
         </wsdl:operation>
         <wsdl:operation name="verifyAccount">
             <wsdl:input message="ns:verifyAccountRequest" wsaw:Action="urn:verifyAccount"/>
             <wsdl:output message="ns:verifyAccountResponse" wsaw:Action="urn:verifyAccountResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:verifyAccountUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:verifyAccountUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
         <wsdl:operation name="verifyUser">
             <wsdl:input message="ns:verifyUserRequest" wsaw:Action="urn:verifyUser"/>
             <wsdl:output message="ns:verifyUserResponse" wsaw:Action="urn:verifyUserResponse"/>
-            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException"
-                        name="UserInformationRecoveryServiceIdentityMgtServiceException"
-                        wsaw:Action="urn:verifyUserUserInformationRecoveryServiceIdentityMgtServiceException"/>
+            <wsdl:fault message="ns:UserInformationRecoveryServiceIdentityMgtServiceException" name="UserInformationRecoveryServiceIdentityMgtServiceException" wsaw:Action="urn:verifyUserUserInformationRecoveryServiceIdentityMgtServiceException"/>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="UserInformationRecoveryServiceSoap11Binding" type="ns:UserInformationRecoveryServicePortType">
         <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
-        <wsdl:operation name="getAllChallengeQuestions">
-            <soap:operation soapAction="urn:getAllChallengeQuestions" style="document"/>
+        <wsdl:operation name="sendRecoveryNotification">
+            <soap:operation soapAction="urn:sendRecoveryNotification" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -647,8 +575,8 @@
                 <soap:fault use="literal" name="UserInformationRecoveryServiceIdentityMgtServiceException"/>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="sendRecoveryNotification">
-            <soap:operation soapAction="urn:sendRecoveryNotification" style="document"/>
+        <wsdl:operation name="getAllChallengeQuestions">
+            <soap:operation soapAction="urn:getAllChallengeQuestions" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -830,8 +758,8 @@
     </wsdl:binding>
     <wsdl:binding name="UserInformationRecoveryServiceSoap12Binding" type="ns:UserInformationRecoveryServicePortType">
         <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
-        <wsdl:operation name="getAllChallengeQuestions">
-            <soap12:operation soapAction="urn:getAllChallengeQuestions" style="document"/>
+        <wsdl:operation name="sendRecoveryNotification">
+            <soap12:operation soapAction="urn:sendRecoveryNotification" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
@@ -842,8 +770,8 @@
                 <soap12:fault use="literal" name="UserInformationRecoveryServiceIdentityMgtServiceException"/>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="sendRecoveryNotification">
-            <soap12:operation soapAction="urn:sendRecoveryNotification" style="document"/>
+        <wsdl:operation name="getAllChallengeQuestions">
+            <soap12:operation soapAction="urn:getAllChallengeQuestions" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
@@ -1025,8 +953,8 @@
     </wsdl:binding>
     <wsdl:binding name="UserInformationRecoveryServiceHttpBinding" type="ns:UserInformationRecoveryServicePortType">
         <http:binding verb="POST"/>
-        <wsdl:operation name="getAllChallengeQuestions">
-            <http:operation location="getAllChallengeQuestions"/>
+        <wsdl:operation name="sendRecoveryNotification">
+            <http:operation location="sendRecoveryNotification"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
@@ -1034,8 +962,8 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="sendRecoveryNotification">
-            <http:operation location="sendRecoveryNotification"/>
+        <wsdl:operation name="getAllChallengeQuestions">
+            <http:operation location="getAllChallengeQuestions"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
@@ -1171,20 +1099,14 @@
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="UserInformationRecoveryService">
-        <wsdl:port name="UserInformationRecoveryServiceHttpsSoap11Endpoint"
-                   binding="ns:UserInformationRecoveryServiceSoap11Binding">
-            <soap:address
-                    location="https://localhost:9443/services/UserInformationRecoveryService.UserInformationRecoveryServiceHttpsSoap11Endpoint/"/>
+        <wsdl:port name="UserInformationRecoveryServiceHttpsSoap11Endpoint" binding="ns:UserInformationRecoveryServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/UserInformationRecoveryService.UserInformationRecoveryServiceHttpsSoap11Endpoint/"/>
         </wsdl:port>
-        <wsdl:port name="UserInformationRecoveryServiceHttpsSoap12Endpoint"
-                   binding="ns:UserInformationRecoveryServiceSoap12Binding">
-            <soap12:address
-                    location="https://localhost:9443/services/UserInformationRecoveryService.UserInformationRecoveryServiceHttpsSoap12Endpoint/"/>
+        <wsdl:port name="UserInformationRecoveryServiceHttpsSoap12Endpoint" binding="ns:UserInformationRecoveryServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/UserInformationRecoveryService.UserInformationRecoveryServiceHttpsSoap12Endpoint/"/>
         </wsdl:port>
-        <wsdl:port name="UserInformationRecoveryServiceHttpsEndpoint"
-                   binding="ns:UserInformationRecoveryServiceHttpBinding">
-            <http:address
-                    location="https://localhost:9443/services/UserInformationRecoveryService.UserInformationRecoveryServiceHttpsEndpoint/"/>
+        <wsdl:port name="UserInformationRecoveryServiceHttpsEndpoint" binding="ns:UserInformationRecoveryServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/UserInformationRecoveryService.UserInformationRecoveryServiceHttpsEndpoint/"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>
