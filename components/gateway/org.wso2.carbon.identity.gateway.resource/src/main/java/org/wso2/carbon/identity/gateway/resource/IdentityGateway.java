@@ -19,18 +19,16 @@ package org.wso2.carbon.identity.gateway.resource;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.framework.FrameworkConstants;
-import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
+import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import org.wso2.carbon.identity.gateway.resource.util.GatewayUtil;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
 
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -59,14 +57,12 @@ public class IdentityGateway implements Microservice {
      * Entry point for all initial Identity Request coming into the Gateway.
      *
      * @param request
-     * @param requestBody
      * @return
      */
     @POST
     @Path("/")
-    public Response process(@Context Request request, String requestBody) {
+    public Response processPost(@Context Request request) {
 
-        request.setProperty("body", requestBody);
         try {
             return processRequest(request);
         } catch (FrameworkException ex) {
@@ -78,31 +74,21 @@ public class IdentityGateway implements Microservice {
 
     @GET
     @Path("/")
-    public Response process(@Context Request request) {
+    public Response processGet(@Context Request request) {
 
-        return process(request, null);
+        return processPost(request);
     }
-
 
     /**
      * Entry point for all subsequent requests/callbacks coming into the gateway after redirection/federation etc.
      *
      * @param request
-     * @param username
-     * @param password
-     * @param state
      * @return
      */
     @POST
     @Path("callback")
-    public Response callback(@Context Request request,
-                             @FormParam("username") String username,
-                             @FormParam("password") String password,
-                             @FormParam("state") String state) {
+    public Response callback(@Context Request request) {
 
-        request.setProperty("username", username);
-        request.setProperty("password", password);
-        request.setProperty(FrameworkConstants.SESSION_DATA_KEY, state);
         try {
             return processRequest(request);
         } catch (FrameworkException ex) {

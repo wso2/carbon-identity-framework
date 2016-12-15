@@ -18,38 +18,45 @@ package org.wso2.carbon.identity.gateway;
 
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 
-public class GatewayHandlerIdentifier implements HandlerIdentifier{
+public class GatewayHandlerIdentifier implements HandlerIdentifier {
 
-    private String spName ;
-    private String configName ;
-    private String handlerName ;
+    private String spName;
+    private String configName;
+    private String handlerName;
 
     public String getSpName() {
+
         return spName;
     }
 
     public void setSpName(String spName) {
+
         this.spName = spName;
     }
 
     public String getConfigName() {
+
         return configName;
     }
 
     public void setConfigName(String configName) {
+
         this.configName = configName;
     }
 
     public String getHandlerName() {
+
         return handlerName;
     }
 
     public void setHandlerName(String handlerName) {
+
         this.handlerName = handlerName;
     }
 
     @Override
     public boolean equals(Object o) {
+
         if (this == o) {
             return true;
         }
@@ -73,6 +80,7 @@ public class GatewayHandlerIdentifier implements HandlerIdentifier{
 
     @Override
     public int hashCode() {
+
         int result = super.hashCode();
         result = 31 * result + spName.hashCode();
         result = 31 * result + configName.hashCode();

@@ -45,7 +45,7 @@ public class ServiceComponent {
         bundleContext.registerService(IdentityProcessor.class, new CallbackProcessor(), null);
 
         // registering callback handlers
-        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(), null);
+        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(null), null);
 
         logger.info("Service Component is activated");
     }

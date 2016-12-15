@@ -1,5 +1,6 @@
 package org.wso2.carbon.identity.gateway.internal;
 
+import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 
 import java.util.ArrayList;

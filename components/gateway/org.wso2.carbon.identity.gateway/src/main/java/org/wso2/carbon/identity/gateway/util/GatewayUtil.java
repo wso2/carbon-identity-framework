@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.gateway.util;
 
+import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.AbstractMap.SimpleEntry;
@@ -25,32 +27,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class FrameworkUtil {
-
-    public static int comparePriory(int priority1, int priority2) {
-
-        if (priority1 > priority2) {
-            return 1;
-        } else if (priority1 < priority2) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
+public class GatewayUtil {
 
 
-    public static MessageContext mergeContext(MessageContext newContext,
-                                              MessageContext oldContext) {
+    public static GatewayMessageContext mergeContext(GatewayMessageContext newContext,
+                                                     GatewayMessageContext oldContext) {
 
         // Copy the data from old context
         newContext.setSessionDataKey(oldContext.getSessionDataKey());
         newContext.setInitialIdentityRequest(oldContext.getInitialIdentityRequest());
-        newContext.setIdentityResponse(oldContext.getIdentityResponse());
         newContext.addParameters(oldContext.getParameters());
 
         // restore current state from the old context.
         newContext.setCurrentHandler(oldContext.getCurrentHandler());
-        newContext.setCurrentHandlerStatus(oldContext.getCurrentHandlerStatus());
+        newContext.setHandlerResponseStatus(oldContext.getHandlerResponseStatus());
 
         return newContext;
     }
@@ -77,7 +67,7 @@ public class FrameworkUtil {
         if (Optional.ofNullable(queryString).isPresent()) {
             Map<String, String> queryMap = new HashMap<>();
             Arrays.stream(queryString.split("&"))
-                    .map(FrameworkUtil::splitQueryParameter)
+                    .map(GatewayUtil::splitQueryParameter)
                     .filter(x -> x.getKey() != null && x.getValue() != null)
                     .forEach(x -> queryMap.put(x.getKey(), x.getValue()));
 

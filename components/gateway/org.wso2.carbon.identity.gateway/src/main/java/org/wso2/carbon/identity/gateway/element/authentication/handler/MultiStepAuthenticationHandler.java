@@ -16,12 +16,12 @@
 
 package org.wso2.carbon.identity.gateway.element.authentication.handler;
 
-import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
+import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +29,13 @@ import java.util.List;
 /**
  * This authenticator provides the ability to do multi option authentication in a step.
  */
-public class MultiStepAuthenticationHandler extends AbstractHandler {
+public class MultiStepAuthenticationHandler extends AbstractHandler<HandlerIdentifier, HandlerConfig,
+        AbstractHandler, GatewayMessageContext> {
 
     private List<AbstractHandler> abstractHandlers = new ArrayList<>();
 
     public MultiStepAuthenticationHandler(HandlerIdentifier handlerIdentifier) {
+
         super(handlerIdentifier);
     }
 
@@ -45,7 +47,7 @@ public class MultiStepAuthenticationHandler extends AbstractHandler {
 
 
     @Override
-    public HandlerResponseStatus handle(MessageContext messageContext) throws HandlerException {
+    public HandlerResponseStatus handle(GatewayMessageContext messageContext) throws HandlerException {
 
         for (AbstractHandler abstractHandler : abstractHandlers) {
             if (abstractHandler.canHandle(messageContext)) {
@@ -57,7 +59,7 @@ public class MultiStepAuthenticationHandler extends AbstractHandler {
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext) {
+    public boolean canHandle(GatewayMessageContext messageContext) {
 
         return true;
     }

@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkConstants;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
@@ -30,8 +29,9 @@ import org.wso2.carbon.identity.framework.message.IdentityResponse;
 import org.wso2.carbon.identity.framework.model.User;
 import org.wso2.carbon.identity.framework.model.UserClaim;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.element.authentication.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.element.authentication.Authenticator;
+import org.wso2.carbon.identity.gateway.element.authentication.LocalAuthenticator;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -44,9 +44,8 @@ import javax.ws.rs.core.HttpHeaders;
 /**
  * Basic(Username, Password) authentication handler.
  */
-public class BasicAuthenticationHandler<T1 extends HandlerIdentifier,
-        T2 extends HandlerConfig, T3 extends AbstractHandler, T4 extends GatewayMessageContext>
-        extends AbstractHandler<T1,T2,T3,T4> implements Authenticator {
+public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends HandlerConfig>
+        extends AbstractGatewayHandler<T1, T2> implements LocalAuthenticator {
 
     private Logger logger = LoggerFactory.getLogger(BasicAuthenticationHandler.class);
 
@@ -63,8 +62,10 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier,
     private Map<String, UserClaim> claimMap = new HashMap<>();
 
     public BasicAuthenticationHandler(T1 handlerIdentifier) {
+
         super(handlerIdentifier);
 
+        uniqueIdentifier = UUID.randomUUID().toString();
         isUserAuthenticated = false;
         authenticatedUser = null;
         claimMap = new HashMap<>();
@@ -73,11 +74,12 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier,
 
     @Override
     public T2 getConfiguration(T1 handlerIdentifier) {
+
         return null;
     }
 
     @Override
-    public HandlerResponseStatus handle(T4 context) throws HandlerException{
+    public HandlerResponseStatus handle(GatewayMessageContext context) throws HandlerException {
 
         String sessionID = context.getSessionDataKey();
         if (StringUtils.isNotBlank(sessionID)) {
@@ -85,22 +87,29 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier,
             if (isCallback(context)) {
                 // this is a callback request so we try to authenticate the user.
                 Map<String, Object> properties = context.getCurrentIdentityRequest().getProperties();
-                return handleAuthentication(
-                        String.valueOf(properties.get(USERNAME)),
-                        String.valueOf(properties.get(PASSWORD)),
-                        (Map<String, Object>) context.getParameter(sessionID)
+
+                String username = String.valueOf(properties.get(USERNAME));
+                String password = String.valueOf(properties.get(PASSWORD));
+
+                boolean authenticated = authenticate(
+                        username,
+                        password,
+                        (Map<String, Object>) context.getParameter(sessionID) // authentication context map.
                 );
 
+                if (authenticated) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("User '" + username + "' authenticated successfully.");
+                    }
+                    return HandlerResponseStatus.CONTINUE;
+                } else {
+                    logger.error("Authentication failed for user : " + username);
+                    return redirectToLoginPage(context, sessionID);
+                }
 
             } else {
-                // This is an initial request to the Basic Auth Handler, so redirect to login page.
-                IdentityResponse response = context.getIdentityResponse();
 
-                // build the authentication endpoint url
-                String redirectUrl = buildAuthenticationEndpointURL(AUTH_ENDPOINT, sessionID, CALLBACK);
-                response.setStatusCode(302);
-                response.addHeader(HttpHeaders.LOCATION, redirectUrl);
-
+                redirectToLoginPage(context, sessionID);
                 context.setHandlerResponseStatus(HandlerResponseStatus.SUSPEND);
                 return HandlerResponseStatus.SUSPEND;
             }
@@ -129,9 +138,28 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier,
         return url;
     }
 
-    private HandlerResponseStatus handleAuthentication(String username,
-                                                       String password,
-                                                       Map<String, Object> authContextMap) throws AuthenticationHandlerException{
+
+    private HandlerResponseStatus redirectToLoginPage(GatewayMessageContext context, String sessionID) {
+        // This is an initial request to the Basic Auth Handler, so redirect to login page.
+        IdentityResponse response = context.getIdentityResponse();
+
+        // build the authentication endpoint url
+        String redirectUrl = buildAuthenticationEndpointURL(AUTH_ENDPOINT, sessionID, CALLBACK);
+        response.setStatusCode(302);
+        response.addHeader(HttpHeaders.LOCATION, redirectUrl);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Redirecting user to the authentication endpoint");
+        }
+
+        context.setHandlerResponseStatus(HandlerResponseStatus.SUSPEND);
+        return HandlerResponseStatus.SUSPEND;
+    }
+
+
+    private boolean authenticate(String username,
+                                 String password,
+                                 Map<String, Object> authContextMap) {
 
         if ("admin".equalsIgnoreCase(username) && "admin".equalsIgnoreCase(password)) {
             // authenticated, lets set the subject and claims
@@ -143,11 +171,11 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier,
             authContextMap.put("claims", claimMap);
 
             isUserAuthenticated = true;
-            return HandlerResponseStatus.CONTINUE;
         } else {
-            throw new AuthenticationHandlerException("Session Context Information Not Available.");
+            isUserAuthenticated = false;
         }
 
+        return isUserAuthenticated;
     }
 
     @Override
@@ -168,8 +196,7 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier,
         return uniqueIdentifier;
     }
 
-
-
+    @Override
     public boolean isCallback(GatewayMessageContext context) {
 
         Map<String, Object> properties = context.getCurrentIdentityRequest().getProperties();

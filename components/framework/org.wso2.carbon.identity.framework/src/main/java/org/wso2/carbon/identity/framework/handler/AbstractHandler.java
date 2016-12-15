@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.framework.handler;
 
 
-import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.framework.context.MessageContext;
 
 import static org.wso2.carbon.identity.framework.handler.HandlerResponseStatus.CONTINUE;
 
@@ -32,28 +32,34 @@ public abstract class AbstractHandler<T1 extends HandlerIdentifier,
     private T3 previousHandler = null;
 
     public AbstractHandler(T1 handlerIdentifier, T3 nextHandler) {
+
         this.handlerIdentifier = handlerIdentifier;
         this.nextHandler = nextHandler;
         this.setPreviousHandler((T3) this);
     }
 
     public AbstractHandler(T1 handlerIdentifier) {
+
         this.handlerIdentifier = handlerIdentifier;
     }
 
     public T3 getNextHandler() {
+
         return nextHandler;
     }
 
     public void setNextHandler(T3 nextHandler) {
+
         this.nextHandler = nextHandler;
     }
 
     public T3 getPreviousHandler() {
+
         return previousHandler;
     }
 
     public void setPreviousHandler(T3 previousHandler) {
+
         this.previousHandler = previousHandler;
     }
 
@@ -68,12 +74,16 @@ public abstract class AbstractHandler<T1 extends HandlerIdentifier,
 
     @Override
     public T2 getConfiguration(T1 handlerIdentifier) {
+
         return null;
     }
 
     public abstract HandlerResponseStatus handle(T4 messageContext) throws HandlerException;
 
     public boolean canHandle(T4 messageContext) throws HandlerException {
+
         return true;
-    };
+    }
+
+    ;
 }

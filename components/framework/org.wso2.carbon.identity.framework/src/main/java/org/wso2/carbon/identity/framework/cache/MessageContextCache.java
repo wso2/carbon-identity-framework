@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.framework.cache;
 
 import org.wso2.carbon.identity.common.base.cache.AbstractCacheEntryListener;
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
+import org.wso2.carbon.identity.framework.context.MessageContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,58 +26,60 @@ import java.util.Map;
 /**
  * Cache to hold {@link MessageContext} instances for correlation purposes.
  */
-public class IdentityMessageContextCache extends BaseCache<String, MessageContext> {
+public class MessageContextCache<T1 extends MessageContext> extends BaseCache<String, T1> {
 
     private Map<String, MessageContext> cache = new HashMap<>();
-    private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
-    private static IdentityMessageContextCache instance = new IdentityMessageContextCache
-            (IDENTITY_MESSAGE_CONTEXT_CACHE);
 
-    private IdentityMessageContextCache(String cacheName) {
+    protected MessageContextCache(String cacheName) {
+
         super(cacheName);
     }
 
-    public static IdentityMessageContextCache getInstance() {
-        return instance;
-    }
-
     @Override
-    public void put(String key, MessageContext entry) {
+    public void put(String key, T1 entry) {
+
         cache.put(key, entry);
     }
 
     @Override
-    public MessageContext get(String key) {
-        return cache.get(key);
+    public T1 get(String key) {
+
+        return (T1) cache.get(key);
     }
 
     @Override
     public void clear(String key) {
+
         cache.remove(key);
     }
 
     @Override
     public void clear() {
+
         cache.clear();
     }
 
     @Override
     public void addListener(AbstractCacheEntryListener listener) {
+
         super.addListener(listener);
     }
 
     @Override
     public boolean isEnabled() {
+
         return true;
     }
 
     @Override
     public int getCacheTimeout() {
+
         return 100000000;
     }
 
     @Override
     public int getCapacity() {
+
         return cache.size();
     }
 }

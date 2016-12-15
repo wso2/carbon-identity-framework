@@ -19,16 +19,19 @@ package org.wso2.carbon.identity.gateway.processor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.framework.IdentityProcessor;
-import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.framework.FrameworkException;
+import org.wso2.carbon.identity.framework.IdentityProcessor;
+import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.message.IdentityRequest;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
-import org.wso2.carbon.identity.gateway.element.authentication.handler.MultiStepAuthenticationHandler;
+import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
+import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.authentication.handler.BasicAuthenticationHandler;
+import org.wso2.carbon.identity.gateway.element.authentication.handler.MultiStepAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.element.response.SAMLResponseHandler;
-import org.wso2.carbon.identity.gateway.handler.util.SessionDataCleanupHandler;
 import org.wso2.carbon.identity.gateway.element.validation.SAMLValidationHandler;
+import org.wso2.carbon.identity.gateway.element.SessionDataCleanupHandler;
 
 import java.util.HashMap;
 
@@ -49,7 +52,7 @@ public class InitRequestProcessor extends IdentityProcessor {
         }
 
         // Build the message context
-        MessageContext context = new MessageContext(identityRequest, new IdentityResponse());
+        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new IdentityResponse());
         context.setInitialIdentityRequest(identityRequest);
 
         // Create a sessionDataKey and add it to the message context
@@ -64,13 +67,15 @@ public class InitRequestProcessor extends IdentityProcessor {
         /*
             Handler Chain Begin
         */
-        SAMLValidationHandler samlValidationHandler = new SAMLValidationHandler();
+        HandlerIdentifier identifier = new GatewayHandlerIdentifier();
 
-        MultiStepAuthenticationHandler multiStepAuthenticationHandler = new MultiStepAuthenticationHandler();
-        BasicAuthenticationHandler basicAuthenticationHandler = new BasicAuthenticationHandler();
+        SAMLValidationHandler samlValidationHandler = new SAMLValidationHandler(identifier);
 
-        SAMLResponseHandler samlResponseHandler = new SAMLResponseHandler();
-        SessionDataCleanupHandler cleanupHandler = new SessionDataCleanupHandler();
+        MultiStepAuthenticationHandler multiStepAuthenticationHandler = new MultiStepAuthenticationHandler(identifier);
+        BasicAuthenticationHandler basicAuthenticationHandler = new BasicAuthenticationHandler(identifier);
+
+        SAMLResponseHandler samlResponseHandler = new SAMLResponseHandler(identifier);
+        SessionDataCleanupHandler cleanupHandler = new SessionDataCleanupHandler(identifier);
 
         samlValidationHandler.setNextHandler(multiStepAuthenticationHandler);
         multiStepAuthenticationHandler.addIdentityGatewayEventHandler(basicAuthenticationHandler);

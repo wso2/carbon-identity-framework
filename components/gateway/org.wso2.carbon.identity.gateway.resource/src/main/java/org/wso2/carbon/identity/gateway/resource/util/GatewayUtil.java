@@ -24,6 +24,10 @@ import org.wso2.carbon.identity.gateway.resource.MSF4JIdentityRequestBuilderFact
 import org.wso2.carbon.identity.gateway.resource.MSF4JResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.resource.internal.DataHolder;
 import org.wso2.msf4j.Request;
+import org.wso2.msf4j.util.BufferUtil;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 /**
  * Utility class used by {@link org.wso2.carbon.identity.gateway.resource.IdentityGateway}
@@ -104,8 +108,8 @@ public class GatewayUtil {
      * @return the body of the request as a String.
      */
     public static String readRequestBody(Request request) {
-        // TODO : we should read from the request, had a problem with thread getting stuck when reading the body so
-        // used this workaround for now
-        return String.valueOf(request.getProperty("body"));
+
+        ByteBuffer merge = BufferUtil.merge(request.getFullMessageBody());
+        return Charset.defaultCharset().decode(merge).toString();
     }
 }

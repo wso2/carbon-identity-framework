@@ -21,8 +21,6 @@ import org.wso2.carbon.identity.framework.message.IdentityResponse;
 
 import java.util.Properties;
 
-import static org.wso2.carbon.identity.framework.response.IdentityResponse.IdentityResponseBuilder;
-
 public abstract class IdentityProcessor {
 
     protected Properties properties = new Properties();
@@ -73,59 +71,59 @@ public abstract class IdentityProcessor {
      * @return can/not handle
      */
     public abstract boolean canHandle(IdentityRequest identityRequest);
-
-    /**
-     * Get IdentityResponseBuilder for framework login
-     *
-     * @param context MessageContext
-     * @return IdentityResponseBuilder
-     */
-    protected IdentityResponseBuilder buildResponseForFrameworkLogin(MessageContext context) {
-/*
-        String sessionDataKey = UUIDGenerator.generateUUID();
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        IdentityRequest currentIdentityRequest = context.getRequest();
-
-        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
-
-        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
-        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
-
-        authenticationRequest.appendRequestQueryParams(parameterMap);
-
-        for (Object entry : currentIdentityRequest.getHeaderMap().keySet()) {
-            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
-                    ((Map.Entry<String, String>)entry).getValue());
-        }
-
-        authenticationRequest.setRelyingParty(getRelyingPartyId());
-        authenticationRequest.setType(getName());
-        authenticationRequest.setPassiveAuth((Boolean)context.getParameter(InboundConstants.PASSIVE_AUTH));
-        authenticationRequest.setForceAuth((Boolean) context.getParameter(InboundConstants.FORCE_AUTH));
-        try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
-                    getCallbackPath(context), e);
-        }
-
-        AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
-        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
-
-        IdentityGatewayUtil.addContextToCache(sessionDataKey, context);
-
-        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
-                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
-        responseBuilder.setAuthName(getName());
-        responseBuilder.setContextKey(sessionDataKey);
-        responseBuilder.setCallbackPath(getCallbackPath(context));
-        responseBuilder.setRelyingParty(getRelyingPartyId());
-        responseBuilder.setAuthType(getName());
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        responseBuilder.setRedirectURL(commonAuthURL);*/
-        return null;
-    }
+//
+//    /**
+//     * Get IdentityResponseBuilder for framework login
+//     *
+//     * @param context MessageContext
+//     * @return IdentityResponseBuilder
+//     */
+//    protected IdentityResponseBuilder buildResponseForFrameworkLogin(MessageContext context) {
+///*
+//        String sessionDataKey = UUIDGenerator.generateUUID();
+//
+//        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+//        IdentityRequest currentIdentityRequest = context.getRequest();
+//
+//        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
+//
+//        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
+//        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
+//
+//        authenticationRequest.appendRequestQueryParams(parameterMap);
+//
+//        for (Object entry : currentIdentityRequest.getHeaderMap().keySet()) {
+//            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
+//                    ((Map.Entry<String, String>)entry).getValue());
+//        }
+//
+//        authenticationRequest.setRelyingParty(getRelyingPartyId());
+//        authenticationRequest.setType(getName());
+//        authenticationRequest.setPassiveAuth((Boolean)context.getParameter(InboundConstants.PASSIVE_AUTH));
+//        authenticationRequest.setForceAuth((Boolean) context.getParameter(InboundConstants.FORCE_AUTH));
+//        try {
+//            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
+//        } catch (UnsupportedEncodingException e) {
+//            throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
+//                    getCallbackPath(context), e);
+//        }
+//
+//        AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
+//        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
+//
+//        IdentityGatewayUtil.addContextToCache(sessionDataKey, context);
+//
+//        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
+//                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
+//        responseBuilder.setAuthName(getName());
+//        responseBuilder.setContextKey(sessionDataKey);
+//        responseBuilder.setCallbackPath(getCallbackPath(context));
+//        responseBuilder.setRelyingParty(getRelyingPartyId());
+//        responseBuilder.setAuthType(getName());
+//        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+//        responseBuilder.setRedirectURL(commonAuthURL);*/
+//        return null;
+//    }
 
     /**
      * Get IdentityResponseBuilder for framework logout
@@ -133,53 +131,53 @@ public abstract class IdentityProcessor {
      * @param context MessageContext
      * @return IdentityResponseBuilder
      */
-    protected IdentityResponseBuilder buildResponseForFrameworkLogout(MessageContext context) {
-/*
-        String sessionDataKey = UUIDGenerator.generateUUID();
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        IdentityRequest currentIdentityRequest = context.getRequest();
-
-        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
-
-        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
-        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
-
-        authenticationRequest.appendRequestQueryParams(parameterMap);
-
-        for (Object entry : currentIdentityRequest.getHeaderMap().keySet()) {
-            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
-                    ((Map.Entry<String, String>)entry).getValue());
-        }
-
-        authenticationRequest.setRelyingParty(getRelyingPartyId());
-        authenticationRequest.setType(getName());
-        try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
-                    getCallbackPath(context), e);
-        }
-        authenticationRequest.addRequestQueryParam(FrameworkConstants.RequestParams.LOGOUT,
-                new String[]{"true"});
-
-        AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
-        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
-
-        IdentityGatewayUtil.addContextToCache(sessionDataKey, context);
-
-        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
-                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
-        responseBuilder.setAuthName(getName());
-        responseBuilder.setContextKey(sessionDataKey);
-        responseBuilder.setCallbackPath(getCallbackPath(context));
-        responseBuilder.setRelyingParty(getRelyingPartyId());
-        //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.setAuthType(getName());
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        responseBuilder.setRedirectURL(commonAuthURL);*/
-        return null;
-    }
+//    protected IdentityResponseBuilder buildResponseForFrameworkLogout(MessageContext context) {
+///*
+//        String sessionDataKey = UUIDGenerator.generateUUID();
+//
+//        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+//        IdentityRequest currentIdentityRequest = context.getRequest();
+//
+//        Map<String, String[]> parameterMap = currentIdentityRequest.getParameterMap();
+//
+//        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
+//        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
+//
+//        authenticationRequest.appendRequestQueryParams(parameterMap);
+//
+//        for (Object entry : currentIdentityRequest.getHeaderMap().keySet()) {
+//            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
+//                    ((Map.Entry<String, String>)entry).getValue());
+//        }
+//
+//        authenticationRequest.setRelyingParty(getRelyingPartyId());
+//        authenticationRequest.setType(getName());
+//        try {
+//            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
+//        } catch (UnsupportedEncodingException e) {
+//            throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
+//                    getCallbackPath(context), e);
+//        }
+//        authenticationRequest.addRequestQueryParam(FrameworkConstants.RequestParams.LOGOUT,
+//                new String[]{"true"});
+//
+//        AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
+//        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
+//
+//        IdentityGatewayUtil.addContextToCache(sessionDataKey, context);
+//
+//        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
+//                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
+//        responseBuilder.setAuthName(getName());
+//        responseBuilder.setContextKey(sessionDataKey);
+//        responseBuilder.setCallbackPath(getCallbackPath(context));
+//        responseBuilder.setRelyingParty(getRelyingPartyId());
+//        //type parameter is using since framework checking it, but future it'll use AUTH_NAME
+//        responseBuilder.setAuthType(getName());
+//        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+//        responseBuilder.setRedirectURL(commonAuthURL);*/
+//        return null;
+//    }
 
     /**
      * Checks if previous MessageContext exists for given IdentityRequest using {@code sessionDataKey} parameter

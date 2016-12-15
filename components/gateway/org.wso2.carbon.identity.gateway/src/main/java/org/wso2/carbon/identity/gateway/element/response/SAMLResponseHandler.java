@@ -62,8 +62,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
+import org.wso2.carbon.identity.framework.handler.HandlerConfig;
+import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.framework.message.IdentityResponse;
+import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 
 import java.util.Base64;
@@ -77,7 +80,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.wso2.carbon.identity.gateway.util.SAMLConstants.SAML_AUTH_REQUEST;
 
-public class SAMLResponseHandler extends AbstractHandler {
+public class SAMLResponseHandler extends AbstractHandler<HandlerIdentifier, HandlerConfig, AbstractHandler, GatewayMessageContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(SAMLResponseHandler.class);
 
@@ -90,9 +93,14 @@ public class SAMLResponseHandler extends AbstractHandler {
     private final String AUDIENCE = "travelocity.com";
 
 
+    public SAMLResponseHandler(HandlerIdentifier handlerIdentifier) {
+
+        super(handlerIdentifier);
+    }
+
 
     @Override
-    public HandlerResponseStatus handle(MessageContext context) {
+    public HandlerResponseStatus handle(GatewayMessageContext context) {
 
         String sessionID = context.getSessionDataKey();
 
@@ -132,14 +140,14 @@ public class SAMLResponseHandler extends AbstractHandler {
 
         } catch (IllegalArgumentException | ConfigurationException ex) {
             logger.error("Error while building SAML Response.", ex);
-            return HandlerResponseStatus.ERROR;
+            return HandlerResponseStatus.SUSPEND;
         }
 
         return HandlerResponseStatus.CONTINUE;
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext) {
+    public boolean canHandle(GatewayMessageContext messageContext) {
 
         return true;
     }

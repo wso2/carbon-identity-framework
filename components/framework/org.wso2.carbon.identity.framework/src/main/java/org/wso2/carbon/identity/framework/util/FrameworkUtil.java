@@ -38,9 +38,6 @@ public class FrameworkUtil {
         }
     }
 
-
-
-
     public static Map<String, String> getQueryParamMap(String requestUri) {
 
         if (Optional.ofNullable(requestUri).isPresent()) {

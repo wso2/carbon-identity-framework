@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.element.authentication;
+package org.wso2.carbon.identity.gateway.cache;
 
-import org.wso2.carbon.identity.framework.model.User;
-import org.wso2.carbon.identity.framework.model.UserClaim;
+import org.wso2.carbon.identity.framework.cache.MessageContextCache;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
-import java.util.Map;
+public class IdentityMessageContextCache extends MessageContextCache<GatewayMessageContext> {
 
-public interface Authenticator {
+    private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
+    private static IdentityMessageContextCache instance =
+            new IdentityMessageContextCache(IDENTITY_MESSAGE_CONTEXT_CACHE);
 
-    boolean isSubjectStep();
+    private IdentityMessageContextCache(String cacheName) {
 
-    boolean isAttributeStep();
+        super(cacheName);
+    }
 
-    String getUniqueIdentifier();
+    public static IdentityMessageContextCache getInstance() {
 
-    boolean isCallback(GatewayMessageContext context);
-
-    boolean isAuthenticated();
-
-    Map<String, UserClaim> getUserClaims();
-
-    User getAuthenticatedUser();
-
+        return instance;
+    }
 }

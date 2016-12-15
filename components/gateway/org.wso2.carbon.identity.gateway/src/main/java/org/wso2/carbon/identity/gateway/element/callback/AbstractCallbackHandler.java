@@ -16,32 +16,43 @@
 
 package org.wso2.carbon.identity.gateway.element.callback;
 
-import org.wso2.carbon.identity.framework.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
+import org.wso2.carbon.identity.framework.handler.HandlerConfig;
+import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
+import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 
 import java.util.Optional;
 
 /**
  * Abstract implementation of {@link GatewayCallbackHandler}
  */
-public abstract class AbstractAbstractCallbackHandler extends AbstractHandler implements GatewayCallbackHandler {
+public abstract class AbstractCallbackHandler extends AbstractHandler<HandlerIdentifier, HandlerConfig, AbstractHandler,
+        GatewayMessageContext> implements GatewayCallbackHandler {
 
+
+    public AbstractCallbackHandler(HandlerIdentifier handlerIdentifier) {
+
+        super(handlerIdentifier);
+    }
 
     @Override
-    public HandlerResponseStatus handle(MessageContext context) {
+    public HandlerResponseStatus handle(GatewayMessageContext context) {
 
         String sessionDataKey = getSessionIdentifier(context.getCurrentIdentityRequest());
 
         // load the context
-        MessageContext oldContext = Optional.ofNullable(IdentityMessageContextCache.getInstance().get(sessionDataKey))
+        GatewayMessageContext oldContext = Optional.ofNullable(
+                IdentityMessageContextCache.getInstance().get(sessionDataKey))
                 .orElseThrow(() -> new FrameworkRuntimeException(
                         "Invalid SessionDataKey provided. Unable to find the persisted context for identifier : " +
                                 sessionDataKey));
 
         // merge the new context with old context
-        FrameworkUtil.mergeContext(context, oldContext);
+        GatewayUtil.mergeContext(context, oldContext);
 
         // get the handler that should resume the flow.
         AbstractHandler nextHandler = context.getCurrentHandler();
@@ -52,7 +63,7 @@ public abstract class AbstractAbstractCallbackHandler extends AbstractHandler im
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext) {
+    public boolean canHandle(GatewayMessageContext messageContext) {
 
         return true;
     }
