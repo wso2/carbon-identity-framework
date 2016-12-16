@@ -94,7 +94,7 @@
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.entitlement.ui</artifactId>
+            <artifactId>org.wso2.carbon.identity.entitlement.common</artifactId>
         </dependency>
 
     </dependencies>
