@@ -1,31 +1,24 @@
 /*
-*  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-*  WSO2 Inc. licenses this file to you under the Apache License,
-*  Version 2.0 (the "License"); you may not use this file except
-*  in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 
-package org.wso2.carbon.identity.entitlement.ui;
+package org.wso2.carbon.identity.entitlement.common;
 
 /**
  * Constants related with XACML policy such as per-defined Element Names and NameSpaces
  */
-
-/**
- *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
- */
-@Deprecated
 public class EntitlementPolicyConstants {
 
     public static final int DEFAULT_ITEMS_PER_PAGE = 10;
@@ -147,46 +140,6 @@ public class EntitlementPolicyConstants {
     public static final String RESOURCE_ID = "urn:oasis:names:tc:xacml:1.0:resource:resource-id";
 
     public static final String RESOURCE_ID_DEFAULT = "urn:oasis:names:tc:xacml:1.0:resource:resource";
-
-//    public static final String FUNCTION_EQUAL = "urn:oasis:names:tc:xacml:1.0:function:string-equal";
-//
-//    public static final String FUNCTION_ONE_AND_ONLY = "urn:oasis:names:tc:xacml:1.0:function:string-one-and-only";
-//
-//    public static final String FUNCTION_IS_IN = "urn:oasis:names:tc:xacml:1.0:function:string-is-in";
-//
-//    public static final String FUNCTION_REGEXP = "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match";
-//
-//    public static final String FUNCTION_AT_LEAST = "urn:oasis:names:tc:xacml:1.0:function:string-at-least-one-member-of";
-//
-//    public static final String FUNCTION_UNION = "urn:oasis:names:tc:xacml:1.0:function:string-union";
-//
-//    public static final String FUNCTION_SUBSET = "urn:oasis:names:tc:xacml:1.0:function:string-subset";
-//
-//    public static final String FUNCTION_SET_EQUAL = "urn:oasis:names:tc:xacml:1.0:function:string-set-equals";
-//
-//    public static final String FUNCTION_ANY_OF = "urn:oasis:names:tc:xacml:1.0:function:any-of";
-//
-//    public static final String FUNCTION_AND = "urn:oasis:names:tc:xacml:1.0:function:and";
-//
-//    public static final String EQUAL_TO = "equals to";
-//
-//    public static final String MATCH_TO = "matching-with";
-//
-//    public static final String IS_IN = "in";
-//
-//    public static final String REGEXP_MATCH = "matching reg-ex to";
-//
-//    public static final String AT_LEAST = "at-least-one-member-of";
-//
-//    public static final String AT_LEAST_ONE_MATCH = "at-least-one-matching-member-of";
-//
-//    public static final String AT_LEAST_ONE_MATCH_REGEXP = "at-least-one-matching-reg-ex-member-of";
-//
-//    public static final String SUBSET_OF = "a-sub-set-of";
-//
-//    public static final String SET_OF = "a-matching-set-of";
-//
-//    public static final String MATCH_REGEXP_SET_OF = "a matching reg-ex set of";
 
     public static final String RULE_EFFECT_PERMIT = "Permit";
 

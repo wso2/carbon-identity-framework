@@ -14,22 +14,29 @@
  *  limitations under the License.
  */
 
-package org.wso2.carbon.identity.entitlement.common;
+package org.wso2.carbon.identity.entitlement.common.dto;
 
-import org.wso2.carbon.identity.base.IdentityException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  */
-public class PolicyEditorException extends IdentityException {
+public class TargetDTO {
 
-    private static final long serialVersionUID = -4965068674464842386L;
+    private List<RowDTO> rowDTOList = new ArrayList<RowDTO>();
 
-    public PolicyEditorException(String message) {
-        super(message);
+    public List<RowDTO> getRowDTOList() {
+        return rowDTOList;
     }
 
-    public PolicyEditorException(String message, Throwable e) {
-        super(message, e);
+    public void setRowDTOList(List<RowDTO> rowDTOList) {
+        this.rowDTOList = rowDTOList;
     }
+
+    public void addRowDTO(RowDTO rowDTO) {
+        this.rowDTOList.add(rowDTO);
+    }
+
+
 }
