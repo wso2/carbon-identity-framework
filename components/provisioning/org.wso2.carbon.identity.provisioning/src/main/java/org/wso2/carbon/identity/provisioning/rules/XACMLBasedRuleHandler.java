@@ -122,8 +122,22 @@ public class XACMLBasedRuleHandler {
                 createRowDTO(idPName, EntitlementPolicyConstants.STRING_DATA_TYPE, "idp-name", "http://wso2" +
                                                                                                ".org/identity/idp");
         RowDTO provisioningFlowDTO =
-                createRowDTO("provisioning", EntitlementPolicyConstants.STRING_DATA_TYPE, "action-name", "http://wso2" +
-                                                                                                         ".org/identity/identity-action");
+
+                createRowDTO("provisioning", EntitlementPolicyConstants.STRING_DATA_TYPE,
+                             "action-name", "http://wso2.org/identity/identity-action");
+        if (provisioningEntity.getOperation().equals(ProvisioningOperation.POST)) {
+            RowDTO provisioningClaimGroupDTO =
+                    createRowDTO(StringUtils.substringBetween(provisioningEntity.getAttributes().get(ClaimMapping.build(
+                            IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false)).toString(), "[", "]"),
+                                 EntitlementPolicyConstants.STRING_DATA_TYPE, "claim-group",
+                                 "http://wso2.org/identity/provisioning");
+            rowDTOs.add(provisioningClaimGroupDTO);
+        }
+
+        RowDTO provisioningOperationDTO =
+                createRowDTO(provisioningEntity.getOperation().toString(), EntitlementPolicyConstants
+                                     .STRING_DATA_TYPE, "provision-operation",
+                             "http://wso2.org/identity/provisioning");
         RowDTO connectorTypeDTO =
                 createRowDTO(connectorType, EntitlementPolicyConstants.STRING_DATA_TYPE, "connector-type",
                              "http://wso2.org/identity/idp");
