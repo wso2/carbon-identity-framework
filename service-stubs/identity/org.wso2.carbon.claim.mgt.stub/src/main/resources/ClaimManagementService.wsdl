@@ -1,51 +1,31 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://mgt.claim.carbon.wso2.org" xmlns:ax23="http://dto.mgt.claim.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://mgt.claim.carbon.wso2.org">
+
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax29="http://mgt.claim.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax213="http://dto.mgt.claim.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:ax210="http://base.identity.carbon.wso2.org/xsd" xmlns:tns="http://mgt.claim.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://mgt.claim.carbon.wso2.org">
     <wsdl:documentation>ClaimManagementService</wsdl:documentation>
     <wsdl:types>
-        <xs:schema xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax24="http://dto.mgt.claim.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+        <xs:schema xmlns:ax211="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://mgt.claim.carbon.wso2.org/xsd">
+            <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
+            <xs:complexType name="ClaimManagementException">
+                <xs:complexContent>
+                    <xs:extension base="ax210:IdentityException">
+                        <xs:sequence/>
+                    </xs:extension>
+                </xs:complexContent>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ax214="http://dto.mgt.claim.carbon.wso2.org/xsd" xmlns:ax212="http://mgt.claim.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://mgt.claim.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://dto.mgt.claim.carbon.wso2.org/xsd"/>
-            <xs:element name="ClaimManagementServiceException">
+            <xs:element name="ClaimManagementServiceClaimManagementException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="ClaimManagementServiceException" nillable="true" type="ns1:Exception"/>
+                        <xs:element minOccurs="0" name="ClaimManagementException" nillable="true" type="ax29:ClaimManagementException"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:complexType name="Exception">
-                <xs:sequence>
-                    <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string"/>
-                </xs:sequence>
-            </xs:complexType>
             <xs:element name="upateClaimMapping">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="claimMappingDTO" nillable="true" type="ax23:ClaimMappingDTO"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="removeClaimMapping">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="dialectUri" nillable="true" type="xs:string"/>
-                        <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="removeClaimDialect">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="dialectUri" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getClaimMappings">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getClaimMappingsResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax23:ClaimDialectDTO"/>
+                        <xs:element minOccurs="0" name="claimMappingDTO" nillable="true" type="ax214:ClaimMappingDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -59,21 +39,48 @@
             <xs:element name="getClaimMappingByDialectResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax23:ClaimDialectDTO"/>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax214:ClaimDialectDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="addNewClaimMapping">
+            <xs:element name="removeClaimMapping">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="claimMappingDTO" nillable="true" type="ax23:ClaimMappingDTO"/>
+                        <xs:element minOccurs="0" name="dialectUri" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
             <xs:element name="addNewClaimDialect">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="claimDialectDTO" nillable="true" type="ax23:ClaimDialectDTO"/>
+                        <xs:element minOccurs="0" name="claimDialectDTO" nillable="true" type="ax214:ClaimDialectDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getClaimMappings">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getClaimMappingsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax214:ClaimDialectDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addNewClaimMapping">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="claimMappingDTO" nillable="true" type="ax214:ClaimMappingDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeClaimDialect">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="dialectUri" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -81,9 +88,9 @@
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.mgt.claim.carbon.wso2.org/xsd">
             <xs:complexType name="ClaimMappingDTO">
                 <xs:sequence>
-                    <xs:element minOccurs="0" name="claim" nillable="true" type="ax23:ClaimDTO"/>
+                    <xs:element minOccurs="0" name="claim" nillable="true" type="ax213:ClaimDTO"/>
                     <xs:element minOccurs="0" name="mappedAttribute" nillable="true" type="xs:string"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="mappedAttributes" nillable="true" type="ax23:ClaimAttributeDTO"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="mappedAttributes" nillable="true" type="ax213:ClaimAttributeDTO"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="ClaimDTO">
@@ -109,9 +116,16 @@
             </xs:complexType>
             <xs:complexType name="ClaimDialectDTO">
                 <xs:sequence>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax23:ClaimMappingDTO"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax213:ClaimMappingDTO"/>
                     <xs:element minOccurs="0" name="dialectURI" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="userStore" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityException">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="errorCode" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
@@ -122,8 +136,8 @@
     <wsdl:message name="getClaimMappingByDialectResponse">
         <wsdl:part name="parameters" element="ns1:getClaimMappingByDialectResponse"/>
     </wsdl:message>
-    <wsdl:message name="ClaimManagementServiceException">
-        <wsdl:part name="parameters" element="ns1:ClaimManagementServiceException"/>
+    <wsdl:message name="ClaimManagementServiceClaimManagementException">
+        <wsdl:part name="parameters" element="ns1:ClaimManagementServiceClaimManagementException"/>
     </wsdl:message>
     <wsdl:message name="getClaimMappingsRequest">
         <wsdl:part name="parameters" element="ns1:getClaimMappings"/>
@@ -134,64 +148,62 @@
     <wsdl:message name="removeClaimMappingRequest">
         <wsdl:part name="parameters" element="ns1:removeClaimMapping"/>
     </wsdl:message>
+    <wsdl:message name="removeClaimMappingResponse"/>
     <wsdl:message name="removeClaimDialectRequest">
         <wsdl:part name="parameters" element="ns1:removeClaimDialect"/>
     </wsdl:message>
+    <wsdl:message name="removeClaimDialectResponse"/>
     <wsdl:message name="upateClaimMappingRequest">
         <wsdl:part name="parameters" element="ns1:upateClaimMapping"/>
     </wsdl:message>
+    <wsdl:message name="upateClaimMappingResponse"/>
     <wsdl:message name="addNewClaimDialectRequest">
         <wsdl:part name="parameters" element="ns1:addNewClaimDialect"/>
     </wsdl:message>
+    <wsdl:message name="addNewClaimDialectResponse"/>
     <wsdl:message name="addNewClaimMappingRequest">
         <wsdl:part name="parameters" element="ns1:addNewClaimMapping"/>
     </wsdl:message>
+    <wsdl:message name="addNewClaimMappingResponse"/>
     <wsdl:portType name="ClaimManagementServicePortType">
         <wsdl:operation name="getClaimMappingByDialect">
             <wsdl:input message="tns:getClaimMappingByDialectRequest" wsaw:Action="urn:getClaimMappingByDialect"/>
             <wsdl:output message="tns:getClaimMappingByDialectResponse" wsaw:Action="urn:getClaimMappingByDialectResponse"/>
-            <wsdl:fault message="tns:ClaimManagementServiceException" name="ClaimManagementServiceException" wsaw:Action="urn:getClaimMappingByDialectClaimManagementServiceException"/>
+            <wsdl:fault message="tns:ClaimManagementServiceClaimManagementException" name="ClaimManagementServiceClaimManagementException" wsaw:Action="urn:getClaimMappingByDialectClaimManagementServiceClaimManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="getClaimMappings">
             <wsdl:input message="tns:getClaimMappingsRequest" wsaw:Action="urn:getClaimMappings"/>
             <wsdl:output message="tns:getClaimMappingsResponse" wsaw:Action="urn:getClaimMappingsResponse"/>
-            <wsdl:fault message="tns:ClaimManagementServiceException" name="ClaimManagementServiceException" wsaw:Action="urn:getClaimMappingsClaimManagementServiceException"/>
+            <wsdl:fault message="tns:ClaimManagementServiceClaimManagementException" name="ClaimManagementServiceClaimManagementException" wsaw:Action="urn:getClaimMappingsClaimManagementServiceClaimManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="removeClaimMapping">
             <wsdl:input message="tns:removeClaimMappingRequest" wsaw:Action="urn:removeClaimMapping"/>
-            <wsdl:fault message="tns:ClaimManagementServiceException" name="ClaimManagementServiceException" wsaw:Action="urn:removeClaimMappingClaimManagementServiceException"/>
+            <wsdl:output message="tns:removeClaimMappingResponse" wsaw:Action="urn:removeClaimMappingResponse"/>
+            <wsdl:fault message="tns:ClaimManagementServiceClaimManagementException" name="ClaimManagementServiceClaimManagementException" wsaw:Action="urn:removeClaimMappingClaimManagementServiceClaimManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="removeClaimDialect">
             <wsdl:input message="tns:removeClaimDialectRequest" wsaw:Action="urn:removeClaimDialect"/>
-            <wsdl:fault message="tns:ClaimManagementServiceException" name="ClaimManagementServiceException" wsaw:Action="urn:removeClaimDialectClaimManagementServiceException"/>
+            <wsdl:output message="tns:removeClaimDialectResponse" wsaw:Action="urn:removeClaimDialectResponse"/>
+            <wsdl:fault message="tns:ClaimManagementServiceClaimManagementException" name="ClaimManagementServiceClaimManagementException" wsaw:Action="urn:removeClaimDialectClaimManagementServiceClaimManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="upateClaimMapping">
             <wsdl:input message="tns:upateClaimMappingRequest" wsaw:Action="urn:upateClaimMapping"/>
-            <wsdl:fault message="tns:ClaimManagementServiceException" name="ClaimManagementServiceException" wsaw:Action="urn:upateClaimMappingClaimManagementServiceException"/>
+            <wsdl:output message="tns:upateClaimMappingResponse" wsaw:Action="urn:upateClaimMappingResponse"/>
+            <wsdl:fault message="tns:ClaimManagementServiceClaimManagementException" name="ClaimManagementServiceClaimManagementException" wsaw:Action="urn:upateClaimMappingClaimManagementServiceClaimManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimDialect">
             <wsdl:input message="tns:addNewClaimDialectRequest" wsaw:Action="urn:addNewClaimDialect"/>
-            <wsdl:fault message="tns:ClaimManagementServiceException" name="ClaimManagementServiceException" wsaw:Action="urn:addNewClaimDialectClaimManagementServiceException"/>
+            <wsdl:output message="tns:addNewClaimDialectResponse" wsaw:Action="urn:addNewClaimDialectResponse"/>
+            <wsdl:fault message="tns:ClaimManagementServiceClaimManagementException" name="ClaimManagementServiceClaimManagementException" wsaw:Action="urn:addNewClaimDialectClaimManagementServiceClaimManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimMapping">
             <wsdl:input message="tns:addNewClaimMappingRequest" wsaw:Action="urn:addNewClaimMapping"/>
-            <wsdl:fault message="tns:ClaimManagementServiceException" name="ClaimManagementServiceException" wsaw:Action="urn:addNewClaimMappingClaimManagementServiceException"/>
+            <wsdl:output message="tns:addNewClaimMappingResponse" wsaw:Action="urn:addNewClaimMappingResponse"/>
+            <wsdl:fault message="tns:ClaimManagementServiceClaimManagementException" name="ClaimManagementServiceClaimManagementException" wsaw:Action="urn:addNewClaimMappingClaimManagementServiceClaimManagementException"/>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="ClaimManagementServiceSoap11Binding" type="tns:ClaimManagementServicePortType">
         <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
-        <wsdl:operation name="getClaimMappings">
-            <soap:operation soapAction="urn:getClaimMappings" style="document"/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-            </wsdl:output>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap:fault use="literal" name="ClaimManagementServiceException"/>
-            </wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="getClaimMappingByDialect">
             <soap:operation soapAction="urn:getClaimMappingByDialect" style="document"/>
             <wsdl:input>
@@ -200,8 +212,20 @@
             <wsdl:output>
                 <soap:body use="literal"/>
             </wsdl:output>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimMappings">
+            <soap:operation soapAction="urn:getClaimMappings" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="removeClaimMapping">
@@ -209,8 +233,11 @@
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="removeClaimDialect">
@@ -218,8 +245,11 @@
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="upateClaimMapping">
@@ -227,8 +257,11 @@
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimDialect">
@@ -236,8 +269,11 @@
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimMapping">
@@ -245,25 +281,16 @@
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:binding name="ClaimManagementServiceSoap12Binding" type="tns:ClaimManagementServicePortType">
         <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
-        <wsdl:operation name="getClaimMappings">
-            <soap12:operation soapAction="urn:getClaimMappings" style="document"/>
-            <wsdl:input>
-                <soap12:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap12:body use="literal"/>
-            </wsdl:output>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap12:fault use="literal" name="ClaimManagementServiceException"/>
-            </wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="getClaimMappingByDialect">
             <soap12:operation soapAction="urn:getClaimMappingByDialect" style="document"/>
             <wsdl:input>
@@ -272,8 +299,20 @@
             <wsdl:output>
                 <soap12:body use="literal"/>
             </wsdl:output>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap12:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap12:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimMappings">
+            <soap12:operation soapAction="urn:getClaimMappings" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap12:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="removeClaimMapping">
@@ -281,8 +320,11 @@
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap12:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap12:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="removeClaimDialect">
@@ -290,8 +332,11 @@
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap12:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap12:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="upateClaimMapping">
@@ -299,8 +344,11 @@
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap12:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap12:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimDialect">
@@ -308,8 +356,11 @@
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap12:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap12:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimMapping">
@@ -317,15 +368,18 @@
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
-            <wsdl:fault name="ClaimManagementServiceException">
-                <soap12:fault use="literal" name="ClaimManagementServiceException"/>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimManagementServiceClaimManagementException">
+                <soap12:fault use="literal" name="ClaimManagementServiceClaimManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:binding name="ClaimManagementServiceHttpBinding" type="tns:ClaimManagementServicePortType">
         <http:binding verb="POST"/>
-        <wsdl:operation name="getClaimMappings">
-            <http:operation location="getClaimMappings"/>
+        <wsdl:operation name="getClaimMappingByDialect">
+            <http:operation location="getClaimMappingByDialect"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
@@ -333,8 +387,8 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="getClaimMappingByDialect">
-            <http:operation location="getClaimMappingByDialect"/>
+        <wsdl:operation name="getClaimMappings">
+            <http:operation location="getClaimMappings"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
@@ -347,30 +401,45 @@
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="removeClaimDialect">
             <http:operation location="removeClaimDialect"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="upateClaimMapping">
             <http:operation location="upateClaimMapping"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimDialect">
             <http:operation location="addNewClaimDialect"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="addNewClaimMapping">
             <http:operation location="addNewClaimMapping"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="ClaimManagementService">
