@@ -66,6 +66,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private String signingCertificate ;
     private String encryptionCertificate ;
     private X509Certificate x509Certificate;
+    private boolean enableAttributeQueryProfile;
 
 
     public SAMLSSOServiceProviderDO() {
@@ -143,6 +144,14 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         if (assertionConsumerUrl != null) {
             this.assertionConsumerUrl = assertionConsumerUrl.replaceAll("[\n\r]", "").trim();
         }
+    }
+
+    public boolean getDoenEableAttributeQueryProfile() {
+        return enableAttributeQueryProfile;
+    }
+
+    public void setDoenEableAttributeQueryProfile(boolean enableAttributeQueryProfile) {
+        this.enableAttributeQueryProfile = enableAttributeQueryProfile;
     }
 
     public String getCertAlias() {
