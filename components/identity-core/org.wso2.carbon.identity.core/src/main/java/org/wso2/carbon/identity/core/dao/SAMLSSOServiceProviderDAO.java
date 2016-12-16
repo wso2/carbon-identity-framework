@@ -55,6 +55,16 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     .PROP_SAML_SSO_SIGNING_ALGORITHM));
         }
 
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED) != null) {
+            serviceProviderDO.setAssertionQueryRequestProfileEnabled(new Boolean(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED).trim()));
+        }
+
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES) != null) {
+            serviceProviderDO.setSupportedAssertionQueryRequestTypes(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES).trim());
+        }
+
         if (StringUtils.isNotEmpty(resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM))) {
             serviceProviderDO.setDigestAlgorithmUri(resource.getProperty(IdentityRegistryResources
                     .PROP_SAML_SSO_DIGEST_ALGORITHM));
@@ -260,6 +270,13 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         String doSignResponse = serviceProviderDO.isDoSignResponse() ? "true" : "false";
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE,
                 doSignResponse);
+        String isAssertionQueryRequestProfileEnabled = serviceProviderDO.isAssertionQueryRequestProfileEnabled() ?
+                "true" : "false";
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED,
+                isAssertionQueryRequestProfileEnabled);
+        String supportedAssertionQueryRequestTypes = serviceProviderDO.getSupportedAssertionQueryRequestTypes();
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
+                supportedAssertionQueryRequestTypes);
         String doSignAssertions = serviceProviderDO.isDoSignAssertions() ? "true" : "false";
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS,
                 doSignAssertions);
