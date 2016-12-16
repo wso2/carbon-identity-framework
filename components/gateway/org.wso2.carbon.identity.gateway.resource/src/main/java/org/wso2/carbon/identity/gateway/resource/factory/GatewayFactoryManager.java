@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.resource;
+package org.wso2.carbon.identity.gateway.resource.factory;
 
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.message.Response;
+import org.wso2.carbon.identity.gateway.message.GatewayRequest;
+import org.wso2.carbon.identity.gateway.message.GatewayResponse;
+import org.wso2.carbon.identity.gateway.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.resource.Gateway;
 import org.wso2.carbon.identity.gateway.resource.internal.DataHolder;
 import org.wso2.msf4j.Request;
 
@@ -31,35 +34,34 @@ public class GatewayFactoryManager {
     private static DataHolder dataHolder = DataHolder.getInstance();
 
     /**
-     * Pick a @{@link GatewayRequestFactory} that can return a canonical
-     * {@link org.wso2.carbon.identity.framework.builder.IdentityRequestBuilder} object based on the {@link Request}
-     * received by the {@link Gateway} micro service.
+     * Pick a @{@link GatewayRequestFactory} that can return a canonical {@link GatewayRequest} object based on the
+     * {@link Request} received by the {@link Gateway} micro service.
      *
      * @param request {@link Request} object.
      * @return GatewayRequestFactory instance
      */
-    public static GatewayRequestFactory pickRequestFactory(Request request) {
+    public static GatewayRequestFactory getRequestFactory(Request request) {
 
         return dataHolder.getRequestFactoryList().stream()
                 .filter(x -> x.canHandle(request))
                 .findFirst()
-                .orElseThrow(() -> new FrameworkRuntimeException("Cannot find a response factory to handle the " +
-                        "MSF4J Identity Request."));
+                .orElseThrow(() -> new FrameworkRuntimeException("Cannot find a request factory to build the " +
+                        "canonical Identity Request."));
     }
 
 
     /**
-     * Pick a @{@link GatewayResponseBuilderFactory} that can return a @{@link javax.ws.rs.core.Response.ResponseBuilder}
+     * Pick a @{@link GatewayResponseFactory} that can return a @{@link javax.ws.rs.core.Response.ResponseBuilder}
      * based on the @{@link Response} sent from the Framework.
      *
-     * @param response {@link Response} object sent from framework
+     * @param gatewayResponse {@link Response} object sent from framework
      * @return GatewayRequestFactory instance or null if none of the available services can handle the
      * response
      */
-    public static GatewayResponseBuilderFactory pickIdentityResponseFactory(Response response) {
+    public static GatewayResponseFactory getIdentityResponseFactory(GatewayResponse gatewayResponse) {
 
         return dataHolder.getResponseFactoryList().stream()
-                .filter(x -> x.canHandle(response))
+                .filter(x -> x.canHandle(gatewayResponse))
                 .findFirst()
                 .orElseThrow(() -> new FrameworkRuntimeException("Cannot find a response factory to handle the " +
                         "Response."));
@@ -67,14 +69,14 @@ public class GatewayFactoryManager {
 
 
     /**
-     * Pick a {@link GatewayResponseBuilderFactory} that can handle when a {@link FrameworkException}
+     * Pick a {@link GatewayResponseFactory} that can handle when a {@link FrameworkException}
      * is encountered while processing an {@link org.wso2.carbon.identity.framework.message.Request}
      *
      * @param ex {@link FrameworkException} encountered.
-     * @return GatewayResponseBuilderFactory instance that can handle the exception, null if no registered response
+     * @return GatewayResponseFactory instance that can handle the exception, null if no registered response
      * factory can handle the exception.
      */
-    public static GatewayResponseBuilderFactory pickIdentityResponseFactory(FrameworkException ex) {
+    public static GatewayResponseFactory getIdentityResponseFactory(FrameworkException ex) {
 
         return dataHolder.getResponseFactoryList().stream()
                 .filter(x -> x.canHandle(ex))
@@ -84,15 +86,12 @@ public class GatewayFactoryManager {
     }
 
 
-    /**
-     * Get the {@link IdentityProcessCoordinator} service that will co-ordinate the Request flow.
-     *
-     * @return @{@link IdentityProcessCoordinator} OSGi service.
-     */
-    public static IdentityProcessCoordinator getIdentityProcessCoordinator() {
+    public static GatewayProcessor getGatewayProcessor(GatewayRequest gatewayRequest) {
 
-        return dataHolder.getProcessCoordinator();
+        return dataHolder.getGatewayProcessors().stream()
+                .filter(x -> x.canHandle(gatewayRequest))
+                .findFirst()
+                .orElseThrow(() -> new FrameworkRuntimeException("Cannot find the gateway processor to handle the " +
+                        "request"));
     }
-
-
 }

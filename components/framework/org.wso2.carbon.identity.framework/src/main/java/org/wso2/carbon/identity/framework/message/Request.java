@@ -87,22 +87,25 @@ public class Request implements Serializable {
         protected String body;
 
 
-        public void setHeaders(Map<String, String> requestHeaders) {
+        public RequestBuilder setHeaders(Map<String, String> requestHeaders) {
 
             headers = Optional.ofNullable(requestHeaders).orElse(new HashMap<>());
+            return this;
         }
 
-        public void addHeader(String name, String value) {
+        public RequestBuilder addHeader(String name, String value) {
             // if the header name is not null and is present in the map, we throw an exception
             headers.computeIfPresent(name, (headerName, currentHeaderValue) -> {
                 throw FrameworkRuntimeException.error("Headers map trying to override existing header : " + headerName);
             });
             headers.put(name, value);
+            return this;
         }
 
-        public void addHeaders(Map<String, String> headers) {
+        public RequestBuilder addHeaders(Map<String, String> headers) {
 
             Optional.ofNullable(headers).ifPresent(x -> x.forEach(this::addHeader));
+            return this;
         }
 
         public Request build() {

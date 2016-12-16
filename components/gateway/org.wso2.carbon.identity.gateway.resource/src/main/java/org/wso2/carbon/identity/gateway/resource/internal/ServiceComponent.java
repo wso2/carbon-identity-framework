@@ -23,10 +23,10 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
+import org.wso2.carbon.identity.gateway.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.resource.Gateway;
-import org.wso2.carbon.identity.gateway.resource.GatewayRequestFactory;
-import org.wso2.carbon.identity.gateway.resource.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.resource.factory.GatewayRequestFactory;
+import org.wso2.carbon.identity.gateway.resource.factory.GatewayResponseFactory;
 
 import java.util.logging.Logger;
 
@@ -58,7 +58,7 @@ public class ServiceComponent {
         // Register MSF4JRequestFactory instance as an OSGi service.
         bundleContext.registerService(GatewayRequestFactory.class, new GatewayRequestFactory(),
                 null);
-        bundleContext.registerService(GatewayResponseBuilderFactory.class, new GatewayResponseBuilderFactory(), null);
+        bundleContext.registerService(GatewayResponseFactory.class, new GatewayResponseFactory(), null);
 
         logger.info("Service Component is activated");
     }
@@ -104,60 +104,83 @@ public class ServiceComponent {
     }
 
     /**
-     * This bind method will be called when {@link GatewayResponseBuilderFactory} OSGi services are registered.
+     * This bind method will be called when {@link GatewayResponseFactory} OSGi services are registered.
      *
-     * @param responseFactory The {@link GatewayResponseBuilderFactory} instance registered as an OSGi service
+     * @param responseFactory The {@link GatewayResponseFactory} instance registered as an OSGi service
      */
     @Reference(
             name = "msf4j.response.builder.factory",
-            service = GatewayResponseBuilderFactory.class,
+            service = GatewayResponseFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetResponseBuilderFactory"
     )
-    protected void setResponseBuilderFactory(GatewayResponseBuilderFactory responseFactory) {
+    protected void setResponseBuilderFactory(GatewayResponseFactory responseFactory) {
 
         dataHolder.addResponseFactory(responseFactory);
     }
 
     /**
-     * This is the unbind method which gets called at the un-registration of a {@link GatewayResponseBuilderFactory}
+     * This is the unbind method which gets called at the un-registration of a {@link GatewayResponseFactory}
      * OSGi service.
      *
-     * @param responseBuilderFactory The {@link GatewayResponseBuilderFactory} instance registered as an OSGi service
+     * @param responseBuilderFactory The {@link GatewayResponseFactory} instance registered as an OSGi service
      */
-    protected void unsetResponseBuilderFactory(GatewayResponseBuilderFactory responseBuilderFactory) {
+    protected void unsetResponseBuilderFactory(GatewayResponseFactory responseBuilderFactory) {
 
         dataHolder.removeResponseFactory(responseBuilderFactory);
     }
 
+//    /**
+//     * This bind method will be called when {@link IdentityProcessCoordinator} OSGi service is registered.
+//     *
+//     * @param processCoordinator The {@link IdentityProcessCoordinator} instance registered as an OSGi service
+//     */
+//    @Reference(
+//            name = "identity.process.coordinator",
+//            service = IdentityProcessCoordinator.class,
+//            cardinality = ReferenceCardinality.MANDATORY,
+//            policy = ReferencePolicy.DYNAMIC,
+//            unbind = "unsetIdentityProcessCoordinator"
+//    )
+//    protected void setIdentityProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
+//
+//        dataHolder.setProcessCoordinator(processCoordinator);
+//    }
+//
+//    /**
+//     * This is the unbind method which gets called at the un-registration of {@link IdentityProcessCoordinator}
+//     * OSGi service.
+//     *
+//     * @param processCoordinator The {@link IdentityProcessCoordinator} instance registered as an OSGi service
+//     */
+//    protected void unsetIdentityProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
+//
+//        dataHolder.setProcessCoordinator(null);
+//    }
+
+
     /**
-     * This bind method will be called when {@link IdentityProcessCoordinator} OSGi service is registered.
+     * This bind method will be called when {@link GatewayProcessor} OSGi service is registered.
      *
-     * @param processCoordinator The {@link IdentityProcessCoordinator} instance registered as an OSGi service
+     * @param gatewayProcessor The {@link GatewayProcessor} instance registered as an OSGi service
      */
     @Reference(
-            name = "identity.process.coordinator",
-            service = IdentityProcessCoordinator.class,
-            cardinality = ReferenceCardinality.MANDATORY,
+            name = "gateway.processor",
+            service = GatewayProcessor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdentityProcessCoordinator"
+            unbind = "unsetGatewayProcessor"
     )
-    protected void setIdentityProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
+    protected void setGatewayProcessor(GatewayProcessor gatewayProcessor) {
 
-        dataHolder.setProcessCoordinator(processCoordinator);
+        dataHolder.addIdentityProcessor(gatewayProcessor);
     }
 
-    /**
-     * This is the unbind method which gets called at the un-registration of {@link IdentityProcessCoordinator}
-     * OSGi service.
-     *
-     * @param processCoordinator The {@link IdentityProcessCoordinator} instance registered as an OSGi service
-     */
-    protected void unsetIdentityProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
 
-        dataHolder.setProcessCoordinator(null);
+    protected void unsetGatewayProcessor(GatewayProcessor gatewayProcessor) {
+
+        dataHolder.addIdentityProcessor(null);
     }
-
 
 }

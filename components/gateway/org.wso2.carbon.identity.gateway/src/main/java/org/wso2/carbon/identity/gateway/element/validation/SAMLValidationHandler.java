@@ -29,9 +29,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerConfig;
+import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
-import org.wso2.carbon.identity.framework.message.Request;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
@@ -74,7 +74,7 @@ public class SAMLValidationHandler extends
     }
 
     @Override
-    public HandlerResponseStatus handle(GatewayMessageContext context) {
+    public HandlerResponseStatus handle(GatewayMessageContext context) throws HandlerException {
 
         GatewayRequest identityRequest = context.getCurrentIdentityRequest();
         String method = identityRequest.getMethod();
@@ -102,6 +102,7 @@ public class SAMLValidationHandler extends
         } else {
             // unsupported method
             logger.error("HTTP method " + method + " is not supported by SAML.");
+            throw new HandlerException("HTTP method " + method + " is not supported by SAML.");
         }
         // if we get here, we have encountered an error.
         return HandlerResponseStatus.SUSPEND;

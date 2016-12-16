@@ -20,18 +20,15 @@ package org.wso2.carbon.identity.gateway.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
-import org.wso2.carbon.identity.framework.message.Request;
-import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.element.SessionDataCleanupHandler;
 import org.wso2.carbon.identity.gateway.element.authentication.handler.BasicAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.element.authentication.handler.MultiStepAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.element.response.SAMLResponseHandler;
 import org.wso2.carbon.identity.gateway.element.validation.SAMLValidationHandler;
-import org.wso2.carbon.identity.gateway.element.SessionDataCleanupHandler;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
@@ -41,12 +38,12 @@ import java.util.HashMap;
 /*
     This processor handler the initial identity requests that comes to the Identity Gateway.
  */
-public class InitRequestProcessor extends IdentityProcessor<GatewayRequest> {
+public class InitRequestProcessor extends GatewayProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(InitRequestProcessor.class);
 
     @Override
-    public Response process(GatewayRequest identityRequest) throws FrameworkException {
+    public GatewayResponse process(GatewayRequest identityRequest) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug(getName() + " starting to process the initial Identity Request.");
@@ -56,18 +53,14 @@ public class InitRequestProcessor extends IdentityProcessor<GatewayRequest> {
         GatewayMessageContext context = new GatewayMessageContext(identityRequest, new GatewayResponse());
         context.setInitialIdentityRequest(identityRequest);
 
-        // Create a sessionDataKey and add it to the message context
-        String sessionDataKey = context.getSessionDataKey();
+        String sessionDataKey = context.getSessionDataKey();// Create a sessionDataKey and add to message context
+        IdentityMessageContextCache.getInstance().put(sessionDataKey, context); // add the context reference to cache.
 
-        // add the context reference to the cache.
-        IdentityMessageContextCache.getInstance().put(sessionDataKey, context);
 
         // Add an authentication context map TODO: this should be initialized by the context
         context.addParameter(sessionDataKey, new HashMap<>());
 
-        /*
-            Handler Chain Begin
-        */
+        // START HANDLER CHAIN
         HandlerIdentifier identifier = new GatewayHandlerIdentifier();
 
         SAMLValidationHandler samlValidationHandler = new SAMLValidationHandler(identifier);
@@ -82,13 +75,18 @@ public class InitRequestProcessor extends IdentityProcessor<GatewayRequest> {
         multiStepAuthenticationHandler.addIdentityGatewayEventHandler(basicAuthenticationHandler);
         basicAuthenticationHandler.setNextHandler(samlResponseHandler);
         samlResponseHandler.setNextHandler(cleanupHandler);
+        // END HANDLE CHAIN
 
-        /*
-            Handler Chain End
-         */
 
         // start executing the handler element
         samlValidationHandler.execute(context);
+
+
+        // INBOUND
+        // AUTHENTICATOR
+        // OUTBOUND
+
+
         return context.getIdentityResponse();
     }
 
@@ -105,7 +103,7 @@ public class InitRequestProcessor extends IdentityProcessor<GatewayRequest> {
     }
 
     @Override
-    public boolean canHandle(Request identityRequest) {
+    public boolean canHandle(GatewayRequest identityRequest) {
 
         return true;
     }

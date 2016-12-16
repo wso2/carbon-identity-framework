@@ -22,26 +22,69 @@ public class GatewayRequest extends Request {
 
     String method;
 
+    String requestUri;
+
 
     public String getMethod() {
 
         return method;
     }
 
+    public String getRequestUri() {
+
+        return requestUri;
+    }
+
     private GatewayRequest(GatewayRequestBuilder requestBuilder) {
 
         super(requestBuilder);
 
+        method = requestBuilder.method;
+        requestUri = requestBuilder.requestUri;
         // fill the rest
     }
 
     public static class GatewayRequestBuilder extends RequestBuilder {
 
+        private String method;
+        private String requestUri;
+        private String contentType;
+
+
+        public GatewayRequestBuilder setMethod(String method) {
+
+            this.method = method;
+            return this;
+        }
+
+        public GatewayRequestBuilder setRequestUri(String requestUri) {
+
+            this.requestUri = requestUri;
+            return this;
+        }
+
+        public GatewayRequestBuilder setContentType(String contentType) {
+
+            this.contentType = contentType;
+            return this;
+        }
 
         @Override
         public GatewayRequest build() {
 
             return new GatewayRequest(this);
+        }
+
+        public GatewayRequestBuilder addProperty(String key, Object value) {
+
+            this.properties.put(key, value);
+            return this;
+        }
+
+        public GatewayRequestBuilder setBody(String body) {
+
+            this.body = body;
+            return this;
         }
     }
 }

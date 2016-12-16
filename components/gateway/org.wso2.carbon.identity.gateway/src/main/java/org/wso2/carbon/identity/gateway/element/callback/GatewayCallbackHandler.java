@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.framework.message.Request;
  * Once the session identifier is extracted, this handler will restore the context and continues the execution of the
  * handler element.
  */
-public interface GatewayCallbackHandler{
+public interface GatewayCallbackHandler {
 
     int getPriority();
 
