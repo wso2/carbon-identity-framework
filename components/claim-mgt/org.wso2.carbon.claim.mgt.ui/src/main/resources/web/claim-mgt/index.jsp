@@ -28,6 +28,7 @@
 <%@page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String serverURL = CarbonUIUtil.getServerURL(config

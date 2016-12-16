@@ -33,6 +33,7 @@
 <jsp:useBean id="entitlementPolicyBean" type="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean"
              class="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean" scope="session"/>
 <jsp:setProperty name="entitlementPolicyBean" property="*" />
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     // remove session attributes

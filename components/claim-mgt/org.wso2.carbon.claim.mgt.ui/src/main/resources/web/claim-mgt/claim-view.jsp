@@ -34,6 +34,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);

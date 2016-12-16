@@ -27,6 +27,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimDialectDTO" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);

@@ -32,6 +32,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.UUID" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";

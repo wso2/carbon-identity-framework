@@ -35,6 +35,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.utils.ClaimConstants" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);

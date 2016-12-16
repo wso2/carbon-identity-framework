@@ -22,6 +22,7 @@
 <%@ page import="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyConstants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <jsp:include page="../resources/resources-i18n-ajaxprocessor.jsp"/>
+<jsp:include page="../dialog/display_messages.jsp"/>
 <%
     String importFrom = (String)request.getParameter("importFrom");
     String[] importingMethods = new String[]{EntitlementPolicyConstants.IMPORT_POLICY_REGISTRY,

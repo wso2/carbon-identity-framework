@@ -31,6 +31,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <style>
     .sectionHelp {
