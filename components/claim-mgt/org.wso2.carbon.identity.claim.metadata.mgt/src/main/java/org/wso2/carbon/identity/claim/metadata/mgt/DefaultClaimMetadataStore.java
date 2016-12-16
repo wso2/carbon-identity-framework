@@ -127,6 +127,24 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
                     }
 
+                    if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
+                            claimProperties.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+                        }
+                    }
+
+                    if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
+                            claimProperties.put(ClaimConstants.READ_ONLY_PROPERTY, "true");
+                        }
+                    }
+
+                    if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
+                            claimProperties.put(ClaimConstants.REQUIRED_PROPERTY, "true");
+                        }
+                    }
+
                     LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
 
                     try {
