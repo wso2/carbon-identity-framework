@@ -23,7 +23,20 @@
 <%
     String stat = request.getParameter(Constants.STATUS);
     String statusMessage = request.getParameter(Constants.STATUS_MSG);
-    if (stat == null || statusMessage == null) {
+
+    boolean unrecognizedStatus = true;
+    if (stat.equals("Error when processing the authentication request!") ||
+            stat.equals("Not a valid SAML 2.0 Request Message!")) {
+        unrecognizedStatus = false;
+    }
+
+    boolean unrecognizedStatusMsg = true;
+    if (statusMessage.equals("Please try login again.") ||
+            statusMessage.equals("The message was not recognized by the SAML 2.0 SSO Provider. Please check the logs for more details")) {
+        unrecognizedStatusMsg = false;
+    }
+
+    if (stat == null || statusMessage == null || unrecognizedStatus || unrecognizedStatusMsg) {
         stat = "Authentication Error !";
         statusMessage = "Something went wrong during the authentication process. Please try signing in again.";
     }
