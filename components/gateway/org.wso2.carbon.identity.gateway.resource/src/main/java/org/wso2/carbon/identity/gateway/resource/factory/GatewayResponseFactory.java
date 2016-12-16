@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.resource;
+package org.wso2.carbon.identity.gateway.resource.factory;
 
 import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.framework.message.Response;
+import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 /**
- * Default factory implementation of {@link GatewayResponseBuilderFactory}
+ * Default factory implementation of {@link GatewayResponseFactory}
  */
-public class GatewayResponseBuilderFactory {
+public class GatewayResponseFactory {
 
     public String getName() {
 
@@ -36,7 +37,7 @@ public class GatewayResponseBuilderFactory {
         return 100;
     }
 
-    public boolean canHandle(Response response) {
+    public boolean canHandle(GatewayResponse response) {
 
         return true;
     }
@@ -46,23 +47,23 @@ public class GatewayResponseBuilderFactory {
         return true;
     }
 
-    public ResponseBuilder create(Response response) {
+    public Response create(GatewayResponse response) {
 
-        ResponseBuilder builder = javax.ws.rs.core.Response.status(response.getStatusCode());
+        ResponseBuilder builder = Response.status(response.getStatusCode());
         return create(builder, response);
     }
 
-    public ResponseBuilder create(ResponseBuilder builder, Response response) {
+    public Response create(ResponseBuilder builder, GatewayResponse response) {
 
         response.getHeaderMap().forEach(builder::header);
         builder.status(response.getStatusCode());
         builder.entity(response.getBody());
-        return builder;
+        return builder.build();
     }
 
-    public ResponseBuilder handleException(FrameworkException exception) {
+    public Response handleException(FrameworkException exception) {
 
-        return javax.ws.rs.core.Response.status(500).entity(exception.getMessage());
+        return Response.status(500).entity(exception.getMessage()).build();
     }
 
 

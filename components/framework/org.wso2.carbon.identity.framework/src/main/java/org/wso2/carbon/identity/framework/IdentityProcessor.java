@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.framework.message.Response;
 
 import java.util.Properties;
 
-public abstract class IdentityProcessor<T1 extends Request> {
+public abstract class IdentityProcessor<T1 extends Request, T2 extends Response> {
 
     protected Properties properties = new Properties();
 
@@ -31,6 +31,7 @@ public abstract class IdentityProcessor<T1 extends Request> {
      * @param properties IdentityProcessor properties
      */
     public void init(Properties properties) {
+
         if (properties != null) {
             this.properties = properties;
         }
@@ -47,8 +48,7 @@ public abstract class IdentityProcessor<T1 extends Request> {
      *                            processing
      *                            Request
      */
-    public abstract Response process(T1 identityRequest)
-            throws FrameworkException;
+    public abstract T2 process(T1 identityRequest) throws FrameworkException;
 
     /**
      * Returns the unique name of the request IdentityProcessor
@@ -70,7 +70,7 @@ public abstract class IdentityProcessor<T1 extends Request> {
      * @param identityRequest Request
      * @return can/not handle
      */
-    public abstract boolean canHandle(Request identityRequest);
+    public abstract boolean canHandle(T1 identityRequest);
 //
 //    /**
 //     * Get IdentityResponseBuilder for framework login

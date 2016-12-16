@@ -94,7 +94,7 @@
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.carbon.identity.framework.*; version="${identity.framework.import.version.range}",
             org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}",
-            org.wso2.carbon.identity.gateway.*; version="${identity.gateway.export.version}",
+            org.wso2.carbon.identity.gateway.*; version="${identity.gateway.import.version.range}",
         </import.package>
         <carbon.component>
             osgi.service; objectClass="org.wso2.msf4j.Microservice"

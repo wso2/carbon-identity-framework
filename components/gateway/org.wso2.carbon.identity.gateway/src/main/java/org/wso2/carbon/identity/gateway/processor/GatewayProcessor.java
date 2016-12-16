@@ -14,29 +14,11 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway;
+package org.wso2.carbon.identity.gateway.processor;
 
-import org.wso2.carbon.identity.framework.FrameworkException;
+import org.wso2.carbon.identity.framework.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.message.GatewayRequest;
+import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
-public class GatewayException extends FrameworkException {
-
-    public GatewayException(String message) {
-
-        super(message);
-    }
-
-    public GatewayException(String errorCode, String message) {
-
-        super(errorCode, message);
-    }
-
-    public GatewayException(String message, Throwable cause) {
-
-        super(message, cause);
-    }
-
-    public GatewayException(String errorCode, String message, Throwable cause) {
-
-        super(errorCode, message, cause);
-    }
+public abstract class GatewayProcessor extends IdentityProcessor<GatewayRequest, GatewayResponse> {
 }

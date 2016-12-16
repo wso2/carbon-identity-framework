@@ -45,12 +45,12 @@ public abstract class MultiOptionStepHandler<T1 extends HandlerIdentifier,
     @Override
     public HandlerResponseStatus handle(MessageContext messageContext) throws HandlerException {
 
-        AbstractHandler selectedHandler = getSelectedHandler();
+        AbstractHandler selectedHandler = getSelectedHandler(messageContext);
         selectedHandler.execute(messageContext);
 
         return HandlerResponseStatus.CONTINUE;
     }
 
-    protected abstract AbstractHandler getSelectedHandler();
+    protected abstract AbstractHandler getSelectedHandler(MessageContext messageContext);
 
 }

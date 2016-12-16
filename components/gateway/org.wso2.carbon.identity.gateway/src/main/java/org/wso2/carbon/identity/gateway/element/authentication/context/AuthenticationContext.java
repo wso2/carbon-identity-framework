@@ -36,10 +36,12 @@ public class AuthenticationContext {
     private List<Authenticator> authenticatedIDPs = new ArrayList<>();
 
     public List<Authenticator> getAuthenticatedIDPs() {
+
         return authenticatedIDPs;
     }
 
     public String getAuthenticateSubjectIdentifier() {
+
         return Optional.ofNullable(authenticatedIDPs.parallelStream()
                 .filter(x -> x.isAuthenticated() && x.isSubjectStep())
                 .findFirst()
@@ -51,6 +53,7 @@ public class AuthenticationContext {
 
 
     public Map<String, UserClaim> getAuthenticatedUserClaims() {
+
         return Optional.ofNullable(authenticatedIDPs.parallelStream()
                 .filter(x -> x.isAuthenticated() && x.isAttributeStep())
                 .findFirst()

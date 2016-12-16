@@ -16,11 +16,10 @@
 
 package org.wso2.carbon.identity.gateway.resource.internal;
 
-import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.IdentityProcessCoordinator;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
-import org.wso2.carbon.identity.gateway.resource.GatewayRequestFactory;
-import org.wso2.carbon.identity.gateway.resource.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.resource.factory.GatewayRequestFactory;
+import org.wso2.carbon.identity.gateway.resource.factory.GatewayResponseFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,14 +36,18 @@ public class DataHolder {
     private static DataHolder instance = new DataHolder();
 
     private List<GatewayRequestFactory> requestFactoryList = new ArrayList<>();
-    private List<GatewayResponseBuilderFactory> responseFactoryList = new ArrayList<>();
-    private IdentityProcessCoordinator processCoordinator;
+    private List<GatewayResponseFactory> responseFactoryList = new ArrayList<>();
+    private List<GatewayProcessor> gatewayProcessors = new ArrayList<>();
+//    private IdentityProcessCoordinator processCoordinator;
 
     private Comparator<GatewayRequestFactory> requestFactoryComparator =
             (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 
-    private Comparator<GatewayResponseBuilderFactory> responseFactoryComparator =
+    private Comparator<GatewayResponseFactory> responseFactoryComparator =
             (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
+
+    private Comparator<GatewayProcessor> gatewayComparator =
+            (processor1, processor2) -> FrameworkUtil.comparePriory(processor1.getPriority(), processor2.getPriority());
 
     private DataHolder() {
 
@@ -98,60 +101,58 @@ public class DataHolder {
 
 
     /**
-     * Add a {@link GatewayResponseBuilderFactory} service instance. This will be used by the ServiceComponent
-     * when a @{@link GatewayResponseBuilderFactory} registers.
+     * Add a {@link GatewayResponseFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link GatewayResponseFactory} registers.
      *
-     * @param responseBuilderFactory @{@link GatewayResponseBuilderFactory} instance added.
+     * @param responseBuilderFactory @{@link GatewayResponseFactory} instance added.
      */
-    public void addResponseFactory(GatewayResponseBuilderFactory responseBuilderFactory) {
+    public void addResponseFactory(GatewayResponseFactory responseBuilderFactory) {
 
         responseFactoryList.add(responseBuilderFactory);
         Collections.sort(responseFactoryList, responseFactoryComparator);
     }
 
     /**
-     * Remove a {@link GatewayResponseBuilderFactory} service instance. This will be used by the ServiceComponent
-     * when a @{@link GatewayResponseBuilderFactory} un-registers.
+     * Remove a {@link GatewayResponseFactory} service instance. This will be used by the ServiceComponent
+     * when a @{@link GatewayResponseFactory} un-registers.
      *
-     * @param responseBuilderFactory @{@link GatewayResponseBuilderFactory} instance removed.
+     * @param responseBuilderFactory @{@link GatewayResponseFactory} instance removed.
      */
-    public void removeResponseFactory(GatewayResponseBuilderFactory responseBuilderFactory) {
+    public void removeResponseFactory(GatewayResponseFactory responseBuilderFactory) {
 
         responseFactoryList.remove(responseBuilderFactory);
     }
 
     /**
-     * Return a list registered @{@link GatewayResponseBuilderFactory} services.
+     * Return a list registered @{@link GatewayResponseFactory} services.
      *
-     * @return list of @{@link GatewayResponseBuilderFactory} services.
+     * @return list of @{@link GatewayResponseFactory} services.
      */
-    public List<GatewayResponseBuilderFactory> getResponseFactoryList() {
+    public List<GatewayResponseFactory> getResponseFactoryList() {
 
         return responseFactoryList;
     }
 
     /**
-     * Get the registered @{@link IdentityProcessCoordinator} OSGi service for consumption.
+     * Add a {@link GatewayProcessor} service instance. This will be used by the ServiceComponent
+     * when a @{@link GatewayProcessor} registers.
      *
-     * @return IdentityProcessCoordinator instance set by the ServiceComponent.
+     * @param gatewayProcessor @{@link GatewayProcessor} instance added.
      */
-    public IdentityProcessCoordinator getProcessCoordinator() {
+    public void addIdentityProcessor(GatewayProcessor gatewayProcessor) {
 
-        if (processCoordinator == null) {
-            throw FrameworkRuntimeException.error("Identity Process Coordinator cannot be null.");
-        }
-        return processCoordinator;
+        gatewayProcessors.add(gatewayProcessor);
+        Collections.sort(gatewayProcessors, gatewayComparator);
     }
+
 
     /**
-     * Set the {@link IdentityProcessCoordinator} service instance. This will be used by the ServiceComponent
-     * when a @{@link IdentityProcessCoordinator} registers.
+     * Return a list registered @{@link GatewayProcessor} services.
      *
-     * @param processCoordinator {@link IdentityProcessCoordinator} service registered.
+     * @return list of @{@link GatewayProcessor} services.
      */
-    public void setProcessCoordinator(IdentityProcessCoordinator processCoordinator) {
+    public List<GatewayProcessor> getGatewayProcessors() {
 
-        this.processCoordinator = processCoordinator;
+        return gatewayProcessors;
     }
-
 }

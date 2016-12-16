@@ -9,10 +9,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
+import org.wso2.carbon.identity.gateway.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
 
 
@@ -41,8 +41,8 @@ public class ServiceComponent {
     protected void start(BundleContext bundleContext) throws Exception {
 
         // register processors
-        bundleContext.registerService(IdentityProcessor.class, new InitRequestProcessor(), null);
-        bundleContext.registerService(IdentityProcessor.class, new CallbackProcessor(), null);
+        bundleContext.registerService(GatewayProcessor.class, new InitRequestProcessor(), null);
+        bundleContext.registerService(GatewayProcessor.class, new CallbackProcessor(), null);
 
         // registering callback handlers
         bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(null), null);

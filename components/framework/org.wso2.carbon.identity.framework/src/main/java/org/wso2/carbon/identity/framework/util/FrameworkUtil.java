@@ -29,9 +29,9 @@ public class FrameworkUtil {
 
     public static int comparePriory(int priority1, int priority2) {
 
-        if (priority1 > priority2) {
+        if (priority1 < priority2) {
             return 1;
-        } else if (priority1 < priority2) {
+        } else if (priority1 > priority2) {
             return -1;
         } else {
             return 0;

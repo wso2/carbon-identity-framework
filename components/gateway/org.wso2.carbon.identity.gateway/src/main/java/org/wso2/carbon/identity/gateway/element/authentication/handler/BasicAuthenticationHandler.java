@@ -51,7 +51,7 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends
 
     // TODO : Read from config
     private final String AUTH_ENDPOINT = "http://localhost:9090/authenticate";
-    private final String CALLBACK = "http://localhost:9090/identity/callback";
+    private final String CALLBACK = "http://localhost:9090/gateway/callback";
 
     private final String USERNAME = "username";
     private final String PASSWORD = "password";
