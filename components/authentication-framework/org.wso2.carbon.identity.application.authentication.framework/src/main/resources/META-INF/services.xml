@@ -32,6 +32,10 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/authentication/session/delete</parameter>
         </operation>
 
+        <operation name="removeMySession">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
+
         <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/authentication/session
         </parameter>
     </service>
