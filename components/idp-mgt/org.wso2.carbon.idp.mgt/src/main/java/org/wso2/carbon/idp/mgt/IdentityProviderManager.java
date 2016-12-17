@@ -665,7 +665,8 @@ public class IdentityProviderManager implements IdpManager {
     public void updateResidentIdP(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        IdentityProvider residentIdp = getResidentIdP(tenantDomain);
+        IdentityProvider residentIdp = dao.getIdPByName(null, IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+                IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
         Map<String, String> configurationDetails = new HashMap<>();
 
         for (IdentityProviderProperty property : identityProvider.getIdpProperties()) {
