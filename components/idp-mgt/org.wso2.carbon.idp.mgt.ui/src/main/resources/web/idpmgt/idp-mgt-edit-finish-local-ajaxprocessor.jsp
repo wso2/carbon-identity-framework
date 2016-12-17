@@ -139,5 +139,5 @@
     }
 %>
 <script type="text/javascript">
-    location.href = "idp-mgt-list.jsp";
+    location.href = "idp-mgt-list-load.jsp";
 </script>
