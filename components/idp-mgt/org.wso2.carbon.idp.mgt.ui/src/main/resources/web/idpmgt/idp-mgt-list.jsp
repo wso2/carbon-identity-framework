@@ -94,9 +94,9 @@
             <fmt:message key='identity.providers'/>
         </h2>
         <div id="workArea">
-            <div style="height:30px;">
-                <a href="idp-mgt-edit-load-local.jsp" class="icon-link" style="background-image:url(images/resident-idp.png);"><fmt:message key='resident.idp'/></a>
-            </div>
+            <%--<div style="height:30px;">--%>
+                <%--<a href="idp-mgt-edit-load-local.jsp" class="icon-link" style="background-image:url(images/resident-idp.png);"><fmt:message key='resident.idp'/></a>--%>
+            <%--</div>--%>
             <div class="sectionSub">
             <table class="styledLeft" id="idPsListTable">
                 <thead><tr><th class="leftCol-med"><fmt:message key='registered.idps'/></th><th class="leftCol-big"><fmt:message key='description'/></th><th style="width: 30% ;" ><fmt:message key='actions'/></th></tr></thead>
