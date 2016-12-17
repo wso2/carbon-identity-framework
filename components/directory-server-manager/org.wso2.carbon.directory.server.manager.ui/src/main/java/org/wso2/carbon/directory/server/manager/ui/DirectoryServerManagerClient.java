@@ -25,7 +25,7 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.directory.common.stub.types.ServerPrinciple;
-import org.wso2.carbon.directory.server.manager.stub.DirectoryServerManagerExceptionException;
+import org.wso2.carbon.directory.server.manager.stub.DirectoryServerManagerDirectoryServerManagerExceptionException;
 import org.wso2.carbon.directory.server.manager.stub.DirectoryServerManagerStub;
 
 import java.rmi.RemoteException;
@@ -73,7 +73,7 @@ public class DirectoryServerManagerClient {
             stb.append("Server Name - ").append(serverName).append(" Description - ").append(serverDescription);
             log.error("Error adding service principle. Could not reach back-end service. " + stb.toString(), e);
             throw new ServerManagerClientException(ServerManagerClientException.ADD_SERVICE_PRINCIPLES_ERROR, e);
-        } catch (DirectoryServerManagerExceptionException e) {
+        } catch (DirectoryServerManagerDirectoryServerManagerExceptionException e) {
             StringBuilder stb = new StringBuilder();
             stb.append("Server Name - ").append(serverName).append(" Description - ").append(serverDescription);
             log.error("An error occurred while adding a service principle. " + stb.toString(), e);
@@ -92,7 +92,7 @@ public class DirectoryServerManagerClient {
         } catch (RemoteException e) {
             log.error("Error listing service principles. Could not reach back-end service. Filter - " + filter, e);
             throw new ServerManagerClientException(ServerManagerClientException.LIST_SERVICE_PRINCIPLES_ERROR, e);
-        } catch (DirectoryServerManagerExceptionException e) {
+        } catch (DirectoryServerManagerDirectoryServerManagerExceptionException e) {
             log.error("An error occurred while listing service principles. Filter - " + filter, e);
             throw new ServerManagerClientException(ServerManagerClientException.LIST_SERVICE_PRINCIPLES_ERROR, e);
         }
@@ -107,7 +107,7 @@ public class DirectoryServerManagerClient {
             log.error("Could not reach back-end service. Error updating password for service principle - "
                     + servicePrinciple, e);
             throw new ServerManagerClientException(ServerManagerClientException.CHANGE_SERVICE_PRINCIPLES_ERROR, e);
-        } catch (DirectoryServerManagerExceptionException e) {
+        } catch (DirectoryServerManagerDirectoryServerManagerExceptionException e) {
             log.error("An error occurred while updating service principle's password. Service principle - "
                     + servicePrinciple, e);
             throw new ServerManagerClientException(ServerManagerClientException.CHANGE_SERVICE_PRINCIPLES_ERROR, e);
@@ -120,7 +120,7 @@ public class DirectoryServerManagerClient {
         } catch (RemoteException e) {
             log.error("Could not reach back-end service. Error deleting service principle - " + servicePrinciple, e);
             throw new ServerManagerClientException(ServerManagerClientException.REMOVE_SERVICE_PRINCIPLES_ERROR, e);
-        } catch (DirectoryServerManagerExceptionException e) {
+        } catch (DirectoryServerManagerDirectoryServerManagerExceptionException e) {
             log.error("An error occurred while deleting service principle - "
                     + servicePrinciple, e);
             throw new ServerManagerClientException(ServerManagerClientException.REMOVE_SERVICE_PRINCIPLES_ERROR, e);
@@ -139,7 +139,7 @@ public class DirectoryServerManagerClient {
         } catch (RemoteException e) {
             log.error("Could not reach back-end service. Error retrieving password format. ", e);
             throw new ServerManagerClientException(ServerManagerClientException.PASSWORD_FORMAT_RETRIEVING_ERROR, e);
-        } catch (DirectoryServerManagerExceptionException e) {
+        } catch (DirectoryServerManagerDirectoryServerManagerExceptionException e) {
             log.error("An error occurred while retrieving password format.", e);
             throw new ServerManagerClientException(ServerManagerClientException.PASSWORD_FORMAT_RETRIEVING_ERROR, e);
         }
@@ -157,7 +157,7 @@ public class DirectoryServerManagerClient {
         } catch (RemoteException e) {
             log.error("Could not reach back-end service. Error retrieving service name format. ", e);
             throw new ServerManagerClientException(ServerManagerClientException.NAME_FORMAT_RETRIEVING_ERROR, e);
-        } catch (DirectoryServerManagerExceptionException e) {
+        } catch (DirectoryServerManagerDirectoryServerManagerExceptionException e) {
             log.error("An error occurred while retrieving service name format.", e);
             throw new ServerManagerClientException(ServerManagerClientException.NAME_FORMAT_RETRIEVING_ERROR, e);
         }
@@ -169,7 +169,7 @@ public class DirectoryServerManagerClient {
             return stub.isKDCEnabled();
         } catch (RemoteException e) {
             log.error("Could not reach back-end service. Error checking whether KDC is enabled. ", e);
-        } catch (DirectoryServerManagerExceptionException e) {
+        } catch (DirectoryServerManagerDirectoryServerManagerExceptionException e) {
             log.error("An error occurred while checking whether KDC is enabled.", e);
         }
 

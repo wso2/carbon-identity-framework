@@ -431,6 +431,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants.ErrorCode.USER_IS_LOCKED,
                                     userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
+                            IdentityUtil.threadLocalProperties.get().remove(IdentityCoreConstants.USER_ACCOUNT_STATE);
+                            IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE, UserCoreConstants.ErrorCode.USER_IS_LOCKED);
 
                             if (log.isDebugEnabled()) {
                                 log.debug("Username :" + userName + "Exceeded the maximum login attempts. User locked, ErrorCode :" + UserCoreConstants.ErrorCode.USER_IS_LOCKED);
@@ -939,16 +941,16 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 } else {
                     isAccountDisabled = wasAccountDisabled;
                 }
+
+                // This thread local can be used to check account lock status of a user.
+                IdentityUtil.threadLocalProperties.get().remove(IdentityCoreConstants.USER_ACCOUNT_STATE);
+
                 if (isAccountLocked) {
-                    IdentityUtil.clearIdentityErrorMsg();
-                    IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants
+                    IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE, UserCoreConstants
                             .ErrorCode.USER_IS_LOCKED);
-                    IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                 } else if (isAccountDisabled) {
-                    IdentityUtil.clearIdentityErrorMsg();
-                    IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(
+                    IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE,
                             IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE);
-                    IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
                 } else {
                     // do nothing
                 }

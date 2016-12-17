@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>xacml-feature</artifactId>
-        <version>5.6.55-SNAPSHOT</version>
+        <version>5.6.60-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -146,6 +146,8 @@
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.authenticator.thrift
                                 </bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.entitlement
+                                </bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.entitlement.common
                                 </bundleDef>
                                 <bundleDef>org.wso2.balana:org.wso2.balana</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
