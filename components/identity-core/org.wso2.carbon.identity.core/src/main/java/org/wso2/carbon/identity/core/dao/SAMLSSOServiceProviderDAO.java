@@ -55,6 +55,11 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     .PROP_SAML_SSO_SIGNING_ALGORITHM));
         }
 
+        if (resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTIBUTE_QUERY_PROFILE) != null) {
+            serviceProviderDO.setDoenEableAttributeQueryProfile(new Boolean(resource.getProperty(
+                    IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTIBUTE_QUERY_PROFILE).trim()));
+        }
+
         if (StringUtils.isNotEmpty(resource.getProperty(IdentityRegistryResources.PROP_SAML_SSO_DIGEST_ALGORITHM))) {
             serviceProviderDO.setDigestAlgorithmUri(resource.getProperty(IdentityRegistryResources
                     .PROP_SAML_SSO_DIGEST_ALGORITHM));
@@ -260,6 +265,9 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
         String doSignResponse = serviceProviderDO.isDoSignResponse() ? "true" : "false";
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE,
                 doSignResponse);
+        String doEnableAttributeQueryProfile = serviceProviderDO.getDoenEableAttributeQueryProfile() ? "true" : "false";
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTIBUTE_QUERY_PROFILE,
+                doEnableAttributeQueryProfile);
         String doSignAssertions = serviceProviderDO.isDoSignAssertions() ? "true" : "false";
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS,
                 doSignAssertions);

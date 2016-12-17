@@ -150,6 +150,7 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
     public static final String PROP_SAML_SSO_SIGNING_ALGORITHM = "signingAlgorithm";
     public static final String PROP_SAML_SSO_DIGEST_ALGORITHM = "digestAlgorithm";
+    public static final String PROP_SAML_SSO_ENABLE_ATTIBUTE_QUERY_PROFILE = "enableAttributeQueryProfile";
 
     // OpenID Admin
     public final static String SUB_DOMAIN = "SubDomain";
