@@ -665,6 +665,40 @@ public class IdentityProviderManager implements IdpManager {
     public void updateResidentIdP(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
 
+        IdentityProvider residentIdp = getResidentIdP(tenantDomain);
+        Map<String, String> configurationDetails = new HashMap<>();
+
+        for (IdentityProviderProperty property : identityProvider.getIdpProperties()) {
+            configurationDetails.put(property.getName(), property.getValue());
+        }
+
+        IdentityProviderProperty[] identityMgtProperties = residentIdp.getIdpProperties();
+        List<IdentityProviderProperty> newProperties = new ArrayList<>();
+
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            IdentityProviderProperty prop = new IdentityProviderProperty();
+            String key = identityMgtProperty.getName();
+            prop.setName(key);
+
+            if (configurationDetails.containsKey(key)) {
+                prop.setValue(configurationDetails.get(key));
+            } else {
+                prop.setValue(identityMgtProperty.getValue());
+            }
+
+            newProperties.add(prop);
+            configurationDetails.remove(key);
+        }
+
+        for (Map.Entry<String, String> entry : configurationDetails.entrySet()) {
+            IdentityProviderProperty prop = new IdentityProviderProperty();
+            prop.setName(entry.getKey());
+            prop.setValue(entry.getValue());
+            newProperties.add(prop);
+        }
+
+        identityProvider.setIdpProperties(newProperties.toArray(new IdentityProviderProperty[newProperties.size()]));
+
         for (IdentityProviderProperty idpProp : identityProvider.getIdpProperties()) {
             if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.SESSION_IDLE_TIME_OUT)) {
                 if (StringUtils.isBlank(idpProp.getValue()) || !StringUtils.isNumeric(idpProp.getValue()) ||

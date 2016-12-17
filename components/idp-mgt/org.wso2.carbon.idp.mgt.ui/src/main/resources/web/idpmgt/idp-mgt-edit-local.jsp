@@ -193,22 +193,9 @@ jQuery(document).ready(function(){
 
     initSections("");
 function idpMgtUpdate() {
-    $.ajax({
-        type: "POST",
-        url: 'idp-mgt-edit-finish-local-ajaxprocessor.jsp',
-        data: $("#idp-mgt-edit-local-form").serialize(),
-        success: function (data) {
-
-            $.ajax({
-                type: 'POST',
-                url: 'update_governance_config_ajaxprocessor.jsp',
-                data: $("#addGovernanceConfigurationForm").serialize(),
-                success: function (data) {
-                    location.href = "idp-mgt-list.jsp"
-                }
-            });
-        }
-    });
+    if(doValidation()){
+        jQuery('#idp-mgt-edit-local-form').submit();
+    }
 }
 
 function idpMgtCancel(){
@@ -617,9 +604,7 @@ function idpMgtCancel(){
                     </table>
 
             		</div>
-            	            </form>
-<form id="addGovernanceConfigurationForm" name="addGovernanceConfigurationForm" action="update_governance_config_ajaxprocessor.jsp"
-      method="post">
+
 <%
         for (String catName : catMap.keySet()) {
             if (DEFAULT.equals(catName)) {
@@ -656,12 +641,12 @@ function idpMgtCancel(){
                                 </div>
                             <%}%>
                                 <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       name="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
                                        type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
@@ -721,12 +706,12 @@ function idpMgtCancel(){
                                 </div>
                             <%}%>
                                 <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       name="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
                                        type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
@@ -784,12 +769,12 @@ function idpMgtCancel(){
                                 </div>
                             <%}%>
                                 <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       name="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
                                        type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
                             </td>
                             <%
                             } else {%>
-                            <td colspan="2"><input type="text" name=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
                                                    style="width:400px"
                                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
