@@ -147,6 +147,8 @@
                                 </bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.entitlement
                                 </bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.entitlement.common
+                                </bundleDef>
                                 <bundleDef>org.wso2.balana:org.wso2.balana</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
