@@ -66,6 +66,8 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private String signingCertificate ;
     private String encryptionCertificate ;
     private X509Certificate x509Certificate;
+    private boolean isAssertionQueryRequestProfileEnabled;
+    private String supportedAssertionQueryRequestTypes;
 
 
     public SAMLSSOServiceProviderDO() {
@@ -143,6 +145,22 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         if (assertionConsumerUrl != null) {
             this.assertionConsumerUrl = assertionConsumerUrl.replaceAll("[\n\r]", "").trim();
         }
+    }
+
+    public boolean isAssertionQueryRequestProfileEnabled() {
+        return isAssertionQueryRequestProfileEnabled;
+    }
+
+    public void setAssertionQueryRequestProfileEnabled(boolean isAssertionQueryRequestProfileEnabled) {
+        this.isAssertionQueryRequestProfileEnabled = isAssertionQueryRequestProfileEnabled;
+    }
+
+    public String getSupportedAssertionQueryRequestTypes() {
+        return supportedAssertionQueryRequestTypes;
+    }
+
+    public void setSupportedAssertionQueryRequestTypes(String supportedAssertionQueryRequestTypes) {
+        this.supportedAssertionQueryRequestTypes = supportedAssertionQueryRequestTypes;
     }
 
     public String getCertAlias() {
