@@ -254,7 +254,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     "false");
         }
 
-        String doSingleLogout = serviceProviderDO.isDoSingleLogout() ? "true" : "false";
+        String doSingleLogout = String.valueOf(serviceProviderDO.isDoSingleLogout());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SINGLE_LOGOUT, doSingleLogout);
         if (serviceProviderDO.isDoSingleLogout()) {
             if (StringUtils.isNotBlank(serviceProviderDO.getSloResponseURL())) {
@@ -267,17 +267,17 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             }
         }
 
-        String doSignResponse = serviceProviderDO.isDoSignResponse() ? "true" : "false";
+        String doSignResponse = String.valueOf(serviceProviderDO.isDoSignResponse());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_RESPONSE,
                 doSignResponse);
-        String isAssertionQueryRequestProfileEnabled = serviceProviderDO.isAssertionQueryRequestProfileEnabled() ?
-                "true" : "false";
+        String isAssertionQueryRequestProfileEnabled = String.valueOf(serviceProviderDO
+                .isAssertionQueryRequestProfileEnabled());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED,
                 isAssertionQueryRequestProfileEnabled);
         String supportedAssertionQueryRequestTypes = serviceProviderDO.getSupportedAssertionQueryRequestTypes();
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES,
                 supportedAssertionQueryRequestTypes);
-        String doSignAssertions = serviceProviderDO.isDoSignAssertions() ? "true" : "false";
+        String doSignAssertions = String.valueOf(serviceProviderDO.isDoSignAssertions());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_DO_SIGN_ASSERTIONS,
                 doSignAssertions);
         if (CollectionUtils.isNotEmpty(serviceProviderDO.getRequestedClaimsList())) {
@@ -298,24 +298,23 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
                     serviceProviderDO.getRequestedRecipientsList());
         }
 
-        String enableAttributesByDefault = serviceProviderDO.isEnableAttributesByDefault() ? "true"
-                : "false";
+        String enableAttributesByDefault = String.valueOf(serviceProviderDO.isEnableAttributesByDefault());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ATTRIBUTES_BY_DEFAULT,
                 enableAttributesByDefault);
-        String idPInitSSOEnabled = serviceProviderDO.isIdPInitSSOEnabled() ? "true" : "false";
+        String idPInitSSOEnabled = String.valueOf(serviceProviderDO.isIdPInitSSOEnabled());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_IDP_INIT_SSO_ENABLED,
                 idPInitSSOEnabled);
-        resource.addProperty(IdentityRegistryResources.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED,
-                serviceProviderDO.isIdPInitSLOEnabled() ? "true" : "false");
+        String idPInitSLOEnabled = String.valueOf(serviceProviderDO.isIdPInitSLOEnabled());
+        resource.addProperty(IdentityRegistryResources.PROP_SAML_SLO_IDP_INIT_SLO_ENABLED, idPInitSLOEnabled);
         if (serviceProviderDO.isIdPInitSLOEnabled() && serviceProviderDO.getIdpInitSLOReturnToURLList().size() > 0) {
             resource.setProperty(IdentityRegistryResources.PROP_SAML_IDP_INIT_SLO_RETURN_URLS,
                     serviceProviderDO.getIdpInitSLOReturnToURLList());
         }
-        String enableEncryptedAssertion = serviceProviderDO.isDoEnableEncryptedAssertion() ? "true" : "false";
+        String enableEncryptedAssertion = String.valueOf(serviceProviderDO.isDoEnableEncryptedAssertion());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_ENABLE_ENCRYPTED_ASSERTION,
                 enableEncryptedAssertion);
 
-        String validateSignatureInRequests = serviceProviderDO.isDoValidateSignatureInRequests() ? "true" : "false";
+        String validateSignatureInRequests = String.valueOf(serviceProviderDO.isDoValidateSignatureInRequests());
         resource.addProperty(IdentityRegistryResources.PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS,
                 validateSignatureInRequests);
         return resource;
