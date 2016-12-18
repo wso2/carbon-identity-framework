@@ -260,6 +260,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
             return true;
         }
 
+        IdentityUtil.threadLocalProperties.get().remove(IdentityCoreConstants.USER_ACCOUNT_STATE);
+
         String domainName = userStoreManager.getRealmConfiguration().getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
         String usernameWithDomain = IdentityUtil.addDomainToName(userName, domainName);
         boolean isUserExistInCurrentDomain = userStoreManager.isExistingUser(usernameWithDomain);
@@ -431,8 +433,8 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                             IdentityErrorMsgContext customErrorMessageContext = new IdentityErrorMsgContext(UserCoreConstants.ErrorCode.USER_IS_LOCKED,
                                     userIdentityDTO.getFailAttempts(), config.getAuthPolicyMaxLoginAttempts());
                             IdentityUtil.setIdentityErrorMsg(customErrorMessageContext);
-                            IdentityUtil.threadLocalProperties.get().remove(IdentityCoreConstants.USER_ACCOUNT_STATE);
-                            IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE, UserCoreConstants.ErrorCode.USER_IS_LOCKED);
+                            IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE,
+                                    UserCoreConstants.ErrorCode.USER_IS_LOCKED);
 
                             if (log.isDebugEnabled()) {
                                 log.debug("Username :" + userName + "Exceeded the maximum login attempts. User locked, ErrorCode :" + UserCoreConstants.ErrorCode.USER_IS_LOCKED);
@@ -893,7 +895,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         // security questions and identity claims are updated at the identity store
         if (claimURI.contains(UserCoreConstants.ClaimTypeURIs.CHALLENGE_QUESTION_URI) ||
                 claimURI.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI)) {
-//			  the whole listner to return and fail adding the cliam in doSetUserClaim
+//			  the whole listener to return and fail adding the claim in doSetUserClaim
             return true;
         } else {
             // a simple user claim. add it to the user store
@@ -914,6 +916,7 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (!isEnable()) {
             return true;
         }
+        IdentityUtil.threadLocalProperties.get().remove(IdentityCoreConstants.USER_ACCOUNT_STATE);
         String accountLocked = claims.get(UserIdentityDataStore.ACCOUNT_LOCK);
         boolean isAccountLocked = false;
 
@@ -943,7 +946,6 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
                 }
 
                 // This thread local can be used to check account lock status of a user.
-                IdentityUtil.threadLocalProperties.get().remove(IdentityCoreConstants.USER_ACCOUNT_STATE);
 
                 if (isAccountLocked) {
                     IdentityUtil.threadLocalProperties.get().put(IdentityCoreConstants.USER_ACCOUNT_STATE, UserCoreConstants
