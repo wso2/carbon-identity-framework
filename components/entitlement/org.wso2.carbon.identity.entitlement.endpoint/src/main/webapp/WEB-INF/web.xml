@@ -76,7 +76,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>secured services</web-resource-name>
-            <url-pattern>/Decision/*</url-pattern>
+            <url-pattern>/decision/*</url-pattern>
         </web-resource-collection>
         <!--we take default name for everyone role.If it is changed in user-mgt.xml,this needs to be changed as well.-->
         <!--<auth-constraint>
