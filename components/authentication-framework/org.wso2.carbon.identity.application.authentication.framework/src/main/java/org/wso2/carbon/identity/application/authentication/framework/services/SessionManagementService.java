@@ -38,11 +38,9 @@ public class SessionManagementService extends AbstractAdmin {
         if (StringUtils.isBlank(sessionId)) {
             return false;
         }
-
         // Retrieve session information from cache in order to publish event
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
         terminateSession(sessionContext, sessionId);
-
         return true;
     }
 
@@ -58,51 +56,45 @@ public class SessionManagementService extends AbstractAdmin {
         if (StringUtils.isBlank(sessionId)) {
             return false;
         }
-
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
-
         // Check whether the session belongs to the logged in user.
-
         CarbonContext carbonContext = CarbonContext.getThreadLocalCarbonContext();
         String username = carbonContext.getUsername();
-
         // Extract the user store domain if there is any or set to 'PRIMARY'.
         String userStoreDomain = "PRIMARY";
         String[] usernameTokens = username.split("/");
-        if(usernameTokens.length > 1){
+        if (usernameTokens.length > 1) {
             userStoreDomain = usernameTokens[0];
             username = usernameTokens[1];
         }
 
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) sessionContext
                 .getProperty(FrameworkConstants.AUTHENTICATED_USER);
-
-        if(username.equals(authenticatedUser.getUserName())
+        if (username.equals(authenticatedUser.getUserName())
                 && userStoreDomain.equals(authenticatedUser.getUserStoreDomain())
-                && carbonContext.getTenantDomain().equals(authenticatedUser.getTenantDomain())){
+                && carbonContext.getTenantDomain().equals(authenticatedUser.getTenantDomain())) {
             terminateSession(sessionContext, sessionId);
-        }else{ // TODO : Handle federated scenario.
+        } else { // TODO : Handle federated scenario.
             log.warn(String.format("Trying to terminate a session which does not belong to logged in user (%s). " +
                     "This might be an attempt for a security breach", username));
             return false;
         }
-
         return true;
     }
 
     // TODO : Session ID should be a property of the SessionContext.
-    private void terminateSession(SessionContext sessionContext, String sessionId){
+    private void terminateSession(SessionContext sessionContext, String sessionId) {
 
         if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null && FrameworkServiceDataHolder
                 .getInstance().getAuthnDataPublisherProxy().isEnabled(null) && sessionContext != null) {
 
-                Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-                AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-                if (authenticatedUserObj != null) {
-                    authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
-                }
-                FrameworkUtils.publishSessionEvent(sessionId, null, null, sessionContext, authenticatedUser,
-                        FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE);
+            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            if (authenticatedUserObj != null) {
+                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            }
+            FrameworkUtils.publishSessionEvent(sessionId, null, null, sessionContext, authenticatedUser,
+                    FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE);
         }
         SessionContextCache.getInstance().clearCacheEntry(sessionId);
     }
