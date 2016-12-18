@@ -30,6 +30,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
 

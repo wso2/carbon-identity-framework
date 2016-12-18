@@ -29,6 +29,7 @@
         import="org.wso2.carbon.identity.entitlement.ui.util.ClientUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 <%
 
     String[] subscriberIds = null;

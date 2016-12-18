@@ -40,6 +40,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String username = request.getParameter("username");
