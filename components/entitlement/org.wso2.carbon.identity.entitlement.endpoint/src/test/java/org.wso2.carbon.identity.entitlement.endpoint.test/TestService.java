@@ -32,7 +32,7 @@ import java.net.URISyntaxException;
 import java.util.Scanner;
 
 public class TestService extends Assert {
-    private final static String ENDPOINT_ADDRESS = "https://localhost:9443/api/identity/entitlement/Decision";
+    private final static String ENDPOINT_ADDRESS = "https://localhost:9443/api/identity/entitlement/decision";
     private final static String WADL_ADDRESS = ENDPOINT_ADDRESS + "?_wadl";
     private static Log log = LogFactory.getLog(TestService.class);
 
