@@ -274,6 +274,29 @@
             <UserInfoEndpointAccessTokenValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator</UserInfoEndpointAccessTokenValidator>
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             <SkipUserConsent>false</SkipUserConsent>
+            <Scopes>
+                <Scope id="openid">
+                    <Claims>all</Claims>
+                </Scope>
+                <!--<Scope id="openid">
+                    <Claims>sub</Claims>
+                </Scope>-->
+                <Scope id="email">
+                    <Claims>email,email_verified</Claims>
+                </Scope>
+                <Scope id="profile">
+                    <Claims>
+                        name,family_name,given_name,middle_name,nickname,preferred_username,profile,picture,website,gender,birthdate,zoneinfo,locale,updated_at
+                    </Claims>
+                </Scope>
+                <Scope id="phone">
+                    <Claims>phone_number,phone_number_verified</Claims>
+                </Scope>
+                <Scope id="address">
+                    <Claims>address</Claims>
+                    <Subclaims>street</Subclaims>
+                </Scope>
+            </Scopes>
         </OpenIDConnect>
     </OAuth>
 
