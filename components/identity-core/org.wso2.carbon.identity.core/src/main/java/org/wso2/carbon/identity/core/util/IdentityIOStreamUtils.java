@@ -41,7 +41,7 @@ public class IdentityIOStreamUtils {
                 input.close();
             }
         } catch (IOException ioe) {
-            log.error("Error occurred while closing Input stream");
+            log.error("Error occurred while closing Input stream", ioe);
         }
     }
 
@@ -51,7 +51,7 @@ public class IdentityIOStreamUtils {
                 output.close();
             }
         } catch (IOException ioe) {
-            log.error("Error occurred while closing Output stream");
+            log.error("Error occurred while closing Output stream", ioe);
         }
     }
 
@@ -61,7 +61,7 @@ public class IdentityIOStreamUtils {
                 output.flush();
             }
         } catch (IOException ioe) {
-            log.error("Error occurred while flushing Output stream");
+            log.error("Error occurred while flushing Output stream", ioe);
         }
     }
 
@@ -71,7 +71,7 @@ public class IdentityIOStreamUtils {
                 reader.close();
             }
         } catch (IOException ioe) {
-            log.error("Error occurred while closing Reader");
+            log.error("Error occurred while closing Reader", ioe);
         }
     }
 }
