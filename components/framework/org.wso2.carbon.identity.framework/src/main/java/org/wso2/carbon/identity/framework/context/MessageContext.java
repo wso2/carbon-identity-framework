@@ -25,10 +25,11 @@ import java.util.Map;
 
 /**
  * Message context.
+ *
  * @param <T1>
  * @param <T2>
  */
-public abstract class MessageContext<T1 extends Object, T2 extends Object> implements Serializable{
+public abstract class MessageContext<T1 extends Object, T2 extends Object> implements Serializable {
 
     protected Map<T1, T2> parameters = new HashMap();
 

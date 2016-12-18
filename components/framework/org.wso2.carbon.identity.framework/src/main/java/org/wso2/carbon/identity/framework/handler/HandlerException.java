@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -19,7 +18,7 @@ package org.wso2.carbon.identity.framework.handler;
 
 import org.wso2.carbon.identity.framework.FrameworkException;
 
-public class HandlerException extends FrameworkException{
+public class HandlerException extends FrameworkException {
 
     public HandlerException(String message) {
         super(message);

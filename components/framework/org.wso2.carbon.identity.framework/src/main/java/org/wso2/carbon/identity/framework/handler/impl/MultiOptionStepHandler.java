@@ -14,43 +14,40 @@ public abstract class MultiOptionStepHandler<T1 extends HandlerIdentifier,
         T2 extends HandlerConfig, T3 extends AbstractHandler, T4 extends MessageContext> extends AbstractHandler<T1,
         T2, T3, T4> {
 
-    private List<AbstractHandler> multiOptionHandlers = new ArrayList<>();
+    protected List<T3> multiOptionHandlers = new ArrayList<>();
 
-    public MultiOptionStepHandler(T1 handlerIdentifier,
-                                  T3 nextHandler,
-                                  List<AbstractHandler> multiOptionHandler) {
-
-        super(handlerIdentifier, nextHandler);
-        this.multiOptionHandlers = multiOptionHandler;
+    public MultiOptionStepHandler(T1 handlerIdentifier) {
+        super(handlerIdentifier);
     }
 
-    public MultiOptionStepHandler(T1 handlerIdentifier,
-                                  List<AbstractHandler> multiOptionHandler) {
+    public MultiOptionStepHandler(T1 handlerIdentifier, List<T3> multiOptionHandler) {
 
         super(handlerIdentifier);
         this.multiOptionHandlers = multiOptionHandler;
     }
 
-    public void addIdentityGatewayEventHandler(AbstractHandler abstractHandler) {
+    public void addIdentityGatewayEventHandler(T3 abstractHandler) {
 
         this.multiOptionHandlers.add(abstractHandler);
     }
 
     @Override
-    public HandlerConfig getConfiguration(HandlerIdentifier handlerIdentifier) {
+    public T2 getConfiguration(T1 handlerIdentifier) {
 
         return null;
     }
 
     @Override
-    public HandlerResponseStatus handle(MessageContext messageContext) throws HandlerException {
+    public HandlerResponseStatus handle(T4 messageContext) throws HandlerException {
 
         AbstractHandler selectedHandler = getSelectedHandler(messageContext);
         selectedHandler.execute(messageContext);
-
         return HandlerResponseStatus.CONTINUE;
     }
 
-    protected abstract AbstractHandler getSelectedHandler(MessageContext messageContext);
+    protected abstract AbstractHandler getSelectedHandler(T4 messageContext) throws HandlerException;
 
+    public List<T3> getMultiOptionHandlers() {
+        return multiOptionHandlers;
+    }
 }

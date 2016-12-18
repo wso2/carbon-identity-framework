@@ -55,7 +55,9 @@ public class GatewayResponseFactory {
 
     public Response create(ResponseBuilder builder, GatewayResponse response) {
 
-        response.getHeaderMap().forEach(builder::header);
+        response.getHeaders().forEach(builder::header);
+
+        // TODO : how are we going to send rest of stuff like properties, attributes that came in the response.
         builder.status(response.getStatusCode());
         builder.entity(response.getBody());
         return builder.build();

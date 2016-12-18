@@ -91,6 +91,7 @@
             org.wso2.msf4j.*,
             javax.ws.rs.*,
             org.wso2.carbon.messaging.*,
+            org.apache.commons.lang.*,
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.carbon.identity.framework.*; version="${identity.framework.import.version.range}",
             org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}",

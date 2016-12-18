@@ -24,6 +24,17 @@ public class GatewayHandlerIdentifier implements HandlerIdentifier {
     private String configName;
     private String handlerName;
 
+    public GatewayHandlerIdentifier() {
+
+    }
+
+    public GatewayHandlerIdentifier(String spName, String configName, String handlerName) {
+
+        this.spName = spName;
+        this.configName = configName;
+        this.handlerName = handlerName;
+    }
+
     public String getSpName() {
 
         return spName;

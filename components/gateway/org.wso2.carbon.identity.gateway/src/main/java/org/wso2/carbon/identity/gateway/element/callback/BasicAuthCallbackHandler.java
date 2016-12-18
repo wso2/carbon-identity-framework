@@ -54,6 +54,6 @@ public class BasicAuthCallbackHandler extends AbstractCallbackHandler implements
     @Override
     public String getSessionIdentifier(Request request) {
 
-        return String.valueOf(request.getProperty(FrameworkConstants.SESSION_DATA_KEY));
+        return (String) request.getProperty(FrameworkConstants.SESSION_DATA_KEY);
     }
 }

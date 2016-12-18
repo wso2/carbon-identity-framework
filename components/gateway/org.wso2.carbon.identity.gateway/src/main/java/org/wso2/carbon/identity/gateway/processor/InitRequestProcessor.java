@@ -20,15 +20,9 @@ package org.wso2.carbon.identity.gateway.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
-import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.SessionDataCleanupHandler;
-import org.wso2.carbon.identity.gateway.element.authentication.handler.BasicAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.element.authentication.handler.MultiStepAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.element.response.SAMLResponseHandler;
-import org.wso2.carbon.identity.gateway.element.validation.SAMLValidationHandler;
+import org.wso2.carbon.identity.gateway.element.custom.HandlerChainBuilder;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
@@ -50,44 +44,23 @@ public class InitRequestProcessor extends GatewayProcessor {
         }
 
         // Build the message context
-        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new GatewayResponse());
-        context.setInitialIdentityRequest(identityRequest);
+        GatewayMessageContext gatewayMessageContext = new GatewayMessageContext(identityRequest);
+        gatewayMessageContext.setInitialIdentityRequest(identityRequest);
 
-        String sessionDataKey = context.getSessionDataKey();// Create a sessionDataKey and add to message context
-        IdentityMessageContextCache.getInstance().put(sessionDataKey, context); // add the context reference to cache.
+        // Create a sessionDataKey and add to message context
+        String sessionDataKey = gatewayMessageContext.getSessionDataKey();
 
+        // add the context reference to cache.
+        IdentityMessageContextCache.getInstance().put(sessionDataKey, gatewayMessageContext);
 
         // Add an authentication context map TODO: this should be initialized by the context
-        context.addParameter(sessionDataKey, new HashMap<>());
+        gatewayMessageContext.addParameter(sessionDataKey, new HashMap<>());
 
-        // START HANDLER CHAIN
-        HandlerIdentifier identifier = new GatewayHandlerIdentifier();
+        String serviceProvider = identityRequest.getServiceProvider();
 
-        SAMLValidationHandler samlValidationHandler = new SAMLValidationHandler(identifier);
-
-        MultiStepAuthenticationHandler multiStepAuthenticationHandler = new MultiStepAuthenticationHandler(identifier);
-        BasicAuthenticationHandler basicAuthenticationHandler = new BasicAuthenticationHandler(identifier);
-
-        SAMLResponseHandler samlResponseHandler = new SAMLResponseHandler(identifier);
-        SessionDataCleanupHandler cleanupHandler = new SessionDataCleanupHandler(identifier);
-
-        samlValidationHandler.setNextHandler(multiStepAuthenticationHandler);
-        multiStepAuthenticationHandler.addIdentityGatewayEventHandler(basicAuthenticationHandler);
-        basicAuthenticationHandler.setNextHandler(samlResponseHandler);
-        samlResponseHandler.setNextHandler(cleanupHandler);
-        // END HANDLE CHAIN
-
-
-        // start executing the handler element
-        samlValidationHandler.execute(context);
-
-
-        // INBOUND
-        // AUTHENTICATOR
-        // OUTBOUND
-
-
-        return context.getIdentityResponse();
+        // Initiate the handler chain
+        new HandlerChainBuilder().buildHandlerChain(serviceProvider).execute(gatewayMessageContext);
+        return gatewayMessageContext.getCurrentIdentityResponse();
     }
 
     @Override

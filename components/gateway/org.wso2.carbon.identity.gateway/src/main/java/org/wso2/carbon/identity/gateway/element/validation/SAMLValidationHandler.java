@@ -27,12 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 import org.xml.sax.SAXException;
@@ -60,8 +59,7 @@ import static org.apache.xerces.impl.Constants.SECURITY_MANAGER_PROPERTY;
 import static org.apache.xerces.impl.Constants.XERCES_PROPERTY_PREFIX;
 import static org.wso2.carbon.identity.gateway.util.SAMLConstants.SAML_AUTH_REQUEST;
 
-public class SAMLValidationHandler extends
-        AbstractHandler<HandlerIdentifier, HandlerConfig, AbstractHandler, GatewayMessageContext> {
+public class SAMLValidationHandler extends AbstractGatewayHandler {
 
     private static Logger logger = LoggerFactory.getLogger(SAMLValidationHandler.class);
     private static final String XERCES_SECURITY_MANAGER_PROPERTY = XERCES_PROPERTY_PREFIX + SECURITY_MANAGER_PROPERTY;

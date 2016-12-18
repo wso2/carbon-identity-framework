@@ -16,13 +16,19 @@
 
 package org.wso2.carbon.identity.gateway.processor;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
+import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.internal.DataHolder;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 
 /**
  * Handle callbacks coming into the Identity Gateway
@@ -30,8 +36,14 @@ import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 public class CallbackProcessor extends GatewayProcessor {
 
 
+    private Logger logger = LoggerFactory.getLogger(CallbackProcessor.class);
+
     @Override
     public GatewayResponse process(GatewayRequest identityRequest) throws FrameworkException {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(getName() + " starting to process the initial Identity Request.");
+        }
 
         // get registered callback handlers.
         GatewayCallbackHandler handler = DataHolder.getInstance().getGatewayCallbackHandlers()
@@ -40,9 +52,19 @@ public class CallbackProcessor extends GatewayProcessor {
                 .findFirst()
                 .orElseThrow(() -> new FrameworkException("Unable to find a handler to process the callback"));
 
-        GatewayMessageContext context = new GatewayMessageContext(identityRequest, new GatewayResponse());
-        ((AbstractHandler) handler).execute(context);
-        return context.getIdentityResponse();
+        // restore the old context.
+        String sessionDataKey = handler.getSessionIdentifier(identityRequest);
+        if (StringUtils.isBlank(sessionDataKey)) {
+            throw new FrameworkClientException("SessionDataKey not found in the request to correlate.");
+        }
+        GatewayMessageContext oldContext = IdentityMessageContextCache.getInstance().get(sessionDataKey);
+        GatewayMessageContext newContext = new GatewayMessageContext(identityRequest);
+
+        // transfer information from old context into the new context
+        GatewayUtil.mergeContext(oldContext, newContext);
+        ((AbstractHandler) handler).execute(newContext);
+
+        return newContext.getCurrentIdentityResponse();
     }
 
     @Override

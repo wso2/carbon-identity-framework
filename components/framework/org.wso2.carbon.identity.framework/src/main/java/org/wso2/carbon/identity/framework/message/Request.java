@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 
 /**
@@ -32,11 +33,11 @@ public class Request implements Serializable {
 
     private static final long serialVersionUID = 2187881873309155315L;
 
-    protected Map<String, String> headers = new HashMap<>();
+    protected Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    protected Map<String, Object> properties = new HashMap<>();
+    protected Map<String, Object> properties = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    protected Map<String, Object> attributes = new HashMap<>();
+    protected Map<String, Object> attributes = new TreeMap<>();
 
     protected String body;
 
@@ -86,13 +87,6 @@ public class Request implements Serializable {
 
         protected String body;
 
-
-        public RequestBuilder setHeaders(Map<String, String> requestHeaders) {
-
-            headers = Optional.ofNullable(requestHeaders).orElse(new HashMap<>());
-            return this;
-        }
-
         public RequestBuilder addHeader(String name, String value) {
             // if the header name is not null and is present in the map, we throw an exception
             headers.computeIfPresent(name, (headerName, currentHeaderValue) -> {
@@ -103,8 +97,7 @@ public class Request implements Serializable {
         }
 
         public RequestBuilder addHeaders(Map<String, String> headers) {
-
-            Optional.ofNullable(headers).ifPresent(x -> x.forEach(this::addHeader));
+            headers.putAll(Optional.ofNullable(headers).orElse(new HashMap<>()));
             return this;
         }
 

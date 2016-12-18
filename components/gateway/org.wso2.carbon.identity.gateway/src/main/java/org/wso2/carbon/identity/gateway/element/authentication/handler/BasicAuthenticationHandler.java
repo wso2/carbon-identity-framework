@@ -21,15 +21,14 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkConstants;
-import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.framework.model.User;
 import org.wso2.carbon.identity.framework.model.UserClaim;
+import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
+import org.wso2.carbon.identity.gateway.config.GatewayHandlerConfig;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.element.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.element.authentication.LocalAuthenticator;
 
@@ -44,8 +43,7 @@ import javax.ws.rs.core.HttpHeaders;
 /**
  * Basic(Username, Password) authentication handler.
  */
-public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends HandlerConfig>
-        extends AbstractGatewayHandler<T1, T2> implements LocalAuthenticator {
+public class BasicAuthenticationHandler extends AbstractAuthenticationHandler implements LocalAuthenticator {
 
     private Logger logger = LoggerFactory.getLogger(BasicAuthenticationHandler.class);
 
@@ -59,9 +57,9 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends
     protected String uniqueIdentifier = UUID.randomUUID().toString();
     protected boolean isUserAuthenticated = false;
     protected User authenticatedUser;
-    private Map<String, UserClaim> claimMap = new HashMap<>();
+    protected Map<String, UserClaim> claimMap = new HashMap<>();
 
-    public BasicAuthenticationHandler(T1 handlerIdentifier) {
+    public BasicAuthenticationHandler(GatewayHandlerIdentifier handlerIdentifier) {
 
         super(handlerIdentifier);
 
@@ -73,7 +71,7 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends
 
 
     @Override
-    public T2 getConfiguration(T1 handlerIdentifier) {
+    public GatewayHandlerConfig getConfiguration(GatewayHandlerIdentifier handlerIdentifier) {
 
         return null;
     }
@@ -141,12 +139,12 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends
 
     private HandlerResponseStatus redirectToLoginPage(GatewayMessageContext context, String sessionID) {
         // This is an initial request to the Basic Auth Handler, so redirect to login page.
-        Response response = context.getIdentityResponse();
+        Response response = context.getCurrentIdentityResponse();
 
         // build the authentication endpoint url
         String redirectUrl = buildAuthenticationEndpointURL(AUTH_ENDPOINT, sessionID, CALLBACK);
         response.setStatusCode(302);
-        response.addHeader(HttpHeaders.LOCATION, redirectUrl);
+        response.getHeaders().put(HttpHeaders.LOCATION, redirectUrl);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Redirecting user to the authentication endpoint");
@@ -157,10 +155,9 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends
     }
 
 
-    private boolean authenticate(String username,
-                                 String password,
-                                 Map<String, Object> authContextMap) {
+    protected boolean authenticate(String username, String password, Map<String, Object> authContextMap) {
 
+        isUserAuthenticated = false;
         if ("admin".equalsIgnoreCase(username) && "admin".equalsIgnoreCase(password)) {
             // authenticated, lets set the subject and claims
             authContextMap.put("subject", username);
@@ -169,10 +166,7 @@ public class BasicAuthenticationHandler<T1 extends HandlerIdentifier, T2 extends
             claimMap.put("role", "admin");
             claimMap.put("email", "admin@wso2.com");
             authContextMap.put("claims", claimMap);
-
             isUserAuthenticated = true;
-        } else {
-            isUserAuthenticated = false;
         }
 
         return isUserAuthenticated;

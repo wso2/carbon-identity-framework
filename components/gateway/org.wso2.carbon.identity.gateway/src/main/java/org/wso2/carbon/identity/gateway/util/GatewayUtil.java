@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.gateway.util;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
 import java.io.UnsupportedEncodingException;
@@ -30,14 +32,15 @@ import java.util.Optional;
 public class GatewayUtil {
 
 
-    public static GatewayMessageContext mergeContext(GatewayMessageContext newContext,
-                                                     GatewayMessageContext oldContext) {
+    public static GatewayMessageContext mergeContext(GatewayMessageContext oldContext,
+                                                     GatewayMessageContext newContext) {
 
         // Copy the data from old context
         newContext.setSessionDataKey(oldContext.getSessionDataKey());
         newContext.setInitialIdentityRequest(oldContext.getInitialIdentityRequest());
         newContext.addParameters(oldContext.getParameters());
 
+        newContext.setFinalResponseBuilder(oldContext.getFinalResponseBuilder());
         // restore current state from the old context.
         newContext.setCurrentHandler(oldContext.getCurrentHandler());
         newContext.setHandlerResponseStatus(oldContext.getHandlerResponseStatus());
@@ -93,5 +96,14 @@ public class GatewayUtil {
         } catch (final UnsupportedEncodingException e) {
             throw new RuntimeException("Impossible: UTF-8 is a required encoding", e);
         }
+    }
+
+    public static String getSessionDataKeyFromContext(GatewayMessageContext gatewayMessageContext) throws
+            FrameworkException {
+        String sessionID = gatewayMessageContext.getSessionDataKey();
+        if (StringUtils.isBlank(sessionID)) {
+            throw new FrameworkException("SessionDataKey not found in the gateway message context.");
+        }
+        return sessionID;
     }
 }
