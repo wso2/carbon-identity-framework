@@ -34,9 +34,9 @@ import java.util.HashMap;
 /*
     This processor handler the initial identity requests that comes to the Identity Gateway.
  */
-public class InitRequestProcessor extends GatewayProcessor {
+public class RequestProcessor extends GatewayProcessor {
 
-    private static final Logger log = LoggerFactory.getLogger(InitRequestProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(RequestProcessor.class);
 
     @Override
     public GatewayResponse process(GatewayRequest identityRequest) throws FrameworkException {
