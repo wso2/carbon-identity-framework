@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
+import org.wso2.carbon.identity.gateway.message.GatewayResponse.GatewayResponseBuilder;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -35,9 +36,10 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
     protected String sessionDataKey;
 
     protected GatewayRequest initialIdentityRequest;
+    protected GatewayResponseBuilder finalResponseBuilder;
 
     protected GatewayRequest currentIdentityRequest;
-    protected GatewayResponse identityResponse;
+    protected GatewayResponse currentIdentityResponse;
 
     protected AbstractHandler currentHandler;
     protected HandlerResponseStatus handlerResponseStatus;
@@ -45,16 +47,17 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
     protected Map<String, ? extends GatewayMessageContext> messageContexts = new HashMap<>();
 
 
-    public GatewayMessageContext(GatewayRequest identityRequest, GatewayResponse identityResponseMessage) {
+    public GatewayMessageContext(GatewayRequest identityRequest) {
 
         this.currentIdentityRequest = identityRequest;
-        this.identityResponse = identityResponseMessage;
+        this.currentIdentityResponse = new GatewayResponseBuilder().build();
+        this.finalResponseBuilder = new GatewayResponseBuilder();
         sessionDataKey = UUID.randomUUID().toString();
     }
 
-    public GatewayMessageContext(GatewayRequest identityRequest, GatewayResponse identityResponseMessage, Map<T1, T2> parameters) {
+    public GatewayMessageContext(GatewayRequest identityRequest, Map<T1, T2> parameters) {
 
-        this(identityRequest, identityResponseMessage);
+        this(identityRequest);
         Optional.ofNullable(parameters).ifPresent(x -> {
             this.parameters.putAll(x);
         });
@@ -70,14 +73,14 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
         this.currentIdentityRequest = currentIdentityRequest;
     }
 
-    public void setIdentityResponse(GatewayResponse identityResponse) {
+    public void setCurrentIdentityResponse(GatewayResponse currentIdentityResponse) {
 
-        this.identityResponse = identityResponse;
+        this.currentIdentityResponse = currentIdentityResponse;
     }
 
-    public GatewayResponse getIdentityResponse() {
+    public GatewayResponse getCurrentIdentityResponse() {
 
-        return identityResponse;
+        return currentIdentityResponse;
     }
 
     @Override
@@ -150,5 +153,15 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
     public void setSessionDataKey(String sessionDataKey) {
 
         this.sessionDataKey = sessionDataKey;
+    }
+
+    public GatewayResponseBuilder getFinalResponseBuilder() {
+
+        return finalResponseBuilder;
+    }
+
+    public void setFinalResponseBuilder(GatewayResponseBuilder finalResponseBuilder) {
+
+        this.finalResponseBuilder = finalResponseBuilder;
     }
 }

@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.framework.model;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 public abstract class User implements Serializable {

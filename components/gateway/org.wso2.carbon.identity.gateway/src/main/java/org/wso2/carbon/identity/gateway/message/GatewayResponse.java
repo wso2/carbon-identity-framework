@@ -19,4 +19,37 @@ package org.wso2.carbon.identity.gateway.message;
 import org.wso2.carbon.identity.framework.message.Response;
 
 public class GatewayResponse extends Response {
+
+    protected String contentType;
+
+
+    public GatewayResponse(GatewayResponseBuilder gatewayResponseBuilder) {
+
+        super(gatewayResponseBuilder);
+        contentType = gatewayResponseBuilder.contentType;
+    }
+
+    public String getContentType() {
+
+        return contentType;
+    }
+
+
+    public static class GatewayResponseBuilder extends ResponseBuilder {
+
+        protected String contentType;
+
+
+        public GatewayResponseBuilder setContentType(String contentType) {
+
+            this.contentType = contentType;
+            return this;
+        }
+
+        @Override
+        public GatewayResponse build() {
+
+            return new GatewayResponse(this);
+        }
+    }
 }

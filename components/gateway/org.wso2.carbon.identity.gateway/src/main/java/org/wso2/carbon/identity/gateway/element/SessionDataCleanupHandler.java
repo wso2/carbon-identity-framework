@@ -18,8 +18,6 @@ package org.wso2.carbon.identity.gateway.element;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
@@ -28,7 +26,7 @@ import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 /**
  * I cleanup the session data after the handle sequence is ended.
  */
-public class SessionDataCleanupHandler extends AbstractHandler<HandlerIdentifier, HandlerConfig, AbstractHandler, GatewayMessageContext> {
+public class SessionDataCleanupHandler extends AbstractGatewayHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionDataCleanupHandler.class);
 

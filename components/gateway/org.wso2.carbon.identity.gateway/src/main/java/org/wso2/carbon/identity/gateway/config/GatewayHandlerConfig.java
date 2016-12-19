@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.handler;
+package org.wso2.carbon.identity.gateway.config;
 
+import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 
-public abstract class HandlerConfig {
-    private String handlerConfigIdentifier;
-
-    public String getHandlerConfigIdentifier() {
-        return handlerConfigIdentifier;
-    }
-
-    public void setHandlerConfigIdentifier(String handlerConfigIdentifier) {
-        this.handlerConfigIdentifier = handlerConfigIdentifier;
-    }
+public class GatewayHandlerConfig extends HandlerConfig {
 }

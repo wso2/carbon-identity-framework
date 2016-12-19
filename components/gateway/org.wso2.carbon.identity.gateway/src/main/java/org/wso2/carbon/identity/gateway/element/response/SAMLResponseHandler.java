@@ -60,12 +60,11 @@ import org.opensaml.xml.schema.impl.XSStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 
 import java.util.Base64;
@@ -79,7 +78,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.wso2.carbon.identity.gateway.util.SAMLConstants.SAML_AUTH_REQUEST;
 
-public class SAMLResponseHandler extends AbstractHandler<HandlerIdentifier, HandlerConfig, AbstractHandler, GatewayMessageContext> {
+public class SAMLResponseHandler extends AbstractGatewayHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SAMLResponseHandler.class);
 
@@ -129,7 +128,7 @@ public class SAMLResponseHandler extends AbstractHandler<HandlerIdentifier, Hand
 
                 String samlHtmlResponseBody = SAMLUtils.getHTMLResponseBody(samlReponse);
 
-                Response response = context.getIdentityResponse();
+                Response response = context.getCurrentIdentityResponse();
                 response.setStatusCode(OK.getStatusCode());
                 response.setBody(samlHtmlResponseBody);
 

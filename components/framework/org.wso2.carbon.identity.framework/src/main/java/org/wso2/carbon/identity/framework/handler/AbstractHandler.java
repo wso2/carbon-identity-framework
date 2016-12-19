@@ -22,9 +22,8 @@ import org.wso2.carbon.identity.framework.context.MessageContext;
 import static org.wso2.carbon.identity.framework.handler.HandlerResponseStatus.CONTINUE;
 
 
-public abstract class AbstractHandler<T1 extends HandlerIdentifier,
-        T2 extends HandlerConfig, T3 extends AbstractHandler, T4 extends MessageContext>
-        implements HandlerConfigurator<T1, T2> {
+public abstract class AbstractHandler<T1 extends HandlerIdentifier, T2 extends HandlerConfig,
+        T3 extends AbstractHandler, T4 extends MessageContext> implements HandlerConfigurator<T1, T2> {
 
     private T1 handlerIdentifier = null;
 
@@ -79,6 +78,7 @@ public abstract class AbstractHandler<T1 extends HandlerIdentifier,
     }
 
     public abstract HandlerResponseStatus handle(T4 messageContext) throws HandlerException;
+
 
     public boolean canHandle(T4 messageContext) throws HandlerException {
 

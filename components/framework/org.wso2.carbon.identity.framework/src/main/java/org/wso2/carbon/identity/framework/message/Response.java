@@ -16,101 +16,138 @@
 
 package org.wso2.carbon.identity.framework.message;
 
-import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 
-public class Response extends IdentityMessage implements Serializable {
+public class Response implements Serializable {
 
 
     private static final long serialVersionUID = -4486397485075114597L;
+
+    protected Map<String, String> headers;
+
+    protected Map<String, Object> properties;
+
+    protected Map<String, Object> attributes;
+
     protected String body;
+
     protected int statusCode;
 
 
-    public Response() {
+    protected Response(ResponseBuilder responseBuilder) {
+
+        headers = responseBuilder.headers;
+        properties = responseBuilder.properties;
+        attributes = responseBuilder.attributes;
+        body = responseBuilder.body;
+        statusCode = responseBuilder.statusCode;
     }
 
-    public void setHeaders(Map<String, String> requestHeaders) {
-        headers = Optional.ofNullable(requestHeaders).orElse(new HashMap<>());
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
-    public void addHeader(String name, String value) {
-        // if the header name is not null and is present in the map, we throw an exception
-        headers.computeIfPresent(name, (headerName, currentHeaderValue) -> {
-            throw FrameworkRuntimeException.error("Headers map trying to override existing header : " + headerName);
-        });
-        headers.put(name, value);
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 
-    public void addHeaders(Map<String, String> headers) {
-        Optional.ofNullable(headers).ifPresent(x -> x.forEach(this::addHeader));
-    }
-
-
-    public void addProperty(String propertyName, Object propertyValue) {
-        // if the header name is not null and is present in the map, we throw an exception
-        properties.computeIfPresent(propertyName, (headerName, currentHeaderValue) -> {
-            throw FrameworkRuntimeException.error("Properties map trying to override existing property " + headerName);
-        });
-        properties.put(propertyName, propertyValue);
-    }
-
-    public void addProperties(Map<String, Object> attributes) {
-        Optional.ofNullable(attributes).ifPresent(propertiesMap -> propertiesMap.forEach(this::addProperty));
-    }
-
-
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
-    }
-
-
-    public void setMethod(String method) {
-        this.method = method;
-    }
-
-    public void setPathInfo(String pathInfo) {
-        this.pathInfo = pathInfo;
-    }
-
-    public void setPathTranslated(String pathTranslated) {
-        this.pathTranslated = pathTranslated;
-    }
-
-    public void setQueryString(String queryString) {
-        this.queryString = queryString;
-    }
-
-    public void setRequestURI(String requestURI) {
-        this.requestURI = requestURI;
-    }
-
-    public void setRequestURL(StringBuffer requestURL) {
-        this.requestURL = requestURL;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
+    public Map<String, Object> getAttributes() {
+        return attributes;
     }
 
     public String getBody() {
+
         return body;
     }
 
     public void setBody(String body) {
+
         this.body = body;
     }
 
     public int getStatusCode() {
+
         return statusCode;
     }
 
     public void setStatusCode(int statusCode) {
+
         this.statusCode = statusCode;
+    }
+
+
+    public static class ResponseBuilder {
+
+        protected Map<String, String> headers = new HashMap<>();
+
+        protected Map<String, Object> properties = new HashMap<>();
+
+        protected Map<String, Object> attributes = new HashMap<>();
+
+        protected String body;
+
+        protected int statusCode;
+
+
+        public ResponseBuilder setBody(String body) {
+
+            this.body = body;
+            return this;
+        }
+
+        public ResponseBuilder setStatusCode(int statusCode) {
+
+            this.statusCode = statusCode;
+            return this;
+        }
+
+
+        public ResponseBuilder addHeader(String name, String value) {
+
+            headers.put(name, value);
+            return this;
+        }
+
+        public ResponseBuilder addHeaders(Map<String, String> headers) {
+
+            Optional.ofNullable(headers).ifPresent(x -> x.forEach(this::addHeader));
+            return this;
+        }
+
+        public ResponseBuilder addProperty(String name, Object value) {
+
+            properties.put(name, value);
+            return this;
+        }
+
+        public ResponseBuilder addProperties(Map<String, String> properties) {
+
+            Optional.ofNullable(properties).ifPresent(x -> x.forEach(this::addProperty));
+            return this;
+        }
+
+        public ResponseBuilder addAttribute(String name, Object value) {
+
+            attributes.put(name, value);
+            return this;
+        }
+
+        public ResponseBuilder addAttributes(Map<String, String> attributes) {
+
+            Optional.ofNullable(attributes).ifPresent(x -> x.forEach(this::addAttribute));
+            return this;
+        }
+
+
+        public Response build() {
+
+            return new Response(this);
+        }
+
+
     }
 }

@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.gateway.resource.factory;
 
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkClientException;
@@ -98,9 +99,13 @@ public class GatewayRequestFactory {
         builder.setContentType(request.getContentType());
         builder.setRequestUri(request.getUri());
 
-
         // handle queryParams
-        FrameworkUtil.getQueryParamMap(request.getUri()).forEach(builder::addProperty);
+        FrameworkUtil.getQueryParamMap(request.getUri()).forEach((x, y) -> {
+            if (StringUtils.equalsIgnoreCase("serviceProvider", x)) {
+                builder.setServiceProvider(y);
+            }
+            builder.addProperty(x, y);
+        });
 
         // Handle the message body
         String contentType = request.getContentType();
