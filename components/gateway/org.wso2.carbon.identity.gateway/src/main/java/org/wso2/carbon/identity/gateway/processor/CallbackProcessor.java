@@ -21,8 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.framework.cache.MessageContextCacheKey;
-import org.wso2.carbon.identity.framework.context.MessageContext;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
@@ -61,9 +59,9 @@ public class CallbackProcessor extends GatewayProcessor {
         if (StringUtils.isBlank(sessionDataKey)) {
             throw new FrameworkClientException("SessionDataKey not found in the request to correlate.");
         }
-
+        GatewayMessageContext oldContext = GatewayContextCache.getInstance().get(new GatewayContextCacheKey(sessionDataKey));
         GatewayMessageContext newContext = new GatewayMessageContext(identityRequest);
-        GatewayMessageContext messageContext = getMessageContext(new GatewayContextCacheKey(sessionDataKey));
+
         // transfer information from old context into the new context
         GatewayUtil.mergeContext(oldContext, newContext);
         ((AbstractHandler) handler).execute(newContext);
@@ -87,8 +85,5 @@ public class CallbackProcessor extends GatewayProcessor {
         return identityRequest.getRequestUri().contains("callback");
     }
 
-    @Override
-    public  GatewayMessageContext getMessageContext(MessageContextCacheKey  contextCacheKey) {
-        return null;
-    }
+
 }
