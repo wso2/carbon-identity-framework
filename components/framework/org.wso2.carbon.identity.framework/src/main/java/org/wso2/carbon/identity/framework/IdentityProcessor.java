@@ -75,8 +75,6 @@ public abstract class IdentityProcessor<T1 extends Request, T2 extends Response>
      */
     public abstract boolean canHandle(T1 identityRequest);
 
-    public abstract <T3 extends MessageContext, T4 extends MessageContextCacheKey> T3 getMessageContext(T4
-                                                                                         contextCacheKey);
 
 //
 //    /**
