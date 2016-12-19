@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.AuthorizationManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -60,6 +61,10 @@ public class UserProfileAdmin extends AbstractAdmin {
     private static UserProfileAdmin userProfileAdmin = new UserProfileAdmin();
     private String authorizationFailureMessage = "You are not authorized to perform this action.";
 
+    private static final String USER_PROFILE_DELETE_PERMISSION = "/manage/identity/userprofile/delete";
+    private static final String USER_PROFILE_VIEW_PERMISSION = "/manage/identity/userprofile/view";
+    private static final String USER_PROFILE_MANAGE_PERMISSION = "/manage/identity/userprofile";
+
     public static UserProfileAdmin getInstance() {
         return userProfileAdmin;
     }
@@ -82,7 +87,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         UserRealm realm = null;
         try {
 
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_MANAGE_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -142,7 +147,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     public void deleteUserProfile(String username, String profileName) throws UserProfileException {
         UserRealm realm = null;
         try {
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_DELETE_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -173,7 +178,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         String[] availableProfileConfigurations = new String[0];
         String profileConfig = null;
         try {
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_VIEW_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -331,7 +336,7 @@ public class UserProfileAdmin extends AbstractAdmin {
                 throw new UserProfileException("Invalid input parameters");
             }
 
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_VIEW_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -508,7 +513,8 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
 
-    private boolean isAuthorized(String targetUser) throws UserStoreException, CarbonException {
+    private boolean isAuthorized(String targetUser, String permissionString) throws UserStoreException,
+            CarbonException {
         boolean isAuthrized = false;
         MessageContext msgContext = MessageContext.getCurrentMessageContext();
         HttpServletRequest request = (HttpServletRequest) msgContext
@@ -516,7 +522,24 @@ public class UserProfileAdmin extends AbstractAdmin {
         HttpSession httpSession = request.getSession(false);
         if (httpSession != null) {
             String userName = (String) httpSession.getAttribute(ServerConstants.USER_LOGGED_IN);
-            isAuthrized = UserProfileUtil.isUserAuthorizedToConfigureProfile(getUserRealm(), userName, targetUser);
+            isAuthrized = isUserAuthorizedToConfigureProfile(getUserRealm(), userName, targetUser, permissionString);
+        }
+        return isAuthrized;
+    }
+
+    private static boolean isUserAuthorizedToConfigureProfile(UserRealm realm, String currentUserName,
+                                                              String targetUser, String permission)
+            throws UserStoreException {
+        boolean isAuthrized = false;
+        if (currentUserName == null) {
+            //do nothing
+        } else if (currentUserName.equals(targetUser)) {
+            isAuthrized = true;
+        } else {
+            AuthorizationManager authorizer = realm.getAuthorizationManager();
+            isAuthrized = authorizer.isUserAuthorized(currentUserName,
+                    CarbonConstants.UI_ADMIN_PERMISSION_COLLECTION + permission,
+                    "ui.execute");
         }
         return isAuthrized;
     }

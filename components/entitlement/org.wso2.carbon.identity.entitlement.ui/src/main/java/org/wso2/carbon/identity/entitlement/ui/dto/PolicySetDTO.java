@@ -22,8 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Encapsulate the policy set attribute
+ *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
  */
+@Deprecated
 public class PolicySetDTO {
 
     private String policySetId;

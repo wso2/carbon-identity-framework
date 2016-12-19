@@ -33,6 +33,7 @@ public class HttpIdentityResponse {
     protected String body;
     protected int statusCode;
     protected String redirectURL;
+    protected boolean isFragmentUrl;
 
     public Map<String, String> getHeaders() {
         return Collections.unmodifiableMap(headers);
@@ -74,6 +75,10 @@ public class HttpIdentityResponse {
         return body;
     }
 
+    public boolean isFragmentUrl() {
+        return isFragmentUrl;
+    }
+
     protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
@@ -82,6 +87,7 @@ public class HttpIdentityResponse {
         this.statusCode = builder.statusCode;
         this.redirectURL = builder.redirectURL;
         this.body = builder.body;
+        this.isFragmentUrl = builder.isFragmentUrl;
     }
 
     public static class HttpIdentityResponseBuilder {
@@ -93,6 +99,7 @@ public class HttpIdentityResponse {
         protected int statusCode;
         protected String redirectURL;
         protected String body;
+        protected boolean isFragmentUrl;
 
         public HttpIdentityResponseBuilder setHeaders(Map<String, String> headers) {
             this.headers = headers;
@@ -196,6 +203,11 @@ public class HttpIdentityResponse {
 
         public HttpIdentityResponseBuilder setBody(String body) {
             this.body = body;
+            return this;
+        }
+
+        public HttpIdentityResponseBuilder setFragmentUrl(boolean isFragmentUrl) {
+            this.isFragmentUrl = isFragmentUrl;
             return this;
         }
 

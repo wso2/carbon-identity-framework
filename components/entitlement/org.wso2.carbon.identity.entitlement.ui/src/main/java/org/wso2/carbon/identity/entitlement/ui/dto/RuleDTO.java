@@ -22,8 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
  */
+@Deprecated
 public class RuleDTO {
 
     private String ruleId;

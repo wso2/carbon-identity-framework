@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
@@ -42,9 +43,7 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
     protected final Properties properties = new Properties();
 
     protected InitConfig initConfig;
-
-    public static final String TENANT_DOMAIN_PATTERN = "/t/([^/]+)";
-
+    
     public void init(InitConfig initConfig) {
 
         this.initConfig = initConfig;
@@ -103,10 +102,8 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
             }
         }
         String requestURI = request.getRequestURI();
-        Pattern pattern = Pattern.compile(TENANT_DOMAIN_PATTERN);
-        Matcher matcher = pattern.matcher(requestURI);
-        if(matcher.find()) {
-            builder.setTenantDomain(matcher.group(1));
+        if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain() != null) {
+            builder.setTenantDomain(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         } else {
             builder.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
         }

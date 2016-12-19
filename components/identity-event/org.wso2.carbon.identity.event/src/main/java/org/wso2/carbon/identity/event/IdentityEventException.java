@@ -32,5 +32,9 @@ public class IdentityEventException extends IdentityException {
         super(message, e);
     }
 
+    public IdentityEventException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
 }
 

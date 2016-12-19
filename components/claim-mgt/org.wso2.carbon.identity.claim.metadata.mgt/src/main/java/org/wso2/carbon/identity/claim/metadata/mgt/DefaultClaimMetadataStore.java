@@ -127,6 +127,24 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         claimProperties.put(ClaimConstants.DISPLAY_NAME_PROPERTY, "0");
                     }
 
+                    if (claimProperties.containsKey(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY)) {
+                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY))) {
+                            claimProperties.put(ClaimConstants.SUPPORTED_BY_DEFAULT_PROPERTY, "true");
+                        }
+                    }
+
+                    if (claimProperties.containsKey(ClaimConstants.READ_ONLY_PROPERTY)) {
+                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.READ_ONLY_PROPERTY))) {
+                            claimProperties.put(ClaimConstants.READ_ONLY_PROPERTY, "true");
+                        }
+                    }
+
+                    if (claimProperties.containsKey(ClaimConstants.REQUIRED_PROPERTY)) {
+                        if (StringUtils.isBlank(claimProperties.get(ClaimConstants.REQUIRED_PROPERTY))) {
+                            claimProperties.put(ClaimConstants.REQUIRED_PROPERTY, "true");
+                        }
+                    }
+
                     LocalClaim localClaim = new LocalClaim(claimURI, mappedAttributes, claimProperties);
 
                     try {
@@ -238,31 +256,10 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
             for (LocalClaim localClaim : localClaimList) {
                 if (localClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
-                    String mappedAttribute = localClaim.getMappedAttribute(domainName);
-
-                    if (StringUtils.isBlank(mappedAttribute)) {
-                        mappedAttribute = localClaim.getClaimProperty(ClaimConstants.DEFAULT_ATTRIBUTE);
-                    }
-
-                    if (StringUtils.isBlank(mappedAttribute)) {
-                        UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
-                                .getTenantUserRealm(tenantId);
-                        String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
-                                (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-                        mappedAttribute = localClaim.getMappedAttribute(primaryDomainName);
-                    }
-
-                    if (StringUtils.isBlank(mappedAttribute)) {
-                        throw new IllegalStateException("Cannot find suitable mapped attribute for local claim " +
-                                claimURI);
-                    }
-
-                    return mappedAttribute;
+                    return getMappedAttribute(domainName, localClaim, tenantId);
                 }
             }
 
-
-//            throw new IllegalStateException("Invalid local claim URI : " + claimURI);
 
             // For backward compatibility
             List<ClaimDialect> claimDialects = claimDialectDAO.getClaimDialects(tenantId);
@@ -280,27 +277,11 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
                         for (LocalClaim localClaim : localClaimList) {
                             if (localClaim.getClaimURI().equalsIgnoreCase(externalClaim.getMappedLocalClaim())) {
-                                String mappedAttribute = localClaim.getMappedAttribute(domainName);
-
-                                if (StringUtils.isBlank(mappedAttribute)) {
-                                    mappedAttribute = localClaim.getClaimProperty(ClaimConstants.DEFAULT_ATTRIBUTE);
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Picking mapped attribute for external claim : " + externalClaim
+                                            .getClaimURI() + " using mapped local claim : " + localClaim.getClaimURI());
                                 }
-
-                                if (StringUtils.isBlank(mappedAttribute)) {
-                                    UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance()
-                                            .getRealmService().getTenantUserRealm(tenantId);
-                                    String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
-                                            (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
-                                    mappedAttribute = localClaim.getMappedAttribute(primaryDomainName);
-                                }
-
-                                if (StringUtils.isBlank(mappedAttribute)) {
-                                    throw new IllegalStateException("Cannot find suitable mapped attribute for local " +
-                                            "claim " + claimURI);
-                                }
-
-                                return mappedAttribute;
-
+                                return getMappedAttribute(domainName, localClaim, tenantId);
                             }
                         }
 
@@ -308,11 +289,60 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 }
             }
 
-            log.error("Returning NULL for getAttributeName() for domain : " + domainName + ", claim URI : " + claimURI);
+            if (log.isDebugEnabled()) {
+                log.error("Returning NULL for getAttributeName() for domain : " + domainName + ", claim URI : " +
+                        claimURI);
+            }
+
             return null;
 
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(e.getMessage(), e);
+        }
+    }
+
+    private String getMappedAttribute(String domainName, LocalClaim localClaim, int tenantId) throws
+            UserStoreException {
+
+        String mappedAttribute = localClaim.getMappedAttribute(domainName);
+
+        if (StringUtils.isNotBlank(mappedAttribute)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Assigned mapped attribute : " + mappedAttribute + " from user store domain : " + domainName +
+                        " for claim : " + localClaim.getClaimURI() + " in tenant : " + tenantId);
+            }
+
+            return mappedAttribute;
+        }
+
+        mappedAttribute = localClaim.getClaimProperty(ClaimConstants.DEFAULT_ATTRIBUTE);
+
+        if (StringUtils.isNotBlank(mappedAttribute)) {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Assigned mapped attribute : " + mappedAttribute + " from " + ClaimConstants.DEFAULT_ATTRIBUTE +
+                        " property for claim : " + localClaim.getClaimURI() + " in tenant : " + tenantId);
+            }
+
+            return mappedAttribute;
+        }
+
+        UserRealm realm = IdentityClaimManagementServiceDataHolder.getInstance().getRealmService()
+                .getTenantUserRealm(tenantId);
+        String primaryDomainName = realm.getRealmConfiguration().getUserStoreProperty
+                (UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        mappedAttribute = localClaim.getMappedAttribute(primaryDomainName);
+
+        if (StringUtils.isNotBlank(mappedAttribute)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Assigned mapped attribute : " + mappedAttribute + " from primary user store domain : " +
+                        primaryDomainName + " for claim : " + localClaim.getClaimURI() + " in tenant : " + tenantId);
+            }
+
+            return mappedAttribute;
+        } else {
+            throw new IllegalStateException("Cannot find suitable mapped attribute for local claim " + localClaim
+                    .getClaimURI());
         }
     }
 
@@ -335,7 +365,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
             for (LocalClaim localClaim : localClaims) {
                 if (localClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
-                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim, this
+                            .tenantId);
                     return claimMapping.getClaim();
                 }
             }
@@ -355,7 +386,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                     if (externalClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
 
                         for (LocalClaim localClaim : localClaims) {
-                            ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                            ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping
+                                    (localClaim, this.tenantId);
                             return claimMapping.getClaim();
                         }
 
@@ -378,7 +410,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
             for (LocalClaim localClaim : localClaims) {
                 if (localClaim.getClaimURI().equalsIgnoreCase(claimURI)) {
-                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim, this
+                            .tenantId);
                     return claimMapping;
                 }
             }
@@ -400,7 +433,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                         for (LocalClaim localClaim : localClaims) {
                             if (localClaim.getClaimURI().equalsIgnoreCase(externalClaim.getMappedLocalClaim())) {
                                 ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping
-                                        (localClaim);
+                                        (localClaim, this.tenantId);
                                 return claimMapping;
                             }
                         }
@@ -409,7 +442,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 }
             }
 
-            log.error("Returning NULL for getClaimMapping() for claim URI : " + claimURI);
+            if (log.isDebugEnabled()) {
+                log.debug("Returning NULL for getClaimMapping() for claim URI : " + claimURI);
+            }
             return null;
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(e.getMessage(), e);
@@ -427,7 +462,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 List<ClaimMapping> claimMappings = new ArrayList<>();
 
                 for (LocalClaim localClaim : localClaims) {
-                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                    ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim, this
+                            .tenantId);
                     claimMappings.add(claimMapping);
                 }
 
@@ -444,7 +480,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
 
                 for (ExternalClaim externalClaim : externalClaims) {
                     ClaimMapping claimMapping = ClaimMetadataUtils.convertExternalClaimToClaimMapping(externalClaim,
-                            localClaims);
+                            localClaims, this.tenantId);
                     claimMappings.add(claimMapping);
                 }
 
@@ -491,7 +527,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             List<ClaimMapping> claimMappings = new ArrayList<>();
 
             for (LocalClaim localClaim : localClaims) {
-                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim, this
+                        .tenantId);
 
                 if (claimMapping.getClaim().isSupportedByDefault()) {
                     claimMappings.add(claimMapping);
@@ -514,7 +551,8 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             List<ClaimMapping> claimMappings = new ArrayList<>();
 
             for (LocalClaim localClaim : localClaims) {
-                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim);
+                ClaimMapping claimMapping = ClaimMetadataUtils.convertLocalClaimToClaimMapping(localClaim, this
+                        .tenantId);
 
                 if (claimMapping.getClaim().isRequired()) {
                     claimMappings.add(claimMapping);

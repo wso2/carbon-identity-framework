@@ -21,8 +21,9 @@ package org.wso2.carbon.identity.entitlement.ui.dto;
 import java.util.List;
 
 /**
- *
+ *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
  */
+@Deprecated
 public class RequestDTO {
 
     private boolean multipleRequest;

@@ -4839,27 +4839,25 @@
                         </div>
                         <div id="saml_mode_selction_section">
                             <table class="carbonFormTable" width="100%">
-                                <thead>
-                                <tr>
-                                    <th><fmt:message key="saml.sso.select.mode"/></th>
-                                </tr>
-                                </thead>
+
                                 <tbody>
                                 <tr>
-                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.manual'/>:<span
+                                    <td class="leftCol-med labelField"><fmt:message key='saml.sso.select.mode'/><span
                                             ></span></td>
                                     <td>
-                                        <input type="radio"  name="saml_ui_mode"  value="manual" onclick="
+                                        <input type="radio" checked="checked" name="saml_ui_mode"  value="manual"
+                                               onclick="
                                         $('#manual_section').show(); $('#metadata_section').hide();">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="leftCol-med labelField"><fmt:message key='saml.mode.file'/>:<span
-                                            ></span></td>
+                                        <fmt:message key='saml.mode.manual'/>
 
-                                    <td>
+
                                         <input type="radio" name="saml_ui_mode" value="file" onclick="
                                     $('#manual_section').hide(); $('#metadata_section').show();">
+                                        <fmt:message key='saml.mode.file'/>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='help.metadata.select.mode'/>
+                                        </div>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -4870,11 +4868,7 @@
 
                         <div id="manual_section">
                             <table class="carbonFormTable" width="100%">
-                                <thead>
-                                <tr>
-                                    <th><fmt:message key="saml.sso.manual.mode"/></th>
-                                </tr>
-                                </thead>
+
                                 <tbody>
                                 <br>
                                 <tr>
@@ -5378,7 +5372,7 @@
                             </table>
                         </div>
                         <script>
-                            $('#manual_section').hide();
+                            $('#manual_section').show();
                             $('#metadata_section').hide();
                         </script>
 
@@ -5848,7 +5842,7 @@
 
                     <h2 id="custom_auth_head_"<%=fedConfig.getDisplayName() %> class="sectionSeperator trigger active"
                         style="background-color: beige;">
-                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName() %>Configuration</a>
+                        <a href="#" style="text-transform:capitalize;"><%=fedConfig.getDisplayName()%> Configuration</a>
                         <% if (isEnabled) { %>
                         <div id="custom_auth_head_enable_logo_<%=fedConfig.getName()%>" class="enablelogo"
                              style="float:right;padding-right: 5px;padding-top: 5px;"><img src="images/ok.png"

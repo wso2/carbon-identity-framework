@@ -294,6 +294,7 @@ public class IdentityConstants {
         public static final String NTLM_TOKEN = "NTLM_Token";
         public static final String SAML_ASSERTION = "SAML_Assertion";
         public static final String SAML_REQUEST = "SAML_Request";
+        public static final String ACCESS_TOKEN = "AccessToken";
     }
 
     /**

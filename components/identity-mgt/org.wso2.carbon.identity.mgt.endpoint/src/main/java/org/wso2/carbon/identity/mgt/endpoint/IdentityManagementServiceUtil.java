@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.securevault.SecretResolver;
@@ -53,6 +54,8 @@ public class IdentityManagementServiceUtil {
     private String accessUsername;
     private String accessPassword;
     private String serviceContextURL;
+    private String appName;
+    private char[] appPassword;
 
     private static final Log log = LogFactory.getLog(IdentityManagementServiceUtil.class);
 
@@ -112,6 +115,10 @@ public class IdentityManagementServiceUtil {
                                                             .SERVICE_ACCESS_USERNAME);
             accessPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
                                                             .SERVICE_ACCESS_PASSWORD);
+            appName = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                    .APP_NAME);
+            appPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                    .APP_PASSWORD).toCharArray();
             String serviceContextURL = properties
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
             this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? IdentityUtil.getServerURL(
@@ -217,7 +224,7 @@ public class IdentityManagementServiceUtil {
             return null;
         }
 
-        String userStoreDomain = IdentityUtil.extractDomainFromName(userName);
+        String userStoreDomain = extractDomainFromName(userName);
         String tenantDomain = MultitenantUtils.getTenantDomain(userName);
         String userNameWithoutTenantDomainAndUserStoreDomain = MultitenantUtils
                 .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(userName));
@@ -228,5 +235,22 @@ public class IdentityManagementServiceUtil {
         user.setTenantDomain(tenantDomain);
 
         return user;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public char[] getAppPassword() {
+        return appPassword;
+    }
+
+    private String extractDomainFromName(String nameWithDomain) {
+        if (nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR) > 0) {
+            String domain = nameWithDomain.substring(0, nameWithDomain.indexOf(UserCoreConstants.DOMAIN_SEPARATOR));
+            return domain.toUpperCase();
+        } else {
+            return null;
+        }
     }
 }

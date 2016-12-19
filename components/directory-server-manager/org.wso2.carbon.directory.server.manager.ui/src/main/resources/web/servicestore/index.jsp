@@ -110,7 +110,7 @@
         <div id="workArea">
 
 
-            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security")) {%>
+            <% if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {%>
             <table width="100%">
                 <tr>
                     <%

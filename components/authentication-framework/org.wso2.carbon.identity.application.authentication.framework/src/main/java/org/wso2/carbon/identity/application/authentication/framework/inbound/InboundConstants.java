@@ -28,6 +28,7 @@ public class InboundConstants {
         public static final String AUTH_TYPE = "type";
         // Rename constant value to "contextkey"
         public static final String CONTEXT_KEY = "sessionDataKey";
+        public static final String CONTEXT_KEY_CONSENT = "sessionDataKeyConsent";
         public static final String AUTHENTICATION_RESULT = "AuthenticationResult";
 
         private RequestProcessor() {

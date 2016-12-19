@@ -535,14 +535,14 @@ public class UserRealmProxy {
 
             RealmConfiguration realmConfig = realm.getRealmConfiguration();
             if (realm.getAuthorizationManager().isUserAuthorized(userName,
-                    "/permission/admin/configure/security", CarbonConstants.UI_PERMISSION_ACTION) ||
+                    "/permission/admin/manage/identity", CarbonConstants.UI_PERMISSION_ACTION) ||
                     realm.getAuthorizationManager().isUserAuthorized(userName,
-                            "/permission/admin/configure/security/usermgt/users", CarbonConstants.UI_PERMISSION_ACTION)
+                            "/permission/admin/manage/identity/usermgt/users", CarbonConstants.UI_PERMISSION_ACTION)
                     || realm.getAuthorizationManager().isUserAuthorized(userName,
-                    "/permission/admin/configure/security/usermgt/passwords",
+                    "/permission/admin/manage/identity/usermgt/passwords",
                     CarbonConstants.UI_PERMISSION_ACTION) ||
                     realm.getAuthorizationManager().isUserAuthorized(userName,
-                            "/permission/admin/configure/security/usermgt/profiles",
+                            "/permission/admin/manage/identity/usermgt/profiles",
                             CarbonConstants.UI_PERMISSION_ACTION)) {
 
                 userRealmInfo.setAdminRole(realmConfig.getAdminRoleName());

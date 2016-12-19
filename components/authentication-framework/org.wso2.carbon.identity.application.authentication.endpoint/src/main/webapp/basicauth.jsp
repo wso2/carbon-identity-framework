@@ -22,13 +22,13 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.SelfRegistrationRequest" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.User" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="java.net.HttpURLConnection" %>
 <%@ page import="java.net.URL" %>
 <%@ page import="java.net.URLEncoder" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
 
 
 <%
@@ -37,10 +37,10 @@
 
         String url = config.getServletContext().getInitParameter(Constants.ACCOUNT_RECOVERY_REST_ENDPOINT_URL);
 
-        SelfRegistrationRequest selfRegistrationRequest = new SelfRegistrationRequest();
-        User user = new User();
-        user.setUserName(resendUsername);
-        selfRegistrationRequest.setUser(user);
+        ResendCodeRequestDTO selfRegistrationRequest = new ResendCodeRequestDTO();
+        UserDTO userDTO = AuthenticationEndpointUtil.getUser(resendUsername);
+        selfRegistrationRequest.setUser(userDTO);
+        url = url.replace("tenant-domain", userDTO.getTenantDomain());
 
         List<JSONProvider> providers = new ArrayList<JSONProvider>();
         JSONProvider jsonProvider = new JSONProvider();

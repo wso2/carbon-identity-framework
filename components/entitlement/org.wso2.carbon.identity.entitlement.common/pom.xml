@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>entitlement</artifactId>
-        <version>5.6.20-SNAPSHOT</version>
+        <version>5.6.60-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -53,6 +53,10 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.entitlement.stub</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.ws.commons.axiom.wso2</groupId>
             <artifactId>axiom</artifactId>
         </dependency>
@@ -76,6 +80,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.balana</groupId>
+            <artifactId>org.wso2.balana.utils</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -95,10 +103,13 @@
                             ${project.artifactId}
                         </Bundle-SymbolicName>
                         <Import-Package>
+                            org.wso2.balana.*;
+                            version="${balana.imp.pkg.version.range}",
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             org.w3c.dom,
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.wso2.balana.utils.Constants; version="${balana.imp.pkg.version.range}",
+                            org.wso2.balana.utils.*; version="${balana.imp.pkg.version.range}",
                             org.apache.xerces.util; resolution:=optional,
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.registry.api; version="${carbon.kernel.registry.imp.pkg.version}",

@@ -33,6 +33,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
+import org.apache.commons.codec.binary.Base64;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 
@@ -41,6 +42,7 @@ import javax.ws.rs.core.Response.Status.Family;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -447,17 +449,22 @@ public class ApiClient {
         }
 
         ClientResponse response = null;
+        String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":" + String.valueOf(IdentityManagementServiceUtil
+                .getInstance().getAppPassword());
+        byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
+        String authHeader = new String(encoding, Charset.defaultCharset());
 
         if ("GET".equals(method)) {
-            response = (ClientResponse) builder.get(ClientResponse.class);
+            response = (ClientResponse) builder.header("Authorization", "Client "+ authHeader).get(ClientResponse.class);
         } else if ("POST".equals(method)) {
-            response = builder.type(contentType).post(ClientResponse.class, serialize(body, contentType, formParams));
+            response = builder.type(contentType).header("Authorization", "Client "+ authHeader).post(ClientResponse.class,
+                    serialize(body, contentType, formParams));
         } else if ("PUT".equals(method)) {
-            response = builder.type(contentType).put(ClientResponse.class, serialize(body, contentType, formParams));
+            response = builder.type(contentType).header("Authorization", "Client " + authHeader).put(ClientResponse.class, serialize(body, contentType, formParams));
         } else if ("DELETE".equals(method)) {
-            response = builder.type(contentType).delete(ClientResponse.class, serialize(body, contentType, formParams));
+            response = builder.type(contentType).header("Authorization", "Client " + authHeader).delete(ClientResponse.class, serialize(body, contentType, formParams));
         } else if ("PATCH".equals(method)) {
-            response = builder.type(contentType).header("X-HTTP-Method-Override", "PATCH").post(ClientResponse.class, serialize(body, contentType, formParams));
+            response = builder.type(contentType).header("X-HTTP-Method-Override", "PATCH").header("Authorization", "Client "+ authHeader).post(ClientResponse.class, serialize(body, contentType, formParams));
         } else {
             throw new ApiException(500, "unknown method type " + method);
         }

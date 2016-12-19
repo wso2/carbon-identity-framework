@@ -566,14 +566,19 @@ public class OutboundProvisioningManager {
                                                                provisioningEntity.getEntityName(), provisioningOp, mapppedClaims);
 
                     Callable<Boolean> proThread = new ProvisioningThread(outboundProEntity,
-                                                                         tenantDomainName, connector, connectorType, idPName, dao);
+                                                                         tenantDomainName, connector, connectorType,
+                                                                         idPName, dao);
                     outboundProEntity.setIdentifier(provisionedIdentifier);
                     outboundProEntity.setJitProvisioning(jitProvisioning);
                     boolean isAllowed = true;
                     boolean isBlocking = entry.getValue().isBlocking();
                     boolean isPolicyEnabled = entry.getValue().isPolicyEnabled();
-                    if(isPolicyEnabled) {
-                         isAllowed = XACMLBasedRuleHandler.getInstance().isAuthorized(tenantDomainName, provisioningEntity, idPName, connectorType);
+                    if (isPolicyEnabled) {
+                        isAllowed = XACMLBasedRuleHandler.getInstance().isAllowedToProvision(tenantDomainName,
+                                                                                             provisioningEntity,
+                                                                                             serviceProvider,
+                                                                                             idPName,
+                                                                                             connectorType);
                     }
                     if (isAllowed) {
                         executeOutboundProvisioning(provisioningEntity, executors, connectorType, idPName, proThread, isBlocking);

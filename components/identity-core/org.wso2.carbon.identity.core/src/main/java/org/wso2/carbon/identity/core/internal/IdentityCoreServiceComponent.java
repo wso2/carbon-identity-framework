@@ -62,7 +62,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  */
 
 public class IdentityCoreServiceComponent {
-    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom5to510";
+    private static final String MIGRATION_CLIENT_CLASS_NAME = "org.wso2.carbon.is.migration.client.MigrateFrom520to530";
     private static Log log = LogFactory.getLog(IdentityCoreServiceComponent.class);
     private static ServerConfigurationService serverConfigurationService = null;
 
@@ -71,6 +71,7 @@ public class IdentityCoreServiceComponent {
 
     public IdentityCoreServiceComponent() {
     }
+
     public static ServerConfigurationService getServerConfigurationService() {
         return IdentityCoreServiceComponent.serverConfigurationService;
     }
@@ -82,6 +83,7 @@ public class IdentityCoreServiceComponent {
         IdentityCoreServiceComponent.serverConfigurationService = serverConfigurationService;
 
     }
+
     protected void unsetServerConfigurationService(ServerConfigurationService serverConfigurationService) {
         if (log.isDebugEnabled()) {
             log.debug("Unset the ServerConfiguration Service");
@@ -117,12 +119,12 @@ public class IdentityCoreServiceComponent {
                 // DB initialization was skipped, because DB initialization is done by apimgt components
                 if (log.isDebugEnabled()) {
                     log.debug("Identity Provider Database initialization attempt was skipped since '" +
-                              IdentityConstants.ServerConfig.SKIP_DB_SCHEMA_CREATION + "' property has been set to \'true\'");
+                            IdentityConstants.ServerConfig.SKIP_DB_SCHEMA_CREATION + "' property has been set to \'true\'");
                 }
             } else if (System.getProperty("setup") == null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Identity Database schema initialization check was skipped since " +
-                              "\'setup\' variable was not given during startup");
+                            "\'setup\' variable was not given during startup");
                 }
             } else {
                 jdbcPersistenceManager.initializeDatabase();
@@ -132,43 +134,16 @@ public class IdentityCoreServiceComponent {
             UmPersistenceManager.getInstance();
 
             String migrate = System.getProperty("migrate");
-            String migrateIdentityDB = System.getProperty("migrateIdentityDB");
-            String migrateIdentityData = System.getProperty("migrateIdentityData");
-            String migrateUMDB = System.getProperty("migrateUMDB");
-            String migrateUMData = System.getProperty("migrateUMData");
-            String migrateIdentityDBFinalize = System.getProperty("migrateIdentityDBFinalize");
             String component = System.getProperty("component");
-
-            try{
-                if (component != null && component.contains("identity")){
-                    if (Boolean.parseBoolean(migrate)){
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("databaseMigration").invoke(c.newInstance());
-                        log.info("Migrated the identity and user management databases");
-                    }else if (Boolean.parseBoolean(migrateIdentityDB)){
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateIdentityDB").invoke(c.newInstance());
-                        log.info("Migrated the identity database");
-                    }else if (Boolean.parseBoolean(migrateUMDB)){
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateUMDB").invoke(c.newInstance());
-                        log.info("Migrated the user management database");
-                    }else if (Boolean.parseBoolean(migrateIdentityData)){
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateIdentityData").invoke(c.newInstance());
-                        log.info("Migrated the identity data");
-                    }else if (Boolean.parseBoolean(migrateUMData)){
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateUMData").invoke(c.newInstance());
-                        log.info("Migrated the user management data");
-                    }else if (Boolean.parseBoolean(migrateIdentityDBFinalize)){
-                        Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
-                        c.getMethod("migrateIdentityDBFinalize").invoke(c.newInstance());
-                        log.info("Finalized the identity database");
-                    }
+            try {
+                if (component != null && component.contains("identity") && Boolean.parseBoolean(migrate)) {
+                    //Directly call migration client here and selectively check for component migrations at client
+                    Class<?> c = Class.forName(MIGRATION_CLIENT_CLASS_NAME);
+                    c.getMethod("databaseMigration").invoke(c.newInstance());
+                    log.info("Migrated the identity and user management databases");
                 }
-            }catch (Exception e){
-                if (log.isDebugEnabled()){
+            } catch (Exception e) {
+                if (log.isDebugEnabled()) {
                     log.debug("Migration client is not available");
                 }
             }
@@ -212,13 +187,13 @@ public class IdentityCoreServiceComponent {
         }
     }
 
-        protected void setRegistryService(RegistryService registryService) {
-            IdentityTenantUtil.setRegistryService(registryService);
-        }
+    protected void setRegistryService(RegistryService registryService) {
+        IdentityTenantUtil.setRegistryService(registryService);
+    }
 
-        protected void unsetRegistryService(RegistryService registryService) {
-            IdentityTenantUtil.setRegistryService(null);
-        }
+    protected void unsetRegistryService(RegistryService registryService) {
+        IdentityTenantUtil.setRegistryService(null);
+    }
 
     /**
      * @param realmService

@@ -1797,7 +1797,7 @@ public class IdPManagementUIUtil {
      * @return
      */
     public static List<Property> getPropertySetStartsWith(Property[] properties, String startWith) {
-        List<Property> propertySet = new ArrayList<>();
+        List<Property> propertySet = new ArrayList<Property>();
         for (Property property : properties) {
             if (property.getName().startsWith(startWith)) {
                 propertySet.add(property);

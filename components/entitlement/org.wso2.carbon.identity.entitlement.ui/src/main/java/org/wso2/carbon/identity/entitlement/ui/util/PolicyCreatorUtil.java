@@ -32,8 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This is Util class which help to create a XACML policy
+ *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
  */
+@Deprecated
 public class PolicyCreatorUtil {
 //
 //    /**
