@@ -19,18 +19,17 @@ package org.wso2.carbon.identity.gateway.cache;
 import org.wso2.carbon.identity.framework.cache.MessageContextCache;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
-public class IdentityMessageContextCache extends MessageContextCache<GatewayMessageContext> {
+public class GatewayContextCache extends MessageContextCache<GatewayContextCacheKey, GatewayMessageContext> {
 
-    private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
-    private static IdentityMessageContextCache instance =
-            new IdentityMessageContextCache(IDENTITY_MESSAGE_CONTEXT_CACHE);
+    private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "GatewayContextCache";
+    private static GatewayContextCache instance =
+            new GatewayContextCache(IDENTITY_MESSAGE_CONTEXT_CACHE);
 
-    private IdentityMessageContextCache(String cacheName) {
-
+    private GatewayContextCache(String cacheName) {
         super(cacheName);
     }
 
-    public static IdentityMessageContextCache getInstance() {
+    public static GatewayContextCache getInstance() {
 
         return instance;
     }

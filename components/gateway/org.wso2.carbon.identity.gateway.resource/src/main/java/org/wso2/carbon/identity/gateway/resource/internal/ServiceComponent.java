@@ -23,7 +23,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.gateway.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.resource.Gateway;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayRequestFactory;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayResponseFactory;

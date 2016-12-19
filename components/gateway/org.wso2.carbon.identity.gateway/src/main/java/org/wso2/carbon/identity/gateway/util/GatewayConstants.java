@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.processor;
+package org.wso2.carbon.identity.gateway.util;
 
-import org.wso2.carbon.identity.framework.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.message.GatewayRequest;
-import org.wso2.carbon.identity.gateway.message.GatewayResponse;
-
-public abstract class GatewayProcessor extends IdentityProcessor<GatewayRequest, GatewayResponse> {
+public class GatewayConstants {
+    private static final String GATEWAY_MESSAGE_CONTEXT_CACHE = "GatewayMessageContextCache";
 }

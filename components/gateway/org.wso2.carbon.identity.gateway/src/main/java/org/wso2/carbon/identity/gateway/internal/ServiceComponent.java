@@ -9,10 +9,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
-import org.wso2.carbon.identity.gateway.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
 
 
