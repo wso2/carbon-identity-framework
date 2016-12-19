@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.framework.handler.HandlerConfig;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
+import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 
@@ -46,13 +47,13 @@ public abstract class AbstractCallbackHandler extends AbstractHandler<HandlerIde
 
         // load the context
         GatewayMessageContext oldContext = Optional.ofNullable(
-                GatewayContextCache.getInstance().get(sessionDataKey))
+                GatewayContextCache.getInstance().get(new GatewayContextCacheKey(sessionDataKey)))
                 .orElseThrow(() -> new FrameworkRuntimeException(
                         "Invalid SessionDataKey provided. Unable to find the persisted context for identifier : " +
                                 sessionDataKey));
 
         // merge the new context with old context
-        GatewayUtil.mergeContext(context, oldContext);
+        GatewayUtil.mergeContext(oldContext, context);
 
         // get the handler that should resume the flow.
         AbstractHandler nextHandler = context.getCurrentHandler();

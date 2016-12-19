@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
+import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
 /**
@@ -42,7 +43,7 @@ public class SessionDataCleanupHandler extends AbstractGatewayHandler {
 
         // All I do is to clean up the current context from cache.
         String sessionDataKey = context.getSessionDataKey();
-        GatewayContextCache.getInstance().clear(sessionDataKey);
+        GatewayContextCache.getInstance().clear(new GatewayContextCacheKey(sessionDataKey));
 
         if (logger.isDebugEnabled()) {
             logger.debug("Clean up session data for key : " + sessionDataKey);
