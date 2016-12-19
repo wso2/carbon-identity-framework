@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.gateway.resource.internal;
 
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
-import org.wso2.carbon.identity.gateway.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayRequestFactory;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayResponseFactory;
 

@@ -21,8 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.framework.FrameworkException;
+import org.wso2.carbon.identity.framework.cache.MessageContextCacheKey;
+import org.wso2.carbon.identity.framework.context.MessageContext;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
+import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.internal.DataHolder;
@@ -57,9 +61,9 @@ public class CallbackProcessor extends GatewayProcessor {
         if (StringUtils.isBlank(sessionDataKey)) {
             throw new FrameworkClientException("SessionDataKey not found in the request to correlate.");
         }
-        GatewayMessageContext oldContext = IdentityMessageContextCache.getInstance().get(sessionDataKey);
-        GatewayMessageContext newContext = new GatewayMessageContext(identityRequest);
 
+        GatewayMessageContext newContext = new GatewayMessageContext(identityRequest);
+        GatewayMessageContext messageContext = getMessageContext(new GatewayContextCacheKey(sessionDataKey));
         // transfer information from old context into the new context
         GatewayUtil.mergeContext(oldContext, newContext);
         ((AbstractHandler) handler).execute(newContext);
@@ -69,13 +73,11 @@ public class CallbackProcessor extends GatewayProcessor {
 
     @Override
     public String getName() {
-
         return "CallbackProcessor";
     }
 
     @Override
     public int getPriority() {
-
         return 500;
     }
 
@@ -85,5 +87,8 @@ public class CallbackProcessor extends GatewayProcessor {
         return identityRequest.getRequestUri().contains("callback");
     }
 
-
+    @Override
+    public  GatewayMessageContext getMessageContext(MessageContextCacheKey  contextCacheKey) {
+        return null;
+    }
 }

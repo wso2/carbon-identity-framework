@@ -26,60 +26,52 @@ import java.util.Map;
 /**
  * Cache to hold {@link MessageContext} instances for correlation purposes.
  */
-public class MessageContextCache<T1 extends MessageContext> extends BaseCache<String, T1> {
+public class MessageContextCache<T1 extends MessageContextCacheKey, T2 extends MessageContext> extends BaseCache<T1,
+        T2> {
 
-    private Map<String, MessageContext> cache = new HashMap<>();
+    private Map<T1, T2> cache = new HashMap<>();
 
     protected MessageContextCache(String cacheName) {
-
         super(cacheName);
     }
 
     @Override
-    public void put(String key, T1 entry) {
-
+    public void put(T1 key, T2 entry) {
         cache.put(key, entry);
     }
 
     @Override
-    public T1 get(String key) {
-
-        return (T1) cache.get(key);
+    public T2 get(T1 key) {
+        return (T2) cache.get(key);
     }
 
     @Override
-    public void clear(String key) {
-
+    public void clear(T1 key) {
         cache.remove(key);
     }
 
     @Override
     public void clear() {
-
         cache.clear();
     }
 
     @Override
     public void addListener(AbstractCacheEntryListener listener) {
-
         super.addListener(listener);
     }
 
     @Override
     public boolean isEnabled() {
-
         return true;
     }
 
     @Override
     public int getCacheTimeout() {
-
         return 100000000;
     }
 
     @Override
     public int getCapacity() {
-
         return cache.size();
     }
 }

@@ -16,6 +16,9 @@
 
 package org.wso2.carbon.identity.framework;
 
+import org.wso2.carbon.identity.framework.cache.MessageContextCache;
+import org.wso2.carbon.identity.framework.cache.MessageContextCacheKey;
+import org.wso2.carbon.identity.framework.context.MessageContext;
 import org.wso2.carbon.identity.framework.message.Request;
 import org.wso2.carbon.identity.framework.message.Response;
 
@@ -71,6 +74,10 @@ public abstract class IdentityProcessor<T1 extends Request, T2 extends Response>
      * @return can/not handle
      */
     public abstract boolean canHandle(T1 identityRequest);
+
+    public abstract <T3 extends MessageContext, T4 extends MessageContextCacheKey> T3 getMessageContext(T4
+                                                                                         contextCacheKey);
+
 //
 //    /**
 //     * Get IdentityResponseBuilder for framework login

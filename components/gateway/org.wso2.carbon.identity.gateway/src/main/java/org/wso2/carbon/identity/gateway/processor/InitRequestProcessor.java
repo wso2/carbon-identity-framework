@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.gateway.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
+import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.custom.HandlerChainBuilder;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
@@ -51,7 +53,7 @@ public class InitRequestProcessor extends GatewayProcessor {
         String sessionDataKey = gatewayMessageContext.getSessionDataKey();
 
         // add the context reference to cache.
-        IdentityMessageContextCache.getInstance().put(sessionDataKey, gatewayMessageContext);
+        GatewayContextCache.getInstance().put(new GatewayContextCacheKey(sessionDataKey), gatewayMessageContext);
 
         // Add an authentication context map TODO: this should be initialized by the context
         gatewayMessageContext.addParameter(sessionDataKey, new HashMap<>());
