@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+
 import javax.servlet.http.HttpServletResponse;
 
 public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory {
@@ -53,13 +55,13 @@ public class FrameworkLogoutResponseFactory extends HttpIdentityResponseFactory 
         builder.setStatusCode(HttpServletResponse.SC_FOUND);
         builder.addParameter(InboundConstants.RequestProcessor.AUTH_NAME,
                              new String[]{response.getAuthName()});
-        builder.addParameter(InboundConstants.RequestProcessor.CONTEXT_KEY,
+        builder.addParameter(FrameworkConstants.SESSION_DATA_KEY,
                              new String[]{response.getContextKey()});
-        builder.addParameter(InboundConstants.RequestProcessor.CALL_BACK_PATH,
+        builder.addParameter(FrameworkConstants.RequestParams.CALLER_PATH,
                              new String[]{response.getCallbackPath()});
-        builder.addParameter(InboundConstants.RequestProcessor.RELYING_PARTY,
+        builder.addParameter(FrameworkConstants.RequestParams.ISSUER,
                              new String[]{response.getRelyingParty()});
-        builder.addParameter(InboundConstants.RequestProcessor.AUTH_TYPE,
+        builder.addParameter(FrameworkConstants.RequestParams.TYPE,
                              new String[]{response.getAuthType()});
         builder.setRedirectURL(response.getRedirectUrl());
 

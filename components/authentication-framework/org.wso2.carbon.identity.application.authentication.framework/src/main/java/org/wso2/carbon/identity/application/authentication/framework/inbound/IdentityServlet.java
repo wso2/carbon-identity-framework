@@ -68,7 +68,7 @@ public class IdentityServlet extends HttpServlet {
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e, request, response);
             if(responseBuilder == null) {
-                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
             return responseBuilder.build();
         }
@@ -91,7 +91,7 @@ public class IdentityServlet extends HttpServlet {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if(responseBuilder == null) {
-                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
             return responseBuilder.build();
         }
@@ -112,8 +112,8 @@ public class IdentityServlet extends HttpServlet {
         if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
             try {
                 sendRedirect(response, httpIdentityResponse);
-            } catch (IOException ex) {
-                throw FrameworkRuntimeException.error("Error occurred while redirecting response", ex);
+            } catch (IOException e) {
+                throw FrameworkRuntimeException.error("Error occurred while redirecting response", e);
             }
         } else {
             response.setStatus(httpIdentityResponse.getStatusCode());
@@ -179,12 +179,19 @@ public class IdentityServlet extends HttpServlet {
                 return responseFactory;
             }
         }
-        throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the request");
+        throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the response", exception);
     }
 
     private void sendRedirect(HttpServletResponse response, HttpIdentityResponse httpIdentityResponse) throws IOException {
 
-        String queryParams = IdentityUtil.buildQueryString(httpIdentityResponse.getParameters());
-        response.sendRedirect(httpIdentityResponse.getRedirectURL() + queryParams);
+        String redirectUrl;
+        if(httpIdentityResponse.isFragmentUrl()) {
+            redirectUrl = IdentityUtil.buildFragmentUrl(httpIdentityResponse.getRedirectURL(),
+                                                        httpIdentityResponse.getParameters());
+        } else {
+            redirectUrl = IdentityUtil.buildQueryUrl(httpIdentityResponse.getRedirectURL(),
+                                                     httpIdentityResponse.getParameters());
+        }
+        response.sendRedirect(redirectUrl);
     }
 }
