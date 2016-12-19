@@ -13,7 +13,7 @@ import org.wso2.carbon.identity.gateway.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
-import org.wso2.carbon.identity.gateway.processor.InitRequestProcessor;
+import org.wso2.carbon.identity.gateway.processor.RequestProcessor;
 
 
 /**
@@ -41,7 +41,7 @@ public class ServiceComponent {
     protected void start(BundleContext bundleContext) throws Exception {
 
         // register processors
-        bundleContext.registerService(GatewayProcessor.class, new InitRequestProcessor(), null);
+        bundleContext.registerService(GatewayProcessor.class, new RequestProcessor(), null);
         bundleContext.registerService(GatewayProcessor.class, new CallbackProcessor(), null);
 
         // registering callback handlers
