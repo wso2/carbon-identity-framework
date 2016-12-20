@@ -139,7 +139,7 @@ public class IdentityRequest implements Serializable {
         return contentType;
     }
 
-    protected IdentityRequest(IdentityRequestBuilder builder) {
+    protected IdentityRequest(IdentityRequestBuilder builder) throws FrameworkClientException {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
         this.parameters = builder.parameters;
@@ -356,10 +356,9 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequest build() {
+        public IdentityRequest build() throws FrameworkClientException {
             return new IdentityRequest(this);
         }
-
 
     }
 

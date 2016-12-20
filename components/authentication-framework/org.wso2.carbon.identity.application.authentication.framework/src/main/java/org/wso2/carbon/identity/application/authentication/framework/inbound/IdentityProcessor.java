@@ -115,6 +115,15 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
     public abstract String getRelyingPartyId(IdentityMessageContext context);
 
     /**
+      * Get type of inbound identity protocol supported by this processor
+      *
+      * @return Type of inbound identity protocol
+      */
+    public String getType(IdentityMessageContext context) {
+        return getName();
+    }
+
+    /**
      * Tells if this processor can handle this IdentityRequest
      *
      * @param identityRequest IdentityRequest
@@ -142,7 +151,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         }
         authenticationRequest.setTenantDomain(identityRequest.getTenantDomain());
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
-        authenticationRequest.setType(getName());
+        authenticationRequest.setType(getType(context));
         authenticationRequest.setPassiveAuth(Boolean.parseBoolean(
                 String.valueOf(context.getParameter(InboundConstants.PassiveAuth))));
         authenticationRequest.setForceAuth(Boolean.parseBoolean(
@@ -163,12 +172,12 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
                 new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
-        responseBuilder.setAuthName(getName());
+        responseBuilder.setAuthName(getType(context));
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.setAuthType(getName());
+        responseBuilder.setAuthType(getType(context));
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
@@ -194,7 +203,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         }
         authenticationRequest.setTenantDomain(identityRequest.getTenantDomain());
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
-        authenticationRequest.setType(getName());
+        authenticationRequest.setType(getType(context));
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
                                                                             StandardCharsets.UTF_8.name()));
@@ -212,16 +221,12 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         FrameworkLogoutResponse.FrameworkLogoutResponseBuilder responseBuilder =
                 new FrameworkLogoutResponse.FrameworkLogoutResponseBuilder(context);
-        //TODO: there must be a method in IdentityProcessor to give the type. getName() gives the name of the
-        //TODO: processor for logging/debugging purposes only
-        responseBuilder.setAuthName(getName());
+        responseBuilder.setAuthName(getType(context));
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
-        //TODO: there must be a method in IdentityProcessor to give the type. getName() gives the name of the
-        //TODO: processor for logging/debugging purposes only
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.setAuthType(getName());
+        responseBuilder.setAuthType(getType(context));
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;

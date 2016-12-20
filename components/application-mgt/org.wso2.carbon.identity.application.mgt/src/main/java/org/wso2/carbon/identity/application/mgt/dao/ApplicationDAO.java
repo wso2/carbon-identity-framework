@@ -46,6 +46,13 @@ public interface ApplicationDAO {
     ServiceProvider getApplication(String applicationName, String tenantDomain) throws IdentityApplicationManagementException;
 
     /**
+     * @param applicationId
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException;
+
+    /**
      * @return
      * @throws IdentityApplicationManagementException
      */
