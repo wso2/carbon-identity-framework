@@ -20,11 +20,14 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import javax.servlet.http.Cookie;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpIdentityResponse {
+public class HttpIdentityResponse implements Serializable {
+
+    private static final long serialVersionUID = -1100735485859523120L;
 
     protected Map<String, String> headers = new HashMap();
     protected Map<String, Cookie> cookies = new HashMap();

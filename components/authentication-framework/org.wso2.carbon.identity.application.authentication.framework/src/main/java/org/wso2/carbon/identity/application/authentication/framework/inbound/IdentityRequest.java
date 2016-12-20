@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class IdentityRequest implements Serializable {
 
-    private static final long serialVersionUID = 5418537216546873566L;
+    private static final long serialVersionUID = -5698789879774366242L;
 
     protected Map<String, String> headers = new HashMap();
     protected Map<String, Cookie> cookies = new HashMap();

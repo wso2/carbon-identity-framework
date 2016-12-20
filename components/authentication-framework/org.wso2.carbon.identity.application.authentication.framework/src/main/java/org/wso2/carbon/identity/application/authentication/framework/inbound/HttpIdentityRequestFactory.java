@@ -128,4 +128,13 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
         builder.setBody(exception.getMessage());
         return builder;
     }
+
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception,
+                                                                            HttpServletRequest request,
+                                                                            HttpServletResponse response) {
+
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        builder.setStatusCode(500);
+        return builder;
+    }
 }
