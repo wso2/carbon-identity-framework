@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.entitlement.pip;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.balana.ParsingException;
@@ -136,12 +138,17 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
 
         List<AttributeValue> attrBag = new ArrayList<AttributeValue>();
         // Get the list of attribute finders who are registered with this particular attribute.
-        List<PIPAttributeFinder> finders = attrFinders.get(attributeId.toString());
 
 
-        if (finders == null || finders.size() == 0) {
+        List<PIPAttributeFinder> finders = null;
+
+        if (StringUtils.isNotBlank(category.toString())) {
+            finders = attrFinders.get(category.toString());
+        }
+
+        if (CollectionUtils.isEmpty(finders)) {
             finders = attrFinders.get(attributeId.toString());
-            if (finders == null || finders.size() == 0) {
+            if (CollectionUtils.isEmpty(finders)) {
                 if (log.isDebugEnabled()) {
                     log.debug("No attribute designators defined for the attribute "
                               + attributeId.toString());
