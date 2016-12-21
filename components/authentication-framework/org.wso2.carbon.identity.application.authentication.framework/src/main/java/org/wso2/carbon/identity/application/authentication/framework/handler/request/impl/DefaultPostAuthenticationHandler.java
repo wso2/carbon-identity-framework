@@ -181,33 +181,29 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
         AuthenticatedUser user = context.getSequenceConfig().getAuthenticatedUser();
 
         Map<String, String> carbonToSPClaimMapping = new HashMap<>();
-        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
+        Object spToCarbonClaimMappingObject = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
 
-        if (userAttributes != null) {
+        if (spToCarbonClaimMappingObject instanceof Map) {
 
-            Map<String, String> spToCarbonClaimMapping = new HashMap<>();
-            Object object = context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
-
-            if (object != null && object instanceof Map) {
-                spToCarbonClaimMapping = (Map<String, String>) object;
-            }
+            Map<String, String> spToCarbonClaimMapping = (Map<String, String>) spToCarbonClaimMappingObject;
 
             for (Map.Entry<String, String> entry : spToCarbonClaimMapping.entrySet()) {
                 carbonToSPClaimMapping.put(entry.getValue(), entry.getKey());
             }
         }
 
-
         for (String key : requestParams.keySet()) {
             if (key.startsWith(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX)) {
-                String localClaimURI = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
-                String spClaimURI = carbonToSPClaimMapping.get(localClaimURI);
 
+                String localClaimURI = key.substring(FrameworkConstants.RequestParams.MANDOTARY_CLAIM_PREFIX.length());
                 claims.put(localClaimURI, requestParams.get(key)[0]);
-                if (spClaimURI != null) {
+
+                if (spToCarbonClaimMappingObject != null) {
+                    String spClaimURI = carbonToSPClaimMapping.get(localClaimURI);
                     claimsForContext.put(spClaimURI, requestParams.get(key)[0]);
                 } else {
-                    log.debug("Claim " + localClaimURI + " is not supported in the specified scope.");
+                    String claimUri = key.substring(key.lastIndexOf('/') + 1);
+                    claimsForContext.put(claimUri, requestParams.get(key)[0]);
                 }
             }
         }
