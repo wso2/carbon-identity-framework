@@ -309,6 +309,7 @@ public class IdentityConstants {
         public static final String OAUTH2_TOKEN_EP_URL = "OAuth.OAuth2TokenEPUrl";
         public static final String OAUTH2_USERINFO_EP_URL = "OAuth.OAuth2UserInfoEPUrl";
         public static final String OAUTH2_REVOKE_EP_URL = "OAuth.OAuth2RevokeEPUrl";
+        public static final String OAUTH2_INTROSPECT_EP_URL = "OAuth.OAuth2IntrospectEPUrl";
         public static final String OIDC_CHECK_SESSION_EP_URL = "OAuth.OIDCCheckSessionEPUrl";
         public static final String OIDC_LOGOUT_EP_URL = "OAuth.OIDCLogoutEPUrl";
 
@@ -318,6 +319,7 @@ public class IdentityConstants {
         public static final String AUTHORIZE = "oauth2/authorize";
         public static final String TOKEN = "oauth2/token";
         public static final String REVOKE = "oauth2/revoke";
+        public static final String INTROSPECT = "oauth2/introspect";
         public static final String USERINFO = "oauth2/userinfo";
         public static final String CHECK_SESSION = "oidc/checksession";
         public static final String LOGOUT = "oidc/logout";

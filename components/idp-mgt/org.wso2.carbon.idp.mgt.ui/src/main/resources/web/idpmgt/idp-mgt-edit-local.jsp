@@ -36,9 +36,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
-<%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.List" %>
 <%@ page trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
@@ -80,6 +77,7 @@
     String authzUrl = null;
     String tokenUrl = null;
     String revokeUrl = null;
+    String introspectUrl = null;
     String userInfoUrl = null;
     String oidcCheckSessionEndpoint = null;
     String oidcLogoutEndpoint = null;
@@ -124,6 +122,8 @@
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL).getValue();
             revokeUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL).getValue();
+            introspectUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL).getValue();
             userInfoUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL).getValue();
             oidcCheckSessionEndpoint = IdPManagementUIUtil.getProperty(properties,
@@ -525,6 +525,10 @@ function idpMgtCancel(){
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='revoke.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(revokeUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='introspect.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(introspectUrl)%></td>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='user.endpoint'/>:</td>

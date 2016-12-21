@@ -120,6 +120,7 @@ public class IdentityProviderManager implements IdpManager {
         String oauth2AuthzEPUrl = null;
         String oauth2TokenEPUrl = null;
         String oauth2RevokeEPUrl = null;
+        String oauth2IntrospectEpUrl = null;
         String oauth2UserInfoEPUrl = null;
         String oidcCheckSessionEPUrl = null;
         String oidcLogoutEPUrl = null;
@@ -144,6 +145,8 @@ public class IdentityProviderManager implements IdpManager {
         scimUserEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL);
         scimGroupsEndpoint = IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL);
         oauth2RevokeEPUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_REVOKE_EP_URL);
+        oauth2IntrospectEpUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_INTROSPECT_EP_URL);
+
 
         if (StringUtils.isBlank(openIdUrl)) {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
@@ -179,6 +182,10 @@ public class IdentityProviderManager implements IdpManager {
 
         if (StringUtils.isBlank(oauth2RevokeEPUrl)) {
             oauth2RevokeEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REVOKE, true, false);
+        }
+
+        if (StringUtils.isBlank(oauth2IntrospectEpUrl)) {
+            oauth2IntrospectEpUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.INTROSPECT, true, false);
         }
 
         if (StringUtils.isBlank(oauth2UserInfoEPUrl)) {
@@ -386,6 +393,13 @@ public class IdentityProviderManager implements IdpManager {
             revokeUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL);
             revokeUrlProp.setValue(oauth2RevokeEPUrl);
             propertiesList.add(revokeUrlProp);
+        }
+        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL) == null) {
+            Property instropsectUrlProp = new Property();
+            instropsectUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL);
+            instropsectUrlProp.setValue(oauth2IntrospectEpUrl);
+            propertiesList.add(instropsectUrlProp);
         }
         if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
                 IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL) == null) {
