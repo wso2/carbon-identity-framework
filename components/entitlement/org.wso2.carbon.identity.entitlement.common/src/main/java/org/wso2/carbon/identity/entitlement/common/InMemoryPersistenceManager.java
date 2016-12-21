@@ -999,8 +999,8 @@ public class InMemoryPersistenceManager implements DataPersistenceManager {
                "                <attributeId>organization</attributeId>\n" +
                "                <attributeId>telephone</attributeId>\n" +
                "                <attributeId>IM</attributeId>\n" +
-               "                <attributeId>country</attributeId>\n" +               "            </supportedAttributeIds>\n" +
-               "                <attributeId>mobile</attributeId>\n" +               "            " +
+               "                <attributeId>country</attributeId>\n" +
+               "                <attributeId>mobile</attributeId>\n" +
                 "</supportedAttributeIds>\n" +
                "        </category>\n" +
                "        <category>\n" +
