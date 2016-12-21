@@ -144,14 +144,16 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
 
         if (StringUtils.isNotBlank(category.toString())) {
             finders = attrFinders.get(category.toString());
+            if (log.isDebugEnabled()) {
+                log.debug("No attribute designators defined for the category " + category.toString());
+            }
         }
 
         if (CollectionUtils.isEmpty(finders)) {
             finders = attrFinders.get(attributeId.toString());
             if (CollectionUtils.isEmpty(finders)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("No attribute designators defined for the attribute "
-                              + attributeId.toString());
+                    log.debug("No attribute designators defined for the attribute " + attributeId.toString());
                 }
                 return new EvaluationResult(BagAttribute.createEmptyBag(attributeType));
 
