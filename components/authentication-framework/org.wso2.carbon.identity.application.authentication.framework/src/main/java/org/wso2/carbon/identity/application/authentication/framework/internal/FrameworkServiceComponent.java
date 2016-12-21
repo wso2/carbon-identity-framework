@@ -74,7 +74,8 @@ import java.util.List;
 public class FrameworkServiceComponent {
 
     public static final String COMMON_SERVLET_URL = "/commonauth";
-    private static final String IDENTITY_SERVLET_URL = "/identity";
+    private static final String IDENTITY_SERVLET_URL_1 = "/identity";
+    private static final String IDENTITY_SERVLET_URL_2 = "/oauth2";
     private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
 
     private HttpService httpService;
@@ -154,11 +155,14 @@ public class FrameworkServiceComponent {
         Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
                 COMMON_SERVLET_URL);
 
-        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                IDENTITY_SERVLET_URL);
+        Servlet identityServlet1 = new ContextPathServletAdaptor(new IdentityServlet(),
+                                                                IDENTITY_SERVLET_URL_1);
+        Servlet identityServlet2 = new ContextPathServletAdaptor(new IdentityServlet(),
+                                                                IDENTITY_SERVLET_URL_2);
         try {
             httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
-            httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
+            httpService.registerServlet(IDENTITY_SERVLET_URL_1, identityServlet1, null, null);
+            httpService.registerServlet(IDENTITY_SERVLET_URL_2, identityServlet2, null, null);
         } catch (Exception e) {
             String errMsg = "Error when registering servlets via the HttpService.";
             log.error(errMsg, e);

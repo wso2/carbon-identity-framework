@@ -790,7 +790,51 @@ public class IdentityUtil {
 
     public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
 
-        StringBuilder queryString = new StringBuilder("?");
+        return "?" + buildQueryComponent(parameterMap);
+    }
+
+    public static String buildFragmentString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
+
+        return "#" + buildQueryComponent(parameterMap);
+    }
+
+    public static String buildQueryUrl(String baseUrl, Map<String, String[]> parameterMap) throws
+                                                                                              UnsupportedEncodingException {
+
+
+        if(StringUtils.isBlank(baseUrl)) {
+            throw IdentityRuntimeException.error("Base URL is blank: " + baseUrl);
+        } else if(baseUrl.contains("#")) {
+            throw IdentityRuntimeException.error("Query URL cannot contain \'#\': " + baseUrl);
+        }
+        StringBuilder queryString = new StringBuilder(baseUrl);
+        if(queryString.indexOf("?") < 0) {
+            queryString.append("?");
+        }
+        queryString.append(buildQueryComponent(parameterMap));
+        return queryString.toString();
+    }
+
+    public static String buildFragmentUrl(String baseUrl, Map<String, String[]> parameterMap) throws
+                                                                                    UnsupportedEncodingException {
+
+
+        if(StringUtils.isBlank(baseUrl)) {
+            throw IdentityRuntimeException.error("Base URL is blank: " + baseUrl);
+        } else if(baseUrl.contains("?")) {
+            throw IdentityRuntimeException.error("Fragment URL cannot contain \'?\': " + baseUrl);
+        }
+        StringBuilder queryString = new StringBuilder(baseUrl);
+        if(queryString.indexOf("#") < 0) {
+            queryString.append("#");
+        }
+        queryString.append(buildQueryComponent(parameterMap));
+        return queryString.toString();
+    }
+
+    public static String buildQueryComponent(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
+
+        StringBuilder queryString = new StringBuilder("");
         boolean isFirst = true;
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
             for (String paramValue : entry.getValue()) {

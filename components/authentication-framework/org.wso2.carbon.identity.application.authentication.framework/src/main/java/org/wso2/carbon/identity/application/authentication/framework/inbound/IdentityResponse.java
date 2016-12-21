@@ -20,9 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import java.io.Serializable;
 
-/*
- * Abstract type that represents any return value from an IdentityProcessor
- */
 public class IdentityResponse implements Serializable {
 
     private static final long serialVersionUID = 1348704275109461974L;

@@ -90,6 +90,11 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
             builder.addHeader(headerName, request.getHeader(headerName));
         }
         builder.setParameters(request.getParameterMap());
+        Enumeration<String> attrNames = request.getAttributeNames();
+        while(attrNames.hasMoreElements()) {
+            String attrName = attrNames.nextElement();
+            builder.addAttribute(attrName, request.getAttribute(attrName));
+        }
         Cookie[] cookies = request.getCookies();
         if(cookies!=null) {
             for (Cookie cookie : cookies) {
@@ -121,6 +126,15 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
         HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(400);
         builder.setBody(exception.getMessage());
+        return builder;
+    }
+
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception,
+                                                                            HttpServletRequest request,
+                                                                            HttpServletResponse response) {
+
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        builder.setStatusCode(500);
         return builder;
     }
 }

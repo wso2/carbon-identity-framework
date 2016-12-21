@@ -86,4 +86,8 @@ public abstract class AbstractIdentityMessageHandler implements IdentityMessageH
         return false;
     }
 
+    public String getName(){
+        return this.getClass().getSimpleName();
+    }
+
 }

@@ -37,8 +37,10 @@ import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
@@ -113,6 +115,15 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
     public abstract String getRelyingPartyId(IdentityMessageContext context);
 
     /**
+      * Get type of inbound identity protocol supported by this processor
+      *
+      * @return Type of inbound identity protocol
+      */
+    public String getType(IdentityMessageContext context) {
+        return getName();
+    }
+
+    /**
      * Tells if this processor can handle this IdentityRequest
      *
      * @param identityRequest IdentityRequest
@@ -134,12 +145,13 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.appendRequestQueryParams(parameterMap);
-        for (Object entry : identityRequest.getHeaderMap().keySet()) {
-            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
-                    ((Map.Entry<String, String>)entry).getValue());
+        Set<Map.Entry<String,String>> headers = new HashMap(identityRequest.getHeaderMap()).entrySet();
+        for (Map.Entry<String,String> header : headers) {
+            authenticationRequest.addHeader(header.getKey(), header.getValue());
         }
+        authenticationRequest.setTenantDomain(identityRequest.getTenantDomain());
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
-        authenticationRequest.setType(getName());
+        authenticationRequest.setType(getType(context));
         authenticationRequest.setPassiveAuth(Boolean.parseBoolean(
                 String.valueOf(context.getParameter(InboundConstants.PassiveAuth))));
         authenticationRequest.setForceAuth(Boolean.parseBoolean(
@@ -160,12 +172,12 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
                 new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
-        responseBuilder.setAuthName(getName());
+        responseBuilder.setAuthName(getType(context));
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.setAuthType(getName());
+        responseBuilder.setAuthType(getType(context));
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
@@ -185,12 +197,13 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.appendRequestQueryParams(parameterMap);
-        for (Object entry : identityRequest.getHeaderMap().keySet()) {
-            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
-                    ((Map.Entry<String, String>)entry).getValue());
+        Set<Map.Entry<String,String>> headers = new HashMap(identityRequest.getHeaderMap()).entrySet();
+        for (Map.Entry<String,String> header : headers) {
+            authenticationRequest.addHeader(header.getKey(), header.getValue());
         }
+        authenticationRequest.setTenantDomain(identityRequest.getTenantDomain());
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
-        authenticationRequest.setType(getName());
+        authenticationRequest.setType(getType(context));
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
                                                                             StandardCharsets.UTF_8.name()));
@@ -208,12 +221,12 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         FrameworkLogoutResponse.FrameworkLogoutResponseBuilder responseBuilder =
                 new FrameworkLogoutResponse.FrameworkLogoutResponseBuilder(context);
-        responseBuilder.setAuthName(getName());
+        responseBuilder.setAuthName(getType(context));
         responseBuilder.setContextKey(sessionDataKey);
         responseBuilder.setCallbackPath(getCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.setAuthType(getName());
+        responseBuilder.setAuthType(getType(context));
         String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
@@ -226,6 +239,10 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      */
     protected boolean isContextAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        // preserving backward compatibility with OAuth2 consent page
+        if(StringUtils.isBlank(sessionDataKey)) {
+            sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY_CONSENT);
+        }
         if(StringUtils.isNotBlank(sessionDataKey)) {
             IdentityMessageContext context = InboundUtil.getContextFromCache(sessionDataKey);
             if(context != null) {
@@ -244,6 +261,10 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      */
     protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        // preserving backward compatibility with OAuth2 consent page
+        if(StringUtils.isBlank(sessionDataKey)) {
+            sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY_CONSENT);
+        }
         IdentityMessageContext context = null;
         if(StringUtils.isNotBlank(sessionDataKey)) {
             context = InboundUtil.getContextFromCache(sessionDataKey);

@@ -1411,6 +1411,140 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
     }
 
+    @Override
+    public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        try {
+
+            // Load basic application data
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
+            if (serviceProvider == null) {
+                return null;
+            }
+
+            serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
+                    applicationId, connection, tenantID));
+            serviceProvider
+                    .setLocalAndOutBoundAuthenticationConfig(getLocalAndOutboundAuthenticationConfig(
+                            applicationId, connection, tenantID));
+
+            serviceProvider.setInboundProvisioningConfig(getInboundProvisioningConfiguration(
+                    applicationId, connection, tenantID));
+
+            serviceProvider.setOutboundProvisioningConfig(getOutboundProvisioningConfiguration(
+                    applicationId, connection, tenantID));
+
+            // Load Claim Mapping
+            serviceProvider.setClaimConfig(getClaimConfiguration(applicationId, connection,
+                                                                 tenantID));
+
+            // Load Role Mappings
+            List<RoleMapping> roleMappings = getRoleMappingOfApplication(applicationId, connection,
+                                                                         tenantID);
+            PermissionsAndRoleConfig permissionAndRoleConfig = new PermissionsAndRoleConfig();
+            permissionAndRoleConfig.setRoleMappings(roleMappings
+                                                            .toArray(new RoleMapping[roleMappings.size()]));
+            serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
+
+            RequestPathAuthenticatorConfig[] requestPathAuthenticators = getRequestPathAuthenticators(
+                    applicationId, connection, tenantID);
+            serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
+
+            List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
+            serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
+
+            return serviceProvider;
+
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Failed to update service provider "
+                                                             + applicationId, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    /**
+     * @param appId
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
+    private ServiceProvider getBasicApplicationData(int appId, Connection connection)
+            throws SQLException, IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = null;
+
+        if (log.isDebugEnabled()) {
+            log.debug("Loading Basic Application Data of application ID: " + appId);
+        }
+
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        try {
+            prepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_BASIC_APP_INFO_BY_APP_ID);
+            prepStmt.setInt(1, appId);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                serviceProvider = new ServiceProvider();
+                serviceProvider.setApplicationID(rs.getInt(1));
+                serviceProvider.setApplicationName(rs.getString(3));
+                serviceProvider.setDescription(rs.getString(6));
+
+                String tenantDomain;
+                try {
+                    tenantDomain = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                            .getTenantManager()
+                            .getDomain(
+                                    rs.getInt(2));
+                } catch (UserStoreException e) {
+                    throw new IdentityApplicationManagementException("Error while reading tenant domain for " +
+                                                                     "application ID: " + appId);
+                }
+
+                User owner = new User();
+                owner.setUserName(rs.getString(5));
+                owner.setTenantDomain(tenantDomain);
+                owner.setUserStoreDomain(rs.getString(4));
+                serviceProvider.setOwner(owner);
+
+                ClaimConfig claimConfig = new ClaimConfig();
+                claimConfig.setRoleClaimURI(rs.getString(7));
+                claimConfig.setLocalClaimDialect("1".equals(rs.getString(10)));
+                claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(rs
+                                                                                 .getString(11)));
+                serviceProvider.setClaimConfig(claimConfig);
+
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new LocalAndOutboundAuthenticationConfig();
+                localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs("1"
+                                                                                                      .equals(rs.getString(14)));
+                localAndOutboundAuthenticationConfig.setEnableAuthorization("1".equals(rs
+                                                                                               .getString(15)));
+                localAndOutboundAuthenticationConfig.setSubjectClaimUri(rs
+                                                                                .getString(16));
+                serviceProvider
+                        .setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+
+                serviceProvider.setSaasApp("1".equals(rs.getString(17)));
+
+                if (log.isDebugEnabled()) {
+                    log.debug("ApplicationID: " + serviceProvider.getApplicationID()
+                              + " ApplicationName: " + serviceProvider.getApplicationName()
+                              + " UserName: " + serviceProvider.getOwner().getUserName()
+                              + " TenantDomain: " + serviceProvider.getOwner().getTenantDomain());
+                }
+            }
+
+            return serviceProvider;
+        } finally {
+            IdentityApplicationManagementUtil.closeResultSet(rs);
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+        }
+    }
+
     /**
      * @param applicationid
      * @param connection
