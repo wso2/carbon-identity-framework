@@ -393,17 +393,17 @@
         <Question>
             <Password>
                 <Enable>false</Enable>
-                <NotifyStart>true</NotifyStart>
+                <NotifyStart>false</NotifyStart>
                 <Separator>!</Separator>
                 <MinAnswers>2</MinAnswers>
                 <ReCaptcha>
                     <Enable>true</Enable>
-                    <MaxFailedAttempts>3</MaxFailedAttempts>
+                    <MaxFailedAttempts>2</MaxFailedAttempts>
                 </ReCaptcha>
             </Password>
         </Question>
         <ExpiryTime>3</ExpiryTime>
-        <NotifySuccess>true</NotifySuccess>
+        <NotifySuccess>false</NotifySuccess>
         <AdminPasswordReset>
             <Offline>false</Offline>
             <OTP>false</OTP>
@@ -413,7 +413,7 @@
 
     <EmailVerification>
         <Enable>false</Enable>
-        <LockOnCreation>false</LockOnCreation>
+        <LockOnCreation>true</LockOnCreation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
