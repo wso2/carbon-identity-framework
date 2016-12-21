@@ -377,6 +377,24 @@
 				<Description>Groups</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/verifyEmail</ClaimURI>
+				<DisplayName>Verify Email</DisplayName>
+				<AttributeID>manager</AttributeID>
+				<Description>Temporary claim to invoke email verified feature</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/askPassword</ClaimURI>
+				<DisplayName>Ask Password</DisplayName>
+				<AttributeID>postOfficeBox</AttributeID>
+				<Description>Temporary claim to invoke email ask Password feature</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/adminForcedPasswordReset</ClaimURI>
+				<DisplayName>Force Password Reset</DisplayName>
+				<AttributeID>departmentNumber</AttributeID>
+				<Description>Temporary claim to invoke email force password feature</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/entitlements</ClaimURI>
 				<DisplayName>Entitlements</DisplayName>
 				<AttributeID>entitlements</AttributeID>
