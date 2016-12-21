@@ -441,8 +441,7 @@ public class EntitlementUtil {
             policyDTO.setActive(true);
 
             if (isPolicyExists(policyDTO.getPolicyId(), registry)) {
-                throw new EntitlementException(
-                        "An Entitlement Policy with the given ID already exists");
+                return false;
             }
 
             policyDTO.setPromote(promote);
