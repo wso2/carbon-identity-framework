@@ -139,5 +139,5 @@
     }
 %>
 <script type="text/javascript">
-    location.href = "idp-mgt-list-load.jsp";
+    location.href = "idp-mgt-edit-load-local.jsp?region=region1&item=identity_providers_resident";
 </script>

@@ -365,7 +365,6 @@
             <!-- sectionSub Div -->
             <div class="buttonRow">
                 <input type="button" value="<fmt:message key='button.update.service.provider'/>" onclick="createAppOnclick();"/>
-                <input type="button" value="<fmt:message key='button.cancel'/>" onclick="javascript:location.href='list-service-providers.jsp'"/>
             </div>
             </form>
         </div>
