@@ -202,8 +202,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                     String spClaimURI = carbonToSPClaimMapping.get(localClaimURI);
                     claimsForContext.put(spClaimURI, requestParams.get(key)[0]);
                 } else {
-                    String claimUri = key.substring(key.lastIndexOf('/') + 1);
-                    claimsForContext.put(claimUri, requestParams.get(key)[0]);
+                    claimsForContext.put(localClaimURI, requestParams.get(key)[0]);
                 }
             }
         }
