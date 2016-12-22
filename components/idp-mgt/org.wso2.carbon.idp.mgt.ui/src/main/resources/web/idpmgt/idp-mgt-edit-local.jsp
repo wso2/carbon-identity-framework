@@ -814,7 +814,6 @@ function idpMgtCancel(){
                 </div>
                 <div class="buttonRow">
                     <input type="button" value="<fmt:message key='update'/>" onclick="idpMgtUpdate();"/>
-                    <input type="button" value="<fmt:message key='cancel'/>" onclick="idpMgtCancel();"/>
                 </div>
 
         </div>
