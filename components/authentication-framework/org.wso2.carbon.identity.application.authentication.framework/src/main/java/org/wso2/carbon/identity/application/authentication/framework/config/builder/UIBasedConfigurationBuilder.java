@@ -179,7 +179,7 @@ public class UIBasedConfigurationBuilder {
                                         tenantDomain).getDefaultAuthenticatorConfig();
                     } catch (IdentityProviderManagementException e) {
                         throw new FrameworkException("Failed to load the default authenticator for IDP : " +
-                                federatedIDP.getIdentityProviderName());
+                                federatedIDP.getIdentityProviderName(), e);
                     }
                 }
 
