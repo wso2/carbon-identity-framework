@@ -58,6 +58,7 @@ public class DefaultStepHandler implements StepHandler {
 
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
     private static volatile DefaultStepHandler instance;
+    private static String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
 
     public static DefaultStepHandler getInstance() {
 
@@ -583,6 +584,19 @@ public class DefaultStepHandler implements StepHandler {
                                 URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
                     }
                     return redirectURL;
+                } else if (errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE)) {
+                    retryParam = "&authFailure=true&authFailureMsg=account.confirmation.pending";
+                    String username = request.getParameter("username");
+
+                    Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
+                    if (domain != null) {
+                        username = IdentityUtil.addDomainToName(username, domain.toString());
+                    }
+
+                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+                            (username, "UTF-8");
+                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
+                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
                 } else {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8");
