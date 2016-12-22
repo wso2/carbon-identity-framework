@@ -281,6 +281,7 @@ public class UserIdentityClaimsDO implements Serializable {
 
     public void setAccountDisabled(boolean isAccountDisabled) {
         this.isAccountDisabled = isAccountDisabled;
+        this.userIdentityDataMap.put(UserIdentityDataStore.ACCOUNT_DISABLED, Boolean.toString(isAccountDisabled));
     }
 
     /**
