@@ -87,6 +87,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.securevault</artifactId>
+            <version>${carbon.kernel.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -110,6 +115,7 @@
                         </Export-Package>
                         <Import-Package>
                             javax.xml.xpath,
+                            org.wso2.carbon.securevault;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.securevault,
                             javax.net.ssl,
                             javax.xml.namespace,
