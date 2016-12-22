@@ -505,6 +505,29 @@ function doValidationPolicyNameOnly() {
     return true;
 }
 
+function doValidateRuleName() {
+
+    var ruleValue = document.getElementsByName("ruleId")[0].value;
+    if (ruleValue == '') {
+        CARBON.showWarningDialog('<fmt:message key="rule.id.is.required"/>');
+        return false;
+    }
+
+    var tmp = jQuery("#dataTable tbody tr input");
+    for (var j = 0; j < tmp.length; j++) {
+        if((tmp[j].value == ruleValue) && (ruleValue != "<%=ruleId%>")){
+            CARBON.showWarningDialog('<fmt:message key="rule.id.is.existing"/>');
+            return false;
+        }
+    }
+
+    if(!ruleValue.match(new RegExp(regString))) {
+        CARBON.showWarningDialog('<fmt:message key="rule.id.is.not.conformance"/>');
+        return false;
+    }
+    return true;
+}
+
 function doUpdate() {
     preSubmit();
     if (doValidation()) {
@@ -544,7 +567,7 @@ function doAdd() {
 
 function selectAttributesForRule(index) {
     preSubmit();
-    if (doValidationPolicyNameOnly()) {
+    if (doValidationPolicyNameOnly() && doValidateRuleName()) {
         document.dataForm.action = "update-rule.jsp?action=selectAttribute&updateRule=true&ruleRowIndex="
                 + index ;
         document.dataForm.submit();
@@ -553,7 +576,7 @@ function selectAttributesForRule(index) {
 
 function selectAttributesForRuleTarget(index) {
     preSubmit();
-    if (doValidationPolicyNameOnly()) {
+    if (doValidationPolicyNameOnly() && doValidateRuleName()) {
         document.dataForm.action = "update-rule.jsp?action=selectAttribute&updateRule=true&targetRuleRowIndex="
                 + index;
         document.dataForm.submit();
