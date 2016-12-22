@@ -607,8 +607,6 @@ public class DefaultStepHandler implements StepHandler {
                         "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
             }
         }
-        return loginPage + ("?" + context.getContextIdIncludedQueryParams() + "&authenticators=" + URLEncoder.encode
-                (authenticatorNames, "UTF-8") + retryParam);
     }
 
     private AuthenticatorConfig getAuthenticatorConfig() {
