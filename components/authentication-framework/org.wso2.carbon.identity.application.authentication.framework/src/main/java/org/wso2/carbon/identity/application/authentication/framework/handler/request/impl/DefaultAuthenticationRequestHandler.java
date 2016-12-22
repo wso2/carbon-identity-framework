@@ -58,7 +58,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    public static final String DEFAULT_AUTHORIZATION_FAILED_MSG = "Authorization Failed";
     private static volatile DefaultAuthenticationRequestHandler instance;
+
+    public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
 
 
     public static DefaultAuthenticationRequestHandler getInstance() {
@@ -481,7 +484,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
             if (!authorizationHandler.isAuthorized(request, response, context)) {
                 publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
-                throw new ApplicationAuthorizationException("Authorization Failed");
+                Object authFailureMsgObj = context.getProperty(AUTHZ_FAIL_REASON);
+                String authzFailMsg;
+                if (authFailureMsgObj != null) {
+                    authzFailMsg = authFailureMsgObj.toString();
+                } else {
+                    authzFailMsg = DEFAULT_AUTHORIZATION_FAILED_MSG;
+                }
+                throw new ApplicationAuthorizationException(authzFailMsg);
             }
         } else {
             log.warn("Authorization Handler is not set. Hence proceeding without authorization");
