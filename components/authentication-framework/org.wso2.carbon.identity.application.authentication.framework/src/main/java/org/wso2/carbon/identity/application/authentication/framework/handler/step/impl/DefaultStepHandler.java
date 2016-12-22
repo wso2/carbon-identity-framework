@@ -583,12 +583,7 @@ public class DefaultStepHandler implements StepHandler {
                                 URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
                     }
                     return redirectURL;
-                } else if (errorCode.equals(UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST)) {
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (request.getParameter("username"), "UTF-8");
-                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                } else if (errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE)) {
+                } else {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
