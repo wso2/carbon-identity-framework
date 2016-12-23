@@ -535,7 +535,7 @@
                                    class="checkbox"/>
                             <%
                             } else if (propertyName.endsWith("password") || propertyName.endsWith("Password")) { %>
-                            <input autocomplete="false" type="password" name=<%=value%>
+                            <input autocomplete="off" type="password" name=<%=value%>
                             id=<%=value%> style="width:95%"
                                    value="<%=propertyValue%>"/>
                             <%
