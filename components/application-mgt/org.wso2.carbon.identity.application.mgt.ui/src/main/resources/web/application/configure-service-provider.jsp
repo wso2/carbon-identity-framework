@@ -1192,7 +1192,7 @@ function updateBeanAndPostTo(postURL, data) {
                                 			}
                                 		  if(oauthConsumerSecret != null){%>
                                 				<div>
-                                					<input style="border: none; background: white;" type="password" autocomplete="false" id="oauthConsumerSecret" name="oauthConsumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"readonly="readonly">
+                                					<input style="border: none; background: white;" type="password" autocomplete="off" id="oauthConsumerSecret" name="oauthConsumerSecret" value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"readonly="readonly">
                                 					<span style="float: right;">
                                 						<a style="margin-top: 5px;" class="showHideBtn" onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
                                 					</span>
