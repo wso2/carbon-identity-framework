@@ -25,6 +25,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
@@ -94,7 +95,13 @@ public class ManagementPermissionsAdder implements BundleListener {
             Registry registry = UserMgtDSComponent.getRegistryService().getGovernanceSystemRegistry();
             for (ManagementPermission uiPermission : uiPermissions) {
                 if (registry.resourceExists(uiPermission.getResourceId())) {
-                    continue;
+                    Resource existingResource = registry.get(uiPermission.getResourceId());
+                    if (existingResource.getProperty(UserMgtConstants.DISPLAY_NAME) == null) {
+                        existingResource.setProperty(UserMgtConstants.DISPLAY_NAME, uiPermission.getDisplayName());
+                        registry.put(uiPermission.getResourceId(), existingResource);
+                    } else {
+                        continue;
+                    }
                 }
                 Collection resource = registry.newCollection();
                 resource.setProperty(UserMgtConstants.DISPLAY_NAME, uiPermission.getDisplayName());
