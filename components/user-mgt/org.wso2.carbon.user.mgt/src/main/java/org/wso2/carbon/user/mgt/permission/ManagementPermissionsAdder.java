@@ -99,9 +99,8 @@ public class ManagementPermissionsAdder implements BundleListener {
                     if (existingResource.getProperty(UserMgtConstants.DISPLAY_NAME) == null) {
                         existingResource.setProperty(UserMgtConstants.DISPLAY_NAME, uiPermission.getDisplayName());
                         registry.put(uiPermission.getResourceId(), existingResource);
-                    } else {
-                        continue;
                     }
+                    continue;
                 }
                 Collection resource = registry.newCollection();
                 resource.setProperty(UserMgtConstants.DISPLAY_NAME, uiPermission.getDisplayName());
