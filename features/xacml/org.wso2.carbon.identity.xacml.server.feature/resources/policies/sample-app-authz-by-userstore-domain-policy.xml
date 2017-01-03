@@ -17,16 +17,16 @@
   -->
 
 <Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
-        PolicyId="travelocity.com-auth-by-user-store-domain-policy"
+        PolicyId="travelocity-auth-by-user-store-domain-policy"
         RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable" Version="1.0">
     <Description>This is a reference policy for service provider authorization by user store domain. This will only
-        allow users in PRIMARY user store to login to travelocity.com SP and anyone else will be denied.
+        allow users in PRIMARY user store to login to travelocity SP and anyone else will be denied.
     </Description>
     <Target>
         <AnyOf>
             <AllOf>
                 <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">travelocity.com</AttributeValue>
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">travelocity</AttributeValue>
                     <AttributeDesignator AttributeId="http://wso2.org/identity/sp/sp-name"
                                          Category="http://wso2.org/identity/sp"
                                          DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
