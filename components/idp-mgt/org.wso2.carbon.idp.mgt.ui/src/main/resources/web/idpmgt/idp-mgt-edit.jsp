@@ -1435,7 +1435,7 @@
 
         jQuery('#claimAddTable .claimrow').each(function () {
             if ($(this).val().trim() != "") {
-                var val = $(this).val();
+                var val = htmlEncode($(this).val());
                 if (val == '<%=userIdClaimURI%>') {
                     $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
