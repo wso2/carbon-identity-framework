@@ -30,6 +30,8 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
+    String passwordHistoryErrorCode = "20035";
+    String passwordPatternErrorCode = "22001";
 
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
@@ -68,7 +70,11 @@
                 request.setAttribute("errorCode", error.getCode());
             }
 
-            request.getRequestDispatcher("error.jsp").forward(request, response);
+            if (passwordHistoryErrorCode.equals(error.getCode()) || passwordPatternErrorCode.equals(error.getCode())) {
+                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+            } else {
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+            }
             return;
         }
 
