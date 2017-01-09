@@ -20,14 +20,20 @@ package org.wso2.carbon.identity.gateway.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkException;
+import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.artifact.ArtifactStore;
+import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
+import org.wso2.carbon.identity.gateway.artifact.util.ServiceProviderManager;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.custom.HandlerChainBuilder;
+import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 
@@ -37,6 +43,12 @@ import java.util.HashMap;
 public class RequestProcessor extends GatewayProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(RequestProcessor.class);
+
+
+    public static final String CARBON_HOME = "carbon.home";
+    public static Path getCarbonHomeDirectory() {
+        return Paths.get(System.getProperty(CARBON_HOME));
+    }
 
     @Override
     public GatewayResponse process(GatewayRequest identityRequest) throws FrameworkException {
@@ -58,12 +70,20 @@ public class RequestProcessor extends GatewayProcessor {
         // Add an authentication context map TODO: this should be initialized by the context
         gatewayMessageContext.addParameter(sessionDataKey, new HashMap<>());
 
-        String serviceProvider = identityRequest.getServiceProvider();
-
+        ServiceProvider serviceProvider = ArtifactStore.getInstance()
+                .getServiceProvider(identityRequest.getServiceProvider());
+        gatewayMessageContext.setServiceProvider(serviceProvider);
+        AbstractGatewayHandler initialHandler =
+                ServiceProviderManager.getInitialHandler(serviceProvider);
+        gatewayMessageContext.setCurrentHandler(initialHandler.getHandlerConfig());
+        initialHandler.execute(gatewayMessageContext);
         // Initiate the handler chain
-        new HandlerChainBuilder().buildHandlerChain(serviceProvider).execute(gatewayMessageContext);
         return gatewayMessageContext.getCurrentIdentityResponse();
     }
+
+
+
+
 
     @Override
     public String getName() {

@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
@@ -36,6 +35,10 @@ import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 import org.xml.sax.SAXException;
 
+import javax.ws.rs.HttpMethod;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -48,10 +51,6 @@ import java.util.Optional;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-import javax.ws.rs.HttpMethod;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
@@ -66,10 +65,6 @@ public class SAMLValidationHandler extends AbstractGatewayHandler {
     private static final String SAML_REQUEST = "SAMLRequest";
 
 
-    public SAMLValidationHandler(HandlerIdentifier handlerIdentifier) {
-
-        super(handlerIdentifier);
-    }
 
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext context) throws HandlerException {

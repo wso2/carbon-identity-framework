@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.gateway.element.custom;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
@@ -28,10 +27,7 @@ import java.util.Map;
 
 public class CustomResponseBuilder extends AbstractGatewayHandler {
 
-    public CustomResponseBuilder(HandlerIdentifier handlerIdentifier) {
 
-        super(handlerIdentifier);
-    }
 
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext gatewayMessageContext) throws HandlerException {

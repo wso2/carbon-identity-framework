@@ -16,9 +16,7 @@
 
 package org.wso2.carbon.identity.gateway;
 
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
-
-public class GatewayHandlerIdentifier implements HandlerIdentifier {
+public class GatewayHandlerIdentifier {
 
     private String spName;
     private String configName;

@@ -26,19 +26,17 @@ import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.framework.model.User;
 import org.wso2.carbon.identity.framework.model.UserClaim;
-import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
-import org.wso2.carbon.identity.gateway.config.GatewayHandlerConfig;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.element.authentication.LocalAuthenticator;
 
+import javax.ws.rs.core.HttpHeaders;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javax.ws.rs.core.HttpHeaders;
 
 /**
  * Basic(Username, Password) authentication handler.
@@ -59,10 +57,7 @@ public class BasicAuthenticationHandler extends AbstractAuthenticationHandler im
     protected User authenticatedUser;
     protected Map<String, UserClaim> claimMap = new HashMap<>();
 
-    public BasicAuthenticationHandler(GatewayHandlerIdentifier handlerIdentifier) {
-
-        super(handlerIdentifier);
-
+    public BasicAuthenticationHandler() {
         uniqueIdentifier = UUID.randomUUID().toString();
         isUserAuthenticated = false;
         authenticatedUser = null;
@@ -70,11 +65,6 @@ public class BasicAuthenticationHandler extends AbstractAuthenticationHandler im
     }
 
 
-    @Override
-    public GatewayHandlerConfig getConfiguration(GatewayHandlerIdentifier handlerIdentifier) {
-
-        return null;
-    }
 
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext context) throws HandlerException {

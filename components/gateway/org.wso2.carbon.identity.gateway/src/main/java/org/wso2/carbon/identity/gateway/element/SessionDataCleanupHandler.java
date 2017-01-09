@@ -18,7 +18,6 @@ package org.wso2.carbon.identity.gateway.element;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
@@ -31,11 +30,6 @@ public class SessionDataCleanupHandler extends AbstractGatewayHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionDataCleanupHandler.class);
 
-
-    public SessionDataCleanupHandler(HandlerIdentifier handlerIdentifier) {
-
-        super(handlerIdentifier);
-    }
 
 
     @Override

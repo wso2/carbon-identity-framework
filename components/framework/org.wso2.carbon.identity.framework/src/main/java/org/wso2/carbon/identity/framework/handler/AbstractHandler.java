@@ -22,68 +22,35 @@ import org.wso2.carbon.identity.framework.context.MessageContext;
 import static org.wso2.carbon.identity.framework.handler.HandlerResponseStatus.CONTINUE;
 
 
-public abstract class AbstractHandler<T1 extends HandlerIdentifier, T2 extends HandlerConfig,
-        T3 extends AbstractHandler, T4 extends MessageContext> implements HandlerConfigurator<T1, T2> {
+public abstract class AbstractHandler<T1 extends MessageContext> {
 
-    private T1 handlerIdentifier = null;
 
-    private T3 nextHandler = null;
-    private T3 previousHandler = null;
-
-    public AbstractHandler(T1 handlerIdentifier, T3 nextHandler) {
-
-        this.handlerIdentifier = handlerIdentifier;
-        this.nextHandler = nextHandler;
-        this.setPreviousHandler((T3) this);
+    public AbstractHandler() {
     }
 
-    public AbstractHandler(T1 handlerIdentifier) {
+    public AbstractHandler(AbstractHandler nextHandler) {
 
-        this.handlerIdentifier = handlerIdentifier;
     }
 
-    public T3 getNextHandler() {
+    public abstract AbstractHandler nextHandler(T1 messageContext);
 
-        return nextHandler;
-    }
 
-    public void setNextHandler(T3 nextHandler) {
-
-        this.nextHandler = nextHandler;
-    }
-
-    public T3 getPreviousHandler() {
-
-        return previousHandler;
-    }
-
-    public void setPreviousHandler(T3 previousHandler) {
-
-        this.previousHandler = previousHandler;
-    }
-
-    public void execute(T4 messageContext) throws HandlerException {
+    public void execute(T1 messageContext) throws HandlerException {
 
         HandlerResponseStatus handlerResponseStatus = handle(messageContext);
-
-        if (getNextHandler() != null && handlerResponseStatus == CONTINUE) {
-            getNextHandler().execute(messageContext);
+        AbstractHandler nextHandler = nextHandler(messageContext);
+        if (nextHandler != null && handlerResponseStatus == CONTINUE) {
+            nextHandler.execute(messageContext);
         }
     }
 
-    @Override
-    public T2 getConfiguration(T1 handlerIdentifier) {
 
-        return null;
-    }
-
-    public abstract HandlerResponseStatus handle(T4 messageContext) throws HandlerException;
+    public abstract HandlerResponseStatus handle(T1 messageContext) throws HandlerException;
 
 
-    public boolean canHandle(T4 messageContext) throws HandlerException {
+    public boolean canHandle(T1 messageContext) throws HandlerException {
 
         return true;
     }
 
-    ;
 }

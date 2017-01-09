@@ -18,8 +18,6 @@ package org.wso2.carbon.identity.gateway.element.callback;
 
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.framework.handler.HandlerConfig;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
@@ -31,14 +29,9 @@ import java.util.Optional;
 /**
  * Abstract implementation of {@link GatewayCallbackHandler}
  */
-public abstract class AbstractCallbackHandler extends AbstractHandler<HandlerIdentifier, HandlerConfig, AbstractHandler,
-        GatewayMessageContext> implements GatewayCallbackHandler {
+public abstract class AbstractCallbackHandler extends AbstractHandler<GatewayMessageContext> implements GatewayCallbackHandler {
 
 
-    public AbstractCallbackHandler(HandlerIdentifier handlerIdentifier) {
-
-        super(handlerIdentifier);
-    }
 
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext context) {
@@ -56,10 +49,8 @@ public abstract class AbstractCallbackHandler extends AbstractHandler<HandlerIde
         GatewayUtil.mergeContext(oldContext, context);
 
         // get the handler that should resume the flow.
-        AbstractHandler nextHandler = context.getCurrentHandler();
 
         // set it as my next handler
-        this.setNextHandler(nextHandler);
         return HandlerResponseStatus.CONTINUE;
     }
 

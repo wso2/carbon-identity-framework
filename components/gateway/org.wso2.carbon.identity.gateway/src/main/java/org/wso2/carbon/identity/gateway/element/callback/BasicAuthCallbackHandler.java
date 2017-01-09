@@ -17,8 +17,7 @@
 package org.wso2.carbon.identity.gateway.element.callback;
 
 import org.wso2.carbon.identity.framework.FrameworkConstants;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
-import org.wso2.carbon.identity.framework.message.Request;
+import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 
@@ -28,10 +27,12 @@ import org.wso2.carbon.identity.gateway.message.GatewayRequest;
  */
 public class BasicAuthCallbackHandler extends AbstractCallbackHandler implements GatewayCallbackHandler {
 
+    public BasicAuthCallbackHandler() {
+    }
 
-    public BasicAuthCallbackHandler(HandlerIdentifier handlerIdentifier) {
-
-        super(handlerIdentifier);
+    @Override
+    public AbstractHandler nextHandler(GatewayMessageContext messageContext) {
+        return null;
     }
 
     @Override
