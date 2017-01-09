@@ -1,0 +1,5 @@
+handler:
+    handlerName: "CustomRequestValidator"
+    handlerId: "validator1"
+    handlerConfig:
+      url: "http://test"

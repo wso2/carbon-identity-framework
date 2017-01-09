@@ -22,5 +22,4 @@ import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
 public abstract class GatewayProcessor extends IdentityProcessor<GatewayRequest, GatewayResponse> {
 
-
 }

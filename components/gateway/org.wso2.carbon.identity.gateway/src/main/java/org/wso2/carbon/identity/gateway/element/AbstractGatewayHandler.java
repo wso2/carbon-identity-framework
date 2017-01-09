@@ -18,18 +18,36 @@ package org.wso2.carbon.identity.gateway.element;
 
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
-import org.wso2.carbon.identity.gateway.config.GatewayHandlerConfig;
+import org.wso2.carbon.identity.gateway.artifact.model.HandlerConfig;
+import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.internal.DataHolder;
 
-public abstract class AbstractGatewayHandler<T1 extends HandlerIdentifier>
-        extends AbstractHandler<T1, GatewayHandlerConfig, AbstractHandler, GatewayMessageContext> {
+public abstract class AbstractGatewayHandler<T1>
+        extends AbstractHandler<GatewayMessageContext> {
 
+    private HandlerConfig handlerConfig = null ;
 
-    public AbstractGatewayHandler(T1 handlerIdentifier) {
+    public AbstractGatewayHandler() {
+    }
 
-        super(handlerIdentifier);
+    public AbstractGatewayHandler(AbstractHandler nextHandler) {
+        super(nextHandler);
+    }
+
+    @Override
+    public AbstractHandler nextHandler(GatewayMessageContext messageContext) {
+        AbstractHandler nextHandler = null ;
+        HandlerConfig currentHandler = messageContext.getCurrentHandler();
+        if(currentHandler != null) {
+            HandlerConfig nextHandler1 = currentHandler.getNextHandler();
+            if(nextHandler1 != null) {
+                messageContext.setCurrentHandler(nextHandler1);
+                nextHandler = DataHolder.getInstance().getHandler(nextHandler1.getName());
+            }
+        }
+        return nextHandler;
     }
 
     @Override
@@ -40,9 +58,17 @@ public abstract class AbstractGatewayHandler<T1 extends HandlerIdentifier>
 
     @Override
     public void execute(GatewayMessageContext gatewayMessageContext) throws HandlerException {
-
-        gatewayMessageContext.setCurrentHandler(this);
+        //gatewayMessageContext.setCurrentHandler(this);
         super.execute(gatewayMessageContext);
+
+    }
+
+    public HandlerConfig getHandlerConfig() {
+        return handlerConfig;
+    }
+
+    public void setHandlerConfig(HandlerConfig handlerConfig) {
+        this.handlerConfig = handlerConfig;
     }
 
     @Override
@@ -50,4 +76,6 @@ public abstract class AbstractGatewayHandler<T1 extends HandlerIdentifier>
 
         return super.canHandle(messageContext);
     }
+
+
 }

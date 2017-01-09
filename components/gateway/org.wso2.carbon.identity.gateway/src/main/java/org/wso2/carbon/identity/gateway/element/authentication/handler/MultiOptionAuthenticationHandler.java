@@ -21,21 +21,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.impl.MultiOptionStepHandler;
-import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
-import org.wso2.carbon.identity.gateway.config.GatewayHandlerConfig;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
 /**
  * This authenticator provides the ability to do multi option authentication in a step.
  */
-public class MultiOptionAuthenticationHandler extends MultiOptionStepHandler<GatewayHandlerIdentifier,
-        GatewayHandlerConfig, AbstractAuthenticationHandler, GatewayMessageContext> {
+public class MultiOptionAuthenticationHandler extends MultiOptionStepHandler<GatewayMessageContext> {
 
     private Logger logger = LoggerFactory.getLogger(MultiOptionAuthenticationHandler.class);
 
-    public MultiOptionAuthenticationHandler(GatewayHandlerIdentifier handlerIdentifier) {
-        super(handlerIdentifier);
+    public MultiOptionAuthenticationHandler(AbstractAuthenticationHandler nextHandler) {
+        super(nextHandler);
     }
+
+    @Override
+    public AbstractAuthenticationHandler nextHandler(GatewayMessageContext messageContext) {
+        return null;
+    }
+
 
     @Override
     protected AbstractAuthenticationHandler getSelectedHandler(GatewayMessageContext messageContext)
@@ -60,7 +63,7 @@ public class MultiOptionAuthenticationHandler extends MultiOptionStepHandler<Gat
         } catch (NumberFormatException ex) {
             throw new HandlerException("Invalid Option provided", ex);
         }
-        return multiOptionHandlers.get(option - 1);
+        return (AbstractAuthenticationHandler)multiOptionHandlers.get(option - 1);
     }
 
     public MultiOptionAuthenticationHandler addOption(AbstractAuthenticationHandler gatewayHandler) {

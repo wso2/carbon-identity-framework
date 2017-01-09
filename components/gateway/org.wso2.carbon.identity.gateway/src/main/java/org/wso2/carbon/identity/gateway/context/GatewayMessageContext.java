@@ -17,8 +17,9 @@
 package org.wso2.carbon.identity.gateway.context;
 
 import org.wso2.carbon.identity.framework.context.MessageContext;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
+import org.wso2.carbon.identity.gateway.artifact.model.HandlerConfig;
+import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse.GatewayResponseBuilder;
@@ -33,6 +34,9 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
 
     private static final long serialVersionUID = -3000397944848547943L;
 
+    private ServiceProvider serviceProvider = null ;
+    private HandlerConfig currentHandler = null ;
+
     protected String sessionDataKey;
 
     protected GatewayRequest initialIdentityRequest;
@@ -41,7 +45,6 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
     protected GatewayRequest currentIdentityRequest;
     protected GatewayResponse currentIdentityResponse;
 
-    protected AbstractHandler currentHandler;
     protected HandlerResponseStatus handlerResponseStatus;
 
     protected Map<String, ? extends GatewayMessageContext> messageContexts = new HashMap<>();
@@ -66,6 +69,14 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
     public GatewayRequest getCurrentIdentityRequest() {
 
         return currentIdentityRequest;
+    }
+
+    public ServiceProvider getServiceProvider() {
+        return serviceProvider;
+    }
+
+    public void setServiceProvider(ServiceProvider serviceProvider) {
+        this.serviceProvider = serviceProvider;
     }
 
     public void setCurrentIdentityRequest(GatewayRequest currentIdentityRequest) {
@@ -114,13 +125,11 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
     }
 
 
-    public AbstractHandler getCurrentHandler() {
-
+    public HandlerConfig getCurrentHandler() {
         return currentHandler;
     }
 
-    public void setCurrentHandler(AbstractHandler currentHandler) {
-
+    public void setCurrentHandler(HandlerConfig currentHandler) {
         this.currentHandler = currentHandler;
     }
 

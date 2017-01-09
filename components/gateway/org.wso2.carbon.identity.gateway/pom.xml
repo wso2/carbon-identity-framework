@@ -110,11 +110,13 @@
             org.apache.commons.lang.*,
             org.wso2.carbon.kernel.utils.*; version="${carbon.kernel.package.import.version.range}",
             org.wso2.carbon.identity.framework.*; version="${identity.framework.import.version.range}",
-            org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}"
+            org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}",
+            org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}"
         </import.package>
         <carbon.component>
             osgi.service; objectClass="org.wso2.msf4j.Microservice"
         </carbon.component>
+        <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>
 
 </project>

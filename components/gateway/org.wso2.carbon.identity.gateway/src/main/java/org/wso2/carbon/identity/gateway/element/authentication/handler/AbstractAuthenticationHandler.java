@@ -16,12 +16,18 @@
 
 package org.wso2.carbon.identity.gateway.element.authentication.handler;
 
+import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
+import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 
 public class AbstractAuthenticationHandler extends AbstractGatewayHandler<GatewayHandlerIdentifier> {
 
-    public AbstractAuthenticationHandler(GatewayHandlerIdentifier handlerIdentifier) {
-        super(handlerIdentifier);
+    public AbstractAuthenticationHandler() {
     }
+
+    public AbstractAuthenticationHandler(AbstractHandler nextHandler) {
+        super(nextHandler);
+    }
+
 }

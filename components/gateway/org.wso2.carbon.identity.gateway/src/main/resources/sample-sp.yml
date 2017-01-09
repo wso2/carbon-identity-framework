@@ -1,26 +1,23 @@
-handlerChainId: "sample1"
-handler: "customValidator"
-  name: "ABC1"
-  handlerType: "default"
-  handlerConfig:
-    url: "http://test"
-handler: "multiOptionAuthenticationHandler"
-  handlerType: "multiOptionHandler"
-  name: "ABC2"
-  handlers:
-    handler: "requestPathAuthneticator"
-      handlerType: "default"
-      name: "ABC3"
-      handlerConfig:
-        secToken: "secToken"
-    handler: "basicAuthenticator"
-      name: "ABC4"
-      handlerType: "default"
-      handlerConfig:
-        authEndpoint: "http://localhost:9090/authenticate"
-        callback: "http://localhost:9090/gateway/callback"
-handler: "customResponseBuilder"
-  handlerType: "default"
-  name: "ABC5"
-  handlerConfig:
-    test: "ContentType"
+serviceProvider:
+  name: "SampleSP"
+
+  handler:
+    name: "CustomRequestValidator"
+    id: "validator1"
+    config:
+      url: "http://test"
+      ddd:
+        fdfd: "Ddd"
+
+    nextHandler:
+      name: "RequestPathAuthenticator"
+      id: "requestPathAuthenticator"
+      config:
+        test: "xxx"
+
+      nextHandler:
+        name: "CustomResponseBuilder"
+        id: "responseBuilder1"
+        config:
+          test: "xxx"
+          abss: "ddd"

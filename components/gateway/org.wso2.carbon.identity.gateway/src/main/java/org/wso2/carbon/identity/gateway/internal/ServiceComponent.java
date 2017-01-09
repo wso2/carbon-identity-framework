@@ -9,9 +9,17 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.artifact.ArtifactReader;
+import org.wso2.carbon.identity.gateway.artifact.ArtifactStore;
+import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
+import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.element.authentication.handler.RequestPathAuthenticator;
 import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
+import org.wso2.carbon.identity.gateway.element.custom.CustomRequestValidator;
+import org.wso2.carbon.identity.gateway.element.custom.CustomResponseBuilder;
 import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
 import org.wso2.carbon.identity.gateway.processor.RequestProcessor;
 
@@ -40,12 +48,25 @@ public class ServiceComponent {
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
 
+        //HandlerChain handlerChain = ArtifactReader.loadChain();
+        //ArtifactStore.getInstance().addHandlerChain(handlerChain);
+
+        ServiceProvider serviceProvider = ArtifactReader.loadServiceProvider();
+        ArtifactStore.getInstance().addServiceProvider(serviceProvider);
+
+
+
         // register processors
         bundleContext.registerService(GatewayProcessor.class, new RequestProcessor(), null);
         bundleContext.registerService(GatewayProcessor.class, new CallbackProcessor(), null);
 
         // registering callback handlers
-        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(null), null);
+        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(), null);
+
+        //Registering generic handlers list
+        bundleContext.registerService(AbstractGatewayHandler.class, new CustomRequestValidator(), null);
+        bundleContext.registerService(AbstractGatewayHandler.class, new CustomRequestValidator(), null);
+        //bundleContext.registerService(AbstractGatewayHandler.class, new RequestPathAuthenticator(), null);
 
         logger.info("Service Component is activated");
     }
@@ -91,4 +112,33 @@ public class ServiceComponent {
 
         DataHolder.getInstance().addGatewayCallbackHandler(null);
     }
+
+
+    @Reference(
+            name = "gateway.handler",
+            service = AbstractGatewayHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetHandler"
+    )
+    protected void setHandler(AbstractGatewayHandler handler) {
+
+        DataHolder.getInstance().addHandler(handler);
+    }
+
+    /**
+     * This is the unbind method which gets called at the un-registration of {@link AbstractHandler}
+     * OSGi service.
+     *
+     * @param handler The {@link AbstractHandler} instance registered by Carbon Kernel as
+     *                               an OSGi service
+     */
+    protected void unsetHandler(AbstractHandler handler) {
+
+        DataHolder.getInstance().addHandler(null);
+    }
+
+
+
+
 }

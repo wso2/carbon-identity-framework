@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.identity.framework.config;
 
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;

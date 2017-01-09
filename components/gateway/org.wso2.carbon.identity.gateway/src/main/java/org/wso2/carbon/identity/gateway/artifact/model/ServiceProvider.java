@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.handler;
+package org.wso2.carbon.identity.gateway.artifact.model;
 
 
-public abstract class HandlerConfig {
-    private String handlerConfigIdentifier;
+public class ServiceProvider {
+    private ServiceProviderEntry serviceProvider ;
 
-    public String getHandlerConfigIdentifier() {
-        return handlerConfigIdentifier;
+    public ServiceProviderEntry getServiceProvider() {
+        return serviceProvider;
     }
 
-    public void setHandlerConfigIdentifier(String handlerConfigIdentifier) {
-        this.handlerConfigIdentifier = handlerConfigIdentifier;
+    public void setServiceProvider(ServiceProviderEntry serviceProvider) {
+        this.serviceProvider = serviceProvider;
     }
+
 }

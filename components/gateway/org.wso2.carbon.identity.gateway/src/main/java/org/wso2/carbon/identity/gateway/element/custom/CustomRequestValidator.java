@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
-import org.wso2.carbon.identity.framework.handler.HandlerIdentifier;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
@@ -30,10 +29,6 @@ public class CustomRequestValidator extends AbstractGatewayHandler {
 
 
     private Logger logger = LoggerFactory.getLogger(CustomRequestValidator.class);
-
-    public CustomRequestValidator(HandlerIdentifier handlerIdentifier) {
-        super(handlerIdentifier);
-    }
 
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext messageContext) throws HandlerException {

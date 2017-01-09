@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
-import org.wso2.carbon.identity.gateway.GatewayHandlerIdentifier;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
@@ -31,10 +30,6 @@ import java.util.Map;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class RequestPathAuthenticator extends BasicAuthenticationHandler {
-
-    public RequestPathAuthenticator(GatewayHandlerIdentifier handlerIdentifier) {
-        super(handlerIdentifier);
-    }
 
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext context) throws HandlerException {

@@ -27,11 +27,11 @@ import org.wso2.carbon.identity.gateway.message.GatewayRequest.GatewayRequestBui
 import org.wso2.msf4j.Request;
 import org.wso2.msf4j.util.BufferUtil;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * Default factory implementation of {@link GatewayResponseFactory}

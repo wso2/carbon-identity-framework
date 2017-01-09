@@ -14,8 +14,25 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.framework.handler;
+package org.wso2.carbon.identity.gateway.artifact.model;
 
-public interface HandlerConfigurator<T1 extends HandlerIdentifier, T2 extends HandlerConfig> {
-    T2 getConfiguration(T1 handlerIdentifier);
+public class ServiceProviderEntry {
+    private String name ;
+    private HandlerConfig handler ;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public HandlerConfig getHandler() {
+        return handler;
+    }
+
+    public void setHandler(HandlerConfig handler) {
+        this.handler = handler;
+    }
 }
