@@ -1,0 +1,23 @@
+serviceProvider:
+  name: "SamlSP"
+
+  handler:
+    name: "SAMLValidationHandler"
+    id: "samlValidator"
+    config:
+      url: "http://test"
+      ddd:
+        fdfd: "Ddd"
+
+    nextHandler:
+      name: "BasicAuthenticationHandler"
+      id: "basicAuth"
+      config:
+        test: "xxx"
+
+      nextHandler:
+        name: "SAMLResponseHandler"
+        id: "samlReponseHandler"
+        config:
+          test: "xxx"
+          abss: "ddd"
