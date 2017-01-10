@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.internal.DataHolder;
+import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 
 import java.util.Optional;
@@ -32,8 +33,7 @@ import java.util.Optional;
 /**
  * Abstract implementation of {@link GatewayCallbackHandler}
  */
-public abstract class AbstractCallbackHandler extends AbstractHandler<GatewayMessageContext> implements
-                                                                                      GatewayCallbackHandler {
+public abstract class AbstractCallbackHandler extends AbstractHandler<GatewayMessageContext> {
 
 
     @Override
@@ -72,4 +72,10 @@ public abstract class AbstractCallbackHandler extends AbstractHandler<GatewayMes
 
         return true;
     }
+
+    public abstract int getPriority();
+
+    public abstract boolean canExtractSessionIdentifier(GatewayRequest request);
+
+    public abstract String getSessionIdentifier(GatewayRequest request);
 }

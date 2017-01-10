@@ -17,6 +17,7 @@ import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.element.authentication.handler.BasicAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.element.authentication.handler.RequestPathAuthenticator;
+import org.wso2.carbon.identity.gateway.element.callback.AbstractCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.custom.CustomRequestValidator;
@@ -64,7 +65,7 @@ public class ServiceComponent {
         bundleContext.registerService(GatewayProcessor.class, new CallbackProcessor(), null);
 
         // registering callback handlers
-        bundleContext.registerService(GatewayCallbackHandler.class, new BasicAuthCallbackHandler(), null);
+        bundleContext.registerService(AbstractCallbackHandler.class, new BasicAuthCallbackHandler(), null);
 
         //Registering generic handlers list
         bundleContext.registerService(AbstractGatewayHandler.class, new CustomRequestValidator(), null);
@@ -97,12 +98,12 @@ public class ServiceComponent {
      */
     @Reference(
             name = "gateway.callback.handler",
-            service = GatewayCallbackHandler.class,
+            service = AbstractCallbackHandler.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetGatewayCallbackHandler"
     )
-    protected void setGatewayCallbackHandler(GatewayCallbackHandler callbackHandler) {
+    protected void setGatewayCallbackHandler(AbstractCallbackHandler callbackHandler) {
 
         DataHolder.getInstance().addGatewayCallbackHandler(callbackHandler);
     }
@@ -111,10 +112,10 @@ public class ServiceComponent {
      * This is the unbind method which gets called at the un-registration of {@link GatewayCallbackHandler}
      * OSGi service.
      *
-     * @param gatewayCallbackHandler The {@link GatewayCallbackHandler} instance registered by Carbon Kernel as
+     * @param gatewayCallbackHandler The {@link AbstractCallbackHandler} instance registered by Carbon Kernel as
      *                               an OSGi service
      */
-    protected void unsetGatewayCallbackHandler(GatewayCallbackHandler gatewayCallbackHandler) {
+    protected void unsetGatewayCallbackHandler(AbstractCallbackHandler gatewayCallbackHandler) {
 
         DataHolder.getInstance().addGatewayCallbackHandler(null);
     }

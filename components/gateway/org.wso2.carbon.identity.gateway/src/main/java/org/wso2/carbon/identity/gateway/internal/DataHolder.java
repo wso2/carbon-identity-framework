@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.gateway.internal;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.element.callback.AbstractCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class DataHolder {
     Logger logger = Logger.getLogger(DataHolder.class.getName());
 
     private static DataHolder instance = new DataHolder();
-    private List<GatewayCallbackHandler> gatewayCallbackHandlers = new ArrayList<>();
+    private List<AbstractCallbackHandler> gatewayCallbackHandlers = new ArrayList<>();
     private Map<String, AbstractGatewayHandler> handlers = new HashMap<>();
     private DataHolder() {
 
@@ -34,7 +35,6 @@ public class DataHolder {
      * @return The DataHolder instance of this singleton class
      */
     public static DataHolder getInstance() {
-
         return instance;
     }
 
@@ -48,7 +48,7 @@ public class DataHolder {
      *
      * @return GatewayCallbackHandler Service
      */
-    public List<GatewayCallbackHandler> getGatewayCallbackHandlers() {
+    public List<AbstractCallbackHandler> getGatewayCallbackHandlers() {
 
         return gatewayCallbackHandlers;
     }
@@ -57,11 +57,11 @@ public class DataHolder {
      * This method is for add a {@link GatewayCallbackHandler} service. This method is used by
      * ServiceComponent.
      *
-     * @param gatewayCallbackHandler The reference being passed through ServiceComponent
+     * @param callbackHandler The reference being passed through ServiceComponent
      */
-    public void addGatewayCallbackHandler(GatewayCallbackHandler gatewayCallbackHandler) {
+    public void addGatewayCallbackHandler(AbstractCallbackHandler callbackHandler) {
 
-        gatewayCallbackHandlers.add(gatewayCallbackHandler);
+        gatewayCallbackHandlers.add(callbackHandler);
         Collections.sort(gatewayCallbackHandlers, callbackHandlerComparator);
     }
 
@@ -69,6 +69,6 @@ public class DataHolder {
         handlers.put(handler.getClass().getSimpleName(), handler);
     }
 
-    private static Comparator<GatewayCallbackHandler> callbackHandlerComparator =
+    private static Comparator<AbstractCallbackHandler> callbackHandlerComparator =
             (handler1, handler2) -> FrameworkUtil.comparePriory(handler1.getPriority(), handler2.getPriority());
 }
