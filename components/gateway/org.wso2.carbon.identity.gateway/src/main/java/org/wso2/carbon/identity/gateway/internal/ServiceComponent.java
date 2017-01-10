@@ -15,11 +15,14 @@ import org.wso2.carbon.identity.gateway.artifact.ArtifactReader;
 import org.wso2.carbon.identity.gateway.artifact.ArtifactStore;
 import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
 import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.element.authentication.handler.BasicAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.element.authentication.handler.RequestPathAuthenticator;
 import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.custom.CustomRequestValidator;
 import org.wso2.carbon.identity.gateway.element.custom.CustomResponseBuilder;
+import org.wso2.carbon.identity.gateway.element.response.SAMLResponseHandler;
+import org.wso2.carbon.identity.gateway.element.validation.SAMLValidationHandler;
 import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
 import org.wso2.carbon.identity.gateway.processor.RequestProcessor;
 
@@ -67,6 +70,9 @@ public class ServiceComponent {
         bundleContext.registerService(AbstractGatewayHandler.class, new CustomRequestValidator(), null);
         bundleContext.registerService(AbstractGatewayHandler.class, new CustomResponseBuilder(), null);
         bundleContext.registerService(AbstractGatewayHandler.class, new RequestPathAuthenticator(), null);
+        bundleContext.registerService(AbstractGatewayHandler.class, new SAMLValidationHandler(), null);
+        bundleContext.registerService(AbstractGatewayHandler.class, new SAMLResponseHandler(), null);
+        bundleContext.registerService(AbstractGatewayHandler.class, new BasicAuthenticationHandler(), null);
 
         logger.info("Service Component is activated");
     }

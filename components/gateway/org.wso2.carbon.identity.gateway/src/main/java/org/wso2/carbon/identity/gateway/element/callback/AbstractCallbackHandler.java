@@ -19,9 +19,12 @@ package org.wso2.carbon.identity.gateway.element.callback;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
+import org.wso2.carbon.identity.gateway.artifact.model.HandlerConfig;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.internal.DataHolder;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 
 import java.util.Optional;
@@ -29,9 +32,19 @@ import java.util.Optional;
 /**
  * Abstract implementation of {@link GatewayCallbackHandler}
  */
-public abstract class AbstractCallbackHandler extends AbstractHandler<GatewayMessageContext> implements GatewayCallbackHandler {
+public abstract class AbstractCallbackHandler extends AbstractHandler<GatewayMessageContext> implements
+                                                                                      GatewayCallbackHandler {
 
 
+    @Override
+    public AbstractHandler nextHandler(GatewayMessageContext messageContext) {
+        AbstractHandler nextHandler = null ;
+        HandlerConfig currentHandler = messageContext.getCurrentHandler();
+        if(currentHandler != null) {
+            nextHandler = DataHolder.getInstance().getHandler(currentHandler.getName());
+        }
+        return nextHandler;
+    }
 
     @Override
     public HandlerResponseStatus handle(GatewayMessageContext context) {

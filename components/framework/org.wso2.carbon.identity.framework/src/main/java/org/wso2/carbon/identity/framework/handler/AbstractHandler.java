@@ -38,9 +38,11 @@ public abstract class AbstractHandler<T1 extends MessageContext> {
     public void execute(T1 messageContext) throws HandlerException {
 
         HandlerResponseStatus handlerResponseStatus = handle(messageContext);
-        AbstractHandler nextHandler = nextHandler(messageContext);
-        if (nextHandler != null && handlerResponseStatus == CONTINUE) {
-            nextHandler.execute(messageContext);
+        if(handlerResponseStatus == CONTINUE) {
+            AbstractHandler nextHandler = nextHandler(messageContext);
+            if (nextHandler != null) {
+                nextHandler.execute(messageContext);
+            }
         }
     }
 

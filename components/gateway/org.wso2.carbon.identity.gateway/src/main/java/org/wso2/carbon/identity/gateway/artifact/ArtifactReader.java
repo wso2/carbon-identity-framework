@@ -26,9 +26,10 @@ import java.nio.file.Paths;
 public class ArtifactReader {
 
     public static ServiceProvider loadServiceProvider() {
-
+        String fileStr  = "/home/harshat/wso2/repo/is/new-framework-poc/original-repo/carbon-identity-framework/components/gateway/org.wso2.carbon.identity.gateway/src/main/resources/sample-sp.yml" ;
+        fileStr = "/home/harshat/wso2/repo/is/new-framework-poc/original-repo/carbon-identity-framework/components/gateway/org.wso2.carbon.identity.gateway/src/main/resources/saml-sp.yml" ;
         Path file = Paths
-                .get("/home/harshat/wso2/repo/is/new-framework-poc/original-repo/carbon-identity-framework/components/gateway/org.wso2.carbon.identity.gateway/src/main/resources/sample-sp.yml");
+                .get(fileStr);
 
         // domain-config.yaml is a mandatory configuration file.
         ServiceProvider serviceProviderEntry =  FileUtil.readConfigFile(file, ServiceProvider.class);

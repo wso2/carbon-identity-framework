@@ -30,10 +30,6 @@ public class BasicAuthCallbackHandler extends AbstractCallbackHandler implements
     public BasicAuthCallbackHandler() {
     }
 
-    @Override
-    public AbstractHandler nextHandler(GatewayMessageContext messageContext) {
-        return null;
-    }
 
     @Override
     public boolean canHandle(GatewayMessageContext messageContext) {
