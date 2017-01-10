@@ -65,8 +65,8 @@ public class ServiceComponent {
 
         //Registering generic handlers list
         bundleContext.registerService(AbstractGatewayHandler.class, new CustomRequestValidator(), null);
-        bundleContext.registerService(AbstractGatewayHandler.class, new CustomRequestValidator(), null);
-        //bundleContext.registerService(AbstractGatewayHandler.class, new RequestPathAuthenticator(), null);
+        bundleContext.registerService(AbstractGatewayHandler.class, new CustomResponseBuilder(), null);
+        bundleContext.registerService(AbstractGatewayHandler.class, new RequestPathAuthenticator(), null);
 
         logger.info("Service Component is activated");
     }
