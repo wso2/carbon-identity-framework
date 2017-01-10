@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway;
+package org.wso2.carbon.identity.gateway.processor;
 
 import org.wso2.carbon.identity.framework.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 
-public abstract class GatewayProcessor extends IdentityProcessor<GatewayRequest, GatewayResponse> {
+public abstract class AbstractGatewayProcessor extends IdentityProcessor<GatewayRequest, GatewayResponse> {
 
 }

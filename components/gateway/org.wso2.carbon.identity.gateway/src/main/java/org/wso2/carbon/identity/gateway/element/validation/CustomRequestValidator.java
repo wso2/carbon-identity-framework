@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.element.custom;
+package org.wso2.carbon.identity.gateway.element.validation;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 
 public class CustomRequestValidator extends AbstractGatewayHandler {

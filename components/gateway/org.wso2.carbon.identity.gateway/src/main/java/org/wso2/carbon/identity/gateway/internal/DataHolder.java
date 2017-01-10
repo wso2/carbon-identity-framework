@@ -1,10 +1,8 @@
 package org.wso2.carbon.identity.gateway.internal;
 
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.element.callback.AbstractCallbackHandler;
-import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractCallbackHandler;
 
 import java.util.ArrayList;
 import java.util.Collections;

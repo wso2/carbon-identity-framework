@@ -16,13 +16,9 @@
 
 package org.wso2.carbon.identity.gateway.artifact.util;
 
-import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.artifact.ArtifactStore;
 import org.wso2.carbon.identity.gateway.artifact.model.HandlerConfig;
 import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
-import org.wso2.carbon.identity.gateway.artifact.model.ServiceProviderEntry;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.internal.DataHolder;
 
 

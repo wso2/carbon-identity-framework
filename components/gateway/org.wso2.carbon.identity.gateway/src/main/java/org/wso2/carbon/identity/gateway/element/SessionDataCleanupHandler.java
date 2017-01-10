@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 
 /**
  * I cleanup the session data after the handle sequence is ended.

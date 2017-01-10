@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.element.custom;
+package org.wso2.carbon.identity.gateway.element.response;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 
 import java.util.HashMap;
 import java.util.Map;

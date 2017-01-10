@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.gateway.resource.internal;
 
 import org.wso2.carbon.identity.framework.util.FrameworkUtil;
-import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.processor.AbstractGatewayProcessor;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayRequestFactory;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayResponseFactory;
 
@@ -37,7 +37,7 @@ public class DataHolder {
 
     private List<GatewayRequestFactory> requestFactoryList = new ArrayList<>();
     private List<GatewayResponseFactory> responseFactoryList = new ArrayList<>();
-    private List<GatewayProcessor> gatewayProcessors = new ArrayList<>();
+    private List<AbstractGatewayProcessor> abstractGatewayProcessors = new ArrayList<>();
 //    private IdentityProcessCoordinator processCoordinator;
 
     private Comparator<GatewayRequestFactory> requestFactoryComparator =
@@ -46,7 +46,7 @@ public class DataHolder {
     private Comparator<GatewayResponseFactory> responseFactoryComparator =
             (factory1, factory2) -> FrameworkUtil.comparePriory(factory1.getPriority(), factory2.getPriority());
 
-    private Comparator<GatewayProcessor> gatewayComparator =
+    private Comparator<AbstractGatewayProcessor> gatewayComparator =
             (processor1, processor2) -> FrameworkUtil.comparePriory(processor1.getPriority(), processor2.getPriority());
 
     private DataHolder() {
@@ -134,25 +134,25 @@ public class DataHolder {
     }
 
     /**
-     * Add a {@link GatewayProcessor} service instance. This will be used by the ServiceComponent
-     * when a @{@link GatewayProcessor} registers.
+     * Add a {@link AbstractGatewayProcessor} service instance. This will be used by the ServiceComponent
+     * when a @{@link AbstractGatewayProcessor} registers.
      *
-     * @param gatewayProcessor @{@link GatewayProcessor} instance added.
+     * @param abstractGatewayProcessor @{@link AbstractGatewayProcessor} instance added.
      */
-    public void addIdentityProcessor(GatewayProcessor gatewayProcessor) {
+    public void addIdentityProcessor(AbstractGatewayProcessor abstractGatewayProcessor) {
 
-        gatewayProcessors.add(gatewayProcessor);
-        Collections.sort(gatewayProcessors, gatewayComparator);
+        abstractGatewayProcessors.add(abstractGatewayProcessor);
+        Collections.sort(abstractGatewayProcessors, gatewayComparator);
     }
 
 
     /**
-     * Return a list registered @{@link GatewayProcessor} services.
+     * Return a list registered @{@link AbstractGatewayProcessor} services.
      *
-     * @return list of @{@link GatewayProcessor} services.
+     * @return list of @{@link AbstractGatewayProcessor} services.
      */
-    public List<GatewayProcessor> getGatewayProcessors() {
+    public List<AbstractGatewayProcessor> getAbstractGatewayProcessors() {
 
-        return gatewayProcessors;
+        return abstractGatewayProcessors;
     }
 }

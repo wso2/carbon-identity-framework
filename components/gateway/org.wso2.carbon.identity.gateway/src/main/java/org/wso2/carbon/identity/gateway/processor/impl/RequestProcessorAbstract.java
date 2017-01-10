@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.processor;
+package org.wso2.carbon.identity.gateway.processor.impl;
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.artifact.ArtifactStore;
 import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
 import org.wso2.carbon.identity.gateway.artifact.util.ServiceProviderManager;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
+import org.wso2.carbon.identity.gateway.processor.AbstractGatewayProcessor;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,9 +39,9 @@ import java.util.HashMap;
 /*
     This processor handler the initial identity requests that comes to the Identity Gateway.
  */
-public class RequestProcessor extends GatewayProcessor {
+public class RequestProcessorAbstract extends AbstractGatewayProcessor {
 
-    private static final Logger log = LoggerFactory.getLogger(RequestProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(RequestProcessorAbstract.class);
 
 
     public static final String CARBON_HOME = "carbon.home";

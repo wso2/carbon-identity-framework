@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.HandlerResponseStatus;
 import org.wso2.carbon.identity.framework.message.Response;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.util.SAMLUtils;
 
 import javax.naming.ConfigurationException;

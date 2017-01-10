@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.element.authentication.handler;
+package org.wso2.carbon.identity.gateway.element.authentication.handler.local;
 
 
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.framework.model.UserClaim;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.element.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.element.authentication.LocalAuthenticator;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 
 import javax.ws.rs.core.HttpHeaders;
 import java.io.UnsupportedEncodingException;
@@ -41,7 +42,7 @@ import java.util.UUID;
 /**
  * Basic(Username, Password) authentication handler.
  */
-public class BasicAuthenticationHandler extends AbstractAuthenticationHandler implements LocalAuthenticator {
+public class BasicAuthenticationHandler extends AbstractGatewayHandler implements LocalAuthenticator {
 
     private Logger logger = LoggerFactory.getLogger(BasicAuthenticationHandler.class);
 

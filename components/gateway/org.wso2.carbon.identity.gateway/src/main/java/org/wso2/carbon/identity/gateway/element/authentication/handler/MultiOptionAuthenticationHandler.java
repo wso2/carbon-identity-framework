@@ -20,28 +20,23 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.handler.HandlerException;
-import org.wso2.carbon.identity.framework.handler.impl.MultiOptionStepHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.handler.MultiOptionGatewayHandler;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
 /**
  * This authenticator provides the ability to do multi option authentication in a step.
  */
-public class MultiOptionAuthenticationHandler extends MultiOptionStepHandler<GatewayMessageContext> {
+public class MultiOptionAuthenticationHandler extends MultiOptionGatewayHandler {
 
     private Logger logger = LoggerFactory.getLogger(MultiOptionAuthenticationHandler.class);
 
-    public MultiOptionAuthenticationHandler(AbstractAuthenticationHandler nextHandler) {
+    public MultiOptionAuthenticationHandler(AbstractGatewayHandler nextHandler) {
         super(nextHandler);
     }
 
     @Override
-    public AbstractAuthenticationHandler nextHandler(GatewayMessageContext messageContext) {
-        return null;
-    }
-
-
-    @Override
-    protected AbstractAuthenticationHandler getSelectedHandler(GatewayMessageContext messageContext)
+    protected AbstractGatewayHandler getSelectedHandler(GatewayMessageContext messageContext)
             throws HandlerException {
 
         final String OPTION = "option";
@@ -63,10 +58,10 @@ public class MultiOptionAuthenticationHandler extends MultiOptionStepHandler<Gat
         } catch (NumberFormatException ex) {
             throw new HandlerException("Invalid Option provided", ex);
         }
-        return (AbstractAuthenticationHandler)multiOptionHandlers.get(option - 1);
+        return (AbstractGatewayHandler)multiOptionHandlers.get(option - 1);
     }
 
-    public MultiOptionAuthenticationHandler addOption(AbstractAuthenticationHandler gatewayHandler) {
+    public MultiOptionAuthenticationHandler addOption(AbstractGatewayHandler gatewayHandler) {
         multiOptionHandlers.add(gatewayHandler);
         return this;
     }

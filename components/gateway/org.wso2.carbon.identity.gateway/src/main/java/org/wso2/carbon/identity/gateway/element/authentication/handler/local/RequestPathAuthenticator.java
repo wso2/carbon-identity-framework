@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.element.authentication.handler;
+package org.wso2.carbon.identity.gateway.element.authentication.handler.local;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.framework.FrameworkException;

@@ -23,7 +23,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.processor.AbstractGatewayProcessor;
 import org.wso2.carbon.identity.gateway.resource.Gateway;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayRequestFactory;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayResponseFactory;
@@ -161,24 +161,24 @@ public class ServiceComponent {
 
 
     /**
-     * This bind method will be called when {@link GatewayProcessor} OSGi service is registered.
+     * This bind method will be called when {@link AbstractGatewayProcessor} OSGi service is registered.
      *
-     * @param gatewayProcessor The {@link GatewayProcessor} instance registered as an OSGi service
+     * @param abstractGatewayProcessor The {@link AbstractGatewayProcessor} instance registered as an OSGi service
      */
     @Reference(
             name = "gateway.processor",
-            service = GatewayProcessor.class,
+            service = AbstractGatewayProcessor.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetGatewayProcessor"
     )
-    protected void setGatewayProcessor(GatewayProcessor gatewayProcessor) {
+    protected void setGatewayProcessor(AbstractGatewayProcessor abstractGatewayProcessor) {
 
-        dataHolder.addIdentityProcessor(gatewayProcessor);
+        dataHolder.addIdentityProcessor(abstractGatewayProcessor);
     }
 
 
-    protected void unsetGatewayProcessor(GatewayProcessor gatewayProcessor) {
+    protected void unsetGatewayProcessor(AbstractGatewayProcessor abstractGatewayProcessor) {
 
         dataHolder.addIdentityProcessor(null);
     }

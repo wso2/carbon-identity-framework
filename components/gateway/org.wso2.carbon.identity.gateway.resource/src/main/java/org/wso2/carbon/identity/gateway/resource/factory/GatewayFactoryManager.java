@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.gateway.resource.factory;
 import org.wso2.carbon.identity.framework.FrameworkException;
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.message.Response;
-import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.processor.AbstractGatewayProcessor;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 import org.wso2.carbon.identity.gateway.resource.Gateway;
@@ -86,9 +86,9 @@ public class GatewayFactoryManager {
     }
 
 
-    public static GatewayProcessor getGatewayProcessor(GatewayRequest gatewayRequest) {
+    public static AbstractGatewayProcessor getGatewayProcessor(GatewayRequest gatewayRequest) {
 
-        return dataHolder.getGatewayProcessors().stream()
+        return dataHolder.getAbstractGatewayProcessors().stream()
                 .filter(x -> x.canHandle(gatewayRequest))
                 .findFirst()
                 .orElseThrow(() -> new FrameworkRuntimeException("Cannot find the gateway processor to handle the " +

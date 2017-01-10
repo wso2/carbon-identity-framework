@@ -17,15 +17,15 @@
 package org.wso2.carbon.identity.gateway.element.callback;
 
 import org.wso2.carbon.identity.framework.FrameworkConstants;
-import org.wso2.carbon.identity.framework.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.handler.AbstractCallbackHandler;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 
 
 /**
  * I help to retrieve the sessionDataKey from the from the callback request received from the authentication endpoint.
  */
-public class BasicAuthCallbackHandler extends AbstractCallbackHandler implements GatewayCallbackHandler {
+public class BasicAuthCallbackHandler extends AbstractCallbackHandler {
 
     public BasicAuthCallbackHandler() {
     }

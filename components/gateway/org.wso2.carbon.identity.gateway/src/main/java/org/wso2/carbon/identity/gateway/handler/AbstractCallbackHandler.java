@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.identity.gateway.element.callback;
+package org.wso2.carbon.identity.gateway.handler;
 
 import org.wso2.carbon.identity.framework.FrameworkRuntimeException;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
@@ -23,7 +23,6 @@ import org.wso2.carbon.identity.gateway.artifact.model.HandlerConfig;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCache;
 import org.wso2.carbon.identity.gateway.cache.GatewayContextCacheKey;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.internal.DataHolder;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
@@ -31,7 +30,7 @@ import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import java.util.Optional;
 
 /**
- * Abstract implementation of {@link GatewayCallbackHandler}
+ * Abstract implementation of {@link AbstractCallbackHandler}
  */
 public abstract class AbstractCallbackHandler extends AbstractHandler<GatewayMessageContext> {
 

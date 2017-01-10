@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.FrameworkClientException;
 import org.wso2.carbon.identity.framework.FrameworkException;
-import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.processor.AbstractGatewayProcessor;
 import org.wso2.carbon.identity.gateway.message.GatewayRequest;
 import org.wso2.carbon.identity.gateway.message.GatewayResponse;
 import org.wso2.carbon.identity.gateway.resource.factory.GatewayFactoryManager;
@@ -72,7 +72,7 @@ public class GatewayManager {
     private Response processGatewayRequest(GatewayRequest gatewayRequest) {
 
         // Pick the processor that can handle the GatewayRequest
-        GatewayProcessor processor = GatewayFactoryManager.getGatewayProcessor(gatewayRequest);
+        AbstractGatewayProcessor processor = GatewayFactoryManager.getGatewayProcessor(gatewayRequest);
         GatewayResponseFactory responseFactory;
         Response response;
         try {

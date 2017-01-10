@@ -10,22 +10,21 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.framework.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.processor.AbstractGatewayProcessor;
 import org.wso2.carbon.identity.gateway.artifact.ArtifactReader;
 import org.wso2.carbon.identity.gateway.artifact.ArtifactStore;
 import org.wso2.carbon.identity.gateway.artifact.model.ServiceProvider;
-import org.wso2.carbon.identity.gateway.element.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.element.authentication.handler.BasicAuthenticationHandler;
-import org.wso2.carbon.identity.gateway.element.authentication.handler.RequestPathAuthenticator;
-import org.wso2.carbon.identity.gateway.element.callback.AbstractCallbackHandler;
+import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.element.authentication.handler.local.BasicAuthenticationHandler;
+import org.wso2.carbon.identity.gateway.element.authentication.handler.local.RequestPathAuthenticator;
+import org.wso2.carbon.identity.gateway.handler.AbstractCallbackHandler;
 import org.wso2.carbon.identity.gateway.element.callback.BasicAuthCallbackHandler;
-import org.wso2.carbon.identity.gateway.element.callback.GatewayCallbackHandler;
-import org.wso2.carbon.identity.gateway.element.custom.CustomRequestValidator;
-import org.wso2.carbon.identity.gateway.element.custom.CustomResponseBuilder;
+import org.wso2.carbon.identity.gateway.element.validation.CustomRequestValidator;
+import org.wso2.carbon.identity.gateway.element.response.CustomResponseBuilder;
 import org.wso2.carbon.identity.gateway.element.response.SAMLResponseHandler;
 import org.wso2.carbon.identity.gateway.element.validation.SAMLValidationHandler;
-import org.wso2.carbon.identity.gateway.processor.CallbackProcessor;
-import org.wso2.carbon.identity.gateway.processor.RequestProcessor;
+import org.wso2.carbon.identity.gateway.processor.impl.CallbackProcessorAbstract;
+import org.wso2.carbon.identity.gateway.processor.impl.RequestProcessorAbstract;
 
 
 /**
@@ -61,8 +60,8 @@ public class ServiceComponent {
 
 
         // register processors
-        bundleContext.registerService(GatewayProcessor.class, new RequestProcessor(), null);
-        bundleContext.registerService(GatewayProcessor.class, new CallbackProcessor(), null);
+        bundleContext.registerService(AbstractGatewayProcessor.class, new RequestProcessorAbstract(), null);
+        bundleContext.registerService(AbstractGatewayProcessor.class, new CallbackProcessorAbstract(), null);
 
         // registering callback handlers
         bundleContext.registerService(AbstractCallbackHandler.class, new BasicAuthCallbackHandler(), null);
