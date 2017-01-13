@@ -18,14 +18,11 @@ package org.wso2.carbon.identity.gateway.element.authentication;
 
 import org.wso2.carbon.identity.framework.handler.HandlerException;
 
-/**
- * Created by harshat on 12/14/16.
- */
+
 public class AuthenticationHandlerException extends HandlerException {
 
 
     public AuthenticationHandlerException(String message) {
-
         super(message);
     }
 

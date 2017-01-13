@@ -24,9 +24,7 @@ import org.wso2.carbon.identity.gateway.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.handler.MultiOptionGatewayHandler;
 import org.wso2.carbon.identity.gateway.context.GatewayMessageContext;
 
-/**
- * This authenticator provides the ability to do multi option authentication in a step.
- */
+
 public class MultiOptionAuthenticationHandler extends MultiOptionGatewayHandler {
 
     private Logger logger = LoggerFactory.getLogger(MultiOptionAuthenticationHandler.class);
