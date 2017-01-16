@@ -44,6 +44,7 @@
         <module>components/org.wso2.carbon.identity.common</module>
         <module>components/org.wso2.carbon.identity.event</module>
         <module>components/org.wso2.carbon.identity.keystore</module>
+        <module>feature/org.wso2.carbon.identity.common.feature</module>
     </modules>
 
     <dependencyManagement>
@@ -112,6 +113,7 @@
     <properties>
         <carbon.kernel.version>5.1.0-m2</carbon.kernel.version>
         <carbon.kernel.package.import.version>[5,6)</carbon.kernel.package.import.version>
+        <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
 
         <slf4j.version>1.7.1</slf4j.version>
         <slf4j.package.import.version>[1.7.1,2)</slf4j.package.import.version>
