@@ -175,9 +175,9 @@ public class IdentityUtils {
 
         if (uriString != null) {
             try {
-                URL url = new URL(uriString);
+                new URL(uriString);
             } catch (MalformedURLException e) {
-                logger.debug(e.getMessage(), e);
+                logger.debug("Error while parsing the URL: " + uriString + ".", e);
                 return false;
             }
         } else {
