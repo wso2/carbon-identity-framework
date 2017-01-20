@@ -40,6 +40,8 @@ public class Constants {
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
     public static final String HMAC_SHA1 = "HmacSHA1";
     public static final String NULL = "null";
+    public static final String CARBON_HOME = "carbon.home";
+
     // HTTP headers which may contain IP address of the client in the order of priority
     static final String[] HEADERS_WITH_IP = {
             "X-Forwarded-For",

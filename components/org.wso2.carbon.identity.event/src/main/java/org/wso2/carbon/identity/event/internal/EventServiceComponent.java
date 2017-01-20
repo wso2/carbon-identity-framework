@@ -19,6 +19,11 @@ package org.wso2.carbon.identity.event.internal;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.handler.MessageHandlerComparator;
@@ -34,6 +39,9 @@ import java.util.Map;
 /**
  * Event service component.
  */
+@Component(
+        name = "identity.event.dscomponent",
+        immediate = true)
 public class EventServiceComponent {
 
     // list of all registered event handlers
@@ -41,6 +49,7 @@ public class EventServiceComponent {
     private static Logger logger = LoggerFactory.getLogger(EventServiceComponent.class);
     private ServiceRegistration serviceRegistration = null;
 
+    @Activate
     protected void activate(ComponentContext componentContext, BundleContext bundleContext, Map<String, ?> properties) {
 
         try {
@@ -69,6 +78,13 @@ public class EventServiceComponent {
         }
     }
 
+    @Reference(
+            name = "event.handle",
+            service = AbstractEventHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unRegisterEventHandler"
+    )
     protected void registerEventHandler(AbstractEventHandler eventHandler) throws EventException {
         String handlerName = eventHandler.getName();
         eventHandler.init(ConfigParser.getInstance().getModuleConfigurations(handlerName));

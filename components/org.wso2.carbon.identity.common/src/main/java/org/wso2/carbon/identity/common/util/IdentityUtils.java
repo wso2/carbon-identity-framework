@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.common.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.common.base.Constants;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.internal.IdentityCommonDataHolder;
 import org.wso2.carbon.identity.common.internal.cache.CacheConfig;
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.common.internal.handler.HandlerConfigKey;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -147,7 +149,11 @@ public class IdentityUtils {
     }
 
     public static String getIdentityConfigDirPath() {
-        return null;
+        return String.valueOf(Paths.get(getCarbonHomeDirectory(), "conf", "identity"));
+    }
+
+    public static String getCarbonHomeDirectory() {
+        return String.valueOf(Paths.get(System.getProperty(Constants.CARBON_HOME)));
     }
 
     public static String getServicePath() {
