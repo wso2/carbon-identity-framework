@@ -17,12 +17,10 @@
 package org.wso2.carbon.identity.framework;
 
 
-import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
-
 /**
  * Runtime exceptions thrown by the Identity Framework
  */
-public class FrameworkRuntimeException extends IdentityRuntimeException {
+public class FrameworkRuntimeException extends RuntimeException {
 
     public FrameworkRuntimeException(String message) {
         super(message);

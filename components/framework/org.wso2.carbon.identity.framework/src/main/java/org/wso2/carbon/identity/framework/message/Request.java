@@ -89,9 +89,12 @@ public class Request implements Serializable {
 
         public RequestBuilder addHeader(String name, String value) {
             // if the header name is not null and is present in the map, we throw an exception
-            headers.computeIfPresent(name, (headerName, currentHeaderValue) -> {
-                throw FrameworkRuntimeException.error("Headers map trying to override existing header : " + headerName);
+            //#TODO: Compile error has to solve
+            /*headers.computeIfPresent(name, (headerName, currentHeaderValue) -> {
+                throw new FrameworkRuntimeException("Headers map trying to override existing header : " +
+                                                       headerName);
             });
+            */
             headers.put(name, value);
             return this;
         }

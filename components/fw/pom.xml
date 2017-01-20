@@ -26,14 +26,15 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <name>Identity Gateway Aggregator Module</name>
-    <artifactId>gateway</artifactId>
+    <name>Identity Framework Aggregator Module</name>
     <modelVersion>4.0.0</modelVersion>
+    <artifactId>framework</artifactId>
     <packaging>pom</packaging>
 
+
     <modules>
-        <module>org.wso2.carbon.identity.application.common</module>
-        <module>org.wso2.carbon.identity.framework.authentication</module>
+        <module>org.wso2.carbon.identity.framework</module>
     </modules>
+
 
 </project>

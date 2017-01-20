@@ -39,11 +39,11 @@
     </scm>
 
     <modules>
-        <module>components/framework</module>
+        <module>components/fw</module>
         <module>components/gateway</module>
-        <module>features/org.wso2.carbon.identity.framework.feature</module>
+        <!--module>features/org.wso2.carbon.identity.framework.feature</module>
         <module>features/org.wso2.carbon.identity.gateway.feature</module>
-        <module>features/org.wso2.carbon.identity.gateway.resource.feature</module>
+        <module>features/org.wso2.carbon.identity.gateway.resource.feature</module-->
     </modules>
 
     <dependencyManagement>
