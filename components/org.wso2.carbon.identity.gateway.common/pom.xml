@@ -24,7 +24,9 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
+    <packaging>bundle</packaging>
     <name>WSO2 Carbon - Identity Gateway Common</name>
+
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -67,31 +69,16 @@
     </dependencies>
 
     <properties>
-        <private.package>org.wso2.carbon.identity.gateway.common.internal</private.package>
         <export.package>
-            !org.wso2.carbon.identity.gateway.common.internal,
-            org.wso2.carbon.identity.gateway.common.*
+            org.wso2.carbon.identity.gateway.common.*,
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
             org.wso2.carbon.kernel;version="${carbon.kernel.package.import.version.range}",
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
-            org.wso2.msf4j.*,
-            javax.ws.rs.*,
-            org.opensaml.*,
-            org.joda.*,
-            org.apache.xerces.util; resolution:=optional,
-            javax.xml.*,
-            org.xml.*,
-            org.w3c.dom.*; resolution:=optional,
-            org.apache.commons.lang.*,
-            org.wso2.carbon.kernel.utils.*; version="${carbon.kernel.package.import.version.range}",
             org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}",
             org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}"
         </import.package>
-        <carbon.component>
-            osgi.service; objectClass="org.wso2.msf4j.Microservice"
-        </carbon.component>
         <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>
 
