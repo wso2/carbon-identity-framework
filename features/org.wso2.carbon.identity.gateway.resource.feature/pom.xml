@@ -20,8 +20,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
-        <artifactId>identity-framework</artifactId>
-        <groupId>org.wso2.carbon.identity</groupId>
+        <groupId>org.wso2.carbon.identity.gateway</groupId>
+        <artifactId>carbon-identity-gateway</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
@@ -36,12 +36,20 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.api</artifactId>
         </dependency>
     </dependencies>
 
@@ -98,14 +106,10 @@
                             <bundles>
                                 <bundle>
                                     <symbolicName>org.wso2.carbon.identity.gateway.resource</symbolicName>
-                                    <version>${identity.gateway.version}</version>
+                                    <version>${identity.gateway.resource.version}</version>
                                 </bundle>
                             </bundles>
                             <importFeatures>
-                                <feature>
-                                    <id>org.wso2.carbon.identity.framework</id>
-                                    <version>${identity.framework.version}</version>
-                                </feature>
                                 <feature>
                                     <id>org.wso2.carbon.identity.gateway</id>
                                     <version>${identity.gateway.version}</version>
