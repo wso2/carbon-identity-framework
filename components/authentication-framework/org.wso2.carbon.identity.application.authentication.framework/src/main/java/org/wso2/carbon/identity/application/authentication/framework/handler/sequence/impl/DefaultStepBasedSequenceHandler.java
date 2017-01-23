@@ -40,8 +40,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
@@ -282,33 +280,33 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // okay - now we need to find out the corresponding mapped local subject
                         // identifier.
 
-                        UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-                        try {
-                            // start tenant flow
-                            associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
-                                    originalExternalIdpSubjectValueForThisStep);
-                            if (StringUtils.isNotBlank(associatedID)) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
-                                            " has an associated account as " + associatedID + ". Hence continuing as " +
-                                            associatedID);
-                                }
-                                stepConfig.getAuthenticatedUser().setUserName(associatedID);
-                                stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
-                            } else {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
-                                            " doesn't have an associated" +
-                                            " account. Hence continuing as the same user.");
-                                }
-                            }
-                        } catch (UserProfileException e) {
-                            throw new FrameworkException("Error while getting associated local user ID for "
-                                    + originalExternalIdpSubjectValueForThisStep, e);
-                        } finally {
-                            // end tenant flow
-                            FrameworkUtils.endTenantFlow();
-                        }
+//                        UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+//                        try {
+//                            // start tenant flow
+//                            associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
+//                                    originalExternalIdpSubjectValueForThisStep);
+//                            if (StringUtils.isNotBlank(associatedID)) {
+//                                if (log.isDebugEnabled()) {
+//                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
+//                                            " has an associated account as " + associatedID + ". Hence continuing as " +
+//                                            associatedID);
+//                                }
+//                                stepConfig.getAuthenticatedUser().setUserName(associatedID);
+//                                stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
+//                            } else {
+//                                if (log.isDebugEnabled()) {
+//                                    log.debug("User " + stepConfig.getAuthenticatedUser() +
+//                                            " doesn't have an associated" +
+//                                            " account. Hence continuing as the same user.");
+//                                }
+//                            }
+//                        } catch (UserProfileException e) {
+//                            throw new FrameworkException("Error while getting associated local user ID for "
+//                                    + originalExternalIdpSubjectValueForThisStep, e);
+//                        } finally {
+//                            // end tenant flow
+//                            FrameworkUtils.endTenantFlow();
+//                        }
                     }
 
 

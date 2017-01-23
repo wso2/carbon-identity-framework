@@ -38,9 +38,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -222,21 +219,21 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                     persistClaims = true;
                 } else {
                     String associatedID = null;
-                    UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-                    String subject = user.getAuthenticatedSubjectIdentifier();
-                    try {
-                        associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
-                                subject);
-                        if (StringUtils.isNotBlank(associatedID)) {
-                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER);
-                            user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
-                                    fullQualifiedAssociatedUserId);
-                            persistClaims = true;
-                        }
-                    } catch (UserProfileException e) {
-                        throw new FrameworkException("Error while getting association for " + subject, e);
-                    }
+//                    UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+//                    String subject = user.getAuthenticatedSubjectIdentifier();
+//                    try {
+//                        associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
+//                                subject);
+//                        if (StringUtils.isNotBlank(associatedID)) {
+//                            String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
+//                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER);
+//                            user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
+//                                    fullQualifiedAssociatedUserId);
+//                            persistClaims = true;
+//                        }
+//                    } catch (UserProfileException e) {
+//                        throw new FrameworkException("Error while getting association for " + subject, e);
+//                    }
                 }
                 break;
             }
