@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import org.wso2.carbon.identity.base.IdentityRuntimeException;
+
+import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 
 public class FrameworkRuntimeException extends IdentityRuntimeException {
 

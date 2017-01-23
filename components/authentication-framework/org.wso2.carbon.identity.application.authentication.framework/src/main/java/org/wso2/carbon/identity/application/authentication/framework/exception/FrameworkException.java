@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.exception;
 
-import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.common.base.exception.IdentityException;
 
 public class FrameworkException extends IdentityException {
 
