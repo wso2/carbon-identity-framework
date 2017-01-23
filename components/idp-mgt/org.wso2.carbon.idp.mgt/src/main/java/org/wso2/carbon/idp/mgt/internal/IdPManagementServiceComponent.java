@@ -18,46 +18,17 @@
 
 package org.wso2.carbon.idp.mgt.internal;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManager;
-import org.wso2.carbon.idp.mgt.IdpManager;
-import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
-import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
-import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
-import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
-import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
-import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
-import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -77,27 +48,15 @@ import java.util.Set;
  * @scr.reference name="identityCoreInitializedEventService"
  * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
  * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="idp.mgt.event.listener.service"
- * interface="org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener"
- * cardinality="0..n" policy="dynamic"
- * bind="setIdentityProviderMgtListenerService"
- * unbind="unsetIdentityProviderMgtListenerService"
- * @scr.reference name="identity.provider.saml.service.component"
- * interface="org.wso2.carbon.idp.mgt.util.MetadataConverter"
- * cardinality="0..n" policy="dynamic"
- * bind="setMetadataConverterService"
- * unbind="unsetMetadataConverterService"
  */
 public class IdPManagementServiceComponent {
 
     private static Log log = LogFactory.getLog(IdPManagementServiceComponent.class);
 
 
-
     private static Map<String, IdentityProvider> fileBasedIdPs = new HashMap<String, IdentityProvider>();
 
     private static Set<String> sharedIdps = new HashSet<String>();
-
 
 
     protected void setRegistryService(RegistryService registryService) {
@@ -118,23 +77,23 @@ public class IdPManagementServiceComponent {
         IdpMgtServiceComponentHolder.getInstance().setRegistryService(null);
     }
 
-    protected void setMetadataConverterService(MetadataConverter converter) {
-        if (log.isDebugEnabled()) {
-            log.debug("Metadata converter set in Identity idp-mgt bundle");
-        }
-        try {
-            IdpMgtServiceComponentHolder.getInstance().addMetadataConverter(converter);
-        } catch (Throwable e) {
-            log.error("Failed to get a reference to the Metadata Converter in idp-mgt bundle", e);
-        }
-    }
-
-    protected void unsetMetadataConverterService(MetadataConverter metadataConverter) {
-        if (log.isDebugEnabled()) {
-            log.debug("org.wso2.carbon.idp.mgt.util.MetadataConverter unset in idp-mgt");
-        }
-        IdpMgtServiceComponentHolder.getInstance().removeMetadataConverter(metadataConverter);
-    }
+//    protected void setMetadataConverterService(MetadataConverter converter) {
+//        if (log.isDebugEnabled()) {
+//            log.debug("Metadata converter set in Identity idp-mgt bundle");
+//        }
+//        try {
+//            IdpMgtServiceComponentHolder.getInstance().addMetadataConverter(converter);
+//        } catch (Throwable e) {
+//            log.error("Failed to get a reference to the Metadata Converter in idp-mgt bundle", e);
+//        }
+//    }
+//
+//    protected void unsetMetadataConverterService(MetadataConverter metadataConverter) {
+//        if (log.isDebugEnabled()) {
+//            log.debug("org.wso2.carbon.idp.mgt.util.MetadataConverter unset in idp-mgt");
+//        }
+//        IdpMgtServiceComponentHolder.getInstance().removeMetadataConverter(metadataConverter);
+//    }
 
     /**
      * @return
@@ -343,51 +302,51 @@ public class IdPManagementServiceComponent {
          is started */
     }
 
-    protected void setIdentityProviderMgtListenerService(
-            IdentityProviderMgtListener identityProviderMgtListenerService) {
+//    protected void setIdentityProviderMgtListenerService(
+//            IdentityProviderMgtListener identityProviderMgtListenerService) {
+//
+//        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().add(identityProviderMgtListenerService);
+//        Collections.sort(IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners(), idpMgtListenerComparator);
+//    }
+//
+//    protected void unsetIdentityProviderMgtListenerService(
+//            IdentityProviderMgtListener identityProviderMgtListenerService) {
+//
+//        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().remove(identityProviderMgtListenerService);
+//    }
 
-        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().add(identityProviderMgtListenerService);
-        Collections.sort(IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners(), idpMgtListenerComparator);
-    }
+//    public static Collection<IdentityProviderMgtListener> getIdpMgtListeners() {
+//        return IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners();
+//    }
+//
+//    private static Comparator<IdentityProviderMgtListener> idpMgtListenerComparator =
+//            new Comparator<IdentityProviderMgtListener>() {
+//
+//                @Override
+//                public int compare(IdentityProviderMgtListener identityProviderMgtListener1,
+//                                   IdentityProviderMgtListener identityProviderMgtListener2) {
+//
+//                    if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener2.getExecutionOrderId()) {
+//                        return 1;
+//                    } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener2.getExecutionOrderId()) {
+//                        return -1;
+//                    } else {
+//                        return 0;
+//                    }
+//                }
+//            };
 
-    protected void unsetIdentityProviderMgtListenerService(
-            IdentityProviderMgtListener identityProviderMgtListenerService) {
-
-        IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners().remove(identityProviderMgtListenerService);
-    }
-
-    public static Collection<IdentityProviderMgtListener> getIdpMgtListeners() {
-        return IdpMgtServiceComponentHolder.getInstance().getIdpMgtListeners();
-    }
-
-    private static Comparator<IdentityProviderMgtListener> idpMgtListenerComparator =
-            new Comparator<IdentityProviderMgtListener>() {
-
-                @Override
-                public int compare(IdentityProviderMgtListener identityProviderMgtListener1,
-                                   IdentityProviderMgtListener identityProviderMgtListener2) {
-
-                    if (identityProviderMgtListener1.getExecutionOrderId() > identityProviderMgtListener2.getExecutionOrderId()) {
-                        return 1;
-                    } else if (identityProviderMgtListener1.getExecutionOrderId() < identityProviderMgtListener2.getExecutionOrderId()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-
-    private static void addSuperTenantIdp() throws Exception {
-
-        try {
-            IdentityProvider identityProvider = new IdentityProvider();
-            identityProvider.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
-            identityProvider.setHomeRealmId(IdentityUtil.getHostName());
-            identityProvider.setPrimary(true);
-            IdentityProviderManager.getInstance()
-                    .addResidentIdP(identityProvider);
-        } catch (Throwable e) {
-            throw new Exception("Error when adding Resident Identity Provider entry for super tenant ", e);
-        }
-    }
+//    private static void addSuperTenantIdp() throws Exception {
+//
+//        try {
+//            IdentityProvider identityProvider = new IdentityProvider();
+//            identityProvider.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
+//            identityProvider.setHomeRealmId(IdentityUtil.getHostName());
+//            identityProvider.setPrimary(true);
+//            IdentityProviderManager.getInstance()
+//                    .addResidentIdP(identityProvider);
+//        } catch (Throwable e) {
+//            throw new Exception("Error when adding Resident Identity Provider entry for super tenant ", e);
+//        }
+//    }
 }

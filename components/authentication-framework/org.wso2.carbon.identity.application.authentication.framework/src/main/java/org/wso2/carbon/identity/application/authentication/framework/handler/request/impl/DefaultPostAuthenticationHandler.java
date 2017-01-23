@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementServiceImpl;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -250,16 +249,16 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                         context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner().getTenantDomain();
                 String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
-                ApplicationManagementServiceImpl applicationManagementService =
-                        ApplicationManagementServiceImpl.getInstance();
-                Map<String, String> claimMapping =
-                        applicationManagementService.getServiceProviderToLocalIdPClaimMapping(spName);
+//                ApplicationManagementServiceImpl applicationManagementService =
+//                        ApplicationManagementServiceImpl.getInstance();
+//                Map<String, String> claimMapping =
+//                        applicationManagementService.getServiceProviderToLocalIdPClaimMapping(spName);
 
                 Map<String, String> localIdpClaims = new HashMap<>();
-                for (Map.Entry<String, String> entry : claims.entrySet()) {
-                    String localClaim = claimMapping.get(entry.getKey());
-                    localIdpClaims.put(localClaim, entry.getValue());
-                }
+//                for (Map.Entry<String, String> entry : claims.entrySet()) {
+//                    String localClaim = claimMapping.get(entry.getKey());
+//                    localIdpClaims.put(localClaim, entry.getValue());
+//                }
 
                 if (log.isDebugEnabled()) {
                     log.debug("Updating user profile of user : " + user.getUserName());
@@ -273,10 +272,11 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
             } catch (UserStoreException e) {
                 throw new FrameworkException(
                         "Error while updating claims for local user. Could not update profile", e);
-            } catch (IdentityApplicationManagementException e) {
-                throw new FrameworkException(
-                        "Error while retrieving application claim mapping. Could not update profile", e);
             }
+//            } catch (IdentityApplicationManagementException e) {
+//                throw new FrameworkException(
+//                        "Error while retrieving application claim mapping. Could not update profile", e);
+//            }
         }
 
         context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);

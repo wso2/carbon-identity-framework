@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
@@ -57,6 +56,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static final Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static volatile DefaultStepBasedSequenceHandler instance;
+    public static final String LOCAL_IDP_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
 
     public static DefaultStepBasedSequenceHandler getInstance() {
 
@@ -712,7 +712,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             serviceProvider.setServiceProviderName(context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName());
             serviceProvider.setJustInTimeProvisioning(true);
-            serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
+            serviceProvider.setClaimDialect(LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
 //            serviceProvider.setTenantDomain(context.getTenantDomain());
             IdentityApplicationManagementUtil
                     .setThreadLocalProvisioningServiceProvider(serviceProvider);

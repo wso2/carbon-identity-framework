@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -54,6 +53,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
     private static final Log log = LogFactory.getLog(DefaultClaimHandler.class);
     private static volatile DefaultClaimHandler instance;
+    public static final String LOCAL_IDP_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
 
     public static DefaultClaimHandler getInstance() {
         if (instance == null) {
@@ -121,8 +121,8 @@ public class DefaultClaimHandler implements ClaimHandler {
         Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
         Map<String, String> spRequestedClaimMappings = context.getSequenceConfig().getApplicationConfig().
                 getRequestedClaimMappings();
-        if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect, ApplicationConstants
-                .LOCAL_IDP_DEFAULT_CLAIM_DIALECT)) {
+        if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect,
+                LOCAL_IDP_DEFAULT_CLAIM_DIALECT)) {
             carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect, context,
                     spRequestedClaimMappings);
             spRequestedClaimMappings = mapRequestClaimsInStandardDialect(spRequestedClaimMappings,
@@ -234,7 +234,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                         spStandardDialect + " dialect to " +
-                        ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for "
+                        " dialect for "
                         + " to handle federated claims", e);
             }
         } else if (!spClaimMappings.isEmpty()) {
@@ -269,7 +269,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             throws FrameworkException {
         Map<String, String> localToIdPClaimMap;
         if (idPStandardDialect == null) {
-            idPStandardDialect = ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+            idPStandardDialect = LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
         }
 
         try {
@@ -279,7 +279,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             throw new FrameworkException("Error occurred while getting claim mappings for " +
                     "received remote claims from " +
                     idPStandardDialect + " dialect to " +
-                    ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " + " to handle federated claims", e);
+                    LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " + " to handle federated claims", e);
         }
         // adding remote claims with default values also to the key set because they may not come from the federated IdP
         for (ClaimMapping claimMapping : idPClaimMappings) {
@@ -462,7 +462,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                         spStandardDialect + " dialect to " +
-                        ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " + " to handle local claims", e);
+                        LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " + " to handle local claims", e);
             }
         }
         return spToLocalClaimMappings;
@@ -476,7 +476,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                 spToLocalClaimMappings = getClaimMappings(spStandardDialect, null, true);
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
-                        ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect to " +
+                        LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect to " +
                         spStandardDialect + " dialect for " + " to handle local claims", e);
             }
         }
@@ -492,7 +492,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         try {
 
             org.wso2.carbon.user.api.ClaimMapping[] claimMappings = claimManager
-                    .getAllClaimMappings(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
+                    .getAllClaimMappings(LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
             List<String> localClaimURIs = new ArrayList<>();
             for (org.wso2.carbon.user.api.ClaimMapping mapping : claimMappings) {
                 String claimURI = mapping.getClaim().getClaimUri();
@@ -737,9 +737,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {
             return "urn:scim:schemas:core:1.0";
         } else if (FrameworkConstants.RequestType.CLAIM_TYPE_WSO2.equals(clientType)) {
-            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+            return LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
         } else if (claimMappings == null || claimMappings.isEmpty()) {
-            return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+            return LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
         } else {
             boolean isAtLeastOneNotEqual = false;
             for (Map.Entry<String, String> entry : claimMappings.entrySet()) {
@@ -749,7 +749,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
             }
             if (!isAtLeastOneNotEqual) {
-                return ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
+                return LOCAL_IDP_DEFAULT_CLAIM_DIALECT;
             }
         }
         return null;

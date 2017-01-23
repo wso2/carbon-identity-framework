@@ -26,14 +26,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -60,20 +58,20 @@ public class UIBasedConfigurationBuilder {
             throws FrameworkException {
 
         SequenceConfig sequenceConfig = null;
-        ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
+        //ApplicationManagementService appInfo = ApplicationManagementService.getInstance();
 
         // special case for OpenID Connect, these clients are stored as OAuth2 clients
         if ("oidc".equals(reqType)) {
             reqType = "oauth2";
         }
 
-        ServiceProvider serviceProvider;
+        ServiceProvider serviceProvider = new ServiceProvider();
 
-        try {
+        /*try {
             serviceProvider = appInfo.getServiceProviderByClientId(clientId, reqType);
         } catch (IdentityApplicationManagementException e) {
             throw new FrameworkException(e.getMessage(), e);
-        }
+        }*/
 
         if (serviceProvider == null) {
             throw new FrameworkException("ServiceProvider cannot be null");
@@ -128,7 +126,7 @@ public class UIBasedConfigurationBuilder {
 
     private void loadRequestPathAuthenticatos(SequenceConfig sequenceConfig, ServiceProvider serviceProvider) {
         if (serviceProvider.getRequestPathAuthenticatorConfigs() != null
-            && serviceProvider.getRequestPathAuthenticatorConfigs().length > 0) {
+                && serviceProvider.getRequestPathAuthenticatorConfigs().length > 0) {
 
             List<AuthenticatorConfig> requestPathAuthenticators = new ArrayList<AuthenticatorConfig>();
             RequestPathAuthenticatorConfig[] reqAuths = serviceProvider
@@ -237,7 +235,7 @@ public class UIBasedConfigurationBuilder {
         }
 
         if (!stepConfig.isMultiOption() && (stepConfig.getAuthenticatorList().size() > 1
-                                            || authenticatorConfig.getIdps().size() > 1)) {
+                || authenticatorConfig.getIdps().size() > 1)) {
             stepConfig.setMultiOption(true);
         }
     }

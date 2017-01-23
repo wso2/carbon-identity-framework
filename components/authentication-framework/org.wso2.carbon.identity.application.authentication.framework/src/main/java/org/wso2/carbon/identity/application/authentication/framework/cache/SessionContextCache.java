@@ -119,8 +119,6 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         if (cacheEntry == null) {
             return false;
         }
-
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut());
 
         long currentTime = System.currentTimeMillis();

@@ -42,7 +42,7 @@
         <module>components/authentication-framework</module>
         <!--<module>components/entitlement</module>-->
         <module>components/identity-core</module>
-        <module>components/application-mgt</module>
+        <!--<module>components/application-mgt</module>-->
         <!--<module>components/user-mgt</module>-->
         <!--<module>components/identity-mgt</module>-->
         <!--<module>components/identity-event</module>-->
@@ -50,7 +50,7 @@
         <!--<module>components/provisioning</module>-->
         <!--<module>components/user-store</module>-->
         <module>components/idp-mgt</module>
-        <module>components/claim-mgt</module>
+        <!--<module>components/claim-mgt</module>-->
         <!--<module>components/directory-server-manager</module>-->
         <!--<module>components/security-mgt</module>-->
         <!--<module>components/workflow-mgt</module>-->

@@ -18,13 +18,9 @@
 
 package org.wso2.carbon.idp.mgt.internal;
 
-import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
-import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
-import java.util.ArrayList;
-import java.util.List;
 
 public class IdpMgtServiceComponentHolder {
 
@@ -35,13 +31,13 @@ public class IdpMgtServiceComponentHolder {
     }
 
 
-    private  RealmService realmService = null;
+    private RealmService realmService = null;
 
     private ConfigurationContextService configurationContextService = null;
-    private volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
+    //    private volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
     private RegistryService registryService;
 
-    private List<MetadataConverter> metadataConverters = new ArrayList<>();
+//    private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
 
     public RealmService getRealmService() {
@@ -60,13 +56,13 @@ public class IdpMgtServiceComponentHolder {
         this.configurationContextService = configurationContextService;
     }
 
-    public List<IdentityProviderMgtListener> getIdpMgtListeners() {
-        return idpMgtListeners;
-    }
+//    public List<IdentityProviderMgtListener> getIdpMgtListeners() {
+//        return idpMgtListeners;
+//    }
 
-    public void setIdpMgtListeners(List<IdentityProviderMgtListener> idpMgtListeners) {
-        this.idpMgtListeners = idpMgtListeners;
-    }
+//    public void setIdpMgtListeners(List<IdentityProviderMgtListener> idpMgtListeners) {
+//        this.idpMgtListeners = idpMgtListeners;
+//    }
 
     public RegistryService getRegistryService() {
         return registryService;
@@ -76,17 +72,17 @@ public class IdpMgtServiceComponentHolder {
         this.registryService = registryService;
     }
 
-    public List<MetadataConverter> getMetadataConverters() {
-        return metadataConverters;
-    }
+//    public List<MetadataConverter> getMetadataConverters() {
+//        return metadataConverters;
+//    }
 
-    public void setMetadataConverters(List<MetadataConverter> metadataConverters) {
-        this.metadataConverters = metadataConverters;
-    }
-    public void addMetadataConverter(MetadataConverter converter){
-        this.metadataConverters.add(converter);
-    }
-    public void removeMetadataConverter(MetadataConverter converter){
-        this.metadataConverters.remove(converter);
-    }
+//    public void setMetadataConverters(List<MetadataConverter> metadataConverters) {
+//        this.metadataConverters = metadataConverters;
+//    }
+//    public void addMetadataConverter(MetadataConverter converter){
+//        this.metadataConverters.add(converter);
+//    }
+//    public void removeMetadataConverter(MetadataConverter converter){
+//        this.metadataConverters.remove(converter);
+//    }
 }

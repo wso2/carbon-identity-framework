@@ -34,9 +34,9 @@
     <url>http://wso2.org</url>
 
     <modules>
-        <module>org.wso2.carbon.identity.base</module>
+        <!--<module>org.wso2.carbon.identity.base</module>-->
         <module>org.wso2.carbon.identity.core</module>
-        <module>org.wso2.carbon.identity.core.ui</module>
+        <!--<module>org.wso2.carbon.identity.core.ui</module>-->
     </modules>
 
 </project>
