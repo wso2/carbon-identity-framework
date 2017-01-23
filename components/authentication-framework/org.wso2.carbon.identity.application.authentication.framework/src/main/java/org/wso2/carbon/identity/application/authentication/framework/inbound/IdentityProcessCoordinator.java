@@ -22,9 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.core.handler.HandlerComparator;
 
-import java.util.Collections;
 import java.util.List;
 
 public class IdentityProcessCoordinator {
@@ -53,7 +51,7 @@ public class IdentityProcessCoordinator {
                 }
             } catch (Exception e) {
                 log.error("Error occurred while checking if " + requestProcessor.getName() + " can handle " +
-                          identityRequest.toString());
+                        identityRequest.toString());
             }
         }
         return null;

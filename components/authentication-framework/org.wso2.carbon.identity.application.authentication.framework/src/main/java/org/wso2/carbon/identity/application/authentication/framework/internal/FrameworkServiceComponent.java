@@ -142,11 +142,11 @@ public class FrameworkServiceComponent {
         if (tenantDropdownEnabled) {
             // Register the tenant management listener for tracking changes to tenants
             bundleContext.registerService(TenantMgtListener.class.getName(),
-                                          new AuthenticationEndpointTenantActivityListener(), null);
+                    new AuthenticationEndpointTenantActivityListener(), null);
 
             if (log.isDebugEnabled()) {
                 log.debug("AuthenticationEndpointTenantActivityListener is registered. Tenant Domains Dropdown is " +
-                          "enabled.");
+                        "enabled.");
             }
         }
 
@@ -155,7 +155,7 @@ public class FrameworkServiceComponent {
                 COMMON_SERVLET_URL);
 
         Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                                                                 IDENTITY_SERVLET_URL);
+                IDENTITY_SERVLET_URL);
         try {
             httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
             httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
@@ -240,7 +240,7 @@ public class FrameworkServiceComponent {
         Property[] configProperties = null;
 
         if (authenticator.getConfigurationProperties() != null
-            && !authenticator.getConfigurationProperties().isEmpty()) {
+                && !authenticator.getConfigurationProperties().isEmpty()) {
             configProperties = authenticator.getConfigurationProperties().toArray(new Property[0]);
         }
 
@@ -306,7 +306,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
-                         new HandlerComparator());
+                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getIdentityProcessors());
         if (log.isDebugEnabled()) {
             log.debug("Added IdentityProcessor : " + requestProcessor.getName());
@@ -333,7 +333,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         new HandlerComparator());
+                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
@@ -360,7 +360,7 @@ public class FrameworkServiceComponent {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         new HandlerComparator());
+                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());

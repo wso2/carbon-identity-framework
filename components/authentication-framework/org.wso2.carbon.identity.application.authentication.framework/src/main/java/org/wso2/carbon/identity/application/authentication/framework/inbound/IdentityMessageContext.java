@@ -21,18 +21,17 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
-public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext<T1,T2>
+public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable> extends MessageContext<T1, T2>
         implements Serializable {
 
     private static final long serialVersionUID = 104614801932285909L;
 
-	protected IdentityRequest request;
+    protected IdentityRequest request;
     protected String relyingPartyID;
 
-    public IdentityMessageContext(IdentityRequest request, Map<T1,T2> parameters) {
+    public IdentityMessageContext(IdentityRequest request, Map<T1, T2> parameters) {
         super(parameters);
         this.request = request;
     }
@@ -41,18 +40,18 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
         this.request = request;
     }
 
-   /**
-    * This constructor is deprecated because any processor using {@link IdentityMessageContext} must create a
-    * {@link IdentityRequest} object.
-    */
+    /**
+     * This constructor is deprecated because any processor using {@link IdentityMessageContext} must create a
+     * {@link IdentityRequest} object.
+     */
     @Deprecated
     public IdentityMessageContext() {
 
     }
 
-	public IdentityRequest getRequest() {
-		return request;
-	}
+    public IdentityRequest getRequest() {
+        return request;
+    }
 
     public void setRelyingPartyID(String relyingPartyID) {
         this.relyingPartyID = relyingPartyID;

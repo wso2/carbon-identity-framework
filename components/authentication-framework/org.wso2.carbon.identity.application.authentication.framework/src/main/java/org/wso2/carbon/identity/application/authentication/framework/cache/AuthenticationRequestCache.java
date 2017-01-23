@@ -20,10 +20,8 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
@@ -73,9 +71,9 @@ public class AuthenticationRequestCache extends
      * @param key   Key which cache entry is indexed.
      * @param entry Actual object where cache entry is placed.
      */
-    public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry){
-        super.addToCache(key,entry);
-        if(isTemporarySessionDataPersistEnabled){
+    public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry) {
+        super.addToCache(key, entry);
+        if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().storeSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME,
                     entry);
         }
@@ -87,9 +85,9 @@ public class AuthenticationRequestCache extends
      * @param key CacheKey
      * @return Cached entry.
      */
-    public AuthenticationRequestCacheEntry getValueFromCache(AuthenticationRequestCacheKey key){
+    public AuthenticationRequestCacheEntry getValueFromCache(AuthenticationRequestCacheKey key) {
         AuthenticationRequestCacheEntry entry = super.getValueFromCache(key);
-        if(entry == null && isTemporarySessionDataPersistEnabled){
+        if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationRequestCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME);
         }
@@ -101,7 +99,7 @@ public class AuthenticationRequestCache extends
      *
      * @param key Key to clear cache.
      */
-    public void clearCacheEntry(AuthenticationRequestCacheKey key){
+    public void clearCacheEntry(AuthenticationRequestCacheKey key) {
         super.clearCacheEntry(key);
         if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().clearSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME);

@@ -60,18 +60,18 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityRequest = factory.create(request, response).build();
-            if(identityRequest == null) {
+            if (identityRequest == null) {
                 throw FrameworkRuntimeException.error("IdentityRequest is Null. Cannot proceed!!");
             }
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e, request, response);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
             return responseBuilder.build();
-        }  catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             responseBuilder = factory.handleException(e, request, response);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
             return responseBuilder.build();
@@ -82,26 +82,26 @@ public class IdentityServlet extends HttpServlet {
 
         try {
             identityResponse = manager.process(identityRequest);
-            if(identityResponse == null) {
+            if (identityResponse == null) {
                 throw FrameworkRuntimeException.error("IdentityResponse is Null. Cannot proceed!!");
             }
             responseFactory = getHttpIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         } catch (FrameworkException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
             return responseBuilder.build();
         } catch (RuntimeException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
             return responseBuilder.build();
@@ -112,17 +112,17 @@ public class IdentityServlet extends HttpServlet {
      * Process the {@link HttpIdentityResponse} and {@link HttpServletResponse}.
      *
      * @param httpIdentityResponse {@link HttpIdentityResponse}
-     * @param response {@link HttpServletResponse}
+     * @param response             {@link HttpServletResponse}
      */
     private void processHttpResponse(HttpIdentityResponse httpIdentityResponse, HttpServletResponse response) {
 
-        for(Map.Entry<String,String> entry: httpIdentityResponse.getHeaders().entrySet()) {
+        for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
             response.addHeader(entry.getKey(), entry.getValue());
         }
-        for(Map.Entry<String,Cookie> entry: httpIdentityResponse.getCookies().entrySet()) {
+        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
             response.addCookie(entry.getValue());
         }
-        if(StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
+        if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
             response.setContentType(httpIdentityResponse.getContentType());
         }
         if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
@@ -135,7 +135,7 @@ public class IdentityServlet extends HttpServlet {
             response.setStatus(httpIdentityResponse.getStatusCode());
             try {
                 PrintWriter out = response.getWriter();
-                if(StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
+                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
                     out.print(httpIdentityResponse.getBody());
                 }
             } catch (IOException e) {
@@ -147,7 +147,7 @@ public class IdentityServlet extends HttpServlet {
     /**
      * Get the HttpIdentityRequestFactory.
      *
-     * @param request {@link HttpServletRequest}
+     * @param request  {@link HttpServletRequest}
      * @param response {@link HttpServletResponse}
      * @return {@link HttpIdentityRequestFactory}
      */
@@ -219,18 +219,18 @@ public class IdentityServlet extends HttpServlet {
     /**
      * Sends a 302 redirect response to client.
      *
-     * @param response {@link HttpServletResponse}
+     * @param response             {@link HttpServletResponse}
      * @param httpIdentityResponse {@link HttpIdentityResponse}
      */
     private void sendRedirect(HttpServletResponse response, HttpIdentityResponse httpIdentityResponse) throws IOException {
 
         String redirectUrl;
-        if(httpIdentityResponse.isFragmentUrl()) {
+        if (httpIdentityResponse.isFragmentUrl()) {
             redirectUrl = IdentityUtil.buildFragmentUrl(httpIdentityResponse.getRedirectURL(),
-                                                        httpIdentityResponse.getParameters());
+                    httpIdentityResponse.getParameters());
         } else {
             redirectUrl = IdentityUtil.buildQueryUrl(httpIdentityResponse.getRedirectURL(),
-                                                     httpIdentityResponse.getParameters());
+                    httpIdentityResponse.getParameters());
         }
         response.sendRedirect(redirectUrl);
     }

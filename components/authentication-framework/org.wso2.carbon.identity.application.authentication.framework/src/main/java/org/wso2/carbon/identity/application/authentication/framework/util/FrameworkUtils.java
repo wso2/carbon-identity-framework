@@ -80,8 +80,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
-import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -1105,31 +1103,31 @@ public class FrameworkUtils {
      */
     public static String getFederatedSubjectFromClaims(AuthenticationContext context, String otherDialect)
             throws FrameworkException {
-        String value;
-        boolean useLocalClaimDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
-        String userIdClaimURI = context.getExternalIdP().getUserIdClaimUri();
-        Map<ClaimMapping, String> claimMappings = context.getSubject().getUserAttributes();
-
-        if (useLocalClaimDialect) {
-            Map<String, String> extAttributesValueMap = FrameworkUtils.getClaimMappings(claimMappings, false);
-            Map<String, String> mappedAttrs = null;
-            try {
-                mappedAttrs = ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
-                        extAttributesValueMap.keySet(), true);
-            } catch (ClaimMetadataException e) {
-                throw new FrameworkException("Error while loading claim mappings.", e);
-            }
-
-            String spUserIdClaimURI = mappedAttrs.get(userIdClaimURI);
-            value = extAttributesValueMap.get(spUserIdClaimURI);
-        } else {
-            ClaimMapping claimMapping = new ClaimMapping();
-            Claim claim = new Claim();
-            claim.setClaimUri(userIdClaimURI);
-            claimMapping.setRemoteClaim(claim);
-            claimMapping.setLocalClaim(claim);
-            value = claimMappings.get(claimMapping);
-        }
+        String value = "";
+//        boolean useLocalClaimDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+//        String userIdClaimURI = context.getExternalIdP().getUserIdClaimUri();
+//        Map<ClaimMapping, String> claimMappings = context.getSubject().getUserAttributes();
+//
+//        if (useLocalClaimDialect) {
+//            Map<String, String> extAttributesValueMap = FrameworkUtils.getClaimMappings(claimMappings, false);
+//            Map<String, String> mappedAttrs = null;
+//            try {
+//                mappedAttrs = ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
+//                        extAttributesValueMap.keySet(), true);
+//            } catch (ClaimMetadataException e) {
+//                throw new FrameworkException("Error while loading claim mappings.", e);
+//            }
+//
+//            String spUserIdClaimURI = mappedAttrs.get(userIdClaimURI);
+//            value = extAttributesValueMap.get(spUserIdClaimURI);
+//        } else {
+//            ClaimMapping claimMapping = new ClaimMapping();
+//            Claim claim = new Claim();
+//            claim.setClaimUri(userIdClaimURI);
+//            claimMapping.setRemoteClaim(claim);
+//            claimMapping.setLocalClaim(claim);
+//            value = claimMappings.get(claimMapping);
+//        }
         return value;
     }
 

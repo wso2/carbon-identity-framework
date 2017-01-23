@@ -57,7 +57,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      */
     public void init(InitConfig initConfig) {
 
-        if(initConfig != null) {
+        if (initConfig != null) {
             this.initConfig = initConfig;
         }
 
@@ -68,11 +68,11 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
             return;
         }
 
-        if(identityEventListenerConfig.getProperties() != null) {
-            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String)property.getKey();
-                String value = (String)property.getValue();
-                if(!properties.containsKey(key)) {
+        if (identityEventListenerConfig.getProperties() != null) {
+            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
+                String key = (String) property.getKey();
+                String value = (String) property.getValue();
+                if (!properties.containsKey(key)) {
                     properties.setProperty(key, value);
                 } else {
                     log.warn("Property key " + key + " already exists. Cannot add property!!");
@@ -85,8 +85,8 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      * Process IdentityRequest
      *
      * @param identityRequest IdentityRequest
-     * @throws org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException Error occurred while processing IdentityRequest
      * @return IdentityResponseBuilder
+     * @throws org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException Error occurred while processing IdentityRequest
      */
     public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
             throws FrameworkException;
@@ -115,10 +115,10 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
     public abstract String getRelyingPartyId(IdentityMessageContext context);
 
     /**
-      * Get type of inbound identity protocol supported by this processor
-      *
-      * @return Type of inbound identity protocol
-      */
+     * Get type of inbound identity protocol supported by this processor
+     *
+     * @return Type of inbound identity protocol
+     */
     public String getType(IdentityMessageContext context) {
         return getName();
     }
@@ -145,8 +145,8 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.appendRequestQueryParams(parameterMap);
-        Set<Map.Entry<String,String>> headers = new HashMap(identityRequest.getHeaderMap()).entrySet();
-        for (Map.Entry<String,String> header : headers) {
+        Set<Map.Entry<String, String>> headers = new HashMap(identityRequest.getHeaderMap()).entrySet();
+        for (Map.Entry<String, String> header : headers) {
             authenticationRequest.addHeader(header.getKey(), header.getValue());
         }
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
@@ -157,7 +157,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
                 String.valueOf(context.getParameter(InboundConstants.ForceAuth))));
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
-                                                                            StandardCharsets.UTF_8.name()));
+                    StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
             throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
                     getCallbackPath(context), e);
@@ -196,15 +196,15 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
 
         AuthenticationRequest authenticationRequest = new AuthenticationRequest();
         authenticationRequest.appendRequestQueryParams(parameterMap);
-        Set<Map.Entry<String,String>> headers = new HashMap(identityRequest.getHeaderMap()).entrySet();
-        for (Map.Entry<String,String> header : headers) {
+        Set<Map.Entry<String, String>> headers = new HashMap(identityRequest.getHeaderMap()).entrySet();
+        for (Map.Entry<String, String> header : headers) {
             authenticationRequest.addHeader(header.getKey(), header.getValue());
         }
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
         authenticationRequest.setType(getType(context));
         try {
             authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
-                                                                            StandardCharsets.UTF_8.name()));
+                    StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
             throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
                     getCallbackPath(context), e);
@@ -238,12 +238,12 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
     protected boolean isContextAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         // preserving backward compatibility with OAuth2 consent page
-        if(StringUtils.isBlank(sessionDataKey)) {
+        if (StringUtils.isBlank(sessionDataKey)) {
             sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY_CONSENT);
         }
-        if(StringUtils.isNotBlank(sessionDataKey)) {
+        if (StringUtils.isNotBlank(sessionDataKey)) {
             IdentityMessageContext context = InboundUtil.getContextFromCache(sessionDataKey);
-            if(context != null) {
+            if (context != null) {
                 return true;
             }
         }
@@ -260,11 +260,11 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
     protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
         String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         // preserving backward compatibility with OAuth2 consent page
-        if(StringUtils.isBlank(sessionDataKey)) {
+        if (StringUtils.isBlank(sessionDataKey)) {
             sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY_CONSENT);
         }
         IdentityMessageContext context = null;
-        if(StringUtils.isNotBlank(sessionDataKey)) {
+        if (StringUtils.isNotBlank(sessionDataKey)) {
             context = InboundUtil.getContextFromCache(sessionDataKey);
         }
         return context;
@@ -274,7 +274,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
      * Processes the IdentityMessageContext and retrieved the using {@code sessionDataKey} parameter and sets the
      * AuthenticationResult to message context if found in AuthenticationResultCache
      *
-     * @param context IdentityMessageContext
+     * @param context         IdentityMessageContext
      * @param identityRequest Current IdentityRequest object
      * @return AuthenticationResult
      */
@@ -284,7 +284,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         String sessionDataKey = identityRequest.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         AuthenticationResultCacheEntry entry = FrameworkUtils.getAuthenticationResultFromCache(sessionDataKey);
         AuthenticationResult authnResult = null;
-        if(entry != null) {
+        if (entry != null) {
             authnResult = entry.getResult();
         } else {
             throw FrameworkRuntimeException.error("Cannot find AuthenticationResult from the cache");

@@ -135,7 +135,7 @@ public class DefaultStepHandler implements StepHandler {
         } else if (context.isReturning()) {
             // if this is a request from the multi-option page
             if (request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR) != null
-                && !request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR)
+                    && !request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR)
                     .isEmpty()) {
                 handleRequestFromLoginPage(request, response, context);
                 return;
@@ -223,7 +223,7 @@ public class DefaultStepHandler implements StepHandler {
                         // set the IdP to be called in the context
                         try {
                             context.setExternalIdP(ConfigurationFacade.getInstance()
-                                                           .getIdPConfigByName(authenticatorConfig.getIdpNames().get(0)));
+                                    .getIdPConfigByName(authenticatorConfig.getIdpNames().get(0)));
                         } catch (IdentityProviderManagementException e) {
                             log.error("Exception while getting IdP by name", e);
                         }
@@ -311,8 +311,8 @@ public class DefaultStepHandler implements StepHandler {
         // try to find an IdP with the retrieved realm
         ExternalIdPConfig externalIdPConfig = null;
         try {
-             externalIdPConfig = ConfigurationFacade.getInstance()
-                .getIdPConfigByRealm(homeRealm);
+            externalIdPConfig = ConfigurationFacade.getInstance()
+                    .getIdPConfigByRealm(homeRealm);
         } catch (IdentityProviderManagementException e) {
             log.error("Exception while getting IdP by realm", e);
         }
@@ -386,7 +386,7 @@ public class DefaultStepHandler implements StepHandler {
 
             try {
                 ExternalIdPConfig externalIdPConfig = ConfigurationFacade.getInstance()
-                    .getIdPConfigByName(selectedIdp);
+                        .getIdPConfigByName(selectedIdp);
                 // TODO [IMPORTANT] validate the idp is inside the step.
                 context.setExternalIdP(externalIdPConfig);
             } catch (IdentityProviderManagementException e) {
@@ -428,7 +428,7 @@ public class DefaultStepHandler implements StepHandler {
 
             // Call authenticate if canHandle
             if (authenticator != null && authenticator.canHandle(request)
-                && (context.getCurrentAuthenticator() == null || authenticator.getName()
+                    && (context.getCurrentAuthenticator() == null || authenticator.getName()
                     .equals(context.getCurrentAuthenticator()))) {
                 isNoneCanHandle = false;
 

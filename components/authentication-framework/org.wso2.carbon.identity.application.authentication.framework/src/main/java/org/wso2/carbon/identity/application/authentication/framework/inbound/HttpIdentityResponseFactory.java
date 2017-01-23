@@ -48,11 +48,11 @@ public abstract class HttpIdentityResponseFactory extends AbstractIdentityHandle
             return;
         }
 
-        if(identityEventListenerConfig.getProperties() != null) {
-            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String)property.getKey();
-                String value = (String)property.getValue();
-                if(!properties.containsKey(key)) {
+        if (identityEventListenerConfig.getProperties() != null) {
+            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
+                String key = (String) property.getKey();
+                String value = (String) property.getValue();
+                if (!properties.containsKey(key)) {
                     properties.setProperty(key, value);
                 } else {
                     log.warn("Property key " + key + " already exists. Cannot add property!!");
