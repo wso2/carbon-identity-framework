@@ -44,7 +44,6 @@ import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -245,8 +244,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 ExternalIdPConfig externalIdPConfig = null;
                 try {
                     externalIdPConfig = ConfigurationFacade.getInstance()
-                            .getIdPConfigByName(stepConfig.getAuthenticatedIdP(),
-                                    context.getTenantDomain());
+                            .getIdPConfigByName(stepConfig.getAuthenticatedIdP());
                 } catch (IdentityProviderManagementException e) {
                     log.error("Exception while getting IdP by name", e);
                 }
@@ -287,7 +285,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
                         try {
                             // start tenant flow
-                            FrameworkUtils.startTenantFlow(context.getTenantDomain());
                             associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
                                     originalExternalIdpSubjectValueForThisStep);
                             if (StringUtils.isNotBlank(associatedID)) {
@@ -297,7 +294,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                                             associatedID);
                                 }
                                 stepConfig.getAuthenticatedUser().setUserName(associatedID);
-                                stepConfig.getAuthenticatedUser().setTenantDomain(context.getTenantDomain());
                                 stepConfig.setAuthenticatedUser(stepConfig.getAuthenticatedUser());
                             } else {
                                 if (log.isDebugEnabled()) {
@@ -327,7 +323,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // we found an associated user identifier
                         // build the full qualified user id for the associated user
                         String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                                associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER);
                         sequenceConfig.setAuthenticatedUser(AuthenticatedUser
                                 .createLocalAuthenticatedUserFromSubjectIdentifier(
                                         fullQualifiedAssociatedUserId));
@@ -353,7 +349,6 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
 
                         // in this case associatedID is a local user name - belongs to a tenant in IS.
-                        String tenantDomain = MultitenantUtils.getTenantDomain(associatedID);
                         Map<String, Object> authProperties = context.getProperties();
 
                         if (authProperties == null) {
@@ -361,13 +356,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                             context.setProperties(authProperties);
                         }
 
-                        //TODO: user tenant domain has to be an attribute in the AuthenticationContext
-                        authProperties.put(USER_TENANT_DOMAIN, tenantDomain);
 
                         if (log.isDebugEnabled()) {
                             log.debug("Authenticated User: " +
                                     sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
-                            log.debug("Authenticated User Tenant Domain: " + tenantDomain);
+                            log.debug("Authenticated User Tenant Domain: ");
                         }
 
                     } else {
@@ -545,7 +538,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             }
 
             return spMappedUserRoles.length() > 0 ? spMappedUserRoles.toString().substring(0,
-                                                                                           spMappedUserRoles.length() - 1) : null;
+                    spMappedUserRoles.length() - 1) : null;
         }
 
         return null;
@@ -683,11 +676,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
         try {
             mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context,
-                                                                               extAttrs, isFederatedClaims);
+                    extAttrs, isFederatedClaims);
         } catch (FrameworkException e) {
             log.error("Claim handling failed!", e);
         }
-        if(mappedAttrs == null){
+        if (mappedAttrs == null) {
             mappedAttrs = new HashMap<>();
         }
         return mappedAttrs;
@@ -719,15 +712,15 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             // framework.
             ThreadLocalProvisioningServiceProvider serviceProvider = new ThreadLocalProvisioningServiceProvider();
             serviceProvider.setServiceProviderName(context.getSequenceConfig()
-                                                           .getApplicationConfig().getApplicationName());
+                    .getApplicationConfig().getApplicationName());
             serviceProvider.setJustInTimeProvisioning(true);
             serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
-            serviceProvider.setTenantDomain(context.getTenantDomain());
+//            serviceProvider.setTenantDomain(context.getTenantDomain());
             IdentityApplicationManagementUtil
                     .setThreadLocalProvisioningServiceProvider(serviceProvider);
 
             FrameworkUtils.getProvisioningHandler().handle(mappedRoles, subjectIdentifier,
-                                                           extAttributesValueMap, userStoreDomain, context.getTenantDomain());
+                    extAttributesValueMap, userStoreDomain);
 
         } catch (FrameworkException e) {
             log.error("User provisioning failed!", e);

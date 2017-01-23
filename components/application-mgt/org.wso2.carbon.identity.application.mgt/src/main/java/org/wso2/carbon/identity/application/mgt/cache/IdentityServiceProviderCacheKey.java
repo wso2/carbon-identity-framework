@@ -31,11 +31,9 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
 
     /**
      * @param serviceProviderName
-     * @param tenantDomain
      */
-    public IdentityServiceProviderCacheKey(String serviceProviderName, String tenantDomain) {
+    public IdentityServiceProviderCacheKey(String serviceProviderName) {
         this.serviceProviderKey = serviceProviderName;
-        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     /**
@@ -60,7 +58,7 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
         IdentityServiceProviderCacheKey that = (IdentityServiceProviderCacheKey) o;
 
         if (!serviceProviderKey.equals(that.serviceProviderKey)) return false;
-        if (!tenantDomain.equals(that.tenantDomain)) return false;
+//        if (!tenantDomain.equals(that.tenantDomain)) return false;
 
         return true;
     }
@@ -69,7 +67,7 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + serviceProviderKey.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
+//        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

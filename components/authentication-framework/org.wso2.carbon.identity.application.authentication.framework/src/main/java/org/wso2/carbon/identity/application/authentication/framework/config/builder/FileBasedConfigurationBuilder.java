@@ -34,7 +34,6 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.utils.ServerConstants;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -88,8 +87,8 @@ public class FileBasedConfigurationBuilder {
 
     public static FileBasedConfigurationBuilder getInstance() {
         if (instance == null) {
-            synchronized (FileBasedConfigurationBuilder.class){
-                if(instance == null) {
+            synchronized (FileBasedConfigurationBuilder.class) {
+                if (instance == null) {
                     instance = new FileBasedConfigurationBuilder();
                 }
             }
@@ -117,7 +116,7 @@ public class FileBasedConfigurationBuilder {
         return configuration;
     }
 
-    private FileBasedConfigurationBuilder(){
+    private FileBasedConfigurationBuilder() {
         buildConfiguration();
     }
 
@@ -266,8 +265,8 @@ public class FileBasedConfigurationBuilder {
                         + text.substring(indexOfClosingBrace + 1);
             }
 
-            if ((ServerConstants.CARBON_HOME).equals(sysProp) &&
-                    (".").equals(System.getProperty(ServerConstants.CARBON_HOME))) {
+            if ((FrameworkConstants.CARBON_HOME).equals(sysProp) &&
+                    (".").equals(System.getProperty(FrameworkConstants.CARBON_HOME))) {
                 tmpText = new File(".").getAbsolutePath() + File.separator + text;
 
             }
@@ -370,7 +369,7 @@ public class FileBasedConfigurationBuilder {
     private void readAuthenticationEndpointQueryParams(OMElement documentElement) {
         OMElement authEndpointQueryParamsElem = documentElement
                 .getFirstChildWithName(IdentityApplicationManagementUtil
-                                               .getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTH_ENDPOINT_QUERY_PARAMS));
+                        .getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTH_ENDPOINT_QUERY_PARAMS));
 
         if (authEndpointQueryParamsElem != null) {
 
@@ -425,7 +424,7 @@ public class FileBasedConfigurationBuilder {
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_PROXY_MODE));
 
         if (proxyModeElem != null && proxyModeElem.getText() != null && !proxyModeElem.getText().isEmpty() &&
-            "dumb".equalsIgnoreCase(proxyModeElem.getText())) {
+                "dumb".equalsIgnoreCase(proxyModeElem.getText())) {
             isDumbMode = true;
         }
     }
@@ -454,7 +453,7 @@ public class FileBasedConfigurationBuilder {
 
                 OMElement tenantDataListenerURLElem = (OMElement) tenantDataURLElems.next();
                 if (tenantDataListenerURLElem != null &&
-                    StringUtils.isNotEmpty(tenantDataListenerURLElem.getText())) {
+                        StringUtils.isNotEmpty(tenantDataListenerURLElem.getText())) {
                     tenantDataEndpointURLs.add(IdentityUtil.fillURLPlaceholders(tenantDataListenerURLElem.getText()));
                 }
             }
@@ -487,7 +486,7 @@ public class FileBasedConfigurationBuilder {
             cacheTimeouts.put(cacheTimeoutElem.getLocalName(), timeout);
         } catch (NumberFormatException e) {
             log.warn(cacheTimeoutElem.getLocalName() + "doesn't have a numeric value specified." +
-                     "Entry is ignored");
+                    "Entry is ignored");
         }
     }
 
@@ -620,7 +619,7 @@ public class FileBasedConfigurationBuilder {
 
         if (orderAttr == null) {
             log.warn("Each Step Configuration should have an order. +"
-                     + "Authenticators under this Step will not be registered.");
+                    + "Authenticators under this Step will not be registered.");
             return null;
         }
 
@@ -664,7 +663,7 @@ public class FileBasedConfigurationBuilder {
         // if the name is not given, do not register this authenticator
         if (nameAttr == null) {
             log.warn("Each Authenticator Configuration should have a unique name attribute. +" +
-                     "This Authenticator will not be registered.");
+                    "This Authenticator will not be registered.");
             return null;
         }
 

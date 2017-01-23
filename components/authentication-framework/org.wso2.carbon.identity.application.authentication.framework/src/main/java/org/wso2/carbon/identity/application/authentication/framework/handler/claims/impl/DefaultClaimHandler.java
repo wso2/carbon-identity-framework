@@ -130,7 +130,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (StringUtils.isNotBlank(spStandardDialect) && !StringUtils.equals(spStandardDialect, ApplicationConstants
                 .LOCAL_IDP_DEFAULT_CLAIM_DIALECT)) {
             carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect, context,
-                    spRequestedClaimMappings, context.getTenantDomain());
+                    spRequestedClaimMappings);
             spRequestedClaimMappings = mapRequestClaimsInStandardDialect(spRequestedClaimMappings,
                     carbonToStandardClaimMapping);
             context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, spRequestedClaimMappings);
@@ -200,8 +200,8 @@ public class DefaultClaimHandler implements ClaimHandler {
 
 
         //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
-        UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        UserStoreManager userStore = getUserStoreManager(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, realm, null);
+        UserRealm realm = getUserRealm();
+        UserStoreManager userStore = getUserStoreManager(realm);
         addMultiAttributeSperatorToRequestedClaims(null, (org.wso2.carbon.user.core.UserStoreManager)
                 userStore, spFilteredClaims);
 
@@ -236,13 +236,12 @@ public class DefaultClaimHandler implements ClaimHandler {
             // since we don't know required claim mappings in advance
             // Key:value -> carbon_dialect:standard_dialect
             try {
-                localToSPClaimMappings = getClaimMappings(spStandardDialect, null,
-                                                          context.getTenantDomain(), true);
+                localToSPClaimMappings = getClaimMappings(spStandardDialect, null, true);
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                                              spStandardDialect + " dialect to " +
-                                             ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                                             context.getTenantDomain() + " to handle federated claims", e);
+                                             ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for "
+                        + " to handle federated claims", e);
             }
         } else if (!spClaimMappings.isEmpty()) {
             localToSPClaimMappings = FrameworkUtils.getLocalToSPClaimMappings(spClaimMappings);
@@ -281,13 +280,12 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         try {
             localToIdPClaimMap = getClaimMappings(idPStandardDialect,
-                                                  remoteClaims.keySet(), context.getTenantDomain(), true);
+                                                  remoteClaims.keySet(), true);
         } catch (Exception e) {
             throw new FrameworkException("Error occurred while getting claim mappings for " +
                                          "received remote claims from " +
                                          idPStandardDialect + " dialect to " +
-                                         ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                                         context.getTenantDomain() + " to handle federated claims", e);
+                                         ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for "+ " to handle federated claims", e);
         }
         // adding remote claims with default values also to the key set because they may not come from the federated IdP
         for(ClaimMapping claimMapping : idPClaimMappings){
@@ -320,103 +318,98 @@ public class DefaultClaimHandler implements ClaimHandler {
                                                     AuthenticationContext context)
             throws FrameworkException {
 
-        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
-        ServiceProvider serviceProvider = appConfig.getServiceProvider();
-        ClaimConfig claimConfig = serviceProvider.getClaimConfig();
-        boolean isLocalClaimDialect = claimConfig.isLocalClaimDialect();
-
-        Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
-        if (spToLocalClaimMappings == null) {
-            spToLocalClaimMappings = new HashMap<>();
-        }
-
-        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
-        Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
-        if (requestedClaimMappings == null) {
-            requestedClaimMappings = new HashMap<>();
-        }
-
-        AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
-
-        String tenantDomain = authenticatedUser.getTenantDomain();
-        String tenantAwareUserName = authenticatedUser.getUserName();
-
-        UserRealm realm = getUserRealm(tenantDomain);
-
-        if (realm == null) {
-            log.warn("No valid tenant domain provider. No claims returned back");
-            return new HashMap<>();
-        }
-
-        ClaimManager claimManager = getClaimManager(tenantDomain, realm);
-
-        UserStoreManager userStore = getUserStoreManager(tenantDomain, realm, authenticatedUser.getUserStoreDomain());
-
-        // key:value -> carbon_dialect:claim_value
-        Map<String, String> allLocalClaims;
-
-        // If default dialect -> all non-null user claims
-        // If custom dialect -> all non-null user claims that have been mapped to custom claims
-        // key:value -> sp_dialect:claim_value
-        Map<String, String> allSPMappedClaims = new HashMap<>();
-
-        // Requested claims only
-        // key:value -> sp_dialect:claim_value
-        Map<String, String> spRequestedClaims = new HashMap<>();
-
-        // Retrieve all non-null user claim values against local claim uris.
-        allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, tenantDomain, tenantAwareUserName,
-                                                           claimManager, userStore);
-
-        context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
-
-        // if standard dialect get all claim mappings from standard dialect to carbon dialect
-        spToLocalClaimMappings = getStanderDialectToCarbonMapping(spStandardDialect, context, spToLocalClaimMappings,
-                tenantDomain);
-        if (StringUtils.isNotBlank(spStandardDialect) && (!StringUtils.equals(spStandardDialect, ApplicationConstants
-                .LOCAL_IDP_DEFAULT_CLAIM_DIALECT))) {
-            carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect, context,
-                    spToLocalClaimMappings, tenantDomain);
-            requestedClaimMappings = mapRequestClaimsInStandardDialect(requestedClaimMappings,
-                    carbonToStandardClaimMapping);
-            context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, requestedClaimMappings);
-        }
-
-        mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
-                                            allSPMappedClaims, spRequestedClaims);
-
-        context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, allSPMappedClaims);
-
-        if (spStandardDialect != null) {
-            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
-                                          allLocalClaims, spStandardDialect, context);
-        } else {
-            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
-                                          allSPMappedClaims, null, context);
-        }
-
-
-        if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
-            spRequestedClaims = allSPMappedClaims;
-        }
-
-        /*
-        * This is a custom change added to pass 'MultipleAttributeSeparator' attribute value to other components,
-        * since we can't get the logged in user in some situations.
-        *
-        * Following components affected from this change -
-        * org.wso2.carbon.identity.application.authentication.endpoint
-        * org.wso2.carbon.identity.provider
-        * org.wso2.carbon.identity.oauth
-        * org.wso2.carbon.identity.oauth.endpoint
-        * org.wso2.carbon.identity.sso.saml
-        *
-        * TODO: Should use Map<String, List<String>> in future for claim mapping
-        * */
-        addMultiAttributeSperatorToRequestedClaims(authenticatedUser, (org.wso2.carbon.user.core.UserStoreManager)
-                userStore, spRequestedClaims);
-
-        return spRequestedClaims;
+//        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+//        ServiceProvider serviceProvider = appConfig.getServiceProvider();
+//        ClaimConfig claimConfig = serviceProvider.getClaimConfig();
+//        boolean isLocalClaimDialect = claimConfig.isLocalClaimDialect();
+//
+//        Map<String, String> spToLocalClaimMappings = appConfig.getClaimMappings();
+//        if (spToLocalClaimMappings == null) {
+//            spToLocalClaimMappings = new HashMap<>();
+//        }
+//
+//        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
+//        Map<String, String> requestedClaimMappings = appConfig.getRequestedClaimMappings();
+//        if (requestedClaimMappings == null) {
+//            requestedClaimMappings = new HashMap<>();
+//        }
+//
+//        AuthenticatedUser authenticatedUser = getAuthenticatedUser(stepConfig, context);
+//
+//        String tenantAwareUserName = authenticatedUser.getUserName();
+//
+//
+//
+//        ClaimManager claimManager = getClaimManager(tenantDomain, realm);
+//
+//        UserStoreManager userStore = getUserStoreManager(tenantDomain, realm, authenticatedUser.getUserStoreDomain());
+//
+//        // key:value -> carbon_dialect:claim_value
+//        Map<String, String> allLocalClaims;
+//
+//        // If default dialect -> all non-null user claims
+//        // If custom dialect -> all non-null user claims that have been mapped to custom claims
+//        // key:value -> sp_dialect:claim_value
+//        Map<String, String> allSPMappedClaims = new HashMap<>();
+//
+//        // Requested claims only
+//        // key:value -> sp_dialect:claim_value
+//        Map<String, String> spRequestedClaims = new HashMap<>();
+//
+//        // Retrieve all non-null user claim values against local claim uris.
+//        allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, tenantDomain, tenantAwareUserName,
+//                                                           claimManager, userStore);
+//
+//        context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
+//
+//        // if standard dialect get all claim mappings from standard dialect to carbon dialect
+//        spToLocalClaimMappings = getStanderDialectToCarbonMapping(spStandardDialect, context, spToLocalClaimMappings,
+//                tenantDomain);
+//        if (StringUtils.isNotBlank(spStandardDialect) && (!StringUtils.equals(spStandardDialect, ApplicationConstants
+//                .LOCAL_IDP_DEFAULT_CLAIM_DIALECT))) {
+//            carbonToStandardClaimMapping = getCarbonToStandardDialectMapping(spStandardDialect, context,
+//                    spToLocalClaimMappings, tenantDomain);
+//            requestedClaimMappings = mapRequestClaimsInStandardDialect(requestedClaimMappings,
+//                    carbonToStandardClaimMapping);
+//            context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, requestedClaimMappings);
+//        }
+//
+//        mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
+//                                            allSPMappedClaims, spRequestedClaims);
+//
+//        context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, allSPMappedClaims);
+//
+//        if (spStandardDialect != null) {
+//            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
+//                                          allLocalClaims, spStandardDialect, context);
+//        } else {
+//            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
+//                                          allSPMappedClaims, null, context);
+//        }
+//
+//
+//        if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
+//            spRequestedClaims = allSPMappedClaims;
+//        }
+//
+//        /*
+//        * This is a custom change added to pass 'MultipleAttributeSeparator' attribute value to other components,
+//        * since we can't get the logged in user in some situations.
+//        *
+//        * Following components affected from this change -
+//        * org.wso2.carbon.identity.application.authentication.endpoint
+//        * org.wso2.carbon.identity.provider
+//        * org.wso2.carbon.identity.oauth
+//        * org.wso2.carbon.identity.oauth.endpoint
+//        * org.wso2.carbon.identity.sso.saml
+//        *
+//        * TODO: Should use Map<String, List<String>> in future for claim mapping
+//        * */
+//        addMultiAttributeSperatorToRequestedClaims(authenticatedUser, (org.wso2.carbon.user.core.UserStoreManager)
+//                userStore, spRequestedClaims);
+//
+//        return spRequestedClaims;
+        return null;
     }
 
     private Map<String, String> mapRequestClaimsInStandardDialect(Map<String, String> requestedClaimMappings, Map<String, String> carbonToStandardClaimMapping) {
@@ -468,17 +461,14 @@ public class DefaultClaimHandler implements ClaimHandler {
 
     private Map<String, String> getStanderDialectToCarbonMapping(String spStandardDialect,
                                                                  AuthenticationContext context,
-                                                                 Map<String, String> spToLocalClaimMappings,
-                                                                 String tenantDomain) throws FrameworkException {
+                                                                 Map<String, String> spToLocalClaimMappings) throws FrameworkException {
         if (spStandardDialect != null) {
             try {
-                spToLocalClaimMappings = getClaimMappings(spStandardDialect, null,
-                                                          context.getTenantDomain(), false);
+                spToLocalClaimMappings = getClaimMappings(spStandardDialect, null, false);
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                                              spStandardDialect + " dialect to " +
-                                             ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " +
-                                             tenantDomain + " to handle local claims", e);
+                                             ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect for " + " to handle local claims", e);
             }
         }
         return spToLocalClaimMappings;
@@ -486,24 +476,20 @@ public class DefaultClaimHandler implements ClaimHandler {
 
     private Map<String, String> getCarbonToStandardDialectMapping(String spStandardDialect,
                                                                   AuthenticationContext context,
-                                                                  Map<String, String> spToLocalClaimMappings,
-                                                                  String tenantDomain) throws FrameworkException {
+                                                                  Map<String, String> spToLocalClaimMappings) throws FrameworkException {
         if (spStandardDialect != null) {
             try {
-                spToLocalClaimMappings = getClaimMappings(spStandardDialect, null,
-                        context.getTenantDomain(), true);
+                spToLocalClaimMappings = getClaimMappings(spStandardDialect, null, true);
             } catch (Exception e) {
                 throw new FrameworkException("Error occurred while getting all claim mappings from " +
                         ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT + " dialect to " +
-                         spStandardDialect+ " dialect for " +
-                        tenantDomain + " to handle local claims", e);
+                         spStandardDialect+ " dialect for " + " to handle local claims", e);
             }
         }
         return spToLocalClaimMappings;
     }
 
     private Map<String, String> retrieveAllNunNullUserClaimValues(AuthenticatedUser authenticatedUser,
-                                                                  String tenantDomain,
                                                                   String tenantAwareUserName, ClaimManager claimManager,
                                                                   UserStoreManager userStore)
             throws FrameworkException {
@@ -527,7 +513,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                 }
             } else {
                 throw new FrameworkException("Error occurred while getting all user claims for " +
-                        authenticatedUser + " in " + tenantDomain, e);
+                        authenticatedUser + " in ", e);
             }
         }
         if (allLocalClaims == null) {
@@ -536,49 +522,51 @@ public class DefaultClaimHandler implements ClaimHandler {
         return allLocalClaims;
     }
 
-    private UserStoreManager getUserStoreManager(String tenantDomain, UserRealm realm, String userDomain) throws
+    private UserStoreManager getUserStoreManager(UserRealm realm) throws
             FrameworkException {
         UserStoreManager userStore = null;
-        try {
-            userStore = realm.getUserStoreManager();
-            if (StringUtils.isNotBlank(userDomain)) {
-                userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(userDomain);
-            }
-
-            if (userStore == null) {
-                // To avoid NPEs
-                throw new FrameworkException("Invalid user store domain name : " + userDomain + " in tenant : "
-                        + tenantDomain);
-            }
-        } catch (UserStoreException e) {
-            throw new FrameworkException("Error occurred while retrieving the UserStoreManager " +
-                                         "from Realm for " + tenantDomain + " to handle local claims", e);
-        }
+//        try {
+//            userStore = realm.getUserStoreManager();
+//            if (StringUtils.isNotBlank(userDomain)) {
+//                userStore = realm.getUserStoreManager().getSecondaryUserStoreManager(userDomain);
+//            }
+//
+//            if (userStore == null) {
+//                // To avoid NPEs
+//                throw new FrameworkException("Invalid user store domain name : " + userDomain + " in tenant : "
+//                        );
+//            }
+//        } catch (UserStoreException e) {
+//            throw new FrameworkException("Error occurred while retrieving the UserStoreManager " +
+//                                         "from Realm for to handle local claims", e);
+//        }
         return userStore;
     }
 
-    private ClaimManager getClaimManager(String tenantDomain, UserRealm realm) throws FrameworkException {
+    private ClaimManager getClaimManager(UserRealm realm) throws FrameworkException {
         ClaimManager claimManager = null;
         try {
             claimManager = realm.getClaimManager();
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving the ClaimManager " +
-                                         "from Realm for " + tenantDomain + " to handle local claims", e);
+                                         "from Realm for " + " to handle local claims", e);
         }
         return claimManager;
     }
 
-    private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
+    private UserRealm getUserRealm() throws FrameworkException {
         UserRealm realm;
-        try {
-            realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    FrameworkServiceComponent.getRegistryService(),
-                    FrameworkServiceComponent.getRealmService(), tenantDomain);
-        } catch (CarbonException e) {
-            throw new FrameworkException("Error occurred while retrieving the Realm for " +
-                                         tenantDomain + " to handle local claims", e);
-        }
-        return realm;
+//        try {
+//            realm = AnonymousSessionUtil.getRealmByTenantDomain(
+//                    FrameworkServiceComponent.getRegistryService(),
+//                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+//        } catch (CarbonException e) {
+//            throw new FrameworkException("Error occurred while retrieving the Realm for " +
+//                                         tenantDomain + " to handle local claims", e);
+//        }
+//        return realm;
+
+        return null;
     }
 
     private AuthenticatedUser getAuthenticatedUser(StepConfig stepConfig, AuthenticationContext context) {
@@ -712,19 +700,17 @@ public class DefaultClaimHandler implements ClaimHandler {
     /**
      * @param otherDialect
      * @param keySet
-     * @param tenantDomain
      * @param useLocalDialectAsKey
      * @return
      * @throws FrameworkException
      */
-    private Map<String, String> getClaimMappings(String otherDialect, Set<String> keySet,
-                                                 String tenantDomain, boolean useLocalDialectAsKey)
+    private Map<String, String> getClaimMappings(String otherDialect, Set<String> keySet, boolean useLocalDialectAsKey)
             throws FrameworkException {
 
         Map<String, String> claimMapping = null;
         try {
             claimMapping = ClaimMetadataHandler.getInstance()
-                    .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet, tenantDomain,
+                    .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet,
                                                             useLocalDialectAsKey);
         } catch (ClaimMetadataException e) {
             throw new FrameworkException("Error while loading mappings.", e);

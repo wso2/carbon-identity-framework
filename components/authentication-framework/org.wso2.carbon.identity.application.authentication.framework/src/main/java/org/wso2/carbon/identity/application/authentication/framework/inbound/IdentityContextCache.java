@@ -52,12 +52,7 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
     public void addToCache(String key, IdentityMessageContext context) {
         super.addToCache(key, context);
         if (enableRequestScopeCache) {
-            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
-            String tenantDomain = context.getRequest().getTenantDomain();
-            if (tenantDomain != null) {
-                tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            }
-            SessionDataStore.getInstance().storeSessionData(key, INBOUND_CONTEXT_CACHE_NAME, context, tenantId);
+            SessionDataStore.getInstance().storeSessionData(key, INBOUND_CONTEXT_CACHE_NAME, context);
         }
     }
 

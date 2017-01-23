@@ -48,122 +48,106 @@ public abstract class ApplicationManagementService {
      * the application.The
      * user will assigned to the created role.Internal roles used.
      * @param serviceProvider Service Provider Name
-     * @param tenantDomain Tenant Domain
+
      * @param username User Name
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public abstract void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public abstract void createApplication(ServiceProvider serviceProvider, String username)
             throws IdentityApplicationManagementException;
 
     /**
      * Get Application for given application name
      *
      * @param applicationName Application Name
-     * @param tenantDomain Tenant Domain
      * @return ServiceProvider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
+    public abstract ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName)
             throws IdentityApplicationManagementException;
 
     /**
      * Get All Application Basic Information
-     *
-     * @param tenantDomain Tenant Domain
      * @param username User Name
      * @return ApplicationBasicInfo[]
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username)
+    public abstract ApplicationBasicInfo[] getAllApplicationBasicInfo(String username)
             throws IdentityApplicationManagementException;
 
     /**
      * Update Application
      *
-     * @param tenantDomain Tenant Domain
      * @param serviceProvider Service Provider
      * @param username User Name
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public abstract void updateApplication(ServiceProvider serviceProvider, String username)
             throws IdentityApplicationManagementException;
 
     /**
      * Delete Application
-     *
-     * @param tenantDomain Tenant Domain
      * @param applicationName Application name
      * @param username User Name
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract void deleteApplication(String applicationName, String tenantDomain, String username)
+    public abstract void deleteApplication(String applicationName, String username)
             throws IdentityApplicationManagementException;
 
     /**
      * Get Identity Provider
-     *
-     * @param tenantDomain Tenant Domain
      * @param federatedIdPName Federated identity provider name
      * @return IdentityProvider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract IdentityProvider getIdentityProvider(String federatedIdPName, String tenantDomain)
+    public abstract IdentityProvider getIdentityProvider(String federatedIdPName)
             throws IdentityApplicationManagementException;
 
     /**
      * Get All Identity Providers
      *
-     * @param tenantDomain Tenant Domain
      * @return IdentityProvider[]
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract IdentityProvider[] getAllIdentityProviders(String tenantDomain)
+    public abstract IdentityProvider[] getAllIdentityProviders()
             throws IdentityApplicationManagementException;
 
     /**
      * Get All Local Authenticators
      *
-     * @param tenantDomain Tenant Domain
      * @return LocalAuthenticatorConfig[]
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract LocalAuthenticatorConfig[] getAllLocalAuthenticators(String tenantDomain)
+    public abstract LocalAuthenticatorConfig[] getAllLocalAuthenticators()
             throws IdentityApplicationManagementException;
 
     /**
      * Get All Request Path Authenticators
      *
-     * @param tenantDomain Tenant Domain
      * @return RequestPathAuthenticatorConfig[]
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators(String tenantDomain)
+    public abstract RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators()
             throws IdentityApplicationManagementException;
 
     /**
      * Get All local claim uris
      *
-     * @param tenantDomain Tenant Domain
      * @return String[] All Local Claim Uris
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract String[] getAllLocalClaimUris(String tenantDomain) throws IdentityApplicationManagementException;
+    public abstract String[] getAllLocalClaimUris() throws IdentityApplicationManagementException;
 
-    public abstract String getServiceProviderNameByClientIdExcludingFileBasedSPs(String clientId, String type, String
-            tenantDomain)
+    public abstract String getServiceProviderNameByClientIdExcludingFileBasedSPs(String clientId, String type)
             throws IdentityApplicationManagementException;
 
-    public abstract Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName,
-                                                                          String tenantDomain)
+    public abstract Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName)
             throws IdentityApplicationManagementException;
 
-    public abstract Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName,
-                                                                          String tenantDomain)
+    public abstract Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName)
             throws IdentityApplicationManagementException;
 
-    public abstract List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName,
-                                                                 String tenantDomain)
+    public abstract List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName)
             throws IdentityApplicationManagementException;
 
     /**
@@ -171,19 +155,17 @@ public abstract class ApplicationManagementService {
      *
      * @param clientId Client Id
      * @param type     Type
-     * @param tenantDomain Tenant Domain
      * @return ServiceProvider
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public abstract String getServiceProviderNameByClientId(String clientId, String type, String tenantDomain)
+    public abstract String getServiceProviderNameByClientId(String clientId, String type)
             throws IdentityApplicationManagementException;
 
-    public abstract ServiceProvider getServiceProvider(String serviceProviderName, String tenantDomain)
+    public abstract ServiceProvider getServiceProvider(String serviceProviderName)
             throws IdentityApplicationManagementException;
 
     public abstract ServiceProvider getServiceProvider(int appId) throws IdentityApplicationManagementException;
 
-    public abstract ServiceProvider getServiceProviderByClientId(String clientId, String clientType,
-                                                                 String tenantDomain)
+    public abstract ServiceProvider getServiceProviderByClientId(String clientId, String clientType)
             throws IdentityApplicationManagementException;
 }

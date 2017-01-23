@@ -30,7 +30,6 @@ public abstract class CacheKey implements Serializable {
 
     private static final long serialVersionUID = 659646764466611338L;
 
-    protected String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 
     @Override
     public boolean equals(Object o) {
@@ -42,23 +41,20 @@ public abstract class CacheKey implements Serializable {
         }
         CacheKey key = (CacheKey) o;
 
-        if (tenantDomain != null && !tenantDomain.equals(key.tenantDomain)) {
-            return false;
-        }
+//        if (tenantDomain != null && !tenantDomain.equals(key.tenantDomain)) {
+//            return false;
+//        }
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        if (tenantDomain != null) {
-            return tenantDomain.hashCode();
-        } else {
+//        if (tenantDomain != null) {
+//            return tenantDomain.hashCode();
+//        } else {
             return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.hashCode();
-        }
+//        }
     }
 
-    public String getTenantDomain() {
-        return tenantDomain;
-    }
 }

@@ -127,24 +127,23 @@ public class ClaimMetadataHandler {
     /**
      * @param otherDialectURI
      * @param otherClaimURIs
-     * @param tenantDomain
      * @param useCarbonDialectAsKey
      * @return
      * @throws ClaimMetadataException
      */
     public Map<String, String> getMappingsMapFromOtherDialectToCarbon(String otherDialectURI, Set<String>
-            otherClaimURIs, String tenantDomain, boolean useCarbonDialectAsKey) throws ClaimMetadataException {
+            otherClaimURIs, boolean useCarbonDialectAsKey) throws ClaimMetadataException {
 
         Map<String, String> returnMap = new HashMap<>();
-        Set<ExternalClaim> mappings = getMappingsFromOtherDialectToCarbon(
-                otherDialectURI, otherClaimURIs, tenantDomain);
-        for (ExternalClaim externalClaim : mappings) {
-            if (useCarbonDialectAsKey) {
-                returnMap.put(externalClaim.getMappedLocalClaim(), externalClaim.getClaimURI());
-            } else {
-                returnMap.put(externalClaim.getClaimURI(), externalClaim.getMappedLocalClaim());
-            }
-        }
+//        Set<ExternalClaim> mappings = getMappingsFromOtherDialectToCarbon(
+//                otherDialectURI, otherClaimURIs, tenantDomain);
+//        for (ExternalClaim externalClaim : mappings) {
+//            if (useCarbonDialectAsKey) {
+//                returnMap.put(externalClaim.getMappedLocalClaim(), externalClaim.getClaimURI());
+//            } else {
+//                returnMap.put(externalClaim.getClaimURI(), externalClaim.getMappedLocalClaim());
+//            }
+//        }
         return returnMap;
     }
 }

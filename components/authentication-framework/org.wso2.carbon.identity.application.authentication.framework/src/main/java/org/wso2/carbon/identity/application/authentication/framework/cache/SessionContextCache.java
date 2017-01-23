@@ -121,7 +121,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
 
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
+        long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut());
 
         long currentTime = System.currentTimeMillis();
         long lastAccessedTime = cacheEntry.getAccessedTime();
@@ -160,7 +160,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
 
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        long rememberMeSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+        long rememberMeSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getRememberMeTimeout());
 
         long currentTime = System.currentTimeMillis();
         Long createdTime = cacheEntry.getAccessedTime();

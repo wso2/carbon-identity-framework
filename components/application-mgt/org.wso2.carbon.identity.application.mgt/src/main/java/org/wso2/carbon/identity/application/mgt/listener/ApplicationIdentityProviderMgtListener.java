@@ -40,7 +40,7 @@ import java.util.List;
 public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProviderMgtListener {
 
     @Override
-    public boolean doPreUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
+    public boolean doPreUpdateIdP(String oldIdPName, IdentityProvider identityProvider) throws
             IdentityProviderManagementException {
 
         try {
@@ -51,13 +51,13 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             List<ServiceProvider> serviceProvidersList = new ArrayList<>();
             for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
                 ServiceProvider serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                        .getApplication(applicationBasicInfo.getApplicationName(), tenantDomain);
+                        .getApplication(applicationBasicInfo.getApplicationName());
                 serviceProvidersList.add(serviceProvider);
             }
 
             // Adding Local Service Provider to the list of service providers
             ServiceProvider localSp = ApplicationMgtSystemConfig.getInstance()
-                    .getApplicationDAO().getApplication(ApplicationConstants.LOCAL_SP, tenantDomain);
+                    .getApplicationDAO().getApplication(ApplicationConstants.LOCAL_SP);
             serviceProvidersList.add(localSp);
 
             for (ServiceProvider serviceProvider : serviceProvidersList) {
@@ -113,7 +113,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                                     fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
                                             {currentDefaultAuthenticatorConfig});
                                     ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                                            .updateApplication(serviceProvider, tenantDomain);
+                                            .updateApplication(serviceProvider);
                                 } else if (!isCurrentDefaultAuthEnabled && StringUtils.equals(currentDefaultAuthName, defaultAuthName)) {
                                     throw new IdentityProviderManagementException(
                                             "Error in disabling default federated authenticator as it is referred by service providers.");

@@ -40,30 +40,30 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
     }
 
     @Override
-    public boolean doPreDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
+    public boolean doPreDeleteIdP(String idPName) throws IdentityProviderManagementException {
 
-        if (StringUtils.isEmpty(idPName)) {
-            throw new IllegalArgumentException("Invalid argument: Identity Provider Name value is empty");
-        }
-
-        String loggedInTenant = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-
-        if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
-            if (StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
-                throw new IdentityProviderManagementException("Cannot delete Resident Identity Provider of Super " +
-                        "Tenant");
-            } else if(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME != loggedInTenant){
-                throw new IdentityProviderManagementException("Tenant user of " + loggedInTenant + " cannot delete " +
-                        "Resident Identity Provider of tenant " + tenantDomain);
-            } else {
-                log.warn("Deleting Resident Identity Provider for tenant " + tenantDomain);
-            }
-        }
+//        if (StringUtils.isEmpty(idPName)) {
+//            throw new IllegalArgumentException("Invalid argument: Identity Provider Name value is empty");
+//        }
+//
+//        String loggedInTenant = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+//
+//        if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
+//            if (StringUtils.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME, tenantDomain)) {
+//                throw new IdentityProviderManagementException("Cannot delete Resident Identity Provider of Super " +
+//                        "Tenant");
+//            } else if(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME != loggedInTenant){
+//                throw new IdentityProviderManagementException("Tenant user of " + loggedInTenant + " cannot delete " +
+//                        "Resident Identity Provider of tenant " + tenantDomain);
+//            } else {
+//                log.warn("Deleting Resident Identity Provider for tenant " + tenantDomain);
+//            }
+//        }
 
         return true;
     }
 
-    public boolean doPreAddIdP(IdentityProvider identityProvider, String tenantDomain) throws
+    public boolean doPreAddIdP(IdentityProvider identityProvider) throws
             IdentityProviderManagementException {
 
         if (identityProvider == null) {
@@ -74,8 +74,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         return true;
     }
 
-    public boolean doPreUpdateResidentIdP(IdentityProvider identityProvider,
-                                          String tenantDomain)
+    public boolean doPreUpdateResidentIdP(IdentityProvider identityProvider)
             throws IdentityProviderManagementException {
 
         if (identityProvider == null) {
@@ -88,7 +87,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         return true;
     }
 
-    public boolean doPreUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain)
+    public boolean doPreUpdateIdP(String oldIdPName, IdentityProvider identityProvider)
             throws IdentityProviderManagementException {
 
         if (identityProvider == null) {
@@ -118,7 +117,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         return true;
     }
 
-    public boolean doPreAddResidentIdP(IdentityProvider identityProvider, String tenantDomain) throws
+    public boolean doPreAddResidentIdP(IdentityProvider identityProvider) throws
             IdentityProviderManagementException {
 
         if (StringUtils.isEmpty(identityProvider.getHomeRealmId())) {

@@ -36,9 +36,7 @@ import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,19 +65,19 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     @Override
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
-                       String provisioningUserStoreId, String tenantDomain) throws FrameworkException {
+                       String provisioningUserStoreId) throws FrameworkException {
 
         RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
 
         try {
-            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+//            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                                                                          realmService, tenantDomain);
+                    realmService, "");
 
             String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
 
-            String username = MultitenantUtils.getTenantAwareUsername(subject);
+            String username = subject;
 
             UserStoreManager userStoreManager = getUserStoreManager(realm, userStoreDomain);
 
@@ -97,7 +95,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             if (log.isDebugEnabled()) {
                 log.debug("User " + username + " contains roles : " + Arrays.toString(newRoles)
-                          + " going to be provisioned");
+                        + " going to be provisioned");
             }
 
             // addingRoles = newRoles AND allExistingRoles
@@ -110,7 +108,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (roles != null && !roles.isEmpty()) {
                     // Update user
                     Collection<String> currentRolesList = Arrays.asList(userStoreManager
-                                                                                .getRoleListOfUser(username));
+                            .getRoleListOfUser(username));
                     // addingRoles = (newRoles AND existingRoles) - currentRolesList)
                     addingRoles.removeAll(currentRolesList);
 
@@ -140,12 +138,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                 if (log.isDebugEnabled()) {
                     log.debug("Federated user: " + username
-                              + " is provisioned by authentication framework with roles : "
-                              + Arrays.toString(addingRoles.toArray(new String[addingRoles.size()])));
+                            + " is provisioned by authentication framework with roles : "
+                            + Arrays.toString(addingRoles.toArray(new String[addingRoles.size()])));
                 }
             }
 
-            PermissionUpdateUtil.updatePermissionTree(tenantId);
+//            PermissionUpdateUtil.updatePermissionTree(tenantId);
 
         } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
@@ -159,17 +157,17 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             throws UserStoreException {
         if (log.isDebugEnabled()) {
             log.debug("Deleting roles : "
-                      + Arrays.toString(deletingRoles.toArray(new String[deletingRoles.size()]))
-                      + " and Adding roles : "
-                      + Arrays.toString(addingRoles.toArray(new String[addingRoles.size()])));
+                    + Arrays.toString(deletingRoles.toArray(new String[deletingRoles.size()]))
+                    + " and Adding roles : "
+                    + Arrays.toString(addingRoles.toArray(new String[addingRoles.size()])));
         }
         userStoreManager.updateRoleListOfUser(username, deletingRoles.toArray(new String[deletingRoles
-                                                      .size()]),
-                                              addingRoles.toArray(new String[addingRoles.size()]));
+                        .size()]),
+                addingRoles.toArray(new String[addingRoles.size()]));
         if (log.isDebugEnabled()) {
             log.debug("Federated user: " + username
-                      + " is updated by authentication framework with roles : "
-                      + Arrays.toString(newRoles));
+                    + " is updated by authentication framework with roles : "
+                    + Arrays.toString(newRoles));
         }
     }
 
@@ -178,7 +176,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                                                    Collection<String> deletingRoles)
             throws UserStoreException, FrameworkException {
         if (userStoreManager.getRealmConfiguration().isPrimary()
-            && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
+                && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
             if (log.isDebugEnabled()) {
                 log.debug("Federated user's username is equal to super admin's username of local IdP.");
             }
@@ -188,11 +186,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     .contains(realm.getRealmConfiguration().getAdminRoleName())) {
                 if (log.isDebugEnabled()) {
                     log.debug("Federated user doesn't have super admin role. Unable to sync roles, since" +
-                              " super admin role cannot be unassigned from super admin user");
+                            " super admin role cannot be unassigned from super admin user");
                 }
                 throw new FrameworkException(
                         "Federated user which having same username to super admin username of local IdP," +
-                        " trying login without having super admin role assigned");
+                                " trying login without having super admin role assigned");
             }
         }
     }
@@ -248,9 +246,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         // If the any of above value is invalid, keep it empty to use primary userstore
         if (userStoreDomain != null
-            && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
+                && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
             throw new FrameworkException("Specified user store domain " + userStoreDomain
-                                         + " is not valid.");
+                    + " is not valid.");
         }
 
         return userStoreDomain;

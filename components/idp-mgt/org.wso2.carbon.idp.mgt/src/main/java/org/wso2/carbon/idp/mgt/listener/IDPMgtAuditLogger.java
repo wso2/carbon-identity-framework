@@ -39,7 +39,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     }
 
     @Override
-    public boolean doPostAddIdP(IdentityProvider identityProvider, String tenantDomain) throws
+    public boolean doPostAddIdP(IdentityProvider identityProvider) throws
             IdentityProviderManagementException {
         String displayName = "Undefined";
         String idpName = "Undefined";
@@ -49,31 +49,31 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
             }
             idpName = identityProvider.getIdentityProviderName();
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "add", UserCoreUtil.addTenantDomainToEntry(displayName,
-                tenantDomain), idpName, SUCCESS));
+//        audit.info(String.format(AUDIT_MESSAGE, getUser(), "add", UserCoreUtil.addTenantDomainToEntry(displayName,
+//                tenantDomain), idpName, SUCCESS));
 
         return true;
     }
 
     @Override
-    public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
+    public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider) throws
             IdentityProviderManagementException {
         String displayName = "Undefined";
         if (identityProvider != null && StringUtils.isNotEmpty(identityProvider.getDisplayName())) {
             displayName = identityProvider.getDisplayName();
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "update", oldIdPName, UserCoreUtil
-                .addTenantDomainToEntry(displayName, tenantDomain), SUCCESS));
+//        audit.info(String.format(AUDIT_MESSAGE, getUser(), "update", oldIdPName, UserCoreUtil
+//                .addTenantDomainToEntry(displayName, tenantDomain), SUCCESS));
         return true;
     }
 
     @Override
-    public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
+    public boolean doPostDeleteIdP(String idPName) throws IdentityProviderManagementException {
         if(StringUtils.isEmpty(idPName)){
             idPName = "Undefined";
         }
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete", UserCoreUtil.addTenantDomainToEntry
-                (idPName, tenantDomain), null, SUCCESS));
+//        audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete", UserCoreUtil.addTenantDomainToEntry
+//                (idPName, tenantDomain), null, SUCCESS));
         return true;
     }
 

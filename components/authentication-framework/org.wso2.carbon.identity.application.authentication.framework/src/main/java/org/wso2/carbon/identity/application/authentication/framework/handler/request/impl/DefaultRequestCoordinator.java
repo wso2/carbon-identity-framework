@@ -233,7 +233,6 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         context.setCallerPath(callerPath);
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
-        context.setTenantDomain(tenantDomain);
 
         // generate a new key to hold the context data object
         String contextId = UUIDGenerator.generateUUID();
@@ -322,8 +321,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         // Get service provider chain
         SequenceConfig sequenceConfig = ConfigurationFacade.getInstance().getSequenceConfig(
                 context.getRequestType(),
-                request.getParameter(FrameworkConstants.RequestParams.ISSUER),
-                context.getTenantDomain());
+                request.getParameter(FrameworkConstants.RequestParams.ISSUER));
 
         Cookie cookie = FrameworkUtils.getAuthCookie(request);
 

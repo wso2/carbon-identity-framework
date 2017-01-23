@@ -56,7 +56,7 @@ public class UIBasedConfigurationBuilder {
         return instance;
     }
 
-    public SequenceConfig getSequence(String reqType, String clientId, String tenantDomain)
+    public SequenceConfig getSequence(String reqType, String clientId)
             throws FrameworkException {
 
         SequenceConfig sequenceConfig = null;
@@ -70,7 +70,7 @@ public class UIBasedConfigurationBuilder {
         ServiceProvider serviceProvider;
 
         try {
-            serviceProvider = appInfo.getServiceProviderByClientId(clientId, reqType, tenantDomain);
+            serviceProvider = appInfo.getServiceProviderByClientId(clientId, reqType);
         } catch (IdentityApplicationManagementException e) {
             throw new FrameworkException(e.getMessage(), e);
         }
@@ -107,7 +107,7 @@ public class UIBasedConfigurationBuilder {
             StepConfig stepConfig = createStepConfigurationObject(stepOrder, authenticationStep);
 
             // loading Federated Authenticators
-            loadFederatedAuthenticators(authenticationStep, stepConfig, tenantDomain);
+            loadFederatedAuthenticators(authenticationStep, stepConfig);
 
             // load local authenticators
             loadLocalAuthenticators(authenticationStep, stepConfig);
@@ -157,8 +157,7 @@ public class UIBasedConfigurationBuilder {
         }
     }
 
-    private void loadFederatedAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig,
-                                             String tenantDomain) throws FrameworkException {
+    private void loadFederatedAuthenticators(AuthenticationStep authenticationStep, StepConfig stepConfig) throws FrameworkException {
         IdentityProvider[] federatedIDPs = authenticationStep.getFederatedIdentityProviders();
 
         if (federatedIDPs != null) {
@@ -175,8 +174,7 @@ public class UIBasedConfigurationBuilder {
                 if (federatedAuthenticator == null) {
                     try {
                         federatedAuthenticator = IdentityProviderManager.getInstance()
-                                .getIdPByName(federatedIDP.getIdentityProviderName(),
-                                        tenantDomain).getDefaultAuthenticatorConfig();
+                                .getIdPByName(federatedIDP.getIdentityProviderName()).getDefaultAuthenticatorConfig();
                     } catch (IdentityProviderManagementException e) {
                         throw new FrameworkException("Failed to load the default authenticator for IDP : " +
                                 federatedIDP.getIdentityProviderName(), e);

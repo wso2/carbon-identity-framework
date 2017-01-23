@@ -42,7 +42,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -122,7 +121,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // if no request path authenticators or handler returned cannot handle
         if (!context.getSequenceConfig().isCompleted()
-            || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
+                || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
             // call step based sequence handler
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }
@@ -183,9 +182,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // "forceAuthenticate" - go in the full authentication flow even if user
         // is already logged in.
         boolean forceAuthenticate = request
-                                            .getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE) != null ? Boolean
-                                            .valueOf(request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE))
-                                                                                                                       : false;
+                .getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE) != null ? Boolean
+                .valueOf(request.getParameter(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE))
+                : false;
 
         context.setForceAuthenticate(forceAuthenticate);
 
@@ -195,9 +194,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // "reAuthenticate" - authenticate again with the same IdPs as before.
         boolean reAuthenticate = request
-                                         .getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ? Boolean
-                                         .valueOf(request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE))
-                                                                                                                 : false;
+                .getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE) != null ? Boolean
+                .valueOf(request.getParameter(FrameworkConstants.RequestParams.RE_AUTHENTICATE))
+                : false;
 
         if (log.isDebugEnabled()) {
             log.debug("Re-Authenticate : " + reAuthenticate);
@@ -208,10 +207,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // "checkAuthentication" - passive mode. just send back whether user is
         // *already* authenticated or not.
         boolean passiveAuthenticate = request
-                                              .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION) != null ? Boolean
-                                              .valueOf(request
-                                                               .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION))
-                                                                                                                             : false;
+                .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION) != null ? Boolean
+                .valueOf(request
+                        .getParameter(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION))
+                : false;
 
         if (log.isDebugEnabled()) {
             log.debug("Passive Authenticate : " + passiveAuthenticate);
@@ -244,21 +243,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         boolean isAuthenticated = context.isRequestAuthenticated();
         authenticationResult.setAuthenticated(isAuthenticated);
 
-        String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
+//        String authenticatedUserTenantDomain = getAuthenticatedUserTenantDomain(context, authenticationResult);
 
         authenticationResult.setSaaSApp(sequenceConfig.getApplicationConfig().isSaaSApp());
 
         if (isAuthenticated) {
 
             if (!sequenceConfig.getApplicationConfig().isSaaSApp()) {
-                String spTenantDomain = context.getTenantDomain();
+//                String spTenantDomain = context.getTenantDomain();
                 String userTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
                 if (StringUtils.isNotEmpty(userTenantDomain)) {
-                    if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals
-                            (userTenantDomain)) {
-                        throw new FrameworkException("Service Provider tenant domain must be equal to user tenant " +
-                                                     "domain for non-SaaS applications");
-                    }
+//                    if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals
+//                            (userTenantDomain)) {
+//                        throw new FrameworkException("Service Provider tenant domain must be equal to user tenant " +
+//                                "domain for non-SaaS applications");
+//                    }
                 }
             }
 
@@ -289,10 +288,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
-                                                               sequenceConfig);
+                        sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                 long updatedSessionTime = System.currentTimeMillis();
-                if(!context.isPreviousAuthTime()) {
+                if (!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
                 // TODO add to cache?
@@ -315,11 +314,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
-                String applicationTenantDomain = context.getTenantDomain();
-                if (StringUtils.isEmpty(applicationTenantDomain)) {
-                    applicationTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-                }
-                setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
+                setAuthCookie(request, response, context, sessionKey);
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
             }
@@ -328,9 +323,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 handleAuthorization(request, response, context);
             }
 
-            if (authenticatedUserTenantDomain == null) {
-                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
+//            if (authenticatedUserTenantDomain == null) {
+//                PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+//            }
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
         }
@@ -342,7 +337,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             //Set the result as request attribute
             request.setAttribute("sessionDataKey", context.getCallerSessionKey());
             addAuthenticationResultToRequest(request, authenticationResult);
-        }else{
+        } else {
             FrameworkUtils.addAuthenticationResultToCache(context.getCallerSessionKey(), authenticationResult);
         }
         /*
@@ -390,37 +385,37 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
 
-
     /**
      * Add authentication request as request attribute
+     *
      * @param request
      * @param authenticationResult
      */
     private void addAuthenticationResultToRequest(HttpServletRequest request,
-            AuthenticationResult authenticationResult) {
+                                                  AuthenticationResult authenticationResult) {
         request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
     }
 
     private void setAuthCookie(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
-                               String sessionKey, String tenantDomain) throws FrameworkException {
+                               String sessionKey) throws FrameworkException {
         Integer authCookieAge = null;
 
         if (context.isRememberMe()) {
-            authCookieAge = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
+            authCookieAge = IdPManagementUtil.getRememberMeTimeout();
         }
 
         FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge);
     }
 
-    private String getAuthenticatedUserTenantDomain(AuthenticationContext context,
-                                                    AuthenticationResult authenticationResult) {
-        String authenticatedUserTenantDomain = null;
-        if (context.getProperties() != null) {
-            authenticatedUserTenantDomain = (String) context.getProperties()
-                    .get("user-tenant-domain");
-        }
-        return authenticatedUserTenantDomain;
-    }
+//    private String getAuthenticatedUserTenantDomain(AuthenticationContext context,
+//                                                    AuthenticationResult authenticationResult) {
+//        String authenticatedUserTenantDomain = null;
+//        if (context.getProperties() != null) {
+//            authenticatedUserTenantDomain = (String) context.getProperties()
+//                    .get("user-tenant-domain");
+//        }
+//        return authenticatedUserTenantDomain;
+//    }
 
     protected void sendResponse(HttpServletRequest request, HttpServletResponse response,
                                 AuthenticationContext context) throws FrameworkException {

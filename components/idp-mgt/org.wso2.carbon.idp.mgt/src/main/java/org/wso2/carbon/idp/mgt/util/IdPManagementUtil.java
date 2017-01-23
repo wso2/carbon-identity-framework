@@ -71,40 +71,14 @@ public class IdPManagementUtil {
         return localEntityId;
     }
 
-    public static int getIdleSessionTimeOut(String tenantDomain) {
+    public static int getIdleSessionTimeOut() {
 
-        IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
-        int timeout = Integer.parseInt(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT_DEFAULT);
-
-        try {
-            IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
-            IdentityProviderProperty idpProperty = IdentityApplicationManagementUtil.getProperty(
-                    identityProvider.getIdpProperties(), IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
-            if (idpProperty != null) {
-                timeout = Integer.parseInt(idpProperty.getValue());
-            }
-        } catch (IdentityProviderManagementException e) {
-            log.error("Error when accessing the IdentityProviderManager for tenant : " + tenantDomain, e);
-        }
-        return timeout * 60;
+        return 10 * 60;
     }
 
-    public static int getRememberMeTimeout(String tenantDomain) {
+    public static int getRememberMeTimeout() {
 
-        IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
-        int rememberMeTimeout = Integer.parseInt(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT_DEFAULT);
-
-        try {
-            IdentityProvider identityProvider = identityProviderManager.getResidentIdP(tenantDomain);
-            IdentityProviderProperty idpProperty = IdentityApplicationManagementUtil.getProperty(
-                    identityProvider.getIdpProperties(), IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
-            if (idpProperty != null) {
-                rememberMeTimeout = Integer.parseInt(idpProperty.getValue());
-            }
-        } catch (IdentityProviderManagementException e) {
-            log.error("Error when accessing the IdentityProviderManager for tenant : " + tenantDomain, e);
-        }
-        return rememberMeTimeout * 60;
+        return 10 * 60;
     }
 
     /**

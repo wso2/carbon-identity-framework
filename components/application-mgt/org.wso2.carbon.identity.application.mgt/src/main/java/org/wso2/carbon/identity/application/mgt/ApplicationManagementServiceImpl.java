@@ -29,7 +29,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.rahas.impl.SAMLTokenIssuerConfig;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.directory.server.manager.DirectoryServerManager;
@@ -62,9 +61,7 @@ import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.security.config.SecurityServiceAdmin;
 import org.wso2.carbon.user.api.ClaimMapping;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.ServerConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -104,14 +101,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public void createApplication(ServiceProvider serviceProvider, String username)
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider,tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, username)) {
                 return;
             }
         }
@@ -121,7 +118,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     "Application with the same name loaded from the file system.");
         }
 
-        startTenantFlow(tenantDomain, username);
 
         // first we need to create a role with the application name.
         // only the users in this role will be able to edit/update the
@@ -139,9 +135,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             throw e;
         }
-        try{
+        try {
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            appDAO.createApplication(serviceProvider, tenantDomain);
+            appDAO.createApplication(serviceProvider);
         } catch (IdentityApplicationManagementException e) {
             try {
                 ApplicationMgtUtil.deleteAppRole(serviceProvider.getApplicationName());
@@ -149,7 +145,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 log.error("Exception occurred while trying to delete the application role for: " +
                         serviceProvider.getApplicationName(), e1);
             }
-            try{
+            try {
                 ApplicationMgtUtil.deletePermissions(serviceProvider.getApplicationName());
             } catch (IdentityApplicationManagementException e1) {
                 log.error("Exception occurred while trying to delete the permissions for: " +
@@ -157,34 +153,34 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
             throw e;
         } finally {
-            endTenantFlow();
+//            endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, username)) {
                 return;
             }
         }
     }
 
     @Override
-    public ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
+    public ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName)
             throws IdentityApplicationManagementException {
         ServiceProvider serviceProvider = null;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetApplicationExcludingFileBasedSPs(applicationName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetApplicationExcludingFileBasedSPs(applicationName)) {
                 return null;
             }
         }
 
         try {
 
-            startTenantFlow(tenantDomain);
+//            startTenantFlow(tenantDomain);
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
+            serviceProvider = appDAO.getApplication(applicationName);
             if (serviceProvider != null) {
                 loadApplicationPermissions(applicationName, serviceProvider);
             }
@@ -194,12 +190,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             log.error(error, e);
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+//            endTenantFlow();
         }
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetApplicationExcludingFileBasedSPs(serviceProvider, applicationName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetApplicationExcludingFileBasedSPs(serviceProvider, applicationName)) {
                 return null;
             }
         }
@@ -208,31 +204,31 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ApplicationBasicInfo[] getAllApplicationBasicInfo(String tenantDomain, String username)
+    public ApplicationBasicInfo[] getAllApplicationBasicInfo(String username)
             throws IdentityApplicationManagementException {
         ApplicationDAO appDAO = null;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetAllApplicationBasicInfo(tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPreGetAllApplicationBasicInfo(username)) {
                 return null;
             }
         }
 
         try {
-            startTenantFlow(tenantDomain, username);
+//            startTenantFlow(tenantDomain, username);
             appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
 
         } catch (Exception e) {
             String error = "Error occurred while retrieving all the applications";
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+//            endTenantFlow();
         }
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetAllApplicationBasicInfo(appDAO, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostGetAllApplicationBasicInfo(appDAO, username)) {
                 return null;
             }
         }
@@ -241,32 +237,31 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    public void updateApplication(ServiceProvider serviceProvider, String username)
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPreUpdateApplication(serviceProvider, username)) {
                 return;
             }
         }
 
         try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+//            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProvider.getApplicationName());
+            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(serviceProvider.getApplicationName());
 
             IdentityServiceProviderCache.getInstance().clearCacheEntry(cacheKey);
 
         } finally {
-            endTenantFlow();
+//            endTenantFlow();
         }
 
         try {
             // check whether user is authorized to update the application.
-            startTenantFlow(tenantDomain, username);
+//            startTenantFlow(tenantDomain, username);
             if (!ApplicationConstants.LOCAL_SP.equals(serviceProvider.getApplicationName()) &&
                     !ApplicationMgtUtil.isUserAuthorized(serviceProvider.getApplicationName(), username,
                             serviceProvider.getApplicationID())) {
@@ -279,7 +274,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
-            appDAO.updateApplication(serviceProvider, tenantDomain);
+            appDAO.updateApplication(serviceProvider);
 
             ApplicationPermission[] permissions = serviceProvider.getPermissionAndRoleConfig().getPermissions();
             String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
@@ -299,63 +294,30 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while updating the application: " + serviceProvider.getApplicationName();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+//            endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostUpdateApplication(serviceProvider, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostUpdateApplication(serviceProvider, username)) {
                 return;
             }
         }
     }
 
-    private void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
-
-        int tenantId;
-        try {
-            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
-        }
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-    }
-
-    private void startTenantFlow(String tenantDomain, String userName)
-            throws IdentityApplicationManagementException {
-        int tenantId;
-        try {
-            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
-        }
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
-    }
-
-    private void endTenantFlow() {
-        PrivilegedCarbonContext.endTenantFlow();
-    }
 
     @Override
-    public void deleteApplication(String applicationName, String tenantDomain, String username)
+    public void deleteApplication(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreDeleteApplication(applicationName, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPreDeleteApplication(applicationName, username)) {
                 return;
             }
         }
 
         try {
-            startTenantFlow(tenantDomain, username);
 
             if (!ApplicationMgtUtil.isUserAuthorized(applicationName, username)) {
                 log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
@@ -364,7 +326,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
+            ServiceProvider serviceProvider = appDAO.getApplication(applicationName);
             appDAO.deleteApplication(applicationName);
 
             ApplicationMgtUtil.deleteAppRole(applicationName);
@@ -396,7 +358,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         DirectoryServerManager directoryServerManager = new DirectoryServerManager();
                         directoryServerManager.removeServer(config.getInboundAuthKey());
 
-                    } else if(IdentityApplicationConstants.Authenticator.WSTrust.NAME.equalsIgnoreCase(
+                    } else if (IdentityApplicationConstants.Authenticator.WSTrust.NAME.equalsIgnoreCase(
                             config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
                         try {
                             AxisService stsService = getAxisConfig().getService(ServerConstants.STS_NAME);
@@ -428,36 +390,34 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while deleting the application: " + applicationName;
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostDeleteApplication(applicationName, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostDeleteApplication(applicationName, username)) {
                 return;
             }
         }
     }
 
     @Override
-    public IdentityProvider getIdentityProvider(String federatedIdPName, String tenantDomain)
+    public IdentityProvider getIdentityProvider(String federatedIdPName)
             throws IdentityApplicationManagementException {
         try {
-            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             return idpdao.getIdentityProvider(federatedIdPName);
         } catch (Exception e) {
             String error = "Error occurred while retrieving Identity Provider: " + federatedIdPName;
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+//            endTenantFlow();
         }
     }
 
     @Override
-    public IdentityProvider[] getAllIdentityProviders(String tenantDomain)
+    public IdentityProvider[] getAllIdentityProviders()
             throws IdentityApplicationManagementException {
         try {
-            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<IdentityProvider> fedIdpList = idpdao.getAllIdentityProviders();
             if (fedIdpList != null) {
@@ -468,15 +428,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Identity Providers";
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
         }
     }
 
     @Override
-    public LocalAuthenticatorConfig[] getAllLocalAuthenticators(String tenantDomain)
+    public LocalAuthenticatorConfig[] getAllLocalAuthenticators()
             throws IdentityApplicationManagementException {
         try {
-            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
             if (localAuthenticators != null) {
@@ -487,15 +445,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Local Authenticators";
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
         }
     }
 
     @Override
-    public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators(String tenantDomain)
+    public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators()
             throws IdentityApplicationManagementException {
         try {
-            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<RequestPathAuthenticatorConfig> reqPathAuthenticators = idpdao.getAllRequestPathAuthenticators();
             if (reqPathAuthenticators != null) {
@@ -506,14 +462,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Request Path Authenticators";
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
         }
     }
 
     @Override
-    public String[] getAllLocalClaimUris(String tenantDomain) throws IdentityApplicationManagementException {
+    public String[] getAllLocalClaimUris() throws IdentityApplicationManagementException {
         try {
-            startTenantFlow(tenantDomain);
             String claimDialect = ApplicationMgtSystemConfig.getInstance().getClaimDialect();
             ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getClaimManager()
                     .getAllClaimMappings(claimDialect);
@@ -530,13 +484,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error while reading system claims";
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
         }
     }
 
     @Override
-    public String getServiceProviderNameByClientIdExcludingFileBasedSPs(String clientId, String type, String
-            tenantDomain)
+    public String getServiceProviderNameByClientIdExcludingFileBasedSPs(String clientId, String type)
             throws IdentityApplicationManagementException {
 
         String name = null;
@@ -544,14 +496,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(name, clientId, type, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(name, clientId, type)) {
                 return null;
             }
         }
 
         try {
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            name =  appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
+            name = appDAO.getServiceProviderNameByClientId(clientId, type);
 
         } catch (Exception e) {
             String error = "Error occurred while retrieving the service provider for client id :  " + clientId;
@@ -559,7 +511,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(name, clientId, type, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(name, clientId, type)) {
                 return null;
             }
         }
@@ -571,25 +523,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * [sp-claim-uri,local-idp-claim-uri]
      *
      * @param serviceProviderName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName,
-                                                                        String tenantDomain)
+    public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName)
             throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         Map<String, String> claimMap = appDAO.getServiceProviderToLocalIdPClaimMapping(
-                serviceProviderName, tenantDomain);
+                serviceProviderName);
 
         if (claimMap == null
-            || claimMap.isEmpty()
-               && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                || claimMap.isEmpty()
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             return new FileBasedApplicationDAO().getServiceProviderToLocalIdPClaimMapping(
-                    serviceProviderName, tenantDomain);
+                    serviceProviderName);
         }
 
         return claimMap;
@@ -599,25 +549,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * [local-idp-claim-uri,sp-claim-uri]
      *
      * @param serviceProviderName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName,
-                                                                        String tenantDomain)
+    public Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName)
             throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         Map<String, String> claimMap = appDAO.getLocalIdPToServiceProviderClaimMapping(
-                serviceProviderName, tenantDomain);
+                serviceProviderName);
 
         if (claimMap == null
-            || claimMap.isEmpty()
-               && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                || claimMap.isEmpty()
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             return new FileBasedApplicationDAO().getLocalIdPToServiceProviderClaimMapping(
-                    serviceProviderName, tenantDomain);
+                    serviceProviderName);
         }
         return claimMap;
 
@@ -628,25 +576,22 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * dialect.
      *
      * @param serviceProviderName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName,
-                                                               String tenantDomain)
+    public List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName)
             throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        List<String> reqClaims = appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName,
-                                                                               tenantDomain);
+        List<String> reqClaims = appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName);
 
         if (reqClaims == null
-            || reqClaims.isEmpty()
-               && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                || reqClaims.isEmpty()
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             return new FileBasedApplicationDAO().getAllRequestedClaimsByServiceProvider(
-                    serviceProviderName, tenantDomain);
+                    serviceProviderName);
         }
 
         return reqClaims;
@@ -655,30 +600,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * @param clientId
      * @param clientType
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public String getServiceProviderNameByClientId(String clientId, String clientType,
-                                                   String tenantDomain) throws IdentityApplicationManagementException {
+    public String getServiceProviderNameByClientId(String clientId, String clientType) throws IdentityApplicationManagementException {
 
         String name = null;
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientId(clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientId(clientId, clientType)) {
                 return null;
             }
         }
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        name = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
+        name = appDAO.getServiceProviderNameByClientId(clientId, clientType);
 
         if (name == null) {
             name = new FileBasedApplicationDAO().getServiceProviderNameByClientId(clientId,
-                                                                                  clientType, tenantDomain);
+                    clientType);
         }
 
         if (name == null) {
@@ -688,7 +631,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProviderNameByClientId(name, clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProviderNameByClientId(name, clientId, clientType)) {
                 return null;
             }
         }
@@ -699,41 +642,37 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     /**
      * @param serviceProviderName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public ServiceProvider getServiceProvider(String serviceProviderName, String tenantDomain)
+    public ServiceProvider getServiceProvider(String serviceProviderName)
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetServiceProvider(serviceProviderName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetServiceProvider(serviceProviderName)) {
                 return null;
             }
         }
-
-        startTenantFlow(tenantDomain);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        ServiceProvider serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
+        ServiceProvider serviceProvider = appDAO.getApplication(serviceProviderName);
 
         if (serviceProvider != null) {
             loadApplicationPermissions(serviceProviderName, serviceProvider);
         }
 
         if (serviceProvider == null
-            && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
                     serviceProviderName);
         }
-        endTenantFlow();
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName)) {
                 return null;
             }
         }
@@ -756,22 +695,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ServiceProvider serviceProvider = appDAO.getApplication(appId);
 
         String serviceProviderName = serviceProvider.getApplicationName();
-        String tenantDomain = serviceProvider.getOwner().getTenantDomain();
+//        String tenantDomain = serviceProvider.getOwner().getTenantDomain();
 
         try {
-            startTenantFlow(tenantDomain);
             if (serviceProvider != null) {
                 loadApplicationPermissions(serviceProviderName, serviceProvider);
             }
 
             if (serviceProvider == null
-                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                    && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                     serviceProviderName)) {
                 serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
                         serviceProviderName);
             }
         } finally {
-            endTenantFlow();
         }
 
         // TODO: Since we didn't add post listener methods to the ApplicationMgtListener API to avoid API changes, we
@@ -780,7 +717,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         // invoking the post listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName)) {
                 return null;
             }
         }
@@ -790,18 +727,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * @param clientId
      * @param clientType
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public ServiceProvider getServiceProviderByClientId(String clientId, String clientType, String tenantDomain)
+    public ServiceProvider getServiceProviderByClientId(String clientId, String clientType)
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetServiceProviderByClientId(clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetServiceProviderByClientId(clientId, clientType)) {
                 return null;
             }
         }
@@ -813,13 +749,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String serviceProviderName;
         ServiceProvider serviceProvider = null;
 
-        serviceProviderName = getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
+        serviceProviderName = getServiceProviderNameByClientId(clientId, clientType);
 
         try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProviderName);
+            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(serviceProviderName);
             IdentityServiceProviderCacheEntry entry = IdentityServiceProviderCache.getInstance().
                     getValueFromCache(cacheKey);
 
@@ -828,13 +762,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
         } finally {
-            endTenantFlow();
-            startTenantFlow(tenantDomain);
+//            endTenantFlow();
+//            startTenantFlow(tenantDomain);
         }
 
         if (serviceProviderName != null) {
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
+            serviceProvider = appDAO.getApplication(serviceProviderName);
 
             if (serviceProvider != null) {
                 // if "Authentication Type" is "Default" we must get the steps from the default SP
@@ -855,29 +789,25 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         if (serviceProvider == null
-            && serviceProviderName != null
-            && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                && serviceProviderName != null
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
                 serviceProviderName)) {
             serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
                     serviceProviderName);
         }
 
-        endTenantFlow();
-
         try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                    tenantDomain, serviceProviderName);
+                    serviceProviderName);
             IdentityServiceProviderCacheEntry entry = new IdentityServiceProviderCacheEntry();
             entry.setServiceProvider(serviceProvider);
             IdentityServiceProviderCache.getInstance().addToCache(cacheKey, entry);
         } finally {
-            endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId, clientType)) {
                 return null;
             }
         }
@@ -926,7 +856,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                       String trustedService) throws RegistryException {
 
         String resourcePath = RegistryResources.SERVICE_GROUPS + groupName +
-                    RegistryResources.SERVICES + serviceName + "/trustedServices";
+                RegistryResources.SERVICES + serviceName + "/trustedServices";
         Registry registry = getConfigSystemRegistry();
         if (registry != null) {
             if (registry.resourceExists(resourcePath)) {

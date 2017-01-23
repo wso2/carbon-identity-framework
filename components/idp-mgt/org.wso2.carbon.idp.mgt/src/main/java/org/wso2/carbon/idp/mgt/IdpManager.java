@@ -34,105 +34,94 @@ public interface IdpManager {
     /**
      * Retrieves resident Identity provider for a given tenant
      *
-     * @param tenantDomain Tenant domain whose resident IdP is requested
      * @return <code>LocalIdentityProvider</code>
      * @throws IdentityProviderManagementException Error when getting Resident Identity Providers
      */
-    IdentityProvider getResidentIdP(String tenantDomain) throws IdentityProviderManagementException;
+    IdentityProvider getResidentIdP() throws IdentityProviderManagementException;
 
 
     /**
      * Add Resident Identity provider for a given tenant
      *
      * @param identityProvider <code>IdentityProvider</code>
-     * @param tenantDomain     Tenant domain whose resident IdP is requested
      * @throws IdentityProviderManagementException Error when adding Resident Identity Provider
      */
-    void addResidentIdP(IdentityProvider identityProvider, String tenantDomain) throws
+    void addResidentIdP(IdentityProvider identityProvider) throws
             IdentityProviderManagementException;
 
     /**
      * Update Resident Identity provider for a given tenant
      *
      * @param identityProvider <code>IdentityProvider</code>
-     * @param tenantDomain     Tenant domain whose resident IdP is requested
      * @throws IdentityProviderManagementException Error when updating Resident Identity Provider
      */
-    void updateResidentIdP(IdentityProvider identityProvider, String tenantDomain) throws
+    void updateResidentIdP(IdentityProvider identityProvider) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves registered Identity providers for a given tenant
-     *
-     * @param tenantDomain Tenant domain whose IdP names are requested
      * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
      * identifiers of each IdP
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
-    List<IdentityProvider> getIdPs(String tenantDomain) throws IdentityProviderManagementException;
+    List<IdentityProvider> getIdPs() throws IdentityProviderManagementException;
 
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *
-     * @param tenantDomain Tenant domain whose IdP names are requested
      * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
      * identifiers of each IdP
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
-    List<IdentityProvider> getEnabledIdPs(String tenantDomain) throws IdentityProviderManagementException;
+    List<IdentityProvider> getEnabledIdPs() throws IdentityProviderManagementException;
 
     /**
      * @param idPName
-     * @param tenantDomain
      * @param ignoreFileBasedIdps
      * @return
      * @throws IdentityProviderManagementException
      */
-    IdentityProvider getIdPByName(String idPName, String tenantDomain,
+    IdentityProvider getIdPByName(String idPName,
                                   boolean ignoreFileBasedIdps) throws IdentityProviderManagementException;
 
     /**
      * @param idPName
-     * @param tenantDomain
      * @param ignoreFileBasedIdps
      * @return
      * @throws IdentityProviderManagementException
      */
-    IdentityProvider getEnabledIdPByName(String idPName, String tenantDomain,
+    IdentityProvider getEnabledIdPByName(String idPName,
                                          boolean ignoreFileBasedIdps) throws IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant by Identity Provider name
      *
      * @param idPName      Unique name of the Identity provider of whose information is requested
-     * @param tenantDomain Tenant domain whose information is requested
      * @return <code>IdentityProvider</code> Identity Provider information
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP name
      */
-    IdentityProvider getIdPByName(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+    IdentityProvider getIdPByName(String idPName) throws IdentityProviderManagementException;
 
     /**
      * @param property     IDP authenticator property (E.g.: IdPEntityId)
      * @param value        Value associated with given Property
-     * @param tenantDomain
      * @return <code>IdentityProvider</code> Identity Provider information
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by authenticator property value
      */
-    IdentityProvider getIdPByAuthenticatorPropertyValue(String property, String value, String tenantDomain, boolean
+    IdentityProvider getIdPByAuthenticatorPropertyValue(String property, String value, boolean
             ignoreFileBasedIdps) throws IdentityProviderManagementException;
 
     /**
      * Retrieves Enabled Identity provider information about a given tenant by Identity Provider name
      *
      * @param idPName      Unique name of the Identity provider of whose information is requested
-     * @param tenantDomain Tenant domain whose information is requested
      * @return <code>IdentityProvider</code> Identity Provider information
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP name
      */
-    IdentityProvider getEnabledIdPByName(String idPName, String tenantDomain) throws
+    IdentityProvider getEnabledIdPByName(String idPName) throws
             IdentityProviderManagementException;
 
     /**
@@ -140,110 +129,101 @@ public interface IdpManager {
      *
      * @param realmId      Unique realm identifier of the Identity provider of whose information is
      *                     requested
-     * @param tenantDomain Tenant domain whose information is requested
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP home realm identifier
      */
-    IdentityProvider getIdPByRealmId(String realmId, String tenantDomain) throws IdentityProviderManagementException;
+    IdentityProvider getIdPByRealmId(String realmId) throws IdentityProviderManagementException;
 
     /**
      * Retrieves Enabled Identity provider information about a given tenant by realm identifier
      *
      * @param realmId      Unique realm identifier of the Identity provider of whose information is
      *                     requested
-     * @param tenantDomain Tenant domain whose information is requested
      * @throws IdentityProviderManagementException Error when getting Identity Provider
      *                                                information by IdP home realm identifier
      */
-    IdentityProvider getEnabledIdPByRealmId(String realmId, String tenantDomain) throws
+    IdentityProvider getEnabledIdPByRealmId(String realmId) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName      Unique Name of the IdP to which the given IdP claim URIs need to be mapped
-     * @param tenantDomain The tenant domain of whose local claim URIs to be mapped
      * @param idPClaimURIs IdP claim URIs which need to be mapped to tenant's local claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
-    Set<ClaimMapping> getMappedLocalClaims(String idPName, String tenantDomain, List<String> idPClaimURIs) throws
+    Set<ClaimMapping> getMappedLocalClaims(String idPName, List<String> idPClaimURIs) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName      Unique Name of the IdP to which the given IdP claim URIs need to be mapped
-     * @param tenantDomain The tenant domain of whose local claim URIs to be mapped
+
      * @param idPClaimURIs IdP claim URIs which need to be mapped to tenant's local claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
-    Map<String, String> getMappedLocalClaimsMap(String idPName, String tenantDomain, List<String> idPClaimURIs) throws
+    Map<String, String> getMappedLocalClaimsMap(String idPName, List<String> idPClaimURIs) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName        Unique Name of the IdP to which the given local claim URIs need to be mapped
-     * @param tenantDomain   The tenant domain of whose local claim URIs to be mapped
      * @param localClaimURIs Local claim URIs which need to be mapped to IdP's claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
-    Set<ClaimMapping> getMappedIdPClaims(String idPName, String tenantDomain, List<String> localClaimURIs) throws
+    Set<ClaimMapping> getMappedIdPClaims(String idPName, List<String> localClaimURIs) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName        Unique Name of the IdP to which the given local claim URIs need to be mapped
-     * @param tenantDomain   The tenant domain of whose local claim URIs to be mapped
      * @param localClaimURIs Local claim URIs which need to be mapped to IdP's claim URIs
      * @throws IdentityProviderManagementException Error when getting claim mappings
      */
-    Map<String, String> getMappedIdPClaimsMap(String idPName, String tenantDomain, List<String> localClaimURIs) throws
+    Map<String, String> getMappedIdPClaimsMap(String idPName, List<String> localClaimURIs) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName      Unique name of the IdP to which the given IdP roles need to be mapped
-     * @param tenantDomain The tenant domain of whose local roles to be mapped
      * @param idPRoles     IdP roles which need to be mapped to local roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
-    Set<RoleMapping> getMappedLocalRoles(String idPName, String tenantDomain, String[] idPRoles) throws
+    Set<RoleMapping> getMappedLocalRoles(String idPName, String[] idPRoles) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName      Unique name of the IdP to which the given IdP roles need to be mapped
-     * @param tenantDomain The tenant domain of whose local roles to be mapped
      * @param idPRoles     IdP roles which need to be mapped to local roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
-    Map<String, LocalRole> getMappedLocalRolesMap(String idPName, String tenantDomain, String[] idPRoles) throws
+    Map<String, LocalRole> getMappedLocalRolesMap(String idPName, String[] idPRoles) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName      Unique name of the IdP to which the given local roles need to be mapped
-     * @param tenantDomain The tenant domain of whose local roles need to be mapped
      * @param localRoles   Local roles which need to be mapped to IdP roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
-    Set<RoleMapping> getMappedIdPRoles(String idPName, String tenantDomain, LocalRole[] localRoles) throws
+    Set<RoleMapping> getMappedIdPRoles(String idPName, LocalRole[] localRoles) throws
             IdentityProviderManagementException;
 
     /**
      * Retrieves Identity provider information about a given tenant
      *
      * @param idPName      Unique name of the IdP to which the given local roles need to be mapped
-     * @param tenantDomain The tenant domain of whose local roles need to be mapped
      * @param localRoles   Local roles which need to be mapped to IdP roles
      * @throws IdentityProviderManagementException Error when getting role mappings
      */
-    Map<LocalRole, String> getMappedIdPRolesMap(String idPName, String tenantDomain, LocalRole[] localRoles) throws
+    Map<LocalRole, String> getMappedIdPRolesMap(String idPName, LocalRole[] localRoles) throws
             IdentityProviderManagementException;
 
     /**
@@ -253,7 +233,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when adding Identity Provider
      *                                                information
      */
-    void addIdP(IdentityProvider identityProvider, String tenantDomain) throws IdentityProviderManagementException;
+    void addIdP(IdentityProvider identityProvider) throws IdentityProviderManagementException;
 
     /**
      * Deletes an Identity Provider from a given tenant
@@ -262,7 +242,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      *                                                information
      */
-    void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+    void deleteIdP(String idPName) throws IdentityProviderManagementException;
 
     /**
      * Updates a given Identity Provider information
@@ -272,7 +252,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when updating Identity Provider
      *                                                information
      */
-    void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider, String tenantDomain) throws
+    void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider) throws
             IdentityProviderManagementException;
 
     /**

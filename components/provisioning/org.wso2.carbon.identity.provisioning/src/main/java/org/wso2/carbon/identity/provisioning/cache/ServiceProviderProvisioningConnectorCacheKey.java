@@ -32,7 +32,7 @@ public class ServiceProviderProvisioningConnectorCacheKey extends CacheKey {
      */
     public ServiceProviderProvisioningConnectorCacheKey(String spProvisioningConnectorKey, String tenantDomain) {
         this.spProvisioningConnectorKey = spProvisioningConnectorKey;
-        this.tenantDomain = tenantDomain.toLowerCase();
+//        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     /**
@@ -51,7 +51,7 @@ public class ServiceProviderProvisioningConnectorCacheKey extends CacheKey {
         ServiceProviderProvisioningConnectorCacheKey that = (ServiceProviderProvisioningConnectorCacheKey) o;
 
         if (!spProvisioningConnectorKey.equals(that.spProvisioningConnectorKey)) return false;
-        if (!tenantDomain.equals(that.tenantDomain)) return false;
+//        if (!tenantDomain.equals(that.tenantDomain)) return false;
 
         return true;
     }
@@ -60,7 +60,7 @@ public class ServiceProviderProvisioningConnectorCacheKey extends CacheKey {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + spProvisioningConnectorKey.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
+//        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

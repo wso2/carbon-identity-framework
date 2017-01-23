@@ -48,7 +48,7 @@ public class TenantManagementListener extends AbstractIdentityTenantMgtListener 
             identityProvider.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
             identityProvider.setHomeRealmId("localhost");
             identityProvider.setPrimary(true);
-            IdentityProviderManager.getInstance().addResidentIdP(identityProvider, tenantDomain);
+            IdentityProviderManager.getInstance().addResidentIdP(identityProvider);
         } catch (IdentityProviderManagementException e) {
             String message = "Error when adding Resident Identity Provider entry for tenant " +
                     tenantInfo.getTenantDomain();

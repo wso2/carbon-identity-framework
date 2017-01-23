@@ -39,7 +39,7 @@ public class ProvisioningEntityCacheKey extends CacheKey {
         this.identityProviderName = identityProviderName;
         this.connectorType = connectorType;
         this.provisioningEntity = provisioningEntity;
-        this.tenantDomain = tenantDomain.toLowerCase();
+//        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     /**

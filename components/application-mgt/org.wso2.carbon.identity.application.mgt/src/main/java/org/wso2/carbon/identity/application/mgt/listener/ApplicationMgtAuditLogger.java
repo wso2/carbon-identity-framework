@@ -38,7 +38,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     }
 
     @Override
-    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String userName) throws IdentityApplicationManagementException {
         int appId = -1;
         String name = "Undefined";
         if (serviceProvider != null) {
@@ -51,7 +51,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     }
 
     @Override
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String userName) throws IdentityApplicationManagementException {
         int appId = -1;
         String name = "Undefined";
         if (serviceProvider != null) {
@@ -64,7 +64,7 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     }
 
     @Override
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostDeleteApplication(String applicationName, String userName) throws IdentityApplicationManagementException {
         audit.info(String.format(AUDIT_MESSAGE, userName, "update", applicationName, null, SUCCESS));
         return true;
     }

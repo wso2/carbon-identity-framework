@@ -48,7 +48,7 @@ public class UserStoreListener extends AbstractIdentityUserOperationEventListene
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            dao.renameTenantRole(newRoleName, oldRoleName, tenantId, tenantDomain);
+            dao.renameTenantRole(newRoleName, oldRoleName);
         } catch (IdentityProviderManagementException e) {
             throw new UserStoreException(e.getMessage(), e);
         }
@@ -63,7 +63,7 @@ public class UserStoreListener extends AbstractIdentityUserOperationEventListene
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
-            dao.deleteTenantRole(tenantId, roleName, tenantDomain);
+            dao.deleteTenantRole(roleName);
         } catch (IdentityProviderManagementException e) {
             throw new UserStoreException(e.getMessage(), e);
         }

@@ -59,15 +59,15 @@ public class ConfigurationFacade {
         return instance;
     }
 
-    public SequenceConfig getSequenceConfig(String reqType, String relyingParty, String tenantDomain)
+    public SequenceConfig getSequenceConfig(String reqType, String relyingParty)
             throws FrameworkException {
 
         // Get SP config from SP Management component
         return UIBasedConfigurationBuilder.getInstance().getSequence(reqType,
-                                                                     relyingParty, tenantDomain);
+                                                                     relyingParty);
     }
 
-    public ExternalIdPConfig getIdPConfigByName(String idpName, String tenantDomain)
+    public ExternalIdPConfig getIdPConfigByName(String idpName)
             throws IdentityProviderManagementException {
 
         ExternalIdPConfig externalIdPConfig = null;
@@ -79,7 +79,7 @@ public class ConfigurationFacade {
 
         try {
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
-            idpDO = idpManager.getEnabledIdPByName(idpName, tenantDomain);
+            idpDO = idpManager.getEnabledIdPByName(idpName);
 
             if (idpDO != null) {
 
@@ -100,7 +100,7 @@ public class ConfigurationFacade {
         return externalIdPConfig;
     }
 
-    public ExternalIdPConfig getIdPConfigByRealm(String realm, String tenantDomain)
+    public ExternalIdPConfig getIdPConfigByRealm(String realm)
             throws IdentityProviderManagementException {
 
         ExternalIdPConfig externalIdPConfig = null;
@@ -113,7 +113,7 @@ public class ConfigurationFacade {
         try {
             IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
             idpDO = idpManager
-                    .getEnabledIdPByRealmId(realm, tenantDomain);
+                    .getEnabledIdPByRealmId(realm);
 
             if (idpDO != null) {
 

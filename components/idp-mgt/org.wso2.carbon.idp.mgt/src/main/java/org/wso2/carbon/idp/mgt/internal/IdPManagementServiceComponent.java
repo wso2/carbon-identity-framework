@@ -173,48 +173,48 @@ public class IdPManagementServiceComponent {
 
     protected void activate(ComponentContext ctxt) {
         try {
-            BundleContext bundleCtx = ctxt.getBundleContext();
-
-            TenantManagementListener idPMgtTenantMgtListener = new TenantManagementListener();
-            ServiceRegistration tenantMgtListenerSR = bundleCtx.registerService(
-                    TenantMgtListener.class.getName(), idPMgtTenantMgtListener, null);
-            if (tenantMgtListenerSR != null) {
-                log.debug("Identity Provider Management - TenantMgtListener registered");
-            } else {
-                log.error("Identity Provider Management - TenantMgtListener could not be registered");
-            }
-
-            ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
-                    UserOperationEventListener.class.getName(), new UserStoreListener(), null);
-            if (userOperationListenerSR != null) {
-                log.debug("Identity Provider Management - UserOperationEventListener registered");
-            } else {
-                log.error("Identity Provider Management - UserOperationEventListener could not be registered");
-            }
-
-            ServiceRegistration auditLoggerSR = bundleCtx.registerService(IdentityProviderMgtListener.class.getName()
-                    , new IDPMgtAuditLogger(), null);
-
-            if (auditLoggerSR != null) {
-                log.debug("Identity Provider Management - Audit Logger registered");
-            } else {
-                log.error("Identity Provider Management - Error while registering Audit Logger");
-            }
-            setIdentityProviderMgtListenerService(new IdPMgtValidationListener());
-
-            CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
-            if (dao.getIdPByName(null,
-                    IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
-                    IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME),
-                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME) == null) {
-                addSuperTenantIdp();
-            }
-            bundleCtx.registerService(IdpManager.class, IdentityProviderManager.getInstance(), null);
-
-            buildFileBasedIdPList();
-            cleanUpRemovedIdps();
-
-            log.debug("Identity Provider Management bundle is activated");
+//            BundleContext bundleCtx = ctxt.getBundleContext();
+//
+//            TenantManagementListener idPMgtTenantMgtListener = new TenantManagementListener();
+//            ServiceRegistration tenantMgtListenerSR = bundleCtx.registerService(
+//                    TenantMgtListener.class.getName(), idPMgtTenantMgtListener, null);
+//            if (tenantMgtListenerSR != null) {
+//                log.debug("Identity Provider Management - TenantMgtListener registered");
+//            } else {
+//                log.error("Identity Provider Management - TenantMgtListener could not be registered");
+//            }
+//
+//            ServiceRegistration userOperationListenerSR = bundleCtx.registerService(
+//                    UserOperationEventListener.class.getName(), new UserStoreListener(), null);
+//            if (userOperationListenerSR != null) {
+//                log.debug("Identity Provider Management - UserOperationEventListener registered");
+//            } else {
+//                log.error("Identity Provider Management - UserOperationEventListener could not be registered");
+//            }
+//
+//            ServiceRegistration auditLoggerSR = bundleCtx.registerService(IdentityProviderMgtListener.class.getName()
+//                    , new IDPMgtAuditLogger(), null);
+//
+//            if (auditLoggerSR != null) {
+//                log.debug("Identity Provider Management - Audit Logger registered");
+//            } else {
+//                log.error("Identity Provider Management - Error while registering Audit Logger");
+//            }
+//            setIdentityProviderMgtListenerService(new IdPMgtValidationListener());
+//
+//            CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
+//            if (dao.getIdPByName(null,
+//                    IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+//                    IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME),
+//                    MultitenantConstants.SUPER_TENANT_DOMAIN_NAME) == null) {
+//                addSuperTenantIdp();
+//            }
+//            bundleCtx.registerService(IdpManager.class, IdentityProviderManager.getInstance(), null);
+//
+//            buildFileBasedIdPList();
+//            cleanUpRemovedIdps();
+//
+//            log.debug("Identity Provider Management bundle is activated");
 
         } catch (Throwable e) {
 
@@ -227,88 +227,89 @@ public class IdPManagementServiceComponent {
      *
      */
     private void buildFileBasedIdPList() {
-
-        String spConfigDirPath = CarbonUtils.getCarbonConfigDirPath() + File.separator + "identity"
-                + File.separator + "identity-providers";
-        FileInputStream fileInputStream = null;
-        File spConfigDir = new File(spConfigDirPath);
-        OMElement documentElement = null;
-
-        if (spConfigDir.exists()) {
-
-            for (final File fileEntry : spConfigDir.listFiles()) {
-                try {
-                    if (!fileEntry.isDirectory()) {
-                        fileInputStream = new FileInputStream(new File(fileEntry.getAbsolutePath()));
-                        documentElement = new StAXOMBuilder(fileInputStream).getDocumentElement();
-                        IdentityProvider idp = IdentityProvider.build(documentElement);
-                        if (idp != null) {
-                            IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
-                            String superTenantDN = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-                            if (isSharedIdP(idp)) {
-                                IdentityProvider currentIdp = idpManager.getIdPByName(idp.getIdentityProviderName(),
-                                        superTenantDN);
-                                if (currentIdp != null && !IdentityApplicationConstants.DEFAULT_IDP_CONFIG.equals(
-                                        currentIdp.getIdentityProviderName())) {
-                                    idpManager.updateIdP(idp.getIdentityProviderName(), idp, superTenantDN);
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("Shared IdP " + idp.getIdentityProviderName() + " updated");
-                                    }
-                                } else {
-                                    idpManager.addIdP(idp, superTenantDN);
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("Shared IdP " + idp.getIdentityProviderName() + " added");
-                                    }
-                                }
-                                sharedIdps.add(idp.getIdentityProviderName());
-                            } else {
-                                fileBasedIdPs.put(idp.getIdentityProviderName(), idp);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("Error while loading idp from file system.", e);
-                } finally {
-                    if (fileInputStream != null) {
-                        try {
-                            fileInputStream.close();
-                        } catch (IOException e) {
-                            log.error(e.getMessage(), e);
-                        }
-                    }
-                }
-            }
-        }
+//
+//        String spConfigDirPath = CarbonUtils.getCarbonConfigDirPath() + File.separator + "identity"
+//                + File.separator + "identity-providers";
+//        FileInputStream fileInputStream = null;
+//        File spConfigDir = new File(spConfigDirPath);
+//        OMElement documentElement = null;
+//
+//        if (spConfigDir.exists()) {
+//
+//            for (final File fileEntry : spConfigDir.listFiles()) {
+//                try {
+//                    if (!fileEntry.isDirectory()) {
+//                        fileInputStream = new FileInputStream(new File(fileEntry.getAbsolutePath()));
+//                        documentElement = new StAXOMBuilder(fileInputStream).getDocumentElement();
+//                        IdentityProvider idp = IdentityProvider.build(documentElement);
+//                        if (idp != null) {
+//                            IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
+//                            String superTenantDN = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+//                            if (isSharedIdP(idp)) {
+//                                IdentityProvider currentIdp = idpManager.getIdPByName(idp.getIdentityProviderName(),
+//                                        superTenantDN);
+//                                if (currentIdp != null && !IdentityApplicationConstants.DEFAULT_IDP_CONFIG.equals(
+//                                        currentIdp.getIdentityProviderName())) {
+//                                    idpManager.updateIdP(idp.getIdentityProviderName(), idp, superTenantDN);
+//                                    if (log.isDebugEnabled()) {
+//                                        log.debug("Shared IdP " + idp.getIdentityProviderName() + " updated");
+//                                    }
+//                                } else {
+//                                    idpManager.addIdP(idp, superTenantDN);
+//                                    if (log.isDebugEnabled()) {
+//                                        log.debug("Shared IdP " + idp.getIdentityProviderName() + " added");
+//                                    }
+//                                }
+//                                sharedIdps.add(idp.getIdentityProviderName());
+//                            } else {
+//                                fileBasedIdPs.put(idp.getIdentityProviderName(), idp);
+//                            }
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                    log.error("Error while loading idp from file system.", e);
+//                } finally {
+//                    if (fileInputStream != null) {
+//                        try {
+//                            fileInputStream.close();
+//                        } catch (IOException e) {
+//                            log.error(e.getMessage(), e);
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     private void cleanUpRemovedIdps() {
-        IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
-        String superTenantDN = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        List<IdentityProvider> idPs;
-        try {
-            idPs = idpManager.getIdPs(superTenantDN);
-        } catch (IdentityProviderManagementException e) {
-            log.error("Error loading IDPs", e);
-            return;
-        }
-        for (IdentityProvider idp : idPs) {
-            if (isSharedIdP(idp) && !sharedIdps.contains(idp.getIdentityProviderName())) {
-                //IDP config file has been deleted from filesystem
-                try {
-                    idpManager.deleteIdP(idp.getIdentityProviderName(), superTenantDN);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Deleted shared IdP with the name : " + idp.getIdentityProviderName());
-                    }
-                } catch (IdentityProviderManagementException e) {
-                    log.error("Error when deleting IdP " + idp.getIdentityProviderName(), e);
-                }
-            }
-        }
+//        IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
+//        String superTenantDN = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+//        List<IdentityProvider> idPs;
+//        try {
+//            idPs = idpManager.getIdPs(superTenantDN);
+//        } catch (IdentityProviderManagementException e) {
+//            log.error("Error loading IDPs", e);
+//            return;
+//        }
+//        for (IdentityProvider idp : idPs) {
+//            if (isSharedIdP(idp) && !sharedIdps.contains(idp.getIdentityProviderName())) {
+//                //IDP config file has been deleted from filesystem
+//                try {
+//                    idpManager.deleteIdP(idp.getIdentityProviderName(), superTenantDN);
+//                    if (log.isDebugEnabled()) {
+//                        log.debug("Deleted shared IdP with the name : " + idp.getIdentityProviderName());
+//                    }
+//                } catch (IdentityProviderManagementException e) {
+//                    log.error("Error when deleting IdP " + idp.getIdentityProviderName(), e);
+//                }
+//            }
+//        }
     }
 
     private boolean isSharedIdP(IdentityProvider idp) {
-        return idp != null && idp.getIdentityProviderName() != null && idp.getIdentityProviderName().startsWith
-                (IdPManagementConstants.SHARED_IDP_PREFIX);
+//        return idp != null && idp.getIdentityProviderName() != null && idp.getIdentityProviderName().startsWith
+//                (IdPManagementConstants.SHARED_IDP_PREFIX);
+        return false;
     }
 
     /**
@@ -384,7 +385,7 @@ public class IdPManagementServiceComponent {
             identityProvider.setHomeRealmId(IdentityUtil.getHostName());
             identityProvider.setPrimary(true);
             IdentityProviderManager.getInstance()
-                    .addResidentIdP(identityProvider, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+                    .addResidentIdP(identityProvider);
         } catch (Throwable e) {
             throw new Exception("Error when adding Resident Identity Provider entry for super tenant ", e);
         }

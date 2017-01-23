@@ -76,13 +76,8 @@ public class AuthenticationRequestCache extends
     public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry){
         super.addToCache(key,entry);
         if(isTemporarySessionDataPersistEnabled){
-            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
-            String tenantDomain = entry.getAuthenticationRequest().getTenantDomain();
-            if (tenantDomain != null) {
-                tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            }
             SessionDataStore.getInstance().storeSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME,
-                    entry, tenantId);
+                    entry);
         }
     }
 

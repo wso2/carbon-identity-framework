@@ -37,7 +37,6 @@ public class IdentityRequest implements Serializable {
     protected Map<String, Cookie> cookies = new HashMap();
     protected Map<String, String[]> parameters = new HashMap();
     protected Map<String, Object> attributes = new HashMap();
-    protected String tenantDomain;
     protected String contextPath;
     protected String method;
     protected String pathInfo;
@@ -91,10 +90,6 @@ public class IdentityRequest implements Serializable {
         return parameters.get(paramName);
     }
 
-    public String getTenantDomain() {
-        return this.tenantDomain;
-    }
-
     public String getParameter(String paramName) {
         String[] values = parameters.get(paramName);
         if(values != null && values.length > 0) {
@@ -144,7 +139,6 @@ public class IdentityRequest implements Serializable {
         this.cookies = builder.cookies;
         this.parameters = builder.parameters;
         this.attributes = builder.attributes;
-        this.tenantDomain = builder.tenantDomain;
         this.contextPath = builder.contextPath;
         this.method = builder.method;
         this.pathInfo = builder.pathInfo;
@@ -173,7 +167,6 @@ public class IdentityRequest implements Serializable {
         protected Map<String, Cookie> cookies = new HashMap();
         protected Map<String, String[]> parameters = new HashMap();
         protected Map<String, Object> attributes = new HashMap();
-        protected String tenantDomain;
         protected String contextPath;
         protected String method;
         protected String pathInfo;
@@ -306,10 +299,6 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder setTenantDomain(String tenantDomain) {
-            this.tenantDomain = tenantDomain;
-            return this;
-        }
 
         public IdentityRequestBuilder setContextPath(String contextPath) {
             this.contextPath = contextPath;

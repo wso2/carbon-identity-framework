@@ -28,86 +28,84 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 public abstract class AbstractApplicationMgtListener implements ApplicationMgtListener {
 
-    public boolean doPreCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPreCreateApplication(ServiceProvider serviceProvider,  String userName) throws IdentityApplicationManagementException {
         return true;
     }
 
-    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String userName) throws IdentityApplicationManagementException {
         return true;
     }
 
-    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String userName) throws IdentityApplicationManagementException {
         return true;
     }
 
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String userName) throws IdentityApplicationManagementException {
         return true;
     }
 
-    public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPreDeleteApplication(String applicationName, String userName) throws IdentityApplicationManagementException {
         return true;
     }
 
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostDeleteApplication(String applicationName, String userName) throws IdentityApplicationManagementException {
         return true;
     }
 
-    public boolean doPreGetServiceProvider(String applicationName, String tenantDomain)
+    public boolean doPreGetServiceProvider(String applicationName)
             throws IdentityApplicationManagementException{
         return true;
     }
 
-    public boolean doPostGetServiceProvider(ServiceProvider serviceProvider, String applicationName, String tenantDomain) throws IdentityApplicationManagementException{
+    public boolean doPostGetServiceProvider(ServiceProvider serviceProvider, String applicationName) throws IdentityApplicationManagementException{
         return true;
     }
 
-    public boolean doPreGetServiceProviderByClientId(String clientId, String clientType,
-                                                     String tenantDomain)throws IdentityApplicationManagementException{
+    public boolean doPreGetServiceProviderByClientId(String clientId, String clientType)throws IdentityApplicationManagementException{
         return true;
     }
 
-    public boolean doPostGetServiceProviderByClientId(ServiceProvider serviceProvider, String clientId, String clientType,
-                                                      String tenantDomain)throws IdentityApplicationManagementException{
-        return true;
-    }
-
-    @Override
-    public boolean doPreGetAllApplicationBasicInfo(String tenantDomain, String username) throws IdentityApplicationManagementException {
+    public boolean doPostGetServiceProviderByClientId(ServiceProvider serviceProvider, String clientId, String clientType)throws IdentityApplicationManagementException{
         return true;
     }
 
     @Override
-    public boolean doPostGetAllApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username) throws IdentityApplicationManagementException {
+    public boolean doPreGetAllApplicationBasicInfo( String username) throws IdentityApplicationManagementException {
         return true;
     }
 
     @Override
-    public boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPostGetAllApplicationBasicInfo(ApplicationDAO appDAO, String username) throws IdentityApplicationManagementException {
         return true;
     }
 
     @Override
-    public boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName) throws IdentityApplicationManagementException {
         return true;
     }
 
     @Override
-    public boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName) throws IdentityApplicationManagementException {
         return true;
     }
 
     @Override
-    public boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType) throws IdentityApplicationManagementException {
         return true;
     }
 
     @Override
-    public boolean doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType) throws IdentityApplicationManagementException {
         return true;
     }
 
     @Override
-    public boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) {
+    public boolean doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type) throws IdentityApplicationManagementException {
+        return true;
+    }
+
+    @Override
+    public boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type) {
         return true;
     }
 

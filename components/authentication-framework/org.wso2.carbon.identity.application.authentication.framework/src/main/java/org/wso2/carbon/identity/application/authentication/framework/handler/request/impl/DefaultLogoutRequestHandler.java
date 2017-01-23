@@ -107,7 +107,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 }
                 try {
                     externalIdPConfig = ConfigurationFacade.getInstance()
-                            .getIdPConfigByName(idpName, context.getTenantDomain());
+                            .getIdPConfigByName(idpName);
                     context.setExternalIdP(externalIdPConfig);
                     context.setAuthenticatorProperties(FrameworkUtils
                             .getAuthenticatorPropertyMapFromIdP(

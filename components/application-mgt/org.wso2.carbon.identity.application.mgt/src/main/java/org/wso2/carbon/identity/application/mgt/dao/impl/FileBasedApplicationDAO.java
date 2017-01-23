@@ -37,13 +37,13 @@ import java.util.Map.Entry;
 public class FileBasedApplicationDAO implements ApplicationDAO {
 
     @Override
-    public int createApplication(ServiceProvider applicationDTO, String tenantDomain)
+    public int createApplication(ServiceProvider applicationDTO)
             throws IdentityApplicationManagementException {
         throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }
 
     @Override
-    public ServiceProvider getApplication(String applicationName, String tenantDomain)
+    public ServiceProvider getApplication(String applicationName)
             throws IdentityApplicationManagementException {
         return ApplicationManagementServiceComponent.getFileBasedSPs().get(applicationName);
     }
@@ -75,7 +75,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
     }
 
     @Override
-    public void updateApplication(ServiceProvider applicationDTO, String tenantDomain)
+    public void updateApplication(ServiceProvider applicationDTO)
             throws IdentityApplicationManagementException {
         throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }
@@ -107,8 +107,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
     }
 
     @Override
-    public String getServiceProviderNameByClientId(String clientId, String clientType,
-                                                   String tenantDomain) throws IdentityApplicationManagementException {
+    public String getServiceProviderNameByClientId(String clientId, String clientType) throws IdentityApplicationManagementException {
 
         Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent
                 .getFileBasedSPs();
@@ -136,8 +135,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
     }
 
     @Override
-    public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName,
-                                                                        String tenantDomain) throws IdentityApplicationManagementException {
+    public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName) throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
@@ -167,8 +165,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
     }
 
     @Override
-    public Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName,
-                                                                        String tenantDomain) throws IdentityApplicationManagementException {
+    public Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName) throws IdentityApplicationManagementException {
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
         Map<String, String> claimMap = new HashMap<String, String>();
@@ -196,8 +193,7 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
     }
 
     @Override
-    public List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName,
-                                                               String tenantDomain) throws IdentityApplicationManagementException {
+    public List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName) throws IdentityApplicationManagementException {
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
 

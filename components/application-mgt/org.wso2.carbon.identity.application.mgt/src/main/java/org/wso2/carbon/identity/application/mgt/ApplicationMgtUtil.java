@@ -484,17 +484,16 @@ public class ApplicationMgtUtil {
     /**
      * Get Property values
      *
-     * @param tenantDomain Tenant domain
      * @param spIssuer SP Issuer
      * @param propertyNames Property names
      * @return Properties map
      * @throws IdentityApplicationManagementException
      */
-    protected Map<String, String> getPropertyValues(String tenantDomain, String spIssuer, List<String> propertyNames)
+    protected Map<String, String> getPropertyValues(String spIssuer, List<String> propertyNames)
             throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                .getApplication(spIssuer, tenantDomain);
+                .getApplication(spIssuer);
 
         if (serviceProvider == null) {
             throw new IdentityApplicationManagementException(

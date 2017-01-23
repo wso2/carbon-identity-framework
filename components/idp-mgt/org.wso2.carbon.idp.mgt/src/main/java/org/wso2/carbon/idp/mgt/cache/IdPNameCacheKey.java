@@ -24,9 +24,9 @@ public class IdPNameCacheKey extends CacheKey {
 
     private String idPName;
 
-    public IdPNameCacheKey(String idPName, String tenantDomain) {
+    public IdPNameCacheKey(String idPName) {
         this.idPName = idPName;
-        this.tenantDomain = tenantDomain.toLowerCase();
+//        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     public String getIdPName() {
@@ -50,9 +50,9 @@ public class IdPNameCacheKey extends CacheKey {
         if (!idPName.equals(that.idPName)) {
             return false;
         }
-        if (!tenantDomain.equals(that.tenantDomain)) {
-            return false;
-        }
+//        if (!tenantDomain.equals(that.tenantDomain)) {
+//            return false;
+//        }
 
         return true;
     }
@@ -61,7 +61,7 @@ public class IdPNameCacheKey extends CacheKey {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + idPName.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
+//        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

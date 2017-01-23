@@ -74,13 +74,8 @@ public class AuthenticationContextCache extends
     public void addToCache(AuthenticationContextCacheKey key, AuthenticationContextCacheEntry entry) {
         super.addToCache(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
-            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
-            String tenantDomain = entry.getContext().getTenantDomain();
-            if (tenantDomain != null) {
-                tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            }
             SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
-                    entry, tenantId);
+                    entry);
         }
     }
 

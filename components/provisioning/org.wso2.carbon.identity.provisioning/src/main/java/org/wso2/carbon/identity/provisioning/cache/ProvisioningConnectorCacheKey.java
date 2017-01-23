@@ -31,7 +31,7 @@ public class ProvisioningConnectorCacheKey extends CacheKey {
      */
     public ProvisioningConnectorCacheKey(String provisioningConnectorKey, String tenantDomain) {
         this.provisioningConnectorKey = provisioningConnectorKey;
-        this.tenantDomain = tenantDomain.toLowerCase();
+//        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     /**
@@ -50,7 +50,7 @@ public class ProvisioningConnectorCacheKey extends CacheKey {
         ProvisioningConnectorCacheKey that = (ProvisioningConnectorCacheKey) o;
 
         if (!provisioningConnectorKey.equals(that.provisioningConnectorKey)) return false;
-        if (!tenantDomain.equals(that.tenantDomain)) return false;
+//        if (!tenantDomain.equals(that.tenantDomain)) return false;
 
         return true;
     }
@@ -59,7 +59,7 @@ public class ProvisioningConnectorCacheKey extends CacheKey {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + provisioningConnectorKey.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
+//        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

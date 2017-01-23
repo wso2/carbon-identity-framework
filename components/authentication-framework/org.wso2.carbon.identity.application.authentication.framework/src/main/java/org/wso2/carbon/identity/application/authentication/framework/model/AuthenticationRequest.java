@@ -50,10 +50,6 @@ public class AuthenticationRequest implements Serializable {
      */
     private boolean passiveAuth;
     /**
-     * Tenant domain of the caller application
-     */
-    private String tenantDomain;
-    /**
      * Whether the request is a post or redirect
      */
     private boolean isPost;
@@ -172,23 +168,6 @@ public class AuthenticationRequest implements Serializable {
         requestQueryParams.putAll(map);
     }
 
-    /**
-     * Get the tenant domain
-     *
-     * @return Tenant domain
-     */
-    public String getTenantDomain() {
-        return tenantDomain;
-    }
-
-    /**
-     * Set the tenant domain which the authentication request is comming from
-     *
-     * @param tenantDomain Tenant Domain
-     */
-    public void setTenantDomain(String tenantDomain) {
-        this.tenantDomain = tenantDomain;
-    }
 
     /**
      * Whether the request is a force auth request or not

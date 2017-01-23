@@ -70,12 +70,6 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     if (this instanceof LocalApplicationAuthenticator) {
                         if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
                             String userDomain = context.getSubject().getTenantDomain();
-                            String tenantDomain = context.getTenantDomain();
-                            if (!StringUtils.equals(userDomain, tenantDomain)) {
-                                context.setProperty("UserTenantDomainMismatch", true);
-                                throw new AuthenticationFailedException("Service Provider tenant domain must be " +
-                                        "equal to user tenant domain for non-SaaS applications", context.getSubject());
-                            }
                         }
                     }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);

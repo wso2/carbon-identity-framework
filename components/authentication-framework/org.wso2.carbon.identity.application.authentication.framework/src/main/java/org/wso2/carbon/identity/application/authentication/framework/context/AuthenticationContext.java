@@ -52,7 +52,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private HttpServletRequest currentRequest;
     private ExternalIdPConfig externalIdP;
     private boolean rememberMe;
-    private String tenantDomain;
     private int retryCount;
     private Map<String, String> authenticatorProperties = new HashMap<String, String>();
     private String serviceProviderName;
@@ -215,14 +214,6 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setExternalIdP(ExternalIdPConfig externalIdP) {
         this.externalIdP = externalIdP;
-    }
-
-    public String getTenantDomain() {
-        return tenantDomain;
-    }
-
-    public void setTenantDomain(String tenantDomain) {
-        this.tenantDomain = tenantDomain;
     }
 
     public AuthenticatorStateInfo getStateInfo() {

@@ -26,10 +26,9 @@ public class IdPAuthPropertyCacheKey extends CacheKey {
     private String name;
     private String value;
 
-    public IdPAuthPropertyCacheKey(String name, String value, String tenantDomain) {
+    public IdPAuthPropertyCacheKey(String name, String value) {
         this.name = name;
         this.value = value;
-        this.tenantDomain = tenantDomain.toLowerCase();
     }
 
     public String getName() {
@@ -57,9 +56,6 @@ public class IdPAuthPropertyCacheKey extends CacheKey {
         if (!name.equals(that.name)) {
             return false;
         }
-        if (!tenantDomain.equals(that.tenantDomain)) {
-            return false;
-        }
         if (!value.equals(that.value)) {
             return false;
         }
@@ -72,7 +68,6 @@ public class IdPAuthPropertyCacheKey extends CacheKey {
         int result = super.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + value.hashCode();
-        result = 31 * result + tenantDomain.hashCode();
         return result;
     }
 }

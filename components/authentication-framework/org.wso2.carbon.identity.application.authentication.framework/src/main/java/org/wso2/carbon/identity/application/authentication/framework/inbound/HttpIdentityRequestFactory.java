@@ -20,12 +20,10 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -33,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
 
@@ -43,7 +39,7 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
     protected final Properties properties = new Properties();
 
     protected InitConfig initConfig;
-    
+
     public void init(InitConfig initConfig) {
 
         this.initConfig = initConfig;
@@ -55,11 +51,11 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
             return;
         }
 
-        if(identityEventListenerConfig.getProperties() != null) {
-            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String)property.getKey();
-                String value = (String)property.getValue();
-                if(!properties.containsKey(key)) {
+        if (identityEventListenerConfig.getProperties() != null) {
+            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
+                String key = (String) property.getKey();
+                String value = (String) property.getValue();
+                if (!properties.containsKey(key)) {
                     properties.setProperty(key, value);
                 } else {
                     log.warn("Property key " + key + " already exists. Cannot add property!!");
@@ -81,32 +77,27 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
     }
 
     public void create(IdentityRequest.IdentityRequestBuilder builder,
-                                                         HttpServletRequest request, HttpServletResponse response)
+                       HttpServletRequest request, HttpServletResponse response)
             throws FrameworkClientException {
 
         Enumeration<String> headerNames = request.getHeaderNames();
-        while(headerNames.hasMoreElements()) {
+        while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
             builder.addHeader(headerName, request.getHeader(headerName));
         }
         builder.setParameters(request.getParameterMap());
         Enumeration<String> attrNames = request.getAttributeNames();
-        while(attrNames.hasMoreElements()) {
+        while (attrNames.hasMoreElements()) {
             String attrName = attrNames.nextElement();
             builder.addAttribute(attrName, request.getAttribute(attrName));
         }
         Cookie[] cookies = request.getCookies();
-        if(cookies!=null) {
+        if (cookies != null) {
             for (Cookie cookie : cookies) {
                 builder.addCookie(cookie.getName(), cookie);
             }
         }
         String requestURI = request.getRequestURI();
-        if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain() != null) {
-            builder.setTenantDomain(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-        } else {
-            builder.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        }
         builder.setContentType(request.getContentType());
         builder.setContextPath(request.getContextPath());
         builder.setMethod(request.getMethod());

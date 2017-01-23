@@ -69,6 +69,8 @@ public abstract class FrameworkConstants {
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
 
+    public static final String CARBON_HOME = "carbon.home";
+
     private FrameworkConstants() {
 
     }

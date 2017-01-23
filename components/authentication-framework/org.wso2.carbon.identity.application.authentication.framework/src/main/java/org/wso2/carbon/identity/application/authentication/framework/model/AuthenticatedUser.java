@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,7 +87,7 @@ public class AuthenticatedUser extends User {
         if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
             throw new IllegalArgumentException(
                     "Failed to create Local Authenticated User from the given subject identifier." +
-                    " Invalid argument. authenticatedSubjectIdentifier : " + authenticatedSubjectIdentifier);
+                            " Invalid argument. authenticatedSubjectIdentifier : " + authenticatedSubjectIdentifier);
         }
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
@@ -99,18 +98,18 @@ public class AuthenticatedUser extends User {
                         authenticatedSubjectIdentifier.split(CarbonConstants.DOMAIN_SEPARATOR, 2);
                 if (UserCoreUtil.getDomainFromThreadLocal().equalsIgnoreCase(subjectIdentifierSplits[0])) {
                     authenticatedUser.setUserStoreDomain(subjectIdentifierSplits[0]);
-                    authenticatedUser.setUserName(MultitenantUtils.getTenantAwareUsername(subjectIdentifierSplits[1]));
+                    authenticatedUser.setUserName(subjectIdentifierSplits[1]);
                 }
             } else {
                 authenticatedUser.setUserStoreDomain(UserCoreUtil.getDomainFromThreadLocal());
-                authenticatedUser.setUserName(MultitenantUtils.getTenantAwareUsername(authenticatedSubjectIdentifier));
+                authenticatedUser.setUserName(authenticatedSubjectIdentifier);
             }
         } else {
             authenticatedUser.setUserStoreDomain(IdentityUtil.getPrimaryDomainName());
-            authenticatedUser.setUserName(MultitenantUtils.getTenantAwareUsername(authenticatedSubjectIdentifier));
+            authenticatedUser.setUserName(authenticatedSubjectIdentifier);
         }
 
-        authenticatedUser.setTenantDomain(MultitenantUtils.getTenantDomain(authenticatedSubjectIdentifier));
+        authenticatedUser.setTenantDomain(authenticatedSubjectIdentifier);
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
 
         return authenticatedUser;
@@ -130,7 +129,7 @@ public class AuthenticatedUser extends User {
         if (authenticatedSubjectIdentifier == null || authenticatedSubjectIdentifier.trim().isEmpty()) {
             throw new IllegalArgumentException(
                     "Failed to create Federated Authenticated User from the given subject " +
-                    "identifier. Invalid argument. authenticatedSubjectIdentifier : " + authenticatedSubjectIdentifier);
+                            "identifier. Invalid argument. authenticatedSubjectIdentifier : " + authenticatedSubjectIdentifier);
         }
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
@@ -211,7 +210,6 @@ public class AuthenticatedUser extends User {
     }
 
     /**
-     *
      * @return
      */
     public String getFederatedIdPName() {
@@ -220,6 +218,7 @@ public class AuthenticatedUser extends User {
 
     /**
      * Sets the flag to indicate whether this is a federated user or not.
+     *
      * @param federatedIdPName
      */
     public void setFederatedIdPName(String federatedIdPName) {
@@ -229,7 +228,7 @@ public class AuthenticatedUser extends User {
     @Override
     public boolean equals(Object o) {
 
-        if(!isFederatedUser) {
+        if (!isFederatedUser) {
             return super.equals(o);
         } else {
             if (this == o) {
@@ -256,7 +255,7 @@ public class AuthenticatedUser extends User {
     @Override
     public int hashCode() {
 
-        if(!isFederatedUser) {
+        if (!isFederatedUser) {
             return super.hashCode();
         } else {
             int result = authenticatedSubjectIdentifier.hashCode();

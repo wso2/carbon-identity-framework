@@ -289,19 +289,14 @@ public class SessionDataStore {
     }
 
     public void storeSessionData(String key, String type, Object entry) {
-
-        storeSessionData(key, type, entry, MultitenantConstants.INVALID_TENANT_ID);
-    }
-
-    public void storeSessionData(String key, String type, Object entry, int tenantId) {
         if (!enablePersist) {
             return;
         }
         long nanoTime = FrameworkUtils.getCurrentStandardNano();
         if (maxPoolSize > 0) {
-            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime, tenantId));
+            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime));
         } else {
-            persistSessionData(key, type, entry, nanoTime, tenantId);
+            persistSessionData(key, type, entry, nanoTime);
         }
     }
 
@@ -348,7 +343,7 @@ public class SessionDataStore {
         deleteDELETEOperationsTask();
     }
 
-    public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
+    public void persistSessionData(String key, String type, Object entry, long nanoTime) {
         if (!enablePersist) {
             return;
         }
@@ -368,7 +363,6 @@ public class SessionDataStore {
             preparedStatement.setString(3, OPERATION_STORE);
             setBlobObject(preparedStatement, entry, 4);
             preparedStatement.setLong(5, nanoTime);
-            preparedStatement.setInt(6, tenantId);
             preparedStatement.executeUpdate();
             if (!connection.getAutoCommit()) {
                 connection.commit();

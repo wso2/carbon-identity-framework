@@ -85,9 +85,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -116,7 +114,7 @@ public class FrameworkUtils {
     private static int maxInactiveInterval;
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
-            .asList(new String[] { FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2 });
+            .asList(new String[]{FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2});
 
     private FrameworkUtils() {
     }
@@ -184,24 +182,20 @@ public class FrameworkUtils {
             // Adding field variables to wrapper
             if (authenticationRequest.getType() != null) {
                 modifiableParameters.put(FrameworkConstants.RequestParams.TYPE,
-                                         new String[]{authenticationRequest.getType()});
+                        new String[]{authenticationRequest.getType()});
             }
             if (authenticationRequest.getCommonAuthCallerPath() != null) {
                 modifiableParameters.put(FrameworkConstants.RequestParams.CALLER_PATH,
-                                         new String[]{authenticationRequest.getCommonAuthCallerPath()});
+                        new String[]{authenticationRequest.getCommonAuthCallerPath()});
             }
             if (authenticationRequest.getRelyingParty() != null) {
                 modifiableParameters.put(FrameworkConstants.RequestParams.ISSUER,
-                                         new String[]{authenticationRequest.getRelyingParty()});
-            }
-            if (authenticationRequest.getTenantDomain() != null) {
-                modifiableParameters.put(FrameworkConstants.RequestParams.TENANT_DOMAIN,
-                                         new String[]{authenticationRequest.getTenantDomain()});
+                        new String[]{authenticationRequest.getRelyingParty()});
             }
             modifiableParameters.put(FrameworkConstants.RequestParams.FORCE_AUTHENTICATE,
-                                     new String[]{String.valueOf(authenticationRequest.getForceAuth())});
+                    new String[]{String.valueOf(authenticationRequest.getForceAuth())});
             modifiableParameters.put(FrameworkConstants.RequestParams.PASSIVE_AUTHENTICATION,
-                                     new String[]{String.valueOf(authenticationRequest.getPassiveAuth())});
+                    new String[]{String.valueOf(authenticationRequest.getPassiveAuth())});
 
             if (log.isDebugEnabled()) {
                 StringBuilder queryStringBuilder = new StringBuilder("");
@@ -224,7 +218,7 @@ public class FrameworkUtils {
             }
 
             return new AuthenticationFrameworkWrapper(request, modifiableParameters,
-                                                      authenticationRequest.getRequestHeaders());
+                    authenticationRequest.getRequestHeaders());
         }
         return request;
     }
@@ -493,7 +487,7 @@ public class FrameworkUtils {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(FrameworkConstants.COMMONAUTH_COOKIE)) {
                     cookie.setMaxAge(0);
-                    cookie.setHttpOnly(true);
+//                    cookie.setHttpOnly(true);
                     cookie.setSecure(true);
                     cookie.setPath("/");
                     resp.addCookie(cookie);
@@ -615,6 +609,7 @@ public class FrameworkUtils {
 
     /**
      * To get authentication cache result from cache
+     *
      * @param key
      * @return
      */
@@ -625,7 +620,8 @@ public class FrameworkUtils {
     }
 
     /**
-     *  Removes authentication result from cache.
+     * Removes authentication result from cache.
+     *
      * @param autheticationResultId
      */
     public static void removeAuthenticationResultFromCache(String autheticationResultId) {
@@ -766,7 +762,7 @@ public class FrameworkUtils {
                 continue;
             }
             claimMap.put(ClaimMapping.build(entry.getKey(), entry.getKey(), null, false),
-                         entry.getValue());
+                    entry.getValue());
         }
 
         return claimMap;
@@ -915,7 +911,7 @@ public class FrameworkUtils {
                             .get(authenticatorIdp);
 
                     if (authenticatedIdPData != null
-                        && authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
+                            && authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
                         idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
                         break;
                     }
@@ -983,7 +979,7 @@ public class FrameworkUtils {
 
         if (configAvailable) {
             if (action != null
-                && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
+                    && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
                 if (reqParamMap != null) {
                     for (Map.Entry<String, String[]> entry : reqParamMap.entrySet()) {
                         String paramName = entry.getKey();
@@ -1073,18 +1069,18 @@ public class FrameworkUtils {
 
         if (authenticatedSubject == null || authenticatedSubject.trim().isEmpty()) {
             throw new IllegalArgumentException("Invalid argument. authenticatedSubject : "
-                                               + authenticatedSubject);
+                    + authenticatedSubject);
         }
         if (!authenticatedSubject.contains(CarbonConstants.DOMAIN_SEPARATOR)) {
             if (UserCoreUtil.getDomainFromThreadLocal() != null
-                && !UserCoreUtil.getDomainFromThreadLocal().isEmpty()) {
+                    && !UserCoreUtil.getDomainFromThreadLocal().isEmpty()) {
                 authenticatedSubject = UserCoreUtil.getDomainFromThreadLocal()
-                                       + CarbonConstants.DOMAIN_SEPARATOR + authenticatedSubject;
+                        + CarbonConstants.DOMAIN_SEPARATOR + authenticatedSubject;
             }
         } else if (authenticatedSubject.indexOf(CarbonConstants.DOMAIN_SEPARATOR) == 0) {
             throw new IllegalArgumentException("Invalid argument. authenticatedSubject : "
-                                               + authenticatedSubject + " begins with \'" + CarbonConstants.DOMAIN_SEPARATOR
-                                               + "\'");
+                    + authenticatedSubject + " begins with \'" + CarbonConstants.DOMAIN_SEPARATOR
+                    + "\'");
         }
         return authenticatedSubject;
     }
@@ -1119,7 +1115,7 @@ public class FrameworkUtils {
             Map<String, String> mappedAttrs = null;
             try {
                 mappedAttrs = ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
-                        extAttributesValueMap.keySet(), context.getTenantDomain(), true);
+                        extAttributesValueMap.keySet(), true);
             } catch (ClaimMetadataException e) {
                 throw new FrameworkException("Error while loading claim mappings.", e);
             }
@@ -1137,32 +1133,6 @@ public class FrameworkUtils {
         return value;
     }
 
-    /**
-     * Starts the tenant flow for the given tenant domain
-     *
-     * @param tenantDomain tenant domain
-     */
-    public static void startTenantFlow(String tenantDomain) {
-        String tenantDomainParam = tenantDomain;
-        int tenantId = MultitenantConstants.SUPER_TENANT_ID;
-
-        if (tenantDomainParam != null && !tenantDomainParam.trim().isEmpty()) {
-            try {
-                tenantId = FrameworkServiceComponent.getRealmService().getTenantManager()
-                        .getTenantId(tenantDomain);
-            } catch (UserStoreException e) {
-                log.error("Error while getting tenantId from tenantDomain query param", e);
-            }
-        } else {
-            tenantDomainParam = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        }
-
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
-                .getThreadLocalCarbonContext();
-        carbonContext.setTenantId(tenantId);
-        carbonContext.setTenantDomain(tenantDomainParam);
-    }
 
     /**
      * Ends the tenant flow

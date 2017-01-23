@@ -149,7 +149,6 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         for (Map.Entry<String,String> header : headers) {
             authenticationRequest.addHeader(header.getKey(), header.getValue());
         }
-        authenticationRequest.setTenantDomain(identityRequest.getTenantDomain());
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
         authenticationRequest.setType(getType(context));
         authenticationRequest.setPassiveAuth(Boolean.parseBoolean(
@@ -201,7 +200,6 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         for (Map.Entry<String,String> header : headers) {
             authenticationRequest.addHeader(header.getKey(), header.getValue());
         }
-        authenticationRequest.setTenantDomain(identityRequest.getTenantDomain());
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
         authenticationRequest.setType(getType(context));
         try {

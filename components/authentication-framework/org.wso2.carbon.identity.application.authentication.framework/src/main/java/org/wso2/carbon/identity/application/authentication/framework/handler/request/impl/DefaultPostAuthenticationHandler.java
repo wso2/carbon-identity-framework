@@ -229,7 +229,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                                 subject);
                         if (StringUtils.isNotBlank(associatedID)) {
                             String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
-                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
+                                    associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER);
                             user = AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(
                                     fullQualifiedAssociatedUserId);
                             persistClaims = true;
@@ -256,7 +256,7 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                 ApplicationManagementServiceImpl applicationManagementService =
                         ApplicationManagementServiceImpl.getInstance();
                 Map<String, String> claimMapping =
-                        applicationManagementService.getServiceProviderToLocalIdPClaimMapping(spName, tenantDomain);
+                        applicationManagementService.getServiceProviderToLocalIdPClaimMapping(spName);
 
                 Map<String, String> localIdpClaims = new HashMap<>();
                 for (Map.Entry<String, String> entry : claims.entrySet()) {

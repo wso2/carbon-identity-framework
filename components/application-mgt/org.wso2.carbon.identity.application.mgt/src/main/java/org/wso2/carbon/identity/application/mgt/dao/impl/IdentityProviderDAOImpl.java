@@ -56,8 +56,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
             throws IdentityApplicationManagementException {
         IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
         try {
-            IdentityProvider idp = idpManager.getIdPByName(idpName, CarbonContext
-                    .getThreadLocalCarbonContext().getTenantDomain());
+            IdentityProvider idp = idpManager.getIdPByName(idpName);
             return idp.getDefaultAuthenticatorConfig() != null ? idp
                     .getDefaultAuthenticatorConfig().getName() : null;
         } catch (IdentityProviderManagementException e) {
@@ -74,8 +73,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
             throws IdentityApplicationManagementException {
         IdentityProviderManager idpManager = IdentityProviderManager.getInstance();
         try {
-            IdentityProvider idp = idpManager.getIdPByName(idpName, CarbonContext
-                    .getThreadLocalCarbonContext().getTenantDomain());
+            IdentityProvider idp = idpManager.getIdPByName(idpName);
 
             IdentityProvider identityProvider = new IdentityProvider();
             identityProvider.setIdentityProviderName(idp.getIdentityProviderName());
@@ -137,7 +135,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
         List<IdentityProvider> idps;
         try {
             idps = idpManager
-                    .getIdPs(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                    .getIdPs();
         } catch (IdentityProviderManagementException e) {
             throw new IdentityApplicationManagementException("Error when retrieving all identity providers in " +
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain() +" tenant domain.", e);

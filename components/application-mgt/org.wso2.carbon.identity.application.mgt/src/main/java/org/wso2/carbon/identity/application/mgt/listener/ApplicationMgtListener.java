@@ -49,94 +49,84 @@ public interface ApplicationMgtListener {
      * Define any additional actions before creating an application
      *
      * @param serviceProvider Created Service Provider
-     * @param tenantDomain    Tenant domain of the user
      * @param userName        User name of the user
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPreCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public boolean doPreCreateApplication(ServiceProvider serviceProvider, String userName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after creating an application
      *
      * @param serviceProvider
-     * @param tenantDomain
      * @param userName
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String userName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before updating an application
      *
      * @param serviceProvider
-     * @param tenantDomain
      * @param userName
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String userName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after updating an application
-     *
-     * @param serviceProvider
-     * @param tenantDomain
      * @param userName
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String userName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before deleting an application
      *
      * @param applicationName
-     * @param tenantDomain
      * @param userName
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName)
+    public boolean doPreDeleteApplication(String applicationName, String userName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after deleting an application
      *
      * @param applicationName
-     * @param tenantDomain
      * @param userName
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
+    public boolean doPostDeleteApplication(String applicationName, String userName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before getting a service provider
      *
      * @param applicationName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPreGetServiceProvider(String applicationName, String tenantDomain)
+    boolean doPreGetServiceProvider(String applicationName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after getting a service provider
      *
      * @param applicationName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPostGetServiceProvider(ServiceProvider serviceProvider, String applicationName, String tenantDomain)
+    boolean doPostGetServiceProvider(ServiceProvider serviceProvider, String applicationName)
             throws IdentityApplicationManagementException;
 
     /**
@@ -144,11 +134,10 @@ public interface ApplicationMgtListener {
      *
      * @param clientId
      * @param clientType
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPreGetServiceProviderByClientId(String clientId, String clientType, String tenantDomain)
+    boolean doPreGetServiceProviderByClientId(String clientId, String clientType)
             throws IdentityApplicationManagementException;
 
     /**
@@ -157,46 +146,41 @@ public interface ApplicationMgtListener {
      * @param serviceprovider
      * @param clientId
      * @param clientType
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPostGetServiceProviderByClientId(ServiceProvider serviceprovider, String clientId, String clientType, String tenantDomain)
+    boolean doPostGetServiceProviderByClientId(ServiceProvider serviceprovider, String clientId, String clientType)
             throws IdentityApplicationManagementException;
 
 
     /**
      * Define any additional actions before getting all applications' basic information
-     *
-     * @param tenantDomain
      * @param username
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPreGetAllApplicationBasicInfo(String tenantDomain, String username)
+    boolean doPreGetAllApplicationBasicInfo(String username)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after getting all applications' basic information
      *
      * @param appDAO
-     * @param tenantDomain
      * @param username
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPostGetAllApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username)
+    boolean doPostGetAllApplicationBasicInfo(ApplicationDAO appDAO, String username)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before getting an application excluding file based SPs.
      *
      * @param applicationName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
+    boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName)
             throws IdentityApplicationManagementException;
 
     /**
@@ -204,23 +188,20 @@ public interface ApplicationMgtListener {
      *
      * @param serviceProvider
      * @param applicationName
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName,
-                                                      String tenantDomain) throws IdentityApplicationManagementException;
+    boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName) throws IdentityApplicationManagementException;
 
     /**
      *  Define any additional actions before getting service provider name by client id.
      *
      * @param clientId
      * @param clientType
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain)
+    boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType)
             throws IdentityApplicationManagementException;
 
     /**
@@ -229,11 +210,10 @@ public interface ApplicationMgtListener {
      * @param name
      * @param clientId
      * @param clientType
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType, String tenantDomain)
+    boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType)
             throws IdentityApplicationManagementException;
 
     /**
@@ -242,12 +222,10 @@ public interface ApplicationMgtListener {
      * @param name
      * @param clientId
      * @param type
-     * @param tenantDomain
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type,
-                                                                       String tenantDomain) throws IdentityApplicationManagementException;
+    boolean doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type) throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after getting service provider name by client id, excluding file based ones.
@@ -255,8 +233,7 @@ public interface ApplicationMgtListener {
      * @param name
      * @param clientId
      * @param type
-     * @param tenantDomain
      * @return
      */
-    boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain);
+    boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type);
 }

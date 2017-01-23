@@ -33,21 +33,11 @@ public class SessionContextDO {
 
     private long nanoTime;
 
-    private int tenantId;
-
     public SessionContextDO(String key, String type, Object entry, long nanoTime) {
         this.type = type;
         this.key = key;
         this.entry = entry;
         this.nanoTime = nanoTime;
-    }
-
-    public SessionContextDO(String key, String type, Object entry, long nanoTime, int tenantId) {
-        this.type = type;
-        this.key = key;
-        this.entry = entry;
-        this.nanoTime = nanoTime;
-        this.tenantId = tenantId;
     }
 
     public String getKey() {
@@ -82,11 +72,4 @@ public class SessionContextDO {
         this.nanoTime = nanoTime;
     }
 
-    public int getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(int tenantId) {
-        this.tenantId = tenantId;
-    }
 }
