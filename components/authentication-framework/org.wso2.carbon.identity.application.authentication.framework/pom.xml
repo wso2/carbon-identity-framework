@@ -38,10 +38,6 @@
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.idp.mgt</artifactId>
         </dependency>
@@ -115,7 +111,6 @@
 
                             org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
 

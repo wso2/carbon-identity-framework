@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -29,7 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-public class SessionManagementService extends AbstractAdmin {
+public class SessionManagementService {
 
     private static Log log = LogFactory.getLog(SessionManagementService.class);
 
@@ -45,7 +44,6 @@ public class SessionManagementService extends AbstractAdmin {
     }
 
     /**
-     *
      * Terminates the requested session, after validating whether the session belongs to the logged in user.
      *
      * @param sessionId

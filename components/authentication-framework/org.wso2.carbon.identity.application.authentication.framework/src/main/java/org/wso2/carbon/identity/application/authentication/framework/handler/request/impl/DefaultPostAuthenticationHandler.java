@@ -24,18 +24,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -272,17 +268,17 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
             } catch (UserStoreException e) {
                 throw new FrameworkException(
                         "Error while updating claims for local user. Could not update profile", e);
-            }
+
 //            } catch (IdentityApplicationManagementException e) {
 //                throw new FrameworkException(
 //                        "Error while retrieving application claim mapping. Could not update profile", e);
-//            }
+            }
+            }
+
+            context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+            context.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, true);
+
         }
-
-        context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
-        context.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED, true);
-
-    }
 
     private String getMissingClaims(Map<String, String> mappedAttrs, Map<String, String> mandatoryClaims) {
 
@@ -297,15 +293,15 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
     }
 
     private UserRealm getUserRealm(String tenantDomain) throws FrameworkException {
-        UserRealm realm;
-        try {
-            realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    FrameworkServiceComponent.getRegistryService(),
-                    FrameworkServiceComponent.getRealmService(), tenantDomain);
-        } catch (CarbonException e) {
-            throw new FrameworkException("Error occurred while retrieving the Realm for " +
-                    tenantDomain + " to handle local claims", e);
-        }
+        UserRealm realm = null;
+//        try {
+//            realm = AnonymousSessionUtil.getRealmByTenantDomain(
+//                    FrameworkServiceComponent.getRegistryService(),
+//                    FrameworkServiceComponent.getRealmService(), tenantDomain);
+//        } catch (CarbonException e) {
+//            throw new FrameworkException("Error occurred while retrieving the Realm for " +
+//                    tenantDomain + " to handle local claims", e);
+//        }
         return realm;
     }
 }

@@ -22,8 +22,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
@@ -71,8 +69,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         try {
 //            int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-            UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                    realmService, "");
+            // just to avoid using anonymouse
+            UserRealm realm = realmService.getBootstrapRealm();
 
             String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
 
@@ -144,7 +142,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
 //            PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
