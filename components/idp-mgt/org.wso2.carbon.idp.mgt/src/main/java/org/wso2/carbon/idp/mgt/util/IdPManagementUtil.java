@@ -22,15 +22,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.application.common.processors.RandomPasswordProcessor;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -60,14 +54,15 @@ public class IdPManagementUtil {
     }
 
     /**
-     +     * Get the resident entity id configured in identity.xml.
-     +     *
-     +     */
+     * +     * Get the resident entity id configured in identity.xml.
+     * +     *
+     * +
+     */
     public static String getResidentIdPEntityId() {
         String localEntityId = IdentityUtil.getProperty("SSOService.EntityId");
-            if (localEntityId == null || localEntityId.trim().isEmpty()) {
-                localEntityId = "localhost";
-            }
+        if (localEntityId == null || localEntityId.trim().isEmpty()) {
+            localEntityId = "localhost";
+        }
         return localEntityId;
     }
 
@@ -83,6 +78,7 @@ public class IdPManagementUtil {
 
     /**
      * Use this method to replace original passwords with random passwords before sending to UI front-end
+     *
      * @param identityProvider
      * @return
      */
@@ -98,13 +94,14 @@ public class IdPManagementUtil {
             if (ArrayUtils.isEmpty(properties)) {
                 continue;
             }
-            properties = RandomPasswordProcessor.getInstance().removeOriginalPasswords(properties);
+            //properties = RandomPasswordProcessor.getInstance().removeOriginalPasswords(properties);
             provisioningConnectorConfig.setProvisioningProperties(properties);
         }
     }
 
     /**
-     * Use this method to replace random passwords with original passwords when original passwords are required  
+     * Use this method to replace random passwords with original passwords when original passwords are required
+     *
      * @param identityProvider
      * @param withCacheClear
      */
@@ -119,7 +116,7 @@ public class IdPManagementUtil {
             if (ArrayUtils.isEmpty(properties)) {
                 continue;
             }
-            properties = RandomPasswordProcessor.getInstance().removeRandomPasswords(properties, withCacheClear);
+            // properties = RandomPasswordProcessor.getInstance().removeRandomPasswords(properties, withCacheClear);
             provisioningConnectorConfig.setProvisioningProperties(properties);
         }
     }

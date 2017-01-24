@@ -27,14 +27,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.CertData;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
-import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -58,11 +55,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -70,151 +63,151 @@ import java.util.Set;
 
 public class IdentityApplicationManagementUtil {
 
-    private IdentityApplicationManagementUtil(){
+    private IdentityApplicationManagementUtil() {
     }
 
     private static final Log log = LogFactory.getLog(IdentityApplicationManagementUtil.class);
     private static ThreadLocal<ThreadLocalProvisioningServiceProvider> threadLocalProvisioningServiceProvider = new ThreadLocal<ThreadLocalProvisioningServiceProvider>();
-    
-    private static final Map<String, String> xmlSignatureAlgorithms;
-    private static final Map<String, String> xmlDigestAlgorithms;
-    private static final Map<String, String> samlAuthnContextClasses;
-    private static final List<String> samlAuthnContextComparisonLevels;
-    
-    static {
-        //initialize xmlSignatureAlgorithms
-        Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<String, String>();
-        xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.DSA_SHA1,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.DSA_SHA1);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA1,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA1);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA256,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA256);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA384,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA384);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA512,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA512);
-        xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_MD5,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_MD5);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_RIPEMD160,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_RIPEMD160);
-        xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA1);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA256,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA256);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA384,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA384);
-        xmlSignatureAlgorithmMap.put(
-                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA512,
-                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA512);
-        xmlSignatureAlgorithms = Collections.unmodifiableMap(xmlSignatureAlgorithmMap);
-        
-        //initialize xmlDigestAlgorithms
-        Map<String, String> xmlDigestAlgorithmMap = new LinkedHashMap<String, String>();
-        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.MD5,
-                IdentityApplicationConstants.XML.DigestAlgorithmURI.MD5);
-        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.RIPEMD160,
-                IdentityApplicationConstants.XML.DigestAlgorithmURI.RIPEMD160);
-        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA1,
-                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA1);
-        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA256,
-                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA256);
-        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA384,
-                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA384);
-        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA512,
-                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA512);
-        xmlDigestAlgorithms = Collections.unmodifiableMap(xmlDigestAlgorithmMap);
-        
-        //initialize samlAuthnContextClasses
-        Map<String, String> samlAuthnContextClassMap = new LinkedHashMap<String, String>();
-        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.IP,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.IP);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.IP_PASSWORD,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.IP_PASSWORD);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.KERBEROS,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.KERBEROS);
-        samlAuthnContextClassMap
-                .put(IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_ONE_FACTOR_UNREGISTERED,
-                        IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_ONE_FACTOR_UNREGISTERED);
-        samlAuthnContextClassMap
-                .put(IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_TWO_FACTOR_UNREGISTERED,
-                        IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_TWO_FACTOR_UNREGISTERED);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_ONE_FACTOR_CONTRACT,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_ONE_FACTOR_CONTRACT);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_TWO_FACTOR_CONTRACT,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_TWO_FACTOR_CONTRACT);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PASSWORD);
-        samlAuthnContextClassMap
-                .put(IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT,
-                        IdentityApplicationConstants.SAML2.AuthnContextClassURI.PASSWORD_PROTECTED_TRANSPORT);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.PREVIOUS_SESSION,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PREVIOUS_SESSION);
-        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.X509,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.X509);
-        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.PGP,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PGP);
-        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.SPKI,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SPKI);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.XML_DSIG,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.XML_DSIG);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.SMARTCARD,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SMARTCARD);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.SMARTCARD_PKI,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SMARTCARD_PKI);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.SOFTWARE_PKI,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SOFTWARE_PKI);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.TELEPHONY,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.TELEPHONY);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.NOMAD_TELEPHONY,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.NOMAD_TELEPHONY);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.PERSONAL_TELEPHONY,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PERSONAL_TELEPHONY);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.AUTHENTICATED_TELEPHONY,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.AUTHENTICATED_TELEPHONY);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.SECURE_REMOTE_PASSWORD,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SECURE_REMOTE_PASSWORD);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.TLS_CLIENT,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.TLS_CLIENT);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.TIME_SYNC_TOKEN,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.TIME_SYNC_TOKEN);
-        samlAuthnContextClassMap.put(
-                IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED,
-                IdentityApplicationConstants.SAML2.AuthnContextClassURI.UNSPECIFIED);
-        samlAuthnContextClasses = Collections.unmodifiableMap(samlAuthnContextClassMap);
-        
-        ////initialize samlAuthnContextComparisonLevels map
-        List<String> samlAuthnContextComparisonLevelList = new ArrayList<String>();
-        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT);
-        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MINIMUM);
-        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MAXIMUM);
-        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.BETTER);
-        samlAuthnContextComparisonLevels = Collections.unmodifiableList(samlAuthnContextComparisonLevelList);
-    }
+
+    private static final Map<String, String> xmlSignatureAlgorithms = null;
+    private static final Map<String, String> xmlDigestAlgorithms = null;
+    private static final Map<String, String> samlAuthnContextClasses = null;
+    private static final List<String> samlAuthnContextComparisonLevels = null;
+
+//    static {
+//        //initialize xmlSignatureAlgorithms
+//        Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<String, String>();
+//        xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.DSA_SHA1,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.DSA_SHA1);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA1,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA1);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA256,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA256);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA384,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA384);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.ECDSA_SHA512,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.ECDSA_SHA512);
+//        xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_MD5,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_MD5);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_RIPEMD160,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_RIPEMD160);
+//        xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA1);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA256,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA256);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA384,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA384);
+//        xmlSignatureAlgorithmMap.put(
+//                IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA512,
+//                IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA512);
+//        xmlSignatureAlgorithms = Collections.unmodifiableMap(xmlSignatureAlgorithmMap);
+//
+//        //initialize xmlDigestAlgorithms
+//        Map<String, String> xmlDigestAlgorithmMap = new LinkedHashMap<String, String>();
+//        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.MD5,
+//                IdentityApplicationConstants.XML.DigestAlgorithmURI.MD5);
+//        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.RIPEMD160,
+//                IdentityApplicationConstants.XML.DigestAlgorithmURI.RIPEMD160);
+//        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA1,
+//                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA1);
+//        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA256,
+//                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA256);
+//        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA384,
+//                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA384);
+//        xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.SHA512,
+//                IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA512);
+//        xmlDigestAlgorithms = Collections.unmodifiableMap(xmlDigestAlgorithmMap);
+//
+//        //initialize samlAuthnContextClasses
+//        Map<String, String> samlAuthnContextClassMap = new LinkedHashMap<String, String>();
+//        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.IP,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.IP);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.IP_PASSWORD,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.IP_PASSWORD);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.KERBEROS,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.KERBEROS);
+//        samlAuthnContextClassMap
+//                .put(IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_ONE_FACTOR_UNREGISTERED,
+//                        IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_ONE_FACTOR_UNREGISTERED);
+//        samlAuthnContextClassMap
+//                .put(IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_TWO_FACTOR_UNREGISTERED,
+//                        IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_TWO_FACTOR_UNREGISTERED);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_ONE_FACTOR_CONTRACT,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_ONE_FACTOR_CONTRACT);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.MOBILE_TWO_FACTOR_CONTRACT,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.MOBILE_TWO_FACTOR_CONTRACT);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PASSWORD);
+//        samlAuthnContextClassMap
+//                .put(IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT,
+//                        IdentityApplicationConstants.SAML2.AuthnContextClassURI.PASSWORD_PROTECTED_TRANSPORT);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.PREVIOUS_SESSION,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PREVIOUS_SESSION);
+//        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.X509,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.X509);
+//        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.PGP,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PGP);
+//        samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.SPKI,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SPKI);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.XML_DSIG,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.XML_DSIG);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.SMARTCARD,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SMARTCARD);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.SMARTCARD_PKI,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SMARTCARD_PKI);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.SOFTWARE_PKI,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SOFTWARE_PKI);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.TELEPHONY,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.TELEPHONY);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.NOMAD_TELEPHONY,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.NOMAD_TELEPHONY);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.PERSONAL_TELEPHONY,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.PERSONAL_TELEPHONY);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.AUTHENTICATED_TELEPHONY,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.AUTHENTICATED_TELEPHONY);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.SECURE_REMOTE_PASSWORD,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.SECURE_REMOTE_PASSWORD);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.TLS_CLIENT,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.TLS_CLIENT);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.TIME_SYNC_TOKEN,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.TIME_SYNC_TOKEN);
+//        samlAuthnContextClassMap.put(
+//                IdentityApplicationConstants.SAML2.AuthnContextClass.UNSPECIFIED,
+//                IdentityApplicationConstants.SAML2.AuthnContextClassURI.UNSPECIFIED);
+//        samlAuthnContextClasses = Collections.unmodifiableMap(samlAuthnContextClassMap);
+//
+//        ////initialize samlAuthnContextComparisonLevels map
+//        List<String> samlAuthnContextComparisonLevelList = new ArrayList<String>();
+//        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT);
+//        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MINIMUM);
+//        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MAXIMUM);
+//        samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.BETTER);
+//        samlAuthnContextComparisonLevels = Collections.unmodifiableList(samlAuthnContextComparisonLevelList);
+//    }
 
     /**
      *
@@ -498,24 +491,24 @@ public class IdentityApplicationManagementUtil {
      */
     public static Properties readProperties(OMElement configElem) {
 
-        Properties properties = new Properties();
-        OMElement propsElem = configElem
-                .getFirstChildWithName(getQNameWithIdentityApplicationNS(IdentityApplicationConstants.ConfigElements.PROPERTIES));
-        if (propsElem != null) {
-            Iterator propItr = propsElem
-                    .getChildrenWithLocalName(IdentityApplicationConstants.ConfigElements.PROPERTY);
-            for (; propItr.hasNext(); ) {
-                OMElement propElem = (OMElement) propItr.next();
-                String propName = propElem.getAttributeValue(
-                        new QName(IdentityApplicationConstants.ConfigElements.ATTR_NAME)).trim();
-                String propValue = propElem.getText().trim();
-                properties.put(propName, propValue);
-                if (log.isDebugEnabled()) {
-                    log.debug("Property name : " + propName + ", Property Value : " + propValue);
-                }
-            }
-        }
-        return properties;
+//        Properties properties = new Properties();
+//        OMElement propsElem = configElem
+//                .getFirstChildWithName(getQNameWithIdentityApplicationNS(IdentityApplicationConstants.ConfigElements.PROPERTIES));
+//        if (propsElem != null) {
+//            Iterator propItr = propsElem
+//                    .getChildrenWithLocalName(IdentityApplicationConstants.ConfigElements.PROPERTY);
+//            for (; propItr.hasNext(); ) {
+//                OMElement propElem = (OMElement) propItr.next();
+//                String propName = propElem.getAttributeValue(
+//                        new QName(IdentityApplicationConstants.ConfigElements.ATTR_NAME)).trim();
+//                String propValue = propElem.getText().trim();
+//                properties.put(propName, propValue);
+//                if (log.isDebugEnabled()) {
+//                    log.debug("Property name : " + propName + ", Property Value : " + propValue);
+//                }
+//            }
+//        }
+        return new Properties();
     }
 
     /**
@@ -523,7 +516,8 @@ public class IdentityApplicationManagementUtil {
      * @return
      */
     public static QName getQNameWithIdentityApplicationNS(String localPart) {
-        return new QName(IdentityApplicationConstants.APPLICATION_AUTHENTICATION_DEFAULT_NAMESPACE, localPart);
+//        return new QName(IdentityApplicationConstants.APPLICATION_AUTHENTICATION_DEFAULT_NAMESPACE, localPart);
+        return null;
     }
 
     /**
@@ -591,63 +585,64 @@ public class IdentityApplicationManagementUtil {
      */
     public static String getSignedJWT(String jsonObj, ServiceProvider serviceProvider) {
 
-        String oauthConsumerSecret = null;
-
-        if (serviceProvider.getInboundAuthenticationConfig() != null
-                && serviceProvider.getInboundAuthenticationConfig()
-                .getInboundAuthenticationRequestConfigs() != null
-                && serviceProvider.getInboundAuthenticationConfig()
-                .getInboundAuthenticationRequestConfigs().length > 0) {
-
-            InboundAuthenticationRequestConfig[] authReqConfigs = serviceProvider
-                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-
-            for (InboundAuthenticationRequestConfig authReqConfig : authReqConfigs) {
-                if ((IdentityApplicationConstants.OAuth2.NAME).equals(authReqConfig.getInboundAuthType())) {
-                    if (authReqConfig.getProperties() != null) {
-                        for (Property property : authReqConfig.getProperties()) {
-                            if ((IdentityApplicationConstants.OAuth2.OAUTH_CONSUMER_SECRET)
-                                    .equalsIgnoreCase(property.getName())) {
-                                oauthConsumerSecret = property.getValue();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-        }
-
-        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + new Date().getTime() + 3000 + ",\"iat\":"
-                + new Date().getTime() + "," + jsonObj + "}";
-        String jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"HS256\"}";
-
-        if (oauthConsumerSecret == null) {
-            jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"none\"}";
-        }
-
-        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes());
-        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes());
-
-        if (log.isDebugEnabled()) {
-            log.debug("JWT Header :" + jwtHeader);
-            log.debug("JWT Body :" + jwtBody);
-        }
-
-        String assertion = base64EncodedHeader + "." + base64EncodedBody;
-
-        if (oauthConsumerSecret == null) {
-            return assertion + ".";
-        } else {
-            String signedAssertion;
-            try {
-                signedAssertion = calculateHmacSha1(oauthConsumerSecret, assertion);
-                return assertion + "." + signedAssertion;
-            } catch (SignatureException e) {
-                log.error("Error while siging the assertion", e);
-                return assertion + ".";
-            }
-        }
+//        String oauthConsumerSecret = null;
+//
+//        if (serviceProvider.getInboundAuthenticationConfig() != null
+//                && serviceProvider.getInboundAuthenticationConfig()
+//                .getInboundAuthenticationRequestConfigs() != null
+//                && serviceProvider.getInboundAuthenticationConfig()
+//                .getInboundAuthenticationRequestConfigs().length > 0) {
+//
+//            InboundAuthenticationRequestConfig[] authReqConfigs = serviceProvider
+//                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+//
+//            for (InboundAuthenticationRequestConfig authReqConfig : authReqConfigs) {
+//                if ((IdentityApplicationConstants.OAuth2.NAME).equals(authReqConfig.getInboundAuthType())) {
+//                    if (authReqConfig.getProperties() != null) {
+//                        for (Property property : authReqConfig.getProperties()) {
+//                            if ((IdentityApplicationConstants.OAuth2.OAUTH_CONSUMER_SECRET)
+//                                    .equalsIgnoreCase(property.getName())) {
+//                                oauthConsumerSecret = property.getValue();
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//        }
+//
+//        String jwtBody = "{\"iss\":\"wso2\",\"exp\":" + new Date().getTime() + 3000 + ",\"iat\":"
+//                + new Date().getTime() + "," + jsonObj + "}";
+//        String jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"HS256\"}";
+//
+//        if (oauthConsumerSecret == null) {
+//            jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"none\"}";
+//        }
+//
+//        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes());
+//        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes());
+//
+//        if (log.isDebugEnabled()) {
+//            log.debug("JWT Header :" + jwtHeader);
+//            log.debug("JWT Body :" + jwtBody);
+//        }
+//
+//        String assertion = base64EncodedHeader + "." + base64EncodedBody;
+//
+//        if (oauthConsumerSecret == null) {
+//            return assertion + ".";
+//        } else {
+//            String signedAssertion;
+//            try {
+//                signedAssertion = calculateHmacSha1(oauthConsumerSecret, assertion);
+//                return assertion + "." + signedAssertion;
+//            } catch (SignatureException e) {
+//                log.error("Error while siging the assertion", e);
+//                return assertion + ".";
+//            }
+//        }
+        return null;
     }
 
     /**
@@ -672,31 +667,31 @@ public class IdentityApplicationManagementUtil {
         }
         return result;
     }
-    
+
     public static Map<String, String> getXMLSignatureAlgorithms() {
         return xmlSignatureAlgorithms;
     }
-    
+
     public static Map<String, String> getXMLDigestAlgorithms() {
         return xmlDigestAlgorithms;
     }
-    
+
     public static Map<String, String> getSAMLAuthnContextClasses() {
         return samlAuthnContextClasses;
     }
-    
+
     public static List<String> getSAMLAuthnContextComparisonLevels() {
         return samlAuthnContextComparisonLevels;
     }
-    
+
     public static Set<String> getXMLSignatureAlgorithmNames() {
         return xmlSignatureAlgorithms.keySet();
     }
-    
+
     public static Set<String> getXMLDigestAlgorithmNames() {
         return xmlDigestAlgorithms.keySet();
     }
-    
+
     public static Set<String> getSAMLAuthnContextClassNames() {
         return samlAuthnContextClasses.keySet();
     }
@@ -705,24 +700,26 @@ public class IdentityApplicationManagementUtil {
      * @return the Signing Algorithm URI defined in configuration
      */
     public static String getSigningAlgoURIByConfig() {
-        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
-                .SSO_DEFAULT_SIGNING_ALGORITHM))) {
-            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_SIGNING_ALGORITHM).trim();
-        } else {
-            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA1;
-        }
+//        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+//                .SSO_DEFAULT_SIGNING_ALGORITHM))) {
+//            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_SIGNING_ALGORITHM).trim();
+//        } else {
+//            return IdentityApplicationConstants.XML.SignatureAlgorithmURI.RSA_SHA1;
+//        }
+        return null;
     }
 
     /**
      * @return the Digest Algorithm URI defined in configuration
      */
     public static String getDigestAlgoURIByConfig() {
-        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
-                .SSO_DEFAULT_DIGEST_ALGORITHM))) {
-            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_DIGEST_ALGORITHM).trim();
-        } else {
-            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA1;
-        }
+//        if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
+//                .SSO_DEFAULT_DIGEST_ALGORITHM))) {
+//            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_DIGEST_ALGORITHM).trim();
+//        } else {
+//            return IdentityApplicationConstants.XML.DigestAlgorithmURI.SHA1;
+//        }
+        return "";
     }
 
 
