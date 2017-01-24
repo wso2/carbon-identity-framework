@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.buil
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -64,7 +63,7 @@ public class ConfigurationFacade {
 
         // Get SP config from SP Management component
         return UIBasedConfigurationBuilder.getInstance().getSequence(reqType,
-                                                                     relyingParty);
+                relyingParty);
     }
 
     public ExternalIdPConfig getIdPConfigByName(String idpName)
@@ -136,7 +135,7 @@ public class ConfigurationFacade {
 
     public String getAuthenticationEndpointURL() {
         String authenticationEndpointURL = FileBasedConfigurationBuilder.getInstance().getAuthenticationEndpointURL();
-        if (StringUtils.isBlank(authenticationEndpointURL)){
+        if (StringUtils.isBlank(authenticationEndpointURL)) {
             authenticationEndpointURL = "/authenticationendpoint/login.do";
         }
         return authenticationEndpointURL;
@@ -144,7 +143,7 @@ public class ConfigurationFacade {
 
     public String getAuthenticationEndpointRetryURL() {
         String authenticationEndpointRetryURL = FileBasedConfigurationBuilder.getInstance().getAuthenticationEndpointRetryURL();
-        if (StringUtils.isBlank(authenticationEndpointRetryURL)){
+        if (StringUtils.isBlank(authenticationEndpointRetryURL)) {
             authenticationEndpointRetryURL = "/authenticationendpoint/retry.do";
         }
         return authenticationEndpointRetryURL;

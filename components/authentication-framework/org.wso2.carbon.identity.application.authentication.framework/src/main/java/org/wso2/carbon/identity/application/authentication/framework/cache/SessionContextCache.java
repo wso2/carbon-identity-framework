@@ -25,7 +25,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.util.concurrent.TimeUnit;
@@ -54,12 +54,12 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     public void addToCache(SessionContextCacheKey key, SessionContextCacheEntry entry) {
         entry.setAccessedTime();
-        super.addToCache(key, entry);
+        super.put(key, entry);
         SessionDataStore.getInstance().storeSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
     }
 
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key) {
-        SessionContextCacheEntry cacheEntry = super.getValueFromCache(key);
+        SessionContextCacheEntry cacheEntry = super.get(key);
 
         // Retrieve session from the database if its not in cache
         if (cacheEntry == null) {
@@ -93,14 +93,14 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     public void clearCacheEntry(SessionContextCacheKey key) {
 
-        super.clearCacheEntry(key);
+        super.clear(key);
         SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
     }
 
     public void clearCacheEntry(String sessionContextKey) {
 
         SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionContextKey);
-        super.clearCacheEntry(sessionContextCacheKey);
+        super.clear(sessionContextCacheKey);
         SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),
                 SESSION_CONTEXT_CACHE_NAME);
 

@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -59,7 +58,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         // if an authentication flow
         if (!context.isLogoutRequest()) {
             if (!canHandle(request)
-                || (request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED) != null && ((Boolean) request
+                    || (request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED) != null && ((Boolean) request
                     .getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
                 initiateAuthenticationRequest(request, response, context);
                 context.setCurrentAuthenticator(getName());
@@ -193,7 +192,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     protected String getUserStoreAppendedName(String userName) {
         if (!userName.contains(CarbonConstants.DOMAIN_SEPARATOR) && UserCoreUtil.getDomainFromThreadLocal() != null
-            && !"".equals(UserCoreUtil.getDomainFromThreadLocal())) {
+                && !"".equals(UserCoreUtil.getDomainFromThreadLocal())) {
             userName = UserCoreUtil.getDomainFromThreadLocal() + CarbonConstants.DOMAIN_SEPARATOR + userName;
         }
         return userName;

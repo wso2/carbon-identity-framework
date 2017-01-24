@@ -36,8 +36,8 @@
 
     <modules>
         <module>org.wso2.carbon.identity.application.common</module>
-        <module>org.wso2.carbon.identity.application.mgt</module>
-        <module>org.wso2.carbon.identity.application.mgt.ui</module>
+        <!--<module>org.wso2.carbon.identity.application.mgt</module>-->
+        <!--<module>org.wso2.carbon.identity.application.mgt.ui</module>-->
     </modules>
 
 </project>

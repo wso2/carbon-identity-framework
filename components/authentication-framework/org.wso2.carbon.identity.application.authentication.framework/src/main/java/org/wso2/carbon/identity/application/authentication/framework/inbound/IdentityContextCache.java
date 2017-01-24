@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.common.base.cache.BaseCache;
 
 public class IdentityContextCache extends BaseCache<String, IdentityMessageContext> {
 
@@ -48,14 +48,14 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
     }
 
     public void addToCache(String key, IdentityMessageContext context) {
-        super.addToCache(key, context);
+        super.put(key, context);
         if (enableRequestScopeCache) {
             SessionDataStore.getInstance().storeSessionData(key, INBOUND_CONTEXT_CACHE_NAME, context);
         }
     }
 
     public IdentityMessageContext getValueFromCache(String key) {
-        IdentityMessageContext context = super.getValueFromCache(key);
+        IdentityMessageContext context = super.get(key);
         if (context == null && enableRequestScopeCache) {
             context = (IdentityMessageContext) SessionDataStore.getInstance().getSessionData(key,
                     INBOUND_CONTEXT_CACHE_NAME);
@@ -64,7 +64,7 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
     }
 
     public void clearCacheEntry(String key) {
-        super.clearCacheEntry(key);
+        //super.put(key);
         if (enableRequestScopeCache) {
             SessionDataStore.getInstance().clearSessionData(key, INBOUND_CONTEXT_CACHE_NAME);
         }

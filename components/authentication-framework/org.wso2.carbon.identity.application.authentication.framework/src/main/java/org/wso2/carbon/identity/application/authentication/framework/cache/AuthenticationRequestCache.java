@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.common.base.cache.BaseCache;
 
 /**
  * This cache keeps all parameters and headers which are directed towards authentication
@@ -72,7 +72,7 @@ public class AuthenticationRequestCache extends
      * @param entry Actual object where cache entry is placed.
      */
     public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry) {
-        super.addToCache(key, entry);
+        super.put(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().storeSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME,
                     entry);
@@ -86,7 +86,7 @@ public class AuthenticationRequestCache extends
      * @return Cached entry.
      */
     public AuthenticationRequestCacheEntry getValueFromCache(AuthenticationRequestCacheKey key) {
-        AuthenticationRequestCacheEntry entry = super.getValueFromCache(key);
+        AuthenticationRequestCacheEntry entry = super.get(key);
         if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationRequestCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME);
@@ -100,7 +100,7 @@ public class AuthenticationRequestCache extends
      * @param key Key to clear cache.
      */
     public void clearCacheEntry(AuthenticationRequestCacheKey key) {
-        super.clearCacheEntry(key);
+        super.clear(key);
         if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().clearSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME);
         }

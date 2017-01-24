@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.util.jdbc.JDBCUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -277,8 +276,7 @@ public class SessionDataStore {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
                 }
             }
-        } catch (ClassNotFoundException | IOException | SQLException |
-                IdentityApplicationManagementException e) {
+        } catch (ClassNotFoundException | IOException | SQLException e) {
             log.error("Error while retrieving session data", e);
         } finally {
             JDBCUtils.closeAllConnections(connection, resultSet, preparedStatement);
@@ -417,7 +415,7 @@ public class SessionDataStore {
     }
 
     private Object getBlobObject(InputStream is)
-            throws IdentityApplicationManagementException, IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
         if (is != null) {
             ObjectInput ois = null;
             try {

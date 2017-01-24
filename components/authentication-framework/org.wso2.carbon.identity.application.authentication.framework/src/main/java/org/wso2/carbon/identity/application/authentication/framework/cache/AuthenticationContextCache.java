@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.common.base.cache.BaseCache;
 
 /**
  * This class is used to cache the data about the
@@ -70,7 +70,7 @@ public class AuthenticationContextCache extends
      * @param entry Actual object where cache entry is placed.
      */
     public void addToCache(AuthenticationContextCacheKey key, AuthenticationContextCacheEntry entry) {
-        super.addToCache(key, entry);
+        super.put(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().storeSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME,
                     entry);
@@ -84,7 +84,7 @@ public class AuthenticationContextCache extends
      * @return Cached entry.
      */
     public AuthenticationContextCacheEntry getValueFromCache(AuthenticationContextCacheKey key) {
-        AuthenticationContextCacheEntry entry = super.getValueFromCache(key);
+        AuthenticationContextCacheEntry entry = super.get(key);
         if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationContextCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME);
@@ -98,7 +98,7 @@ public class AuthenticationContextCache extends
      * @param key Key to clear cache.
      */
     public void clearCacheEntry(AuthenticationContextCacheKey key) {
-        super.clearCacheEntry(key);
+        super.clear(key);
         if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().clearSessionData(key.getContextId(), AUTHENTICATION_CONTEXT_CACHE_NAME);
         }
