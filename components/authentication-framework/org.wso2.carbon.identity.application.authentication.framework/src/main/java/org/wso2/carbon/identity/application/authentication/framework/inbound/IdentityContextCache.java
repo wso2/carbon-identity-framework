@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 public class IdentityContextCache extends BaseCache<String, IdentityMessageContext> {
 
@@ -30,8 +30,8 @@ public class IdentityContextCache extends BaseCache<String, IdentityMessageConte
 
     private IdentityContextCache(String cacheName) {
         super(cacheName);
-        if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
-            enableRequestScopeCache = Boolean.parseBoolean(IdentityUtil.getProperty(
+        if (FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
+            enableRequestScopeCache = Boolean.parseBoolean(FrameworkUtils.getProperty(
                     "JDBCPersistenceManager.SessionDataPersist.Temporary"));
         }
     }

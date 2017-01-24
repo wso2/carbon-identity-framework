@@ -20,19 +20,16 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
-import org.wso2.carbon.identity.core.handler.InitConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
+import org.wso2.carbon.identity.common.base.handler.InitConfig;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.Properties;
 
-public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
+public class HttpIdentityRequestFactory extends AbstractMessageHandler {
 
     private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
 
@@ -44,24 +41,24 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
 
         this.initConfig = initConfig;
 
-        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (HttpIdentityRequestFactory.class.getName(), this.getClass().getName());
-
-        if (identityEventListenerConfig == null) {
-            return;
-        }
-
-        if (identityEventListenerConfig.getProperties() != null) {
-            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String) property.getKey();
-                String value = (String) property.getValue();
-                if (!properties.containsKey(key)) {
-                    properties.setProperty(key, value);
-                } else {
-                    log.warn("Property key " + key + " already exists. Cannot add property!!");
-                }
-            }
-        }
+//        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+//                (HttpIdentityRequestFactory.class.getName(), this.getClass().getName());
+//
+//        if (identityEventListenerConfig == null) {
+//            return;
+//        }
+//
+//        if (identityEventListenerConfig.getProperties() != null) {
+//            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
+//                String key = (String) property.getKey();
+//                String value = (String) property.getValue();
+//                if (!properties.containsKey(key)) {
+//                    properties.setProperty(key, value);
+//                } else {
+//                    log.warn("Property key " + key + " already exists. Cannot add property!!");
+//                }
+//            }
+//        }
     }
 
     public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {
@@ -127,5 +124,10 @@ public class HttpIdentityRequestFactory extends AbstractIdentityHandler {
         HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         return builder;
+    }
+
+    @Override
+    public String getName() {
+        return null;
     }
 }

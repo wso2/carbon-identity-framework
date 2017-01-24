@@ -28,9 +28,8 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
-import org.wso2.carbon.identity.core.handler.InitConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
+import org.wso2.carbon.identity.common.base.handler.InitConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
@@ -42,7 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-public abstract class IdentityProcessor extends AbstractIdentityHandler {
+public abstract class IdentityProcessor extends AbstractMessageHandler {
 
     private static Log log = LogFactory.getLog(IdentityProcessor.class);
 
@@ -61,24 +60,24 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
             this.initConfig = initConfig;
         }
 
-        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (IdentityProcessor.class.getName(), this.getClass().getName());
-
-        if (identityEventListenerConfig == null) {
-            return;
-        }
-
-        if (identityEventListenerConfig.getProperties() != null) {
-            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String) property.getKey();
-                String value = (String) property.getValue();
-                if (!properties.containsKey(key)) {
-                    properties.setProperty(key, value);
-                } else {
-                    log.warn("Property key " + key + " already exists. Cannot add property!!");
-                }
-            }
-        }
+//        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+//                (IdentityProcessor.class.getName(), this.getClass().getName());
+//
+//        if (identityEventListenerConfig == null) {
+//            return;
+//        }
+//
+//        if (identityEventListenerConfig.getProperties() != null) {
+//            for (Map.Entry<Object, Object> property : identityEventListenerConfig.getProperties().entrySet()) {
+//                String key = (String) property.getKey();
+//                String value = (String) property.getValue();
+//                if (!properties.containsKey(key)) {
+//                    properties.setProperty(key, value);
+//                } else {
+//                    log.warn("Property key " + key + " already exists. Cannot add property!!");
+//                }
+//            }
+//        }
     }
 
     /**
@@ -177,8 +176,9 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getType(context));
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        responseBuilder.setRedirectURL(commonAuthURL);
+        // TODO : C5
+//        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+//        responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
     }
 

@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.HashMap;
@@ -105,7 +104,7 @@ public class AuthenticatedUser extends User {
                 authenticatedUser.setUserName(authenticatedSubjectIdentifier);
             }
         } else {
-            authenticatedUser.setUserStoreDomain(IdentityUtil.getPrimaryDomainName());
+            //authenticatedUser.setUserStoreDomain(IdentityUtil.getPrimaryDomainName());
             authenticatedUser.setUserName(authenticatedSubjectIdentifier);
         }
 

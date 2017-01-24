@@ -18,7 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import org.wso2.carbon.identity.core.bean.context.MessageContext;
+
+import org.wso2.carbon.identity.common.base.message.MessageContext;
 
 import java.io.Serializable;
 import java.util.Map;

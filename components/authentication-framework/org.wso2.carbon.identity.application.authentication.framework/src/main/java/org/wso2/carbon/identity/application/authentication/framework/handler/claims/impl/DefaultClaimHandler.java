@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -54,6 +53,7 @@ public class DefaultClaimHandler implements ClaimHandler {
     private static final Log log = LogFactory.getLog(DefaultClaimHandler.class);
     private static volatile DefaultClaimHandler instance;
     public static final String LOCAL_IDP_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
+    public final static String MULTI_ATTRIBUTE_SEPARATOR = "MultiAttributeSeparator";
 
     public static DefaultClaimHandler getInstance() {
         if (instance == null) {
@@ -427,10 +427,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         if (!spRequestedClaims.isEmpty()) {
             RealmConfiguration realmConfiguration = userStore.getRealmConfiguration();
 
-            String claimSeparator = realmConfiguration.getUserStoreProperty(IdentityCoreConstants
-                    .MULTI_ATTRIBUTE_SEPARATOR);
+            String claimSeparator = realmConfiguration.getUserStoreProperty(MULTI_ATTRIBUTE_SEPARATOR);
             if (StringUtils.isNotBlank(claimSeparator)) {
-                spRequestedClaims.put(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
+                spRequestedClaims.put(MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
             }
         }
     }

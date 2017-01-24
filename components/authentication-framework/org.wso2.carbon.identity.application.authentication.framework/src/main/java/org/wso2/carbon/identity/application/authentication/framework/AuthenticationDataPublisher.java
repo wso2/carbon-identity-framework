@@ -20,12 +20,13 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-import org.wso2.carbon.identity.core.handler.IdentityMessageHandler;
+import org.wso2.carbon.identity.common.base.handler.MessageHandler;
+
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-public interface AuthenticationDataPublisher extends IdentityMessageHandler {
+public interface AuthenticationDataPublisher extends MessageHandler {
 
     /**
      * Publish authentication success

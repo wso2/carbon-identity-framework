@@ -53,8 +53,6 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.core.handler.HandlerComparator;
-import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -305,8 +303,8 @@ public class FrameworkServiceComponent {
     protected void addIdentityProcessor(IdentityProcessor requestProcessor) {
 
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
-                new HandlerComparator());
+//        Collections.sort(FrameworkServiceDataHolder.getInstance().getIdentityProcessors(),
+//                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getIdentityProcessors());
         if (log.isDebugEnabled()) {
             log.debug("Added IdentityProcessor : " + requestProcessor.getName());
@@ -332,8 +330,8 @@ public class FrameworkServiceComponent {
     protected void addHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                new HandlerComparator());
+//        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories(),
+//                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityRequestFactory : " + factory.getName());
@@ -359,8 +357,8 @@ public class FrameworkServiceComponent {
     protected void addHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                new HandlerComparator());
+//        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
+//                new HandlerComparator());
         Collections.reverse(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories());
         if (log.isDebugEnabled()) {
             log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
@@ -375,23 +373,23 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
-
-
-    @Reference(
-            name = "identityCoreInitializedEventService",
-            service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetIdentityCoreInitializedEventService"
-    )
-    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
-    }
+//    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+//        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+//         is started */
+//    }
+//
+//
+//    @Reference(
+//            name = "identityCoreInitializedEventService",
+//            service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class,
+//            cardinality = ReferenceCardinality.MANDATORY,
+//            policy = ReferencePolicy.DYNAMIC,
+//            unbind = "unsetIdentityCoreInitializedEventService"
+//    )
+//    protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
+//        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+//         is started */
+//    }
 
     @Reference(
             name = "identity.authentication.data.publisher",

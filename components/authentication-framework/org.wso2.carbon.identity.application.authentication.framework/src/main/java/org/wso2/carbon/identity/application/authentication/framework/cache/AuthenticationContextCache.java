@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
  * This class is used to cache the data about the
@@ -41,9 +41,9 @@ public class AuthenticationContextCache extends
      */
     private AuthenticationContextCache() {
         super(AUTHENTICATION_CONTEXT_CACHE_NAME);
-        if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
+        if (FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
-                    IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
+                    FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
         }
     }
 

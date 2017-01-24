@@ -40,11 +40,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.user.core.UserCoreConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,6 +55,7 @@ public class DefaultStepHandler implements StepHandler {
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
     private static volatile DefaultStepHandler instance;
     private static String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
+    public static final String USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE = "17005";
 
     public static DefaultStepHandler getInstance() {
 
@@ -545,81 +542,82 @@ public class DefaultStepHandler implements StepHandler {
     private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response, AuthenticationContext
             context, String authenticatorNames, String showAuthFailureReason, String retryParam, String loginPage)
             throws IOException {
+        return "";
 
-        IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
-        IdentityUtil.clearIdentityErrorMsg();
+//        IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
+//        IdentityUtil.clearIdentityErrorMsg();
 
-        if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
-            if (errorContext != null) {
-                String errorCode = errorContext.getErrorCode();
-                int remainingAttempts = errorContext.getMaximumLoginAttempts() - errorContext.getFailedLoginAttempts();
-
-                if (log.isDebugEnabled()) {
-                    StringBuilder debugString = new StringBuilder();
-                    debugString.append("Identity error message context is not null. Error details are as follows.");
-                    debugString.append("errorCode : " + errorCode + "\n");
-                    debugString.append("username : " + request.getParameter("username") + "\n");
-                    debugString.append("remainingAttempts : " + remainingAttempts);
-                    log.debug(debugString.toString());
-                }
-
-                if (errorCode.equals(UserCoreConstants.ErrorCode.INVALID_CREDENTIAL)) {
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (request.getParameter("username"), "UTF-8") + "&remainingAttempts=" + remainingAttempts;
-                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                } else if (errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
-                    String redirectURL;
-                    if (remainingAttempts == 0) {
-                        redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
-                                .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
-                                + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                                "&remainingAttempts=0" + "&authenticators=" + URLEncoder.encode(authenticatorNames,
-                                "UTF-8") + retryParam;
-                    } else {
-                        redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
-                                .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
-                                + URLEncoder.encode(request.getParameter("username"), "UTF-8") + "&authenticators=" +
-                                URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
-                    }
-                    return redirectURL;
-                } else if (errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE)) {
-                    retryParam = "&authFailure=true&authFailureMsg=account.confirmation.pending";
-                    String username = request.getParameter("username");
-
-                    Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
-                    if (domain != null) {
-                        username = IdentityUtil.addDomainToName(username, domain.toString());
-                    }
-
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (username, "UTF-8");
-                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                } else {
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (request.getParameter("username"), "UTF-8");
-                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                }
-            } else {
-                return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-            }
-        } else {
-            String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
-            if (errorCode != null && errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
-                String redirectURL;
-                redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
-                )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                return redirectURL;
-
-            } else {
-                return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-            }
-        }
+//        if (showAuthFailureReason != null && "true".equals(showAuthFailureReason)) {
+//            if (errorContext != null) {
+//                String errorCode = errorContext.getErrorCode();
+//                int remainingAttempts = errorContext.getMaximumLoginAttempts() - errorContext.getFailedLoginAttempts();
+//
+//                if (log.isDebugEnabled()) {
+//                    StringBuilder debugString = new StringBuilder();
+//                    debugString.append("Identity error message context is not null. Error details are as follows.");
+//                    debugString.append("errorCode : " + errorCode + "\n");
+//                    debugString.append("username : " + request.getParameter("username") + "\n");
+//                    debugString.append("remainingAttempts : " + remainingAttempts);
+//                    log.debug(debugString.toString());
+//                }
+//
+//                if (errorCode.equals(UserCoreConstants.ErrorCode.INVALID_CREDENTIAL)) {
+//                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+//                            (request.getParameter("username"), "UTF-8") + "&remainingAttempts=" + remainingAttempts;
+//                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
+//                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+//                } else if (errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
+//                    String redirectURL;
+//                    if (remainingAttempts == 0) {
+//                        redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
+//                                .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
+//                                + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
+//                                "&remainingAttempts=0" + "&authenticators=" + URLEncoder.encode(authenticatorNames,
+//                                "UTF-8") + retryParam;
+//                    } else {
+//                        redirectURL = response.encodeRedirectURL(loginPage + ("?" + context
+//                                .getContextIdIncludedQueryParams())) + "&errorCode=" + errorCode + "&failedUsername="
+//                                + URLEncoder.encode(request.getParameter("username"), "UTF-8") + "&authenticators=" +
+//                                URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
+//                    }
+//                    return redirectURL;
+//                } else if (errorCode.equals(USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE)) {
+//                    retryParam = "&authFailure=true&authFailureMsg=account.confirmation.pending";
+//                    String username = request.getParameter("username");
+//
+//                    Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
+//                    if (domain != null) {
+//                        username = IdentityUtil.addDomainToName(username, domain.toString());
+//                    }
+//
+//                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+//                            (username, "UTF-8");
+//                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
+//                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+//                } else {
+//                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+//                            (request.getParameter("username"), "UTF-8");
+//                    return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
+//                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+//                }
+//            } else {
+//                return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
+//                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+//            }
+//        } else {
+//            String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
+//            if (errorCode != null && errorCode.equals(UserCoreConstants.ErrorCode.USER_IS_LOCKED)) {
+//                String redirectURL;
+//                redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
+//                )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
+//                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+//                return redirectURL;
+//
+//            } else {
+//                return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
+//                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+//            }
+//        }
     }
 
     private AuthenticatorConfig getAuthenticatorConfig() {

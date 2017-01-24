@@ -32,11 +32,6 @@
     <name>WSO2 Carbon - Identity Application Authentication Framework</name>
 
     <dependencies>
-
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.core</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.idp.mgt</artifactId>
@@ -120,7 +115,6 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.common.base;
                             version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
 

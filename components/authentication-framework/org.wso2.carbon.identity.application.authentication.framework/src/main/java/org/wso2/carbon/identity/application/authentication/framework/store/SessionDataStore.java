@@ -25,7 +25,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.common.util.jdbc.JDBCUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.ByteArrayInputStream;
@@ -240,7 +240,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = JDBCUtils.getDBConnection();
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return null;
@@ -281,7 +281,7 @@ public class SessionDataStore {
                 IdentityApplicationManagementException e) {
             log.error("Error while retrieving session data", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+            JDBCUtils.closeAllConnections(connection, resultSet, preparedStatement);
         }
         return null;
     }
@@ -314,7 +314,7 @@ public class SessionDataStore {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = JDBCUtils.getDBConnection();
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -331,7 +331,7 @@ public class SessionDataStore {
         } catch (SQLException e) {
             log.error("Error while removing session data from the database for nano time " + cleanupLimitNano, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
+            JDBCUtils.closeAllConnections(connection, null, statement);
 
         }
     }
@@ -347,7 +347,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = JDBCUtils.getDBConnection();
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -368,7 +368,7 @@ public class SessionDataStore {
         } catch (SQLException | IOException e) {
             log.error("Error while storing session data", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+            JDBCUtils.closeAllConnections(connection, resultSet, preparedStatement);
         }
     }
 
@@ -378,7 +378,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = JDBCUtils.getDBConnection();
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -397,7 +397,7 @@ public class SessionDataStore {
         } catch (Exception e) {
             log.error("Error while storing DELETE operation session data", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
+            JDBCUtils.closeAllConnections(connection, null, preparedStatement);
         }
     }
 
@@ -440,7 +440,7 @@ public class SessionDataStore {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = JDBCUtils.getDBConnection();
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -465,7 +465,7 @@ public class SessionDataStore {
         } catch (SQLException e) {
             log.error("Error while removing STORE operation data from the database for nano time " + cleanupLimitNano, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
+            JDBCUtils.closeAllConnections(connection, null, statement);
 
         }
 
@@ -475,7 +475,7 @@ public class SessionDataStore {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = JDBCUtils.getDBConnection();
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
@@ -493,7 +493,7 @@ public class SessionDataStore {
         } catch (SQLException e) {
             log.error("Error while removing DELETE operation data from the database for nano time " + cleanupLimitNano, e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
+            JDBCUtils.closeAllConnections(connection, null, statement);
 
         }
     }

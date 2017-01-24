@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.bui
 import org.apache.axiom.om.OMAttribute;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -33,7 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.common.util.IdentityUtils;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -131,7 +130,7 @@ public class FileBasedConfigurationBuilder {
             if (configFilePath != null) {
                 configFile = new File(configFilePath);
             } else {
-                configFile = new File(IdentityUtil.getIdentityConfigDirPath(),
+                configFile = new File(IdentityUtils.getIdentityConfigDirPath(),
                         IdentityApplicationConstants.APPLICATION_AUTHENTICATION_CONGIG);
             }
             if (configFile.exists()) {
@@ -152,7 +151,7 @@ public class FileBasedConfigurationBuilder {
             readAuthenticationEndpointRetryURL(rootElement);
 
             //########### Read tenant data listener URLs ###########
-            readTenantDataListenerURLs(rootElement);
+           // readTenantDataListenerURLs(rootElement);
 
             //########### Read tenant domain dropdown enabled value ###########
             readTenantDomainDropdownEnabledValue(rootElement);
@@ -440,32 +439,32 @@ public class FileBasedConfigurationBuilder {
         }
     }
 
-    private void readTenantDataListenerURLs(OMElement documentElement) {
-        OMElement tenantDataURLsElem =
-                documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
-                        getQNameWithIdentityApplicationNS(
-                                FrameworkConstants.Config.QNAME_TENANT_DATA_LISTENER_URLS));
-
-        if (tenantDataURLsElem != null) {
-            for (Iterator tenantDataURLElems = tenantDataURLsElem.getChildrenWithLocalName(
-                    FrameworkConstants.Config.ELEM_TENANT_DATA_LISTENER_URL);
-                 tenantDataURLElems.hasNext(); ) {
-
-                OMElement tenantDataListenerURLElem = (OMElement) tenantDataURLElems.next();
-                if (tenantDataListenerURLElem != null &&
-                        StringUtils.isNotEmpty(tenantDataListenerURLElem.getText())) {
-                    tenantDataEndpointURLs.add(IdentityUtil.fillURLPlaceholders(tenantDataListenerURLElem.getText()));
-                }
-            }
-        }
-    }
+//    private void readTenantDataListenerURLs(OMElement documentElement) {
+//        OMElement tenantDataURLsElem =
+//                documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
+//                        getQNameWithIdentityApplicationNS(
+//                                FrameworkConstants.Config.QNAME_TENANT_DATA_LISTENER_URLS));
+//
+//        if (tenantDataURLsElem != null) {
+//            for (Iterator tenantDataURLElems = tenantDataURLsElem.getChildrenWithLocalName(
+//                    FrameworkConstants.Config.ELEM_TENANT_DATA_LISTENER_URL);
+//                 tenantDataURLElems.hasNext(); ) {
+//
+//                OMElement tenantDataListenerURLElem = (OMElement) tenantDataURLElems.next();
+//                if (tenantDataListenerURLElem != null &&
+//                        StringUtils.isNotEmpty(tenantDataListenerURLElem.getText())) {
+//                    tenantDataEndpointURLs.add(IdentityUtil.fillURLPlaceholders(tenantDataListenerURLElem.getText()));
+//                }
+//            }
+//        }
+//    }
 
     private void readAuthenticationEndpointURL(OMElement documentElement) {
         OMElement authEndpointURLElem = documentElement.getFirstChildWithName(IdentityApplicationManagementUtil.
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_URL));
 
         if (authEndpointURLElem != null) {
-            authenticationEndpointURL = IdentityUtil.fillURLPlaceholders(authEndpointURLElem.getText());
+            authenticationEndpointURL = FrameworkUtils.fillURLPlaceholders(authEndpointURLElem.getText());
         }
     }
 
@@ -474,7 +473,7 @@ public class FileBasedConfigurationBuilder {
                 getQNameWithIdentityApplicationNS(FrameworkConstants.Config.QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL));
 
         if (authEndpointRetryURLElem != null) {
-            authenticationEndpointRetryURL = IdentityUtil.fillURLPlaceholders(authEndpointRetryURLElem.getText());
+            authenticationEndpointRetryURL = FrameworkUtils.fillURLPlaceholders(authEndpointRetryURLElem.getText());
         }
     }
 

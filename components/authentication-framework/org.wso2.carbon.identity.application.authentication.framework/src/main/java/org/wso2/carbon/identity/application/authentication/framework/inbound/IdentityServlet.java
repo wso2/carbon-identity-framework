@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -224,14 +223,15 @@ public class IdentityServlet extends HttpServlet {
      */
     private void sendRedirect(HttpServletResponse response, HttpIdentityResponse httpIdentityResponse) throws IOException {
 
-        String redirectUrl;
-        if (httpIdentityResponse.isFragmentUrl()) {
-            redirectUrl = IdentityUtil.buildFragmentUrl(httpIdentityResponse.getRedirectURL(),
-                    httpIdentityResponse.getParameters());
-        } else {
-            redirectUrl = IdentityUtil.buildQueryUrl(httpIdentityResponse.getRedirectURL(),
-                    httpIdentityResponse.getParameters());
-        }
-        response.sendRedirect(redirectUrl);
+//        String redirectUrl;
+//        if (httpIdentityResponse.isFragmentUrl()) {
+//            redirectUrl = IdentityUtil.buildFragmentUrl(httpIdentityResponse.getRedirectURL(),
+//                    httpIdentityResponse.getParameters());
+//        } else {
+//            redirectUrl = IdentityUtil.buildQueryUrl(httpIdentityResponse.getRedirectURL(),
+//                    httpIdentityResponse.getParameters());
+//        }
+//        response.sendRedirect(redirectUrl);
+//    }
     }
-}
+    }

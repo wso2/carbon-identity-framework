@@ -21,8 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.cache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 /**
  * This cache keeps all parameters and headers which are directed towards authentication
@@ -43,9 +43,9 @@ public class AuthenticationRequestCache extends
      */
     private AuthenticationRequestCache() {
         super(AUTHENTICATION_REQUEST_CACHE_NAME);
-        if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
+        if (FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
-                    IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
+                    FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary"));
         }
     }
 
