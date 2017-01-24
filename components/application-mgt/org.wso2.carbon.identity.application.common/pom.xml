@@ -26,6 +26,10 @@
     <artifactId>org.wso2.carbon.identity.application.common</artifactId>
     <dependencies>
         <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.user.core</artifactId>
         </dependency>
@@ -33,10 +37,6 @@
             <groupId>org.wso2.carbon.identity.commons</groupId>
             <artifactId>org.wso2.carbon.identity.commons</artifactId>
             <version>6.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity.framework</groupId>
-            <artifactId>org.wso2.carbon.identity.base</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -69,18 +69,11 @@
                             javax.sql,
                             javax.xml.namespace,
                             javax.xml.stream,
-
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
-
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            org.wso2.carbon.utils.*; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.caching.impl; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.export.version}"

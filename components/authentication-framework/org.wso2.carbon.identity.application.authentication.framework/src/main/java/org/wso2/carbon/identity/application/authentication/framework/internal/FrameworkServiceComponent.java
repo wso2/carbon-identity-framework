@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -43,9 +42,6 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Fra
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
-import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityServlet;
-import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
-import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -53,10 +49,8 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import javax.servlet.Servlet;
 import java.util.Collections;
 import java.util.List;
 
@@ -94,23 +88,23 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRealmService(realmService);
     }
 
-    public static RegistryService getRegistryService() {
-        return FrameworkServiceDataHolder.getInstance().getRegistryService();
-    }
+//    public static RegistryService getRegistryService() {
+//        return FrameworkServiceDataHolder.getInstance().getRegistryService();
+//    }
 
-    @Reference(
-            name = "registry.service",
-            service = org.wso2.carbon.registry.core.service.RegistryService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetRegistryService"
-    )
-    protected void setRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService is set in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
-    }
+//    @Reference(
+//            name = "registry.service",
+//            service = org.wso2.carbon.registry.core.service.RegistryService.class,
+//            cardinality = ReferenceCardinality.MANDATORY,
+//            policy = ReferencePolicy.DYNAMIC,
+//            unbind = "unsetRegistryService"
+//    )
+//    protected void setRegistryService(RegistryService registryService) {
+//        if (log.isDebugEnabled()) {
+//            log.debug("RegistryService is set in the Application Authentication Framework bundle");
+//        }
+//        FrameworkServiceDataHolder.getInstance().setRegistryService(registryService);
+//    }
 
     public static BundleContext getBundleContext() throws FrameworkException {
         BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
@@ -148,19 +142,19 @@ public class FrameworkServiceComponent {
         }
 
         // Register Common servlet
-        Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
-                COMMON_SERVLET_URL);
-
-        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                IDENTITY_SERVLET_URL);
-        try {
-            httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
-            httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
-        } catch (Exception e) {
-            String errMsg = "Error when registering servlets via the HttpService.";
-            log.error(errMsg, e);
-            throw new RuntimeException(errMsg, e);
-        }
+//        Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
+//                COMMON_SERVLET_URL);
+//
+//        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
+//                IDENTITY_SERVLET_URL);
+//        try {
+//            httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
+//            httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
+//        } catch (Exception e) {
+//            String errMsg = "Error when registering servlets via the HttpService.";
+//            log.error(errMsg, e);
+//            throw new RuntimeException(errMsg, e);
+//        }
 
         FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
@@ -216,12 +210,12 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRealmService(null);
     }
 
-    protected void unsetRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService is unset in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setRegistryService(null);
-    }
+//    protected void unsetRegistryService(RegistryService registryService) {
+//        if (log.isDebugEnabled()) {
+//            log.debug("RegistryService is unset in the Application Authentication Framework bundle");
+//        }
+//        FrameworkServiceDataHolder.getInstance().setRegistryService(null);
+//    }
 
     @Reference(
             name = "application.authenticator",

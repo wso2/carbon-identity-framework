@@ -240,9 +240,9 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                 log.debug("Local user mapping found. Claims will be persisted");
             }
 
-            try {
-                String tenantDomain =
-                        context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner().getTenantDomain();
+//            try {
+//                String tenantDomain =
+//                        context.getSequenceConfig().getApplicationConfig().getServiceProvider().getOwner().getTenantDomain();
                 String spName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
 //                ApplicationManagementServiceImpl applicationManagementService =
@@ -260,19 +260,19 @@ public class DefaultPostAuthenticationHandler implements PostAuthenticationHandl
                     log.debug("Updating user profile of user : " + user.getUserName());
                 }
 
-                UserRealm realm = getUserRealm(user.getTenantDomain());
-                UserStoreManager userStoreManager =
-                        realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
+                //UserRealm realm = getUserRealm(user.getTenantDomain());
+//                UserStoreManager userStoreManager =
+//                        realm.getUserStoreManager().getSecondaryUserStoreManager(user.getUserStoreDomain());
 
-                userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
-            } catch (UserStoreException e) {
-                throw new FrameworkException(
-                        "Error while updating claims for local user. Could not update profile", e);
-
-//            } catch (IdentityApplicationManagementException e) {
+//                userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
+//            } catch (UserStoreException e) {
 //                throw new FrameworkException(
-//                        "Error while retrieving application claim mapping. Could not update profile", e);
-            }
+//                        "Error while updating claims for local user. Could not update profile", e);
+//
+////            } catch (IdentityApplicationManagementException e) {
+////                throw new FrameworkException(
+////                        "Error while retrieving application claim mapping. Could not update profile", e);
+//            }
             }
 
             context.getSequenceConfig().getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);

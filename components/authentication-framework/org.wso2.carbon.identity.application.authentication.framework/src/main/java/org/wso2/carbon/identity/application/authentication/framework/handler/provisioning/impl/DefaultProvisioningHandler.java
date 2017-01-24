@@ -25,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -63,7 +62,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     public void handle(List<String> roles, String subject, Map<String, String> attributes,
                        String provisioningUserStoreId) throws FrameworkException {
 
-        RegistryService registryService = FrameworkServiceComponent.getRegistryService();
+        // RegistryService registryService = FrameworkServiceComponent.getRegistryService();
         RealmService realmService = FrameworkServiceComponent.getRealmService();
 
         try {
@@ -144,7 +143,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
-           // IdentityUtil.clearIdentityErrorMsg();
+            // IdentityUtil.clearIdentityErrorMsg();
         }
     }
 
@@ -268,7 +267,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     private List<String> removeDomainFromNamesExcludeInternal(List<String> names, int tenantId) {
         List<String> nameList = new ArrayList<String>();
         for (String name : names) {
-           // String userStoreDomain = IdentityUtil.extractDomainFromName(name);
+            // String userStoreDomain = IdentityUtil.extractDomainFromName(name);
             String userStoreDomain = name;
             if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain)) {
                 nameList.add(name);

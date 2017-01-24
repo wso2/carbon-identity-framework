@@ -62,7 +62,6 @@ public class AuthenticatedUser extends User {
     public AuthenticatedUser(AuthenticatedUser authenticatedUser) {
 
         this.authenticatedSubjectIdentifier = authenticatedUser.getAuthenticatedSubjectIdentifier();
-        this.tenantDomain = authenticatedUser.getTenantDomain();
         this.userName = authenticatedUser.getUserName();
         this.userStoreDomain = authenticatedUser.getUserStoreDomain();
         if (authenticatedUser.getUserAttributes() != null) {
@@ -108,7 +107,6 @@ public class AuthenticatedUser extends User {
             authenticatedUser.setUserName(authenticatedSubjectIdentifier);
         }
 
-        authenticatedUser.setTenantDomain(authenticatedSubjectIdentifier);
         authenticatedUser.setAuthenticatedSubjectIdentifier(authenticatedSubjectIdentifier);
 
         return authenticatedUser;
@@ -184,9 +182,9 @@ public class AuthenticatedUser extends User {
         if (useUserstoreDomainInLocalSubjectIdentifier && userStoreDomain != null) {
             userName = UserCoreUtil.addDomainToName(userName, userStoreDomain);
         }
-        if (useTenantDomainInLocalSubjectIdentifier && tenantDomain != null) {
-            userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
-        }
+//        if (useTenantDomainInLocalSubjectIdentifier && tenantDomain != null) {
+//            userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
+//        }
         return userName;
     }
 

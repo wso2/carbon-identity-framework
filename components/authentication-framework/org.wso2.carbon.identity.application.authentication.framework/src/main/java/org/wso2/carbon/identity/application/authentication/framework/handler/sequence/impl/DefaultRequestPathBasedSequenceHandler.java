@@ -103,7 +103,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
 
                     if (log.isDebugEnabled()) {
                         log.debug("Authenticated User: " + authenticatedUser.getAuthenticatedSubjectIdentifier());
-                        log.debug("Authenticated User Tenant Domain: " + seqConfig.getAuthenticatedUser().getTenantDomain());
+//                        log.debug("Authenticated User Tenant Domain: " + seqConfig.getAuthenticatedUser().getTenantDomain());
                     }
 
                     AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
@@ -208,7 +208,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
                 if (log.isDebugEnabled()) {
                     log.debug("Authenticated User: " +
                               sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
-                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser().getTenantDomain());
+//                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser().getTenantDomain());
                 }
             }
         }

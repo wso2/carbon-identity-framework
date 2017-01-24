@@ -22,9 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,14 +34,6 @@ import java.util.Set;
  * @scr.reference name="user.realmservice.default"
  * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
  * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="config.context.service"
- * interface="org.wso2.carbon.utils.ConfigurationContextService" cardinality="1..1"
- * policy="dynamic" bind="setConfigurationContextService"
- * unbind="unsetConfigurationContextService"
  */
 public class IdPManagementServiceComponent {
 
@@ -55,23 +45,23 @@ public class IdPManagementServiceComponent {
     private static Set<String> sharedIdps = new HashSet<String>();
 
 
-    protected void setRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("Registry service in Identity idp-mgt bundle");
-        }
-        try {
-            IdpMgtServiceComponentHolder.getInstance().setRegistryService(registryService);
-        } catch (Throwable e) {
-            log.error("Failed to get a reference to the Registry in idp-mgt bundle", e);
-        }
-    }
-
-    protected void unsetRegistryService(RegistryService registryService) {
-        if (log.isDebugEnabled()) {
-            log.debug("RegistryService unset in idp.mgt bundle");
-        }
-        IdpMgtServiceComponentHolder.getInstance().setRegistryService(null);
-    }
+//    protected void setRegistryService(RegistryService registryService) {
+//        if (log.isDebugEnabled()) {
+//            log.debug("Registry service in Identity idp-mgt bundle");
+//        }
+//        try {
+//            IdpMgtServiceComponentHolder.getInstance().setRegistryService(registryService);
+//        } catch (Throwable e) {
+//            log.error("Failed to get a reference to the Registry in idp-mgt bundle", e);
+//        }
+//    }
+//
+//    protected void unsetRegistryService(RegistryService registryService) {
+//        if (log.isDebugEnabled()) {
+//            log.debug("RegistryService unset in idp.mgt bundle");
+//        }
+//        IdpMgtServiceComponentHolder.getInstance().setRegistryService(null);
+//    }
 
 //    protected void setMetadataConverterService(MetadataConverter converter) {
 //        if (log.isDebugEnabled()) {
@@ -115,17 +105,16 @@ public class IdPManagementServiceComponent {
     /**
      * @return
      */
-    public static ConfigurationContextService getConfigurationContextService() {
-        return IdpMgtServiceComponentHolder.getInstance().getConfigurationContextService();
-    }
-
-    /**
-     * @param service
-     */
-    protected void setConfigurationContextService(ConfigurationContextService service) {
-        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(service);
-    }
-
+//    public static ConfigurationContextService getConfigurationContextService() {
+//        return IdpMgtServiceComponentHolder.getInstance().getConfigurationContextService();
+//    }
+//
+//    /**
+//     * @param service
+//     */
+//    protected void setConfigurationContextService(ConfigurationContextService service) {
+//        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(service);
+//    }
     protected void activate(ComponentContext ctxt) {
         try {
 //            BundleContext bundleCtx = ctxt.getBundleContext();
@@ -284,9 +273,9 @@ public class IdPManagementServiceComponent {
     /**
      * @param service
      */
-    protected void unsetConfigurationContextService(ConfigurationContextService service) {
-        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(null);
-    }
+//    protected void unsetConfigurationContextService(ConfigurationContextService service) {
+//        IdpMgtServiceComponentHolder.getInstance().setConfigurationContextService(null);
+//    }
 
 //    protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
 //        /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core

@@ -438,8 +438,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                     if (log.isDebugEnabled()) {
                         log.debug("Authenticated User: " + sequenceConfig.getAuthenticatedUser().getUserName());
-                        log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
-                                .getTenantDomain());
+//                        log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
+//                                .getTenantDomain());
                     }
                 }
 
@@ -475,8 +475,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 if (log.isDebugEnabled()) {
                     log.debug("Authenticated User: " +
                             sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
-                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
-                            .getTenantDomain());
+//                    log.debug("Authenticated User Tenant Domain: " + sequenceConfig.getAuthenticatedUser()
+//                            .getTenantDomain());
                 }
             } else {
                 log.warn("Subject claim could not be found. Defaulting to Name Identifier.");

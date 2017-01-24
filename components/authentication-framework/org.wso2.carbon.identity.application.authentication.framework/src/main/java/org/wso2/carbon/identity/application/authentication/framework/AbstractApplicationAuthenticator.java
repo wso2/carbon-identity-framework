@@ -67,9 +67,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 try {
                     processAuthenticationResponse(request, response, context);
                     if (this instanceof LocalApplicationAuthenticator) {
-                        if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
-                            String userDomain = context.getSubject().getTenantDomain();
-                        }
+//                        if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+//                            String userDomain = context.getSubject().getTenantDomain();
+//                        }
                     }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);

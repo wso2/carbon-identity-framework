@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public class FrameworkServiceDataHolder {
 
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
-    private RegistryService registryService = null;
+//    private RegistryService registryService = null;
     private List<ApplicationAuthenticator> authenticators = new ArrayList<>();
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
@@ -53,13 +52,13 @@ public class FrameworkServiceDataHolder {
         return instance;
     }
 
-    public RegistryService getRegistryService() {
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-        this.registryService = registryService;
-    }
+//    public RegistryService getRegistryService() {
+//        return registryService;
+//    }
+//
+//    public void setRegistryService(RegistryService registryService) {
+//        this.registryService = registryService;
+//    }
 
     public RealmService getRealmService() {
         return realmService;

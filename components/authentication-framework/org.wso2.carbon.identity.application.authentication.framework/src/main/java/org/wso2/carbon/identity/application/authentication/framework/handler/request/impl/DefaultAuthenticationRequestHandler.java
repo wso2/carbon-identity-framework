@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -40,8 +39,8 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.common.util.IdentityUtils;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -251,14 +250,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             if (!sequenceConfig.getApplicationConfig().isSaaSApp()) {
 //                String spTenantDomain = context.getTenantDomain();
-                String userTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
-                if (StringUtils.isNotEmpty(userTenantDomain)) {
+//                String userTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+//                if (StringUtils.isNotEmpty(userTenantDomain)) {
 //                    if (StringUtils.isNotEmpty(spTenantDomain) && !spTenantDomain.equals
 //                            (userTenantDomain)) {
 //                        throw new FrameworkException("Service Provider tenant domain must be equal to user tenant " +
 //                                "domain for non-SaaS applications");
 //                    }
-                }
+//                }
             }
 
             authenticationResult.setSubject(new AuthenticatedUser(sequenceConfig.getAuthenticatedUser()));
@@ -308,7 +307,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
                 sessionContext.setRememberMe(context.isRememberMe());
-                String sessionKey = UUIDGenerator.generateUUID();
+                String sessionKey = null;
+                try {
+                    sessionKey = IdentityUtils.generateUUID();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());

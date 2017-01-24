@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.identity.common.util.IdentityUtils;
 import org.wso2.carbon.user.api.Tenant;
 
 import javax.servlet.ServletException;
@@ -73,6 +73,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
     /**
      * Get authentication request cache entry
+     *
      * @param request Http servlet request
      * @return Authentication request cache entry
      */
@@ -140,7 +141,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
-                                                                            context);
+                            context);
                 } else {
                     FrameworkUtils.getLogoutRequestHandler().handle(request, response, context);
                 }
@@ -184,7 +185,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
      * @return
      */
     private AuthenticationRequestCacheEntry getAuthenticationRequest(HttpServletRequest request,
-            String sessionDataKey) {
+                                                                     String sessionDataKey) {
 
         AuthenticationRequestCacheEntry authRequest = getAuthenticationRequestFromRequest(request);
         if (authRequest == null) {
@@ -235,7 +236,12 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         context.setRelyingParty(relyingParty);
 
         // generate a new key to hold the context data object
-        String contextId = UUIDGenerator.generateUUID();
+        String contextId = null;
+        try {
+            contextId = IdentityUtils.generateUUID();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         context.setContextIdentifier(contextId);
 
         if (log.isDebugEnabled()) {
@@ -330,7 +336,7 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
             if (log.isDebugEnabled()) {
                 log.debug(FrameworkConstants.COMMONAUTH_COOKIE
-                          + " cookie is available with the value: " + cookie.getValue());
+                        + " cookie is available with the value: " + cookie.getValue());
             }
 
             String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
@@ -354,13 +360,13 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
                     if (log.isDebugEnabled()) {
                         log.debug("A previously authenticated sequence found for the SP: "
-                                  + appName);
+                                + appName);
                     }
 
                     context.setPreviousSessionFound(true);
                     sequenceConfig = previousAuthenticatedSeq.cloneObject();
                     AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
-                    String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+//                    String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
 
                     if (authenticatedUser != null) {
                         // set the user for the current authentication/logout flow
@@ -368,17 +374,17 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
 
                         if (log.isDebugEnabled()) {
                             log.debug("Already authenticated by username: " +
-                                      authenticatedUser.getAuthenticatedSubjectIdentifier());
+                                    authenticatedUser.getAuthenticatedSubjectIdentifier());
                         }
 
-                        if (authenticatedUserTenantDomain != null) {
-                            // set the user tenant domain for the current authentication/logout flow
-                            context.setProperty("user-tenant-domain", authenticatedUserTenantDomain);
-
-                            if (log.isDebugEnabled()) {
-                                log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
-                            }
-                        }
+//                        if (authenticatedUserTenantDomain != null) {
+//                            // set the user tenant domain for the current authentication/logout flow
+//                            context.setProperty("user-tenant-domain", authenticatedUserTenantDomain);
+//
+//                            if (log.isDebugEnabled()) {
+//                                log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
+//                            }
+//                        }
                     }
                 }
 

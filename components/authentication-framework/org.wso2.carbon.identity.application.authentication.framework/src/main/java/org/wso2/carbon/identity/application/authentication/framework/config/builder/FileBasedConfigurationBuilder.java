@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.builder;
 
-import org.apache.axiom.om.OMElement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -38,7 +37,7 @@ public class FileBasedConfigurationBuilder {
     private static final Log log = LogFactory.getLog(FileBasedConfigurationBuilder.class);
     private static volatile FileBasedConfigurationBuilder instance;
     private static String configFilePath;
-//    private static OMElement rootElement;
+    //    private static OMElement rootElement;
     private static Map<String, Object> configuration = new HashMap<String, Object>();
 
     private String authenticationEndpointURL;
@@ -88,12 +87,11 @@ public class FileBasedConfigurationBuilder {
      * @param localPart local part name
      * @return Corresponding OMElement
      */
-    public OMElement getConfigElement(String localPart) {
-//        return rootElement.getFirstChildWithName(
-//                IdentityApplicationManagementUtil.getQNameWithIdentityApplicationNS(localPart));
-        return null;
-    }
-
+//    public OMElement getConfigElement(String localPart) {
+////        return rootElement.getFirstChildWithName(
+////                IdentityApplicationManagementUtil.getQNameWithIdentityApplicationNS(localPart));
+//        return null;
+//    }
     public Map<String, Object> getConfiguration() {
         return configuration;
     }

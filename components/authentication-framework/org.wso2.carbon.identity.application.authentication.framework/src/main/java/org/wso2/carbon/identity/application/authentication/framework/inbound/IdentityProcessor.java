@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.common.base.handler.InitConfig;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.identity.common.util.IdentityUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -162,7 +162,12 @@ public abstract class IdentityProcessor extends AbstractMessageHandler {
         }
 
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
-        String sessionDataKey = UUIDGenerator.generateUUID();
+        String sessionDataKey = null;
+        try {
+            sessionDataKey = IdentityUtils.generateUUID();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
         InboundUtil.addContextToCache(sessionDataKey, context);
@@ -211,7 +216,12 @@ public abstract class IdentityProcessor extends AbstractMessageHandler {
         authenticationRequest.addRequestQueryParam(FrameworkConstants.RequestParams.LOGOUT, new String[]{"true"});
 
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
-        String sessionDataKey = UUIDGenerator.generateUUID();
+        String sessionDataKey = null;
+        try {
+            sessionDataKey = IdentityUtils.generateUUID();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
         InboundUtil.addContextToCache(sessionDataKey, context);

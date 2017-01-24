@@ -18,9 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.internal;
 
-import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
-import org.wso2.carbon.utils.ConfigurationContextService;
 
 public class IdpMgtServiceComponentHolder {
 
@@ -33,9 +31,9 @@ public class IdpMgtServiceComponentHolder {
 
     private RealmService realmService = null;
 
-    private ConfigurationContextService configurationContextService = null;
+//    private ConfigurationContextService configurationContextService = null;
     //    private volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
-    private RegistryService registryService;
+//    private RegistryService registryService;
 
 //    private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -48,13 +46,13 @@ public class IdpMgtServiceComponentHolder {
         this.realmService = realmService;
     }
 
-    public ConfigurationContextService getConfigurationContextService() {
-        return configurationContextService;
-    }
-
-    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
-        this.configurationContextService = configurationContextService;
-    }
+//    public ConfigurationContextService getConfigurationContextService() {
+//        return configurationContextService;
+//    }
+//
+//    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+//        this.configurationContextService = configurationContextService;
+//    }
 
 //    public List<IdentityProviderMgtListener> getIdpMgtListeners() {
 //        return idpMgtListeners;
@@ -64,13 +62,13 @@ public class IdpMgtServiceComponentHolder {
 //        this.idpMgtListeners = idpMgtListeners;
 //    }
 
-    public RegistryService getRegistryService() {
-        return registryService;
-    }
-
-    public void setRegistryService(RegistryService registryService) {
-        this.registryService = registryService;
-    }
+//    public RegistryService getRegistryService() {
+//        return registryService;
+//    }
+//
+//    public void setRegistryService(RegistryService registryService) {
+//        this.registryService = registryService;
+//    }
 
 //    public List<MetadataConverter> getMetadataConverters() {
 //        return metadataConverters;

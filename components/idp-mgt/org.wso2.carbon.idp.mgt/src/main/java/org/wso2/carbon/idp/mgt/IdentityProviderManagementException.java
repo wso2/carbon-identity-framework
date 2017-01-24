@@ -18,17 +18,17 @@
 
 package org.wso2.carbon.idp.mgt;
 
-import org.wso2.carbon.identity.base.IdentityException;
 
-public class IdentityProviderManagementException extends IdentityException {
+// TODO C5 - extend from Identity Exception
+public class IdentityProviderManagementException extends Exception{
 
     private static final long serialVersionUID = 3848393984629150057L;
 
     public IdentityProviderManagementException(String message) {
-        super(message);
+
     }
 
     public IdentityProviderManagementException(String message, Throwable cause) {
-        super(message, cause);
+
     }
 }

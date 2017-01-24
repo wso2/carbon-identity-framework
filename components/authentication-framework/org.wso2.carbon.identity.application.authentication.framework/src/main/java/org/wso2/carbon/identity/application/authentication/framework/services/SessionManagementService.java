@@ -69,8 +69,7 @@ public class SessionManagementService {
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) sessionContext
                 .getProperty(FrameworkConstants.AUTHENTICATED_USER);
         if (username.equals(authenticatedUser.getUserName())
-                && userStoreDomain.equals(authenticatedUser.getUserStoreDomain())
-                && carbonContext.getTenantDomain().equals(authenticatedUser.getTenantDomain())) {
+                && userStoreDomain.equals(authenticatedUser.getUserStoreDomain())) {
             terminateSession(sessionContext, sessionId);
         } else { // TODO : Handle federated scenario.
             log.warn(String.format("Trying to terminate a session which does not belong to logged in user (%s). " +
