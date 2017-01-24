@@ -17,7 +17,8 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.wso2.carbon.identity.gateway</groupId>
@@ -71,48 +72,27 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-                <version>1.9.0</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Private-Package>org.wso2.carbon.identity.application.authentication.framework.internal,
-                        </Private-Package>
-                        <Import-Package>
-                            javax.xml.namespace,
-                            javax.xml.stream,
-                            org.apache.axiom.*; version="${axiom.osgi.version.range}",
-                            org.apache.commons.codec.digest; version="${commons-codec.wso2.osgi.version.range}",
-                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
-                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
-                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-                            org.osgi.service.http; version="${osgi.service.http.imp.pkg.version.range}",
-                            org.osgi.util.tracker; version="${osgi.util.tracker.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.application.common.*;
-                            version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
-
-                        </Import-Package>
-                        <Export-Package>!org.wso2.carbon.identity.application.authentication.framework.internal,
-                            org.wso2.carbon.identity.application.authentication.framework.*;
-                            version="${carbon.identity.package.export.version}"
-                        </Export-Package>
-                        <DynamicImport-Package>*</DynamicImport-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
+    <properties>
+        <private.package>org.wso2.carbon.identity.application.authentication.framework.internal</private.package>
+        <export.package>
+            !org.wso2.carbon.identity.application.authentication.framework.internal,
+            org.wso2.carbon.identity.application.authentication.framework.*;
+            version="${carbon.identity.package.export.version}"
+        </export.package>
+        <import.package>
+            javax.xml.namespace,
+            javax.xml.stream,
+            org.apache.axiom.*; version="${axiom.osgi.version.range}",
+            org.apache.commons.codec.digest; version="${commons-codec.wso2.osgi.version.range}",
+            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
+            org.osgi.service.http; version="${osgi.service.http.imp.pkg.version.range}",
+            org.osgi.util.tracker; version="${osgi.util.tracker.imp.pkg.version.range}",
+            org.wso2.carbon.identity.application.common.*;
+            version="${carbon.identity.package.import.version.range}",
+            org.wso2.carbon.idp.mgt; version="${carbon.identity.package.import.version.range}",
+        </import.package>
+    </properties>
 </project>

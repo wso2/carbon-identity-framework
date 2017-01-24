@@ -45,42 +45,24 @@
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Identity Application Common Bundle</name>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Import-Package>
-                            javax.cache,
-                            javax.cache.event.*,
-                            javax.crypto,
-                            javax.crypto.spec,
-                            javax.naming,
-                            javax.sql,
-                            javax.xml.namespace,
-                            javax.xml.stream,
-                            org.apache.axiom.*; version="${axiom.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
-                            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
-                            org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                        </Import-Package>
-                        <Export-Package>
-                            org.wso2.carbon.identity.application.common.*; version="${carbon.identity.package.export.version}"
-                        </Export-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
+    <properties>
+        <export.package>
+            org.wso2.carbon.identity.application.common.*
+        </export.package>
+        <import.package>
+            javax.cache,
+            javax.cache.event.*,
+            javax.crypto,
+            javax.crypto.spec,
+            javax.naming,
+            javax.sql,
+            javax.xml.namespace,
+            javax.xml.stream,
+            org.apache.axiom.*; version="${axiom.osgi.version.range}",
+            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+            org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
+            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+            org.apache.axis2.*; version="${axis2.osgi.version.range}",
+        </import.package>
+    </properties>
 </project>
