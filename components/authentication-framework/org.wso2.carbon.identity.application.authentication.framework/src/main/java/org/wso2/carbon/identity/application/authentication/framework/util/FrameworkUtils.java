@@ -1205,5 +1205,21 @@ public class FrameworkUtils {
     public static String fillURLPlaceholders(String url) {
         return "";
     }
+
+    public static int getCleanUpTimeout(){
+        return 0;
+    }
+    public static int getOperationCleanUpPeriod(){
+        return 0;
+    }
+    public static int getCleanUpPeriod(){
+        return 0;
+    }
+
+    public static int getOperationCleanUpTimeout(){
+        return 0;
+    }
+
+
 }
 

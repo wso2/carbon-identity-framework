@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1641,11 +1640,11 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     private String getOIDCResidentIdPEntityId() {
-        String OIDCEntityId = IdentityUtil.getProperty("OAuth.OpenIDConnect.IDTokenIssuerID");
+//        String OIDCEntityId = IdentityUtil.getProperty("OAuth.OpenIDConnect.IDTokenIssuerID");
 //        if (StringUtils.isBlank(OIDCEntityId)) {
 //            OIDCEntityId = "localhost";
 //        }
-        return OIDCEntityId;
+        return null;
     }
 
     public String getResidentIDPMetadata() throws IdentityProviderManagementException {

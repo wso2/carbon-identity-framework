@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.common.base.handler.InitConfig;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.io.UnsupportedEncodingException;
@@ -225,7 +224,9 @@ public abstract class IdentityProcessor extends AbstractMessageHandler {
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getType(context));
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+        // TODO : C5
+        // String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+        String commonAuthURL = "";
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
     }

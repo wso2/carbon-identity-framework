@@ -21,11 +21,9 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.util.jdbc.JDBCUtils;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -116,7 +114,7 @@ public class SessionDataStore {
 
     static {
         try {
-            String maxPoolSizeConfigValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
+            String maxPoolSizeConfigValue = FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
             if (StringUtils.isNotBlank(maxPoolSizeConfigValue)) {
                 maxPoolSize = Integer.parseInt(maxPoolSizeConfigValue);
             }
@@ -137,22 +135,22 @@ public class SessionDataStore {
     }
 
     private SessionDataStore() {
-        String enablePersistVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Enable");
+        String enablePersistVal = FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.Enable");
         enablePersist = true;
         if (enablePersistVal != null) {
             enablePersist = Boolean.parseBoolean(enablePersistVal);
         }
-        String insertSTORESQL = IdentityUtil
+        String insertSTORESQL = FrameworkUtils
                 .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.InsertSTORE");
-        String insertDELETESQL = IdentityUtil
+        String insertDELETESQL = FrameworkUtils
                 .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.InsertDELETE");
-        String deleteSTORETaskSQL = IdentityUtil
+        String deleteSTORETaskSQL = FrameworkUtils
                 .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteSTORETask");
-        String deleteDELETETaskSQL = IdentityUtil
+        String deleteDELETETaskSQL = FrameworkUtils
                 .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteDELETETask");
-        String selectSQL = IdentityUtil
+        String selectSQL = FrameworkUtils
                 .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.Select");
-        String deleteExpiredDataTaskSQL = IdentityUtil
+        String deleteExpiredDataTaskSQL = FrameworkUtils
                 .getProperty("JDBCPersistenceManager.SessionDataPersist.SQL.DeleteExpiredDataTask");
         if (!StringUtils.isBlank(insertSTORESQL)) {
             sqlInsertSTORE = insertSTORESQL;
@@ -186,9 +184,9 @@ public class SessionDataStore {
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        String isCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
+        String isCleanUpEnabledVal = FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
 
-        String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
+        String isOperationCleanUpEnabledVal = FrameworkUtils.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
 
         if (StringUtils.isBlank(isCleanUpEnabledVal)) {
             isCleanUpEnabledVal = defaultCleanUpEnabled;
@@ -198,8 +196,7 @@ public class SessionDataStore {
         }
 
         if (Boolean.parseBoolean(isCleanUpEnabledVal)) {
-            long sessionCleanupPeriod = IdentityUtil.getCleanUpPeriod(
-                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            long sessionCleanupPeriod = FrameworkUtils.getCleanUpPeriod();
             SessionCleanUpService sessionCleanUpService = new SessionCleanUpService(sessionCleanupPeriod / 4,
                     sessionCleanupPeriod);
             sessionCleanUpService.activateCleanUp();
@@ -207,8 +204,7 @@ public class SessionDataStore {
             log.info("Session Data CleanUp Task of Authentication framework is not enabled.");
         }
         if (Boolean.parseBoolean(isOperationCleanUpEnabledVal)) {
-            long operationCleanUpPeriod = IdentityUtil.getOperationCleanUpPeriod(
-                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+            long operationCleanUpPeriod = FrameworkUtils.getOperationCleanUpPeriod();
             OperationCleanUpService operationCleanUpService = new OperationCleanUpService(operationCleanUpPeriod / 4,
                     operationCleanUpPeriod);
             operationCleanUpService.activateCleanUp();
@@ -318,7 +314,7 @@ public class SessionDataStore {
             return;
         }
         long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
-                TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
+                TimeUnit.MINUTES.toNanos(FrameworkUtils.getCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
             statement.setLong(1, cleanupLimitNano);
@@ -444,7 +440,7 @@ public class SessionDataStore {
             return;
         }
         long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
-                TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout());
+                TimeUnit.MINUTES.toNanos(FrameworkUtils.getOperationCleanUpTimeout());
         try {
             if (StringUtils.isBlank(sqlDeleteSTORETask)) {
                 if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)) {
@@ -479,7 +475,7 @@ public class SessionDataStore {
             return;
         }
         long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
-                TimeUnit.MINUTES.toNanos(IdentityUtil.getOperationCleanUpTimeout());
+                TimeUnit.MINUTES.toNanos(FrameworkUtils.getOperationCleanUpTimeout());
         try {
             statement = connection.prepareStatement(sqlDeleteDELETETask);
             statement.setLong(1, cleanupLimitNano);

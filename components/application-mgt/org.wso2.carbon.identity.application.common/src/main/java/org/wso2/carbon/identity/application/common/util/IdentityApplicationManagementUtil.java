@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.common.util.jdbc.JDBCUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -261,7 +261,7 @@ public class IdentityApplicationManagementUtil {
      */
     public static void closeConnection(Connection dbConnection) {
 
-        IdentityDatabaseUtil.closeConnection(dbConnection);
+        JDBCUtils.closeConnection(dbConnection);
     }
 
     /**
@@ -271,7 +271,7 @@ public class IdentityApplicationManagementUtil {
      */
     public static void rollBack(Connection dbConnection) {
 
-        IdentityDatabaseUtil.rollBack(dbConnection);
+        JDBCUtils.rollBack(dbConnection);
     }
 
     /**
@@ -478,11 +478,11 @@ public class IdentityApplicationManagementUtil {
      * @param rs
      */
     public static void closeResultSet(ResultSet rs) {
-        IdentityDatabaseUtil.closeResultSet(rs);
+        JDBCUtils.closeResultSet(rs);
     }
 
     public static void closeStatement(PreparedStatement preparedStatement) {
-        IdentityDatabaseUtil.closeStatement(preparedStatement);
+        JDBCUtils.closeStatement(preparedStatement);
     }
 
     /**

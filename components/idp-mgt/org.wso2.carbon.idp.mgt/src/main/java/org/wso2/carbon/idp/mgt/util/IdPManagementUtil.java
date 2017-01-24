@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -59,11 +58,11 @@ public class IdPManagementUtil {
      * +
      */
     public static String getResidentIdPEntityId() {
-        String localEntityId = IdentityUtil.getProperty("SSOService.EntityId");
-        if (localEntityId == null || localEntityId.trim().isEmpty()) {
-            localEntityId = "localhost";
-        }
-        return localEntityId;
+//        String localEntityId = IdentityUtil.getProperty("SSOService.EntityId");
+//        if (localEntityId == null || localEntityId.trim().isEmpty()) {
+//            localEntityId = "localhost";
+//        }
+        return null;
     }
 
     public static int getIdleSessionTimeOut() {

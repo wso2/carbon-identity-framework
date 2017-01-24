@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.application.common.model;
 import org.apache.axiom.om.OMElement;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -136,16 +134,16 @@ public class User implements Serializable {
 
         if (!tenantDomain.equals(user.tenantDomain)) return false;
 
-        boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreCaseSensitive(userStoreDomain,
-                IdentityTenantUtil.getTenantId(tenantDomain));
-
-        if(isUsernameCaseSensitive) {
-            if (!userName.equals(user.userName)) return false;
-        } else {
-            if (!userName.equalsIgnoreCase(user.userName)) return false;
-        }
-
-        if (!userStoreDomain.equals(user.userStoreDomain)) return false;
+//        boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreCaseSensitive(userStoreDomain,
+//                IdentityTenantUtil.getTenantId(tenantDomain));
+//
+//        if(isUsernameCaseSensitive) {
+//            if (!userName.equals(user.userName)) return false;
+//        } else {
+//            if (!userName.equalsIgnoreCase(user.userName)) return false;
+//        }
+//
+//        if (!userStoreDomain.equals(user.userStoreDomain)) return false;
 
         return true;
     }
@@ -164,7 +162,8 @@ public class User implements Serializable {
             String tenantDomain = MultitenantUtils.getTenantDomain(username);
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             String tenantAwareUsernameWithNoUserDomain = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
-            String userStoreDomain = IdentityUtil.extractDomainFromName(username).toUpperCase();
+            // TODO : C5
+            String userStoreDomain = "";
             user.setUserName(tenantAwareUsernameWithNoUserDomain);
             if (StringUtils.isNotEmpty(tenantDomain)) {
                 user.setTenantDomain(tenantDomain);
@@ -184,12 +183,12 @@ public class User implements Serializable {
     @Override
     public int hashCode() {
         int result = tenantDomain.hashCode();
-        result = 31 * result + userStoreDomain.hashCode();
-        if(IdentityUtil.isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain))) {
-            result = 31 * result + userName.hashCode();
-        } else {
-            result = 31 * result + userName.toLowerCase().hashCode();
-        }
+//        result = 31 * result + userStoreDomain.hashCode();
+//        if(IdentityUtil.isUserStoreCaseSensitive(userStoreDomain, IdentityTenantUtil.getTenantId(tenantDomain))) {
+//            result = 31 * result + userName.hashCode();
+//        } else {
+//            result = 31 * result + userName.toLowerCase().hashCode();
+//        }
         return result;
     }
 
