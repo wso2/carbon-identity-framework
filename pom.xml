@@ -17,10 +17,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.identity.framework</groupId>
+    <groupId>org.wso2.carbon.identity.gateway</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.7.6-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -38,40 +38,9 @@
     </scm>
 
     <modules>
-        <!--<module>service-stubs/identity</module>-->
-        <module>components/authentication-framework</module>
-        <!--<module>components/entitlement</module>-->
-        <!--<module>components/identity-core</module>-->
-        <module>components/application-mgt</module>
-        <!--<module>components/user-mgt</module>-->
-        <!--<module>components/identity-mgt</module>-->
-        <!--<module>components/identity-event</module>-->
-        <!--<module>components/notification-mgt</module>-->
-        <!--<module>components/provisioning</module>-->
-        <!--<module>components/user-store</module>-->
-        <module>components/idp-mgt</module>
-        <!--<module>components/claim-mgt</module>-->
-        <!--<module>components/directory-server-manager</module>-->
-        <!--<module>components/security-mgt</module>-->
-        <!--<module>components/workflow-mgt</module>-->
-        <!--<module>components/policy-editor</module>-->
-        <!--<module>components/carbon-authenticators</module>-->
-        <!--<module>features/security-mgt</module>-->
-        <!--<module>features/claim-mgt</module>-->
-        <!--<module>features/identity-core</module>-->
-        <!--<module>features/identity-event</module>-->
-        <!--<module>features/identity-mgt</module>-->
-        <!--<module>features/xacml</module>-->
-        <!--<module>features/authentication-framework</module>-->
-        <!--<module>features/application-mgt</module>-->
-        <!--<module>features/provisioning</module>-->
-        <!--<module>features/notification-mgt</module>-->
-        <!--<module>features/idp-mgt</module>-->
-        <!--<module>features/directory-server-manager</module>-->
-        <!--<module>features/user-mgt</module>-->
-        <!--<module>features/workflow-mgt</module>-->
-        <!--<module>features/categories</module>-->
-        <!--<module>features/carbon-authenticators</module>-->
+        <module>components/identity-gateway</module>
+        <module>components/gateway-application-mgt-dependencies</module>
+        <module>components/gateway-idp-management-dependencies</module>
     </modules>
 
     <repositories>
@@ -170,12 +139,12 @@
             </dependency>
 
             <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
                 <artifactId>org.wso2.carbon.idp.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
                 <artifactId>org.wso2.carbon.identity.application.common</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -204,10 +173,20 @@
                 <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
                 <version>${apache.felix.scr.ds.annotations.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.commons</groupId>
+                <artifactId>org.wso2.carbon.identity.commons</artifactId>
+                <version>${carbon.identity.commons.version}</version>
+            </dependency>
         </dependencies>
+
 
     </dependencyManagement>
     <properties>
+
+        <!-- C-5 Dependencies -->
+        <carbon.identity.commons.version>6.0.0-SNAPSHOT</carbon.identity.commons.version>
+        <carbon.identity.commons.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.commons.package.import.version.range>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
