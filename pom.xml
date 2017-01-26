@@ -26,7 +26,7 @@
     <groupId>org.wso2.carbon.identity.commons</groupId>
     <artifactId>identity-commons</artifactId>
     <packaging>pom</packaging>
-    <version>6.0.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>WSO2 Carbon - Identity Commons Aggregator</name>
     <description>
         This is a Carbon bundle that represents the Identity Commons aggregate module.
@@ -42,8 +42,8 @@
 
     <modules>
         <module>components/org.wso2.carbon.identity.common</module>
-        <module>components/org.wso2.carbon.identity.event</module>
-        <module>components/org.wso2.carbon.identity.keystore</module>
+        <!--<module>components/org.wso2.carbon.identity.event</module>-->
+        <!--<module>components/org.wso2.carbon.identity.keystore</module>-->
         <module>feature/org.wso2.carbon.identity.common.feature</module>
     </modules>
 
