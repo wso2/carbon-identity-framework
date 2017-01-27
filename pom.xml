@@ -70,11 +70,6 @@
                 <version>${carbon.caching.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.logging</artifactId>
-                <version>${carbon.kernel.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>apache-collections</groupId>
                 <artifactId>commons-collections</artifactId>
                 <version>${commons-collections.version}</version>
@@ -119,7 +114,7 @@
     </build>
 
     <properties>
-        <carbon.kernel.version>5.1.0-m2</carbon.kernel.version>
+        <carbon.kernel.version>5.1.0</carbon.kernel.version>
         <carbon.kernel.package.import.version>[5,6)</carbon.kernel.package.import.version>
         <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
 
@@ -134,7 +129,6 @@
         <commons-io.version>2.5</commons-io.version>
         <commons-io.package.import.version.range>[2.5,3)</commons-io.package.import.version.range>
 
-        <carbon.logging.version>5.1.0-m2</carbon.logging.version>
         <carbon.logging.package.import.version>[5,6)</carbon.logging.package.import.version>
         <carbon.caching.version>1.0.0</carbon.caching.version>
         <carbon.caching.package.import.version>[1,2)</carbon.caching.package.import.version>
