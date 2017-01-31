@@ -22,12 +22,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.common.base.handler.InitConfig;
+import org.wso2.carbon.messaging.Header;
+import org.wso2.msf4j.Request;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Enumeration;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class HttpIdentityRequestFactory extends AbstractMessageHandler {
 
@@ -61,67 +60,55 @@ public class HttpIdentityRequestFactory extends AbstractMessageHandler {
 //        }
     }
 
-    public boolean canHandle(HttpServletRequest request, HttpServletResponse response) {
+    public boolean canHandle(Request request) {
         return true;
     }
 
-    public IdentityRequest.IdentityRequestBuilder create(HttpServletRequest request, HttpServletResponse response)
+    public IdentityRequest.IdentityRequestBuilder create(Request request)
             throws FrameworkClientException {
 
-        IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request, response);
-        create(builder, request, response);
+        IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder(request);
+        create(builder, request);
         return builder;
     }
 
-    public void create(IdentityRequest.IdentityRequestBuilder builder,
-                       HttpServletRequest request, HttpServletResponse response)
+    public void create(IdentityRequest.IdentityRequestBuilder builder, Request request)
             throws FrameworkClientException {
 
-        Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            builder.addHeader(headerName, request.getHeader(headerName));
-        }
-        builder.setParameters(request.getParameterMap());
-        Enumeration<String> attrNames = request.getAttributeNames();
-        while (attrNames.hasMoreElements()) {
-            String attrName = attrNames.nextElement();
-            builder.addAttribute(attrName, request.getAttribute(attrName));
-        }
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                builder.addCookie(cookie.getName(), cookie);
-            }
-        }
-        String requestURI = request.getRequestURI();
+        builder.addHeaders(request.getHeaders().getAll().stream()
+                .collect(Collectors.toMap(Header::getName, Header::getValue)));
+        builder.addAttributes(request.getProperties());
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                builder.addCookie(cookie.getName(), cookie);
+//            }
+//        }
+        String requestURI = request.getUri();
         builder.setContentType(request.getContentType());
-        builder.setContextPath(request.getContextPath());
-        builder.setMethod(request.getMethod());
-        builder.setPathInfo(request.getPathInfo());
-        builder.setPathTranslated(request.getPathTranslated());
-        builder.setQueryString(request.getQueryString());
+//        builder.setContextPath(request.getContextPath());
+        builder.setMethod(request.getHttpMethod());
+//        builder.setPathInfo(request.getPathInfo());
+//        builder.setPathTranslated(request.getPathTranslated());
+//        builder.setQueryString(request.getQueryString());
         builder.setRequestURI(requestURI);
-        builder.setRequestURL(request.getRequestURL());
-        builder.setServletPath(request.getServletPath());
+        builder.setRequestURL(new StringBuffer(request.getUri()));
 
     }
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception,
-                                                                            HttpServletRequest request,
-                                                                            HttpServletResponse response) {
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
+                new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(400);
         builder.setBody(exception.getMessage());
         return builder;
     }
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception,
-                                                                            HttpServletRequest request,
-                                                                            HttpServletResponse response) {
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception) {
 
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
+                new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         return builder;
     }

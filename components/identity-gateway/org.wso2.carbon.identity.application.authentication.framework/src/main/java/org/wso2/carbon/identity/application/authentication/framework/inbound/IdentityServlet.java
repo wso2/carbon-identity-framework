@@ -18,58 +18,67 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.License;
+import io.swagger.annotations.SwaggerDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.msf4j.Request;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
-import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
-public class IdentityServlet extends HttpServlet {
+@Api(value = "Identity Endpoint")
+@SwaggerDefinition(
+        info = @Info(
+                title = "Identity Endpoint Swagger Definition", version = "1.0",
+                description = "Identity Endpoint",
+                license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0"))
+)
+@Path("/identity")
+public class IdentityServlet {
 
     private IdentityProcessCoordinator manager = new IdentityProcessCoordinator();
 
-    @Override
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+    public void service(@Context Request request, @Context UriInfo uriInfo) {
 
-        HttpIdentityResponse httpIdentityResponse = process(request, response);
-        processHttpResponse(httpIdentityResponse, response);
+        HttpIdentityResponse httpIdentityResponse = process(request);
+        processHttpResponse(httpIdentityResponse, uriInfo);
     }
 
     /**
-     * Process the {@link HttpServletRequest} and {@link HttpServletResponse}.
+     * Process the {@link Request}.
      *
      * @param request
-     * @param response
      */
-    private HttpIdentityResponse process(HttpServletRequest request, HttpServletResponse response) {
+    private HttpIdentityResponse process(Request request) {
 
-        HttpIdentityRequestFactory factory = getIdentityRequestFactory(request, response);
+        HttpIdentityRequestFactory factory = getIdentityRequestFactory(request);
 
         IdentityRequest identityRequest = null;
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder = null;
 
         try {
-            identityRequest = factory.create(request, response).build();
+            identityRequest = factory.create(request).build();
             if (identityRequest == null) {
                 throw FrameworkRuntimeException.error("IdentityRequest is Null. Cannot proceed!!");
             }
         } catch (FrameworkClientException e) {
-            responseBuilder = factory.handleException(e, request, response);
+            responseBuilder = factory.handleException(e);
             if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
             return responseBuilder.build();
         } catch (RuntimeException e) {
-            responseBuilder = factory.handleException(e, request, response);
+            responseBuilder = factory.handleException(e);
             if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!", e);
             }
@@ -108,53 +117,44 @@ public class IdentityServlet extends HttpServlet {
     }
 
     /**
-     * Process the {@link HttpIdentityResponse} and {@link HttpServletResponse}.
-     *
-     * @param httpIdentityResponse {@link HttpIdentityResponse}
-     * @param response             {@link HttpServletResponse}
+     * Process the {@link HttpIdentityResponse} and {@link UriInfo}.
+     *  @param httpIdentityResponse {@link HttpIdentityResponse}
+     * @param uriInfo {@link UriInfo}
      */
-    private void processHttpResponse(HttpIdentityResponse httpIdentityResponse, HttpServletResponse response) {
+    private Response processHttpResponse(HttpIdentityResponse httpIdentityResponse, UriInfo uriInfo) {
 
-        for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
-            response.addHeader(entry.getKey(), entry.getValue());
-        }
-        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
-            response.addCookie(entry.getValue());
-        }
+        Response.ResponseBuilder responseBuilder = Response.created(uriInfo.getRequestUri());
+
+        httpIdentityResponse.getHeaders().forEach((key, value) -> responseBuilder.header(key, value));
+        httpIdentityResponse.getHeaders().forEach((key, value) -> responseBuilder.cookie(new NewCookie(key, value)));
         if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
-            response.setContentType(httpIdentityResponse.getContentType());
+            responseBuilder.type(httpIdentityResponse.getContentType());
         }
         if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
             try {
-                sendRedirect(response, httpIdentityResponse);
+                sendRedirect(httpIdentityResponse);
             } catch (IOException e) {
                 throw FrameworkRuntimeException.error("Error occurred while redirecting response", e);
             }
         } else {
-            response.setStatus(httpIdentityResponse.getStatusCode());
-            try {
-                PrintWriter out = response.getWriter();
-                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
-                    out.print(httpIdentityResponse.getBody());
-                }
-            } catch (IOException e) {
-                throw FrameworkRuntimeException.error("Error occurred while getting Response writer object", e);
-            }
+            responseBuilder.status(httpIdentityResponse.getStatusCode());
+            return responseBuilder.build();
         }
+        return null;
     }
 
     /**
      * Get the HttpIdentityRequestFactory.
      *
-     * @param request  {@link HttpServletRequest}
-     * @param response {@link HttpServletResponse}
+     * @param request  {@link Request}
      * @return {@link HttpIdentityRequestFactory}
      */
-    private HttpIdentityRequestFactory getIdentityRequestFactory(HttpServletRequest request, HttpServletResponse response) {
+    private HttpIdentityRequestFactory getIdentityRequestFactory(Request request) {
 
-        List<HttpIdentityRequestFactory> factories = FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
+        List<HttpIdentityRequestFactory> factories =
+                FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
         for (HttpIdentityRequestFactory requestBuilder : factories) {
-            if (requestBuilder.canHandle(request, response)) {
+            if (requestBuilder.canHandle(request)) {
                 return requestBuilder;
             }
         }
@@ -218,10 +218,9 @@ public class IdentityServlet extends HttpServlet {
     /**
      * Sends a 302 redirect response to client.
      *
-     * @param response             {@link HttpServletResponse}
      * @param httpIdentityResponse {@link HttpIdentityResponse}
      */
-    private void sendRedirect(HttpServletResponse response, HttpIdentityResponse httpIdentityResponse) throws IOException {
+    private void sendRedirect(HttpIdentityResponse httpIdentityResponse) throws IOException {
 
 //        String redirectUrl;
 //        if (httpIdentityResponse.isFragmentUrl()) {
@@ -234,4 +233,4 @@ public class IdentityServlet extends HttpServlet {
 //        response.sendRedirect(redirectUrl);
 //    }
     }
-    }
+}

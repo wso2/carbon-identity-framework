@@ -18,12 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.wso2.msf4j.Request;
+
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -34,7 +32,7 @@ public class IdentityRequest implements Serializable {
     private static final long serialVersionUID = -5698789879774366242L;
 
     protected Map<String, String> headers = new HashMap();
-    protected Map<String, Cookie> cookies = new HashMap();
+//    protected Map<String, Cookie> cookies = new HashMap();
     protected Map<String, String[]> parameters = new HashMap();
     protected Map<String, Object> attributes = new HashMap();
     protected String contextPath;
@@ -44,7 +42,6 @@ public class IdentityRequest implements Serializable {
     protected String queryString;
     protected String requestURI;
     protected StringBuffer requestURL;
-    protected String servletPath;
     protected String contentType;
 
     public Map<String, String> getHeaderMap() {
@@ -69,14 +66,14 @@ public class IdentityRequest implements Serializable {
         return headers.get(name);
     }
 
-    public Map<String, Cookie> getCookieMap() {
-        return Collections.unmodifiableMap(cookies);
-    }
-
-    public Cookie[] getCookies() {
-        Collection<Cookie> cookies = getCookieMap().values();
-        return cookies.toArray(new Cookie[cookies.size()]);
-    }
+//    public Map<String, Cookie> getCookieMap() {
+//        return Collections.unmodifiableMap(cookies);
+//    }
+//
+//    public Cookie[] getCookies() {
+//        Collection<Cookie> cookies = getCookieMap().values();
+//        return cookies.toArray(new Cookie[cookies.size()]);
+//    }
 
     public Map<String, String[]> getParameterMap() {
         return Collections.unmodifiableMap(parameters);
@@ -126,9 +123,6 @@ public class IdentityRequest implements Serializable {
         return requestURL;
     }
 
-    public String getServletPath() {
-        return servletPath;
-    }
 
     public String getContentType() {
         return contentType;
@@ -136,7 +130,7 @@ public class IdentityRequest implements Serializable {
 
     protected IdentityRequest(IdentityRequestBuilder builder) throws FrameworkClientException {
         this.headers = builder.headers;
-        this.cookies = builder.cookies;
+//        this.cookies = builder.cookies;
         this.parameters = builder.parameters;
         this.attributes = builder.attributes;
         this.contextPath = builder.contextPath;
@@ -146,25 +140,23 @@ public class IdentityRequest implements Serializable {
         this.queryString = builder.queryString;
         this.requestURI = builder.requestURI;
         this.requestURL = builder.requestURL;
-        this.servletPath = builder.servletPath;
         this.contentType = builder.contentType;
     }
 
-    public String getBrowserCookieValue() {
-        String cookieValue = null;
-        Cookie cookie = this.getCookieMap().get(IdentityRequestConstants.BROWSER_COOKIE);
-        if (cookie != null) {
-            cookieValue = cookie.getValue();
-        }
-        return cookieValue;
-    }
+//    public String getBrowserCookieValue() {
+//        String cookieValue = null;
+//        Cookie cookie = this.getCookieMap().get(IdentityRequestConstants.BROWSER_COOKIE);
+//        if (cookie != null) {
+//            cookieValue = cookie.getValue();
+//        }
+//        return cookieValue;
+//    }
 
     public static class IdentityRequestBuilder {
 
-        protected HttpServletRequest request;
-        protected HttpServletResponse response;
+        protected Request request;
         protected Map<String, String> headers = new HashMap();
-        protected Map<String, Cookie> cookies = new HashMap();
+//        protected Map<String, Cookie> cookies = new HashMap();
         protected Map<String, String[]> parameters = new HashMap();
         protected Map<String, Object> attributes = new HashMap();
         protected String contextPath;
@@ -174,24 +166,18 @@ public class IdentityRequest implements Serializable {
         protected String queryString;
         protected String requestURI;
         protected StringBuffer requestURL;
-        protected String servletPath;
         protected String contentType;
 
-        public IdentityRequestBuilder(HttpServletRequest request, HttpServletResponse response) {
+        public IdentityRequestBuilder(Request request) {
             this.request = request;
-            this.response = response;
         }
 
         public IdentityRequestBuilder() {
 
         }
 
-        public HttpServletRequest getRequest() {
+        public Request getRequest() {
             return request;
-        }
-
-        public HttpServletResponse getResponse() {
-            return response;
         }
 
         public IdentityRequestBuilder setHeaders(Map<String, String> headers) {
@@ -218,29 +204,29 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder setCookies(Map<String, Cookie> cookies) {
-            if (cookies == null) {
-                throw FrameworkRuntimeException.error("Cookies map is null.");
-            }
-            this.cookies = cookies;
-            return this;
-        }
-
-        public IdentityRequestBuilder addCookie(String name, Cookie value) {
-            if (this.cookies.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-                        "cookie " + name);
-            }
-            this.cookies.put(name, value);
-            return this;
-        }
-
-        public IdentityRequestBuilder addCookies(Map<String, Cookie> cookies) {
-            for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
-                addCookie(cookie.getKey(), cookie.getValue());
-            }
-            return this;
-        }
+//        public IdentityRequestBuilder setCookies(Map<String, Cookie> cookies) {
+//            if (cookies == null) {
+//                throw FrameworkRuntimeException.error("Cookies map is null.");
+//            }
+//            this.cookies = cookies;
+//            return this;
+//        }
+//
+//        public IdentityRequestBuilder addCookie(String name, Cookie value) {
+//            if (this.cookies.containsKey(name)) {
+//                throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
+//                        "cookie " + name);
+//            }
+//            this.cookies.put(name, value);
+//            return this;
+//        }
+//
+//        public IdentityRequestBuilder addCookies(Map<String, Cookie> cookies) {
+//            for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
+//                addCookie(cookie.getKey(), cookie.getValue());
+//            }
+//            return this;
+//        }
 
         public IdentityRequestBuilder setParameters(Map<String, String[]> parameters) {
             if (parameters == null) {
@@ -332,11 +318,6 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder setRequestURL(StringBuffer requestURL) {
             this.requestURL = requestURL;
-            return this;
-        }
-
-        public IdentityRequestBuilder setServletPath(String servletPath) {
-            this.servletPath = servletPath;
             return this;
         }
 
