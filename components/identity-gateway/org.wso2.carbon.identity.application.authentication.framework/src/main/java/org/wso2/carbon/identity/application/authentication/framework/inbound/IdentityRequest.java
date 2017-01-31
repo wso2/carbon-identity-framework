@@ -22,17 +22,19 @@ import org.wso2.msf4j.Request;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.core.Cookie;
 
 public class IdentityRequest implements Serializable {
 
     private static final long serialVersionUID = -5698789879774366242L;
 
     protected Map<String, String> headers = new HashMap();
-//    protected Map<String, Cookie> cookies = new HashMap();
+    protected Map<String, Cookie> cookies = new HashMap();
     protected Map<String, String[]> parameters = new HashMap();
     protected Map<String, Object> attributes = new HashMap();
     protected String contextPath;
@@ -66,14 +68,14 @@ public class IdentityRequest implements Serializable {
         return headers.get(name);
     }
 
-//    public Map<String, Cookie> getCookieMap() {
-//        return Collections.unmodifiableMap(cookies);
-//    }
-//
-//    public Cookie[] getCookies() {
-//        Collection<Cookie> cookies = getCookieMap().values();
-//        return cookies.toArray(new Cookie[cookies.size()]);
-//    }
+    public Map<String, Cookie> getCookieMap() {
+        return Collections.unmodifiableMap(cookies);
+    }
+
+    public Cookie[] getCookies() {
+        Collection<Cookie> cookies = getCookieMap().values();
+        return cookies.toArray(new Cookie[cookies.size()]);
+    }
 
     public Map<String, String[]> getParameterMap() {
         return Collections.unmodifiableMap(parameters);
@@ -156,7 +158,7 @@ public class IdentityRequest implements Serializable {
 
         protected Request request;
         protected Map<String, String> headers = new HashMap();
-//        protected Map<String, Cookie> cookies = new HashMap();
+        protected Map<String, Cookie> cookies = new HashMap();
         protected Map<String, String[]> parameters = new HashMap();
         protected Map<String, Object> attributes = new HashMap();
         protected String contextPath;
@@ -204,29 +206,29 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-//        public IdentityRequestBuilder setCookies(Map<String, Cookie> cookies) {
-//            if (cookies == null) {
-//                throw FrameworkRuntimeException.error("Cookies map is null.");
-//            }
-//            this.cookies = cookies;
-//            return this;
-//        }
-//
-//        public IdentityRequestBuilder addCookie(String name, Cookie value) {
-//            if (this.cookies.containsKey(name)) {
-//                throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
-//                        "cookie " + name);
-//            }
-//            this.cookies.put(name, value);
-//            return this;
-//        }
-//
-//        public IdentityRequestBuilder addCookies(Map<String, Cookie> cookies) {
-//            for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
-//                addCookie(cookie.getKey(), cookie.getValue());
-//            }
-//            return this;
-//        }
+        public IdentityRequestBuilder setCookies(Map<String, Cookie> cookies) {
+            if (cookies == null) {
+                throw FrameworkRuntimeException.error("Cookies map is null.");
+            }
+            this.cookies = cookies;
+            return this;
+        }
+
+        public IdentityRequestBuilder addCookie(String name, Cookie value) {
+            if (this.cookies.containsKey(name)) {
+                throw FrameworkRuntimeException.error("Cookies map trying to override existing " +
+                        "cookie " + name);
+            }
+            this.cookies.put(name, value);
+            return this;
+        }
+
+        public IdentityRequestBuilder addCookies(Map<String, Cookie> cookies) {
+            for (Map.Entry<String, Cookie> cookie : cookies.entrySet()) {
+                addCookie(cookie.getKey(), cookie.getValue());
+            }
+            return this;
+        }
 
         public IdentityRequestBuilder setParameters(Map<String, String[]> parameters) {
             if (parameters == null) {

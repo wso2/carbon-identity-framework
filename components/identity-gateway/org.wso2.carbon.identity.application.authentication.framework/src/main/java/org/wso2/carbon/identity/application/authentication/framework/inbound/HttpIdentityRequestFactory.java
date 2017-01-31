@@ -25,8 +25,11 @@ import org.wso2.carbon.identity.common.base.handler.InitConfig;
 import org.wso2.carbon.messaging.Header;
 import org.wso2.msf4j.Request;
 
+import java.net.HttpCookie;
+import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import javax.ws.rs.core.Cookie;
 
 public class HttpIdentityRequestFactory extends AbstractMessageHandler {
 
@@ -78,12 +81,13 @@ public class HttpIdentityRequestFactory extends AbstractMessageHandler {
         builder.addHeaders(request.getHeaders().getAll().stream()
                 .collect(Collectors.toMap(Header::getName, Header::getValue)));
         builder.addAttributes(request.getProperties());
-//        Cookie[] cookies = request.getCookies();
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                builder.addCookie(cookie.getName(), cookie);
-//            }
-//        }
+        String cookieHeader = request.getHeader("Cookie");
+        List<HttpCookie> httpCookies = HttpCookie.parse(cookieHeader);
+        List<Cookie> cookies = httpCookies.stream().map(
+                httpCookie -> new Cookie(httpCookie.getName(), httpCookie.getValue(), httpCookie.getPath(),
+                        httpCookie.getDomain(), httpCookie.getVersion()))
+                .collect(Collectors.toList());
+        builder.addCookies(cookies.stream().collect(Collectors.toMap(cookie -> cookie.getName(), cookie -> cookie)));
         String requestURI = request.getUri();
         builder.setContentType(request.getContentType());
 //        builder.setContextPath(request.getContextPath());

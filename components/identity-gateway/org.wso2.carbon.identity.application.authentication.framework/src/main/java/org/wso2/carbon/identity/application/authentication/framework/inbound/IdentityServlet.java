@@ -28,13 +28,13 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.msf4j.Request;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 @Api(value = "Identity Endpoint")
 @SwaggerDefinition(
@@ -48,10 +48,10 @@ public class IdentityServlet {
 
     private IdentityProcessCoordinator manager = new IdentityProcessCoordinator();
 
-    public void service(@Context Request request, @Context UriInfo uriInfo) {
+    public void service(@Context Request request) {
 
         HttpIdentityResponse httpIdentityResponse = process(request);
-        processHttpResponse(httpIdentityResponse, uriInfo);
+        processHttpResponse(httpIdentityResponse, request);
     }
 
     /**
@@ -117,16 +117,17 @@ public class IdentityServlet {
     }
 
     /**
-     * Process the {@link HttpIdentityResponse} and {@link UriInfo}.
-     *  @param httpIdentityResponse {@link HttpIdentityResponse}
-     * @param uriInfo {@link UriInfo}
+     * Process the {@link HttpIdentityResponse} and {@link Request}.
+     * @param httpIdentityResponse {@link HttpIdentityResponse}
+     * @param request {@link Request}
      */
-    private Response processHttpResponse(HttpIdentityResponse httpIdentityResponse, UriInfo uriInfo) {
+    private Response processHttpResponse(HttpIdentityResponse httpIdentityResponse, Request request) {
 
-        Response.ResponseBuilder responseBuilder = Response.created(uriInfo.getRequestUri());
+        Response.ResponseBuilder responseBuilder = Response.created(URI.create(request.getUri()));
 
         httpIdentityResponse.getHeaders().forEach((key, value) -> responseBuilder.header(key, value));
-        httpIdentityResponse.getHeaders().forEach((key, value) -> responseBuilder.cookie(new NewCookie(key, value)));
+        httpIdentityResponse.getCookies().forEach(
+                (key, value) -> responseBuilder.cookie(new NewCookie(key, value.getValue())));
         if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
             responseBuilder.type(httpIdentityResponse.getContentType());
         }

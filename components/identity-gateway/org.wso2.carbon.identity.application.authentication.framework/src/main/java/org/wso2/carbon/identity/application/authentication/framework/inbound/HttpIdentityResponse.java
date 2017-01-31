@@ -23,14 +23,14 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.Cookie;
+import javax.ws.rs.core.Cookie;
 
 public class HttpIdentityResponse implements Serializable {
 
     private static final long serialVersionUID = -1100735485859523120L;
 
     protected Map<String, String> headers = new HashMap();
-//    protected Map<String, Cookie> cookies = new HashMap();
+    protected Map<String, Cookie> cookies = new HashMap();
     protected String contentType;
     protected Map<String, String[]> parameters = new HashMap();
     protected String body;
@@ -42,9 +42,9 @@ public class HttpIdentityResponse implements Serializable {
         return Collections.unmodifiableMap(headers);
     }
 
-//    public Map<String, Cookie> getCookies() {
-//        return Collections.unmodifiableMap(cookies);
-//    }
+    public Map<String, Cookie> getCookies() {
+        return Collections.unmodifiableMap(cookies);
+    }
 
     public String getContentType() {
         return contentType;
@@ -84,7 +84,7 @@ public class HttpIdentityResponse implements Serializable {
 
     protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
         this.headers = builder.headers;
-//        this.cookies = builder.cookies;
+        this.cookies = builder.cookies;
         this.contentType = builder.contentType;
         this.parameters = builder.parameters;
         this.statusCode = builder.statusCode;
