@@ -73,7 +73,7 @@
         </private.package>
         <export.package>
             !org.wso2.carbon.identity.gateway.api.internal,
-            org.wso2.carbon.identity.gateway.api.*,
+            org.wso2.carbon.identity.gateway.api.*
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
@@ -83,6 +83,9 @@
             org.wso2.carbon.identity.gateway.commons.*; version="${identity.gateway.common.import.version.range}",
             org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}"
         </import.package>
+        <carbon.component>
+            osgi.service; objectClass="org.wso2.msf4j.Microservice"
+        </carbon.component>
         <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>
 

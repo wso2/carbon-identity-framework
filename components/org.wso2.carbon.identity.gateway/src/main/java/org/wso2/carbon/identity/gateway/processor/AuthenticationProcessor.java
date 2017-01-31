@@ -156,7 +156,7 @@ public class AuthenticationProcessor extends IdentityProcessor {
 
         FrameworkHandlerResponse frameworkHandlerResponse = null;
 
-        frameworkHandlerResponse = doPostHandle(ExtensionHandlerPoints.REQUEST_HANDLER, authenticationContext);
+        frameworkHandlerResponse = doPreHandle(ExtensionHandlerPoints.REQUEST_HANDLER, authenticationContext);
         if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
 
             frameworkHandlerResponse = doValidate(authenticationContext);

@@ -18,16 +18,18 @@
 
 package org.wso2.carbon.identity.gateway.internal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.gateway.api.FrameworkLoginResponseFactory;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
@@ -45,159 +47,42 @@ import org.wso2.carbon.identity.gateway.processor.handler.extension.ExtensionHan
 import org.wso2.carbon.identity.gateway.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.gateway.processor.request.FrameworkLoginRequestFactory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @scr.component name="identity.framework.authentication.component"
- * immediate="true"
- * @scr.reference name="application.authenticator"
- * interface="ApplicationAuthenticator"
- * cardinality="1..n" policy="dynamic" bind="setAuthenticator"
- * unbind="unSetAuthenticator"
- * @scr.reference name="identity.handlers.request"
- * interface="AbstractRequestHandler"
- * cardinality="0..n" policy="dynamic" bind="addRequestHandler"
- * unbind="unSetRequestHandler"
- * @scr.reference name="identity.handlers.authentication"
- * interface="AuthenticationHandler"
- * cardinality="0..n" policy="dynamic" bind="addAuthenticationHandler"
- * unbind="unSetAuthenticationHandler"
- * @scr.reference name="identity.handlers.authorization"
- * interface="AbstractAuthorizationHandler"
- * cardinality="0..n" policy="dynamic" bind="addAuthorizationHandler"
- * unbind="unSetAuthorizationHandler"
- * @scr.reference name="identity.handlers.jit"
- * interface="JITHandler"
- * cardinality="0..n" policy="dynamic" bind="addJITHandler"
- * unbind="unSetJITHandler"
- * @scr.reference name="identity.handlers.claim"
- * interface="ClaimHandler"
- * cardinality="0..n" policy="dynamic" bind="addClaimHandler"
- * unbind="unSetClaimHandler"
- * @scr.reference name="identity.handlers.response"
- * interface="AbstractResponseHandler"
- * cardinality="0..n" policy="dynamic" bind="addResponseHandler"
- * unbind="unSetResponseHandler"
- * @scr.reference name="identity.handlers.extension.pre"
- * interface="AbstractPreHandler"
- * cardinality="0..n" policy="dynamic" bind="addPreHandler"
- * unbind="unSetPreHandler"
- * @scr.reference name="identity.handlers.extension.post"
- * interface="AbstractPostHandler"
- * cardinality="0..n" policy="dynamic" bind="addPostHandler"
- * unbind="unSetPostHandler"
- * @scr.reference name="identity.handlers.sequence.factory"
- * interface="AbstractSequenceBuildFactory"
- * cardinality="0..n" policy="dynamic" bind="addSequenceBuildFactory"
- * unbind="unSetSequenceBuildFactory"
- * @scr.reference name="identity.handlers.sequence.manager"
- * interface="SequenceManager"
- * cardinality="0..n" policy="dynamic" bind="addSequenceManager"
- * unbind="unSetSequenceManager"
- * @scr.reference name="identity.handlers.requestpath"
- * interface="RequestPathHandler"
- * cardinality="0..n" policy="dynamic" bind="addRequestPathHandler"
- * unbind="unSetRequestPathHandler"
- * @scr.reference name="identity.handlers.step"
- * interface="StepHandler"
- * cardinality="0..n" policy="dynamic" bind="addStepHandler"
- * unbind="unSetStepHandler"
- */
 
-
+@Component(
+        name = "org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent",
+        immediate = true
+)
 public class FrameworkServiceComponent {
 
-    public static final String COMMON_SERVLET_URL = "/commonauth";
-    private static final String IDENTITY_SERVLET_URL = "/identitynew";
-    private static final Log log = LogFactory.getLog(FrameworkServiceComponent.class);
-    private static Comparator<IdentityProcessor> identityProcessor =
-            new Comparator<IdentityProcessor>() {
-
-                @Override
-                public int compare(IdentityProcessor identityProcessor1,
-                                   IdentityProcessor identityProcessor2) {
-
-                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
-                        return 1;
-                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
-            new Comparator<HttpIdentityRequestFactory>() {
-
-                @Override
-                public int compare(HttpIdentityRequestFactory factory1,
-                                   HttpIdentityRequestFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
-            new Comparator<HttpIdentityResponseFactory>() {
-
-                @Override
-                public int compare(HttpIdentityResponseFactory factory1,
-                                   HttpIdentityResponseFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private HttpService httpService;
+    private Logger log = LoggerFactory.getLogger(FrameworkServiceComponent.class);
 
 
-    public static BundleContext getBundleContext() {
-        BundleContext bundleContext = FrameworkServiceDataHolder.getInstance().getBundleContext();
-        if (bundleContext == null) {
-            String msg = "System has not been started properly. Bundle Context is null.";
-            log.error(msg);
-        }
-
-        return bundleContext;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void activate(ComponentContext ctxt) {
-        BundleContext bundleContext = ctxt.getBundleContext();
+    @Activate
+    protected void start(BundleContext bundleContext) throws Exception {
 
         //Registering processor
-        AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
-        bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
+        //AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
+        //bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
 
 
         //Registering this for demo perposes only
         //bundleContext.registerService(AbstractSequenceBuildFactory.class, new DemoSequenceBuildFactory(), null);
-        bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
-        bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
-        bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
-        bundleContext.registerService(StepHandler.class, new StepHandler(), null);
+        //bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
+        //bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
+        //bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
+        //bundleContext.registerService(StepHandler.class, new StepHandler(), null);
 
-        bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
-        bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
+        //bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
+        //bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
 
 
-        FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
+        //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
 
         if (log.isDebugEnabled()) {
@@ -205,31 +90,22 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void deactivate(ComponentContext ctxt) {
-        if (log.isDebugEnabled()) {
-            log.debug("Application Authentication Framework bundle is deactivated");
-        }
+    @Deactivate
+    protected void stop() throws Exception {
 
-        FrameworkServiceDataHolder.getInstance().setBundleContext(null);
-    }
-
-    protected void setHttpService(HttpService httpService) {
-        if (log.isDebugEnabled()) {
-            log.debug("HTTP Service is set in the Application Authentication Framework bundle");
-        }
-
-        this.httpService = httpService;
-    }
-
-    protected void unSetHttpService(HttpService httpService) {
-        if (log.isDebugEnabled()) {
-            log.debug("HTTP Service is unSet in the Application Authentication Framework bundle");
-        }
-
-        this.httpService = null;
     }
 
 
+
+
+
+    @Reference(
+            name = "application.authenticator",
+            service = ApplicationAuthenticator.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetAuthenticator"
+    )
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
@@ -303,6 +179,13 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.handlers.request",
+            service = AbstractRequestHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetRequestHandler"
+    )
     protected void addRequestHandler(AbstractRequestHandler abstractRequestHandler) {
 
         FrameworkServiceDataHolder.getInstance().getRequestHandlers().add(abstractRequestHandler);
@@ -321,6 +204,13 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.handlers.authentication",
+            service = AuthenticationHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetAuthenticationHandler"
+    )
     protected void addAuthenticationHandler(AuthenticationHandler authenticationHandler) {
 
         FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers().add(authenticationHandler);
@@ -339,6 +229,14 @@ public class FrameworkServiceComponent {
         }
     }
 
+
+    @Reference(
+            name = "identity.handlers.authorization",
+            service = AbstractAuthorizationHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetAuthorizationHandler"
+    )
     protected void addAuthorizationHandler(AbstractAuthorizationHandler authorizationHandler) {
 
         FrameworkServiceDataHolder.getInstance().getAuthorizationHandlers().add(authorizationHandler);
@@ -357,6 +255,13 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.handlers.jit",
+            service = JITHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetJITHandler"
+    )
     protected void addJITHandler(JITHandler jitHandler) {
 
         FrameworkServiceDataHolder.getInstance().getJitHandlers().add(jitHandler);
@@ -375,6 +280,13 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.handlers.claim",
+            service = ClaimHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetClaimHandler"
+    )
     protected void addClaimHandler(ClaimHandler claimHandler) {
 
         FrameworkServiceDataHolder.getInstance().getClaimHandlers().add(claimHandler);
@@ -393,6 +305,14 @@ public class FrameworkServiceComponent {
         }
     }
 
+
+    @Reference(
+            name = "identity.handlers.response",
+            service = AbstractResponseHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetResponseHandler"
+    )
     protected void addResponseHandler(AbstractResponseHandler responseHandler) {
 
         FrameworkServiceDataHolder.getInstance().getResponseHandlers().add(responseHandler);
@@ -411,6 +331,13 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.handlers.extension.pre",
+            service = AbstractPreHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetPreHandler"
+    )
     protected void addPreHandler(AbstractPreHandler preHandler) {
 
         Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap =
@@ -442,6 +369,14 @@ public class FrameworkServiceComponent {
         }
     }
 
+
+    @Reference(
+            name = "identity.handlers.extension.post",
+            service = AbstractPostHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetPostHandler"
+    )
     protected void addPostHandler(AbstractPostHandler postHandler) {
 
         Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap =
@@ -473,6 +408,13 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.handlers.sequence.factory",
+            service = AbstractSequenceBuildFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetSequenceBuildFactory"
+    )
     protected void addSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
 
         FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories().add(sequenceBuildFactory);
@@ -492,6 +434,13 @@ public class FrameworkServiceComponent {
     }
 
 
+    @Reference(
+            name = "identity.handlers.sequence.manager",
+            service = SequenceManager.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetSequenceManager"
+    )
     protected void addSequenceManager(SequenceManager sequenceManager) {
 
         FrameworkServiceDataHolder.getInstance().getSequenceManagers().add(sequenceManager);
@@ -510,8 +459,13 @@ public class FrameworkServiceComponent {
         }
     }
 
-
-
+    @Reference(
+            name = "identity.handlers.requestpath",
+            service = RequestPathHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetRequestPathHandler"
+    )
     protected void addRequestPathHandler(RequestPathHandler requestPathHandler) {
 
         FrameworkServiceDataHolder.getInstance().getRequestPathHandlers().add(requestPathHandler);
@@ -530,8 +484,13 @@ public class FrameworkServiceComponent {
         }
     }
 
-
-
+    @Reference(
+            name = "identity.handlers.step",
+            service = StepHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetStepHandler"
+    )
     protected void addStepHandler(StepHandler stepHandler) {
 
         FrameworkServiceDataHolder.getInstance().getStepHandlers().add(stepHandler);
@@ -549,4 +508,59 @@ public class FrameworkServiceComponent {
             log.debug("Removed StepHandler : " + stepHandler.getName());
         }
     }
+
+
+
+    private static Comparator<IdentityProcessor> identityProcessor =
+            new Comparator<IdentityProcessor>() {
+
+                @Override
+                public int compare(IdentityProcessor identityProcessor1,
+                                   IdentityProcessor identityProcessor2) {
+
+                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
+                        return 1;
+                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
+    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
+            new Comparator<HttpIdentityRequestFactory>() {
+
+                @Override
+                public int compare(HttpIdentityRequestFactory factory1,
+                                   HttpIdentityRequestFactory factory2) {
+
+                    if (factory1.getPriority() > factory2.getPriority()) {
+                        return 1;
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
+    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
+            new Comparator<HttpIdentityResponseFactory>() {
+
+                @Override
+                public int compare(HttpIdentityResponseFactory factory1,
+                                   HttpIdentityResponseFactory factory2) {
+
+                    if (factory1.getPriority() > factory2.getPriority()) {
+                        return 1;
+                    } else if (factory1.getPriority() < factory2.getPriority()) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
+            };
+
+
+
+
 }
