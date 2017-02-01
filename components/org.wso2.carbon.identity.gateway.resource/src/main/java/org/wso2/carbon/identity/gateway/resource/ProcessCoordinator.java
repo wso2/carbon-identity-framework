@@ -16,17 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.gateway.api;
+package org.wso2.carbon.identity.gateway.resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.gateway.api.FrameworkException;
+import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.api.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.IdentityResponse;
 import org.wso2.carbon.identity.gateway.api.internal.FrameworkServiceDataHolder;
 
 import java.util.List;
 
-public class IdentityProcessCoordinator {
+public class ProcessCoordinator {
 
-    private static final Log log = LogFactory.getLog(IdentityProcessCoordinator.class);
+    private static final Log log = LogFactory.getLog(ProcessCoordinator.class);
 
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
 

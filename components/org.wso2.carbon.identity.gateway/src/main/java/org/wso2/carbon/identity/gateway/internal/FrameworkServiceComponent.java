@@ -96,9 +96,6 @@ public class FrameworkServiceComponent {
     }
 
 
-
-
-
     @Reference(
             name = "application.authenticator",
             service = ApplicationAuthenticator.class,
