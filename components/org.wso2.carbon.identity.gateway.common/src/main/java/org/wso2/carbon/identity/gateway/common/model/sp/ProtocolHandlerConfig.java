@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-class ProtocolHandler extends HandlerInterceptor {
+class ProtocolHandlerConfig extends GenericHandlerConfig {
     private String type;
     private List<Properties> protocolHandler = new ArrayList<>();
 

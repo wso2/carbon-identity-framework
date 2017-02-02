@@ -2,7 +2,7 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 
 import java.util.Properties;
 
-class Handler {
+class HandlerConfig {
     private String name;
     private Properties properties = new Properties();
 

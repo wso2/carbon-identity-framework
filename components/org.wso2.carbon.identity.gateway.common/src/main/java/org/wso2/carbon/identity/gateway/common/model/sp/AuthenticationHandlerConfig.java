@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-class AuthenticationHandler extends HandlerInterceptor {
+class AuthenticationHandlerConfig extends GenericHandlerConfig {
     private String type;
     private String authenticatorName;
 

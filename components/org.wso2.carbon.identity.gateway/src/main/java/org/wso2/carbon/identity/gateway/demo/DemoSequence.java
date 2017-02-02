@@ -4,7 +4,7 @@ package org.wso2.carbon.identity.gateway.demo;
 public class DemoSequence {
 /*
     private AuthenticationStep[] authenticationSteps = null;
-    ServiceProvider serviceProvider = null ;
+    ServiceProviderConfig serviceProvider = null ;
 
     public DemoSequence(AuthenticationContext authenticationContext) throws IdentityApplicationManagementException {
         super(authenticationContext);
