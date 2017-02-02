@@ -180,8 +180,8 @@
         <carbon.kernel.package.export.version>5.1.0</carbon.kernel.package.export.version>
         <carbon.kernel.package.import.version.range>[5.0.0, 6.0.0)</carbon.kernel.package.import.version.range>
 
-        <carbon.identity.commons.version>6.0.0-SNAPSHOT</carbon.identity.commons.version>
-        <carbon.identity.common.import.version.range>[6.0.0-SNAPSHOT, 7.0.0)
+        <carbon.identity.commons.version>0.1.10</carbon.identity.commons.version>
+        <carbon.identity.common.import.version.range>[0.0.1, 1.0.0)
         </carbon.identity.common.import.version.range>
 
         <osgi.core.api.version>6.0.0</osgi.core.api.version>

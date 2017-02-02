@@ -17,8 +17,7 @@
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
 import org.wso2.carbon.identity.gateway.api.FrameworkException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
@@ -27,7 +26,7 @@ import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.IdentityResponse;
-import org.wso2.carbon.identity.gateway.api.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
 
@@ -55,7 +54,6 @@ import java.util.Map;
 @Path("/gateway")
 public class GatewayResource implements Microservice {
 
-    private static Logger logger = LoggerFactory.getLogger(GatewayResource.class);
 
     private static final String ERROR_PROCESSING_REQUEST = "Error Processing Request.";
     private static final String INVALID_REQUEST = "Invalid or Malformed Request.";
@@ -180,7 +178,7 @@ public class GatewayResource implements Microservice {
     private HttpIdentityRequestFactory getIdentityRequestFactory(Request request) {
 
         List<HttpIdentityRequestFactory> factories =
-                FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories();
+                GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories();
 
         for (HttpIdentityRequestFactory requestBuilder : factories) {
             if (requestBuilder.canHandle(request)) {
@@ -198,7 +196,7 @@ public class GatewayResource implements Microservice {
      */
     private HttpIdentityResponseFactory getIdentityResponseFactory(IdentityResponse identityResponse) {
 
-        List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
+        List<HttpIdentityResponseFactory> factories = GatewayResourceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
 
         for (HttpIdentityResponseFactory responseFactory : factories) {
@@ -217,7 +215,7 @@ public class GatewayResource implements Microservice {
      */
     private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkException exception) {
 
-        List<HttpIdentityResponseFactory> factories = FrameworkServiceDataHolder.getInstance()
+        List<HttpIdentityResponseFactory> factories = GatewayResourceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
 
         for (HttpIdentityResponseFactory responseFactory : factories) {

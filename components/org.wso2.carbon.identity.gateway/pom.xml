@@ -100,9 +100,6 @@
             org.wso2.carbon.identity.gateway.commons.*; version="${identity.gateway.common.import.version.range}",
             org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}"
         </import.package>
-        <carbon.component>
-            osgi.service; objectClass="org.wso2.msf4j.Microservice"
-        </carbon.component>
         <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>
 

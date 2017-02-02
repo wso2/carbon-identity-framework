@@ -18,28 +18,25 @@
 
 package org.wso2.carbon.identity.gateway.resource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.gateway.api.FrameworkException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.IdentityResponse;
-import org.wso2.carbon.identity.gateway.api.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 
 import java.util.List;
 
 public class ProcessCoordinator {
 
-    private static final Log log = LogFactory.getLog(ProcessCoordinator.class);
 
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
 
         IdentityProcessor processor = getIdentityProcessor(identityRequest);
         if (processor != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Starting to process IdentityProcessor : " + processor.getName());
-            }
+            //if (log.isDebugEnabled()) {
+            //    log.debug("Starting to process IdentityProcessor : " + processor.getName());
+            //}
             return processor.process(identityRequest).build();
         } else {
             throw FrameworkRuntimeException.error("No IdentityProcessor found to process the request");
@@ -47,7 +44,7 @@ public class ProcessCoordinator {
     }
 
     private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
-        List<IdentityProcessor> processors = FrameworkServiceDataHolder.getInstance().getIdentityProcessors();
+        List<IdentityProcessor> processors = GatewayResourceDataHolder.getInstance().getIdentityProcessors();
 
         for (IdentityProcessor requestProcessor : processors) {
             if (requestProcessor.canHandle(identityRequest)) {

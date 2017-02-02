@@ -30,30 +30,13 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.api.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authorization.AbstractAuthorizationHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.claim.ClaimHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPostHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPreHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.ExtensionHandlerPoints;
-import org.wso2.carbon.identity.gateway.processor.handler.jit.JITHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 
 
 @Component(

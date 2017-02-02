@@ -70,16 +70,14 @@
 
     <properties>
         <export.package>
-            org.wso2.carbon.identity.gateway.common.*,
+            org.wso2.carbon.identity.gateway.common.*
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
             org.wso2.carbon.kernel;version="${carbon.kernel.package.import.version.range}",
             org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
-            org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}",
-            org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}"
+            org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}"
         </import.package>
-        <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>
 
 </project>
