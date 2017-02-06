@@ -18,16 +18,15 @@
 
 package org.wso2.carbon.identity.gateway.api;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.msf4j.Request;
 
 import java.util.Properties;
 
 
 public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> {
-
-    private static Log log = LogFactory.getLog(HttpIdentityRequestFactory.class);
+    private Logger log = LoggerFactory.getLogger(HttpIdentityRequestFactory.class);
     protected Properties properties;
 
     public static final String TENANT_DOMAIN_PATTERN = "/t/([^/]+)";
