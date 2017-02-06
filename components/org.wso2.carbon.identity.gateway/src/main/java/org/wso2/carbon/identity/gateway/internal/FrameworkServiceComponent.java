@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
@@ -67,16 +68,16 @@ public class FrameworkServiceComponent {
     protected void start(BundleContext bundleContext) throws Exception {
 
         //Registering processor
-        //AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
-        //bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
+        AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
+        bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
 
 
         //Registering this for demo perposes only
         //bundleContext.registerService(AbstractSequenceBuildFactory.class, new DemoSequenceBuildFactory(), null);
-        //bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
-        //bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
-        //bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
-        //bundleContext.registerService(StepHandler.class, new StepHandler(), null);
+        bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
+        bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
+        bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
+        bundleContext.registerService(StepHandler.class, new StepHandler(), null);
 
         //bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
         //bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);

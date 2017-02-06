@@ -1,22 +1,17 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-class AuthenticationHandlerConfig extends GenericHandlerConfig {
-    private String type;
-    private String authenticatorName;
+import java.util.ArrayList;
+import java.util.List;
 
-    public String getAuthenticatorName() {
-        return authenticatorName;
+public class AuthenticationHandlerConfig {
+
+    List<StepHandlerConfig> stepHandlerConfigs = new ArrayList<>();
+
+    public List<StepHandlerConfig> getStepHandlerConfigs() {
+        return stepHandlerConfigs;
     }
 
-    public void setAuthenticatorName(String authenticatorName) {
-        this.authenticatorName = authenticatorName;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
+    public void setStepHandlerConfigs(List<StepHandlerConfig> stepHandlerConfigs) {
+        this.stepHandlerConfigs = stepHandlerConfigs;
     }
 }

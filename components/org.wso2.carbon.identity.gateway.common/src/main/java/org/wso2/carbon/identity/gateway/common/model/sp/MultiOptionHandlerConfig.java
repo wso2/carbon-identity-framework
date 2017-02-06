@@ -3,14 +3,14 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 import java.util.ArrayList;
 import java.util.List;
 
-class MultiOptionHandlerConfig extends GenericHandlerConfig {
-    List<OptionConfig> optionConfigs = new ArrayList<>();
+public class MultiOptionHandlerConfig{
+    List<OptionConfig> optionConfig = new ArrayList<>();
 
-    public List<OptionConfig> getOptionConfigs() {
-        return optionConfigs;
+    public List<OptionConfig> getOptionConfig() {
+        return optionConfig;
     }
 
-    public void setOptionConfigs(List<OptionConfig> optionConfigs) {
-        this.optionConfigs = optionConfigs;
+    public void setOptionConfig(List<OptionConfig> optionConfig) {
+        this.optionConfig = optionConfig;
     }
 }

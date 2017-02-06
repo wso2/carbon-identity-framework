@@ -68,7 +68,9 @@
     </dependencies>
 
     <properties>
+        <private.package>org.wso2.carbon.identity.gateway.api.internal</private.package>
         <export.package>
+            !org.wso2.carbon.identity.gateway.api.internal,
             org.wso2.carbon.identity.gateway.api.*
         </export.package>
         <import.package>

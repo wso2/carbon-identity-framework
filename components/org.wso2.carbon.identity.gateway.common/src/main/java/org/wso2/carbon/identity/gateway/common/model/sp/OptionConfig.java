@@ -1,13 +1,15 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-class OptionConfig extends GenericHandlerConfig {
-    private AuthenticationHandlerConfig authenticationHandlerConfig;
+import java.util.Properties;
 
-    public AuthenticationHandlerConfig getAuthenticationHandlerConfig() {
-        return authenticationHandlerConfig;
+public class OptionConfig  {
+    private AuthenticatorConfig authenticatorConfig;
+
+    public AuthenticatorConfig getAuthenticatorConfig() {
+        return authenticatorConfig;
     }
 
-    public void setAuthenticationHandlerConfig(AuthenticationHandlerConfig authenticationHandlerConfig) {
-        this.authenticationHandlerConfig = authenticationHandlerConfig;
+    public void setAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
+        this.authenticatorConfig = authenticatorConfig;
     }
 }

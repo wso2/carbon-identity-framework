@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util;
 
 
-import org.wso2.carbon.identity.gateway.common.model.ServiceProvider;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProvider;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;

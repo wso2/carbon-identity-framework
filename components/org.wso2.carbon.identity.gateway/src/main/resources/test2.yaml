@@ -1,83 +1,51 @@
 serviceProviderConfig:
   name: "SampleSP"
-  authenticationRequestHandlerConfig:
-    preHandlersConfig :
-        -
-            name : "fddfd"
-            properties :
-                ddd : "sdsd"
-        -
-            name : "fddfd"
-            properties :
-                ddd : "sdsd"
-    postHandlersConfig :
-        -
-            name : "fddfd"
-    protocolHandlerConfig:
-            -
-                type: "SAML"
-                postHandlersConfig :
-                    -
-                        name : "fddfd"
-                properties:
-                    issuer : "ravelocity.com"
-                    assertionConsumerUrls:
-                        - "http://localhost:8080/travelocity.com/home.jsp"
-                        - "https://wso2.acme.instructure.com/login/saml"
-                    nameIDformat: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-                    certificateAlias: "wso2Carbon"
-                    responseSigningAlgorithm : "http://www.w3.org/2000/09/xmldsig#dsa-sha1"
-            -
-                type: "OIDC"
-                properties:
-                    issuer : "ravelocity.com"
-                    assertionConsumerUrls:
-                        - "http://localhost:8080/travelocity.com/home.jsp"
-                    key : "f3f43f43f43f43v4343gfddd"
-                    secret : "ssdf232f23f32f32f32f32f32f"
-            -
-                type: "Custom"
-                properties:
-                    xx : "dfdf"
+  requestHandlerConfigs:
+    -
+        type: "SAML"
+        properties:
+            issuer : "ravelocity.com"
+            assertionConsumerUrls:
+                - "http://localhost:8080/travelocity.com/home.jsp"
+                - "https://wso2.acme.instructure.com/login/saml"
+            nameIDformat: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+            certificateAlias: "wso2Carbon"
+            responseSigningAlgorithm : "http://www.w3.org/2000/09/xmldsig#dsa-sha1"
+    -
+        type: "OIDC"
+        properties:
+            issuer : "ravelocity.com"
+            assertionConsumerUrls:
+                - "http://localhost:8080/travelocity.com/home.jsp"
+            key : "f3f43f43f43f43v4343gfddd"
+            secret : "ssdf232f23f32f32f32f32f32f"
+    -
+        type: "Custom"
+        properties:
+            xx : "dfdf"
 
-  authenticationSequenceHandlerConfig:
-    preHandlersConfig :
+  authenticationHandlerConfig:
+    stepHandlerConfigs :
         -
-          name : "fddfd"
-          properties :
-              ddd : "sdsd"
-        -
-          name : "fddfd"
-          properties :
-              ddd : "sdsd"
-
-    postHandlersConfig :
-        -
-          name : "fddfd"
-
-    stepHandlersConfig :
-        -
-          properties:
-              test : "dfdF"
+          isSubjectStep : "true"
           multiOptionHandlerConfig:
-            optionsConfig :
+            optionConfig :
               -
-                  authenticationHandlerConfig:
+                  authenticatorConfig:
                       type : "local"
-                      postHandlersConfig :
-                          -
-                              name : "fddfd"
                       authenticatorName : "BasicAuthenticator"
                       properties:
                           test : "Dsdsd"
               -
-                  authenticationHandlerConfig:
+                  authenticatorConfig:
                       type : "federated"
                       authenticatorName : "GoogleAuthenticator"
-                      properties:
-                          test : "Dsdsd"
+                      idp :
+                        name : "dsfdsf"
+                        properties:
+
         -
-          authenticationHandlerConfig:
+          authenticatorConfig:
               type : "local"
               authenticatorName : "BasicAuthenticator"
               properties:

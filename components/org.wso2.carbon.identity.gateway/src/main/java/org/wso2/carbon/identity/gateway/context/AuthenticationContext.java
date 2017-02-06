@@ -2,9 +2,9 @@ package org.wso2.carbon.identity.gateway.context;
 
 
 import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.gateway.common.model.ServiceProvider;
 import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProvider;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.model.UserClaim;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;

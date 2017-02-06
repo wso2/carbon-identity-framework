@@ -3,7 +3,7 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 import java.util.ArrayList;
 import java.util.List;
 
-class AuthenticationRequestHandlerConfig extends GenericHandlerConfig {
+class RequestHandlerConfig {
     private List<ProtocolHandlerConfig> protocolHandler = new ArrayList<>();
 
     public List<ProtocolHandlerConfig> getProtocolHandler() {

@@ -1,15 +1,17 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-class StepHandlerConfig extends GenericHandlerConfig {
-    private MultiOptionHandlerConfig multiOptionHandler;
-    private AuthenticationHandlerConfig authenticationHandlerConfig;
+public class StepHandlerConfig {
+    private String isSubjectStep ;
 
-    public AuthenticationHandlerConfig getAuthenticationHandlerConfig() {
-        return authenticationHandlerConfig;
+    private MultiOptionHandlerConfig multiOptionHandler;
+    private AuthenticatorConfig authenticatorConfig;
+
+    public AuthenticatorConfig getAuthenticatorConfig() {
+        return authenticatorConfig;
     }
 
-    public void setAuthenticationHandlerConfig(AuthenticationHandlerConfig authenticationHandlerConfig) {
-        this.authenticationHandlerConfig = authenticationHandlerConfig;
+    public void setAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
+        this.authenticatorConfig = authenticatorConfig;
     }
 
     public MultiOptionHandlerConfig getMultiOptionHandler() {
@@ -18,5 +20,13 @@ class StepHandlerConfig extends GenericHandlerConfig {
 
     public void setMultiOptionHandler(MultiOptionHandlerConfig multiOptionHandler) {
         this.multiOptionHandler = multiOptionHandler;
+    }
+
+    public String getIsSubjectStep() {
+        return isSubjectStep;
+    }
+
+    public void setIsSubjectStep(String isSubjectStep) {
+        this.isSubjectStep = isSubjectStep;
     }
 }

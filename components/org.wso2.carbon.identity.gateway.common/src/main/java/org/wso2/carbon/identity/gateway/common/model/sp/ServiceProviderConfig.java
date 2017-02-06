@@ -1,26 +1,30 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ServiceProviderConfig {
 
     private String name;
-    private AuthenticationRequestHandlerConfig authenticationRequestHandlerConfig;
-    private AuthenticationSequenceHandlerConfig authenticationSequenceHandlerConfig;
 
-    public AuthenticationRequestHandlerConfig getAuthenticationRequestHandlerConfig() {
-        return authenticationRequestHandlerConfig;
+    private List<RequestHandlerConfig> requestHandlerConfigs = new ArrayList<>();
+    private AuthenticationHandlerConfig authenticationHandlerConfig ;
+
+    public List<RequestHandlerConfig> getRequestHandlerConfigs() {
+        return requestHandlerConfigs;
     }
 
-    public void setAuthenticationRequestHandlerConfig(AuthenticationRequestHandlerConfig authenticationRequestHandlerConfig) {
-        this.authenticationRequestHandlerConfig = authenticationRequestHandlerConfig;
+    public void setRequestHandlerConfigs(List<RequestHandlerConfig> requestHandlerConfigs) {
+        this.requestHandlerConfigs = requestHandlerConfigs;
     }
 
-    public AuthenticationSequenceHandlerConfig getAuthenticationSequenceHandlerConfig() {
-        return authenticationSequenceHandlerConfig;
+    public AuthenticationHandlerConfig getAuthenticationHandlerConfig() {
+        return authenticationHandlerConfig;
     }
 
-    public void setAuthenticationSequenceHandlerConfig(AuthenticationSequenceHandlerConfig authenticationSequenceHandlerConfig) {
-        this.authenticationSequenceHandlerConfig = authenticationSequenceHandlerConfig;
+    public void setAuthenticationHandlerConfig(AuthenticationHandlerConfig authenticationHandlerConfig) {
+        this.authenticationHandlerConfig = authenticationHandlerConfig;
     }
 
     public String getName() {

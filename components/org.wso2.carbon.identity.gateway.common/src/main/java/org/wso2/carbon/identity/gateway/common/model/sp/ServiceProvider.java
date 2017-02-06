@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-class ServiceProvider {
+public class ServiceProvider {
     private ServiceProviderConfig serviceProviderConfig;
 
     public ServiceProviderConfig getServiceProviderConfig() {
