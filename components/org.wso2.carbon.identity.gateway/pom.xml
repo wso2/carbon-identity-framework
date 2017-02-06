@@ -79,7 +79,11 @@
         <private.package>org.wso2.carbon.identity.gateway.internal</private.package>
         <export.package>
             !org.wso2.carbon.identity.gateway.internal,
-            org.wso2.carbon.identity.gateway.*
+            org.wso2.carbon.identity.gateway.processor.*,
+            org.wso2.carbon.identity.gateway.cache.*,
+            org.wso2.carbon.identity.gateway.context.*,
+            org.wso2.carbon.identity.gateway.model.*,
+            org.wso2.carbon.identity.gateway.authenticator.*
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",

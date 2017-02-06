@@ -41,8 +41,8 @@ public class GatewayResourceAPIComponent {
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
 
-        bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
-        bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
+        //bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
+        //bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
 
 
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);

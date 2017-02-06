@@ -11,43 +11,29 @@ serviceProviderConfig:
             nameIDformat: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
             certificateAlias: "wso2Carbon"
             responseSigningAlgorithm : "http://www.w3.org/2000/09/xmldsig#dsa-sha1"
-    -
-        type: "OIDC"
-        properties:
-            issuer : "ravelocity.com"
-            assertionConsumerUrls:
-                - "http://localhost:8080/travelocity.com/home.jsp"
-            key : "f3f43f43f43f43v4343gfddd"
-            secret : "ssdf232f23f32f32f32f32f32f"
-    -
-        type: "Custom"
-        properties:
-            xx : "dfdf"
 
   authenticationHandlerConfig:
     stepHandlerConfigs :
-        -
-          isSubjectStep : "true"
-          multiOptionHandlerConfig:
-            optionConfig :
-              -
-                  authenticatorConfig:
-                      type : "local"
-                      authenticatorName : "BasicAuthenticator"
-                      properties:
-                          test : "Dsdsd"
-              -
-                  authenticatorConfig:
-                      type : "federated"
-                      authenticatorName : "GoogleAuthenticator"
-                      idp :
-                        name : "dsfdsf"
-                        properties:
-
-        -
-          authenticatorConfig:
-              type : "local"
-              authenticatorName : "BasicAuthenticator"
-              properties:
-                  test : "Dsdsd"
+      -
+        subjectStep : "true"
+        multiOptionHandlerConfig:
+          optionConfigs :
+            -
+              authenticatorConfig:
+                type : "local"
+                authenticatorName : "BasicAuthenticator"
+                properties:
+                    test : "Dsdsd"
+            -
+              authenticatorConfig:
+                type : "local"
+                authenticatorName : "BasicAuthenticator"
+                properties:
+                    test : "Dsdsd"
+      -
+        authenticatorConfig:
+          type : "local"
+          authenticatorName : "BasicAuthenticator"
+          properties:
+              test : "Dsdsd"
 

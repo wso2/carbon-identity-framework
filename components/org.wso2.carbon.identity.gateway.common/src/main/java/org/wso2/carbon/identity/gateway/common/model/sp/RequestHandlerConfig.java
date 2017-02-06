@@ -1,16 +1,23 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Properties;
 
 class RequestHandlerConfig {
-    private List<ProtocolHandlerConfig> protocolHandler = new ArrayList<>();
+    private String type;
+    private Properties properties = new Properties();
 
-    public List<ProtocolHandlerConfig> getProtocolHandler() {
-        return protocolHandler;
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public void setProtocolHandler(List<ProtocolHandlerConfig> protocolHandler) {
-        this.protocolHandler = protocolHandler;
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
     }
 }

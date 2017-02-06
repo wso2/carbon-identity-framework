@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiOptionHandlerConfig{
-    List<OptionConfig> optionConfig = new ArrayList<>();
+    List<OptionConfig> optionConfigs = new ArrayList<>();
 
-    public List<OptionConfig> getOptionConfig() {
-        return optionConfig;
+    public List<OptionConfig> getOptionConfigs() {
+        return optionConfigs;
     }
 
-    public void setOptionConfig(List<OptionConfig> optionConfig) {
-        this.optionConfig = optionConfig;
+    public void setOptionConfigs(List<OptionConfig> optionConfigs) {
+        this.optionConfigs = optionConfigs;
     }
 }

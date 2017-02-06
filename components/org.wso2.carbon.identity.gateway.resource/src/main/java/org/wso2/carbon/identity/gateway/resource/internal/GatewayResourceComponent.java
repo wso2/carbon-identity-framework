@@ -30,10 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -85,49 +81,6 @@ public class GatewayResourceComponent {
     }
 
 
-
-    @Reference(
-            name = "application.authenticator",
-            service = ApplicationAuthenticator.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetAuthenticator"
-    )
-    protected void setAuthenticator(ApplicationAuthenticator authenticator) {
-
-        if (authenticator instanceof LocalApplicationAuthenticator) {
-            GatewayResourceDataHolder.getInstance().getLocalApplicationAuthenticators()
-                    .add((LocalApplicationAuthenticator) authenticator);
-        } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            GatewayResourceDataHolder.getInstance().getFederatedApplicationAuthenticators()
-                    .add((FederatedApplicationAuthenticator) authenticator);
-        } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            GatewayResourceDataHolder.getInstance().getRequestPathApplicationAuthenticators()
-                    .add((RequestPathApplicationAuthenticator) authenticator);
-        } else {
-            log.error("Unsupported Authenticator found : " + authenticator.getName());
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added application authenticator : " + authenticator.getName());
-        }
-    }
-
-    protected void unSetAuthenticator(ApplicationAuthenticator authenticator) {
-
-        if (authenticator instanceof LocalApplicationAuthenticator) {
-            GatewayResourceDataHolder.getInstance().getLocalApplicationAuthenticators().remove(authenticator);
-        } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            GatewayResourceDataHolder.getInstance().getFederatedApplicationAuthenticators().remove(authenticator);
-        } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            GatewayResourceDataHolder.getInstance().getRequestPathApplicationAuthenticators().remove(authenticator);
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed application authenticator : " + authenticator.getName());
-        }
-
-    }
 
     @Reference(
             name = "identity.application.request.factory",

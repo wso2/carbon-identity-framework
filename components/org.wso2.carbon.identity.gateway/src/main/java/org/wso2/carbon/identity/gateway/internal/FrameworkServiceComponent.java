@@ -69,15 +69,15 @@ public class FrameworkServiceComponent {
 
         //Registering processor
         AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
-        bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
+        //bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
 
 
         //Registering this for demo perposes only
         //bundleContext.registerService(AbstractSequenceBuildFactory.class, new DemoSequenceBuildFactory(), null);
-        bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
+        /*bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
         bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
         bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
-        bundleContext.registerService(StepHandler.class, new StepHandler(), null);
+        bundleContext.registerService(StepHandler.class, new StepHandler(), null);*/
 
         //bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
         //bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);

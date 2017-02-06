@@ -1,7 +1,5 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-import java.util.Properties;
-
 public class OptionConfig  {
     private AuthenticatorConfig authenticatorConfig;
 
