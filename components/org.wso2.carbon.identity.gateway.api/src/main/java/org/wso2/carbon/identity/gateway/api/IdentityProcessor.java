@@ -187,7 +187,7 @@ public abstract class IdentityProcessor {
      * @param request IdentityRequest
      */
     protected boolean isContextAvailable(IdentityRequest request) {
-        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        String sessionDataKey = (String) request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         if (StringUtils.isNotBlank(sessionDataKey)) {
             IdentityMessageContext context = InboundUtil.getContextFromCache(sessionDataKey);
             if (context != null) {
@@ -205,7 +205,7 @@ public abstract class IdentityProcessor {
      * @return IdentityMessageContext
      */
     protected IdentityMessageContext getContextIfAvailable(IdentityRequest request) {
-        String sessionDataKey = request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
+        String sessionDataKey = (String) request.getParameter(InboundConstants.RequestProcessor.CONTEXT_KEY);
         IdentityMessageContext context = null;
         if (StringUtils.isNotBlank(sessionDataKey)) {
             context = InboundUtil.getContextFromCache(sessionDataKey);

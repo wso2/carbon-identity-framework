@@ -26,6 +26,7 @@ import java.util.Properties;
 
 
 public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> {
+
     private Logger log = LoggerFactory.getLogger(HttpIdentityRequestFactory.class);
     protected Properties properties;
 
@@ -103,19 +104,21 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         builder.setMethod(request.getHttpMethod());
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
+        builder.setMethod(request.getHttpMethod());
+        builder.setParameters(request.getProperties());
 
 
         //#TODO: consider this request parameter
-     /*
-        builder.setContextPath(request.getContextPath());
-        builder.setMethod(request.getMethod());
-        builder.setPathInfo(request.getPathInfo());
-        builder.setPathTranslated(request.getPathTranslated());
-        builder.setQueryString(request.getQueryString());
-        builder.setRequestURI(requestURI);
-        builder.setRequestURL(request.getRequestURL());
-        builder.setServletPath(request.getServletPath());
-        */
+//
+//        builder.setContextPath(request.getContextPath());
+//        builder.setMethod(request.getMethod());
+//        builder.setPathInfo(request.getPathInfo());
+//        builder.setPathTranslated(request.getPathTranslated());
+//        builder.setQueryString(request.getQueryString());
+//        builder.setRequestURI(requestURI);
+//        builder.setRequestURL(request.getRequestURL());
+//        builder.setServletPath(request.getServletPath());
+//
     }
 
 

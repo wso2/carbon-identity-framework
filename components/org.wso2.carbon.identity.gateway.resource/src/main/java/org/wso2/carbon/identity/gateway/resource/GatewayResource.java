@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
-
 import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
 import org.wso2.carbon.identity.gateway.api.FrameworkException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
@@ -26,6 +25,7 @@ import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.InboundUtil;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
@@ -67,6 +67,7 @@ public class GatewayResource implements Microservice {
     @POST
     @Path("/")
     public Response processPost(@Context Request request) {
+        addParameters(request);
         process(request);
         return null;
     }
@@ -75,6 +76,7 @@ public class GatewayResource implements Microservice {
     @GET
     @Path("/")
     public Response processGet(@Context Request request) {
+        addParameters(request);
         process(request);
         return processPost(request);
     }
@@ -261,5 +263,11 @@ public class GatewayResource implements Microservice {
         return queryString.toString();
     }
 
+    private void addParameters(Request request) {
+        Map parameters = InboundUtil.getRequestParameters(request);
+        parameters.forEach((k, v) -> {
+            request.setProperty(String.valueOf(k), v);
+        });
+    }
 
 }

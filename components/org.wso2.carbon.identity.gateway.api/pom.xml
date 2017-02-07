@@ -80,6 +80,7 @@
             org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}",
             org.wso2.carbon.identity.gateway.commons.*; version="${identity.gateway.common.import.version.range}"
         </import.package>
+        <dynamic.import.package>*</dynamic.import.package>
     </properties>
 
 </project>

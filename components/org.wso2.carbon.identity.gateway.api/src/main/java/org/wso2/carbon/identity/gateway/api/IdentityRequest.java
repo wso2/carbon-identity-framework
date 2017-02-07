@@ -30,7 +30,7 @@ public class IdentityRequest implements Serializable {
     private static final long serialVersionUID = 5418537216546873566L;
 
     protected Map<String, String> headers = new HashMap<>();
-    protected Map<String, String[]> parameters = new HashMap<>();
+    protected Map<String, Object> parameters = new HashMap<>();
     protected String tenantDomain;
     protected String contextPath;
     protected String method;
@@ -78,7 +78,7 @@ public class IdentityRequest implements Serializable {
 
 
 
-    public Map<String, String[]> getParameterMap() {
+    public Map<String, Object> getParameterMap() {
         return Collections.unmodifiableMap(parameters);
     }
 
@@ -86,7 +86,7 @@ public class IdentityRequest implements Serializable {
         return Collections.enumeration(parameters.keySet());
     }
 
-    public String[] getParameterValues(String paramName) {
+    public Object getParameterValues(String paramName) {
         return parameters.get(paramName);
     }
 
@@ -94,14 +94,8 @@ public class IdentityRequest implements Serializable {
         return this.tenantDomain;
     }
 
-    public String getParameter(String paramName) {
-        String[] values = parameters.get(paramName);
-        if(values!=null) {
-            if (values.length > 0) {
-                return values[0];
-            }
-        }
-        return null;
+    public Object getParameter(String paramName) {
+       return parameters.get(paramName);
     }
 
     public String getContextPath() {
@@ -145,7 +139,7 @@ public class IdentityRequest implements Serializable {
     public static class IdentityRequestBuilder {
 
         private Map<String, String> headers = new HashMap<>();
-        private Map<String, String[]> parameters = new HashMap<>();
+        private Map<String, Object> parameters = new HashMap<>();
         private String tenantDomain;
         private String contextPath;
         private String method;
@@ -188,7 +182,7 @@ public class IdentityRequest implements Serializable {
         }
 
 
-        public IdentityRequestBuilder setParameters(Map<String, String[]> parameters) {
+        public IdentityRequestBuilder setParameters(Map<String, Object> parameters) {
             this.parameters = parameters;
             return this;
         }
