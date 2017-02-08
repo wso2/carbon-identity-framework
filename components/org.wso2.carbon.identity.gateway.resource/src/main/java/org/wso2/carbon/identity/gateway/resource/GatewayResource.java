@@ -29,19 +29,29 @@ import org.wso2.carbon.identity.gateway.api.InboundUtil;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
+import org.wso2.msf4j.util.BufferUtil;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Identity GatewayResource MicroService. This serves as the endpoint for all requests that come into the Identity GatewayResource.
@@ -270,6 +280,66 @@ public class GatewayResource implements Microservice {
         parameters.forEach((k, v) -> {
             request.setProperty(String.valueOf(k), v);
         });
+        String body = readRequestBody(request);
+        request.setProperty("requestBody", body);
+
+       if ( isFormParamRequest(request.getContentType())) {
+           try {
+               handleFormParams(body, request);
+           } catch (UnsupportedEncodingException e) {
+               throw FrameworkRuntimeException.error("Error while building request body");
+
+           }
+       }
     }
 
+    public static String readRequestBody(Request msf4jRequest) {
+
+        ByteBuffer merge = BufferUtil.merge(msf4jRequest.getFullMessageBody());
+        return Charset.defaultCharset().decode(merge).toString();
+    }
+
+    private void handleFormParams(String requestBody, Request request)
+            throws UnsupportedEncodingException {
+
+        splitQuery(requestBody).forEach(request::setProperty);
+    }
+
+    public static Map<String, String> splitQuery(String queryString) {
+
+        if (Optional.ofNullable(queryString).isPresent()) {
+            Map<String, String> queryMap = new HashMap<>();
+            Arrays.stream(queryString.split("&"))
+                    .map(GatewayResource::splitQueryParameter)
+                    .filter(x -> x.getKey() != null && x.getValue() != null)
+                    .forEach(x -> queryMap.put(x.getKey(), x.getValue()));
+
+            return queryMap;
+        }
+
+        return Collections.emptyMap();
+    }
+
+
+    private static AbstractMap.SimpleEntry<String, String> splitQueryParameter(String queryPairString) {
+
+        int idx = queryPairString.indexOf("=");
+        String key = idx > 0 ? queryPairString.substring(0, idx) : queryPairString;
+        String value = idx > 0 && queryPairString.length() > idx + 1 ? queryPairString.substring(idx + 1) : null;
+        return new AbstractMap.SimpleEntry<String, String>(urlDecode(key), urlDecode(value));
+    }
+
+    public static String urlDecode(final String encoded) {
+
+        try {
+            return encoded == null ? null : URLDecoder.decode(encoded, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException("Impossible: UTF-8 is a required encoding", e);
+        }
+    }
+
+    private boolean isFormParamRequest(String contentType) {
+        return MediaType.APPLICATION_FORM_URLENCODED.equalsIgnoreCase(contentType);
+    }
 }
+
