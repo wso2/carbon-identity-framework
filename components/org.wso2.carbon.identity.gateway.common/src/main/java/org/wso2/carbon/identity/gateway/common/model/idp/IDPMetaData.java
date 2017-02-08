@@ -3,6 +3,7 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class IDPMetaData {
 
@@ -10,7 +11,7 @@ public class IDPMetaData {
     private String federationHub  = "false" ;
     private String homeRealm = "dfdf" ;
     private RoleConfiguration roleConfiguration;
-
+    private Properties properties = new Properties();
 
     public List<IDPCertificate> getCertificates() {
         return certificates;
@@ -42,5 +43,13 @@ public class IDPMetaData {
 
     public void setRoleConfiguration(RoleConfiguration roleConfiguration) {
         this.roleConfiguration = roleConfiguration;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
     }
 }

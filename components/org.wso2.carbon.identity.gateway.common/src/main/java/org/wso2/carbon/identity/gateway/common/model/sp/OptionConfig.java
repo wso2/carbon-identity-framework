@@ -1,13 +1,22 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
 public class OptionConfig  {
-    private AuthenticatorConfig authenticatorConfig;
+    private FederateAuthenticatorConfig federateAuthenticatorConfig ;
+    private LocalAuthenticatorConfig localAuthenticatorConfig ;
 
-    public AuthenticatorConfig getAuthenticatorConfig() {
-        return authenticatorConfig;
+    public FederateAuthenticatorConfig getFederateAuthenticatorConfig() {
+        return federateAuthenticatorConfig;
     }
 
-    public void setAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
-        this.authenticatorConfig = authenticatorConfig;
+    public void setFederateAuthenticatorConfig(FederateAuthenticatorConfig federateAuthenticatorConfig) {
+        this.federateAuthenticatorConfig = federateAuthenticatorConfig;
+    }
+
+    public LocalAuthenticatorConfig getLocalAuthenticatorConfig() {
+        return localAuthenticatorConfig;
+    }
+
+    public void setLocalAuthenticatorConfig(LocalAuthenticatorConfig localAuthenticatorConfig) {
+        this.localAuthenticatorConfig = localAuthenticatorConfig;
     }
 }
