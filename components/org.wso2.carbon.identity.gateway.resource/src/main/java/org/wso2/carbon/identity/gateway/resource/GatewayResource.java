@@ -69,7 +69,7 @@ public class GatewayResource implements Microservice {
     public Response processPost(@Context Request request) {
         addParameters(request);
         process(request);
-        return null;
+        return processHttpResponse(process(request), request);
     }
 
 
@@ -80,13 +80,12 @@ public class GatewayResource implements Microservice {
     }
 
 
-
     private ProcessCoordinator manager = new ProcessCoordinator();
 
     /**
      * Process request/response.
      *
-     * @param request  HttpServletRequest
+     * @param request HttpServletRequest
      */
     private HttpIdentityResponse process(Request request) {
 
@@ -97,12 +96,12 @@ public class GatewayResource implements Microservice {
 
         try {
             identityRequest = factory.create(request).build();
-            if(identityRequest == null) {
+            if (identityRequest == null) {
                 throw FrameworkRuntimeException.error("IdentityRequest is Null. Cannot proceed!!");
             }
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
@@ -113,19 +112,19 @@ public class GatewayResource implements Microservice {
 
         try {
             identityResponse = manager.process(identityRequest);
-            if(identityResponse == null) {
+            if (identityResponse == null) {
                 throw FrameworkRuntimeException.error("IdentityResponse is Null. Cannot proceed!!");
             }
             responseFactory = getIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         } catch (FrameworkException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
-            if(responseBuilder == null) {
+            if (responseBuilder == null) {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
@@ -138,41 +137,46 @@ public class GatewayResource implements Microservice {
         processHttpResponse(httpIdentityResponse, request);
     }
 
-    private void processHttpResponse(HttpIdentityResponse httpIdentityResponse, Request request) {
+    private Response processHttpResponse(HttpIdentityResponse httpIdentityResponse, Request request) {
+
         Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
-        //#TODO: want to get clear how transform identoty response to jaxrs response
-        /*for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
-            response.addHeader(entry.getKey(), entry.getValue());
-        }
-        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
-            response.addCookie(entry.getValue());
-        }
-        if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
-            response.setContentType(httpIdentityResponse.getContentType());
-        }
-        if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
-            try {
-                sendRedirect(response, httpIdentityResponse);
-            } catch (IOException ex) {
-                throw FrameworkRuntimeException.error("Error occurred while redirecting response", ex);
-            }
-        } else {
-            response.setStatus(httpIdentityResponse.getStatusCode());
-            try {
-                PrintWriter out = response.getWriter();
-                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
-                    out.print(httpIdentityResponse.getBody());
-                }
-            } catch (IOException e) {
-                throw FrameworkRuntimeException.error("Error occurred while getting Response writer object", e);
-            }
-        }*/
+        builder.entity(httpIdentityResponse.getBody());
+        httpIdentityResponse.getHeaders().forEach(builder::header);
+        return builder.build();
+//        Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
+//        //#TODO: want to get clear how transform identoty response to jaxrs response
+//        for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
+//            response.addHeader(entry.getKey(), entry.getValue());
+//        }
+//        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
+//            response.addCookie(entry.getValue());
+//        }
+//        if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
+//            response.setContentType(httpIdentityResponse.getContentType());
+//        }
+//        if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
+//            try {
+//                sendRedirect(response, httpIdentityResponse);
+//            } catch (IOException ex) {
+//                throw FrameworkRuntimeException.error("Error occurred while redirecting response", ex);
+//            }
+//        } else {
+//            response.setStatus(httpIdentityResponse.getStatusCode());
+//            try {
+//                PrintWriter out = response.getWriter();
+//                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
+//                    out.print(httpIdentityResponse.getBody());
+//                }
+//            } catch (IOException e) {
+//                throw FrameworkRuntimeException.error("Error occurred while getting Response writer object", e);
+//            }
+//        }
     }
 
     /**
      * Get the HttpIdentityRequestFactory.
      *
-     * @param request  HttpServletRequest
+     * @param request HttpServletRequest
      * @return HttpIdentityRequestFactory
      */
     private HttpIdentityRequestFactory getIdentityRequestFactory(Request request) {
@@ -229,7 +233,7 @@ public class GatewayResource implements Microservice {
     private void sendRedirect(Response response, HttpIdentityResponse HttpIdentityResponse)
             throws IOException {
 
-        String queryParams =  buildQueryString(HttpIdentityResponse.getParameters());
+        String queryParams = buildQueryString(HttpIdentityResponse.getParameters());
         //TODO: MSS4J how redirect
         //response.sendRedirect(HttpIdentityResponse.getRedirectURL() + "&"+ queryParams);
     }
@@ -239,20 +243,20 @@ public class GatewayResource implements Microservice {
         boolean isFirst = true;
         Iterator i$ = parameterMap.entrySet().iterator();
 
-        while(i$.hasNext()) {
-            Map.Entry entry = (Map.Entry)i$.next();
-            String[] arr$ = (String[])entry.getValue();
+        while (i$.hasNext()) {
+            Map.Entry entry = (Map.Entry) i$.next();
+            String[] arr$ = (String[]) entry.getValue();
             int len$ = arr$.length;
 
-            for(int i$1 = 0; i$1 < len$; ++i$1) {
+            for (int i$1 = 0; i$1 < len$; ++i$1) {
                 String paramValue = arr$[i$1];
-                if(isFirst) {
+                if (isFirst) {
                     isFirst = false;
                 } else {
                     queryString.append("&");
                 }
 
-                queryString.append(URLEncoder.encode((String)entry.getKey(), StandardCharsets.UTF_8.name()));
+                queryString.append(URLEncoder.encode((String) entry.getKey(), StandardCharsets.UTF_8.name()));
                 queryString.append("=");
                 queryString.append(URLEncoder.encode(paramValue, StandardCharsets.UTF_8.name()));
             }
