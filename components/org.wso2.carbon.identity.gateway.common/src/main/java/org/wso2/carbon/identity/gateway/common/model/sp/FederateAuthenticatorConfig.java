@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-import idp.IdentityProviderConfig;
+
+import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 
 import java.util.Properties;
 
