@@ -4,7 +4,17 @@ import java.util.Properties;
 
 class RequestHandlerConfig {
     private String type;
+    private String uniquePropertyName ;
+
     private Properties properties = new Properties();
+
+    public String getUniquePropertyName() {
+        return uniquePropertyName;
+    }
+
+    public void setUniquePropertyName(String uniquePropertyName) {
+        this.uniquePropertyName = uniquePropertyName;
+    }
 
     public String getType() {
         return type;

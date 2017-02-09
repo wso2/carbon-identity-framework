@@ -1,20 +1,14 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StepHandlerConfig {
 
     private String subjectStep ;
-    private MultiOptionHandlerConfig multiOptionHandlerConfig;
-    private LocalAuthenticatorConfig localAuthenticatorConfig ;
-    private FederateAuthenticatorConfig federateAuthenticatorConfig ;
-
-
-    public MultiOptionHandlerConfig getMultiOptionHandlerConfig() {
-        return multiOptionHandlerConfig;
-    }
-
-    public void setMultiOptionHandlerConfig(MultiOptionHandlerConfig multiOptionHandlerConfig) {
-        this.multiOptionHandlerConfig = multiOptionHandlerConfig;
-    }
+    private String idpName ;
+    private List<AuthenticatorConfig> authenticatorConfigs = new ArrayList<>();
+    private AuthenticatorConfig authenticatorConfig ;
 
     public String getSubjectStep() {
         return subjectStep;
@@ -24,19 +18,27 @@ public class StepHandlerConfig {
         this.subjectStep = subjectStep;
     }
 
-    public LocalAuthenticatorConfig getLocalAuthenticatorConfig() {
-        return localAuthenticatorConfig;
+    public List<AuthenticatorConfig> getAuthenticatorConfigs() {
+        return authenticatorConfigs;
     }
 
-    public void setLocalAuthenticatorConfig(LocalAuthenticatorConfig localAuthenticatorConfig) {
-        this.localAuthenticatorConfig = localAuthenticatorConfig;
+    public void setAuthenticatorConfigs(List<AuthenticatorConfig> authenticatorConfigs) {
+        this.authenticatorConfigs = authenticatorConfigs;
     }
 
-    public FederateAuthenticatorConfig getFederateAuthenticatorConfig() {
-        return federateAuthenticatorConfig;
+    public AuthenticatorConfig getAuthenticatorConfig() {
+        return authenticatorConfig;
     }
 
-    public void setFederateAuthenticatorConfig(FederateAuthenticatorConfig federateAuthenticatorConfig) {
-        this.federateAuthenticatorConfig = federateAuthenticatorConfig;
+    public void setAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
+        this.authenticatorConfig = authenticatorConfig;
+    }
+
+    public String getIdpName() {
+        return idpName;
+    }
+
+    public void setIdpName(String idpName) {
+        this.idpName = idpName;
     }
 }
