@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.gateway.api;
 
+import org.apache.commons.collections.map.HashedMap;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,32 +31,19 @@ public class IdentityRequest implements Serializable {
 
     private static final long serialVersionUID = 5418537216546873566L;
 
-    protected Map<String, String> headers = new HashMap<>();
-    protected Map<String, Object> parameters = new HashMap<>();
-    protected String tenantDomain;
-    protected String contextPath;
-    protected String method;
-    protected String pathInfo;
-    protected String pathTranslated;
-    protected String queryString;
+    protected Map<String, String> headers = new HashMap();
+    protected Map<String, Object> parameters = new HashMap();
+    protected Map<String, Object> attributes = new HashMap();
+    protected String httpMethod;
     protected String requestURI;
-    protected StringBuffer requestURL;
-    protected String servletPath;
     protected String contentType;
-
 
     protected IdentityRequest(IdentityRequestBuilder builder) {
         this.headers = builder.headers;
         this.parameters = builder.parameters;
-        this.tenantDomain = builder.tenantDomain;
-        this.contextPath = builder.contextPath;
-        this.method = builder.method;
-        this.pathInfo = builder.pathInfo;
-        this.pathTranslated = builder.pathTranslated;
-        this.queryString = builder.queryString;
+        this.attributes = builder.attributes;
+        this.httpMethod = builder.httpMethod;
         this.requestURI = builder.requestURI;
-        this.requestURL = builder.requestURL;
-        this.servletPath = builder.servletPath;
         this.contentType = builder.contentType;
     }
 
@@ -76,8 +65,6 @@ public class IdentityRequest implements Serializable {
         return headers.get(name);
     }
 
-
-
     public Map<String, Object> getParameterMap() {
         return Collections.unmodifiableMap(parameters);
     }
@@ -90,67 +77,42 @@ public class IdentityRequest implements Serializable {
         return parameters.get(paramName);
     }
 
-    public String getTenantDomain() {
-        return this.tenantDomain;
-    }
-
     public Object getParameter(String paramName) {
        return parameters.get(paramName);
     }
 
-    public String getContextPath() {
-        return contextPath;
+    public Map<String, Object> getAttributeMap() {
+        return Collections.unmodifiableMap(attributes);
     }
 
-    public String getMethod() {
-        return method;
+    public Enumeration<String> getAttributeNames() {
+        return Collections.enumeration(attributes.keySet());
     }
 
-    public String getPathInfo() {
-        return pathInfo;
+    public Object getAttribute(String attributeName) {
+        return parameters.get(attributeName);
     }
 
-    public String getPathTranslated() {
-        return pathTranslated;
-    }
-
-    public String getQueryString() {
-        return queryString;
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     public String getRequestURI() {
         return requestURI;
     }
 
-    public StringBuffer getRequestURL() {
-        return requestURL;
-    }
-
-    public String getServletPath() {
-        return servletPath;
-    }
-
     public String getContentType() {
         return contentType;
     }
 
-
-
     public static class IdentityRequestBuilder {
 
-        private Map<String, String> headers = new HashMap<>();
-        private Map<String, Object> parameters = new HashMap<>();
-        private String tenantDomain;
-        private String contextPath;
-        private String method;
-        private String pathInfo;
-        private String pathTranslated;
-        private String queryString;
+        private Map<String, String> headers = new HashMap();
+        private Map<String, Object> parameters = new HashMap();
+        private Map<String, Object> attributes = new HashedMap();
+        private String httpMethod;
         private String requestURI;
-        private StringBuffer requestURL;
-        private String servletPath;
         private String contentType;
-
 
         public IdentityRequestBuilder() {
 
@@ -187,26 +149,17 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addParameter(String name, String[] values) {
+        public IdentityRequestBuilder addParameter(String name, Object value) {
             if (this.parameters.containsKey(name)) {
                 throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
                                                       "key " + name);
             }
-            this.parameters.put(name, values);
+            this.parameters.put(name, value);
             return this;
         }
 
-        public IdentityRequestBuilder addParameter(String name, String value) {
-            if (this.parameters.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                                                      "key " + name);
-            }
-            this.parameters.put(name, new String[]{value});
-            return this;
-        }
-
-        public IdentityRequestBuilder addParameters(Map<String, String[]> parameters) {
-            for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
+        public IdentityRequestBuilder addParameters(Map<String, Object> parameters) {
+            for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
                     throw FrameworkRuntimeException.error("Parameters map trying to override existing key " +
                                                           parameter.getKey());
@@ -216,48 +169,38 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder setTenantDomain(String tenantDomain) {
-            this.tenantDomain = tenantDomain;
+        public IdentityRequestBuilder setAttributes(Map<String, Object> attributes) {
+            this.attributes = attributes;
             return this;
         }
 
-        public IdentityRequestBuilder setContextPath(String contextPath) {
-            this.contextPath = contextPath;
+        public IdentityRequestBuilder addAttribute(String name, Object value) {
+            if (this.attributes.containsKey(name)) {
+                throw FrameworkRuntimeException.error("Attributes map trying to override existing " +
+                                                      "key " + name);
+            }
+            this.attributes.put(name, value);
             return this;
         }
 
-        public IdentityRequestBuilder setMethod(String method) {
-            this.method = method;
+        public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
+            for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+                if (this.attributes.containsKey(attribute.getKey())) {
+                    throw FrameworkRuntimeException.error("Attributes map trying to override existing key " +
+                                                          attribute.getKey());
+                }
+                this.attributes.put(attribute.getKey(), attribute.getValue());
+            }
             return this;
         }
 
-        public IdentityRequestBuilder setPathInfo(String pathInfo) {
-            this.pathInfo = pathInfo;
-            return this;
-        }
-
-        public IdentityRequestBuilder setPathTranslated(String pathTranslated) {
-            this.pathTranslated = pathTranslated;
-            return this;
-        }
-
-        public IdentityRequestBuilder setQueryString(String queryString) {
-            this.queryString = queryString;
+        public IdentityRequestBuilder setHttpMethod(String httpMethod) {
+            this.httpMethod = httpMethod;
             return this;
         }
 
         public IdentityRequestBuilder setRequestURI(String requestURI) {
             this.requestURI = requestURI;
-            return this;
-        }
-
-        public IdentityRequestBuilder setRequestURL(StringBuffer requestURL) {
-            this.requestURL = requestURL;
-            return this;
-        }
-
-        public IdentityRequestBuilder setServletPath(String servletPath) {
-            this.servletPath = servletPath;
             return this;
         }
 
@@ -269,8 +212,6 @@ public class IdentityRequest implements Serializable {
         public IdentityRequest build() throws FrameworkRuntimeException {
             return new IdentityRequest(this);
         }
-
-
     }
 
     public static class IdentityRequestConstants {

@@ -1,19 +1,35 @@
 package org.wso2.carbon.identity.gateway.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.wso2.carbon.identity.mgt.claim.Claim;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class FederatedUser extends User {
 
-    private List<UserClaim> userClaims = new ArrayList<>();
+    private String identifier;
+    private Set<Claim> claims = new HashSet();
 
-    @Override
-    public List<UserClaim> getUserClaims() {
-        return this.userClaims;
+    public FederatedUser(String identifier) {
+        this.identifier = identifier;
     }
 
-    public void setUserClaims(
-            List<UserClaim> userClaims) {
-        this.userClaims = userClaims;
+    public FederatedUser(String identifier, Set<Claim> claims) {
+        this.identifier = identifier;
+        this.claims = claims;
+    }
+
+    @Override
+    public String getUserIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public Set<Claim> getClaims() {
+        return this.claims;
+    }
+
+    public void setUserClaims(Set<Claim> claims) {
+        this.claims = claims;
     }
 }

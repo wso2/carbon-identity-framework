@@ -155,7 +155,11 @@
                 <artifactId>org.wso2.carbon.deployment.engine</artifactId>
                 <version>${carbon.deployment.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.wso2.carbon.identity.mgt</groupId>
+                <artifactId>org.wso2.carbon.identity.mgt</artifactId>
+                <version>${carbon.identity.mgt.version}</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -181,13 +185,15 @@
         <identity.gateway.resource.export.version>${identity.gateway.resource.version}</identity.gateway.resource.export.version>
         <identity.gateway.resource.import.version.range>[1.0.0,2.0.0)</identity.gateway.resource.import.version.range>
 
+        <carbon.identity.mgt.version>0.1.9</carbon.identity.mgt.version>
+        <carbon.identity.mgt.import.version.range>[0.0.0,1.0.0)</carbon.identity.mgt.import.version.range>
 
         <!-- Carbon platform version comes here-->
         <carbon.kernel.version>5.1.0</carbon.kernel.version>
         <carbon.kernel.package.export.version>5.1.0</carbon.kernel.package.export.version>
         <carbon.kernel.package.import.version.range>[5.0.0, 6.0.0)</carbon.kernel.package.import.version.range>
 
-        <carbon.identity.commons.version>0.1.10</carbon.identity.commons.version>
+        <carbon.identity.commons.version>0.1.13</carbon.identity.commons.version>
         <carbon.identity.common.import.version.range>[0.0.1, 1.0.0)
         </carbon.identity.common.import.version.range>
 

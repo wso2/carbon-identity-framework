@@ -4,16 +4,15 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
-import org.wso2.carbon.identity.gateway.api.IdentityRequest;
 import org.wso2.msf4j.Request;
 
 
-public class FrameworkLoginRequestFactory<T extends  FrameworkLoginRequest.FrameworkLoginBuilder> extends HttpIdentityRequestFactory<T>{
+public class FrameworkLoginRequestFactory<T extends  LocalAuthenticationRequest.FrameworkLoginBuilder> extends HttpIdentityRequestFactory<T>{
     @Override
     public boolean canHandle(Request request) {
-        String authenticatorName = (String) request.getProperty(FrameworkLoginRequest.FrameworkLoginRequestConstants
+        String authenticatorName = (String) request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants
                                                         .AUTHENTICATOR_NAME);
-        String idpName = (String)request.getProperty(FrameworkLoginRequest.FrameworkLoginRequestConstants.IDP_NAME);
+        String idpName = (String)request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants.IDP_NAME);
         if(StringUtils.isNotBlank(authenticatorName) && StringUtils.isNotBlank(idpName)) {
             return true;
         }
@@ -25,27 +24,27 @@ public class FrameworkLoginRequestFactory<T extends  FrameworkLoginRequest.Frame
             throws FrameworkClientException {
 
         super.create(builder, request);
-        FrameworkLoginRequest.FrameworkLoginBuilder frameworkLoginBuilder = (FrameworkLoginRequest.FrameworkLoginBuilder)builder ;
+        LocalAuthenticationRequest.FrameworkLoginBuilder frameworkLoginBuilder = (LocalAuthenticationRequest.FrameworkLoginBuilder)builder ;
 
-        frameworkLoginBuilder.setAuthenticatorName((String) request.getProperty(FrameworkLoginRequest
+        frameworkLoginBuilder.setAuthenticatorName((String) request.getProperty(LocalAuthenticationRequest
                                                                                 .FrameworkLoginRequestConstants.AUTHENTICATOR_NAME));
-        frameworkLoginBuilder.setIdentityProviderName((String)request.getProperty(FrameworkLoginRequest
+        frameworkLoginBuilder.setIdentityProviderName((String)request.getProperty(LocalAuthenticationRequest
                                                                                    .FrameworkLoginRequestConstants
                                                                                    .IDP_NAME));
     }
 
 
     @Override
-    public FrameworkLoginRequest.FrameworkLoginBuilder create(Request request)
+    public LocalAuthenticationRequest.FrameworkLoginBuilder create(Request request)
             throws FrameworkClientException {
 
-        FrameworkLoginRequest.FrameworkLoginBuilder frameworkLoginBuilder =  new FrameworkLoginRequest
+        LocalAuthenticationRequest.FrameworkLoginBuilder frameworkLoginBuilder =  new LocalAuthenticationRequest
                 .FrameworkLoginBuilder();
 
-        frameworkLoginBuilder.setAuthenticatorName((String)request.getProperty(FrameworkLoginRequest
+        frameworkLoginBuilder.setAuthenticatorName((String)request.getProperty(LocalAuthenticationRequest
                                                                                 .FrameworkLoginRequestConstants
                                                                                 .AUTHENTICATOR_NAME));
-        frameworkLoginBuilder.setIdentityProviderName((String)request.getProperty(FrameworkLoginRequest
+        frameworkLoginBuilder.setIdentityProviderName((String)request.getProperty(LocalAuthenticationRequest
                                                                                    .FrameworkLoginRequestConstants
                                                                                    .IDP_NAME));
         return frameworkLoginBuilder ;

@@ -18,14 +18,13 @@ package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.FrameworkException;
+import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.IdentityResponse;
-import org.wso2.carbon.identity.gateway.api.InboundUtil;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
@@ -131,7 +130,7 @@ public class GatewayResource implements Microservice {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
-        } catch (FrameworkException e) {
+        } catch (FrameworkServerException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if (responseBuilder == null) {
@@ -227,7 +226,7 @@ public class GatewayResource implements Microservice {
      * @param exception FrameworkException
      * @return HttpIdentityResponseFactory
      */
-    private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkException exception) {
+    private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkServerException exception) {
 
         List<HttpIdentityResponseFactory> factories = GatewayResourceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
@@ -276,7 +275,7 @@ public class GatewayResource implements Microservice {
     }
 
     private void addParameters(Request request) {
-        Map parameters = InboundUtil.getRequestParameters(request);
+        Map parameters = getRequestParameters(request);
         parameters.forEach((k, v) -> {
             request.setProperty(String.valueOf(k), v);
         });
@@ -297,6 +296,25 @@ public class GatewayResource implements Microservice {
 
         ByteBuffer merge = BufferUtil.merge(msf4jRequest.getFullMessageBody());
         return Charset.defaultCharset().decode(merge).toString();
+    }
+
+    public static Map getRequestParameters (Request request) {
+        return getQueryParamMap(request.getUri());
+    }
+
+    public static Map<String, String> getQueryParamMap(String requestUri) {
+
+        if (Optional.ofNullable(requestUri).isPresent()) {
+            Map<String, String> queryMap = new HashMap<>();
+            return splitQuery(
+                    Arrays.stream(requestUri.split("\\?"))
+                            .skip(1)
+                            .findFirst()
+                            .orElse(null)
+            );
+        }
+
+        return Collections.emptyMap();
     }
 
     private void handleFormParams(String requestBody, Request request)

@@ -60,7 +60,25 @@ public class SequenceContext {
 
 
     public static class RequestPathAuthenticatorContext {
+        private String authenticatorName;
+        private User user;
         private boolean isAuthenticated = false;
+
+        public String getAuthenticatorName() {
+            return authenticatorName;
+        }
+
+        public void setAuthenticatorName(String authenticatorName) {
+            this.authenticatorName = authenticatorName;
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
 
         public boolean isAuthenticated() {
             return isAuthenticated;

@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.gateway.processor;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.FrameworkException;
+import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
@@ -20,7 +20,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractRespo
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.request.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.util.HandlerManager;
 
 public class AuthenticationProcessor extends IdentityProcessor {
@@ -29,17 +29,17 @@ public class AuthenticationProcessor extends IdentityProcessor {
     private static final String PROCESS_CONTEXT_AUTHENTICATION = "authentication";
 
     @Override
-    public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws FrameworkException {
+    public IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest) throws
+                                                                                             FrameworkServerException {
         String processContext = "";
         IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null;
 
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest) identityRequest;
-
         if (identityRequest instanceof ClientAuthenticationRequest) {
-            AuthenticationContext authenticationContext = initAuthenticationContext(authenticationRequest);
+            AuthenticationContext authenticationContext = initAuthenticationContext(
+                    (ClientAuthenticationRequest) identityRequest);
             identityResponseBuilder = processLoginRequest(authenticationContext);
-        } else if (identityRequest instanceof LocalAuthenticationRequest) {
-            AuthenticationContext authenticationContext = buildAuthenticationContext(authenticationRequest);
+        } else if (identityRequest instanceof CallbackAuthenticationRequest) {
+            AuthenticationContext authenticationContext = buildAuthenticationContext((CallbackAuthenticationRequest)identityRequest);
             if (authenticationContext == null) {
                 throw FrameworkRuntimeException.error("Invalid Request");
             }
@@ -63,20 +63,20 @@ public class AuthenticationProcessor extends IdentityProcessor {
         return true;
     }
 
-    protected AuthenticationContext initAuthenticationContext(AuthenticationRequest authenticationRequest) {
+    protected AuthenticationContext initAuthenticationContext(ClientAuthenticationRequest clientAuthenticationRequest) {
 
-        AuthenticationContext authenticationContext = new AuthenticationContext(authenticationRequest);
+        AuthenticationContext authenticationContext = new AuthenticationContext(clientAuthenticationRequest);
 
 
         IdentityMessageContextCache
-                .getInstance().addToCache(authenticationRequest.getRequestDataKey(), authenticationContext);
+                .getInstance().addToCache(clientAuthenticationRequest.getRequestDataKey(), authenticationContext);
         return authenticationContext;
     }
 
     protected AuthenticationContext buildAuthenticationContext(AuthenticationRequest authenticationRequest) {
 
         AuthenticationContext authenticationContext = null;
-        String requestDataKey = ((LocalAuthenticationRequest) authenticationRequest).getRequestDataKey();
+        String requestDataKey = authenticationRequest.getRequestDataKey();
         IdentityMessageContext identityMessageContext =
                 IdentityMessageContextCache.getInstance().getValueFromCache(requestDataKey);
         if (identityMessageContext != null) {

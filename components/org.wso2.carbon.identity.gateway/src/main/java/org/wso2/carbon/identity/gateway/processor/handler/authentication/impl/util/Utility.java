@@ -12,7 +12,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.Authent
 import java.util.List;
 
 public class Utility {
-    public static ServiceProviderConfig getServiceProvider(String requestType, String clientId, String tenantDomain)
+    public static ServiceProviderConfig getServiceProvider(String requestType, String clientId)
             throws AuthenticationHandlerException {
         ServiceProviderConfig  serviceProvider = null;
         /*ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();

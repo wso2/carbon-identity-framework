@@ -84,7 +84,6 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(ServiceProviderConfigStore.class, ServiceProviderConfigStore.getInstance(), null);
 
         //bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
-        //bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
         if (log.isDebugEnabled()) {

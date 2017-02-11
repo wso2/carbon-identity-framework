@@ -54,8 +54,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
-
-
         <dependency>
             <groupId>org.wso2.carbon.identity.commons</groupId>
             <artifactId>org.wso2.carbon.identity.commons</artifactId>
@@ -64,7 +62,10 @@
             <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.wso2.carbon.identity.mgt</groupId>
+            <artifactId>org.wso2.carbon.identity.mgt</artifactId>
+        </dependency>
     </dependencies>
 
     <properties>
