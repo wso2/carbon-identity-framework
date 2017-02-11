@@ -1,12 +1,12 @@
 package org.wso2.carbon.identity.gateway.store;
 
-import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProvider;
-import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationHandlerConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticatorHandlerConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.RequestHandlerConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProvider;
+import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
+import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidationConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.StepHandlerConfig;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,36 +16,34 @@ public class ServiceProviderConfigStore {
     private static ServiceProviderConfigStore serviceProviderConfigStore = new ServiceProviderConfigStore();
 
     private Map<String, String> spUniqueKeyMap = new HashMap<>();
-    private Map<String, ServiceProvider> spEntityMap = new HashMap<>();
+    private Map<String, ServiceProviderConfig> spEntityMap = new HashMap<>();
 
-    private ServiceProviderConfigStore(){
+    private ServiceProviderConfigStore() {
 
     }
 
-    public static ServiceProviderConfigStore getInstance(){
+    public static ServiceProviderConfigStore getInstance() {
         return ServiceProviderConfigStore.serviceProviderConfigStore;
     }
 
-    public void addServiceProvider(ServiceProvider serviceProvider){
-        if(serviceProvider != null){
-            ServiceProviderConfig serviceProviderConfig = serviceProvider.getServiceProviderConfig();
-            List<RequestHandlerConfig> requestHandlerConfigs = serviceProviderConfig.getRequestHandlerConfigs();
-            for(RequestHandlerConfig requestHandlerConfig: requestHandlerConfigs){
-                String uniquePropertyName = requestHandlerConfig.getUniquePropertyName();
-                String uniqueKey = requestHandlerConfig.getProperties().getProperty(uniquePropertyName);
-                spUniqueKeyMap.put(uniqueKey, serviceProviderConfig.getName());
-                spEntityMap.put(serviceProviderConfig.getName(), serviceProvider);
+    public void addServiceProvider(ServiceProviderConfig serviceProvider) {
+        if (serviceProvider != null) {
+            RequestValidationConfig requestValidationConfig = serviceProvider.getRequestValidationConfig();
+            for (RequestValidatorConfig requestValidatorConfig : requestValidationConfig.getRequestValidatorConfigs()) {
+                String uniquePropertyName = requestValidatorConfig.getUniquePropertyName();
+                String uniqueKey = requestValidatorConfig.getProperties().getProperty(uniquePropertyName);
+                spUniqueKeyMap.put(uniqueKey, serviceProvider.getName());
+                spEntityMap.put(serviceProvider.getName(), serviceProvider);
             }
         }
-
     }
 
-    public ServiceProvider getServiceProvider(String uniqueKey){
-        ServiceProvider serviceProvider = null ;
+    public ServiceProviderConfig getServiceProvider(String uniqueKey) {
+        ServiceProviderConfig serviceProvider = null;
         String spName = spUniqueKeyMap.get(uniqueKey);
-        if(spName != null){
+        if (spName != null) {
             serviceProvider = spEntityMap.get(spName);
-            if(serviceProvider != null){
+            if (serviceProvider != null) {
                 buildServiceProvider(serviceProvider);
             }
         }
@@ -53,43 +51,25 @@ public class ServiceProviderConfigStore {
     }
 
 
-    private void buildServiceProvider(ServiceProvider serviceProvider) {
+    private void buildServiceProvider(ServiceProviderConfig serviceProviderConfig) {
 
-        ServiceProviderConfig serviceProviderConfig = serviceProvider.getServiceProviderConfig();
-        AuthenticationHandlerConfig authenticationHandlerConfig = serviceProviderConfig
-                .getAuthenticationHandlerConfig();
-        if (authenticationHandlerConfig != null && authenticationHandlerConfig.getStepHandlerConfigs().size() > 0) {
-            List<StepHandlerConfig> stepHandlerConfigs = authenticationHandlerConfig.getStepHandlerConfigs();
+        AuthenticationConfig authenticationConfig = serviceProviderConfig.getAuthenticationConfig();
+        List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
 
-            stepHandlerConfigs.stream()
-                    .forEach(stepHandlerConfig -> {
-                                 AuthenticatorHandlerConfig authenticatorHandlerConfig = stepHandlerConfig
-                                         .getAuthenticatorHandlerConfig();
-                                 List<AuthenticatorHandlerConfig> authenticatorHandlerConfigs
-                                         = stepHandlerConfig.getAuthenticatorHandlerConfigs();
-                                 if (authenticatorHandlerConfig != null && authenticatorHandlerConfig
-                                                                                   .getIdentityProviderConfig() ==
-                                                                           null) {
-                                     updateIdentityProvider(authenticatorHandlerConfig);
-                                 } else {
-                                     authenticatorHandlerConfigs.stream()
-                                             .filter(tmpAuthenticatorHandlerConfig ->
-                                                             tmpAuthenticatorHandlerConfig.getIdentityProviderConfig()
-                                                                                         != null)
-                                             .forEach(tmpAuthenticatorHandlerConfig ->
-                                                              updateIdentityProvider(tmpAuthenticatorHandlerConfig));
-                                 }
-                             }
-                    );
-        }
-    }
-    private void updateIdentityProvider(AuthenticatorHandlerConfig authenticatorHandlerConfig){
-        if(authenticatorHandlerConfig.getIdpName() != null) {
-            IdentityProvider identityProvider = IdentityProviderConfigStore.getInstance()
-                    .getIdentityProvider(authenticatorHandlerConfig.getIdpName());
-            authenticatorHandlerConfig.setIdentityProviderConfig(identityProvider.getIdentityProviderConfig());
-        }
+        authenticationStepConfigs.forEach(authenticationStepConfig -> {
+            List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
+            identityProviders.stream().filter(identityProvider -> identityProvider
+                                                                          .getIdentityProviderConfig()
+                                                                  == null)
+                    .forEach(this::updateIdentityProvider);
+        });
     }
 
-
+    private void updateIdentityProvider(IdentityProvider identityProvider) {
+        if (identityProvider.getIdentityProviderName() != null) {
+            IdentityProviderConfig identityProviderConfig = IdentityProviderConfigStore.getInstance()
+                    .getIdentityProvider(identityProvider.getIdentityProviderName());
+            identityProvider.setIdentityProviderConfig(identityProviderConfig);
+        }
+    }
 }

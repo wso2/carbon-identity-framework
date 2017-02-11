@@ -4,9 +4,8 @@ package org.wso2.carbon.identity.gateway.context;
 import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProvider;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.model.User;
-import org.wso2.carbon.identity.gateway.model.UserClaim;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
@@ -15,7 +14,6 @@ import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRe
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,7 +52,8 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         return sequenceContext;
     }
 
-    public void setSequenceContext(SequenceContext sequenceContext) {
+    public void setSequenceContext(
+            SequenceContext sequenceContext) {
         this.sequenceContext = sequenceContext;
     }
 
@@ -67,10 +66,10 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         this.sequence = sequence;
     }
 
-    public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {
+    public ServiceProviderConfig getServiceProvider() throws AuthenticationHandlerException {
         ClientAuthenticationRequest clientAuthenticationRequest = getInitialAuthenticationRequest();
-        ServiceProvider serviceProvider = Utility.getServiceProvider(clientAuthenticationRequest.getType(),
-                                                                     clientAuthenticationRequest.getUniqueId());
+        ServiceProviderConfig serviceProvider = Utility.getServiceProvider(clientAuthenticationRequest.getType(),
+                                                                           clientAuthenticationRequest.getUniqueId());
         return serviceProvider;
     }
 
@@ -90,7 +89,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         return subjectStepUser;
     }
 
-    public Set<Claim> getUserClaims() {
+    public Set<Claim> getClaims() {
         SequenceContext sequenceContext = getSequenceContext();
         User attributeStepUser = null;
         AbstractSequence sequence = getSequence();

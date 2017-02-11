@@ -2,10 +2,10 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.gateway.common.model.IdentityProvider;
-import org.wso2.carbon.identity.gateway.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
+import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
@@ -67,21 +67,20 @@ public class StepHandler extends FrameworkHandler {
                 }
 
             } else {
-                LocalAuthenticatorConfig localAuthenticatorConfigForSingleOption =
-                        sequence.getLocalAuthenticatorConfigForSingleOption(sequenceContext.getCurrentStep());
-                if (localAuthenticatorConfigForSingleOption != null) {
+
+
+                IdentityProvider identityProvider = sequence.getIdentityProvider(sequenceContext.getCurrentStep());
+                if (identityProvider != null) {
                     applicationAuthenticator =
-                            Utility.getLocalApplicationAuthenticator(localAuthenticatorConfigForSingleOption.getName());
-                    currentStepContext.setAuthenticatorName(localAuthenticatorConfigForSingleOption.getName());
-                } else {
-                    IdentityProvider federatedIdentityProviderForSingleOption =
-                            sequence.getFederatedIdentityProviderForSingleOption(sequenceContext.getCurrentStep());
-                    applicationAuthenticator =
-                            Utility.getFederatedApplicationAuthenticator(federatedIdentityProviderForSingleOption
-                                                                                 .getDefaultAuthenticatorConfig()
-                                                                                 .getName());
-                    currentStepContext.setAuthenticatorName(applicationAuthenticator.getName());
-                    currentStepContext.setIdentityProviderName(federatedIdentityProviderForSingleOption.getIdentityProviderName());
+                            Utility.getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                    if(applicationAuthenticator == null){
+                        applicationAuthenticator =
+                                Utility.getFederatedApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                    }
+                    if(applicationAuthenticator != null) {
+                        currentStepContext.setAuthenticatorName(applicationAuthenticator.getName());
+                        currentStepContext.setIdentityProviderName(identityProvider.getIdentityProviderName());
+                    }
                 }
             }
         }

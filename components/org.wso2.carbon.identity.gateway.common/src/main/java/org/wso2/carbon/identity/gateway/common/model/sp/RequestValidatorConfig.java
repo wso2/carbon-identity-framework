@@ -2,7 +2,7 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 
 import java.util.Properties;
 
-public class RequestHandlerConfig {
+public class RequestValidatorConfig {
     private String type;
     private String uniquePropertyName ;
 

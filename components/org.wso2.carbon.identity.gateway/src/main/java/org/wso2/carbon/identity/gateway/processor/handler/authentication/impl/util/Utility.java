@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util;
 
 
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProvider;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
@@ -12,9 +12,9 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.Authent
 import java.util.List;
 
 public class Utility {
-    public static ServiceProvider getServiceProvider(String requestType, String clientId)
+    public static ServiceProviderConfig getServiceProvider(String requestType, String clientId)
             throws AuthenticationHandlerException {
-        ServiceProvider serviceProvider = null;
+        ServiceProviderConfig  serviceProvider = null;
         /*ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
         try {
             serviceProvider =
