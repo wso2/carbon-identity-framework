@@ -1,30 +1,29 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ServiceProviderConfig {
 
     private String name;
 
-    private List<RequestHandlerConfig> requestHandlerConfigs = new ArrayList<>();
-    private AuthenticationHandlerConfig authenticationHandlerConfig ;
-    private List<ResponseHandlerConfig> responseHandlerConfigs = new ArrayList<>();
+    private RequestValidationConfig requestValidationConfig ;
+    private AuthenticationConfig authenticationConfig;
+    private ResponseBuildingConfig responseBuildingConfig;
 
-    public List<RequestHandlerConfig> getRequestHandlerConfigs() {
-        return requestHandlerConfigs;
+
+
+    public AuthenticationConfig getAuthenticationConfig() {
+        return authenticationConfig;
     }
 
-    public void setRequestHandlerConfigs(List<RequestHandlerConfig> requestHandlerConfigs) {
-        this.requestHandlerConfigs = requestHandlerConfigs;
+    public void setAuthenticationConfig(AuthenticationConfig authenticationConfig) {
+        this.authenticationConfig = authenticationConfig;
     }
 
-    public AuthenticationHandlerConfig getAuthenticationHandlerConfig() {
-        return authenticationHandlerConfig;
+    public RequestValidationConfig getRequestValidationConfig() {
+        return requestValidationConfig;
     }
 
-    public void setAuthenticationHandlerConfig(AuthenticationHandlerConfig authenticationHandlerConfig) {
-        this.authenticationHandlerConfig = authenticationHandlerConfig;
+    public void setRequestValidationConfig(RequestValidationConfig requestValidationConfig) {
+        this.requestValidationConfig = requestValidationConfig;
     }
 
     public String getName() {
@@ -35,11 +34,11 @@ public class ServiceProviderConfig {
         this.name = name;
     }
 
-    public List<ResponseHandlerConfig> getResponseHandlerConfigs() {
-        return responseHandlerConfigs;
+    public ResponseBuildingConfig getResponseBuildingConfig() {
+        return responseBuildingConfig;
     }
 
-    public void setResponseHandlerConfigs(List<ResponseHandlerConfig> responseHandlerConfigs) {
-        this.responseHandlerConfigs = responseHandlerConfigs;
+    public void setResponseBuildingConfig(ResponseBuildingConfig responseBuildingConfig) {
+        this.responseBuildingConfig = responseBuildingConfig;
     }
 }

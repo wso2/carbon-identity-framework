@@ -4,7 +4,7 @@ package org.wso2.carbon.identity.gateway.context;
 import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProvider;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.model.UserClaim;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
@@ -68,10 +68,10 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         this.sequence = sequence;
     }
 
-    public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {
+    public ServiceProviderConfig getServiceProvider() throws AuthenticationHandlerException {
         ClientAuthenticationRequest clientAuthenticationRequest =
                 (ClientAuthenticationRequest) getInitialAuthenticationRequest();
-        ServiceProvider serviceProvider =
+        ServiceProviderConfig serviceProvider =
                 Utility.getServiceProvider(clientAuthenticationRequest.getType(), clientAuthenticationRequest
                         .getUniqueId(), clientAuthenticationRequest.getTenantDomain());
         return serviceProvider;

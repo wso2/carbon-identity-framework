@@ -1,8 +1,9 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
+
 import java.util.Properties;
 
-class ResponseHandlerConfig {
+public class ResponseBuilderConfig {
     private String type;
     private Properties properties = new Properties();
 

@@ -1,10 +1,11 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model;
 
 import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.gateway.common.model.IdentityProvider;
 import org.wso2.carbon.identity.gateway.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 
 import java.io.Serializable;
 
@@ -36,14 +37,9 @@ public abstract class AbstractSequence implements Serializable {
 
     public abstract Step getStep(int step);
 
-    public abstract LocalAuthenticatorConfig getLocalAuthenticatorConfigForSingleOption(int step);
 
-    public abstract IdentityProvider getFederatedIdentityProviderForSingleOption(int step);
-
-
-    public abstract LocalAuthenticatorConfig getLocalAuthenticatorConfig(int step, String authenticatorName);
-
-    public abstract IdentityProvider getFederatedIdentityProvider(int step, String idenitytProvider);
+    public abstract IdentityProvider getIdentityProvider(int step)
+            throws AuthenticationHandlerException;
 
 
 }

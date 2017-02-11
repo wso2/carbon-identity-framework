@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
-public class IdentityProvider{
+public class IdentityProviderEntity {
+
     private IdentityProviderConfig identityProviderConfig ;
 
     public IdentityProviderConfig getIdentityProviderConfig() {
