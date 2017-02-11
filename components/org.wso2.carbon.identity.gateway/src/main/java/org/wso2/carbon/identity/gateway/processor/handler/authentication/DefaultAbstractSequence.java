@@ -2,15 +2,13 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication;
 
 
 import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.gateway.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.gateway.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.Step;
 
 import java.util.List;
 
@@ -24,14 +22,10 @@ public class DefaultAbstractSequence extends AbstractSequence {
     }
 
     @Override
-    public RequestPathAuthenticatorConfig[] getRequestPathAuthenticatorConfig() {
-        return new RequestPathAuthenticatorConfig[0];
+    public List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig() {
+        return null;
     }
 
-    @Override
-    public AuthenticationStep[] getStepAuthenticatorConfig() {
-        return new AuthenticationStep[0];
-    }
 
     @Override
     public boolean isRequestPathAuthenticatorsAvailable() {

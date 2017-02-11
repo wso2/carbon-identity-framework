@@ -1,13 +1,12 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model;
-
-import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.gateway.common.model.LocalAuthenticatorConfig;
-import org.wso2.carbon.identity.gateway.common.model.RequestPathAuthenticatorConfig;
+ 
+import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 
 import java.io.Serializable;
+import java.util.List;
 
 public abstract class AbstractSequence implements Serializable {
 
@@ -25,9 +24,7 @@ public abstract class AbstractSequence implements Serializable {
         return authenticationContext;
     }
 
-    public abstract RequestPathAuthenticatorConfig[] getRequestPathAuthenticatorConfig();
-
-    public abstract AuthenticationStep[] getStepAuthenticatorConfig();
+    public abstract List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig();
 
     public abstract boolean isRequestPathAuthenticatorsAvailable();
 

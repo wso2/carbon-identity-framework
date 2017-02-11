@@ -77,36 +77,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         return serviceProvider;
     }
 
-    public User getSubjectUser() {
-        SequenceContext sequenceContext = getSequenceContext();
-        User subjectStepUser = null;
-        AbstractSequence sequence = getSequence();
-        AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
-        for (AuthenticationStep authenticationStep : stepAuthenticatorConfig) {
-            boolean subjectUser = authenticationStep.isSubjectStep();
-            if (subjectUser) {
-                SequenceContext.StepContext stepContext =
-                        sequenceContext.getStepContext(authenticationStep.getStepOrder());
-                subjectStepUser = stepContext.getUser();
-            }
-        }
-        return subjectStepUser;
-    }
 
-    public List<UserClaim> getUserClaims() {
-        SequenceContext sequenceContext = getSequenceContext();
-        User attributeStepUser = null;
-        AbstractSequence sequence = getSequence();
-        AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
-        for (AuthenticationStep authenticationStep : stepAuthenticatorConfig) {
-            boolean attributeStep = authenticationStep.isAttributeStep();
-            if (attributeStep) {
-                SequenceContext.StepContext stepContext =
-                        sequenceContext.getStepContext(authenticationStep.getStepOrder());
-                attributeStepUser = stepContext.getUser();
-            }
-        }
-        return attributeStepUser.getUserClaims();
-    }
+
 
 }
