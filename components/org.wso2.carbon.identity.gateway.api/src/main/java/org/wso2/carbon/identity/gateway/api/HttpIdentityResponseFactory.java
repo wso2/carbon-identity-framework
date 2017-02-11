@@ -38,7 +38,7 @@ public abstract class HttpIdentityResponseFactory {
         return false;
     }
 
-    public boolean canHandle(FrameworkException exception) {
+    public boolean canHandle(FrameworkServerException exception) {
         return false;
     }
 
@@ -46,7 +46,7 @@ public abstract class HttpIdentityResponseFactory {
 
     public abstract HttpIdentityResponse.HttpIdentityResponseBuilder create(HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse);
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkException exception) {
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkServerException exception) {
 
         HttpIdentityResponse.HttpIdentityResponseBuilder builder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();

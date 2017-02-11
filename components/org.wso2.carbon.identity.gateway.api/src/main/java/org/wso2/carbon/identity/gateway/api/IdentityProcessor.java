@@ -42,14 +42,14 @@ public abstract class IdentityProcessor {
      *
      * @param identityRequest IdentityRequest
      * @return IdentityResponseBuilder
-     * @throws FrameworkException Error
+     * @throws FrameworkServerException Error
      *                            occurred
      *                            while
      *                            processing
      *                            IdentityRequest
      */
     public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
-            throws FrameworkException;
+            throws FrameworkServerException;
 
     /**
      * Returns the unique name of the request IdentityProcessor
@@ -72,114 +72,6 @@ public abstract class IdentityProcessor {
      * @return can/not handle
      */
     public abstract boolean canHandle(IdentityRequest identityRequest);
-
-    /**
-     * Get IdentityResponseBuilder for framework login
-     *
-     * @param context IdentityMessageContext
-     * @return IdentityResponseBuilder
-     */
-    protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogin(
-            IdentityMessageContext context) {
-/*
-        String sessionDataKey = UUIDGenerator.generateUUID();
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        IdentityRequest identityRequest = context.getRequest();
-
-        Map<String, String[]> parameterMap = identityRequest.getParameterMap();
-
-        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
-        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
-
-        authenticationRequest.appendRequestQueryParams(parameterMap);
-
-        for (Object entry : identityRequest.getHeaderMap().keySet()) {
-            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
-                    ((Map.Entry<String, String>)entry).getValue());
-        }
-
-        authenticationRequest.setRelyingParty(getRelyingPartyId());
-        authenticationRequest.setType(getName());
-        authenticationRequest.setPassiveAuth((Boolean)context.getParameter(InboundConstants.PassiveAuth));
-        authenticationRequest.setForceAuth((Boolean) context.getParameter(InboundConstants.ForceAuth));
-        try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
-                    getCallbackPath(context), e);
-        }
-
-        AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
-        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
-
-        InboundUtil.addContextToCache(sessionDataKey, context);
-
-        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
-                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
-        responseBuilder.setAuthName(getName());
-        responseBuilder.setContextKey(sessionDataKey);
-        responseBuilder.setCallbackPath(getCallbackPath(context));
-        responseBuilder.setRelyingParty(getRelyingPartyId());
-        responseBuilder.setAuthType(getName());
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        responseBuilder.setRedirectURL(commonAuthURL);*/
-        return null;
-    }
-
-    /**
-     * Get IdentityResponseBuilder for framework logout
-     *
-     * @param context IdentityMessageContext
-     * @return IdentityResponseBuilder
-     */
-    protected IdentityResponse.IdentityResponseBuilder buildResponseForFrameworkLogout(IdentityMessageContext context) {
-/*
-        String sessionDataKey = UUIDGenerator.generateUUID();
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        IdentityRequest identityRequest = context.getRequest();
-
-        Map<String, String[]> parameterMap = identityRequest.getParameterMap();
-
-        parameterMap.put(FrameworkConstants.SESSION_DATA_KEY, new String[] { sessionDataKey });
-        parameterMap.put(FrameworkConstants.RequestParams.TYPE, new String[] { getName() });
-
-        authenticationRequest.appendRequestQueryParams(parameterMap);
-
-        for (Object entry : identityRequest.getHeaderMap().keySet()) {
-            authenticationRequest.addHeader(((Map.Entry<String,String>)entry).getKey(),
-                    ((Map.Entry<String, String>)entry).getValue());
-        }
-
-        authenticationRequest.setRelyingParty(getRelyingPartyId());
-        authenticationRequest.setType(getName());
-        try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
-                    getCallbackPath(context), e);
-        }
-        authenticationRequest.addRequestQueryParam(FrameworkConstants.RequestParams.LOGOUT,
-                new String[]{"true"});
-
-        AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
-        FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
-
-        InboundUtil.addContextToCache(sessionDataKey, context);
-
-        FrameworkLoginResponse.FrameworkLoginResponseBuilder responseBuilder =
-                new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
-        responseBuilder.setAuthName(getName());
-        responseBuilder.setContextKey(sessionDataKey);
-        responseBuilder.setCallbackPath(getCallbackPath(context));
-        responseBuilder.setRelyingParty(getRelyingPartyId());
-        //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        responseBuilder.setAuthType(getName());
-        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        responseBuilder.setRedirectURL(commonAuthURL);*/
-        return null;
-    }
 
     /**
      * Checks if previous IdentityMessageContext exists for given IdentityRequest using {@code sessionDataKey} parameter

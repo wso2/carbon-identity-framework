@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.gateway.resource;
 
-import org.wso2.carbon.identity.gateway.api.FrameworkException;
+import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
@@ -30,7 +30,7 @@ import java.util.List;
 public class ProcessCoordinator {
 
 
-    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkException {
+    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkServerException {
 
         IdentityProcessor processor = getIdentityProcessor(identityRequest);
         if (processor != null) {

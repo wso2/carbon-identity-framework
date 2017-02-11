@@ -19,42 +19,35 @@
 package org.wso2.carbon.identity.gateway.api;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class IdentityRequest implements Serializable {
 
     private static final long serialVersionUID = 5418537216546873566L;
 
-    protected Map<String, String> headers = new HashMap<>();
-    protected Map<String, String[]> parameters = new HashMap<>();
-    protected String tenantDomain;
-    protected String contextPath;
-    protected String method;
-    protected String pathInfo;
-    protected String pathTranslated;
-    protected String queryString;
+    protected Map<String, String> headers = new HashMap();
+    protected Map<String, String[]> parameters = new HashMap();
+    protected Map<String, Object> properties = new HashMap();
+    protected List<ByteBuffer> fullMessageBody;
+    protected ByteBuffer messageBody;
+    protected String httpMethod;
     protected String requestURI;
-    protected StringBuffer requestURL;
-    protected String servletPath;
     protected String contentType;
-
 
     protected IdentityRequest(IdentityRequestBuilder builder) {
         this.headers = builder.headers;
         this.parameters = builder.parameters;
-        this.tenantDomain = builder.tenantDomain;
-        this.contextPath = builder.contextPath;
-        this.method = builder.method;
-        this.pathInfo = builder.pathInfo;
-        this.pathTranslated = builder.pathTranslated;
-        this.queryString = builder.queryString;
+        this.properties = builder.properties;
+        this.fullMessageBody = builder.fullMessageBody;
+        this.messageBody = builder.messageBody;
+        this.httpMethod = builder.httpMethod;
         this.requestURI = builder.requestURI;
-        this.requestURL = builder.requestURL;
-        this.servletPath = builder.servletPath;
         this.contentType = builder.contentType;
     }
 
@@ -76,8 +69,6 @@ public class IdentityRequest implements Serializable {
         return headers.get(name);
     }
 
-
-
     public Map<String, String[]> getParameterMap() {
         return Collections.unmodifiableMap(parameters);
     }
@@ -90,10 +81,6 @@ public class IdentityRequest implements Serializable {
         return parameters.get(paramName);
     }
 
-    public String getTenantDomain() {
-        return this.tenantDomain;
-    }
-
     public String getParameter(String paramName) {
         String[] values = parameters.get(paramName);
         if(values!=null) {
@@ -104,57 +91,47 @@ public class IdentityRequest implements Serializable {
         return null;
     }
 
-    public String getContextPath() {
-        return contextPath;
+    public Map<String, Object> getPropertyMap() {
+        return Collections.unmodifiableMap(properties);
     }
 
-    public String getMethod() {
-        return method;
+    public Enumeration<String> getPropertyNames() {
+        return Collections.enumeration(properties.keySet());
     }
 
-    public String getPathInfo() {
-        return pathInfo;
+    public Object getProperty(String propertyName) {
+        return properties.get(propertyName);
     }
 
-    public String getPathTranslated() {
-        return pathTranslated;
+    public List<ByteBuffer> getFullMessageBody() {
+        return fullMessageBody;
     }
 
-    public String getQueryString() {
-        return queryString;
+    public ByteBuffer getMessageBody() {
+        return messageBody;
+    }
+
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     public String getRequestURI() {
         return requestURI;
     }
 
-    public StringBuffer getRequestURL() {
-        return requestURL;
-    }
-
-    public String getServletPath() {
-        return servletPath;
-    }
-
     public String getContentType() {
         return contentType;
     }
 
-
-
     public static class IdentityRequestBuilder {
 
-        private Map<String, String> headers = new HashMap<>();
-        private Map<String, String[]> parameters = new HashMap<>();
-        private String tenantDomain;
-        private String contextPath;
-        private String method;
-        private String pathInfo;
-        private String pathTranslated;
-        private String queryString;
+        private Map<String, String> headers = new HashMap();
+        private Map<String, String[]> parameters = new HashMap();
+        private Map<String, Object> properties = new HashMap();
+        protected List<ByteBuffer> fullMessageBody;
+        protected ByteBuffer messageBody;
+        private String httpMethod;
         private String requestURI;
-        private StringBuffer requestURL;
-        private String servletPath;
         private String contentType;
 
 
@@ -222,48 +199,47 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder setTenantDomain(String tenantDomain) {
-            this.tenantDomain = tenantDomain;
+        public IdentityRequestBuilder setProperties(Map<String, Object> properties) {
+            if (properties == null) {
+                throw FrameworkRuntimeException.error("Properties map is null.");
+            }
+            this.properties = properties;
             return this;
         }
 
-        public IdentityRequestBuilder setContextPath(String contextPath) {
-            this.contextPath = contextPath;
+        public IdentityRequestBuilder addProperty(String name, Object value) {
+            if (this.properties.containsKey(name)) {
+                throw FrameworkRuntimeException.error("Properties map trying to override existing " +
+                                                      "key " + name);
+            }
+            this.properties.put(name, value);
             return this;
         }
 
-        public IdentityRequestBuilder setMethod(String method) {
-            this.method = method;
+        public IdentityRequestBuilder addAttributes(Map<String, Object> properties) {
+            for (Map.Entry<String, Object> property : properties.entrySet()) {
+                addProperty(property.getKey(), property.getValue());
+            }
             return this;
         }
 
-        public IdentityRequestBuilder setPathInfo(String pathInfo) {
-            this.pathInfo = pathInfo;
+        public IdentityRequestBuilder setFullMessageBody(List<ByteBuffer> fullMessageBody) {
+            this.fullMessageBody = fullMessageBody;
             return this;
         }
 
-        public IdentityRequestBuilder setPathTranslated(String pathTranslated) {
-            this.pathTranslated = pathTranslated;
+        public IdentityRequestBuilder setMessageBody(ByteBuffer messageBody) {
+            this.messageBody = messageBody;
             return this;
         }
 
-        public IdentityRequestBuilder setQueryString(String queryString) {
-            this.queryString = queryString;
+        public IdentityRequestBuilder setHttpMethod(String httpMethod) {
+            this.httpMethod = httpMethod;
             return this;
         }
 
         public IdentityRequestBuilder setRequestURI(String requestURI) {
             this.requestURI = requestURI;
-            return this;
-        }
-
-        public IdentityRequestBuilder setRequestURL(StringBuffer requestURL) {
-            this.requestURL = requestURL;
-            return this;
-        }
-
-        public IdentityRequestBuilder setServletPath(String servletPath) {
-            this.servletPath = servletPath;
             return this;
         }
 
@@ -275,8 +251,6 @@ public class IdentityRequest implements Serializable {
         public IdentityRequest build() throws FrameworkRuntimeException {
             return new IdentityRequest(this);
         }
-
-
     }
 
     public static class IdentityRequestConstants {

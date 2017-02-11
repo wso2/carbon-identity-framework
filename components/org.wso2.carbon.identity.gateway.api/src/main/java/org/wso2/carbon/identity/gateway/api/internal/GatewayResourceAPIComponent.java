@@ -24,9 +24,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 
 
 @Component(
@@ -42,8 +40,6 @@ public class GatewayResourceAPIComponent {
     protected void start(BundleContext bundleContext) throws Exception {
 
         bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
-        bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
-
 
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 

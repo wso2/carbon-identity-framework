@@ -80,7 +80,6 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(StepHandler.class, new StepHandler(), null);
 
         //bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
-        //bundleContext.registerService(HttpIdentityResponseFactory.class, new FrameworkLoginResponseFactory(), null);
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
         if (log.isDebugEnabled()) {

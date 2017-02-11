@@ -20,53 +20,13 @@ package org.wso2.carbon.identity.gateway.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 import org.wso2.msf4j.Request;
 
-import java.util.Properties;
 
+public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> extends AbstractHandler {
 
-public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> {
     private Logger log = LoggerFactory.getLogger(HttpIdentityRequestFactory.class);
-    protected Properties properties;
-
-    public static final String TENANT_DOMAIN_PATTERN = "/t/([^/]+)";
-/*
-    protected InitConfig initConfig;
-
-    public void init(InitConfig initConfig) throws FrameworkRuntimeException {
-
-
-        this.initConfig = initConfig;
-
-        IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
-                (HttpIdentityRequestFactory.class.getName(), this.getClass().getName());
-
-        if (identityEventListenerConfig == null) {
-            return;
-        }
-
-        if(identityEventListenerConfig.getProperties() != null) {
-            for(Map.Entry<Object,Object> property:identityEventListenerConfig.getProperties().entrySet()) {
-                String key = (String)property.getKey();
-                String value = (String)property.getValue();
-                if(!properties.containsKey(key)) {
-                    properties.setProperty(key, value);
-                } else {
-                    log.warn("Property key " +  key  + " already exists. Cannot add property!!");
-                }
-            }
-        }
-
-
-    }*/
-
-    public String getName() {
-        return "HttpIdentityRequestFactory";
-    }
-
-    public int getPriority() {
-        return 100;
-    }
 
     public boolean canHandle(Request request) {
         return true;
@@ -88,6 +48,14 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         return builder;
     }
 
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkRuntimeException exception) {
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
+                new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        builder.setStatusCode(500);
+        builder.setBody(exception.getMessage());
+        return builder;
+    }
+
 
     public void create(T builder, Request request)
             throws FrameworkClientException {
@@ -100,25 +68,11 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         // get all properties
         //request.getProperties().forEach(builder::addProperty);
 
-        builder.setMethod(request.getHttpMethod());
+        request.get
+        builder.setHttpMethod(request.getHttpMethod());
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
-
-
-        //#TODO: consider this request parameter
-     /*
-        builder.setContextPath(request.getContextPath());
-        builder.setMethod(request.getMethod());
-        builder.setPathInfo(request.getPathInfo());
-        builder.setPathTranslated(request.getPathTranslated());
-        builder.setQueryString(request.getQueryString());
-        builder.setRequestURI(requestURI);
-        builder.setRequestURL(request.getRequestURL());
-        builder.setServletPath(request.getServletPath());
-        */
+        builder.setFullMessageBody(request.getFullMessageBody());
+        builder.setMessageBody(request.getMessageBody());
     }
-
-
-
-
 }

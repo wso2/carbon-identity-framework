@@ -13,7 +13,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
-import org.wso2.carbon.identity.gateway.processor.request.FrameworkLoginRequest;
+import org.wso2.carbon.identity.gateway.processor.request.LocalAuthenticationRequest;
 
 public class StepHandler extends FrameworkHandler {
     @Override
@@ -47,11 +47,11 @@ public class StepHandler extends FrameworkHandler {
             if (sequence.getStep(sequenceContext.getCurrentStep()).isMultiOption()) {
                 IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
                 String authenticatorName = null;
-                if (identityRequest instanceof FrameworkLoginRequest) {
-                    FrameworkLoginRequest frameworkLoginRequest =
-                            (FrameworkLoginRequest) identityRequest;
-                    authenticatorName = frameworkLoginRequest.getAuthenticatorName();
-                    currentStepContext.setIdentityProviderName(frameworkLoginRequest.getIdentityProviderName());
+                if (identityRequest instanceof LocalAuthenticationRequest) {
+                    LocalAuthenticationRequest localAuthenticationRequest =
+                            (LocalAuthenticationRequest) identityRequest;
+                    authenticatorName = localAuthenticationRequest.getAuthenticatorName();
+                    currentStepContext.setIdentityProviderName(localAuthenticationRequest.getIdentityProviderName());
                 }
 
                 if (StringUtils.isNotBlank(authenticatorName)) {

@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.gateway.resource;
 import org.osgi.service.component.annotations.Component;
 
 import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.FrameworkException;
+import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
@@ -122,7 +122,7 @@ public class GatewayResource implements Microservice {
                 throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
-        } catch (FrameworkException e) {
+        } catch (FrameworkServerException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if(responseBuilder == null) {
@@ -213,7 +213,7 @@ public class GatewayResource implements Microservice {
      * @param exception FrameworkException
      * @return HttpIdentityResponseFactory
      */
-    private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkException exception) {
+    private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkServerException exception) {
 
         List<HttpIdentityResponseFactory> factories = GatewayResourceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
