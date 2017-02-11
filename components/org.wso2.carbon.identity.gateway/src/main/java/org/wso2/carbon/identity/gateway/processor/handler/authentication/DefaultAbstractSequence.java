@@ -12,6 +12,8 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.Step;
 
+import java.util.List;
+
 public class DefaultAbstractSequence extends AbstractSequence {
 
     public DefaultAbstractSequence(AuthenticationContext authenticationContext) {
@@ -37,30 +39,51 @@ public class DefaultAbstractSequence extends AbstractSequence {
     }
 
     @Override
-    public boolean isStepAuthenticatorAvailable() {
+    public boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException {
+        ServiceProviderConfig serviceProvider = getAuthenticationContext().getServiceProvider();
+        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
+        if(authenticationConfig.getAuthenticationStepConfigs() != null && authenticationConfig
+                .getAuthenticationStepConfigs().size() > 0){
+            return true ;
+        }
         return false;
     }
 
     @Override
-    public boolean hasNext(int step) {
+    public boolean hasNext(int currentStep) throws AuthenticationHandlerException {
+        ServiceProviderConfig serviceProvider = getAuthenticationContext().getServiceProvider();
+        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
+        List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
+        if(authenticationStepConfigs.size() >= (currentStep + 1)){
+            return true;
+        }
         return false;
     }
 
     @Override
-    public Step getStep(int step) {
-        return null;
+    public boolean isMultiOption(int step) throws AuthenticationHandlerException {
+        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
+        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
+        if(identityProviders.size() > 1){
+            return true ;
+        }
+        return false;
     }
-    
+
 
     @Override
     public IdentityProvider getIdentityProvider(int step)
             throws AuthenticationHandlerException {
+        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
+        return authenticationStepConfig.getIdentityProviders().get(1);
+    }
 
+    private AuthenticationStepConfig getAuthenticationStepConfig(int step) throws AuthenticationHandlerException {
         ServiceProviderConfig serviceProvider = getAuthenticationContext().getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
         AuthenticationStepConfig authenticationStepConfig = authenticationConfig.getAuthenticationStepConfigs()
                 .get(step);
-        return authenticationStepConfig.getIdentityProviders().get(1);
+        return authenticationStepConfig;
     }
 
 }

@@ -4,7 +4,6 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
-import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
@@ -44,7 +43,7 @@ public class StepHandler extends FrameworkHandler {
             }
         } else {
             currentStepContext = sequenceContext.addStepContext();
-            if (sequence.getStep(sequenceContext.getCurrentStep()).isMultiOption()) {
+            if (sequence.isMultiOption(sequenceContext.getCurrentStep())) {
                 IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
                 String authenticatorName = null;
                 if (identityRequest instanceof FrameworkLoginRequest) {
@@ -90,8 +89,7 @@ public class StepHandler extends FrameworkHandler {
 
         if (AuthenticationResponse.AUTHENTICATED.equals(authenticationResponse)) {
             currentStepContext.setIsAuthenticated(true);
-            int nextStep = sequenceContext.getCurrentStep() + 1;
-            if (sequence.hasNext(nextStep)) {
+            if (sequence.hasNext(sequenceContext.getCurrentStep())) {
                 authenticationResponse = handleStepAuthentication(authenticationContext);
             }
         }

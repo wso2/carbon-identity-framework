@@ -31,11 +31,11 @@ public abstract class AbstractSequence implements Serializable {
 
     public abstract boolean isRequestPathAuthenticatorsAvailable();
 
-    public abstract boolean isStepAuthenticatorAvailable();
+    public abstract boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException;
 
-    public abstract boolean hasNext(int step);
+    public abstract boolean hasNext(int currentStep) throws AuthenticationHandlerException;
 
-    public abstract Step getStep(int step);
+    public abstract boolean isMultiOption(int step) throws AuthenticationHandlerException;
 
 
     public abstract IdentityProvider getIdentityProvider(int step)
