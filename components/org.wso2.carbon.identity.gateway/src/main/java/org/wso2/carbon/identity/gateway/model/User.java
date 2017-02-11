@@ -1,21 +1,14 @@
 package org.wso2.carbon.identity.gateway.model;
 
+import org.wso2.carbon.identity.mgt.claim.Claim;
+
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
 public abstract class User implements Serializable {
 
-    private String userIdentifier;
-    private User attributeStepUser = this;
+    public abstract String getUserIdentifier();
 
-    public String getUserIdentifier() {
-        return userIdentifier;
-    }
-
-    public void setUserIdentifier(String userIdentifier) {
-        this.userIdentifier = userIdentifier;
-    }
-
-    public abstract List<UserClaim> getUserClaims();
+    public abstract Set<Claim> getClaims();
 
 }

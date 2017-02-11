@@ -18,27 +18,19 @@
 
 package org.wso2.carbon.identity.gateway.api;
 
-import java.util.Properties;
+import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 
-public abstract class HttpIdentityResponseFactory {
-
-    protected Properties properties;
-
-    public void init(Properties properties) throws FrameworkRuntimeException {
-        this.properties = properties;
-    }
-
-    public abstract String getName();
-
-    public int getPriority() {
-        return 0;
-    }
+public abstract class HttpIdentityResponseFactory extends AbstractHandler {
 
     public boolean canHandle(IdentityResponse identityResponse) {
         return false;
     }
 
     public boolean canHandle(FrameworkServerException exception) {
+        return false;
+    }
+
+    public boolean canHandle(FrameworkRuntimeException exception) {
         return false;
     }
 
@@ -52,6 +44,13 @@ public abstract class HttpIdentityResponseFactory {
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         builder.setBody(exception.getMessage());
+        return builder;
+    }
+
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception) {
+
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        builder.setStatusCode(500);
         return builder;
     }
 }

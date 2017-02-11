@@ -12,34 +12,34 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.mo
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends AuthenticationRequest> extends IdentityMessageContext<T1, T2, T3> {
+public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends ClientAuthenticationRequest> extends
+                                                                                                   IdentityMessageContext<T1, T2, T3> {
 
     private static final long serialVersionUID = 6821167819709907062L;
 
-    protected AuthenticationRequest initialAuthenticationRequest;
+    protected ClientAuthenticationRequest initialAuthenticationRequest;
 
     private AbstractSequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
 
-    public AuthenticationContext(
-            T3 authenticationRequest,
-            Map<T1, T2> parameters) {
+    public AuthenticationContext(T3 authenticationRequest, Map<T1, T2> parameters) {
         super(authenticationRequest, parameters);
         this.initialAuthenticationRequest = authenticationRequest;
     }
 
-    public AuthenticationContext(
-            T3 authenticationRequest) {
+    public AuthenticationContext(T3 authenticationRequest) {
         super(authenticationRequest);
         this.initialAuthenticationRequest = authenticationRequest;
     }
 
-    public AuthenticationRequest getInitialAuthenticationRequest() {
+    public ClientAuthenticationRequest getInitialAuthenticationRequest() {
         return initialAuthenticationRequest;
     }
 
@@ -54,8 +54,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         return sequenceContext;
     }
 
-    public void setSequenceContext(
-            SequenceContext sequenceContext) {
+    public void setSequenceContext(SequenceContext sequenceContext) {
         this.sequenceContext = sequenceContext;
     }
 
@@ -69,11 +68,9 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
     }
 
     public ServiceProvider getServiceProvider() throws AuthenticationHandlerException {
-        ClientAuthenticationRequest clientAuthenticationRequest =
-                (ClientAuthenticationRequest) getInitialAuthenticationRequest();
-        ServiceProvider serviceProvider =
-                Utility.getServiceProvider(clientAuthenticationRequest.getType(), clientAuthenticationRequest
-                        .getUniqueId(), clientAuthenticationRequest.getTenantDomain());
+        ClientAuthenticationRequest clientAuthenticationRequest = getInitialAuthenticationRequest();
+        ServiceProvider serviceProvider = Utility.getServiceProvider(clientAuthenticationRequest.getType(),
+                                                                     clientAuthenticationRequest.getUniqueId());
         return serviceProvider;
     }
 
@@ -93,7 +90,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         return subjectStepUser;
     }
 
-    public List<UserClaim> getUserClaims() {
+    public Set<Claim> getUserClaims() {
         SequenceContext sequenceContext = getSequenceContext();
         User attributeStepUser = null;
         AbstractSequence sequence = getSequence();
@@ -106,7 +103,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
                 attributeStepUser = stepContext.getUser();
             }
         }
-        return attributeStepUser.getUserClaims();
+        return attributeStepUser.getClaims();
     }
 
 }

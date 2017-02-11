@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 import org.wso2.msf4j.Request;
 
-
 public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> extends AbstractHandler {
 
     private Logger log = LoggerFactory.getLogger(HttpIdentityRequestFactory.class);
@@ -48,7 +47,7 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         return builder;
     }
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkRuntimeException exception) {
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception) {
         HttpIdentityResponse.HttpIdentityResponseBuilder builder =
                 new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
@@ -64,15 +63,15 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
             builder.addHeader(header.getName(), header.getValue());
         });
 
-        //#TODO: add properties to request object
-        // get all properties
-        //request.getProperties().forEach(builder::addProperty);
-
-        request.get
         builder.setHttpMethod(request.getHttpMethod());
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
-        builder.setFullMessageBody(request.getFullMessageBody());
-        builder.setMessageBody(request.getMessageBody());
+        builder.setHttpMethod(request.getHttpMethod());
+        builder.setParameters(request.getProperties());
+
     }
+
+
+
+
 }

@@ -97,6 +97,9 @@ public class AuthenticationProcessor extends IdentityProcessor {
             if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
                 identityFrameworkHandlerResponse = authenticate(authenticationContext);
             }
+            if(identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)){
+                identityFrameworkHandlerResponse = doBuildResponse(authenticationContext);
+            }
         } catch (AuthenticationHandlerException e) {
             identityFrameworkHandlerResponse = doBuildErrorResponse(e, authenticationContext);
         }

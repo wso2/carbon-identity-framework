@@ -35,14 +35,10 @@ public class GatewayResourceAPIComponent {
 
     private Logger log = LoggerFactory.getLogger(GatewayResourceAPIComponent.class);
 
-
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
 
         bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
-
-        //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
-
 
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");

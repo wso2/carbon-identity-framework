@@ -2,24 +2,13 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 
 import java.util.Properties;
 
-public class AuthenticatorConfig {
-
+class ResponseHandlerConfig {
     private String type;
-    private String authenticatorName;
     private Properties properties = new Properties();
-
-    public String getAuthenticatorName() {
-        return authenticatorName;
-    }
-
-    public void setAuthenticatorName(String authenticatorName) {
-        this.authenticatorName = authenticatorName;
-    }
 
     public String getType() {
         return type;
     }
-
     public void setType(String type) {
         this.type = type;
     }

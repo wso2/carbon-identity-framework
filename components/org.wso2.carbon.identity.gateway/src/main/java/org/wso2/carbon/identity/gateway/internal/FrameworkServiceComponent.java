@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.gateway.processor.handler.extension.ExtensionHan
 import org.wso2.carbon.identity.gateway.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -78,6 +80,8 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
         bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
         bundleContext.registerService(StepHandler.class, new StepHandler(), null);
+
+        bundleContext.registerService(ServiceProviderConfigStore.class, ServiceProviderConfigStore.getInstance(), null);
 
         //bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);

@@ -18,25 +18,29 @@
 
 package org.wso2.carbon.identity.gateway.resource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.internal.GatewayResourceAPIComponent;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 
 import java.util.List;
 
 public class ProcessCoordinator {
 
+    private Logger log = LoggerFactory.getLogger(GatewayResourceAPIComponent.class);
 
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkServerException {
 
         IdentityProcessor processor = getIdentityProcessor(identityRequest);
         if (processor != null) {
-            //if (log.isDebugEnabled()) {
-            //    log.debug("Starting to process IdentityProcessor : " + processor.getName());
-            //}
+            if (log.isDebugEnabled()) {
+                log.debug("Starting to process IdentityProcessor : " + processor.getName());
+            }
             return processor.process(identityRequest).build();
         } else {
             throw FrameworkRuntimeException.error("No IdentityProcessor found to process the request");
@@ -47,8 +51,13 @@ public class ProcessCoordinator {
         List<IdentityProcessor> processors = GatewayResourceDataHolder.getInstance().getIdentityProcessors();
 
         for (IdentityProcessor requestProcessor : processors) {
-            if (requestProcessor.canHandle(identityRequest)) {
-                return requestProcessor;
+            try {
+                if (requestProcessor.canHandle(identityRequest)) {
+                    return requestProcessor;
+                }
+            } catch (Exception e) {
+                log.error("Error occurred while checking if " + requestProcessor.getName() + " can handle " +
+                          identityRequest.toString());
             }
         }
         return null;

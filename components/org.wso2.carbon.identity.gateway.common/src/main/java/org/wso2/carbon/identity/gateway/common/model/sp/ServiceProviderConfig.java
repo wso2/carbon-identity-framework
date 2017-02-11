@@ -9,6 +9,7 @@ public class ServiceProviderConfig {
 
     private List<RequestHandlerConfig> requestHandlerConfigs = new ArrayList<>();
     private AuthenticationHandlerConfig authenticationHandlerConfig ;
+    private List<ResponseHandlerConfig> responseHandlerConfigs = new ArrayList<>();
 
     public List<RequestHandlerConfig> getRequestHandlerConfigs() {
         return requestHandlerConfigs;
@@ -32,5 +33,13 @@ public class ServiceProviderConfig {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<ResponseHandlerConfig> getResponseHandlerConfigs() {
+        return responseHandlerConfigs;
+    }
+
+    public void setResponseHandlerConfigs(List<ResponseHandlerConfig> responseHandlerConfigs) {
+        this.responseHandlerConfigs = responseHandlerConfigs;
     }
 }
