@@ -3,7 +3,7 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 import java.util.Properties;
 
 
-public class AuthenticatorConfig {
+public class AuthenticatorConfig{
     private String name ;
     private Properties properties = new Properties();
 
@@ -22,4 +22,6 @@ public class AuthenticatorConfig {
     public void setProperties(Properties properties) {
         this.properties = properties;
     }
+
+
 }

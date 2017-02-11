@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class IDPMetaData {
+public class IDPMetaData{
 
     private List<IDPCertificate> certificates = new ArrayList<>();
-    private String federationHub  = "false" ;
-    private String homeRealm = "dfdf" ;
+    private String federationHub ;
+    private String homeRealm ;
     private RoleConfiguration roleConfiguration;
     private Properties properties = new Properties();
 
@@ -52,4 +52,5 @@ public class IDPMetaData {
     public void setProperties(Properties properties) {
         this.properties = properties;
     }
+
 }

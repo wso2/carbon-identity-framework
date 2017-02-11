@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
 
-public class IdentityProviderConfig {
+public class IdentityProviderConfig{
 
     private String name ;
     private IDPMetaData idpMetaData ;
@@ -39,4 +39,5 @@ public class IdentityProviderConfig {
     public void setProvisioningConfig(ProvisioningConfig provisioningConfig) {
         this.provisioningConfig = provisioningConfig;
     }
+
 }

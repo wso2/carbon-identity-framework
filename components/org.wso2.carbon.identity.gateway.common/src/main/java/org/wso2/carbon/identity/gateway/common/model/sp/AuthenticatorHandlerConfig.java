@@ -5,11 +5,10 @@ import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 
 import java.util.Properties;
 
-public class FederateAuthenticatorConfig {
+public class AuthenticatorHandlerConfig {
 
-
-    private String authenticatorName;
     private String idpName ;
+    private String authenticatorName;
     private IdentityProviderConfig identityProviderConfig ;
     private Properties properties = new Properties();
 

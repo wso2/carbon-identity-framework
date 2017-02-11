@@ -6,9 +6,8 @@ import java.util.List;
 public class StepHandlerConfig {
 
     private String subjectStep ;
-    private String idpName ;
-    private List<AuthenticatorConfig> authenticatorConfigs = new ArrayList<>();
-    private AuthenticatorConfig authenticatorConfig ;
+    private List<AuthenticatorHandlerConfig> authenticatorHandlerConfigs = new ArrayList<>();
+    private AuthenticatorHandlerConfig authenticatorHandlerConfig ;
 
     public String getSubjectStep() {
         return subjectStep;
@@ -18,27 +17,19 @@ public class StepHandlerConfig {
         this.subjectStep = subjectStep;
     }
 
-    public List<AuthenticatorConfig> getAuthenticatorConfigs() {
-        return authenticatorConfigs;
+    public List<AuthenticatorHandlerConfig> getAuthenticatorHandlerConfigs() {
+        return authenticatorHandlerConfigs;
     }
 
-    public void setAuthenticatorConfigs(List<AuthenticatorConfig> authenticatorConfigs) {
-        this.authenticatorConfigs = authenticatorConfigs;
+    public void setAuthenticatorHandlerConfigs(List<AuthenticatorHandlerConfig> authenticatorHandlerConfigs) {
+        this.authenticatorHandlerConfigs = authenticatorHandlerConfigs;
     }
 
-    public AuthenticatorConfig getAuthenticatorConfig() {
-        return authenticatorConfig;
+    public AuthenticatorHandlerConfig getAuthenticatorHandlerConfig() {
+        return authenticatorHandlerConfig;
     }
 
-    public void setAuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
-        this.authenticatorConfig = authenticatorConfig;
-    }
-
-    public String getIdpName() {
-        return idpName;
-    }
-
-    public void setIdpName(String idpName) {
-        this.idpName = idpName;
+    public void setAuthenticatorHandlerConfig(AuthenticatorHandlerConfig authenticatorHandlerConfig) {
+        this.authenticatorHandlerConfig = authenticatorHandlerConfig;
     }
 }
