@@ -149,6 +149,13 @@
                 <version>${org.snakeyaml.version}</version>
             </dependency>
 
+            <!--carbon deployment framework-->
+            <dependency>
+                <groupId>org.wso2.carbon.deployment</groupId>
+                <artifactId>org.wso2.carbon.deployment.engine</artifactId>
+                <version>${carbon.deployment.version}</version>
+            </dependency>
+
 
         </dependencies>
     </dependencyManagement>
@@ -183,6 +190,9 @@
         <carbon.identity.commons.version>0.1.10</carbon.identity.commons.version>
         <carbon.identity.common.import.version.range>[0.0.1, 1.0.0)
         </carbon.identity.common.import.version.range>
+
+        <carbon.deployment.version>5.0.0</carbon.deployment.version>
+        <carbon.deployment.import.version.range>[5.0.0, 6.0.0)</carbon.deployment.import.version.range>
 
         <osgi.core.api.version>6.0.0</osgi.core.api.version>
         <equinox.osgi.services.version>3.4.0.v20140312-2051</equinox.osgi.services.version>

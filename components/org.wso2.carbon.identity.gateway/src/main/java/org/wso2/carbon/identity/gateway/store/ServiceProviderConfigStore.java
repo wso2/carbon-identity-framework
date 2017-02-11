@@ -52,7 +52,7 @@ public class ServiceProviderConfigStore {
         return serviceProvider;
     }
 
-    
+
     private void buildServiceProvider(ServiceProvider serviceProvider) {
 
         ServiceProviderConfig serviceProviderConfig = serviceProvider.getServiceProviderConfig();
