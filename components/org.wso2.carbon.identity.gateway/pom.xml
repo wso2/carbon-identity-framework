@@ -88,7 +88,9 @@
             org.wso2.carbon.identity.gateway.cache.*,
             org.wso2.carbon.identity.gateway.context.*,
             org.wso2.carbon.identity.gateway.model.*,
-            org.wso2.carbon.identity.gateway.authenticator.*
+            org.wso2.carbon.identity.gateway.authenticator.*,
+            org.wso2.carbon.identity.gateway.store.*,
+            org.wso2.carbon.identity.gateway.deployer.*
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
