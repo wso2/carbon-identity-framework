@@ -288,6 +288,8 @@ public class GatewayResource implements Microservice {
                 throw new FrameworkRuntimeException("Error while building request body");
 
             }
+        }  else {
+            request.setProperty(Constants.BODY_PARAMETERS, new HashMap<String,String>());
         }
     }
 

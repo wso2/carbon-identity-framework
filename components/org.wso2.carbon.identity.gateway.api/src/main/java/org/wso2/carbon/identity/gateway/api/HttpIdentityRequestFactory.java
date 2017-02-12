@@ -79,7 +79,10 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         }
     }
 
-
+    @Override
+    public int getPriority() {
+        return 100;
+    }
 
 
 }
