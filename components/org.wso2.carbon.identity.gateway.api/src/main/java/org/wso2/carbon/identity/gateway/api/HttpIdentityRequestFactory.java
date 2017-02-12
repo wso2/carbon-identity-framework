@@ -71,6 +71,12 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         builder.addParameter(Constants.QUERY_PARAMETERS, request.getProperty(Constants.QUERY_PARAMETERS));
         builder.addParameter(Constants.BODY_PARAMETERS, request.getProperty(Constants.BODY_PARAMETERS));
 
+        String[] queryStringParams =request.getUri().split("\\?");
+        if(queryStringParams != null && queryStringParams.length > 1) {
+            builder.setQueryString(queryStringParams[1]);
+        }else {
+            builder.setQueryString(queryStringParams[0]);
+        }
     }
 
 

@@ -40,6 +40,7 @@ public class IdentityRequest implements Serializable {
     protected String httpMethod;
     protected String requestURI;
     protected String contentType;
+    protected String queryString;
 
     protected IdentityRequest(IdentityRequestBuilder builder) {
         this.headers = builder.headers;
@@ -48,6 +49,8 @@ public class IdentityRequest implements Serializable {
         this.httpMethod = builder.httpMethod;
         this.requestURI = builder.requestURI;
         this.contentType = builder.contentType;
+        this.queryString = builder.queryString;
+
     }
 
     public Map<String, String> getHeaderMap() {
@@ -122,6 +125,10 @@ public class IdentityRequest implements Serializable {
         return queryParams.get(paramName);
     }
 
+    public String getQueryString() {
+        return queryString;
+    }
+
     public static class IdentityRequestBuilder {
 
         private Map<String, String> headers = new HashMap();
@@ -130,6 +137,7 @@ public class IdentityRequest implements Serializable {
         private String httpMethod;
         private String requestURI;
         private String contentType;
+        private String queryString;
 
         public IdentityRequestBuilder() {
 
@@ -220,6 +228,11 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder setContentType(String contentType) {
             this.contentType = contentType;
+            return this;
+        }
+
+        public IdentityRequestBuilder setQueryString(String queryString) {
+            this.queryString = queryString;
             return this;
         }
 
