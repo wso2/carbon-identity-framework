@@ -25,14 +25,13 @@ import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.api.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.IdentityResponse;
-import org.wso2.carbon.identity.gateway.api.internal.GatewayResourceAPIComponent;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 
 import java.util.List;
 
 public class ProcessCoordinator {
 
-    private Logger log = LoggerFactory.getLogger(GatewayResourceAPIComponent.class);
+    private Logger log = LoggerFactory.getLogger(ProcessCoordinator.class);
 
     public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkServerException {
 
