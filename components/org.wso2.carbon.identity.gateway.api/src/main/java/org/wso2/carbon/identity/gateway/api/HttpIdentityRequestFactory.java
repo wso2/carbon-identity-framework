@@ -67,7 +67,9 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
         builder.setHttpMethod(request.getHttpMethod());
-        builder.setParameters(request.getProperties());
+        builder.setAttributes(request.getProperties());
+        builder.addParameter(Constants.QUERY_PARAMETERS, request.getProperty(Constants.QUERY_PARAMETERS));
+        builder.addParameter(Constants.BODY_PARAMETERS, request.getProperty(Constants.BODY_PARAMETERS));
 
     }
 

@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.gateway.api;
 import org.apache.commons.collections.map.HashedMap;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -73,12 +76,14 @@ public class IdentityRequest implements Serializable {
         return Collections.enumeration(parameters.keySet());
     }
 
-    public Object getParameterValues(String paramName) {
-        return parameters.get(paramName);
-    }
-
-    public Object getParameter(String paramName) {
-       return parameters.get(paramName);
+    public String getParameter(String paramName) {
+        Map<String,String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
+        Map<String,String> bodyParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
+        if (queryParams.get(paramName) != null) {
+            return queryParams.get(paramName);
+        } else {
+            return bodyParams.get(paramName);
+        }
     }
 
     public Map<String, Object> getAttributeMap() {
@@ -103,6 +108,18 @@ public class IdentityRequest implements Serializable {
 
     public String getContentType() {
         return contentType;
+    }
+
+    public String getQueryParameter(String paramName) throws UnsupportedEncodingException {
+        Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
+        URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
+
+        return queryParams.get(paramName);
+    }
+
+    public String getBodyParameter(String paramName) {
+        Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
+        return queryParams.get(paramName);
     }
 
     public static class IdentityRequestBuilder {

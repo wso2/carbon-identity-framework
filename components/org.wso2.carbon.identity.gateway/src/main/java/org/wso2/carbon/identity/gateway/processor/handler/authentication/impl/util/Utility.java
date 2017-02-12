@@ -7,9 +7,10 @@ import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplica
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
-
+import org.wso2.msf4j.Request;
 
 import java.util.List;
+import java.util.Map;
 
 public class Utility {
     public static ServiceProviderConfig getServiceProvider(String requestType, String clientId)
@@ -67,5 +68,16 @@ public class Utility {
         return requestPathApplicationAuthenticator;
     }
 
+    public static String getParameter(Request request, String paramName) {
+        Map<String, String> queryParams = (Map<String, String>) request.getProperty(org.wso2.carbon.identity.gateway
+                .api.Constants.QUERY_PARAMETERS);
+        Map<String, String> bodyParams = (Map<String, String>) request.getProperty(org.wso2.carbon.identity.gateway.api
+                .Constants.BODY_PARAMETERS);
+        if (queryParams.get(paramName) != null) {
+            return queryParams.get(paramName);
+        } else {
+            return bodyParams.get(paramName);
+        }
+    }
 
 }

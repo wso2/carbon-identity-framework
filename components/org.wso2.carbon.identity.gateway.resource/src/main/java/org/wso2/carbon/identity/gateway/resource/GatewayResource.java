@@ -17,9 +17,10 @@
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
+import org.wso2.carbon.identity.gateway.api.Constants;
 import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
@@ -106,12 +107,12 @@ public class GatewayResource implements Microservice {
         try {
             identityRequest = factory.create(request).build();
             if (identityRequest == null) {
-                throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!.");
+                throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!");
             }
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e);
             if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!.");
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         }
@@ -122,19 +123,19 @@ public class GatewayResource implements Microservice {
         try {
             identityResponse = manager.process(identityRequest);
             if (identityResponse == null) {
-                throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!.");
+                throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!");
             }
             responseFactory = getIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
             if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!.");
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         } catch (FrameworkServerException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!.");
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
             return responseBuilder.build();
         }
@@ -198,7 +199,7 @@ public class GatewayResource implements Microservice {
                 return requestBuilder;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityRequestFactory found to create the request.");
+        throw new FrameworkRuntimeException("No HttpIdentityRequestFactory found to create the request");
     }
 
     /**
@@ -217,7 +218,7 @@ public class GatewayResource implements Microservice {
                 return responseFactory;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request.");
+        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
     }
 
     /**
@@ -236,7 +237,7 @@ public class GatewayResource implements Microservice {
                 return responseFactory;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request.");
+        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
     }
 
     private void sendRedirect(Response response, HttpIdentityResponse HttpIdentityResponse)
@@ -275,21 +276,19 @@ public class GatewayResource implements Microservice {
     }
 
     private void addParameters(Request request) {
-        Map parameters = getRequestParameters(request);
-        parameters.forEach((k, v) -> {
-            request.setProperty(String.valueOf(k), v);
-        });
+        Map<String, String> queryParams = getRequestParameters(request);
+        request.setProperty(Constants.QUERY_PARAMETERS, queryParams);
         String body = readRequestBody(request);
-        request.setProperty("requestBody", body);
+        request.setProperty(Constants.REQUEST_BODY, body);
 
-       if ( isFormParamRequest(request.getContentType())) {
-           try {
-               handleFormParams(body, request);
-           } catch (UnsupportedEncodingException e) {
-               throw new FrameworkRuntimeException("Error while building request body.");
+        if (isFormParamRequest(request.getContentType())) {
+            try {
+                handleFormParams(body, request);
+            } catch (UnsupportedEncodingException e) {
+                throw new FrameworkRuntimeException("Error while building request body");
 
-           }
-       }
+            }
+        }
     }
 
     public static String readRequestBody(Request msf4jRequest) {
@@ -298,7 +297,7 @@ public class GatewayResource implements Microservice {
         return Charset.defaultCharset().decode(merge).toString();
     }
 
-    public static Map getRequestParameters (Request request) {
+    public static Map<String, String> getRequestParameters(Request request) {
         return getQueryParamMap(request.getUri());
     }
 
@@ -320,7 +319,9 @@ public class GatewayResource implements Microservice {
     private void handleFormParams(String requestBody, Request request)
             throws UnsupportedEncodingException {
 
-        splitQuery(requestBody).forEach(request::setProperty);
+        Map<String, String> bodyParams = new HashMap<String, String>();
+        splitQuery(requestBody).forEach(bodyParams::put);
+        request.setProperty(Constants.BODY_PARAMETERS, bodyParams);
     }
 
     public static Map<String, String> splitQuery(String queryString) {
