@@ -35,7 +35,7 @@ public abstract class AbstractSequence implements Serializable {
     public abstract boolean isMultiOption(int step) throws AuthenticationHandlerException;
 
 
-    public abstract IdentityProvider getIdentityProvider(int step)
+    public abstract IdentityProvider getIdentityProvider(int step, String identityProviderName)
             throws AuthenticationHandlerException;
 
 

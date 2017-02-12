@@ -66,10 +66,17 @@ public class DefaultAbstractSequence extends AbstractSequence {
 
 
     @Override
-    public IdentityProvider getIdentityProvider(int step)
+    public IdentityProvider getIdentityProvider(int step, String identityProviderName)
             throws AuthenticationHandlerException {
+        IdentityProvider identityProviderTmp = null ;
         AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
-        return authenticationStepConfig.getIdentityProviders().get(1);
+        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
+        for(IdentityProvider identityProvider : identityProviders){
+            if(identityProvider.getIdentityProviderName().equals(identityProviderName)){
+                identityProviderTmp = identityProvider ;
+            }
+        }
+        return identityProviderTmp ;
     }
 
     private AuthenticationStepConfig getAuthenticationStepConfig(int step) throws AuthenticationHandlerException {
