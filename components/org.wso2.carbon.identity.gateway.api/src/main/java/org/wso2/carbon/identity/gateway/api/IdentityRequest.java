@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.gateway.api;
 
-import org.apache.commons.collections.map.HashedMap;
-
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -80,8 +78,8 @@ public class IdentityRequest implements Serializable {
     }
 
     public String getParameter(String paramName) {
-        Map<String,String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
-        Map<String,String> bodyParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
+        Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
+        Map<String, String> bodyParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
         if (queryParams.get(paramName) != null) {
             return queryParams.get(paramName);
         } else {
@@ -133,7 +131,7 @@ public class IdentityRequest implements Serializable {
 
         private Map<String, String> headers = new HashMap();
         private Map<String, Object> parameters = new HashMap();
-        private Map<String, Object> attributes = new HashedMap();
+        private Map<String, Object> attributes = new HashMap();
         private String httpMethod;
         private String requestURI;
         private String contentType;

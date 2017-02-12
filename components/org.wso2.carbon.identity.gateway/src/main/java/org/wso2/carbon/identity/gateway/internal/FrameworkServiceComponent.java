@@ -186,7 +186,7 @@ public class FrameworkServiceComponent {
     )
     protected void addRequestHandler(AbstractRequestHandler abstractRequestHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getRequestHandlers().add(abstractRequestHandler);
+            FrameworkServiceDataHolder.getInstance().getRequestHandlers().add(abstractRequestHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Added AuthenticationHandler : " + abstractRequestHandler.getName());

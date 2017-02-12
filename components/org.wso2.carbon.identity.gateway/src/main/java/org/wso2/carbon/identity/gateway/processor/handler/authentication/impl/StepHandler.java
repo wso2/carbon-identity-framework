@@ -68,7 +68,7 @@ public class StepHandler extends FrameworkHandler {
             } else {
 
 
-                IdentityProvider identityProvider = sequence.getIdentityProvider(sequenceContext.getCurrentStep());
+                IdentityProvider identityProvider = sequence.getIdentityProvider(sequenceContext.getCurrentStep(),sequenceContext.getCurrentStepContext().getIdentityProviderName());
                 if (identityProvider != null) {
                     applicationAuthenticator =
                             Utility.getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
