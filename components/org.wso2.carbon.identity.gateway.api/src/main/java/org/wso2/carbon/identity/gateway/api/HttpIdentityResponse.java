@@ -112,8 +112,8 @@ public class HttpIdentityResponse {
         public HttpIdentityResponseBuilder addHeaders(Map<String, String> headers) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
-                    throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                                                          "header " + header.getKey());
+                    throw new FrameworkRuntimeException("Headers map trying to override existing header " + header
+                            .getKey());
                 }
                 this.headers.put(header.getKey(), header.getValue());
             }
@@ -134,8 +134,7 @@ public class HttpIdentityResponse {
 
         public HttpIdentityResponseBuilder addParameter(String name, String value) {
             if (this.parameters.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                                                      "key " + name);
+                throw new FrameworkRuntimeException("Parameters map trying to override existing key " + name);
             }
             this.parameters.put(name, new String[]{value});
             return this;
@@ -143,8 +142,7 @@ public class HttpIdentityResponse {
 
         public HttpIdentityResponseBuilder addParameter(String name, String[] values) {
             if (this.parameters.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                                                      "key " + name);
+                throw new FrameworkRuntimeException("Parameters map trying to override existing key " + name);
             }
             this.parameters.put(name, values);
             return this;
@@ -153,8 +151,8 @@ public class HttpIdentityResponse {
         public HttpIdentityResponseBuilder addParameters(Map<String, String[]> parameters) {
             for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
-                    throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                                                          "key " + parameter.getKey());
+                    throw new FrameworkRuntimeException("Parameters map trying to override existing key " + parameter
+                            .getKey());
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
             }

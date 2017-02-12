@@ -8,7 +8,7 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
     private String authenticatorName;
     private String identityProviderName;
 
-    protected LocalAuthenticationRequest(FrameworkLoginBuilder builder) {
+    protected LocalAuthenticationRequest(LocalAuthenticationRequestBuilder builder) {
         super(builder);
         authenticatorName = builder.authenticatorName;
         identityProviderName = builder.identityProviderName ;
@@ -22,22 +22,22 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
         return identityProviderName;
     }
 
-    public static class FrameworkLoginBuilder extends CallbackAuthenticationRequestBuilder {
+    public static class LocalAuthenticationRequestBuilder extends CallbackAuthenticationRequestBuilder {
 
         private String authenticatorName;
         private String identityProviderName;
 
-        public FrameworkLoginBuilder() {
+        public LocalAuthenticationRequestBuilder() {
             super();
         }
 
 
 
-        public FrameworkLoginBuilder setAuthenticatorName(String authenticatorName) {
+        public LocalAuthenticationRequestBuilder setAuthenticatorName(String authenticatorName) {
             this.authenticatorName = authenticatorName;
             return this;
         }
-        public FrameworkLoginBuilder setIdentityProviderName(String identityProviderName) {
+        public LocalAuthenticationRequestBuilder setIdentityProviderName(String identityProviderName) {
             this.identityProviderName = identityProviderName;
             return this;
         }

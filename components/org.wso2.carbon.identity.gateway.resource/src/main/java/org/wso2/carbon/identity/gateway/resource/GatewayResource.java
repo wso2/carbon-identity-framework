@@ -106,12 +106,12 @@ public class GatewayResource implements Microservice {
         try {
             identityRequest = factory.create(request).build();
             if (identityRequest == null) {
-                throw FrameworkRuntimeException.error("IdentityRequest is Null. Cannot proceed!!");
+                throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!.");
             }
         } catch (FrameworkClientException e) {
             responseBuilder = factory.handleException(e);
             if (responseBuilder == null) {
-                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!.");
             }
             return responseBuilder.build();
         }
@@ -122,19 +122,19 @@ public class GatewayResource implements Microservice {
         try {
             identityResponse = manager.process(identityRequest);
             if (identityResponse == null) {
-                throw FrameworkRuntimeException.error("IdentityResponse is Null. Cannot proceed!!");
+                throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!.");
             }
             responseFactory = getIdentityResponseFactory(identityResponse);
             responseBuilder = responseFactory.create(identityResponse);
             if (responseBuilder == null) {
-                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!.");
             }
             return responseBuilder.build();
         } catch (FrameworkServerException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if (responseBuilder == null) {
-                throw FrameworkRuntimeException.error("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!.");
             }
             return responseBuilder.build();
         }
@@ -198,7 +198,7 @@ public class GatewayResource implements Microservice {
                 return requestBuilder;
             }
         }
-        throw FrameworkRuntimeException.error("No HttpIdentityRequestFactory found to create the request");
+        throw new FrameworkRuntimeException("No HttpIdentityRequestFactory found to create the request.");
     }
 
     /**
@@ -217,7 +217,7 @@ public class GatewayResource implements Microservice {
                 return responseFactory;
             }
         }
-        throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the request");
+        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request.");
     }
 
     /**
@@ -236,7 +236,7 @@ public class GatewayResource implements Microservice {
                 return responseFactory;
             }
         }
-        throw FrameworkRuntimeException.error("No HttpIdentityResponseFactory found to create the request");
+        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request.");
     }
 
     private void sendRedirect(Response response, HttpIdentityResponse HttpIdentityResponse)
@@ -286,7 +286,7 @@ public class GatewayResource implements Microservice {
            try {
                handleFormParams(body, request);
            } catch (UnsupportedEncodingException e) {
-               throw FrameworkRuntimeException.error("Error while building request body");
+               throw new FrameworkRuntimeException("Error while building request body.");
 
            }
        }

@@ -126,8 +126,8 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
-                    throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                                                          "header " + header.getKey());
+                    throw new FrameworkRuntimeException("Headers map trying to override existing header " + header
+                            .getKey());
                 }
                 this.headers.put(header.getKey(), header.getValue());
             }
@@ -136,8 +136,7 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addHeader(String name, String value) {
             if (this.headers.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Headers map trying to override existing " +
-                                                      "header " + name);
+                throw new FrameworkRuntimeException("Headers map trying to override existing header " + name);
             }
             this.headers.put(name, value);
             return this;
@@ -151,8 +150,7 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addParameter(String name, Object value) {
             if (this.parameters.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Parameters map trying to override existing " +
-                                                      "key " + name);
+                throw new FrameworkRuntimeException("Parameters map trying to override existing key " + name);
             }
             this.parameters.put(name, value);
             return this;
@@ -161,8 +159,8 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addParameters(Map<String, Object> parameters) {
             for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
-                    throw FrameworkRuntimeException.error("Parameters map trying to override existing key " +
-                                                          parameter.getKey());
+                    throw new FrameworkRuntimeException("Parameters map trying to override existing key " + parameter
+                            .getKey());
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
             }
@@ -176,8 +174,7 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addAttribute(String name, Object value) {
             if (this.attributes.containsKey(name)) {
-                throw FrameworkRuntimeException.error("Attributes map trying to override existing " +
-                                                      "key " + name);
+                throw new FrameworkRuntimeException("Attributes map trying to override existing key " + name);
             }
             this.attributes.put(name, value);
             return this;
@@ -186,8 +183,8 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
             for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
                 if (this.attributes.containsKey(attribute.getKey())) {
-                    throw FrameworkRuntimeException.error("Attributes map trying to override existing key " +
-                                                          attribute.getKey());
+                    throw new FrameworkRuntimeException("Attributes map trying to override existing key " + attribute
+                            .getKey());
                 }
                 this.attributes.put(attribute.getKey(), attribute.getValue());
             }

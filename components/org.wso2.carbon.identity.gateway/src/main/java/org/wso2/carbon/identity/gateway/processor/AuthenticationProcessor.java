@@ -41,7 +41,7 @@ public class AuthenticationProcessor extends IdentityProcessor {
         } else if (identityRequest instanceof CallbackAuthenticationRequest) {
             AuthenticationContext authenticationContext = buildAuthenticationContext((CallbackAuthenticationRequest)identityRequest);
             if (authenticationContext == null) {
-                throw FrameworkRuntimeException.error("Invalid Request");
+                throw new FrameworkRuntimeException("Invalid Request.");
             }
             identityResponseBuilder = processAuthenticationRequest(authenticationContext);
         }

@@ -7,7 +7,7 @@ import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
 import org.wso2.msf4j.Request;
 
 
-public class FrameworkLoginRequestFactory<T extends  LocalAuthenticationRequest.FrameworkLoginBuilder> extends HttpIdentityRequestFactory<T>{
+public class FrameworkLoginRequestFactory<T extends LocalAuthenticationRequest.LocalAuthenticationRequestBuilder> extends HttpIdentityRequestFactory<T>{
     @Override
     public boolean canHandle(Request request) {
         String authenticatorName = (String) request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants
@@ -24,30 +24,29 @@ public class FrameworkLoginRequestFactory<T extends  LocalAuthenticationRequest.
             throws FrameworkClientException {
 
         super.create(builder, request);
-        LocalAuthenticationRequest.FrameworkLoginBuilder frameworkLoginBuilder = (LocalAuthenticationRequest.FrameworkLoginBuilder)builder ;
+        LocalAuthenticationRequest.LocalAuthenticationRequestBuilder localAuthenticationRequestBuilder = (LocalAuthenticationRequest.LocalAuthenticationRequestBuilder)builder ;
 
-        frameworkLoginBuilder.setAuthenticatorName((String) request.getProperty(LocalAuthenticationRequest
+        localAuthenticationRequestBuilder.setAuthenticatorName((String) request.getProperty(LocalAuthenticationRequest
                                                                                 .FrameworkLoginRequestConstants.AUTHENTICATOR_NAME));
-        frameworkLoginBuilder.setIdentityProviderName((String)request.getProperty(LocalAuthenticationRequest
+        localAuthenticationRequestBuilder.setIdentityProviderName((String)request.getProperty(LocalAuthenticationRequest
                                                                                    .FrameworkLoginRequestConstants
                                                                                    .IDP_NAME));
     }
 
 
     @Override
-    public LocalAuthenticationRequest.FrameworkLoginBuilder create(Request request)
+    public LocalAuthenticationRequest.LocalAuthenticationRequestBuilder create(Request request)
             throws FrameworkClientException {
 
-        LocalAuthenticationRequest.FrameworkLoginBuilder frameworkLoginBuilder =  new LocalAuthenticationRequest
-                .FrameworkLoginBuilder();
+        LocalAuthenticationRequest.LocalAuthenticationRequestBuilder localAuthenticationRequestBuilder =  new LocalAuthenticationRequest.LocalAuthenticationRequestBuilder();
 
-        frameworkLoginBuilder.setAuthenticatorName((String)request.getProperty(LocalAuthenticationRequest
+        localAuthenticationRequestBuilder.setAuthenticatorName((String)request.getProperty(LocalAuthenticationRequest
                                                                                 .FrameworkLoginRequestConstants
                                                                                 .AUTHENTICATOR_NAME));
-        frameworkLoginBuilder.setIdentityProviderName((String)request.getProperty(LocalAuthenticationRequest
+        localAuthenticationRequestBuilder.setIdentityProviderName((String)request.getProperty(LocalAuthenticationRequest
                                                                                    .FrameworkLoginRequestConstants
                                                                                    .IDP_NAME));
-        return frameworkLoginBuilder ;
+        return localAuthenticationRequestBuilder;
     }
 
     @Override

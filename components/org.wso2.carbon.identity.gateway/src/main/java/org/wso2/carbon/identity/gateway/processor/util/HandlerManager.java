@@ -74,7 +74,7 @@ public class HandlerManager {
                 }
             }
         }
-        throw FrameworkRuntimeException.error("Cannot find AuthenticationHandler to handle this request");
+        throw new FrameworkRuntimeException("Cannot find AuthenticationHandler to handle this request.");
     }
 
 
@@ -88,7 +88,7 @@ public class HandlerManager {
                 }
             }
         }
-        throw FrameworkRuntimeException.error("Cannot find AbstractResponseHandler to handle this request");
+        throw new FrameworkRuntimeException("Cannot find AbstractResponseHandler to handle this request.");
     }
 
 
@@ -102,6 +102,6 @@ public class HandlerManager {
                 }
             }
         }
-        throw FrameworkRuntimeException.error("Cannot find AbstractRequestHandler to handle this request");
+        throw new FrameworkRuntimeException("Cannot find AbstractRequestHandler to handle this request.");
     }
 }

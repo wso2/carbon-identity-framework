@@ -42,7 +42,7 @@ public class ProcessCoordinator {
             }
             return processor.process(identityRequest).build();
         } else {
-            throw FrameworkRuntimeException.error("No IdentityProcessor found to process the request");
+            throw new FrameworkRuntimeException("No IdentityProcessor found to process the request.");
         }
     }
 

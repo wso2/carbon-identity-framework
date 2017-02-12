@@ -56,7 +56,7 @@ public class HandlerManager {
                 }
             }
         }
-        throw FrameworkRuntimeException.error("Cannot find a Handler to handle this request");
+        throw new FrameworkRuntimeException("Cannot find a Handler to handle this request.");
     }
 
 }
