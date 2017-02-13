@@ -28,6 +28,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Deployer;
+import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
+import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
@@ -474,58 +476,57 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.claim.resolving",
+            service = ClaimResolvingService.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetClaimResolvingService"
+    )
+    protected void addClaimResolvingService(ClaimResolvingService claimResolvingService) {
+
+        FrameworkServiceDataHolder.getInstance().setClaimResolvingService(claimResolvingService);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added ClaimResolvingService : " + ClaimResolvingService.class);
+        }
+    }
+
+    protected void unSetClaimResolvingService(ClaimResolvingService claimResolvingService) {
+
+        FrameworkServiceDataHolder.getInstance().setClaimResolvingService(null);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed ClaimResolvingService : " + ClaimResolvingService.class);
+        }
+    }
 
 
-    private static Comparator<IdentityProcessor> identityProcessor =
-            new Comparator<IdentityProcessor>() {
 
-                @Override
-                public int compare(IdentityProcessor identityProcessor1,
-                                   IdentityProcessor identityProcessor2) {
+    @Reference(
+            name = "identity.claim.profile",
+            service = ProfileMgtService.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetProfileMgtService"
+    )
+    protected void addProfileMgtService(ProfileMgtService profileMgtService) {
 
-                    if (identityProcessor1.getPriority() > identityProcessor2.getPriority()) {
-                        return 1;
-                    } else if (identityProcessor1.getPriority() < identityProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<HttpIdentityRequestFactory> httpIdentityRequestFactory =
-            new Comparator<HttpIdentityRequestFactory>() {
+        FrameworkServiceDataHolder.getInstance().setProfileMgtService(profileMgtService);
 
-                @Override
-                public int compare(HttpIdentityRequestFactory factory1,
-                                   HttpIdentityRequestFactory factory2) {
+        if (log.isDebugEnabled()) {
+            log.debug("Added ProfileMgtService : " + ProfileMgtService.class);
+        }
+    }
 
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<HttpIdentityResponseFactory> httpIdentityResponseFactory =
-            new Comparator<HttpIdentityResponseFactory>() {
+    protected void unSetProfileMgtService(ProfileMgtService profileMgtService) {
 
-                @Override
-                public int compare(HttpIdentityResponseFactory factory1,
-                                   HttpIdentityResponseFactory factory2) {
+        FrameworkServiceDataHolder.getInstance().setProfileMgtService(null);
 
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-
-
+        if (log.isDebugEnabled()) {
+            log.debug("Removed ProfileMgtService : " + ProfileMgtService.class);
+        }
+    }
 
 
 }
