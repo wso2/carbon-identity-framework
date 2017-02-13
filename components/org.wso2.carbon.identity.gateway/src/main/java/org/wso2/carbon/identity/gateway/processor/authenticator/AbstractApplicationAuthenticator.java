@@ -66,6 +66,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             Set<Claim> transformedClaimsTmp = new HashSet<>();
             claims.stream().filter(claim -> claimMapping.containsKey(claim.getClaimUri()))
                     .forEach(claim -> {
+                        //#TODO:replace root dialect URI
                         Claim tmpClaim = new Claim("rootdialect", claimMapping.get(claim.getClaimUri()), claim.getValue());
                         transformedClaimsTmp.add(tmpClaim);
                     });
