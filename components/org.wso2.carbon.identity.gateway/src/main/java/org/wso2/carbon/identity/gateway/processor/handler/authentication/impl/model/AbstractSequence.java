@@ -10,7 +10,7 @@ import java.util.List;
 
 public abstract class AbstractSequence implements Serializable {
 
-    private transient AuthenticationContext authenticationContext = null;
+    protected transient AuthenticationContext authenticationContext = null;
 
     protected AbstractSequence(AuthenticationContext authenticationContext) {
         this.authenticationContext = authenticationContext;
@@ -18,10 +18,6 @@ public abstract class AbstractSequence implements Serializable {
 
     protected AbstractSequence() {
 
-    }
-
-    public AuthenticationContext getAuthenticationContext() {
-        return authenticationContext;
     }
 
     public abstract List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig();
