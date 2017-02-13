@@ -1,7 +1,6 @@
 package org.wso2.carbon.identity.gateway.deployer;
 
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Artifact;
@@ -9,13 +8,12 @@ import org.wso2.carbon.deployment.engine.ArtifactType;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderEntity;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
@@ -91,21 +89,24 @@ public class ServiceProviderDeployer implements Deployer {
      * @param artifact deployed articles
      */
     private synchronized ServiceProviderConfig getServiceProviderConfig(Artifact artifact) {
-        String artifactName = artifact.getName();
-        ServiceProviderConfig serviceProviderConfig = null ;
+        String artifactName = artifact.getPath();
+        ServiceProviderConfig serviceProviderConfig = null;
         Path path = Paths.get(artifactName);
         if (Files.exists(path)) {
             try {
                 Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
                 Yaml yaml = new Yaml();
                 yaml.setBeanAccess(BeanAccess.FIELD);
-                serviceProviderConfig = yaml.loadAs(in, ServiceProviderConfig.class);
+                ServiceProviderEntity serviceProviderEntity = yaml.loadAs(in, ServiceProviderEntity.class);
 
+                if (serviceProviderEntity != null) {
+                    serviceProviderConfig = serviceProviderEntity.getServiceProviderConfig();
+                }
 
             } catch (Exception e) {
 
             }
         }
-        return serviceProviderConfig ;
+        return serviceProviderConfig;
     }
 }

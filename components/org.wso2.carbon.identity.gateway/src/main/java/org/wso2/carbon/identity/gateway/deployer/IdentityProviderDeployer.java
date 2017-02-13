@@ -8,10 +8,9 @@ import org.wso2.carbon.deployment.engine.ArtifactType;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderEntity;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
-import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
@@ -90,21 +89,23 @@ public class IdentityProviderDeployer implements Deployer {
      * @param artifact deployed articles
      */
     private synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact) {
-        String artifactName = artifact.getName();
-        IdentityProviderConfig identityProviderConfig = null ;
+        String artifactName = artifact.getPath();
+        IdentityProviderConfig identityProviderConfig = null;
         Path path = Paths.get(artifactName);
         if (Files.exists(path)) {
             try {
                 Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
                 Yaml yaml = new Yaml();
                 yaml.setBeanAccess(BeanAccess.FIELD);
-                identityProviderConfig = yaml.loadAs(in, IdentityProviderConfig.class);
-
+                IdentityProviderEntity identityProviderEntity = yaml.loadAs(in, IdentityProviderEntity.class);
+                if (identityProviderEntity != null) {
+                    identityProviderConfig = identityProviderEntity.getIdentityProviderConfig();
+                }
 
             } catch (Exception e) {
 
             }
         }
-        return identityProviderConfig ;
+        return identityProviderConfig;
     }
 }
