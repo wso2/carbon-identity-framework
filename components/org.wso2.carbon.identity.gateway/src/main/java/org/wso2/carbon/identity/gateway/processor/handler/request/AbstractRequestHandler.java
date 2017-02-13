@@ -8,5 +8,4 @@ public abstract class AbstractRequestHandler extends FrameworkHandler {
     public abstract FrameworkHandlerResponse validate(AuthenticationContext authenticationContext)
             throws RequestHandlerException;
 
-
 }

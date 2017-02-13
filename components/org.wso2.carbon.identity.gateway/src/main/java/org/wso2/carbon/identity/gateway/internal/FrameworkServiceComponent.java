@@ -144,6 +144,13 @@ public class FrameworkServiceComponent {
     }
 
 
+    @Reference(
+            name = "application.http.request.factory",
+            service = HttpIdentityRequestFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "addHttpIdentityRequestFactory"
+    )
     protected void addHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
@@ -162,23 +169,6 @@ public class FrameworkServiceComponent {
         }
     }
 
-    protected void addHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
-
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
-        Collections.sort(FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         httpIdentityResponseFactory);
-        if (log.isDebugEnabled()) {
-            log.debug("Added HttpIdentityResponseFactory : " + factory.getName());
-        }
-    }
-
-    protected void unSetHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
-
-        FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
-        if (log.isDebugEnabled()) {
-            log.debug("Removed HttpIdentityResponseFactory : " + factory.getName());
-        }
-    }
 
     @Reference(
             name = "identity.handlers.request",

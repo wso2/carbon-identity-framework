@@ -35,11 +35,12 @@ public class ServiceProviderDeployer implements Deployer {
 
     @Override
     public void init() {
-        artifactType = new ArtifactType<>("sp");
+        artifactType = new ArtifactType<>("serviceprovider");
 
 
         try {
-            repository = new URL("file:" + Paths.get(System.getProperty("carbon.home", "."), "deployment", "providers", "sp")
+            repository = new URL("file:" + Paths.get(System.getProperty("carbon.home", "."), "deployment",
+                                                     "serviceprovider")
                                          .toString
                     ());
         } catch (MalformedURLException e) {

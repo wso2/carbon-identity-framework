@@ -7,10 +7,22 @@ import org.wso2.carbon.deployment.engine.Artifact;
 import org.wso2.carbon.deployment.engine.ArtifactType;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
+import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
+import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.introspector.BeanAccess;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class IdentityProviderDeployer implements Deployer {
 
@@ -22,16 +34,23 @@ public class IdentityProviderDeployer implements Deployer {
 
     @Override
     public void init() {
-        artifactType = new ArtifactType<>("policy");
+        artifactType = new ArtifactType<>("identityprovider");
+
+
         try {
-            repository = new URL("file:/home/harshat/wso2/repo/is/untitled3");
+            repository = new URL("file:" + Paths.get(System.getProperty("carbon.home", "."), "deployment",
+                                                     "identityprovider")
+                    .toString
+                            ());
         } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public String deploy(Artifact artifact) throws CarbonDeploymentException {
-        readArtifact(artifact);
+        IdentityProviderConfig identityProviderConfig = getIdentityProviderConfig(artifact);
+        IdentityProviderConfigStore.getInstance().addIdentityProvider(identityProviderConfig);
         return artifact.getName();
     }
 
@@ -47,7 +66,7 @@ public class IdentityProviderDeployer implements Deployer {
     @Override
     public Object update(Artifact artifact) throws CarbonDeploymentException {
         logger.debug("Updating : " + artifact.getName());
-        readArtifact(artifact);
+
         return artifact.getName();
     }
 
@@ -55,6 +74,7 @@ public class IdentityProviderDeployer implements Deployer {
     public URL getLocation() {
 
         logger.debug("Updating : "  );
+
         return repository;
     }
 
@@ -69,9 +89,22 @@ public class IdentityProviderDeployer implements Deployer {
      * Read the artifacts and save the policy and metadata to PolicyStore and PolicyCollection
      * @param artifact deployed articles
      */
-    private synchronized void readArtifact(Artifact artifact) {
+    private synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact) {
         String artifactName = artifact.getName();
+        IdentityProviderConfig identityProviderConfig = null ;
+        Path path = Paths.get(artifactName);
+        if (Files.exists(path)) {
+            try {
+                Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
+                Yaml yaml = new Yaml();
+                yaml.setBeanAccess(BeanAccess.FIELD);
+                identityProviderConfig = yaml.loadAs(in, IdentityProviderConfig.class);
 
-        logger.debug("Updating : " + artifact.getName());
+
+            } catch (Exception e) {
+
+            }
+        }
+        return identityProviderConfig ;
     }
 }

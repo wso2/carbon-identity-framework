@@ -78,6 +78,16 @@
             <artifactId>org.wso2.carbon.deployment.engine</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.wso2.carbon.identity.mgt</groupId>
+            <artifactId>org.wso2.carbon.identity.mgt</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wso2.carbon.identity.mgt</groupId>
+            <artifactId>org.wso2.carbon.identity.claim</artifactId>
+        </dependency>
+
     </dependencies>
 
     <properties>
@@ -109,6 +119,7 @@
             org.wso2.carbon.identity.common.*; version="${carbon.identity.common.import.version.range}",
             org.wso2.carbon.identity.gateway.api.*; version="${identity.gateway.api.import.version.range}",
             org.wso2.carbon.identity.gateway.commons.*; version="${identity.gateway.common.import.version.range}",
+            org.wso2.carbon.identity.claim.*; version="${carbon.identity.mgt.import.version.range}",
             org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}",
             org.wso2.carbon.deployment.engine; version="${carbon.deployment.import.version.range}",
             org.wso2.carbon.deployment.engine.exception; version="${carbon.deployment.import.version.range}",
