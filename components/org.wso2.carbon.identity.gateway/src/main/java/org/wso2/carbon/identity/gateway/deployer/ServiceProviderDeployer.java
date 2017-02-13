@@ -102,7 +102,7 @@ public class ServiceProviderDeployer implements Deployer {
 
 
             } catch (Exception e) {
-                System.out.println("Hello World!");
+
             }
         }
         return serviceProviderConfig ;

@@ -12,6 +12,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.mo
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.io.Serializable;
@@ -69,8 +70,8 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
 
     public ServiceProviderConfig getServiceProvider() throws AuthenticationHandlerException {
         ClientAuthenticationRequest clientAuthenticationRequest = getInitialAuthenticationRequest();
-        ServiceProviderConfig serviceProvider = Utility.getServiceProvider(clientAuthenticationRequest.getType(),
-                                                                           clientAuthenticationRequest.getUniqueId());
+        String uniqueId = clientAuthenticationRequest.getUniqueId();
+        ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(uniqueId);
         return serviceProvider;
     }
 /*
