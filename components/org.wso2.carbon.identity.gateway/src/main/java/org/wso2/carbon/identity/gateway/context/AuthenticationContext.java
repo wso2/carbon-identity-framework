@@ -25,6 +25,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
     private static final long serialVersionUID = 6821167819709907062L;
 
     protected ClientAuthenticationRequest initialAuthenticationRequest;
+    protected String uniqueId;
 
     private AbstractSequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
@@ -38,6 +39,15 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         super(authenticationRequest);
         this.initialAuthenticationRequest = authenticationRequest;
     }
+
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
+    }
+
 
     public ClientAuthenticationRequest getInitialAuthenticationRequest() {
         return initialAuthenticationRequest;
@@ -70,7 +80,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
 
     public ServiceProviderConfig getServiceProvider() throws AuthenticationHandlerException {
         ClientAuthenticationRequest clientAuthenticationRequest = getInitialAuthenticationRequest();
-        String uniqueId = clientAuthenticationRequest.getUniqueId();
+        String uniqueId = getUniqueId();
         ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(uniqueId);
         return serviceProvider;
     }
