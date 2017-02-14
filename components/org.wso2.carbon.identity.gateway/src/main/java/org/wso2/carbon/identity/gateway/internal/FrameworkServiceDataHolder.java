@@ -33,19 +33,11 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.Co
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authorization.AbstractAuthorizationHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.claim.ClaimHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPostHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPreHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.ExtensionHandlerPoints;
-import org.wso2.carbon.identity.gateway.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class FrameworkServiceDataHolder {
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
@@ -71,14 +63,9 @@ public class FrameworkServiceDataHolder {
     //Framework handlers
     private List<AbstractRequestHandler> requestHandlers = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
-    private List<AbstractAuthorizationHandler> authorizationHandlers = new ArrayList<>();
-    private List<JITHandler> jitHandlers = new ArrayList<>();
-    private List<ClaimHandler> claimHandlers = new ArrayList<>();
 
     //SequenceManager
     private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
-    private Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandler = new HashMap<>();
-    private Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandler = new HashMap<>();
     //AuthenticationHandler sub-handler
     private List<ContextInitializer> contextInitializers = new ArrayList<>();
 
@@ -135,32 +122,12 @@ public class FrameworkServiceDataHolder {
         return authenticationHandlers;
     }
 
-    public List<AbstractAuthorizationHandler> getAuthorizationHandlers() {
-        return authorizationHandlers;
-    }
-
     public List<AbstractRequestHandler> getRequestHandlers() {
         return requestHandlers;
     }
 
-    public List<JITHandler> getJitHandlers() {
-        return jitHandlers;
-    }
-
-    public List<ClaimHandler> getClaimHandlers() {
-        return claimHandlers;
-    }
-
     public List<AbstractResponseHandler> getResponseHandlers() {
         return responseHandlers;
-    }
-
-    public Map<ExtensionHandlerPoints, List<AbstractPreHandler>> getPreHandler() {
-        return preHandler;
-    }
-
-    public Map<ExtensionHandlerPoints, List<AbstractPostHandler>> getPostHandler() {
-        return postHandler;
     }
 
     public List<ContextInitializer> getContextInitializers() {

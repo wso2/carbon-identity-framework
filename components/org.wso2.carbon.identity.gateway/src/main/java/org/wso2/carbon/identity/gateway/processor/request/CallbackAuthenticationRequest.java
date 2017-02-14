@@ -24,7 +24,7 @@ public class CallbackAuthenticationRequest extends AuthenticationRequest {
         }
     }
 
-    public static class LocalAuthenticationRequestConstants extends AuthenticationRequest.IdentityRequestConstants {
+    public static class CallbackAuthenticationRequestConstants extends AuthenticationRequest.AuthenticationRequestConstants {
 
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class ProvisioningConfig {
 
-    private JITProvisioningConfig jitProvisioningConfig ;
+    private JITProvisioningConfig jitProvisioningConfig;
     private List<ProvisioningClaimConfig> provisioningClaimConfigs = new ArrayList<>();
     private List<String> provisioningRoles = new ArrayList<>();
     private List<ProvisionerConfig> provisionerConfigs = new ArrayList<>();
@@ -16,6 +16,14 @@ public class ProvisioningConfig {
 
     public void setJitProvisioningConfig(JITProvisioningConfig jitProvisioningConfig) {
         this.jitProvisioningConfig = jitProvisioningConfig;
+    }
+
+    public List<ProvisionerConfig> getProvisionerConfigs() {
+        return provisionerConfigs;
+    }
+
+    public void setProvisionerConfigs(List<ProvisionerConfig> provisionerConfigs) {
+        this.provisionerConfigs = provisionerConfigs;
     }
 
     public List<ProvisioningClaimConfig> getProvisioningClaimConfigs() {
@@ -32,13 +40,5 @@ public class ProvisioningConfig {
 
     public void setProvisioningRoles(List<String> provisioningRoles) {
         this.provisioningRoles = provisioningRoles;
-    }
-
-    public List<ProvisionerConfig> getProvisionerConfigs() {
-        return provisionerConfigs;
-    }
-
-    public void setProvisionerConfigs(List<ProvisionerConfig> provisionerConfigs) {
-        this.provisionerConfigs = provisionerConfigs;
     }
 }

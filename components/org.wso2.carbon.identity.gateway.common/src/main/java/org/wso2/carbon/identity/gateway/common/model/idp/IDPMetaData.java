@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class IDPMetaData{
+public class IDPMetaData {
 
     private List<IDPCertificate> certificates = new ArrayList<>();
-    private String federationHub ;
-    private String homeRealm ;
+    private String federationHub;
+    private String homeRealm;
     private RoleConfiguration roleConfiguration;
     private Properties properties = new Properties();
 
@@ -37,14 +37,6 @@ public class IDPMetaData{
         this.homeRealm = homeRealm;
     }
 
-    public RoleConfiguration getRoleConfiguration() {
-        return roleConfiguration;
-    }
-
-    public void setRoleConfiguration(RoleConfiguration roleConfiguration) {
-        this.roleConfiguration = roleConfiguration;
-    }
-
     public Properties getProperties() {
         return properties;
     }
@@ -53,4 +45,11 @@ public class IDPMetaData{
         this.properties = properties;
     }
 
+    public RoleConfiguration getRoleConfiguration() {
+        return roleConfiguration;
+    }
+
+    public void setRoleConfiguration(RoleConfiguration roleConfiguration) {
+        this.roleConfiguration = roleConfiguration;
+    }
 }

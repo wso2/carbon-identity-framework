@@ -29,10 +29,7 @@ public class IdentityMessageContextCache extends BaseCache<String, IdentityMessa
 
     private IdentityMessageContextCache(String cacheName) {
         super(cacheName);
-        /*if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
-            enableRequestScopeCache = Boolean.parseBoolean(IdentityUtil.getProperty(
-                    "JDBCPersistenceManager.SessionDataPersist.Temporary"));
-        }*/
+
     }
 
     public static IdentityMessageContextCache getInstance() {
@@ -48,29 +45,14 @@ public class IdentityMessageContextCache extends BaseCache<String, IdentityMessa
 
     public void addToCache(String key, IdentityMessageContext context) {
         super.put(key, context);
-        /*if (enableRequestScopeCache) {
-            int tenantId = MultitenantConstants.INVALID_TENANT_ID;
-            String tenantDomain = context.getIdentityRequest().getTenantDomain();
-            if (tenantDomain != null) {
-                tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            }
-            SessionDataStore.getInstance().storeSessionData(key, IDENTITY_MESSAGE_CONTEXT_CACHE, context, tenantId);
-        }*/
     }
 
     public IdentityMessageContext getValueFromCache(String key) {
         IdentityMessageContext context = super.get(key);
-        /*if (context == null && enableRequestScopeCache) {
-            context = (IdentityMessageContext) SessionDataStore.getInstance().getSessionData(key,
-                                                                                             IDENTITY_MESSAGE_CONTEXT_CACHE);
-        }*/
         return context;
     }
 
     public void clearCacheEntry(String key) {
         super.clear(key);
-        /*if (enableRequestScopeCache) {
-            SessionDataStore.getInstance().clearSessionData(key, IDENTITY_MESSAGE_CONTEXT_CACHE);
-        }*/
     }
 }

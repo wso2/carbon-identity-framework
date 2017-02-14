@@ -12,7 +12,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
-import org.wso2.carbon.identity.gateway.processor.request.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.processor.request.local.LocalAuthenticationRequest;
 
 public class StepHandler extends FrameworkHandler {
     @Override

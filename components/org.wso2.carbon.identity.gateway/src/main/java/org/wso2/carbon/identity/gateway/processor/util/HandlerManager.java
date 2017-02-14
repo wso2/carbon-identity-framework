@@ -7,9 +7,6 @@ import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPostHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPreHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.ExtensionHandlerPoints;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 
@@ -25,42 +22,6 @@ public class HandlerManager {
 
     public static HandlerManager getInstance() {
         return instance;
-    }
-
-    public FrameworkHandlerResponse doPreHandle(ExtensionHandlerPoints extensionHandlerPoint,
-                                                IdentityMessageContext identityMessageContext)
-            throws FrameworkHandlerException {
-        List<AbstractPreHandler> abstractPreHandlers =
-                FrameworkServiceDataHolder.getInstance().getPreHandler().get(extensionHandlerPoint);
-        if(abstractPreHandlers != null) {
-            for (AbstractPreHandler abstractPreHandler : abstractPreHandlers) {
-                if (abstractPreHandler.canHandle(identityMessageContext)) {
-                    FrameworkHandlerResponse handlerStatus = abstractPreHandler.handle(identityMessageContext);
-                    if (FrameworkHandlerResponse.REDIRECT.equals(handlerStatus)) {
-                        return handlerStatus;
-                    }
-                }
-            }
-        }
-        return FrameworkHandlerResponse.CONTINUE;
-    }
-
-    public FrameworkHandlerResponse doPostHandle(ExtensionHandlerPoints extensionHandlerPoint,
-                                                 IdentityMessageContext identityMessageContext)
-            throws FrameworkHandlerException {
-        List<AbstractPostHandler> abstractPostHandlers =
-                FrameworkServiceDataHolder.getInstance().getPostHandler().get(extensionHandlerPoint);
-        if(abstractPostHandlers != null) {
-            for (AbstractPostHandler abstractPostHandler : abstractPostHandlers) {
-                if (abstractPostHandler.canHandle(identityMessageContext)) {
-                    FrameworkHandlerResponse handlerStatus = abstractPostHandler.handle(identityMessageContext);
-                    if (FrameworkHandlerResponse.REDIRECT.equals(handlerStatus)) {
-                        return handlerStatus;
-                    }
-                }
-            }
-        }
-        return FrameworkHandlerResponse.CONTINUE;
     }
 
 

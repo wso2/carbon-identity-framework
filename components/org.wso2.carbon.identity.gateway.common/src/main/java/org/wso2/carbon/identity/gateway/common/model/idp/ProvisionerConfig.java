@@ -4,7 +4,7 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 import java.util.Properties;
 
 public class ProvisionerConfig {
-    private String name ;
+    private String name;
     private Properties properties = new Properties();
 
     public String getName() {

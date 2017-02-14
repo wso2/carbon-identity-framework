@@ -1,19 +1,19 @@
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
 
-public class IdentityProviderConfig{
+public class IdentityProviderConfig {
 
-    private String name ;
-    private IDPMetaData idpMetaData ;
-    private AuthenticationConfig authenticationConfig ;
-    private ProvisioningConfig provisioningConfig ;
+    private String name;
+    private IDPMetaData idpMetaData;
+    private AuthenticationConfig authenticationConfig;
+    private ProvisioningConfig provisioningConfig;
 
-    public String getName() {
-        return name;
+    public AuthenticationConfig getAuthenticationConfig() {
+        return authenticationConfig;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setAuthenticationConfig(AuthenticationConfig authenticationConfig) {
+        this.authenticationConfig = authenticationConfig;
     }
 
     public IDPMetaData getIdpMetaData() {
@@ -24,12 +24,12 @@ public class IdentityProviderConfig{
         this.idpMetaData = idpMetaData;
     }
 
-    public AuthenticationConfig getAuthenticationConfig() {
-        return authenticationConfig;
+    public String getName() {
+        return name;
     }
 
-    public void setAuthenticationConfig(AuthenticationConfig authenticationConfig) {
-        this.authenticationConfig = authenticationConfig;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public ProvisioningConfig getProvisioningConfig() {
@@ -39,5 +39,4 @@ public class IdentityProviderConfig{
     public void setProvisioningConfig(ProvisioningConfig provisioningConfig) {
         this.provisioningConfig = provisioningConfig;
     }
-
 }

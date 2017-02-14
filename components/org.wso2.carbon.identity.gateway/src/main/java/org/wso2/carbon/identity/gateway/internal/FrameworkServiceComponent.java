@@ -30,8 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
@@ -44,21 +42,9 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.Ab
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authorization.AbstractAuthorizationHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.claim.ClaimHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPostHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.AbstractPreHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.extension.ExtensionHandlerPoints;
-import org.wso2.carbon.identity.gateway.processor.handler.jit.JITHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 
 
 @Component(
@@ -88,7 +74,7 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(Deployer.class, new ServiceProviderDeployer(), null);
         bundleContext.registerService(ServiceProviderConfigStore.class, ServiceProviderConfigStore.getInstance(), null);
 
-        //bundleContext.registerService(HttpIdentityRequestFactory.class, new FrameworkLoginRequestFactory(), null);
+        //bundleContext.registerService(HttpIdentityRequestFactory.class, new LocalAuthenticationRequestFactory(), null);
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
         if (log.isDebugEnabled()) {
@@ -197,81 +183,6 @@ public class FrameworkServiceComponent {
     }
 
 
-    @Reference(
-            name = "identity.handlers.authorization",
-            service = AbstractAuthorizationHandler.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetAuthorizationHandler"
-    )
-    protected void addAuthorizationHandler(AbstractAuthorizationHandler authorizationHandler) {
-
-        FrameworkServiceDataHolder.getInstance().getAuthorizationHandlers().add(authorizationHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added AuthorizationHandler : " + authorizationHandler.getName());
-        }
-    }
-
-    protected void unSetAuthorizationHandler(AbstractAuthorizationHandler authorizationHandler) {
-
-        FrameworkServiceDataHolder.getInstance().getAuthorizationHandlers().remove(authorizationHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed AuthenticationHandler : " + authorizationHandler.getName());
-        }
-    }
-
-    @Reference(
-            name = "identity.handlers.jit",
-            service = JITHandler.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetJITHandler"
-    )
-    protected void addJITHandler(JITHandler jitHandler) {
-
-        FrameworkServiceDataHolder.getInstance().getJitHandlers().add(jitHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added JITHandler : " + jitHandler.getName());
-        }
-    }
-
-    protected void unSetJITHandler(JITHandler jitHandler) {
-
-        FrameworkServiceDataHolder.getInstance().getJitHandlers().remove(jitHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed JITHandler : " + jitHandler.getName());
-        }
-    }
-
-    @Reference(
-            name = "identity.handlers.claim",
-            service = ClaimHandler.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetClaimHandler"
-    )
-    protected void addClaimHandler(ClaimHandler claimHandler) {
-
-        FrameworkServiceDataHolder.getInstance().getClaimHandlers().add(claimHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added ClaimHandler : " + claimHandler.getName());
-        }
-    }
-
-    protected void unSetClaimHandler(ClaimHandler claimHandler) {
-
-        FrameworkServiceDataHolder.getInstance().getClaimHandlers().remove(claimHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed ClaimHandler : " + claimHandler.getName());
-        }
-    }
-
 
     @Reference(
             name = "identity.handlers.response",
@@ -299,83 +210,6 @@ public class FrameworkServiceComponent {
     }
 
     @Reference(
-            name = "identity.handlers.extension.pre",
-            service = AbstractPreHandler.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetPreHandler"
-    )
-    protected void addPreHandler(AbstractPreHandler preHandler) {
-
-        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap =
-                FrameworkServiceDataHolder.getInstance().getPreHandler();
-
-        List<AbstractPreHandler> abstractPreHandlers = preHandlerMap.get(preHandler.getExtensionHandlerPoints());
-        if (abstractPreHandlers == null) {
-            abstractPreHandlers = new ArrayList<>();
-            preHandlerMap.put(preHandler.getExtensionHandlerPoints(), abstractPreHandlers);
-        }
-        abstractPreHandlers.add(preHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added AbstractPreHandler : " + preHandler.getName());
-        }
-    }
-
-    protected void unSetPreHandler(AbstractPreHandler preHandler) {
-
-        Map<ExtensionHandlerPoints, List<AbstractPreHandler>> preHandlerMap =
-                FrameworkServiceDataHolder.getInstance().getPreHandler();
-
-        List<AbstractPreHandler> abstractPreHandlers = preHandlerMap.get(preHandler.getExtensionHandlerPoints());
-        if (abstractPreHandlers != null) {
-            abstractPreHandlers.remove(preHandler);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Removed AbstractPreHandler : " + preHandler.getName());
-        }
-    }
-
-
-    @Reference(
-            name = "identity.handlers.extension.post",
-            service = AbstractPostHandler.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetPostHandler"
-    )
-    protected void addPostHandler(AbstractPostHandler postHandler) {
-
-        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap =
-                FrameworkServiceDataHolder.getInstance().getPostHandler();
-
-        List<AbstractPostHandler> abstractPostHandlers = postHandlerMap.get(postHandler.getExtensionHandlerPoints());
-        if (abstractPostHandlers == null) {
-            abstractPostHandlers = new ArrayList<>();
-            postHandlerMap.put(postHandler.getExtensionHandlerPoints(), abstractPostHandlers);
-        }
-        abstractPostHandlers.add(postHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added AbstractPostHandler : " + postHandler.getName());
-        }
-    }
-
-    protected void unSetPostHandler(AbstractPostHandler postHandler) {
-
-        Map<ExtensionHandlerPoints, List<AbstractPostHandler>> postHandlerMap =
-                FrameworkServiceDataHolder.getInstance().getPostHandler();
-
-        List<AbstractPostHandler> abstractPostHandlers = postHandlerMap.get(postHandler.getExtensionHandlerPoints());
-        if (abstractPostHandlers != null) {
-            abstractPostHandlers.remove(postHandler);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Removed AbstractPostHandler : " + postHandler.getName());
-        }
-    }
-
-    @Reference(
             name = "identity.handlers.sequence.factory",
             service = AbstractSequenceBuildFactory.class,
             cardinality = ReferenceCardinality.MULTIPLE,
@@ -399,7 +233,6 @@ public class FrameworkServiceComponent {
             log.debug("Removed AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
         }
     }
-
 
     @Reference(
             name = "identity.handlers.sequence.manager",

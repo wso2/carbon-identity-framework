@@ -1,7 +1,6 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication;
 
 
-import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;

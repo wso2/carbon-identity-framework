@@ -1,11 +1,10 @@
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
 
-
 public class ProvisioningClaimConfig {
 
-    private String claimId ;
-    private String defaultValue ;
+    private String claimId;
+    private String defaultValue;
 
     public String getClaimId() {
         return claimId;

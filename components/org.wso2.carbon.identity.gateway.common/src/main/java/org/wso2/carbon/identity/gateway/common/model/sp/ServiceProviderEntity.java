@@ -10,5 +10,4 @@ public class ServiceProviderEntity {
     public void setServiceProviderConfig(ServiceProviderConfig serviceProviderConfig) {
         this.serviceProviderConfig = serviceProviderConfig;
     }
-
 }

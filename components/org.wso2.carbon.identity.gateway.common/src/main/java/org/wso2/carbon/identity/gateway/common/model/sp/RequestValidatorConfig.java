@@ -4,24 +4,9 @@ import java.util.Properties;
 
 public class RequestValidatorConfig {
     private String type;
-    private String uniquePropertyName ;
+    private String uniquePropertyName;
 
     private Properties properties = new Properties();
-
-    public String getUniquePropertyName() {
-        return uniquePropertyName;
-    }
-
-    public void setUniquePropertyName(String uniquePropertyName) {
-        this.uniquePropertyName = uniquePropertyName;
-    }
-
-    public String getType() {
-        return type;
-    }
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public Properties getProperties() {
         return properties;
@@ -29,5 +14,21 @@ public class RequestValidatorConfig {
 
     public void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getUniquePropertyName() {
+        return uniquePropertyName;
+    }
+
+    public void setUniquePropertyName(String uniquePropertyName) {
+        this.uniquePropertyName = uniquePropertyName;
     }
 }

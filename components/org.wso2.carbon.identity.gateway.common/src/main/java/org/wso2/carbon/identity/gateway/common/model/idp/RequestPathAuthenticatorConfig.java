@@ -4,7 +4,7 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 import java.util.Properties;
 
 public class RequestPathAuthenticatorConfig {
-    private String authenticatorName ;
+    private String authenticatorName;
     private Properties properties = new Properties();
 
     public String getAuthenticatorName() {
