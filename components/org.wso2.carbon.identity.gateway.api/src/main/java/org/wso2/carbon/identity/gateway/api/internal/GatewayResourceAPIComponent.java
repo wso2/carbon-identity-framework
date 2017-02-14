@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2013, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -24,7 +24,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
 
 
 @Component(
@@ -37,11 +37,14 @@ public class GatewayResourceAPIComponent {
 
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
-
-        bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Application Authentication Framework bundle is activated");
+        try {
+            bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
+            if (log.isDebugEnabled()) {
+                log.debug("org.wso2.carbon.identity.gateway.api bundle is activated");
+            }
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+            throw e;
         }
     }
 
@@ -49,10 +52,4 @@ public class GatewayResourceAPIComponent {
     protected void stop() throws Exception {
 
     }
-
-
-
-
-
-
 }
