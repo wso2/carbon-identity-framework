@@ -34,7 +34,7 @@ public class DefaultAbstractSequence extends AbstractSequence {
 
     @Override
     public boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException {
-        ServiceProviderConfig serviceProvider = getAuthenticationContext().getServiceProvider();
+        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
         if(authenticationConfig.getAuthenticationStepConfigs() != null && authenticationConfig
                 .getAuthenticationStepConfigs().size() > 0){
@@ -45,7 +45,7 @@ public class DefaultAbstractSequence extends AbstractSequence {
 
     @Override
     public boolean hasNext(int currentStep) throws AuthenticationHandlerException {
-        ServiceProviderConfig serviceProvider = getAuthenticationContext().getServiceProvider();
+        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
         List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
         if(authenticationStepConfigs.size() >= (currentStep + 1)){
@@ -80,7 +80,7 @@ public class DefaultAbstractSequence extends AbstractSequence {
     }
 
     private AuthenticationStepConfig getAuthenticationStepConfig(int step) throws AuthenticationHandlerException {
-        ServiceProviderConfig serviceProvider = getAuthenticationContext().getServiceProvider();
+        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
         AuthenticationStepConfig authenticationStepConfig = authenticationConfig.getAuthenticationStepConfigs()
                 .get(step);

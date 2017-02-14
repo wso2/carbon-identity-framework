@@ -43,9 +43,9 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
     }
 
     public SessionContext getSessionContext() {
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest) getIdentityRequest();
-        String browserCookieValue = "" ; //authenticationRequest.getBrowserCookieValue();
-        return SessionContextCache.getInstance().getValueFromCache(browserCookieValue);
+        AuthenticationRequest authenticationRequest =  getIdentityRequest();
+        String sessionDataKey = authenticationRequest.getSessionDataKey();
+        return SessionContextCache.getInstance().get(sessionDataKey);
     }
 
 

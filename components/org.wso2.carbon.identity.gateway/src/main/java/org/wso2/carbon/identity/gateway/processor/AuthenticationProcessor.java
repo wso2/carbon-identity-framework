@@ -123,6 +123,17 @@ public class AuthenticationProcessor extends IdentityProcessor {
 
     }
 
+    protected FrameworkHandlerResponse doUpdateSession(FrameworkHandlerResponse response,
+                                                       AuthenticationContext authenticationContext) throws
+                                                                                                    FrameworkHandlerException {
+
+        if (response.equals(FrameworkHandlerResponse.CONTINUE)) {
+
+            frameworkHandlerResponse = buildResponse(authenticationContext);
+        }
+        return response;
+    }
+
     protected FrameworkHandlerResponse doBuildResponse(AuthenticationContext authenticationContext)
             throws FrameworkHandlerException {
         FrameworkHandlerResponse frameworkHandlerResponse = null;

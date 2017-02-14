@@ -2,6 +2,7 @@ package org.wso2.carbon.identity.gateway.cache;
 
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 
 
 public class SessionContextCache extends BaseCache<String, SessionContext> {
@@ -24,17 +25,21 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
         return instance;
     }
 
-    public void addToCache(String key, SessionContext context) {
+    public void put(String key, SessionContext context) {
         super.put(key, context);
+        JDBCSessionDAO.getInstance().put(key, context);
     }
 
-    public SessionContext getValueFromCache(String key) {
+    public SessionContext get(String key) {
         SessionContext context = super.get(key);
-
+        if(context == null) {
+            context = JDBCSessionDAO.getInstance().get(key);
+        }
         return context;
     }
 
-    public void clearCacheEntry(String key) {
+    public void clear(String key) {
         super.clear(key);
+        JDBCSessionDAO.getInstance().remove(key);
     }
 }

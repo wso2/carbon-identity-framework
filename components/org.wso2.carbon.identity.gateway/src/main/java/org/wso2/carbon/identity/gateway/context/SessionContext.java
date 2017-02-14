@@ -7,8 +7,7 @@ import java.util.Map;
 
 public class SessionContext implements Serializable {
 
-    //Sp->SequenceContext
-    private Map<String, SequenceContext> sequenceContexts = new HashMap<>();
+    private Map<String, SequenceContext> sequenceContexts = new HashMap();
 
     public SequenceContext getSequenceContext(String serviceProvider) {
         SequenceContext sequenceContext = sequenceContexts.get(serviceProvider);
