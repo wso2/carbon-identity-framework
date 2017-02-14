@@ -18,6 +18,11 @@ public abstract class AbstractRequestHandler extends FrameworkHandler {
     protected abstract String getValidatorType();
 
     public Properties getValidatorConfig(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
+
+        if (authenticationContext.getServiceProvider() == null) {
+            throw new AuthenticationHandlerException("Error while getting validator configs : No service provider " +
+                    "found with uniqueId : " + authenticationContext.getUniqueId());
+        }
         RequestValidationConfig validatorConfig = authenticationContext.getServiceProvider()
                 .getRequestValidationConfig();
         List<RequestValidatorConfig> validatorConfigs = validatorConfig.getRequestValidatorConfigs();
