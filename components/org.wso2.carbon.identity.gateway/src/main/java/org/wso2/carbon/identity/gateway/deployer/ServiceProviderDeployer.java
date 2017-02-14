@@ -104,7 +104,7 @@ public class ServiceProviderDeployer implements Deployer {
                 }
 
             } catch (Exception e) {
-
+                 logger.error("Error while deploying service provider configuration" , e);
             }
         }
         return serviceProviderConfig;

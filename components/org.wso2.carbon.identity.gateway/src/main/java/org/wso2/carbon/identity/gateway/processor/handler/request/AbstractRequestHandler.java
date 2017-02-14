@@ -30,7 +30,7 @@ public abstract class AbstractRequestHandler extends FrameworkHandler {
         Iterator<RequestValidatorConfig> validatorConfigIterator = validatorConfigs.iterator();
         while (validatorConfigIterator.hasNext()) {
             RequestValidatorConfig validationConfig = validatorConfigIterator.next();
-            if (getValidatorType().equalsIgnoreCase((String) validationConfig.getProperties().get("type"))) {
+            if (getValidatorType().equalsIgnoreCase(validationConfig.getType())) {
                 return validationConfig.getProperties();
             }
         }
