@@ -24,7 +24,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
 
 
 @Component(
@@ -37,11 +37,14 @@ public class GatewayResourceAPIComponent {
 
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
-
-        bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Application Authentication Framework bundle is activated");
+        try {
+            bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
+            if (log.isDebugEnabled()) {
+                log.debug("org.wso2.carbon.identity.gateway.api bundle is activated");
+            }
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+            throw e;
         }
     }
 
@@ -49,10 +52,4 @@ public class GatewayResourceAPIComponent {
     protected void stop() throws Exception {
 
     }
-
-
-
-
-
-
 }

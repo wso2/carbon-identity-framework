@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;

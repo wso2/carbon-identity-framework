@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util;
 
 
+import org.wso2.carbon.identity.gateway.api.util.Constants;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
@@ -86,10 +87,8 @@ public class Utility {
     }
 
     public static String getParameter(Request request, String paramName) {
-        Map<String, String> queryParams = (Map<String, String>) request.getProperty(org.wso2.carbon.identity.gateway
-                .api.Constants.QUERY_PARAMETERS);
-        Map<String, String> bodyParams = (Map<String, String>) request.getProperty(org.wso2.carbon.identity.gateway.api
-                .Constants.BODY_PARAMETERS);
+        Map<String, String> queryParams = (Map<String, String>) request.getProperty(Constants.QUERY_PARAMETERS);
+        Map<String, String> bodyParams = (Map<String, String>) request.getProperty(Constants.BODY_PARAMETERS);
         if (queryParams.get(paramName) != null) {
             return queryParams.get(paramName);
         } else {

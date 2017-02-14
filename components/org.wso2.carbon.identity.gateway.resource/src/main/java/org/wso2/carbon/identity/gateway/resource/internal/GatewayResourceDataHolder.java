@@ -19,14 +19,12 @@
 package org.wso2.carbon.identity.gateway.resource.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class GatewayResourceDataHolder {
     private static GatewayResourceDataHolder instance = new GatewayResourceDataHolder();

@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.identity.gateway.processor.handler.request;
 
-import org.wso2.carbon.identity.gateway.api.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;

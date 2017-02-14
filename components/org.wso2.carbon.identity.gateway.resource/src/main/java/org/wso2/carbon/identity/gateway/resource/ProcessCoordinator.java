@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.gateway.resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.api.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 
 import java.util.List;

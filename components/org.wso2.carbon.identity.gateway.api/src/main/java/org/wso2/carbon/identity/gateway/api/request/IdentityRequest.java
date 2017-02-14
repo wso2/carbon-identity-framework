@@ -1,22 +1,27 @@
 /*
- * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
+ *  * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  *
+ *  * WSO2 Inc. licenses this file to you under the Apache License,
+ *  * Version 2.0 (the "License"); you may not use this file except
+ *  * in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  *      http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing,
+ *  * software distributed under the License is distributed on an
+ *  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  * KIND, either express or implied.  See the License for the
+ *  * specific language governing permissions and limitations
+ *  * under the License.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
  */
 
-package org.wso2.carbon.identity.gateway.api;
+package org.wso2.carbon.identity.gateway.api.request;
+
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.util.Constants;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -48,11 +53,39 @@ public class IdentityRequest implements Serializable {
         this.requestURI = builder.requestURI;
         this.contentType = builder.contentType;
         this.queryString = builder.queryString;
+    }
 
+    public Object getAttribute(String attributeName) {
+        return parameters.get(attributeName);
+    }
+
+    public Map<String, Object> getAttributeMap() {
+        return Collections.unmodifiableMap(attributes);
+    }
+
+    public Enumeration<String> getAttributeNames() {
+        return Collections.enumeration(attributes.keySet());
+    }
+
+    public String getBodyParameter(String paramName) {
+        Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
+        return queryParams.get(paramName);
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public String getHeader(String name) {
+        return headers.get(name);
     }
 
     public Map<String, String> getHeaderMap() {
         return Collections.unmodifiableMap(headers);
+    }
+
+    public Enumeration<String> getHeaderNames() {
+        return Collections.enumeration(headers.keySet());
     }
 
     public Enumeration<String> getHeaders(String name) {
@@ -61,20 +94,8 @@ public class IdentityRequest implements Serializable {
         return Collections.enumeration(Arrays.asList(multiValuedHeader));
     }
 
-    public Enumeration<String> getHeaderNames() {
-        return Collections.enumeration(headers.keySet());
-    }
-
-    public String getHeader(String name) {
-        return headers.get(name);
-    }
-
-    public Map<String, Object> getParameterMap() {
-        return Collections.unmodifiableMap(parameters);
-    }
-
-    public Enumeration<String> getParameterNames() {
-        return Collections.enumeration(parameters.keySet());
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     public String getParameter(String paramName) {
@@ -87,28 +108,12 @@ public class IdentityRequest implements Serializable {
         }
     }
 
-    public Map<String, Object> getAttributeMap() {
-        return Collections.unmodifiableMap(attributes);
+    public Map<String, Object> getParameterMap() {
+        return Collections.unmodifiableMap(parameters);
     }
 
-    public Enumeration<String> getAttributeNames() {
-        return Collections.enumeration(attributes.keySet());
-    }
-
-    public Object getAttribute(String attributeName) {
-        return parameters.get(attributeName);
-    }
-
-    public String getHttpMethod() {
-        return httpMethod;
-    }
-
-    public String getRequestURI() {
-        return requestURI;
-    }
-
-    public String getContentType() {
-        return contentType;
+    public Enumeration<String> getParameterNames() {
+        return Collections.enumeration(parameters.keySet());
     }
 
     public String getQueryParameter(String paramName) throws UnsupportedEncodingException {
@@ -118,13 +123,12 @@ public class IdentityRequest implements Serializable {
         return queryParams.get(paramName);
     }
 
-    public String getBodyParameter(String paramName) {
-        Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
-        return queryParams.get(paramName);
-    }
-
     public String getQueryString() {
         return queryString;
+    }
+
+    public String getRequestURI() {
+        return requestURI;
     }
 
     public static class IdentityRequestBuilder {
@@ -141,18 +145,21 @@ public class IdentityRequest implements Serializable {
 
         }
 
-        public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {
-            this.headers = responseHeaders;
+        public IdentityRequestBuilder addAttribute(String name, Object value) {
+            if (this.attributes.containsKey(name)) {
+                throw new FrameworkRuntimeException("Attributes map trying to override existing key " + name);
+            }
+            this.attributes.put(name, value);
             return this;
         }
 
-        public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
-            for (Map.Entry<String, String> header : headers.entrySet()) {
-                if (this.headers.containsKey(header.getKey())) {
-                    throw new FrameworkRuntimeException("Headers map trying to override existing header " + header
+        public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
+            for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+                if (this.attributes.containsKey(attribute.getKey())) {
+                    throw new FrameworkRuntimeException("Attributes map trying to override existing key " + attribute
                             .getKey());
                 }
-                this.headers.put(header.getKey(), header.getValue());
+                this.attributes.put(attribute.getKey(), attribute.getValue());
             }
             return this;
         }
@@ -165,9 +172,14 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-
-        public IdentityRequestBuilder setParameters(Map<String, Object> parameters) {
-            this.parameters = parameters;
+        public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                if (this.headers.containsKey(header.getKey())) {
+                    throw new FrameworkRuntimeException("Headers map trying to override existing header " + header
+                            .getKey());
+                }
+                this.headers.put(header.getKey(), header.getValue());
+            }
             return this;
         }
 
@@ -190,37 +202,12 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
+        public IdentityRequest build() throws FrameworkRuntimeException {
+            return new IdentityRequest(this);
+        }
+
         public IdentityRequestBuilder setAttributes(Map<String, Object> attributes) {
             this.attributes = attributes;
-            return this;
-        }
-
-        public IdentityRequestBuilder addAttribute(String name, Object value) {
-            if (this.attributes.containsKey(name)) {
-                throw new FrameworkRuntimeException("Attributes map trying to override existing key " + name);
-            }
-            this.attributes.put(name, value);
-            return this;
-        }
-
-        public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
-            for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
-                if (this.attributes.containsKey(attribute.getKey())) {
-                    throw new FrameworkRuntimeException("Attributes map trying to override existing key " + attribute
-                            .getKey());
-                }
-                this.attributes.put(attribute.getKey(), attribute.getValue());
-            }
-            return this;
-        }
-
-        public IdentityRequestBuilder setHttpMethod(String httpMethod) {
-            this.httpMethod = httpMethod;
-            return this;
-        }
-
-        public IdentityRequestBuilder setRequestURI(String requestURI) {
-            this.requestURI = requestURI;
             return this;
         }
 
@@ -229,13 +216,29 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
+        public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {
+            this.headers = responseHeaders;
+            return this;
+        }
+
+        public IdentityRequestBuilder setHttpMethod(String httpMethod) {
+            this.httpMethod = httpMethod;
+            return this;
+        }
+
+        public IdentityRequestBuilder setParameters(Map<String, Object> parameters) {
+            this.parameters = parameters;
+            return this;
+        }
+
         public IdentityRequestBuilder setQueryString(String queryString) {
             this.queryString = queryString;
             return this;
         }
 
-        public IdentityRequest build() throws FrameworkRuntimeException {
-            return new IdentityRequest(this);
+        public IdentityRequestBuilder setRequestURI(String requestURI) {
+            this.requestURI = requestURI;
+            return this;
         }
     }
 

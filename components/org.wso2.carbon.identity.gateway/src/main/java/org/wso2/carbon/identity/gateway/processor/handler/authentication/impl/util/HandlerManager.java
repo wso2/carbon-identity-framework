@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.u
 
 
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;

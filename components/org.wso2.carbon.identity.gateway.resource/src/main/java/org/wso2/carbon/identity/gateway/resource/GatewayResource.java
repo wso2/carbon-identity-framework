@@ -19,15 +19,15 @@
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
-import org.wso2.carbon.identity.gateway.api.Constants;
-import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.api.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.util.Constants;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
+import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;

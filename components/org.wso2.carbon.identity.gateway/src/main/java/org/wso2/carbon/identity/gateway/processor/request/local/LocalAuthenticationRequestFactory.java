@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.gateway.processor.request.local;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
+import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
 import org.wso2.msf4j.Request;
 
 

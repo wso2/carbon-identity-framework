@@ -17,9 +17,8 @@
  */
 package org.wso2.carbon.identity.gateway.processor.request;
 
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.IdentityRequest;
-import org.wso2.msf4j.Request;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
 
 import java.util.UUID;
 

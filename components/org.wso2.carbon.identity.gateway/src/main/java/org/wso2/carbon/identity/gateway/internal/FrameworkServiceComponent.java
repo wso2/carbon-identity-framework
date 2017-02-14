@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
-import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;

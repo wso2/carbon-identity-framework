@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.gateway.processor.handler.response;
 
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuildingConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;

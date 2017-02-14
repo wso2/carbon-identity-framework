@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.gateway.cache;
 
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
-import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
 
 public class IdentityMessageContextCache extends BaseCache<String, IdentityMessageContext> {
 
