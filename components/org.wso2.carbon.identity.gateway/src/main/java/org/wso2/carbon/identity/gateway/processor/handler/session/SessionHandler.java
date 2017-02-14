@@ -27,11 +27,38 @@ public class SessionHandler extends AbstractSessionHandler {
     @Override
     public void updateSession(AuthenticationContext context) throws FrameworkServerException {
 
+        // add cookie value to authentication context
+        // hash the cookie value
+
+        context.getSequenceContext().getCurrentStepContext().isAuthenticated();
+
+        context.getSequence().hasNext(context.getSequenceContext().getCurrentStep());
+
+
+        // if(all steps success) {
+
+            //if(new service provider) {
+
+                // insert new service provider to DB
+
+            //} else {
+
+                // update existing service provider in DB
+
+
+            // }
+
+        // } else {
+
+            //if(new service provider) {
+
+            //} else {
+
+            //}
+
+        // }
         SequenceContext sequenceContext = context.getSessionContext().getSequenceContext(context.getServiceProvider()
                                                                                                .getName());
-        int currentStep = sequenceContext.getCurrentStep();
-        for (context) {
-
-        }
+        
     }
 }

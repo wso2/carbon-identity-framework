@@ -3,9 +3,24 @@ package org.wso2.carbon.identity.gateway.processor.authenticator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.exception.ClaimResolvingServiceException;
+import org.wso2.carbon.identity.claim.exception.ProfileMgtServiceException;
+import org.wso2.carbon.identity.claim.mapping.profile.ClaimConfigEntry;
+import org.wso2.carbon.identity.claim.mapping.profile.ProfileEntry;
+import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
+import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AuthenticationResponse;
+import org.wso2.carbon.identity.mgt.claim.Claim;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public abstract class AbstractApplicationAuthenticator implements ApplicationAuthenticator {
     private static final long serialVersionUID = -4406878411547612129L;
@@ -32,6 +47,50 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     protected abstract AuthenticationResponse processResponse(AuthenticationContext context)
             throws AuthenticationHandlerException;
+
+    public Set<Claim> getMappedRootClaims(Set<Claim> claims, Optional<String> profile, Optional<String> dialect)
+            throws AuthenticationHandlerException {
+
+        try {
+            final Set<Claim> transformedClaims = new HashSet<>();
+
+            String claimDialect ;
+            if(dialect.isPresent()){
+                claimDialect = dialect.get();
+            }else{
+                claimDialect = claims.stream().findFirst().get().getDialectUri();
+            }
+            ClaimResolvingService claimResolvingService = FrameworkServiceDataHolder.getInstance()
+                    .getClaimResolvingService();
+            Map<String, String> claimMapping = claimResolvingService.getClaimMapping(claimDialect);
+
+            Set<Claim> transformedClaimsTmp = new HashSet<>();
+            claims.stream().filter(claim -> claimMapping.containsKey(claim.getClaimUri()))
+                    .forEach(claim -> {
+                        //#TODO:replace root dialect URI
+                        Claim tmpClaim = new Claim("rootdialect", claimMapping.get(claim.getClaimUri()), claim.getValue());
+                        transformedClaimsTmp.add(tmpClaim);
+                    });
+
+            if(profile.isPresent()) {
+                ProfileMgtService profileMgtService = FrameworkServiceDataHolder.getInstance().getProfileMgtService();
+                ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
+                List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
+                Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
+                profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
+
+                transformedClaimsTmp.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
+                        .forEach(transformedClaims::add);
+                return transformedClaims ;
+            }
+            return transformedClaimsTmp;
+        } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
+            throw new AuthenticationHandlerException(e.getMessage(), e);
+        }
+    }
+
+
+
 
 
 

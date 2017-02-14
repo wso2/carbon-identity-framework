@@ -20,26 +20,25 @@ package org.wso2.carbon.identity.gateway.api;
 
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 
-public abstract class IdentityProcessor extends AbstractHandler {
+public abstract class IdentityProcessor<T extends IdentityRequest> extends AbstractHandler {
 
     /**
      * Process IdentityRequest
      *
-     * @param identityRequest IdentityRequest
+     * @param identityRequest
+     *         IdentityRequest
      * @return IdentityResponseBuilder
-     * @throws FrameworkServerException Error
-     *                            occurred
-     *                            while
-     *                            processing
-     *                            IdentityRequest
+     * @throws FrameworkServerException
+     *         Error occurred while processing IdentityRequest
      */
-    public abstract IdentityResponse.IdentityResponseBuilder process(IdentityRequest identityRequest)
+    public abstract IdentityResponse.IdentityResponseBuilder process(T identityRequest)
             throws FrameworkServerException;
 
     /**
      * Tells if this processor can handle this IdentityRequest
      *
-     * @param identityRequest IdentityRequest
+     * @param identityRequest
+     *         IdentityRequest
      * @return can/not handle
      */
     public abstract boolean canHandle(IdentityRequest identityRequest);
