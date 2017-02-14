@@ -47,6 +47,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     protected abstract AuthenticationResponse processResponse(AuthenticationContext context)
             throws AuthenticationHandlerException;
+
     public Set<Claim> getMappedRootClaims(Set<Claim> claims, Optional<String> profile, Optional<String> dialect)
             throws AuthenticationHandlerException {
 
@@ -76,17 +77,14 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
                 List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
                 Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
-                profileClaims.stream()
-                        .forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
+                profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
 
                 transformedClaimsTmp.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
-                        .forEach(claim -> transformedClaims.add(claim));
+                        .forEach(transformedClaims::add);
                 return transformedClaims ;
             }
             return transformedClaimsTmp;
-        } catch (ClaimResolvingServiceException e) {
-            throw new AuthenticationHandlerException(e.getMessage(), e);
-        } catch (ProfileMgtServiceException e) {
+        } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
             throw new AuthenticationHandlerException(e.getMessage(), e);
         }
     }
