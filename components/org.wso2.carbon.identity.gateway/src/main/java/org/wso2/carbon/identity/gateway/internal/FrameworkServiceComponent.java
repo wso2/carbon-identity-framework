@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.Se
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 
 
@@ -73,6 +74,7 @@ public class FrameworkServiceComponent {
 
         bundleContext.registerService(Deployer.class, new ServiceProviderDeployer(), null);
         bundleContext.registerService(ServiceProviderConfigStore.class, ServiceProviderConfigStore.getInstance(), null);
+        bundleContext.registerService(GatewayClaimResolverService.class, GatewayClaimResolverService.getInstance(), null);
 
         //bundleContext.registerService(HttpIdentityRequestFactory.class, new LocalAuthenticationRequestFactory(), null);
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
