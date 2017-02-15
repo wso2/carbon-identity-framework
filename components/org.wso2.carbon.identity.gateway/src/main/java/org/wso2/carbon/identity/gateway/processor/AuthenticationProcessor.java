@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractReques
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
+import org.wso2.carbon.identity.gateway.processor.handler.session.AbstractSessionHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.session.SessionHandler;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
@@ -100,6 +102,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
 //                identityFrameworkHandlerResponse = authenticate(authenticationContext);
 //            }
             if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+                //If the authentication is done, now it should update the session.
+                identityFrameworkHandlerResponse = updateSession(authenticationContext);
+            }
+            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
                 //If the authentication is done, now it should be built the response based on inbound protocol.
                 identityFrameworkHandlerResponse = buildResponse(authenticationContext);
             }
@@ -125,6 +131,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
         try {
             //Authentication handler will start to execute.
             frameworkHandlerResponse = authenticate(authenticationContext);
+            if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+                //If the authentication is done, now it should update the session.
+                frameworkHandlerResponse = updateSession(authenticationContext);
+            }
             if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
                 //If the authentication is done, now it should be built the response based on inbound protocol.
                 frameworkHandlerResponse = buildResponse(authenticationContext);
@@ -201,6 +211,19 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
         AbstractResponseHandler responseBuilderHandler =
                 HandlerManager.getInstance().getResponseHandler(authenticationContext);
         return responseBuilderHandler.buildResponse(authenticationContext);
+    }
+
+    /**
+     * Update session.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws FrameworkHandlerException
+     */
+    protected FrameworkHandlerResponse updateSession(AuthenticationContext authenticationContext)
+            throws FrameworkHandlerException {
+        AbstractSessionHandler sessionHandler = new SessionHandler();
+        return sessionHandler.updateSession(authenticationContext);
     }
 
     /**

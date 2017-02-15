@@ -19,17 +19,21 @@ package org.wso2.carbon.identity.gateway.context;
 
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SessionContext implements Serializable {
 
-    //Sp->SequenceContext
-    private Map<String, SequenceContext> sequenceContexts = new HashMap<>();
+    private Map<String, SequenceContext> sequenceContexts = new HashMap();
 
     public SequenceContext getSequenceContext(String serviceProvider) {
         SequenceContext sequenceContext = sequenceContexts.get(serviceProvider);
         return sequenceContext;
+    }
+
+    public Collection<SequenceContext> getSequenceContexts() {
+        return sequenceContexts.values();
     }
 
     public void addSequenceContext(String serviceProvider, SequenceContext sequenceContext) {

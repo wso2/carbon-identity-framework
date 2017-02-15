@@ -25,12 +25,14 @@ import java.util.UUID;
 
 public class AuthenticationRequest extends IdentityRequest {
 
-    private String requestDataKey;
+    protected String requestDataKey;
+    protected String sessionCookie;
 
     protected AuthenticationRequest(
             AuthenticationRequestBuilder builder) {
         super(builder);
         requestDataKey = builder.requestDataKey;
+        sessionCookie = builder.sessionCookie;
         if(requestDataKey == null){
             requestDataKey = UUID.randomUUID().toString();
         }
@@ -40,19 +42,24 @@ public class AuthenticationRequest extends IdentityRequest {
         return requestDataKey;
     }
 
+    public String getSessionCookie() {
+        return sessionCookie;
+    }
+
     public static class AuthenticationRequestBuilder extends IdentityRequestBuilder {
 
-        private String requestDataKey;
-
-        public AuthenticationRequestBuilder() {
-            super();
-        }
+        protected String requestDataKey;
+        protected String sessionCookie;
 
         public AuthenticationRequestBuilder setRequestDataKey(String requestDataKey) {
             this.requestDataKey = requestDataKey;
             return this;
         }
 
+        public AuthenticationRequestBuilder setSessionCookie(String sessionCookie) {
+            this.sessionCookie = sessionCookie;
+            return this;
+        }
 
         @Override
         public AuthenticationRequest build() throws FrameworkRuntimeException {
@@ -62,5 +69,6 @@ public class AuthenticationRequest extends IdentityRequest {
 
     public static class AuthenticationRequestConstants extends IdentityRequestConstants {
         public static final String REQUEST_DATA_KEY = "RequestDataKey";
+        public static final String SESSION_COOKIE = "SIOWTOSW";
     }
 }

@@ -243,6 +243,6 @@ public class IdentityRequest implements Serializable {
     }
 
     public static class IdentityRequestConstants {
-        public static final String BROWSER_COOKIE = "SIOWTOSW";
+
     }
 }
