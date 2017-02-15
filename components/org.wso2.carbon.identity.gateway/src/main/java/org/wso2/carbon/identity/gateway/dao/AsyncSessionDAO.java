@@ -46,7 +46,7 @@ public class AsyncSessionDAO extends SessionDAO {
     private AsyncSessionDAO() {
 
         //
-        String poolSizeConfig = "100";
+        String poolSizeConfig = "0";
         if (NumberUtils.isNumber(poolSizeConfig)) {
             poolSize = Integer.parseInt(poolSizeConfig);
             if(log.isDebugEnabled()) {
