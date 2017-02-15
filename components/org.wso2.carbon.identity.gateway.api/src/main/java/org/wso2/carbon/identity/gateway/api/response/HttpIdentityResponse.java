@@ -33,7 +33,7 @@ import javax.ws.rs.core.NewCookie;
 public class HttpIdentityResponse {
 
     protected boolean isFragmentUrl;
-    private Map<String, String> headers = new HashMap<String, String>();
+    private Map<String, Object> headers = new HashMap<String, Object>();
     private Set<NewCookie> cookies = new HashSet();
     private String contentType;
     private Map<String, String[]> parameters = new HashMap<>();
@@ -60,7 +60,7 @@ public class HttpIdentityResponse {
         return contentType;
     }
 
-    public Map<String, String> getHeaders() {
+    public Map<String, Object> getHeaders() {
         return Collections.unmodifiableMap(headers);
     }
 
@@ -98,7 +98,7 @@ public class HttpIdentityResponse {
 
     public static class HttpIdentityResponseBuilder {
 
-        private Map<String, String> headers = new HashMap<String, String>();
+        private Map<String, Object> headers = new HashMap<String, Object>();
         private Set<NewCookie> cookies = new HashSet();
         private String contentType;
         private Map<String, String[]> parameters = new HashMap<>();
@@ -107,18 +107,13 @@ public class HttpIdentityResponse {
         private String body;
         private boolean isFragmentUrl;
 
-        public HttpIdentityResponseBuilder addHeader(String name, String value) {
-            String newValue = value;
-            if (this.headers.containsKey(name)) {
-                String existingValue = headers.get(name);
-                newValue = existingValue + "," + value;
-            }
-            this.headers.put(name, newValue);
+        public HttpIdentityResponseBuilder addHeader(String name, Object value) {
+            this.headers.put(name, value);
             return this;
         }
 
-        public HttpIdentityResponseBuilder addHeaders(Map<String, String> headers) {
-            for (Map.Entry<String, String> header : headers.entrySet()) {
+        public HttpIdentityResponseBuilder addHeaders(Map<String, Object> headers) {
+            for (Map.Entry<String, Object> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
                     throw new FrameworkRuntimeException("Headers map trying to override existing header " + header
                             .getKey());
@@ -184,7 +179,7 @@ public class HttpIdentityResponse {
             return this;
         }
 
-        public HttpIdentityResponseBuilder setHeaders(Map<String, String> headers) {
+        public HttpIdentityResponseBuilder setHeaders(Map<String, Object> headers) {
             this.headers = headers;
             return this;
         }

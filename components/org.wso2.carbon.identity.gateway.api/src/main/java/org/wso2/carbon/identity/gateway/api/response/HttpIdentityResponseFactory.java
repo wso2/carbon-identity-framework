@@ -20,6 +20,8 @@
 
 package org.wso2.carbon.identity.gateway.api.response;
 
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
@@ -48,7 +50,9 @@ public abstract class HttpIdentityResponseFactory extends AbstractHandler {
     }
 
     public void create(HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse) {
-        builder.addHeader("SIOWTOSW", identityResponse.getSessionKey());
+        Cookie cookie = new DefaultCookie("commonAuthId", identityResponse.getSessionKey());
+        cookie.setPath("/");
+        builder.addHeader("Set-Cookie", cookie);
     }
 
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkServerException exception) {
