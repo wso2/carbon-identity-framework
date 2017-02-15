@@ -24,12 +24,17 @@ import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.NewCookie;
 
 public class HttpIdentityResponse {
 
     protected boolean isFragmentUrl;
     private Map<String, String> headers = new HashMap<String, String>();
+    private Set<NewCookie> cookies = new HashSet();
     private String contentType;
     private Map<String, String[]> parameters = new HashMap<>();
     private String body;
@@ -38,6 +43,7 @@ public class HttpIdentityResponse {
 
     protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
         this.headers = builder.headers;
+        this.cookies = builder.cookies;
         this.contentType = builder.contentType;
         this.parameters = builder.parameters;
         this.statusCode = builder.statusCode;
@@ -56,6 +62,10 @@ public class HttpIdentityResponse {
 
     public Map<String, String> getHeaders() {
         return Collections.unmodifiableMap(headers);
+    }
+
+    public Set<NewCookie> getCookies() {
+        return Collections.unmodifiableSet(cookies);
     }
 
     public String getParameterValue(String paramName) {
@@ -89,6 +99,7 @@ public class HttpIdentityResponse {
     public static class HttpIdentityResponseBuilder {
 
         private Map<String, String> headers = new HashMap<String, String>();
+        private Set<NewCookie> cookies = new HashSet();
         private String contentType;
         private Map<String, String[]> parameters = new HashMap<>();
         private int statusCode;
@@ -114,6 +125,16 @@ public class HttpIdentityResponse {
                 }
                 this.headers.put(header.getKey(), header.getValue());
             }
+            return this;
+        }
+
+        public HttpIdentityResponseBuilder addCookie(NewCookie cookie) {
+            this.cookies.add(cookie);
+            return this;
+        }
+
+        public HttpIdentityResponseBuilder addCookies(Set<NewCookie> cookies) {
+            this.cookies.addAll(cookies);
             return this;
         }
 

@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.identity.gateway.context;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
@@ -65,8 +67,11 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
 
     public SessionContext getSessionContext() {
         AuthenticationRequest authenticationRequest =  getIdentityRequest();
-        String sessionDataKey = authenticationRequest.getSessionCookie();
-        return SessionContextCache.getInstance().get(sessionDataKey);
+        String sessionKey = authenticationRequest.getSessionKey();
+        if(StringUtils.isNotBlank(sessionKey)) {
+            return SessionContextCache.getInstance().get(DigestUtils.sha256Hex(sessionKey));
+        }
+        return null;
     }
 
 

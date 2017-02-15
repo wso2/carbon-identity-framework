@@ -34,10 +34,10 @@ public class AsyncSessionDAO extends SessionDAO {
     private static final Logger log = LoggerFactory.getLogger(AsyncSessionDAO.class);
 
     private static SessionDAO instance = new AsyncSessionDAO();
-    private static SessionDAO persistentDAO = JDBCSessionDAO.getInstance();
+    private SessionDAO persistentDAO = JDBCSessionDAO.getInstance();
     private int poolSize = 0;
 
-    private static BlockingDeque<SessionPersistenceTask.SessionJob> sessionJobs = new LinkedBlockingDeque();
+    private BlockingDeque<SessionPersistenceTask.SessionJob> sessionJobs = new LinkedBlockingDeque();
 
     public static SessionDAO getInstance() {
         return instance;

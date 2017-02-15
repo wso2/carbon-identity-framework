@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.gateway.context.SessionContext;
 public class CacheBackedSessionDAO extends SessionDAO {
 
     private static SessionDAO instance = new CacheBackedSessionDAO();
-    private static SessionDAO asyncSessionDAO = AsyncSessionDAO.getInstance();
+    private SessionDAO asyncSessionDAO = AsyncSessionDAO.getInstance();
 
     private CacheBackedSessionDAO() {
 

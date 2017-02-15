@@ -36,15 +36,13 @@ public class SessionHandler extends AbstractSessionHandler {
     @Override
     public FrameworkHandlerResponse updateSession(AuthenticationContext context) throws FrameworkHandlerException {
 
-        // add cookie value to authentication context
-        String sessionCookie = ((AuthenticationRequest)context.getIdentityRequest()).getSessionCookie();
-        String cookieValue = null;
-        String cookieHash = null;
-        if(StringUtils.isBlank(sessionCookie)) {
-            cookieValue = UUID.randomUUID().toString();
-            cookieHash = DigestUtils.sha256Hex(cookieValue);
+        String sessionKey = ((AuthenticationRequest)context.getIdentityRequest()).getSessionKey();
+        String sessionKeyHash = null;
+        if(StringUtils.isBlank(sessionKey)) {
+            sessionKey = UUID.randomUUID().toString();
         }
-        context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_COOKIE, cookieValue);
+        sessionKeyHash = DigestUtils.sha256Hex(sessionKey);
+        context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY, sessionKey);
 
         String serviceProviderName = context.getServiceProvider().getName();
         SessionContext sessionContext = context.getSessionContext();
@@ -57,8 +55,8 @@ public class SessionHandler extends AbstractSessionHandler {
         boolean isLastStepAuthenticated = existingSequenceContext.getCurrentStepContext().isAuthenticated();
         boolean isSequenceCompleted = !context.getSequence().hasNext(currentStep) && isLastStepAuthenticated;
 
-        context.getSessionContext().addSequenceContext(serviceProviderName, currentSequenceContext);
-        CacheBackedSessionDAO.getInstance().put(cookieHash, context.getSessionContext());
+        sessionContext.addSequenceContext(serviceProviderName, currentSequenceContext);
+        CacheBackedSessionDAO.getInstance().put(sessionKeyHash, sessionContext);
         return FrameworkHandlerResponse.CONTINUE;
 
 //        if(existingSequenceContext == null) { // if new service provider

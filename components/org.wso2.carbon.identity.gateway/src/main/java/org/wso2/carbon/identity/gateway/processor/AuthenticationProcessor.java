@@ -157,14 +157,14 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
     protected AuthenticationContext initAuthenticationContext(ClientAuthenticationRequest clientAuthenticationRequest) {
 
         AuthenticationContext authenticationContext = new AuthenticationContext(clientAuthenticationRequest);
-        //requestDataKey is the co-relation key to re-load the context after subsequent call to the system.
-        String requestDataKey = clientAuthenticationRequest.getRequestDataKey();
+        //requestKey is the co-relation key to re-load the context after subsequent call to the system.
+        String requestDataKey = clientAuthenticationRequest.getRequestKey();
         IdentityMessageContextCache.getInstance().addToCache(requestDataKey, authenticationContext);
         return authenticationContext;
     }
 
     /**
-     * Load last AuthenticationContext from cache for given requestDataKey.
+     * Load last AuthenticationContext from cache for given requestKey.
      *
      * @param authenticationRequest
      * @return
@@ -172,7 +172,7 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
     protected AuthenticationContext loadAuthenticationContext(AuthenticationRequest authenticationRequest) {
 
         AuthenticationContext authenticationContext = null;
-        String requestDataKey = authenticationRequest.getRequestDataKey();
+        String requestDataKey = authenticationRequest.getRequestKey();
         IdentityMessageContext identityMessageContext =
                 IdentityMessageContextCache.getInstance().getValueFromCache(requestDataKey);
         if (identityMessageContext != null) {

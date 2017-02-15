@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication;
 
 
+import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
@@ -28,6 +29,11 @@ public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory 
             throws AuthenticationHandlerException {
         DefaultAbstractSequence defaultAbstractSequence = new DefaultAbstractSequence(authenticationContext);
         return defaultAbstractSequence;
+    }
+
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true;
     }
 
     @Override

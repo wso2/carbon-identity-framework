@@ -40,7 +40,7 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
         }
     }
 
-    public static class ClientAuthenticationRequestConstants extends AuthenticationRequest.IdentityRequestConstants {
+    public static class ClientAuthenticationRequestConstants extends AuthenticationRequestConstants {
 
     }
 }

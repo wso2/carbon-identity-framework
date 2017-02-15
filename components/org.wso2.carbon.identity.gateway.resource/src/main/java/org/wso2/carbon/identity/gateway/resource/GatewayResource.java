@@ -38,6 +38,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -154,6 +155,7 @@ public class GatewayResource implements Microservice {
         Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
         builder.entity(httpIdentityResponse.getBody());
         httpIdentityResponse.getHeaders().forEach(builder::header);
+        httpIdentityResponse.getCookies().forEach(builder::cookie);
         return builder.build();
 //        Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
 //        //#TODO: want to get clear how transform identoty response to jaxrs response

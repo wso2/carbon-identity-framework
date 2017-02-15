@@ -22,12 +22,15 @@ package org.wso2.carbon.identity.gateway.context;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SequenceContext {
+public class SequenceContext implements Serializable {
+
+    private static final long serialVersionUID = -3397856701064644528L;
 
     private int currentStep = 0;
 
@@ -86,7 +89,11 @@ public class SequenceContext {
         return aggregatedClaims;
     }
 
-    public static class RequestPathAuthenticatorContext {
+    public static class RequestPathAuthenticatorContext implements Serializable {
+
+
+        private static final long serialVersionUID = 6683606766294458119L;
+
         private String authenticatorName;
         private User user;
         private boolean isAuthenticated = false;
@@ -116,7 +123,11 @@ public class SequenceContext {
         }
     }
 
-    public static class StepContext {
+    public static class StepContext implements Serializable {
+
+
+        private static final long serialVersionUID = -6517237540622607778L;
+
         private int step;
         private String authenticatorName;
         private String identityProviderName;

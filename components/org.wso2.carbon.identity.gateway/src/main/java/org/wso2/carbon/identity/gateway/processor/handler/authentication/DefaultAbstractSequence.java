@@ -105,7 +105,7 @@ public class DefaultAbstractSequence extends AbstractSequence {
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
         AuthenticationStepConfig authenticationStepConfig = authenticationConfig.getAuthenticationStepConfigs()
-                .get(step);
+                .get(step-1);
         return authenticationStepConfig;
     }
 

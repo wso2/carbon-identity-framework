@@ -62,7 +62,7 @@ public class JDBCSessionDAO extends SessionDAO {
     public void put(String key, SessionContext session) {
 
         final String storeSession =
-                "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, SESSION_OBJECT, TIME)"
+                "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, SESSION_OBJECT, TIME_CREATED)"
                         + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :" + SESSION_OBJECT + ";, :"
                         + TIME_CREATED + ";)";
 
@@ -122,7 +122,7 @@ public class JDBCSessionDAO extends SessionDAO {
     public void remove(String key) {
 
         final String deleteSession =
-                "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, TIME)"
+                "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, TIME_CREATED)"
                         + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :"
                         + TIME_CREATED + ";)";
 

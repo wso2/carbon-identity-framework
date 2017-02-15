@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplica
 import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.DefaultSequenceBuilderFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
@@ -74,7 +75,7 @@ public class FrameworkServiceComponent {
 
 
         //Registering this for demo perposes only
-        //bundleContext.registerService(AbstractSequenceBuildFactory.class, new DemoSequenceBuildFactory(), null);
+        bundleContext.registerService(AbstractSequenceBuildFactory.class, new DefaultSequenceBuilderFactory(), null);
         bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
         bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
         bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);

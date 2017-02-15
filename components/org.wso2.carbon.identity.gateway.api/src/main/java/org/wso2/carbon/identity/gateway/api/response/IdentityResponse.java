@@ -32,14 +32,21 @@ public class IdentityResponse implements Serializable {
     private static final long serialVersionUID = 1348704275109461974L;
 
     protected IdentityMessageContext context;
+    protected String sessionKey;
 
     protected IdentityResponse(IdentityResponseBuilder builder) {
         this.context = builder.context;
+        this.sessionKey = builder.sessionKey;
+    }
+
+    public String getSessionKey() {
+        return sessionKey;
     }
 
     public static class IdentityResponseBuilder {
 
         protected IdentityMessageContext context;
+        protected String sessionKey;
 
         public IdentityResponseBuilder(IdentityMessageContext context) {
             this.context = context;
@@ -47,6 +54,11 @@ public class IdentityResponse implements Serializable {
 
         public IdentityResponseBuilder() {
 
+        }
+
+        public IdentityResponseBuilder setSessionKey(String sessionKey) {
+            this.sessionKey = sessionKey;
+            return this;
         }
 
         public IdentityResponse build() {

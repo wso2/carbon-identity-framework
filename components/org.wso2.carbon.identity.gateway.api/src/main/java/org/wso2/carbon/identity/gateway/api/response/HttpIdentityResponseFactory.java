@@ -24,6 +24,8 @@ import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
 
+import javax.ws.rs.core.NewCookie;
+
 public abstract class HttpIdentityResponseFactory extends AbstractHandler {
 
     public boolean canHandle(IdentityResponse identityResponse) {
@@ -38,12 +40,16 @@ public abstract class HttpIdentityResponseFactory extends AbstractHandler {
         return false;
     }
 
-    public abstract HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse);
+    public HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse) {
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse
+                .HttpIdentityResponseBuilder();
+        create(builder, identityResponse);
+        return builder;
+    }
 
-    public abstract HttpIdentityResponse.HttpIdentityResponseBuilder create(HttpIdentityResponse
-                                                                                    .HttpIdentityResponseBuilder
-                                                                                    builder,
-                                                                            IdentityResponse identityResponse);
+    public void create(HttpIdentityResponse.HttpIdentityResponseBuilder builder, IdentityResponse identityResponse) {
+        builder.addHeader("SIOWTOSW", identityResponse.getSessionKey());
+    }
 
     public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkServerException exception) {
 
