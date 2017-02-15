@@ -24,12 +24,16 @@ import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
+import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.gateway.processor.request.local.LocalAuthenticationRequest;
+
+import java.util.Collection;
+import java.util.Iterator;
 
 public class StepHandler extends FrameworkHandler {
     @Override
@@ -60,42 +64,51 @@ public class StepHandler extends FrameworkHandler {
             }
         } else {
             currentStepContext = sequenceContext.addStepContext();
-            if (sequence.isMultiOption(sequenceContext.getCurrentStep())) {
-                IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
-                String authenticatorName = null;
-                if (identityRequest instanceof LocalAuthenticationRequest) {
-                    LocalAuthenticationRequest localAuthenticationRequest =
-                            (LocalAuthenticationRequest) identityRequest;
-                    authenticatorName = localAuthenticationRequest.getAuthenticatorName();
-                    currentStepContext.setIdentityProviderName(localAuthenticationRequest.getIdentityProviderName());
-                }
-
-                if (StringUtils.isNotBlank(authenticatorName)) {
-                    currentStepContext.setAuthenticatorName(authenticatorName);
-                    applicationAuthenticator =
-                            Utility.getLocalApplicationAuthenticator(authenticatorName);
-                    if (applicationAuthenticator == null) {
-                        applicationAuthenticator = Utility.getFederatedApplicationAuthenticator(authenticatorName);
-                    }
-                } else {
-                    authenticationResponse = AuthenticationResponse.INCOMPLETE;
-                    //Should set redirect URL ;
-                }
-
+            if(lookUpSessionValidity(authenticationContext)) {
+                authenticationResponse = AuthenticationResponse.AUTHENTICATED;
             } else {
-
-
-                IdentityProvider identityProvider = sequence.getIdentityProvider(sequenceContext.getCurrentStep(),sequenceContext.getCurrentStepContext().getIdentityProviderName());
-                if (identityProvider != null) {
-                    applicationAuthenticator =
-                            Utility.getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
-                    if(applicationAuthenticator == null){
-                        applicationAuthenticator =
-                                Utility.getFederatedApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                if (sequence.isMultiOption(sequenceContext.getCurrentStep())) {
+                    IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
+                    String authenticatorName = null;
+                    if (identityRequest instanceof LocalAuthenticationRequest) {
+                        LocalAuthenticationRequest localAuthenticationRequest =
+                                (LocalAuthenticationRequest) identityRequest;
+                        authenticatorName = localAuthenticationRequest.getAuthenticatorName();
+                        currentStepContext.setIdentityProviderName(localAuthenticationRequest.getIdentityProviderName());
                     }
-                    if(applicationAuthenticator != null) {
-                        currentStepContext.setAuthenticatorName(applicationAuthenticator.getName());
-                        currentStepContext.setIdentityProviderName(identityProvider.getIdentityProviderName());
+
+                    if (StringUtils.isNotBlank(authenticatorName)) {
+                        currentStepContext.setAuthenticatorName(authenticatorName);
+                        applicationAuthenticator =
+                                Utility.getLocalApplicationAuthenticator(authenticatorName);
+                        if (applicationAuthenticator == null) {
+                            applicationAuthenticator = Utility.getFederatedApplicationAuthenticator(authenticatorName);
+                        }
+                    } else {
+                        if (lookUpSessionValidity(authenticationContext)) {
+                            authenticationResponse = AuthenticationResponse.AUTHENTICATED;
+                        } else {
+                            authenticationResponse = AuthenticationResponse.INCOMPLETE;
+                            //Should set redirect URL ; @Harsha: redirect url for multi option page ??
+                        }
+
+                    }
+
+                } else {
+
+
+                    IdentityProvider identityProvider = sequence.getIdentityProvider(sequenceContext.getCurrentStep(), sequenceContext.getCurrentStepContext().getIdentityProviderName());
+                    if (identityProvider != null) {
+                        applicationAuthenticator =
+                                Utility.getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                        if (applicationAuthenticator == null) {
+                            applicationAuthenticator =
+                                    Utility.getFederatedApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                        }
+                        if (applicationAuthenticator != null) {
+                            currentStepContext.setAuthenticatorName(applicationAuthenticator.getName());
+                            currentStepContext.setIdentityProviderName(identityProvider.getIdentityProviderName());
+                        }
                     }
                 }
             }
@@ -117,5 +130,35 @@ public class StepHandler extends FrameworkHandler {
     @Override
     public boolean canHandle(MessageContext messageContext) {
         return true ;
+    }
+
+    protected boolean lookUpSessionValidity(AuthenticationContext authenticationContext) throws
+                                                                                  AuthenticationHandlerException {
+
+        boolean isSessionValid = false;
+        Collection<SequenceContext> existingContexts = authenticationContext.getSessionContext().getSequenceContexts();
+        Iterator<SequenceContext> it = existingContexts.iterator();
+        while(it.hasNext()) {
+            SequenceContext sequenceContext = it.next();
+            int currentStep = authenticationContext.getSequenceContext().getCurrentStep();
+            String idPName = sequenceContext.getStepContext(authenticationContext .getSequenceContext().getCurrentStep())
+                    .getIdentityProviderName();
+            IdentityProvider identityProvider = authenticationContext.getSequence().getIdentityProvider(currentStep,
+                                                                                     idPName);
+            String authenticatorName = sequenceContext.getStepContext(authenticationContext.getSequenceContext()
+                                                                     .getCurrentStep())
+                    .getAuthenticatorName();
+            User user = sequenceContext.getStepContext(authenticationContext.getSequenceContext().getCurrentStep())
+                    .getUser();
+            if(identityProvider != null) {
+                authenticationContext.getSequenceContext().getCurrentStepContext().setIdentityProviderName(idPName);
+                authenticationContext.getSequenceContext().getCurrentStepContext().setUser(user);
+                authenticationContext.getSequenceContext().getCurrentStepContext().setAuthenticatorName(authenticatorName);
+                authenticationContext.getSequenceContext().getCurrentStepContext().setIsAuthenticated(true);
+                isSessionValid = true;
+                break;
+            }
+        }
+        return isSessionValid;
     }
 }

@@ -22,6 +22,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
@@ -32,14 +33,17 @@ public class AsyncSessionDAO extends SessionDAO {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncSessionDAO.class);
 
-    private SessionDAO persistentDAO = null;
+    private static SessionDAO instance = new AsyncSessionDAO();
+    private static SessionDAO persistentDAO = JDBCSessionDAO.getInstance();
     private int poolSize = 0;
 
     private static BlockingDeque<SessionPersistenceTask.SessionJob> sessionJobs = new LinkedBlockingDeque();
 
-    public AsyncSessionDAO(SessionDAO persistentDAO) {
+    public static SessionDAO getInstance() {
+        return instance;
+    }
 
-        this.persistentDAO = persistentDAO;
+    private AsyncSessionDAO() {
 
         //
         String poolSizeConfig = "100";

@@ -51,5 +51,7 @@ public abstract class AbstractSequence implements Serializable {
     public abstract IdentityProvider getIdentityProvider(int step, String identityProviderName)
             throws AuthenticationHandlerException;
 
+    public abstract int getSteps() throws AuthenticationHandlerException;
+
 
 }

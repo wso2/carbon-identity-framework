@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.gateway.processor.handler.session;
 
-import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
 
 public abstract class AbstractSessionHandler extends FrameworkHandler {
 
@@ -29,5 +31,5 @@ public abstract class AbstractSessionHandler extends FrameworkHandler {
         return "SessionPersistenceHandler";
     }
 
-    public abstract void updateSession(AuthenticationContext context) throws FrameworkServerException;
+    public abstract FrameworkHandlerResponse updateSession(AuthenticationContext context) throws FrameworkHandlerException;
 }

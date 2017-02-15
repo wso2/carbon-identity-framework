@@ -65,7 +65,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
 
     public SessionContext getSessionContext() {
         AuthenticationRequest authenticationRequest =  getIdentityRequest();
-        String sessionDataKey = authenticationRequest.getSessionDataKey();
+        String sessionDataKey = authenticationRequest.getSessionCookie();
         return SessionContextCache.getInstance().get(sessionDataKey);
     }
 

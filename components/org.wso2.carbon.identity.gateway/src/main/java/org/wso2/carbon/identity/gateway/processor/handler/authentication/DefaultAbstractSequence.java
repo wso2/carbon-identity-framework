@@ -95,6 +95,12 @@ public class DefaultAbstractSequence extends AbstractSequence {
         return identityProviderTmp ;
     }
 
+    @Override
+    public int getSteps() throws AuthenticationHandlerException {
+        return authenticationContext.getServiceProvider().getAuthenticationConfig().getAuthenticationStepConfigs()
+                .size();
+    }
+
     private AuthenticationStepConfig getAuthenticationStepConfig(int step) throws AuthenticationHandlerException {
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();

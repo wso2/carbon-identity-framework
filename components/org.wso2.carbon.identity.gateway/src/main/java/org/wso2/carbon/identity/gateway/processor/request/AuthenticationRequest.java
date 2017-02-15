@@ -26,13 +26,13 @@ import java.util.UUID;
 public class AuthenticationRequest extends IdentityRequest {
 
     protected String requestDataKey;
-    protected String sessionDataKey;
+    protected String sessionCookie;
 
     protected AuthenticationRequest(
             AuthenticationRequestBuilder builder) {
         super(builder);
         requestDataKey = builder.requestDataKey;
-        sessionDataKey = builder.sessionDataKey;
+        sessionCookie = builder.sessionCookie;
         if(requestDataKey == null){
             requestDataKey = UUID.randomUUID().toString();
         }
@@ -42,22 +42,22 @@ public class AuthenticationRequest extends IdentityRequest {
         return requestDataKey;
     }
 
-    public String getSessionDataKey() {
-        return sessionDataKey;
+    public String getSessionCookie() {
+        return sessionCookie;
     }
 
     public static class AuthenticationRequestBuilder extends IdentityRequestBuilder {
 
         protected String requestDataKey;
-        protected String sessionDataKey;
+        protected String sessionCookie;
 
         public AuthenticationRequestBuilder setRequestDataKey(String requestDataKey) {
             this.requestDataKey = requestDataKey;
             return this;
         }
 
-        public AuthenticationRequestBuilder setSessionDataKey(String sessionDataKey) {
-            this.sessionDataKey = sessionDataKey;
+        public AuthenticationRequestBuilder setSessionCookie(String sessionCookie) {
+            this.sessionCookie = sessionCookie;
             return this;
         }
 
@@ -69,6 +69,6 @@ public class AuthenticationRequest extends IdentityRequest {
 
     public static class AuthenticationRequestConstants extends IdentityRequestConstants {
         public static final String REQUEST_DATA_KEY = "RequestDataKey";
-        public static final String SESSION_DATA_KEY = "SessionDataKey";
+        public static final String SESSION_COOKIE = "SIOWTOSW";
     }
 }

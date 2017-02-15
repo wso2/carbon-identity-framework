@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.gateway.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 
 import java.util.concurrent.BlockingDeque;

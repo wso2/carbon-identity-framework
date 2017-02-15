@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.jdbc.DataAccessException;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.dao.SessionDAO;
 
@@ -49,6 +49,7 @@ public class JDBCSessionDAO extends SessionDAO {
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
+
     private JDBCSessionDAO() {
 
     }
