@@ -1,39 +1,70 @@
 serviceProviderConfig:
-  name: "SampleSP"
-  requestHandlerConfigs:
-    -
-        type: "SAML"
-        properties:
-            issuer : "ravelocity.com"
+  name: "sample"
+  requestValidationConfig:
+    requestValidatorConfigs:
+      -
+          type: "SAML"
+          uniquePropertyName : "issuer"
+          properties:
+            issuer : "travelocity.com"
             assertionConsumerUrls:
                 - "http://localhost:8080/travelocity.com/home.jsp"
-                - "https://wso2.acme.instructure.com/login/saml"
+            defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
             nameIDformat: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-            certificateAlias: "wso2Carbon"
-            responseSigningAlgorithm : "http://www.w3.org/2000/09/xmldsig#dsa-sha1"
-
-  authenticationHandlerConfig:
-    stepHandlerConfigs :
+            certificateAlias: "wso2carbon"
+            enableAttributesByDefault : "true"
+            idPInitSSOEnabled : "true"
+            attributeConsumingServiceIndex : "2342342"
       -
-        subjectStep : "true"
-        multiOptionHandlerConfig:
-          optionConfigs :
-            -
-              authenticatorConfig:
-                type : "local"
-                authenticatorName : "BasicAuthenticator"
-                properties:
-                    test : "Dsdsd"
-            -
-              authenticatorConfig:
-                type : "local"
-                authenticatorName : "BasicAuthenticator"
-                properties:
-                    test : "Dsdsd"
-      -
-        authenticatorConfig:
-          type : "local"
-          authenticatorName : "BasicAuthenticator"
+          type: "oidc"
+          uniquePropertyName : "key"
           properties:
-              test : "Dsdsd"
+              assertionConsumerUrls:
+                  - "http://localhost:8080/playground/home.jsp"
+              key : "f3f43f43f43f43v4343gfddd"
+              secret : "ssdf232f23f32f32f32f32f32f"
 
+  claimConfig:
+   profile : "sdsd"
+   dialectUri : "dfdf"
+   subjectClaimUri : "SdsD"
+
+  authenticationConfig:
+    authenticationStepConfigs :
+      -
+        useLocalSubjectIdentifier : "true"
+        useDomainInLocalSubjectIdentifier : "true"
+        authStrategy : ""
+        identityProviders :
+          -
+            identityProviderName : "fed"
+            authenticatorName : "Google"
+            identityProviderConfig :
+          -
+            identityProviderName : "fed"
+            authenticatorName : "Facebook"
+
+      -
+        identityProviders :
+          -
+            identityProviderName : "resident-idp"
+            authenticatorName : "BasicAuthenticator"
+
+  responseBuildingConfig:
+    responseBuilderConfigs:
+      -
+        type: "SAML"
+        properties:
+          defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
+          certificateAlias : "wso2carbon"
+          doSignResponse : "true"
+          doSingleLogout : "true"
+          doSignAssertions : "true"
+          attributeConsumingServiceIndex : "2342342"
+          enableAttributesByDefault : ""
+          isDoEnableEncryptedAssertion : "false"
+          signingAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+          digestAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#sha1"
+          requestedAudiences :
+            - "testing"
+            - "testing2"

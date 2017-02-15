@@ -20,50 +20,39 @@
 
 package org.wso2.carbon.identity.gateway.service;
 
-import org.wso2.carbon.identity.claim.exception.ClaimResolvingServiceException;
-import org.wso2.carbon.identity.claim.exception.ProfileMgtServiceException;
-import org.wso2.carbon.identity.claim.mapping.profile.ClaimConfigEntry;
-import org.wso2.carbon.identity.claim.mapping.profile.ProfileEntry;
-import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
-import org.wso2.carbon.identity.claim.service.ProfileMgtService;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 public class GatewayClaimResolverService {
     private static GatewayClaimResolverService gatewayClaimResolverService = new GatewayClaimResolverService();
 
-    private GatewayClaimResolverService(){
+    private GatewayClaimResolverService() {
 
     }
-    public static GatewayClaimResolverService getInstance(){
+
+    public static GatewayClaimResolverService getInstance() {
         return GatewayClaimResolverService.gatewayClaimResolverService;
     }
 
 
-    public Claim transformToRootDialect(Claim otherDialectClaim, Optional<String> profile){
+    public Claim transformToRootDialect(Claim otherDialectClaim, Optional<String> profile) {
         return null;
     }
 
 
-    public Claim transformToOtherDialect(Claim rootDialectClaim, Optional<String> profile){
+    public Claim transformToOtherDialect(Claim rootDialectClaim, Optional<String> profile) {
         return null;
     }
 
-    public Set<Claim> transformToRootDialect(Set<Claim> otherDialectClaims, Optional<String> profile){
+    public Set<Claim> transformToRootDialect(Set<Claim> otherDialectClaims, Optional<String> profile) {
 
-        return null ;
+        return null;
     }
 
 
-    public Set<Claim> transformToOtherDialect(Set<Claim> rootDialectClaims, Optional<String> profile){
-        return null ;
+    public Set<Claim> transformToOtherDialect(Set<Claim> rootDialectClaims, Optional<String> profile) {
+        return null;
     }
 }

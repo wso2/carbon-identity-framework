@@ -56,7 +56,7 @@ public abstract class AbstractResponseHandler extends FrameworkHandler {
         Iterator<ResponseBuilderConfig> responseBuilderConfigIterator = responseBuilderConfigs.iterator();
         while (responseBuilderConfigIterator.hasNext()) {
             ResponseBuilderConfig responseBuilderConfig = responseBuilderConfigIterator.next();
-            if (getValidatorType().equalsIgnoreCase((String) responseBuilderConfig.getProperties().get("type"))) {
+            if (getValidatorType().equalsIgnoreCase(responseBuilderConfig.getType())) {
                 return responseBuilderConfig.getProperties();
             }
         }
