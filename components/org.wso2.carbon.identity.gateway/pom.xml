@@ -101,6 +101,7 @@
             org.wso2.carbon.identity.gateway.store.*,
             org.wso2.carbon.identity.gateway.deployer.*,
             org.wso2.carbon.identity.gateway.service.*,
+            org.wso2.carbon.identity.gateway.dao.*,
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
@@ -123,6 +124,8 @@
             org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}",
             org.wso2.carbon.deployment.engine; version="${carbon.deployment.import.version.range}",
             org.wso2.carbon.deployment.engine.exception; version="${carbon.deployment.import.version.range}",
+            org.apache.commons.codec; version="${commons.codec.pkg.import.version.range}"; resolution:=optional,
+            org.apache.commons.codec.*;version="${commons.codec.pkg.import.version.range}"; resolution:=optional,
         </import.package>
         <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>
