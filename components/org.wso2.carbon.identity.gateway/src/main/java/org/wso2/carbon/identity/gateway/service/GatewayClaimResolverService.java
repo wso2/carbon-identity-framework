@@ -42,7 +42,7 @@ public class GatewayClaimResolverService {
     }
 
 
-    public Claim transformToOtherDialect(Claim rootDialectClaim, Optional<String> profile) {
+    public Claim transformToOtherDialect(Claim rootDialectClaim, String dialect,  Optional<String> profile) {
         return null;
     }
 
@@ -52,7 +52,7 @@ public class GatewayClaimResolverService {
     }
 
 
-    public Set<Claim> transformToOtherDialect(Set<Claim> rootDialectClaims, Optional<String> profile) {
+    public Set<Claim> transformToOtherDialect(Set<Claim> rootDialectClaims, String dialect, Optional<String> profile) {
         return null;
     }
 }

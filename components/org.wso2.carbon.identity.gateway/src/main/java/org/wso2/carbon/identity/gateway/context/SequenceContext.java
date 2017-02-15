@@ -20,9 +20,12 @@ package org.wso2.carbon.identity.gateway.context;
 
 
 import org.wso2.carbon.identity.gateway.model.User;
+import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SequenceContext {
 
@@ -75,6 +78,13 @@ public class SequenceContext {
         return stepContext ;
     }
 
+
+    public Set<Claim> getAllClaims() {
+        Set<Claim> aggregatedClaims = new HashSet<Claim>();
+        stepContextList.stream().forEach(stepContext -> stepContext.getUser().getClaims().forEach(claim ->
+                aggregatedClaims.add(claim)));
+        return aggregatedClaims;
+    }
 
     public static class RequestPathAuthenticatorContext {
         private String authenticatorName;
