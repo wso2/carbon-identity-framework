@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.gateway.processor.request;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
 
@@ -26,13 +27,11 @@ import java.util.UUID;
 public class AuthenticationRequest extends IdentityRequest {
 
     protected String requestKey;
-    protected String sessionKey;
 
     protected AuthenticationRequest(
             AuthenticationRequestBuilder builder) {
         super(builder);
         requestKey = builder.requestDataKey;
-        sessionKey = builder.sessionCookie;
         if(requestKey == null){
             requestKey = UUID.randomUUID().toString();
         }
@@ -43,7 +42,13 @@ public class AuthenticationRequest extends IdentityRequest {
     }
 
     public String getSessionKey() {
-        return sessionKey;
+        String cookie = this.getHeader("Cookie");
+        if (StringUtils.isNotEmpty(cookie)) {
+            cookie = cookie.split("=")[1];
+            cookie = cookie.split(",")[0];
+            return cookie;
+        }
+        return null;
     }
 
     public static class AuthenticationRequestBuilder extends IdentityRequestBuilder {

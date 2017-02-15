@@ -37,16 +37,6 @@ serviceProviderConfig:
         authStrategy : ""
         identityProviders :
           -
-            identityProviderName : "fed"
-            authenticatorName : "Google"
-            identityProviderConfig :
-          -
-            identityProviderName : "fed"
-            authenticatorName : "Facebook"
-
-      -
-        identityProviders :
-          -
             identityProviderName : "resident-idp"
             authenticatorName : "BasicAuthenticator"
 
@@ -58,11 +48,11 @@ serviceProviderConfig:
           defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
           certificateAlias : "wso2carbon"
           doSignResponse : "true"
-          doSingleLogout : "true"
+          doSingleLogout : "false"
           doSignAssertions : "true"
           attributeConsumingServiceIndex : "2342342"
           enableAttributesByDefault : ""
-          isDoEnableEncryptedAssertion : "false"
+          doEnableEncryptedAssertion : "false"
           signingAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
           digestAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#sha1"
           requestedAudiences :
