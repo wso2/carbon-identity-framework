@@ -19,12 +19,12 @@
 package org.wso2.carbon.identity.gateway.processor;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -55,7 +55,7 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
 
     @Override
     public IdentityResponse.IdentityResponseBuilder process(AuthenticationRequest authenticationRequest)
-                                                                                    throws FrameworkServerException {
+            throws FrameworkServerException {
         IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null;
 
         /*
@@ -95,10 +95,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
         try {
             //Protocol validator request validate in this level.
             identityFrameworkHandlerResponse = validate(authenticationContext);
-            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
-                //Authentication handler will start to execute.
-                identityFrameworkHandlerResponse = authenticate(authenticationContext);
-            }
+//            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+//                //Authentication handler will start to execute.
+//                identityFrameworkHandlerResponse = authenticate(authenticationContext);
+//            }
             if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
                 //If the authentication is done, now it should be built the response based on inbound protocol.
                 identityFrameworkHandlerResponse = buildResponse(authenticationContext);
@@ -183,7 +183,7 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
      * @throws RequestHandlerException
      */
     protected FrameworkHandlerResponse validate(AuthenticationContext authenticationContext)
-                                                        throws AuthenticationHandlerException, RequestHandlerException {
+            throws AuthenticationHandlerException, RequestHandlerException {
         AbstractRequestHandler protocolRequestHandler =
                 HandlerManager.getInstance().getProtocolRequestHandler(authenticationContext);
         return protocolRequestHandler.validate(authenticationContext);
@@ -227,9 +227,14 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
      */
     protected FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
                                                           IdentityException identityException) throws
-                                                                                               ResponseException {
+            ResponseException {
         AbstractResponseHandler responseBuilderHandler =
                 HandlerManager.getInstance().getResponseHandler(authenticationContext);
         return responseBuilderHandler.buildErrorResponse(authenticationContext, identityException);
     }
+
+    public int getPriority() {
+        return 50;
+    }
+
 }

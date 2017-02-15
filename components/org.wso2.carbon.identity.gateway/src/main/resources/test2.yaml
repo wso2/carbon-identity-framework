@@ -24,6 +24,11 @@ serviceProviderConfig:
               key : "f3f43f43f43f43v4343gfddd"
               secret : "ssdf232f23f32f32f32f32f32f"
 
+  claimConfig:
+   profile : "sdsd"
+   dialectUri : "dfdf"
+   subjectClaimUri : "SdsD"
+
   authenticationConfig:
     authenticationStepConfigs :
       -
@@ -53,6 +58,7 @@ serviceProviderConfig:
           defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
           certificateAlias : "wso2carbon"
           doSignResponse : "true"
+          doSingleLogout : "true"
           doSignAssertions : "true"
           attributeConsumingServiceIndex : "2342342"
           enableAttributesByDefault : ""
