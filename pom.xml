@@ -191,7 +191,7 @@
         <identity.gateway.resource.export.version>${identity.gateway.resource.version}</identity.gateway.resource.export.version>
         <identity.gateway.resource.import.version.range>[1.0.0,2.0.0)</identity.gateway.resource.import.version.range>
 
-        <carbon.identity.mgt.version>0.1.10-SNAPSHOT</carbon.identity.mgt.version>
+        <carbon.identity.mgt.version>0.1.10</carbon.identity.mgt.version>
         <carbon.identity.mgt.import.version.range>[0.0.0,1.0.0)</carbon.identity.mgt.import.version.range>
 
         <!-- Carbon platform version comes here-->
@@ -225,6 +225,8 @@
         <slf4j.version>1.7.5</slf4j.version>
         <slf4j.logging.package.import.version.range>[1.7.1, 2.0.0)</slf4j.logging.package.import.version.range>
         <commons.codec.pkg.import.version.range>[1.4.0, 2.0.0)</commons.codec.pkg.import.version.range>
+        <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
+        <carbon.jndi.import.version.range>[1.0.0, 2.0.0)</carbon.jndi.import.version.range>
 
         <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
     </properties>

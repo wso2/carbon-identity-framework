@@ -97,10 +97,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
         try {
             //Protocol validator request validate in this level.
             identityFrameworkHandlerResponse = validate(authenticationContext);
-//            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
-//                //Authentication handler will start to execute.
-//                identityFrameworkHandlerResponse = authenticate(authenticationContext);
-//            }
+            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
+                //Authentication handler will start to execute.
+                identityFrameworkHandlerResponse = authenticate(authenticationContext);
+            }
             if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
                 //If the authentication is done, now it should update the session.
                 identityFrameworkHandlerResponse = updateSession(authenticationContext);

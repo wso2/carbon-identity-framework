@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.dao.CacheBackedSessionDAO;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 
 import java.util.UUID;
@@ -46,7 +47,11 @@ public class SessionHandler extends AbstractSessionHandler {
         context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_COOKIE, cookieValue);
 
         String serviceProviderName = context.getServiceProvider().getName();
-        SequenceContext existingSequenceContext = context.getSessionContext().getSequenceContext(serviceProviderName);
+        SessionContext sessionContext = context.getSessionContext();
+        if (sessionContext == null) {
+            sessionContext = createSession(context);
+        }
+        SequenceContext existingSequenceContext = sessionContext.getSequenceContext(serviceProviderName);
         SequenceContext currentSequenceContext = context.getSequenceContext();
         int currentStep = currentSequenceContext.getCurrentStep();
         boolean isLastStepAuthenticated = existingSequenceContext.getCurrentStepContext().isAuthenticated();
@@ -93,5 +98,11 @@ public class SessionHandler extends AbstractSessionHandler {
 //
 //        }
         
+    }
+
+    private SessionContext createSession (AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
+        SessionContext sessionContext = new SessionContext();
+        sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(), authenticationContext.getSequenceContext());
+        return sessionContext;
     }
 }

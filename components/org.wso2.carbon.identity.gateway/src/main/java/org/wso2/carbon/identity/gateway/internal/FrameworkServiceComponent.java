@@ -25,12 +25,15 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.jndi.JNDIContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
+import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
@@ -46,6 +49,11 @@ import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractReques
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
+import org.wso2.carbon.identity.mgt.RealmService;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 
 @Component(
@@ -361,6 +369,51 @@ public class FrameworkServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Removed ProfileMgtService : " + ProfileMgtService.class);
         }
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.datasource.jndi",
+            service = JNDIContextManager.class,
+            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "onJNDIUnregister") protected void onJNDIReady(JNDIContextManager jndiContextManager) {
+        try {
+            Context ctx = jndiContextManager.newInitialContext();
+            DataSource dsObject = (DataSource) ctx.lookup("java:comp/env/jdbc/WSO2CARBON_DB");
+            if (dsObject != null) {
+                JdbcTemplate jdbcTemplate = new JdbcTemplate(dsObject);
+                initializeDao(jdbcTemplate);
+            } else {
+                log.error("Could not find WSO2CarbonDB");
+            }
+        } catch (NamingException e) {
+            log.error("Error occurred while looking up the Datasource", e);
+        }
+    }
+    protected void onJNDIUnregister(JNDIContextManager jndiContextManager) {
+        log.info("Un-registering data sources");
+    }
+    private void initializeDao(JdbcTemplate jdbcTemplate) {
+        JDBCSessionDAO.getInstance().setJdbcTemplate(jdbcTemplate);
+    }
+
+
+    @Reference(
+            name = "realmService",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Setting the Realm Service");
+        }
+        //dataHolder.setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+        log.debug("UnSetting the Realm Service");
+        //dataHolder.setRealmService(null);
     }
 
 

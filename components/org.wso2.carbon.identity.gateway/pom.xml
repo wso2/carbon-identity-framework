@@ -121,11 +121,13 @@
             org.wso2.carbon.identity.gateway.api.*; version="${identity.gateway.api.import.version.range}",
             org.wso2.carbon.identity.gateway.common.*; version="${identity.gateway.common.import.version.range}",
             org.wso2.carbon.identity.claim.*; version="${carbon.identity.mgt.import.version.range}",
+            org.wso2.carbon.identity.mgt.*; version="${carbon.identity.mgt.import.version.range}",
             org.yaml.snakeyaml.*;version="${org.snakeyaml.package.import.version.range}",
             org.wso2.carbon.deployment.engine; version="${carbon.deployment.import.version.range}",
             org.wso2.carbon.deployment.engine.exception; version="${carbon.deployment.import.version.range}",
             org.apache.commons.codec; version="${commons.codec.pkg.import.version.range}"; resolution:=optional,
             org.apache.commons.codec.*;version="${commons.codec.pkg.import.version.range}"; resolution:=optional,
+            org.osgi.service.*;version="${carbon.jndi.import.version.range}",
         </import.package>
         <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>
