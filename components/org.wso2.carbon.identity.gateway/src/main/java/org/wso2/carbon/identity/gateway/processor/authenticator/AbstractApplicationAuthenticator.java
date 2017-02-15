@@ -18,8 +18,8 @@
 package org.wso2.carbon.identity.gateway.processor.authenticator;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.claim.exception.ClaimResolvingServiceException;
 import org.wso2.carbon.identity.claim.exception.ProfileMgtServiceException;
 import org.wso2.carbon.identity.claim.mapping.profile.ClaimConfigEntry;
@@ -41,7 +41,7 @@ import java.util.Set;
 
 public abstract class AbstractApplicationAuthenticator implements ApplicationAuthenticator {
     private static final long serialVersionUID = -4406878411547612129L;
-    private static final Log log = LogFactory.getLog(AbstractApplicationAuthenticator.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractApplicationAuthenticator.class);
 
 
     @Override
@@ -71,10 +71,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         try {
             final Set<Claim> transformedClaims = new HashSet<>();
 
-            String claimDialect ;
-            if(dialect.isPresent()){
+            String claimDialect;
+            if (dialect.isPresent()) {
                 claimDialect = dialect.get();
-            }else{
+            } else {
                 claimDialect = claims.stream().findFirst().get().getDialectUri();
             }
             ClaimResolvingService claimResolvingService = FrameworkServiceDataHolder.getInstance()
@@ -89,7 +89,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                         transformedClaimsTmp.add(tmpClaim);
                     });
 
-            if(profile.isPresent()) {
+            if (profile.isPresent()) {
                 ProfileMgtService profileMgtService = FrameworkServiceDataHolder.getInstance().getProfileMgtService();
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
                 List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
@@ -98,7 +98,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
                 transformedClaimsTmp.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
                         .forEach(transformedClaims::add);
-                return transformedClaims ;
+                return transformedClaims;
             }
             return transformedClaimsTmp;
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
