@@ -16,6 +16,7 @@
  * under the License.
  */
 
+
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
 
@@ -23,12 +24,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class IDPMetaData {
+public class IDPMetaData{
 
     private List<IDPCertificate> certificates = new ArrayList<>();
-    private String federationHub;
-    private String homeRealm;
-    private RoleConfiguration roleConfiguration;
+    private String federationHub ;
+    private String homeRealm ;
+    private ClaimConfig claimConfig ;
+    private RoleConfig roleConfig;
     private Properties properties = new Properties();
 
     public List<IDPCertificate> getCertificates() {
@@ -55,6 +57,14 @@ public class IDPMetaData {
         this.homeRealm = homeRealm;
     }
 
+    public RoleConfig getRoleConfig() {
+        return roleConfig;
+    }
+
+    public void setRoleConfig(RoleConfig roleConfig) {
+        this.roleConfig = roleConfig;
+    }
+
     public Properties getProperties() {
         return properties;
     }
@@ -63,11 +73,11 @@ public class IDPMetaData {
         this.properties = properties;
     }
 
-    public RoleConfiguration getRoleConfiguration() {
-        return roleConfiguration;
+    public ClaimConfig getClaimConfig() {
+        return claimConfig;
     }
 
-    public void setRoleConfiguration(RoleConfiguration roleConfiguration) {
-        this.roleConfiguration = roleConfiguration;
+    public void setClaimConfig(ClaimConfig claimConfig) {
+        this.claimConfig = claimConfig;
     }
 }
