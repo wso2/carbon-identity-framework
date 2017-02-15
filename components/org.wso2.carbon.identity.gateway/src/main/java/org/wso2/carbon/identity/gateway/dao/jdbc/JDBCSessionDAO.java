@@ -84,7 +84,7 @@ public class JDBCSessionDAO extends SessionDAO {
         final String retrieveSession =
                 "SELECT " + "OPERATION, TIME_CREATED, SESSION_OBJECT FROM IDN_SESSION WHERE KEY = :" + KEY + "; " +
                         "ORDER BY TIME_CREATED DESC LIMIT 1";
-
+        final SessionContext[] sessionContext = {null};
         try {
             jdbcTemplate.fetchSingleRecord(retrieveSession, (resultSet, rowNumber) -> {
                 String operation = resultSet.getString(OPERATION);
@@ -94,7 +94,7 @@ public class JDBCSessionDAO extends SessionDAO {
                         ObjectInput ois = null;
                         try {
                             ois = new ObjectInputStream(is);
-                            return (SessionContext) ois.readObject();
+                            sessionContext[0] = (SessionContext) ois.readObject();
                         } catch (IOException | ClassNotFoundException e) {
                             logger.error("Error while trying to close ObjectInputStream.", e);
                         } finally {
@@ -108,14 +108,14 @@ public class JDBCSessionDAO extends SessionDAO {
                         }
                     }
                 }
-                return null;
+                return sessionContext[0];
             }, namedPreparedStatement -> {
                 namedPreparedStatement.setString(KEY, key);
             });
         } catch (DataAccessException e) {
             throw new FrameworkRuntimeException("Error while retrieving session.", e);
         }
-        return null;
+        return sessionContext[0];
     }
 
     @Override
