@@ -1,23 +1,33 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.carbon.identity.gateway.context;
 
-
-import org.wso2.carbon.identity.gateway.common.model.AuthenticationStep;
-import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.gateway.model.User;
-import org.wso2.carbon.identity.gateway.model.UserClaim;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
-import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Set;
 
 public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends ClientAuthenticationRequest> extends
                                                                                                    IdentityMessageContext<T1, T2, T3> {
@@ -84,39 +94,4 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(uniqueId);
         return serviceProvider;
     }
-/*
-
-    public User getSubjectUser() {
-        SequenceContext sequenceContext = getSequenceContext();
-        User subjectStepUser = null;
-        AbstractSequence sequence = getSequence();
-        AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
-        for (AuthenticationStep authenticationStep : stepAuthenticatorConfig) {
-            boolean subjectUser = authenticationStep.isSubjectStep();
-            if (subjectUser) {
-                SequenceContext.StepContext stepContext =
-                        sequenceContext.getStepContext(authenticationStep.getStepOrder());
-                subjectStepUser = stepContext.getUser();
-            }
-        }
-        return subjectStepUser;
-    }
-
-    public Set<Claim> getClaims() {
-        SequenceContext sequenceContext = getSequenceContext();
-        User attributeStepUser = null;
-        AbstractSequence sequence = getSequence();
-        AuthenticationStep[] stepAuthenticatorConfig = sequence.getStepAuthenticatorConfig();
-        for (AuthenticationStep authenticationStep : stepAuthenticatorConfig) {
-            boolean attributeStep = authenticationStep.isAttributeStep();
-            if (attributeStep) {
-                SequenceContext.StepContext stepContext =
-                        sequenceContext.getStepContext(authenticationStep.getStepOrder());
-                attributeStepUser = stepContext.getUser();
-            }
-        }
-        return attributeStepUser.getClaims();
-    }
-*/
-
 }

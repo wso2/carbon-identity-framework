@@ -1,31 +1,33 @@
 /*
- * Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
-import org.wso2.carbon.identity.gateway.api.Constants;
-import org.wso2.carbon.identity.gateway.api.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponse;
-import org.wso2.carbon.identity.gateway.api.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.api.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.util.Constants;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
+import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
+import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;

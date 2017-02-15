@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
 
@@ -10,7 +29,8 @@ public class IDPMetaData{
     private List<IDPCertificate> certificates = new ArrayList<>();
     private String federationHub ;
     private String homeRealm ;
-    private RoleConfiguration roleConfiguration;
+    private ClaimConfig claimConfig ;
+    private RoleConfig roleConfig;
     private Properties properties = new Properties();
 
     public List<IDPCertificate> getCertificates() {
@@ -37,12 +57,12 @@ public class IDPMetaData{
         this.homeRealm = homeRealm;
     }
 
-    public RoleConfiguration getRoleConfiguration() {
-        return roleConfiguration;
+    public RoleConfig getRoleConfig() {
+        return roleConfig;
     }
 
-    public void setRoleConfiguration(RoleConfiguration roleConfiguration) {
-        this.roleConfiguration = roleConfiguration;
+    public void setRoleConfig(RoleConfig roleConfig) {
+        this.roleConfig = roleConfig;
     }
 
     public Properties getProperties() {
@@ -53,4 +73,11 @@ public class IDPMetaData{
         this.properties = properties;
     }
 
+    public ClaimConfig getClaimConfig() {
+        return claimConfig;
+    }
+
+    public void setClaimConfig(ClaimConfig claimConfig) {
+        this.claimConfig = claimConfig;
+    }
 }

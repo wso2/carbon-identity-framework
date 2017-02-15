@@ -19,13 +19,13 @@
 package org.wso2.carbon.identity.gateway.processor;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.api.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.api.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.api.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
