@@ -21,7 +21,10 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
@@ -98,20 +101,22 @@ public class StepHandler extends FrameworkHandler {
                 } else {
 
 
-                    IdentityProvider identityProvider = sequence.getIdentityProvider(sequenceContext.getCurrentStep(), sequenceContext.getCurrentStepContext().getIdentityProviderName());
-//                    if (identityProvider != null) {
-//                        applicationAuthenticator =
-//                                Utility.getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
-//                        if (applicationAuthenticator == null) {
-//                            applicationAuthenticator =
-//                                    Utility.getFederatedApplicationAuthenticator(identityProvider.getAuthenticatorName());
-//                        }
-//                        if (applicationAuthenticator != null) {
+                    AuthenticationStepConfig config = getAuthenticationStepConfig(authenticationContext, sequenceContext
+                            .getCurrentStep());
+                    IdentityProvider identityProvider = config.getIdentityProviders().get(0);
+                    if (identityProvider != null) {
+                        applicationAuthenticator =
+                                Utility.getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                        if (applicationAuthenticator == null) {
+                            applicationAuthenticator =
+                                    Utility.getFederatedApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                        }
+                        if (applicationAuthenticator != null) {
                         authenticationResponse = AuthenticationResponse.AUTHENTICATED;
-                            currentStepContext.setAuthenticatorName("DummyAuthenticator");
-                            currentStepContext.setIdentityProviderName("LOCAL");
-//                        }
-//                    }
+                            currentStepContext.setAuthenticatorName(applicationAuthenticator.getName());
+                            currentStepContext.setIdentityProviderName(identityProvider.getIdentityProviderName());
+                        }
+                    }
                 }
             }
         }
@@ -168,4 +173,15 @@ public class StepHandler extends FrameworkHandler {
         }
         return isSessionValid;
     }
+
+    private AuthenticationStepConfig getAuthenticationStepConfig(AuthenticationContext context, int step) throws
+            AuthenticationHandlerException {
+        ServiceProviderConfig serviceProvider = context.getServiceProvider();
+        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
+        AuthenticationStepConfig authenticationStepConfig = authenticationConfig.getAuthenticationStepConfigs()
+                .get(step-1);
+        return authenticationStepConfig;
+    }
+
+
 }

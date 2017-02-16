@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
+import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
 import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.St
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
+import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.wso2.carbon.identity.mgt.RealmService;
 
@@ -82,7 +84,9 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(StepHandler.class, new StepHandler(), null);
 
         bundleContext.registerService(Deployer.class, new ServiceProviderDeployer(), null);
+        bundleContext.registerService(Deployer.class, new IdentityProviderDeployer(), null);
         bundleContext.registerService(ServiceProviderConfigStore.class, ServiceProviderConfigStore.getInstance(), null);
+        bundleContext.registerService(IdentityProviderConfigStore.class, IdentityProviderConfigStore.getInstance(), null);
         bundleContext.registerService(GatewayClaimResolverService.class, GatewayClaimResolverService.getInstance(), null);
 
         //bundleContext.registerService(HttpIdentityRequestFactory.class, new LocalAuthenticationRequestFactory(), null);
