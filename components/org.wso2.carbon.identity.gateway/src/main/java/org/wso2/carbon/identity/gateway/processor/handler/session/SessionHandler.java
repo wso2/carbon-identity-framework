@@ -42,7 +42,9 @@ public class SessionHandler extends AbstractSessionHandler {
             sessionKey = UUID.randomUUID().toString();
         }
         sessionKeyHash = DigestUtils.sha256Hex(sessionKey);
-        context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY, sessionKey);
+        if(context.getParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY) == null) {
+            context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY, sessionKey);
+        }
 
         String serviceProviderName = context.getServiceProvider().getName();
         SessionContext sessionContext = context.getSessionContext();

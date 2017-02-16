@@ -91,6 +91,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
             if (profile.isPresent()) {
                 ProfileMgtService profileMgtService = FrameworkServiceDataHolder.getInstance().getProfileMgtService();
+                // fix null pointer for profile.get()
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
                 List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
                 Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
