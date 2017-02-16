@@ -20,12 +20,16 @@ package org.wso2.carbon.identity.gateway.cache;
 
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class IdentityMessageContextCache extends BaseCache<String, IdentityMessageContext> {
 
     private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
     private static volatile IdentityMessageContextCache instance;
-    private boolean enableRequestScopeCache = false;
+    private static Map<String,IdentityMessageContext> authenticationContextMap = new HashMap();
 
     private IdentityMessageContextCache(String cacheName) {
         super(cacheName);
@@ -44,15 +48,14 @@ public class IdentityMessageContextCache extends BaseCache<String, IdentityMessa
     }
 
     public void addToCache(String key, IdentityMessageContext context) {
-        super.put(key, context);
+        authenticationContextMap.put(key, context);
     }
 
     public IdentityMessageContext getValueFromCache(String key) {
-        IdentityMessageContext context = super.get(key);
-        return context;
+        return authenticationContextMap.get(key);
     }
 
     public void clearCacheEntry(String key) {
-        super.clear(key);
+        authenticationContextMap.remove(key);
     }
 }
