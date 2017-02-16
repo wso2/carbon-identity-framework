@@ -120,7 +120,7 @@ public class IdentityProviderDeployer implements Deployer {
                 }
 
             } catch (Exception e) {
-
+                 e.printStackTrace();
             }
         }
         return identityProviderConfig;
