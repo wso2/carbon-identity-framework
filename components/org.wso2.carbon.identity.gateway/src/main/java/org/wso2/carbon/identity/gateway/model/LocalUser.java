@@ -29,7 +29,7 @@ import java.util.Set;
 
 public class LocalUser extends User {
 
-    private Logger log = LoggerFactory.getLogger(LocalUser.class);
+    private transient Logger log = LoggerFactory.getLogger(LocalUser.class);
 
     org.wso2.carbon.identity.mgt.User user;
 

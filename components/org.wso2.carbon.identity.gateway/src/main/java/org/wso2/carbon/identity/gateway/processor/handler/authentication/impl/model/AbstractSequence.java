@@ -27,6 +27,7 @@ import java.util.List;
 
 public abstract class AbstractSequence implements Serializable {
 
+    private static final long serialVersionUID = 855941807514456712L;
     protected transient AuthenticationContext authenticationContext = null;
 
     protected AbstractSequence(AuthenticationContext authenticationContext) {

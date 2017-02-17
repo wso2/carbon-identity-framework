@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 
 public class ClientAuthenticationRequest extends AuthenticationRequest {
 
+    private static final long serialVersionUID = 1202704178758481721L;
+
     protected ClientAuthenticationRequest(ClientAuthenticationRequest.ClientAuthenticationRequestBuilder builder) {
         super(builder);
 

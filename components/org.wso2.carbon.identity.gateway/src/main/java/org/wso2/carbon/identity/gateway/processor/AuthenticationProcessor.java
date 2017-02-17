@@ -65,20 +65,23 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
         coming from the client. If it is CallbackAuthenticationRequest, so it should be a subsequent call to the
         gateway by local or external parties.
          */
+        AuthenticationContext authenticationContext = null;
         if (authenticationRequest instanceof ClientAuthenticationRequest) {
 
-            AuthenticationContext authenticationContext = initAuthenticationContext(
+            authenticationContext = initAuthenticationContext(
                     (ClientAuthenticationRequest) authenticationRequest);
             identityResponseBuilder = processLoginRequest(authenticationContext);
         } else if (authenticationRequest instanceof CallbackAuthenticationRequest) {
 
-            AuthenticationContext authenticationContext = loadAuthenticationContext(
+            authenticationContext = loadAuthenticationContext(
                     (CallbackAuthenticationRequest) authenticationRequest);
             if (authenticationContext == null) {
                 throw new FrameworkRuntimeException("Invalid Request.");
             }
             identityResponseBuilder = processAuthenticationRequest(authenticationContext);
+
         }
+        updateAuthenticationContext(authenticationRequest.getRequestKey(), authenticationContext);
         return identityResponseBuilder;
     }
 
@@ -159,8 +162,12 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
         AuthenticationContext authenticationContext = new AuthenticationContext(clientAuthenticationRequest);
         //requestKey is the co-relation key to re-load the context after subsequent call to the system.
         String requestDataKey = clientAuthenticationRequest.getRequestKey();
-        IdentityMessageContextCache.getInstance().addToCache(requestDataKey, authenticationContext);
+        IdentityMessageContextCache.getInstance().put(requestDataKey, authenticationContext);
         return authenticationContext;
+    }
+
+    protected void updateAuthenticationContext(String requestDatakey, AuthenticationContext authenticationContext) {
+        IdentityMessageContextCache.getInstance().put(requestDatakey, authenticationContext);
     }
 
     /**
@@ -174,7 +181,7 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
         AuthenticationContext authenticationContext = null;
         String requestDataKey = authenticationRequest.getRequestKey();
         IdentityMessageContext identityMessageContext =
-                IdentityMessageContextCache.getInstance().getValueFromCache(requestDataKey);
+                IdentityMessageContextCache.getInstance().get(requestDataKey);
         if (identityMessageContext != null) {
             authenticationContext = (AuthenticationContext) identityMessageContext;
             //authenticationRequest is not the initial request , but this is subsequent request object that is not

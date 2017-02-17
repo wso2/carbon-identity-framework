@@ -31,7 +31,7 @@ import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import java.io.Serializable;
 import java.util.Map;
 
-public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends ClientAuthenticationRequest> extends
+public class DemoAuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends ClientAuthenticationRequest> extends
         IdentityMessageContext<T1, T2, T3> {
 
     private static final long serialVersionUID = 6821167819709907062L;
@@ -42,12 +42,12 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
     private AbstractSequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
 
-    public AuthenticationContext(T3 authenticationRequest, Map<T1, T2> parameters) {
+    public DemoAuthenticationContext(T3 authenticationRequest, Map<T1, T2> parameters) {
         super(authenticationRequest, parameters);
         this.initialAuthenticationRequest = authenticationRequest;
     }
 
-    public AuthenticationContext(T3 authenticationRequest) {
+    public DemoAuthenticationContext(T3 authenticationRequest) {
         super(authenticationRequest);
         this.initialAuthenticationRequest = authenticationRequest;
     }

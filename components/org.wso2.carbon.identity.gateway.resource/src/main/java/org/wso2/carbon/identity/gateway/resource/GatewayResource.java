@@ -81,7 +81,6 @@ public class GatewayResource implements Microservice {
     @Path("/")
     public Response processPost(@Context Request request) {
         addParameters(request);
-        process(request);
         return processHttpResponse(process(request), request);
     }
 

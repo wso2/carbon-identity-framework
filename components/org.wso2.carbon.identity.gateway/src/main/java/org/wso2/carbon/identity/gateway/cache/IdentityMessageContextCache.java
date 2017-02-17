@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.gateway.cache;
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.context.SessionContext;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,15 +50,21 @@ public class IdentityMessageContextCache extends BaseCache<String, IdentityMessa
         return instance;
     }
 
-    public void addToCache(String key, IdentityMessageContext context) {
-        authenticationContextMap.put(key, context);
+    public void put(String key, IdentityMessageContext context) {
+        super.put(key, context);
+        JDBCIdentityContextDAO.getInstance().put(key, context);
     }
 
-    public IdentityMessageContext getValueFromCache(String key) {
-        return authenticationContextMap.get(key);
+    public IdentityMessageContext get(String key) {
+        IdentityMessageContext context = super.get(key);
+        if(context == null) {
+            context = JDBCIdentityContextDAO.getInstance().get(key);
+        }
+        return context;
     }
 
-    public void clearCacheEntry(String key) {
-        authenticationContextMap.remove(key);
+    public void clear(String key) {
+        super.clear(key);
+        JDBCIdentityContextDAO.getInstance().remove(key);
     }
 }

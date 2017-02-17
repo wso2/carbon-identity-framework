@@ -27,6 +27,7 @@ import java.util.UUID;
 
 public class AuthenticationRequest extends IdentityRequest {
 
+    private static final long serialVersionUID = -8870055537743402153L;
     protected String requestKey;
 
     protected AuthenticationRequest(

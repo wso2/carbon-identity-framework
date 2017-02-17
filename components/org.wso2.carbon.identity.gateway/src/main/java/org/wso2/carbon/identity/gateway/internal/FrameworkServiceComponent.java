@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.dao.IdentityContextDAO;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
 import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
@@ -400,6 +402,7 @@ public class FrameworkServiceComponent {
     }
     private void initializeDao(JdbcTemplate jdbcTemplate) {
         JDBCSessionDAO.getInstance().setJdbcTemplate(jdbcTemplate);
+        JDBCIdentityContextDAO.getInstance().setJdbcTemplate(jdbcTemplate);
     }
 
 

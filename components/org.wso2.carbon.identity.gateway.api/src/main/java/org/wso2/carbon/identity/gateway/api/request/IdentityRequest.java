@@ -37,9 +37,9 @@ public class IdentityRequest implements Serializable {
 
     private static final long serialVersionUID = 5418537216546873566L;
 
-    protected Map<String, String> headers = new HashMap();
-    protected Map<String, Object> parameters = new HashMap();
-    protected Map<String, Object> attributes = new HashMap();
+    protected Map<String, Serializable> headers = new HashMap();
+    protected Map<String, Serializable> parameters = new HashMap();
+    protected Map<String, Serializable> attributes = new HashMap();
     protected String httpMethod;
     protected String requestURI;
     protected String contentType;
@@ -55,11 +55,11 @@ public class IdentityRequest implements Serializable {
         this.queryString = builder.queryString;
     }
 
-    public Object getAttribute(String attributeName) {
+    public Serializable getAttribute(String attributeName) {
         return parameters.get(attributeName);
     }
 
-    public Map<String, Object> getAttributeMap() {
+    public Map<String, Serializable> getAttributeMap() {
         return Collections.unmodifiableMap(attributes);
     }
 
@@ -77,11 +77,11 @@ public class IdentityRequest implements Serializable {
     }
 
     public String getHeader(String name) {
-        return headers.get(name);
+        return (String)headers.get(name);
     }
 
     public Map<String, String> getHeaderMap() {
-        return Collections.unmodifiableMap(headers);
+        return Collections.unmodifiableMap((Map)headers);
     }
 
     public Enumeration<String> getHeaderNames() {
@@ -89,7 +89,7 @@ public class IdentityRequest implements Serializable {
     }
 
     public Enumeration<String> getHeaders(String name) {
-        String headerValue = headers.get(name);
+        String headerValue = (String)headers.get(name);
         String[] multiValuedHeader = headerValue.split(",");
         return Collections.enumeration(Arrays.asList(multiValuedHeader));
     }
@@ -108,7 +108,7 @@ public class IdentityRequest implements Serializable {
         }
     }
 
-    public Map<String, Object> getParameterMap() {
+    public Map<String, Serializable> getParameterMap() {
         return Collections.unmodifiableMap(parameters);
     }
 
@@ -133,9 +133,9 @@ public class IdentityRequest implements Serializable {
 
     public static class IdentityRequestBuilder {
 
-        private Map<String, String> headers = new HashMap();
-        private Map<String, Object> parameters = new HashMap();
-        private Map<String, Object> attributes = new HashMap();
+        private Map<String, Serializable> headers = new HashMap();
+        private Map<String, Serializable> parameters = new HashMap();
+        private Map<String, Serializable> attributes = new HashMap();
         private String httpMethod;
         private String requestURI;
         private String contentType;
@@ -145,7 +145,7 @@ public class IdentityRequest implements Serializable {
 
         }
 
-        public IdentityRequestBuilder addAttribute(String name, Object value) {
+        public IdentityRequestBuilder addAttribute(String name, Serializable value) {
             if (this.attributes.containsKey(name)) {
                 throw new FrameworkRuntimeException("Attributes map trying to override existing key " + name);
             }
@@ -153,8 +153,8 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addAttributes(Map<String, Object> attributes) {
-            for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+        public IdentityRequestBuilder addAttributes(Map<String, Serializable> attributes) {
+            for (Map.Entry<String, Serializable> attribute : attributes.entrySet()) {
                 if (this.attributes.containsKey(attribute.getKey())) {
                     throw new FrameworkRuntimeException("Attributes map trying to override existing key " + attribute
                             .getKey());
@@ -183,7 +183,7 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addParameter(String name, Object value) {
+        public IdentityRequestBuilder addParameter(String name, Serializable value) {
             if (this.parameters.containsKey(name)) {
                 throw new FrameworkRuntimeException("Parameters map trying to override existing key " + name);
             }
@@ -191,8 +191,8 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addParameters(Map<String, Object> parameters) {
-            for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
+        public IdentityRequestBuilder addParameters(Map<String, Serializable> parameters) {
+            for (Map.Entry<String, Serializable> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
                     throw new FrameworkRuntimeException("Parameters map trying to override existing key " + parameter
                             .getKey());
@@ -206,9 +206,16 @@ public class IdentityRequest implements Serializable {
             return new IdentityRequest(this);
         }
 
-        public IdentityRequestBuilder setAttributes(Map<String, Object> attributes) {
-            this.attributes = attributes;
+        public IdentityRequestBuilder setAttributes(Map<String, Serializable> attributes) {
+
+            for (Map.Entry<String, Serializable> entry : attributes.entrySet())
+            {
+                if (entry instanceof Serializable) {
+                    this.attributes.put(entry.getKey(), entry.getValue());
+                }
+            }
             return this;
+
         }
 
         public IdentityRequestBuilder setContentType(String contentType) {
@@ -216,7 +223,7 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder setHeaders(Map<String, String> responseHeaders) {
+        public IdentityRequestBuilder setHeaders(Map<String, Serializable> responseHeaders) {
             this.headers = responseHeaders;
             return this;
         }
@@ -226,7 +233,7 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder setParameters(Map<String, Object> parameters) {
+        public IdentityRequestBuilder setParameters(Map<String, Serializable> parameters) {
             this.parameters = parameters;
             return this;
         }

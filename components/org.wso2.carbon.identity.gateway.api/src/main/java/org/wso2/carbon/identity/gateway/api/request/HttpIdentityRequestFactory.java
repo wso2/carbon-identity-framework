@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
 import org.wso2.carbon.identity.gateway.api.util.Constants;
 import org.wso2.msf4j.Request;
 
+import java.io.Serializable;
+import java.util.Map;
+
 public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> extends AbstractHandler {
 
     private Logger log = LoggerFactory.getLogger(HttpIdentityRequestFactory.class);
@@ -55,9 +58,9 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
         builder.setHttpMethod(request.getHttpMethod());
-        builder.setAttributes(request.getProperties());
-        builder.addParameter(Constants.QUERY_PARAMETERS, request.getProperty(Constants.QUERY_PARAMETERS));
-        builder.addParameter(Constants.BODY_PARAMETERS, request.getProperty(Constants.BODY_PARAMETERS));
+        builder.setAttributes((Map)request.getProperties());
+        builder.addParameter(Constants.QUERY_PARAMETERS, (Serializable) request.getProperty(Constants.QUERY_PARAMETERS));
+        builder.addParameter(Constants.BODY_PARAMETERS, (Serializable)request.getProperty(Constants.BODY_PARAMETERS));
 
         String[] queryStringParams = request.getUri().split("\\?");
         if (queryStringParams != null && queryStringParams.length > 1) {
