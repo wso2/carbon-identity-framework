@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.gateway.processor.request;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.util.Constants;
 
 import java.util.UUID;
 
@@ -43,8 +44,8 @@ public class AuthenticationRequest extends IdentityRequest {
 
     public String getSessionKey() {
         String cookie = this.getHeader("Cookie");
-        if (StringUtils.isNotEmpty(cookie)) {
-            cookie = cookie.split("=")[1];
+        if (StringUtils.isNotEmpty(cookie) &&  cookie.contains(Constants.GATEWAY_COOKIE)) {
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             cookie = cookie.split(",")[0];
             return cookie;
         }

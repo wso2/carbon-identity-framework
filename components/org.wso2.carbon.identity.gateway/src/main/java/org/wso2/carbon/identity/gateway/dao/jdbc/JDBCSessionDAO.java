@@ -32,6 +32,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class JDBCSessionDAO extends SessionDAO {
 
@@ -84,7 +85,9 @@ public class JDBCSessionDAO extends SessionDAO {
         final String retrieveSession =
                 "SELECT " + "OPERATION, TIME_CREATED, SESSION_OBJECT FROM IDN_SESSION WHERE KEY = :" + KEY + "; " +
                         "ORDER BY TIME_CREATED DESC LIMIT 1";
-        final SessionContext[] sessionContext = {null};
+
+        AtomicReference<SessionContext> sessionContext = new AtomicReference<>();
+
         try {
             jdbcTemplate.fetchSingleRecord(retrieveSession, (resultSet, rowNumber) -> {
                 String operation = resultSet.getString(OPERATION);
@@ -94,7 +97,7 @@ public class JDBCSessionDAO extends SessionDAO {
                         ObjectInput ois = null;
                         try {
                             ois = new ObjectInputStream(is);
-                            sessionContext[0] = (SessionContext) ois.readObject();
+                            sessionContext.set((SessionContext)ois.readObject());
                         } catch (IOException | ClassNotFoundException e) {
                             logger.error("Error while trying to close ObjectInputStream.", e);
                         } finally {
@@ -108,14 +111,14 @@ public class JDBCSessionDAO extends SessionDAO {
                         }
                     }
                 }
-                return sessionContext[0];
+                return sessionContext.get();
             }, namedPreparedStatement -> {
                 namedPreparedStatement.setString(KEY, key);
             });
         } catch (DataAccessException e) {
             throw new FrameworkRuntimeException("Error while retrieving session.", e);
         }
-        return sessionContext[0];
+        return sessionContext.get();
     }
 
     @Override

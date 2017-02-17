@@ -53,6 +53,10 @@ public class SessionHandler extends AbstractSessionHandler {
         }
         SequenceContext existingSequenceContext = sessionContext.getSequenceContext(serviceProviderName);
         SequenceContext currentSequenceContext = context.getSequenceContext();
+        if (existingSequenceContext == null) {
+            updateSession(context, sessionContext);
+            existingSequenceContext = sessionContext.getSequenceContext(serviceProviderName);
+        }
         int currentStep = currentSequenceContext.getCurrentStep();
         boolean isLastStepAuthenticated = existingSequenceContext.getCurrentStepContext().isAuthenticated();
         boolean isSequenceCompleted = !context.getSequence().hasNext(currentStep) && isLastStepAuthenticated;
@@ -105,4 +109,11 @@ public class SessionHandler extends AbstractSessionHandler {
         sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(), authenticationContext.getSequenceContext());
         return sessionContext;
     }
+
+    private SessionContext updateSession (AuthenticationContext authenticationContext, SessionContext sessionContext) throws
+            AuthenticationHandlerException {
+        sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(), authenticationContext.getSequenceContext());
+        return sessionContext;
+    }
+
 }
