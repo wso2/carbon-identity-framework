@@ -19,7 +19,11 @@ package org.wso2.carbon.identity.gateway.processor.handler;
 
 
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
+import org.wso2.carbon.identity.common.base.message.MessageContext;
 
 public abstract class FrameworkHandler extends AbstractMessageHandler{
 
+    public boolean canHandle(MessageContext messageContext) {
+        return true ;
+    }
 }

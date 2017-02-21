@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.ContextInitializer;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
@@ -64,12 +65,12 @@ public class HandlerManager {
     }
 
 
-    private AbstractMessageHandler getHandler(List<? extends AbstractMessageHandler> abstractIdentityHandlers,
+    private FrameworkHandler getHandler(List<? extends FrameworkHandler> frameworkHandlers,
                                                       AuthenticationContext authenticationContext){
-        if(abstractIdentityHandlers != null){
-            for(AbstractMessageHandler abstractIdentityHandler: abstractIdentityHandlers){
-                if(abstractIdentityHandler.canHandle(authenticationContext)){
-                    return abstractIdentityHandler ;
+        if(frameworkHandlers != null){
+            for(FrameworkHandler frameworkHandler: frameworkHandlers){
+                if(frameworkHandler.canHandle(authenticationContext)){
+                    return frameworkHandler ;
                 }
             }
         }
