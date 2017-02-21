@@ -46,6 +46,12 @@ public class IdentityProviderConfigStore {
         }
     }
 
+    public void removeIdentityProvider(String identityProviderName) {
+        if (identityProviderName != null) {
+            idpEntityMap.remove(identityProviderName);
+        }
+    }
+
     public boolean validate(IdentityProviderConfig identityProvider){
         return true ;
     }

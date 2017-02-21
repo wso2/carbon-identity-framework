@@ -24,105 +24,135 @@ import org.wso2.carbon.deployment.engine.Artifact;
 import org.wso2.carbon.deployment.engine.ArtifactType;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderEntity;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.introspector.BeanAccess;
-
-import java.io.InputStreamReader;
-import java.io.Reader;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * IdentityProviderDeployer is the one that sync with the deployment path to load the service
+ * provider files in to the store.
+ */
 public class IdentityProviderDeployer implements Deployer {
 
+    private Logger logger = LoggerFactory.getLogger(IdentityProviderDeployer.class);
     private ArtifactType artifactType;
     private URL repository;
-
-
-    private Logger logger = LoggerFactory.getLogger(FrameworkServiceComponent.class);
+    private static final String IDENTITY_PROVIDER_TYPE = "identityprovider";
 
     @Override
     public void init() {
-        artifactType = new ArtifactType<>("identityprovider");
-
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Initializing IdentityProviderDeployer.");
+        }
+        artifactType = new ArtifactType<>(IDENTITY_PROVIDER_TYPE);
+        Path path = Paths.get(System.getProperty("carbon.home", "."), "deployment", "identityprovider");
         try {
-            repository = new URL("file:" + Paths.get(System.getProperty("carbon.home", "."), "deployment",
-                                                     "identityprovider")
-                    .toString
-                            ());
+            repository = new URL("file:" + path.toString());
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            logger.error("Error while reading the file path : " + e.getMessage());
         }
     }
 
     @Override
     public String deploy(Artifact artifact) throws CarbonDeploymentException {
-        IdentityProviderConfig identityProviderConfig = getIdentityProviderConfig(artifact);
-        IdentityProviderConfigStore.getInstance().addIdentityProvider(identityProviderConfig);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deploying IdentityProvider configs.");
+        }
+        try {
+            IdentityProviderConfig IdentityProviderConfig = getIdentityProviderConfig(artifact);
+            IdentityProviderConfigStore.getInstance().addIdentityProvider(IdentityProviderConfig);
+        } catch (FrameworkServerException e) {
+            String errorMessage = "Error occurred while deploying Identity Provider. " + e.getMessage();
+            logger.error(errorMessage);
+            throw new CarbonDeploymentException(errorMessage, e);
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Successfully deployed the IdentityProvider configs : " + artifact.getName());
+        }
         return artifact.getName();
     }
 
     @Override
     public void undeploy(Object key) throws CarbonDeploymentException {
-        if (!(key instanceof String)) {
-            throw new CarbonDeploymentException("Error while Un Deploying : " + key + "is not a String value");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Un-Deploying IdentityProvider configs.");
         }
-        logger.debug("Undeploying : " + key);
-
+        if (!(key instanceof String)) {
+            throw new CarbonDeploymentException("Error while Un-Deploying : " + key + "is not a String value");
+        }
+        try {
+            String providerName = GatewayUtil.getProviderName((String) key);
+            IdentityProviderConfigStore.getInstance().removeIdentityProvider(providerName);
+        } catch (FrameworkServerException e) {
+            String errorMessage = "Error occurred while Un-Deploying the Identity Provider. " + e.getMessage();
+            throw new CarbonDeploymentException(errorMessage, e);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Successfully Un-Deployed the IdentityProvider configs : " + key);
+        }
     }
 
     @Override
     public Object update(Artifact artifact) throws CarbonDeploymentException {
-        logger.debug("Updating : " + artifact.getName());
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Updating IdentityProvider configs.");
+        }
+        try {
+            IdentityProviderConfig IdentityProviderConfig = getIdentityProviderConfig(artifact);
+            IdentityProviderConfigStore.getInstance().addIdentityProvider(IdentityProviderConfig);
+        } catch (FrameworkServerException e) {
+            String errorMessage = "Error occurred while updating the Identity Provider. " + e.getMessage();
+            throw new CarbonDeploymentException(errorMessage, e);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Successfully updated the IdentityProvider configs : " + artifact.getName());
+        }
         return artifact.getName();
     }
 
     @Override
     public URL getLocation() {
-
-        logger.debug("Updating : "  );
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get Location for the Identity Provider.");
+        }
         return repository;
     }
 
     @Override
     public ArtifactType getArtifactType() {
-
-        logger.debug("Updating : "  );
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get Type for the Identity Provider.");
+        }
         return artifactType;
     }
 
     /**
-     * Read the artifacts and save the policy and metadata to PolicyStore and PolicyCollection
-     * @param artifact deployed articles
+     * Read Identity Provider Config Object.
+     *
+     * @param artifact
+     * @return IdentityProviderConfig
      */
-    private synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact) {
-        String artifactName = artifact.getPath();
-        IdentityProviderConfig identityProviderConfig = null;
-        Path path = Paths.get(artifactName);
-        if (Files.exists(path)) {
-            try {
-                Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
-                Yaml yaml = new Yaml();
-                yaml.setBeanAccess(BeanAccess.FIELD);
-                IdentityProviderEntity identityProviderEntity = yaml.loadAs(in, IdentityProviderEntity.class);
-                if (identityProviderEntity != null) {
-                    identityProviderConfig = identityProviderEntity.getIdentityProviderConfig();
-                }
-
-            } catch (Exception e) {
-                 e.printStackTrace();
-            }
+    public synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact)
+            throws FrameworkServerException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Read Identity Provider Configs.");
         }
-        return identityProviderConfig;
+        String providerName = GatewayUtil.getProviderName(artifact.getName());
+        IdentityProviderEntity providerEntity = GatewayUtil.getProvider(artifact, IdentityProviderEntity.class);
+        if (!providerEntity.getIdentityProviderConfig().getName().equals(providerName)) {
+            throw new FrameworkServerException("Provider name should be the same as file name.");
+        }
+        return providerEntity.getIdentityProviderConfig();
     }
 }
+
+
+
+

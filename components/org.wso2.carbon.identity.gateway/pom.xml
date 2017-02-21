@@ -102,6 +102,7 @@
             org.wso2.carbon.identity.gateway.deployer.*,
             org.wso2.carbon.identity.gateway.service.*,
             org.wso2.carbon.identity.gateway.dao.*,
+            org.wso2.carbon.identity.gateway.util.*
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",

@@ -24,106 +24,134 @@ import org.wso2.carbon.deployment.engine.Artifact;
 import org.wso2.carbon.deployment.engine.ArtifactType;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
+import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderEntity;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.introspector.BeanAccess;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+
+/**
+ * ServiceProviderDeployer is the one that sync with the deployment path to load the service
+ * provider files in to the store.
+ */
 public class ServiceProviderDeployer implements Deployer {
 
+    private Logger logger = LoggerFactory.getLogger(FrameworkServiceComponent.class);
     private ArtifactType artifactType;
     private URL repository;
-
-
-    private Logger logger = LoggerFactory.getLogger(FrameworkServiceComponent.class);
+    private static final String SERVICE_PROVIDER_TYPE = "serviceprovider";
 
     @Override
     public void init() {
-        artifactType = new ArtifactType<>("serviceprovider");
-
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Initializing ServiceProviderDeployer.");
+        }
+        artifactType = new ArtifactType<>(SERVICE_PROVIDER_TYPE);
+        Path path = Paths.get(System.getProperty("carbon.home", "."), "deployment", "serviceprovider");
         try {
-            repository = new URL("file:" + Paths.get(System.getProperty("carbon.home", "."), "deployment",
-                                                     "serviceprovider")
-                                         .toString
-                    ());
+            repository = new URL("file:" + path.toString());
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            logger.error("Error while reading the file path : " + e.getMessage());
         }
     }
 
     @Override
     public String deploy(Artifact artifact) throws CarbonDeploymentException {
-        ServiceProviderConfig serviceProviderConfig = getServiceProviderConfig(artifact);
-        ServiceProviderConfigStore.getInstance().addServiceProvider(serviceProviderConfig);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Deploying ServiceProvider configs.");
+        }
+        try {
+            ServiceProviderConfig serviceProviderConfig = getServiceProviderConfig(artifact);
+            ServiceProviderConfigStore.getInstance().addServiceProvider(serviceProviderConfig);
+        } catch (FrameworkServerException e) {
+            String errorMessage = "Error occurred while deploying Service Provider. " + e.getMessage();
+            logger.error(errorMessage);
+            throw new CarbonDeploymentException(errorMessage, e);
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Successfully deployed the ServiceProvider configs : " + artifact.getName());
+        }
         return artifact.getName();
     }
 
     @Override
     public void undeploy(Object key) throws CarbonDeploymentException {
-        if (!(key instanceof String)) {
-            throw new CarbonDeploymentException("Error while Un Deploying : " + key + "is not a String value");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Un-Deploying ServiceProvider configs.");
         }
-        logger.debug("Undeploying : " + key);
-
+        if (!(key instanceof String)) {
+            throw new CarbonDeploymentException("Error while Un-Deploying : " + key + "is not a String value");
+        }
+        try {
+            String providerName = GatewayUtil.getProviderName((String) key);
+            ServiceProviderConfigStore.getInstance().removeServiceProvider(providerName);
+        } catch (FrameworkServerException e) {
+            String errorMessage = "Error occurred while Un-Deploying the Service Provider. " + e.getMessage();
+            throw new CarbonDeploymentException(errorMessage, e);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Successfully Un-Deployed the ServiceProvider configs : " + key);
+        }
     }
 
     @Override
     public Object update(Artifact artifact) throws CarbonDeploymentException {
-        logger.debug("Updating : " + artifact.getName());
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Updating ServiceProvider configs.");
+        }
+        try {
+            ServiceProviderConfig serviceProviderConfig = getServiceProviderConfig(artifact);
+            ServiceProviderConfigStore.getInstance().addServiceProvider(serviceProviderConfig);
+        } catch (FrameworkServerException e) {
+            String errorMessage = "Error occurred while updating the Service Provider. " + e.getMessage();
+            throw new CarbonDeploymentException(errorMessage, e);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Successfully updated the ServiceProvider configs : " + artifact.getName());
+        }
         return artifact.getName();
     }
 
     @Override
     public URL getLocation() {
-
-        logger.debug("Updating : "  );
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get Location for the Service Provider.");
+        }
         return repository;
     }
 
     @Override
     public ArtifactType getArtifactType() {
-
-        logger.debug("Updating : "  );
+        if (logger.isDebugEnabled()) {
+            logger.debug("Get Type for the Service Provider.");
+        }
         return artifactType;
     }
 
     /**
-     * Read the artifacts and save the policy and metadata to PolicyStore and PolicyCollection
-     * @param artifact deployed articles
+     * Read Service Provider Config Object.
+     *
+     * @param artifact
+     * @return ServiceProviderConfig
      */
-    private synchronized ServiceProviderConfig getServiceProviderConfig(Artifact artifact) {
-        String artifactName = artifact.getPath();
-        ServiceProviderConfig serviceProviderConfig = null;
-        Path path = Paths.get(artifactName);
-        if (Files.exists(path)) {
-            try {
-                Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
-                Yaml yaml = new Yaml();
-                yaml.setBeanAccess(BeanAccess.FIELD);
-                ServiceProviderEntity serviceProviderEntity = yaml.loadAs(in, ServiceProviderEntity.class);
-
-                if (serviceProviderEntity != null) {
-                    serviceProviderConfig = serviceProviderEntity.getServiceProviderConfig();
-                }
-
-            } catch (Exception e) {
-                 logger.error("Error while deploying service provider configuration" , e);
-            }
+    public synchronized ServiceProviderConfig getServiceProviderConfig(Artifact artifact)
+            throws FrameworkServerException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Read Service Provider Configs.");
         }
-        return serviceProviderConfig;
+        String providerName = GatewayUtil.getProviderName(artifact.getName());
+        ServiceProviderEntity providerEntity = GatewayUtil.getProvider(artifact, ServiceProviderEntity.class);
+        if (!providerEntity.getServiceProviderConfig().getName().equals(providerName)) {
+            throw new FrameworkServerException("Provider name should be the same as file name.");
+        }
+        return providerEntity.getServiceProviderConfig();
     }
 }
