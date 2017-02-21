@@ -76,6 +76,8 @@
                                     <includes>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
+                                        <include>dbscripts/gateway/h2.sql</include>
+                                        <include>dbscripts/gateway/mysql.sql</include>
                                     </includes>
                                 </resource>
                             </resources>
