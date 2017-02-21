@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +53,20 @@ public class ServiceProviderConfigStore {
                 spUniqueKeyMap.put(uniqueKey, serviceProvider.getName());
                 spEntityMap.put(serviceProvider.getName(), serviceProvider);
             }
+        }
+    }
+
+    public void removeServiceProvider(String serviceProviderName) {
+        if (serviceProviderName != null) {
+            Iterator entries = spUniqueKeyMap.entrySet().iterator();
+            while (entries.hasNext()) {
+                Map.Entry thisEntry = (Map.Entry) entries.next();
+                Object value = thisEntry.getValue();
+                if(value.equals(serviceProviderName)){
+                    entries.remove();
+                }
+            }
+            spEntityMap.remove(serviceProviderName);
         }
     }
 

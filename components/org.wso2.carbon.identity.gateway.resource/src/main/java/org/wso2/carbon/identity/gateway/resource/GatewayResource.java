@@ -19,15 +19,15 @@
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
-import org.wso2.carbon.identity.gateway.api.util.Constants;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
 import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
 import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
 import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.util.Constants;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
@@ -38,7 +38,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -57,7 +56,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Identity GatewayResource MicroService. This serves as the endpoint for all requests that come into the Identity GatewayResource.
+ * Identity GatewayResource MicroService. This serves as the endpoint for all requests that come into the Identity
+ * GatewayResource.
  */
 @Component(
         name = "org.wso2.carbon.identity.framework.resource.GatewayResource",
@@ -97,7 +97,8 @@ public class GatewayResource implements Microservice {
     /**
      * Process request/response.
      *
-     * @param request HttpServletRequest
+     * @param request
+     *         HttpServletRequest
      */
     private HttpIdentityResponse process(Request request) {
 
@@ -143,12 +144,6 @@ public class GatewayResource implements Microservice {
         }
     }
 
-    protected void service(Request request) throws IOException {
-
-        HttpIdentityResponse httpIdentityResponse = process(request);
-        processHttpResponse(httpIdentityResponse, request);
-    }
-
     private Response processHttpResponse(HttpIdentityResponse httpIdentityResponse, Request request) {
 
         Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
@@ -156,40 +151,42 @@ public class GatewayResource implements Microservice {
         httpIdentityResponse.getHeaders().forEach(builder::header);
         httpIdentityResponse.getCookies().forEach(builder::cookie);
         return builder.build();
-//        Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
-//        //#TODO: want to get clear how transform identoty response to jaxrs response
-//        for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
-//            response.addHeader(entry.getKey(), entry.getValue());
-//        }
-//        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
-//            response.addCookie(entry.getValue());
-//        }
-//        if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
-//            response.setContentType(httpIdentityResponse.getContentType());
-//        }
-//        if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
-//            try {
-//                sendRedirect(response, httpIdentityResponse);
-//            } catch (IOException ex) {
-//                throw FrameworkRuntimeException.error("Error occurred while redirecting response", ex);
-//            }
-//        } else {
-//            response.setStatus(httpIdentityResponse.getStatusCode());
-//            try {
-//                PrintWriter out = response.getWriter();
-//                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
-//                    out.print(httpIdentityResponse.getBody());
-//                }
-//            } catch (IOException e) {
-//                throw FrameworkRuntimeException.error("Error occurred while getting Response writer object", e);
-//            }
-//        }
+        //        Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
+        //        //#TODO: want to get clear how transform identoty response to jaxrs response
+        //        for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
+        //            response.addHeader(entry.getKey(), entry.getValue());
+        //        }
+        //        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
+        //            response.addCookie(entry.getValue());
+        //        }
+        //        if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
+        //            response.setContentType(httpIdentityResponse.getContentType());
+        //        }
+        //        if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
+        //            try {
+        //                sendRedirect(response, httpIdentityResponse);
+        //            } catch (IOException ex) {
+        //                throw FrameworkRuntimeException.error("Error occurred while redirecting response", ex);
+        //            }
+        //        } else {
+        //            response.setStatus(httpIdentityResponse.getStatusCode());
+        //            try {
+        //                PrintWriter out = response.getWriter();
+        //                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
+        //                    out.print(httpIdentityResponse.getBody());
+        //                }
+        //            } catch (IOException e) {
+        //                throw FrameworkRuntimeException.error("Error occurred while getting Response writer
+        // object", e);
+        //            }
+        //        }
     }
 
     /**
      * Get the HttpIdentityRequestFactory.
      *
-     * @param request HttpServletRequest
+     * @param request
+     *         HttpServletRequest
      * @return HttpIdentityRequestFactory
      */
     private HttpIdentityRequestFactory getIdentityRequestFactory(Request request) {
@@ -208,7 +205,8 @@ public class GatewayResource implements Microservice {
     /**
      * Get the HttpIdentityResponseFactory.
      *
-     * @param identityResponse IdentityResponse
+     * @param identityResponse
+     *         IdentityResponse
      * @return HttpIdentityResponseFactory
      */
     private HttpIdentityResponseFactory getIdentityResponseFactory(IdentityResponse identityResponse) {
@@ -227,7 +225,8 @@ public class GatewayResource implements Microservice {
     /**
      * Get the HttpIdentityResponseFactory.
      *
-     * @param exception FrameworkException
+     * @param exception
+     *         FrameworkException
      * @return HttpIdentityResponseFactory
      */
     private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkServerException exception) {
@@ -289,10 +288,9 @@ public class GatewayResource implements Microservice {
                 handleFormParams(body, request);
             } catch (UnsupportedEncodingException e) {
                 throw new FrameworkRuntimeException("Error while building request body");
-
             }
-        }  else {
-            request.setProperty(Constants.BODY_PARAMETERS, new HashMap<String,String>());
+        } else {
+            request.setProperty(Constants.BODY_PARAMETERS, new HashMap<String, String>());
         }
     }
 
