@@ -18,7 +18,7 @@
 package org.wso2.carbon.identity.gateway.processor.request;
 
 
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
 public class ClientAuthenticationRequest extends AuthenticationRequest {
 
@@ -37,7 +37,7 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
 
 
         @Override
-        public ClientAuthenticationRequest build() throws FrameworkRuntimeException {
+        public ClientAuthenticationRequest build() throws GatewayRuntimeException {
             return new ClientAuthenticationRequest(this);
         }
     }

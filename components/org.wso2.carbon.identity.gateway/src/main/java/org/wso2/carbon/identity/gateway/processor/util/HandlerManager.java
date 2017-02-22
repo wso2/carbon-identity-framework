@@ -18,8 +18,8 @@
 package org.wso2.carbon.identity.gateway.processor.util;
 
 
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
@@ -40,7 +40,7 @@ public class HandlerManager {
     }
 
 
-    public AuthenticationHandler getAuthenticationHandler(IdentityMessageContext messageContext) {
+    public AuthenticationHandler getAuthenticationHandler(GatewayMessageContext messageContext) {
         List<AuthenticationHandler> authenticationHandlers =
                 FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers();
         if(authenticationHandlers != null) {
@@ -50,11 +50,11 @@ public class HandlerManager {
                 }
             }
         }
-        throw new FrameworkRuntimeException("Cannot find AuthenticationHandler to handle this request.");
+        throw new GatewayRuntimeException("Cannot find AuthenticationHandler to handle this request.");
     }
 
 
-    public AbstractResponseHandler getResponseHandler(IdentityMessageContext messageContext) {
+    public AbstractResponseHandler getResponseHandler(GatewayMessageContext messageContext) {
         List<AbstractResponseHandler> responseBuilderHandlers =
                 FrameworkServiceDataHolder.getInstance().getResponseHandlers();
         if(responseBuilderHandlers != null) {
@@ -64,11 +64,11 @@ public class HandlerManager {
                 }
             }
         }
-        throw new FrameworkRuntimeException("Cannot find AbstractResponseHandler to handle this request.");
+        throw new GatewayRuntimeException("Cannot find AbstractResponseHandler to handle this request.");
     }
 
 
-    public AbstractRequestHandler getProtocolRequestHandler(IdentityMessageContext messageContext) {
+    public AbstractRequestHandler getProtocolRequestHandler(GatewayMessageContext messageContext) {
         List<AbstractRequestHandler> protocolRequestHandlers =
                 FrameworkServiceDataHolder.getInstance().getRequestHandlers();
         if(protocolRequestHandlers != null) {
@@ -78,6 +78,6 @@ public class HandlerManager {
                 }
             }
         }
-        throw new FrameworkRuntimeException("Cannot find AbstractRequestHandler to handle this request.");
+        throw new GatewayRuntimeException("Cannot find AbstractRequestHandler to handle this request.");
     }
 }

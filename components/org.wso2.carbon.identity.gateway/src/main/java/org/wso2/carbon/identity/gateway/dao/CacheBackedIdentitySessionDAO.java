@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.gateway.dao;
 
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
 public class CacheBackedIdentitySessionDAO extends IdentityContextDAO {
 
@@ -16,12 +16,12 @@ public class CacheBackedIdentitySessionDAO extends IdentityContextDAO {
     }
 
     @Override
-    public void put(String key, IdentityMessageContext context) {
+    public void put(String key, GatewayMessageContext context) {
         asyncSessionDAO.put(key, context);
     }
 
     @Override
-    public IdentityMessageContext get(String key) {
+    public GatewayMessageContext get(String key) {
         return asyncSessionDAO.get(key);
     }
 

@@ -4,11 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.jdbc.DataAccessException;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.context.DemoAuthenticationContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.dao.IdentityContextDAO;
-import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +42,7 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
     }
 
     @Override
-    public void put(String key, IdentityMessageContext identityMessageContext) {
+    public void put(String key, GatewayMessageContext gatewayMessageContext) {
 
         final String storeContext =
                 "INSERT INTO IDN_CONTEXT " + "(KEY, OPERATION, SESSION_OBJECT, TIME_CREATED)"
@@ -55,22 +53,22 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
             jdbcTemplate.executeInsert(storeContext, (namedPreparedStatement) -> {
                 namedPreparedStatement.setString(KEY, key);
                 namedPreparedStatement.setString(OPERATION, "STORE");
-                namedPreparedStatement.setBlob(SESSION_OBJECT, identityMessageContext);
+                namedPreparedStatement.setBlob(SESSION_OBJECT, gatewayMessageContext);
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new FrameworkRuntimeException("Error while storing session.", e);
+            throw new GatewayRuntimeException("Error while storing session.", e);
         }
     }
 
     @Override
-    public IdentityMessageContext get(String key) {
+    public GatewayMessageContext get(String key) {
 
         final String retrieveContext =
                 "SELECT " + "OPERATION, TIME_CREATED, SESSION_OBJECT FROM IDN_CONTEXT WHERE KEY = :" + KEY + "; " +
                         "ORDER BY TIME_CREATED DESC LIMIT 1";
 
-        AtomicReference<IdentityMessageContext> identityMessageContextAtomicReference = new AtomicReference<>();
+        AtomicReference<GatewayMessageContext> identityMessageContextAtomicReference = new AtomicReference<>();
 
         try {
             jdbcTemplate.fetchSingleRecord(retrieveContext, (resultSet, rowNumber) -> {
@@ -81,7 +79,7 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
                         ObjectInput ois = null;
                         try {
                             ois = new ObjectInputStream(is);
-                            identityMessageContextAtomicReference.set((IdentityMessageContext) ois.readObject());
+                            identityMessageContextAtomicReference.set((GatewayMessageContext) ois.readObject());
                         } catch (IOException | ClassNotFoundException e) {
                             logger.error("Error while trying to close ObjectInputStream.", e);
                         } finally {
@@ -100,7 +98,7 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
                 namedPreparedStatement.setString(KEY, key);
             });
         } catch (DataAccessException e) {
-            throw new FrameworkRuntimeException("Error while retrieving session.", e);
+            throw new GatewayRuntimeException("Error while retrieving session.", e);
         }
         return identityMessageContextAtomicReference.get();
     }
@@ -120,7 +118,7 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new FrameworkRuntimeException("Error while storing session.", e);
+            throw new GatewayRuntimeException("Error while storing session.", e);
         }
     }
 }

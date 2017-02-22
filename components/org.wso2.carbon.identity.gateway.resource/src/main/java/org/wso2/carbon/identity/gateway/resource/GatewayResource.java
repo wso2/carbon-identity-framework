@@ -19,15 +19,15 @@
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
-import org.wso2.carbon.identity.gateway.api.util.Constants;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
+import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
@@ -81,7 +81,7 @@ public class GatewayResource implements Microservice {
     @Path("/")
     public Response processPost(@Context Request request) {
         addParameters(request);
-        return processHttpResponse(process(request), request);
+        return process(request);
     }
 
 
@@ -100,154 +100,157 @@ public class GatewayResource implements Microservice {
      * @param request
      *         HttpServletRequest
      */
-    private HttpIdentityResponse process(Request request) {
+    private Response process(Request request) {
 
-        HttpIdentityRequestFactory factory = getIdentityRequestFactory(request);
+        GatewayRequestBuilderFactory factory = getIdentityRequestFactory(request);
 
-        IdentityRequest identityRequest = null;
-        HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder = null;
+        GatewayRequest gatewayRequest = null;
+        Response.ResponseBuilder responseBuilder = null;
 
         try {
-            identityRequest = factory.create(request).build();
-            if (identityRequest == null) {
-                throw new FrameworkRuntimeException("IdentityRequest is Null. Cannot proceed!!");
+            gatewayRequest = factory.create(request).build();
+            if (gatewayRequest == null) {
+                throw new GatewayRuntimeException("GatewayRequest is Null. Cannot proceed!!");
             }
-        } catch (FrameworkClientException e) {
+        } catch (GatewayClientException e) {
             responseBuilder = factory.handleException(e);
             if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
+            //#TODO Enable this to new response
             return responseBuilder.build();
         }
 
-        IdentityResponse identityResponse = null;
-        HttpIdentityResponseFactory responseFactory = null;
+        GatewayResponse gatewayResponse = null;
+        GatewayResponseBuilderFactory responseFactory = null;
 
         try {
-            identityResponse = manager.process(identityRequest);
-            if (identityResponse == null) {
-                throw new FrameworkRuntimeException("IdentityResponse is Null. Cannot proceed!!");
+            gatewayResponse = manager.process(gatewayRequest);
+            if (gatewayResponse == null) {
+                throw new GatewayRuntimeException("GatewayResponse is Null. Cannot proceed!!");
             }
-            responseFactory = getIdentityResponseFactory(identityResponse);
-            responseBuilder = responseFactory.create(identityResponse);
-            if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+            responseFactory = getIdentityResponseFactory(gatewayResponse);
+            Response.ResponseBuilder builder = responseFactory.createBuilder(gatewayResponse);
+            if (builder == null) {
+                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
-            return responseBuilder.build();
-        } catch (FrameworkServerException e) {
+            return builder.build();
+        } catch (GatewayServerException e) {
             responseFactory = getIdentityResponseFactory(e);
             responseBuilder = responseFactory.handleException(e);
             if (responseBuilder == null) {
-                throw new FrameworkRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
             }
-            return responseBuilder.build();
+            //#TODO Enable this to new response
+            //return responseBuilder.build();
         }
+        return null;
     }
 
-    private Response processHttpResponse(HttpIdentityResponse httpIdentityResponse, Request request) {
+    private Response processHttpResponse(HttpGatewayResponse httpGatewayResponse, Request request) {
 
-        Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
-        builder.entity(httpIdentityResponse.getBody());
-        httpIdentityResponse.getHeaders().forEach(builder::header);
-        httpIdentityResponse.getCookies().forEach(builder::cookie);
+        Response.ResponseBuilder builder = Response.status(httpGatewayResponse.getStatusCode());
+        builder.entity(httpGatewayResponse.getBody());
+        httpGatewayResponse.getHeaders().forEach(builder::header);
+        httpGatewayResponse.getCookies().forEach(builder::cookie);
         return builder.build();
-        //        Response.ResponseBuilder builder = Response.status(httpIdentityResponse.getStatusCode());
+        //        Response.ResponseBuilder builder = Response.status(httpGatewayResponse.getStatusCode());
         //        //#TODO: want to get clear how transform identoty response to jaxrs response
-        //        for (Map.Entry<String, String> entry : httpIdentityResponse.getHeaders().entrySet()) {
+        //        for (Map.Entry<String, String> entry : httpGatewayResponse.getHeaders().entrySet()) {
         //            response.addHeader(entry.getKey(), entry.getValue());
         //        }
-        //        for (Map.Entry<String, Cookie> entry : httpIdentityResponse.getCookies().entrySet()) {
+        //        for (Map.Entry<String, Cookie> entry : httpGatewayResponse.getCookies().entrySet()) {
         //            response.addCookie(entry.getValue());
         //        }
-        //        if (StringUtils.isNotBlank(httpIdentityResponse.getContentType())) {
-        //            response.setContentType(httpIdentityResponse.getContentType());
+        //        if (StringUtils.isNotBlank(httpGatewayResponse.getContentType())) {
+        //            response.setContentType(httpGatewayResponse.getContentType());
         //        }
-        //        if (httpIdentityResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
+        //        if (httpGatewayResponse.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY) {
         //            try {
-        //                sendRedirect(response, httpIdentityResponse);
+        //                sendRedirect(response, httpGatewayResponse);
         //            } catch (IOException ex) {
-        //                throw FrameworkRuntimeException.error("Error occurred while redirecting response", ex);
+        //                throw GatewayRuntimeException.error("Error occurred while redirecting response", ex);
         //            }
         //        } else {
-        //            response.setStatus(httpIdentityResponse.getStatusCode());
+        //            response.setStatus(httpGatewayResponse.getStatusCode());
         //            try {
         //                PrintWriter out = response.getWriter();
-        //                if (StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
-        //                    out.print(httpIdentityResponse.getBody());
+        //                if (StringUtils.isNotBlank(httpGatewayResponse.getBody())) {
+        //                    out.print(httpGatewayResponse.getBody());
         //                }
         //            } catch (IOException e) {
-        //                throw FrameworkRuntimeException.error("Error occurred while getting Response writer
+        //                throw GatewayRuntimeException.error("Error occurred while getting Response writer
         // object", e);
         //            }
         //        }
     }
 
     /**
-     * Get the HttpIdentityRequestFactory.
+     * Get the GatewayRequestBuilderFactory.
      *
      * @param request
      *         HttpServletRequest
-     * @return HttpIdentityRequestFactory
+     * @return GatewayRequestBuilderFactory
      */
-    private HttpIdentityRequestFactory getIdentityRequestFactory(Request request) {
+    private GatewayRequestBuilderFactory getIdentityRequestFactory(Request request) {
 
-        List<HttpIdentityRequestFactory> factories =
+        List<GatewayRequestBuilderFactory> factories =
                 GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories();
 
-        for (HttpIdentityRequestFactory requestBuilder : factories) {
+        for (GatewayRequestBuilderFactory requestBuilder : factories) {
             if (requestBuilder.canHandle(request)) {
                 return requestBuilder;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityRequestFactory found to create the request");
+        throw new GatewayRuntimeException("No GatewayRequestBuilderFactory found to create the request");
     }
 
     /**
-     * Get the HttpIdentityResponseFactory.
+     * Get the GatewayResponseBuilderFactory.
      *
-     * @param identityResponse
-     *         IdentityResponse
-     * @return HttpIdentityResponseFactory
+     * @param gatewayResponse
+     *         GatewayResponse
+     * @return GatewayResponseBuilderFactory
      */
-    private HttpIdentityResponseFactory getIdentityResponseFactory(IdentityResponse identityResponse) {
+    private GatewayResponseBuilderFactory getIdentityResponseFactory(GatewayResponse gatewayResponse) {
 
-        List<HttpIdentityResponseFactory> factories = GatewayResourceDataHolder.getInstance()
+        List<GatewayResponseBuilderFactory> factories = GatewayResourceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
 
-        for (HttpIdentityResponseFactory responseFactory : factories) {
-            if (responseFactory.canHandle(identityResponse)) {
+        for (GatewayResponseBuilderFactory responseFactory : factories) {
+            if (responseFactory.canHandle(gatewayResponse)) {
                 return responseFactory;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
+        throw new GatewayRuntimeException("No GatewayResponseBuilderFactory found to create the request");
     }
 
     /**
-     * Get the HttpIdentityResponseFactory.
+     * Get the GatewayResponseBuilderFactory.
      *
      * @param exception
      *         FrameworkException
-     * @return HttpIdentityResponseFactory
+     * @return GatewayResponseBuilderFactory
      */
-    private HttpIdentityResponseFactory getIdentityResponseFactory(FrameworkServerException exception) {
+    private GatewayResponseBuilderFactory getIdentityResponseFactory(GatewayServerException exception) {
 
-        List<HttpIdentityResponseFactory> factories = GatewayResourceDataHolder.getInstance()
+        List<GatewayResponseBuilderFactory> factories = GatewayResourceDataHolder.getInstance()
                 .getHttpIdentityResponseFactories();
 
-        for (HttpIdentityResponseFactory responseFactory : factories) {
+        for (GatewayResponseBuilderFactory responseFactory : factories) {
             if (responseFactory.canHandle(exception)) {
                 return responseFactory;
             }
         }
-        throw new FrameworkRuntimeException("No HttpIdentityResponseFactory found to create the request");
+        throw new GatewayRuntimeException("No GatewayResponseBuilderFactory found to create the request");
     }
 
-    private void sendRedirect(Response response, HttpIdentityResponse HttpIdentityResponse)
+    private void sendRedirect(Response response, HttpGatewayResponse HttpGatewayResponse)
             throws IOException {
 
-        String queryParams = buildQueryString(HttpIdentityResponse.getParameters());
+        String queryParams = buildQueryString(HttpGatewayResponse.getParameters());
         //TODO: MSS4J how redirect
-        //response.sendRedirect(HttpIdentityResponse.getRedirectURL() + "&"+ queryParams);
+        //response.sendRedirect(HttpGatewayResponse.getRedirectURL() + "&"+ queryParams);
     }
 
     public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
@@ -287,7 +290,7 @@ public class GatewayResource implements Microservice {
             try {
                 handleFormParams(body, request);
             } catch (UnsupportedEncodingException e) {
-                throw new FrameworkRuntimeException("Error while building request body");
+                throw new GatewayRuntimeException("Error while building request body");
             }
         } else {
             request.setProperty(Constants.BODY_PARAMETERS, new HashMap<String, String>());

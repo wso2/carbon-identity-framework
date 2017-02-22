@@ -20,21 +20,21 @@
 
 package org.wso2.carbon.identity.gateway.api.response;
 
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
 import java.io.Serializable;
 
 /*
- * Abstract type that represents any return value from an IdentityProcessor
+ * Abstract type that represents any return value from an GatewayProcessor
  */
-public class IdentityResponse implements Serializable {
+public class GatewayResponse implements Serializable {
 
     private static final long serialVersionUID = 1348704275109461974L;
 
-    protected IdentityMessageContext context;
+    protected GatewayMessageContext context;
     protected String sessionKey;
 
-    protected IdentityResponse(IdentityResponseBuilder builder) {
+    protected GatewayResponse(GatewayResponseBuilder builder) {
         this.context = builder.context;
         this.sessionKey = builder.sessionKey;
     }
@@ -43,26 +43,26 @@ public class IdentityResponse implements Serializable {
         return sessionKey;
     }
 
-    public static class IdentityResponseBuilder {
+    public static class GatewayResponseBuilder {
 
-        protected IdentityMessageContext context;
+        protected GatewayMessageContext context;
         protected String sessionKey;
 
-        public IdentityResponseBuilder(IdentityMessageContext context) {
+        public GatewayResponseBuilder(GatewayMessageContext context) {
             this.context = context;
         }
 
-        public IdentityResponseBuilder() {
+        public GatewayResponseBuilder() {
 
         }
 
-        public IdentityResponseBuilder setSessionKey(String sessionKey) {
+        public GatewayResponseBuilder setSessionKey(String sessionKey) {
             this.sessionKey = sessionKey;
             return this;
         }
 
-        public IdentityResponse build() {
-            return new IdentityResponse(this);
+        public GatewayResponse build() {
+            return new GatewayResponse(this);
         }
     }
 }

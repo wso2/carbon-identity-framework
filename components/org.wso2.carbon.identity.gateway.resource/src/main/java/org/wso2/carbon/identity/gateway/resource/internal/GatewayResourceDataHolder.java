@@ -19,9 +19,9 @@
 package org.wso2.carbon.identity.gateway.resource.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponseFactory;
-import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
+import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +32,9 @@ public class GatewayResourceDataHolder {
     private BundleContext bundleContext = null;
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
-    private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
-    private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
-    private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
+    private List<GatewayProcessor> gatewayProcessors = new ArrayList<GatewayProcessor>();
+    private List<GatewayRequestBuilderFactory> httpIdentityRequestFactories = new ArrayList<GatewayRequestBuilderFactory>();
+    private List<GatewayResponseBuilderFactory> httpIdentityResponseFactories = new ArrayList<>();
     //Framework handlers
 
 
@@ -73,15 +73,15 @@ public class GatewayResourceDataHolder {
         this.unixTimeReference = unixTimeReference;
     }
 
-    public List<HttpIdentityRequestFactory> getHttpIdentityRequestFactories() {
+    public List<GatewayRequestBuilderFactory> getHttpIdentityRequestFactories() {
         return httpIdentityRequestFactories;
     }
 
-    public List<IdentityProcessor> getIdentityProcessors() {
-        return identityProcessors;
+    public List<GatewayProcessor> getGatewayProcessors() {
+        return gatewayProcessors;
     }
 
-    public List<HttpIdentityResponseFactory> getHttpIdentityResponseFactories() {
+    public List<GatewayResponseBuilderFactory> getHttpIdentityResponseFactories() {
         return httpIdentityResponseFactories;
     }
 

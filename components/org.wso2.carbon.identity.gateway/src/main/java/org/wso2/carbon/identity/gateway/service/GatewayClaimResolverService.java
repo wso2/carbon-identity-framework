@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.claim.mapping.profile.ClaimConfigEntry;
 import org.wso2.carbon.identity.claim.mapping.profile.ProfileEntry;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.util.HashMap;
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GatewayClaimResolverService {
     private static GatewayClaimResolverService gatewayClaimResolverService = new GatewayClaimResolverService();
@@ -50,12 +51,17 @@ public class GatewayClaimResolverService {
 
     public Set<Claim> transformToNativeDialect(Set<Claim> otherDialectClaims, String claimDialect, Optional<String>
             profile){
+        AtomicReference<Set<Claim>> transformedClaims = new AtomicReference<>(new HashSet<>());
         try {
-            final Set<Claim> transformedClaims = new HashSet<>();
-
             ClaimResolvingService claimResolvingService = FrameworkServiceDataHolder.getInstance()
                     .getClaimResolvingService();
             Map<String, String> claimMapping = claimResolvingService.getClaimMapping(claimDialect);
+
+            //#TODO: ClaimResolvingService should not return null for Map. It should be empty Map. After fixed that,
+            // we can remove this null check.
+            if(claimMapping == null){
+                throw new ClaimResolvingServiceException("Not implemented");
+            }
 
             Set<Claim> transformedClaimsTmp = new HashSet<>();
             otherDialectClaims.stream().filter(claim -> claimMapping.containsKey(claim.getClaimUri()))
@@ -72,14 +78,14 @@ public class GatewayClaimResolverService {
                 profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
 
                 transformedClaimsTmp.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
-                        .forEach(transformedClaims::add);
-                return transformedClaims ;
+                        .forEach(transformedClaims.get()::add);
+            }else{
+                transformedClaims.set(transformedClaimsTmp);
             }
-            return transformedClaimsTmp;
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
 
         }
-        return null ;
+        return transformedClaims.get() ;
     }
 
 
@@ -96,10 +102,13 @@ public class GatewayClaimResolverService {
             if(profile.isPresent()) {
                 ProfileMgtService profileMgtService = FrameworkServiceDataHolder.getInstance().getProfileMgtService();
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
-
+                if(profileEntry == null) {
+                    throw new GatewayServerException("Profile not found : " + profile.get());
+                }
                 List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
                 Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
-                profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
+                profileClaims
+                        .forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
 
                 nativeDialectClaims.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
                         .forEach(claim -> claimMap.put(claim.getClaimUri(), claim));
@@ -118,6 +127,8 @@ public class GatewayClaimResolverService {
         } catch (ClaimResolvingServiceException e) {
             e.printStackTrace();
         } catch (ProfileMgtServiceException e) {
+            e.printStackTrace();
+        } catch (GatewayServerException e) {
             e.printStackTrace();
         }
 

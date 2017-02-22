@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
@@ -77,7 +77,7 @@ public class AuthenticationHandler extends FrameworkHandler {
             frameworkHandlerResponse = FrameworkHandlerResponse.CONTINUE;
         } else if (AuthenticationResponse.INCOMPLETE.equals(handlerResponse)) {
             frameworkHandlerResponse = FrameworkHandlerResponse.REDIRECT;
-            frameworkHandlerResponse.setIdentityResponseBuilder(handlerResponse.getIdentityResponseBuilder());
+            frameworkHandlerResponse.setGatewayResponseBuilder(handlerResponse.getGatewayResponseBuilder());
         }
         return frameworkHandlerResponse;
     }

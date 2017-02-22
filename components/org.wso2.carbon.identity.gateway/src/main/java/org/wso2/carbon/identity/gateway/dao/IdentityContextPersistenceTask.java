@@ -20,8 +20,8 @@ package org.wso2.carbon.identity.gateway.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
 import java.util.concurrent.BlockingDeque;
 
@@ -49,14 +49,14 @@ public class IdentityContextPersistenceTask implements Runnable {
             try {
                 job = identityContextJobQueue.take();
                 if (job != null) {
-                    if (job.identityMessageContext != null) {
-                        persistentDAO.put(job.key, job.identityMessageContext);
+                    if (job.gatewayMessageContext != null) {
+                        persistentDAO.put(job.key, job.gatewayMessageContext);
                     } else {
                         persistentDAO.remove(job.key);
                     }
 
                 }
-            } catch (InterruptedException | FrameworkRuntimeException e) {
+            } catch (InterruptedException | GatewayRuntimeException e) {
                 log.error("Error occurred while running task for SessionJob", e);
             }
         }
@@ -65,15 +65,15 @@ public class IdentityContextPersistenceTask implements Runnable {
     static class IdentityContextJob {
 
         String key;
-        IdentityMessageContext identityMessageContext;
+        GatewayMessageContext gatewayMessageContext;
 
         IdentityContextJob(String key) {
             this.key = key;
         }
 
-        IdentityContextJob(String key, IdentityMessageContext sessionContext) {
+        IdentityContextJob(String key, GatewayMessageContext sessionContext) {
             this.key = key;
-            this.identityMessageContext = sessionContext;
+            this.gatewayMessageContext = sessionContext;
         }
     }
 

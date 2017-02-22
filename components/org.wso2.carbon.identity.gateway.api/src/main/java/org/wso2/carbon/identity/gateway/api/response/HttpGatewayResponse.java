@@ -20,17 +20,16 @@
 
 package org.wso2.carbon.identity.gateway.api.response;
 
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 
-public class HttpIdentityResponse {
+public class HttpGatewayResponse {
 
     protected boolean isFragmentUrl;
     private Map<String, Object> headers = new HashMap<String, Object>();
@@ -41,7 +40,7 @@ public class HttpIdentityResponse {
     private int statusCode;
     private String redirectURL;
 
-    protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
+    protected HttpGatewayResponse(HttpIdentityResponseBuilder builder) {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
         this.contentType = builder.contentType;
@@ -115,7 +114,7 @@ public class HttpIdentityResponse {
         public HttpIdentityResponseBuilder addHeaders(Map<String, Object> headers) {
             for (Map.Entry<String, Object> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
-                    throw new FrameworkRuntimeException("Headers map trying to override existing header " + header
+                    throw new GatewayRuntimeException("Headers map trying to override existing header " + header
                             .getKey());
                 }
                 this.headers.put(header.getKey(), header.getValue());
@@ -135,7 +134,7 @@ public class HttpIdentityResponse {
 
         public HttpIdentityResponseBuilder addParameter(String name, String value) {
             if (this.parameters.containsKey(name)) {
-                throw new FrameworkRuntimeException("Parameters map trying to override existing key " + name);
+                throw new GatewayRuntimeException("Parameters map trying to override existing key " + name);
             }
             this.parameters.put(name, new String[] { value });
             return this;
@@ -143,7 +142,7 @@ public class HttpIdentityResponse {
 
         public HttpIdentityResponseBuilder addParameter(String name, String[] values) {
             if (this.parameters.containsKey(name)) {
-                throw new FrameworkRuntimeException("Parameters map trying to override existing key " + name);
+                throw new GatewayRuntimeException("Parameters map trying to override existing key " + name);
             }
             this.parameters.put(name, values);
             return this;
@@ -152,7 +151,7 @@ public class HttpIdentityResponse {
         public HttpIdentityResponseBuilder addParameters(Map<String, String[]> parameters) {
             for (Map.Entry<String, String[]> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
-                    throw new FrameworkRuntimeException("Parameters map trying to override existing key " + parameter
+                    throw new GatewayRuntimeException("Parameters map trying to override existing key " + parameter
                             .getKey());
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
@@ -160,8 +159,8 @@ public class HttpIdentityResponse {
             return this;
         }
 
-        public HttpIdentityResponse build() {
-            return new HttpIdentityResponse(this);
+        public HttpGatewayResponse build() {
+            return new HttpGatewayResponse(this);
         }
 
         public HttpIdentityResponseBuilder setBody(String body) {

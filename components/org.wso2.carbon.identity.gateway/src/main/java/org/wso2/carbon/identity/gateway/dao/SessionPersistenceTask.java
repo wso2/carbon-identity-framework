@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.gateway.dao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 
 import java.util.concurrent.BlockingDeque;
@@ -56,7 +56,7 @@ public class SessionPersistenceTask implements Runnable {
                     }
 
                 }
-            } catch (InterruptedException | FrameworkRuntimeException e) {
+            } catch (InterruptedException | GatewayRuntimeException e) {
                 log.error("Error occurred while running task for SessionJob", e);
             }
         }

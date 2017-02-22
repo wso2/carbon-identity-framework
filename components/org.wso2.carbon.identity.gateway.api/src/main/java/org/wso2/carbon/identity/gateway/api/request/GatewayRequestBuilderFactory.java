@@ -23,32 +23,33 @@ package org.wso2.carbon.identity.gateway.api.request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
-import org.wso2.carbon.identity.gateway.api.util.Constants;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
+import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.msf4j.Request;
 
+import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.util.Map;
 
-public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityRequestBuilder> extends AbstractHandler {
+public class GatewayRequestBuilderFactory<T extends GatewayRequest.IdentityRequestBuilder> extends AbstractHandler {
 
-    private Logger log = LoggerFactory.getLogger(HttpIdentityRequestFactory.class);
+    private Logger log = LoggerFactory.getLogger(GatewayRequestBuilderFactory.class);
 
     public boolean canHandle(Request request) {
         return true;
     }
 
-    public IdentityRequest.IdentityRequestBuilder create(Request request)
-            throws FrameworkClientException {
+    public GatewayRequest.IdentityRequestBuilder create(Request request)
+            throws GatewayClientException {
 
-        IdentityRequest.IdentityRequestBuilder builder = new IdentityRequest.IdentityRequestBuilder();
+        GatewayRequest.IdentityRequestBuilder builder = new GatewayRequest.IdentityRequestBuilder();
         this.create((T) builder, request);
         return builder;
     }
 
     public void create(T builder, Request request)
-            throws FrameworkClientException {
+            throws GatewayClientException {
 
         request.getHeaders().getAll().forEach(header -> {
             builder.addHeader(header.getName(), header.getValue());
@@ -75,17 +76,16 @@ public class HttpIdentityRequestFactory<T extends IdentityRequest.IdentityReques
         return 100;
     }
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception) {
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
-                new HttpIdentityResponse.HttpIdentityResponseBuilder();
-        builder.setStatusCode(400);
-        builder.setBody(exception.getMessage());
+    public Response.ResponseBuilder handleException(GatewayClientException exception) {
+        Response.ResponseBuilder builder = Response.noContent();
+        builder.status(400);
+        builder.entity(exception.getMessage());
         return builder;
     }
 
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception) {
-        HttpIdentityResponse.HttpIdentityResponseBuilder builder =
-                new HttpIdentityResponse.HttpIdentityResponseBuilder();
+    public HttpGatewayResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception) {
+        HttpGatewayResponse.HttpIdentityResponseBuilder builder =
+                new HttpGatewayResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
         builder.setBody(exception.getMessage());
         return builder;

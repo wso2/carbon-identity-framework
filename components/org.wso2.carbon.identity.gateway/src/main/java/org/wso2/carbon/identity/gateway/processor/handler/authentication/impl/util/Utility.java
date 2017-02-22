@@ -18,7 +18,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util;
 
 
-import org.wso2.carbon.identity.gateway.api.util.Constants;
+import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;

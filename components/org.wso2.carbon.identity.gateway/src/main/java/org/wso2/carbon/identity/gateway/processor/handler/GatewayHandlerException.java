@@ -15,20 +15,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.processor.handler.authentication;
+package org.wso2.carbon.identity.gateway.processor.handler;
+
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
 
-import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
-
-public class AuthenticationHandlerException extends GatewayHandlerException {
-
-    private static final long serialVersionUID = -8680134348172156343L;
-
-    public AuthenticationHandlerException(String message) {
+public class GatewayHandlerException extends GatewayServerException {
+    public GatewayHandlerException(String message) {
         super(message);
     }
 
-    public AuthenticationHandlerException(String message, Throwable cause) {
+    public GatewayHandlerException(String message, Throwable cause) {
         super(message, cause);
     }
 }

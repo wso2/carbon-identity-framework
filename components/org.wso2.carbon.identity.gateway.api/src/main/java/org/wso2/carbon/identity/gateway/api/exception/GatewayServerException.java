@@ -17,12 +17,26 @@
  *  * under the License.
  *
  */
-package org.wso2.carbon.identity.gateway.api.util;
 
-public class Constants {
-    public static final String QUERY_PARAMETERS = "QUERY_PARAMETERS";
-    public static final String BODY_PARAMETERS = "BODY_PARAMETERS";
-    public static final String REQUEST_BODY = "REQUEST_BODY";
+package org.wso2.carbon.identity.gateway.api.exception;
 
-    public static final String GATEWAY_COOKIE = "GWSSOSC";
+import org.wso2.carbon.identity.common.base.exception.IdentityServerException;
+
+public class GatewayServerException extends IdentityServerException {
+
+    public GatewayServerException(String message) {
+        super(message);
+    }
+
+    public GatewayServerException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
+    public GatewayServerException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public GatewayServerException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
+    }
 }
