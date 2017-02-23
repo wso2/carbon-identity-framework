@@ -42,7 +42,8 @@ public class TestServiceTest {
 
     @Test
     public void testGetClaimMapping() {
-
+        System.out.println("====================");
+        assert true;
     }
 
 

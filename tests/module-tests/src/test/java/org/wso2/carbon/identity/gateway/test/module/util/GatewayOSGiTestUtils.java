@@ -83,16 +83,20 @@ public class GatewayOSGiTestUtils {
                 .versionAsInProject());
 //        defaultOptionList.add(mavenBundle()
 //                .groupId("org.wso2.carbon.identity.mgt")
-//                .artifactId("in-memory-connectors-test-artifact")
+//                .artifactId("org.wso2.carbon.identity.recovery")
 //                .versionAsInProject());
         defaultOptionList.add(mavenBundle()
-                  .groupId("org.wso2.carbon.identity.commons")
-                  .artifactId("org.wso2.carbon.identity.event")
-                  .versionAsInProject());
+                .groupId("org.wso2.carbon.identity.mgt")
+                .artifactId("in-memory-connectors-test-artifact")
+                .versionAsInProject());
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.identity.commons")
+                .artifactId("org.wso2.carbon.identity.event")
+                .versionAsInProject());
 //        defaultOptionList.add(mavenBundle()
-//                  .groupId("org.wso2.carbon.identity.mgt")
-//                  .artifactId("identity-store-handler-test-artifact")
-//                  .versionAsInProject());
+//                .groupId("org.wso2.carbon.identity.mgt")
+//                .artifactId("identity-store-handler-test-artifact")
+//                .versionAsInProject());
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.datasources")
                 .artifactId("org.wso2.carbon.datasource.core")
