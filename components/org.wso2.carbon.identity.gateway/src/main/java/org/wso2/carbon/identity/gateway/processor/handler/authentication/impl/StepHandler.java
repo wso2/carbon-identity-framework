@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
@@ -72,11 +72,11 @@ public class StepHandler extends FrameworkHandler {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
             } else {
                 if (sequence.isMultiOption(sequenceContext.getCurrentStep())) {
-                    IdentityRequest identityRequest = authenticationContext.getIdentityRequest();
+                    GatewayRequest gatewayRequest = authenticationContext.getIdentityRequest();
                     String authenticatorName = null;
-                    if (identityRequest instanceof LocalAuthenticationRequest) {
+                    if (gatewayRequest instanceof LocalAuthenticationRequest) {
                         LocalAuthenticationRequest localAuthenticationRequest =
-                                (LocalAuthenticationRequest) identityRequest;
+                                (LocalAuthenticationRequest) gatewayRequest;
                         authenticatorName = localAuthenticationRequest.getAuthenticatorName();
                         currentStepContext.setIdentityProviderName(localAuthenticationRequest.getIdentityProviderName());
                     }

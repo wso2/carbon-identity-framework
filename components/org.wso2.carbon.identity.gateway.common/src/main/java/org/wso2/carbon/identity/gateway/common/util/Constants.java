@@ -15,17 +15,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.processor.handler;
+package org.wso2.carbon.identity.gateway.common.util;
 
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+public class Constants {
+    public static final String QUERY_PARAMETERS = "QUERY_PARAMETERS";
+    public static final String BODY_PARAMETERS = "BODY_PARAMETERS";
+    public static final String REQUEST_BODY = "REQUEST_BODY";
 
-
-public class FrameworkHandlerException extends FrameworkServerException {
-    public FrameworkHandlerException(String message) {
-        super(message);
-    }
-
-    public FrameworkHandlerException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    public static final String GATEWAY_COOKIE = "GWSSOSC";
 }

@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.gateway.resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
+import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 
 import java.util.List;
@@ -33,30 +33,30 @@ public class ProcessCoordinator {
 
     private Logger log = LoggerFactory.getLogger(ProcessCoordinator.class);
 
-    public IdentityResponse process(IdentityRequest identityRequest) throws FrameworkServerException {
+    public GatewayResponse process(GatewayRequest gatewayRequest) throws GatewayServerException {
 
-        IdentityProcessor processor = getIdentityProcessor(identityRequest);
+        GatewayProcessor processor = getIdentityProcessor(gatewayRequest);
         if (processor != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Starting to process IdentityProcessor : " + processor.getName());
+                log.debug("Starting to process GatewayProcessor : " + processor.getName());
             }
-            return processor.process(identityRequest).build();
+            return processor.process(gatewayRequest).build();
         } else {
-            throw new FrameworkRuntimeException("No IdentityProcessor found to process the request.");
+            throw new GatewayRuntimeException("No GatewayProcessor found to process the request.");
         }
     }
 
-    private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
-        List<IdentityProcessor> processors = GatewayResourceDataHolder.getInstance().getIdentityProcessors();
+    private GatewayProcessor getIdentityProcessor(GatewayRequest gatewayRequest) {
+        List<GatewayProcessor> processors = GatewayResourceDataHolder.getInstance().getGatewayProcessors();
 
-        for (IdentityProcessor requestProcessor : processors) {
+        for (GatewayProcessor requestProcessor : processors) {
             try {
-                if (requestProcessor.canHandle(identityRequest)) {
+                if (requestProcessor.canHandle(gatewayRequest)) {
                     return requestProcessor;
                 }
             } catch (Exception e) {
                 log.error("Error occurred while checking if " + requestProcessor.getName() + " can handle " +
-                          identityRequest.toString());
+                          gatewayRequest.toString());
             }
         }
         return null;

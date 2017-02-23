@@ -21,12 +21,12 @@
 package org.wso2.carbon.identity.gateway.api.context;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 
 import java.io.Serializable;
 import java.util.Map;
 
-public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends IdentityRequest>
+public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends GatewayRequest>
         extends
         MessageContext<T1, T2>
         implements Serializable {
@@ -35,12 +35,12 @@ public class IdentityMessageContext<T1 extends Serializable, T2 extends Serializ
 
     protected T3 identityRequest;
 
-    public IdentityMessageContext(T3 identityRequest, Map<T1, T2> parameters) {
+    public GatewayMessageContext(T3 identityRequest, Map<T1, T2> parameters) {
         super(parameters);
         this.identityRequest = identityRequest;
     }
 
-    public IdentityMessageContext(T3 identityRequest) {
+    public GatewayMessageContext(T3 identityRequest) {
         this.identityRequest = identityRequest;
     }
 

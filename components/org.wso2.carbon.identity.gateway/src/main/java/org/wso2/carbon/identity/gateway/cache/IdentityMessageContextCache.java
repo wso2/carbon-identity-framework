@@ -19,20 +19,17 @@
 package org.wso2.carbon.identity.gateway.cache;
 
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.context.SessionContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
-import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class IdentityMessageContextCache extends BaseCache<String, IdentityMessageContext> {
+public class IdentityMessageContextCache extends BaseCache<String, GatewayMessageContext> {
 
     private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
     private static volatile IdentityMessageContextCache instance;
-    private static Map<String,IdentityMessageContext> authenticationContextMap = new HashMap();
+    private static Map<String,GatewayMessageContext> authenticationContextMap = new HashMap();
 
     private IdentityMessageContextCache(String cacheName) {
         super(cacheName);
@@ -50,13 +47,13 @@ public class IdentityMessageContextCache extends BaseCache<String, IdentityMessa
         return instance;
     }
 
-    public void put(String key, IdentityMessageContext context) {
+    public void put(String key, GatewayMessageContext context) {
         super.put(key, context);
         JDBCIdentityContextDAO.getInstance().put(key, context);
     }
 
-    public IdentityMessageContext get(String key) {
-        IdentityMessageContext context = super.get(key);
+    public GatewayMessageContext get(String key) {
+        GatewayMessageContext context = super.get(key);
         if(context == null) {
             context = JDBCIdentityContextDAO.getInstance().get(key);
         }

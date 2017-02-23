@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.gateway.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Artifact;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderEntity;
 import org.yaml.snakeyaml.Yaml;
@@ -67,11 +67,11 @@ public class GatewayUtil {
      *
      * @param fileName
      * @return provider name
-     * @throws FrameworkServerException
+     * @throws GatewayServerException
      */
-    public static String getProviderName(String fileName) throws FrameworkServerException {
+    public static String getProviderName(String fileName) throws GatewayServerException {
         if(!fileName.endsWith("." + Constants.YAML_EXTENSION)){
-            throw new FrameworkServerException("Provider config file should be yaml.");
+            throw new GatewayServerException("Provider config file should be yaml.");
         }
         return fileName.substring(0, fileName.indexOf(".yaml"));
     }
@@ -83,10 +83,10 @@ public class GatewayUtil {
      * @param providerClass
      * @param <T>
      * @return
-     * @throws FrameworkServerException
+     * @throws GatewayServerException
      */
     public static <T extends Object> T getProvider(Artifact artifact, Class<T> providerClass)
-            throws FrameworkServerException {
+            throws GatewayServerException {
         Path path = Paths.get(artifact.getPath());
         T provider = null ;
         if (Files.exists(path)) {
@@ -96,10 +96,10 @@ public class GatewayUtil {
                 yaml.setBeanAccess(BeanAccess.FIELD);
                 provider = yaml.loadAs(in, providerClass);
                 if(provider == null){
-                    throw new FrameworkServerException("Provider is not loaded correctly.");
+                    throw new GatewayServerException("Provider is not loaded correctly.");
                 }
             } catch (Exception e) {
-                throw new FrameworkServerException("Error while deploying service provider configuration.");
+                throw new GatewayServerException("Error while deploying service provider configuration.");
             }
         }
         return provider;

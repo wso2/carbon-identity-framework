@@ -21,30 +21,30 @@
 package org.wso2.carbon.identity.gateway.api.processor;
 
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
-public abstract class IdentityProcessor<T extends IdentityRequest> extends AbstractHandler {
+public abstract class GatewayProcessor<T extends GatewayRequest> extends AbstractHandler {
 
     /**
-     * Tells if this processor can handle this IdentityRequest
+     * Tells if this processor can handle this GatewayRequest
      *
-     * @param identityRequest
-     *         IdentityRequest
+     * @param gatewayRequest
+     *         GatewayRequest
      * @return can/not handle
      */
-    public abstract boolean canHandle(IdentityRequest identityRequest);
+    public abstract boolean canHandle(GatewayRequest gatewayRequest);
 
     /**
-     * Process IdentityRequest
+     * Process GatewayRequest
      *
      * @param identityRequest
-     *         IdentityRequest
-     * @return IdentityResponseBuilder
-     * @throws FrameworkServerException
-     *         Error occurred while processing IdentityRequest
+     *         GatewayRequest
+     * @return GatewayResponseBuilder
+     * @throws GatewayServerException
+     *         Error occurred while processing GatewayRequest
      */
-    public abstract IdentityResponse.IdentityResponseBuilder process(T identityRequest)
-            throws FrameworkServerException;
+    public abstract GatewayResponse.GatewayResponseBuilder process(T identityRequest)
+            throws GatewayServerException;
 }

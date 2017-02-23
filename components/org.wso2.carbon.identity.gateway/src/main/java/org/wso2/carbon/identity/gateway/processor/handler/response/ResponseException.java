@@ -18,9 +18,9 @@
 package org.wso2.carbon.identity.gateway.processor.handler.response;
 
 
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
 
-public class ResponseException extends FrameworkHandlerException {
+public class ResponseException extends GatewayHandlerException {
     public ResponseException(String message) {
         super(message);
     }

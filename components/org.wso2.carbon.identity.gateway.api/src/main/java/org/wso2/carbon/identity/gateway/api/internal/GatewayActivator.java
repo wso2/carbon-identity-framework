@@ -24,21 +24,21 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 
 
 @Component(
-        name = "org.wso2.carbon.identity.gateway.api.internal.GatewayResourceAPIComponent",
+        name = "org.wso2.carbon.identity.gateway.api.internal.GatewayActivator",
         immediate = true
 )
-public class GatewayResourceAPIComponent {
+public class GatewayActivator {
 
-    private Logger log = LoggerFactory.getLogger(GatewayResourceAPIComponent.class);
+    private Logger log = LoggerFactory.getLogger(GatewayActivator.class);
 
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
         try {
-            bundleContext.registerService(HttpIdentityRequestFactory.class, new HttpIdentityRequestFactory(), null);
+            bundleContext.registerService(GatewayRequestBuilderFactory.class, new GatewayRequestBuilderFactory(), null);
             if (log.isDebugEnabled()) {
                 log.debug("org.wso2.carbon.identity.gateway.api bundle is activated");
             }

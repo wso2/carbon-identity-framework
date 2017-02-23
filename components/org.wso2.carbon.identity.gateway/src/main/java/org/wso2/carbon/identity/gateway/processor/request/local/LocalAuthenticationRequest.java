@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.gateway.processor.request.local;
 
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthenticationRequest;
 
 
@@ -62,7 +62,7 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
         }
 
         @Override
-        public LocalAuthenticationRequest build() throws FrameworkRuntimeException {
+        public LocalAuthenticationRequest build() throws GatewayRuntimeException {
             return new LocalAuthenticationRequest(this);
         }
     }

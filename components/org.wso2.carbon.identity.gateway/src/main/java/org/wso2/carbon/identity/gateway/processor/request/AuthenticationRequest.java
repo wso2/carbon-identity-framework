@@ -18,14 +18,14 @@
 package org.wso2.carbon.identity.gateway.processor.request;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.util.Constants;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.common.util.Constants;
 
 import java.util.UUID;
 
 
-public class AuthenticationRequest extends IdentityRequest {
+public class AuthenticationRequest extends GatewayRequest {
 
     private static final long serialVersionUID = -8870055537743402153L;
     protected String requestKey;
@@ -69,7 +69,7 @@ public class AuthenticationRequest extends IdentityRequest {
         }
 
         @Override
-        public AuthenticationRequest build() throws FrameworkRuntimeException {
+        public AuthenticationRequest build() throws GatewayRuntimeException {
             return new AuthenticationRequest(this);
         }
     }

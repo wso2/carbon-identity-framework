@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.gateway.processor.handler.session;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.dao.CacheBackedSessionDAO;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 
@@ -34,7 +34,7 @@ import java.util.UUID;
 public class SessionHandler extends AbstractSessionHandler {
 
     @Override
-    public FrameworkHandlerResponse updateSession(AuthenticationContext context) throws FrameworkHandlerException {
+    public FrameworkHandlerResponse updateSession(AuthenticationContext context) throws GatewayHandlerException {
 
         String sessionKey = ((AuthenticationRequest)context.getIdentityRequest()).getSessionKey();
         String sessionKeyHash = null;

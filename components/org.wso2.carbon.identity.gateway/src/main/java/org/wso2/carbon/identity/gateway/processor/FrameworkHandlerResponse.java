@@ -18,25 +18,21 @@
  *
  */
 
-package org.wso2.carbon.identity.gateway.api.exception;
+package org.wso2.carbon.identity.gateway.processor;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityServerException;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
-public class FrameworkServerException extends IdentityServerException {
+public enum FrameworkHandlerResponse {
+    REDIRECT, CONTINUE;
 
-    public FrameworkServerException(String message) {
-        super(message);
+    private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder;
+
+    public GatewayResponse.GatewayResponseBuilder getGatewayResponseBuilder() {
+        return gatewayResponseBuilder;
     }
 
-    public FrameworkServerException(String errorCode, String message) {
-        super(errorCode, message);
-    }
-
-    public FrameworkServerException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public FrameworkServerException(String errorCode, String message, Throwable cause) {
-        super(errorCode, message, cause);
+    public void setGatewayResponseBuilder(
+            GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+        this.gatewayResponseBuilder = gatewayResponseBuilder;
     }
 }

@@ -20,8 +20,9 @@
 
 package org.wso2.carbon.identity.gateway.api.request;
 
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.util.Constants;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.common.util.Constants;
+import org.wso2.msf4j.Request;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -33,7 +34,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IdentityRequest implements Serializable {
+public class GatewayRequest implements Serializable {
 
     private static final long serialVersionUID = 5418537216546873566L;
 
@@ -45,7 +46,7 @@ public class IdentityRequest implements Serializable {
     protected String contentType;
     protected String queryString;
 
-    protected IdentityRequest(IdentityRequestBuilder builder) {
+    protected GatewayRequest(IdentityRequestBuilder builder) {
         this.headers = builder.headers;
         this.parameters = builder.parameters;
         this.attributes = builder.attributes;
@@ -141,13 +142,16 @@ public class IdentityRequest implements Serializable {
         private String contentType;
         private String queryString;
 
-        public IdentityRequestBuilder() {
-
+        private Request request ;
+        public IdentityRequestBuilder( ) {
+        }
+        public IdentityRequestBuilder(Request request) {
+            this.request = request ;
         }
 
         public IdentityRequestBuilder addAttribute(String name, Serializable value) {
             if (this.attributes.containsKey(name)) {
-                throw new FrameworkRuntimeException("Attributes map trying to override existing key " + name);
+                throw new GatewayRuntimeException("Attributes map trying to override existing key " + name);
             }
             this.attributes.put(name, value);
             return this;
@@ -156,7 +160,7 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addAttributes(Map<String, Serializable> attributes) {
             for (Map.Entry<String, Serializable> attribute : attributes.entrySet()) {
                 if (this.attributes.containsKey(attribute.getKey())) {
-                    throw new FrameworkRuntimeException("Attributes map trying to override existing key " + attribute
+                    throw new GatewayRuntimeException("Attributes map trying to override existing key " + attribute
                             .getKey());
                 }
                 this.attributes.put(attribute.getKey(), attribute.getValue());
@@ -166,7 +170,7 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addHeader(String name, String value) {
             if (this.headers.containsKey(name)) {
-                throw new FrameworkRuntimeException("Headers map trying to override existing header " + name);
+                throw new GatewayRuntimeException("Headers map trying to override existing header " + name);
             }
             this.headers.put(name, value);
             return this;
@@ -175,7 +179,7 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
-                    throw new FrameworkRuntimeException("Headers map trying to override existing header " + header
+                    throw new GatewayRuntimeException("Headers map trying to override existing header " + header
                             .getKey());
                 }
                 this.headers.put(header.getKey(), header.getValue());
@@ -185,7 +189,7 @@ public class IdentityRequest implements Serializable {
 
         public IdentityRequestBuilder addParameter(String name, Serializable value) {
             if (this.parameters.containsKey(name)) {
-                throw new FrameworkRuntimeException("Parameters map trying to override existing key " + name);
+                throw new GatewayRuntimeException("Parameters map trying to override existing key " + name);
             }
             this.parameters.put(name, value);
             return this;
@@ -194,7 +198,7 @@ public class IdentityRequest implements Serializable {
         public IdentityRequestBuilder addParameters(Map<String, Serializable> parameters) {
             for (Map.Entry<String, Serializable> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
-                    throw new FrameworkRuntimeException("Parameters map trying to override existing key " + parameter
+                    throw new GatewayRuntimeException("Parameters map trying to override existing key " + parameter
                             .getKey());
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
@@ -202,8 +206,8 @@ public class IdentityRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequest build() throws FrameworkRuntimeException {
-            return new IdentityRequest(this);
+        public GatewayRequest build() throws GatewayRuntimeException {
+            return new GatewayRequest(this);
         }
 
         public IdentityRequestBuilder setAttributes(Map<String, Serializable> attributes) {

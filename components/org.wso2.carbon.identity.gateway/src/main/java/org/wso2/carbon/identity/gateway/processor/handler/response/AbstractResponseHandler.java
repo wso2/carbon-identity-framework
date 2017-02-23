@@ -19,8 +19,8 @@ package org.wso2.carbon.identity.gateway.processor.handler.response;
 
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuildingConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -42,7 +42,7 @@ public abstract class AbstractResponseHandler extends FrameworkHandler {
 
     protected abstract String getValidatorType();
 
-    protected void addSessionKey(IdentityResponse.IdentityResponseBuilder responseBuilder,
+    protected void addSessionKey(GatewayResponse.GatewayResponseBuilder responseBuilder,
                                  AuthenticationContext context) throws ResponseException {
 
         responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants

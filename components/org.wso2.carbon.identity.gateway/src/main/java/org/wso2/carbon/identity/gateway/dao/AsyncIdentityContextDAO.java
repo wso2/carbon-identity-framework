@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.gateway.dao;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
 
 import java.util.concurrent.BlockingDeque;
@@ -67,7 +67,7 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
     }
 
     @Override
-    public void put(String key, IdentityMessageContext context) {
+    public void put(String key, GatewayMessageContext context) {
 
         if (poolSize > 0) {
             IdentityContextPersistenceTask.IdentityContextJob job = new IdentityContextPersistenceTask
@@ -79,7 +79,7 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
     }
 
     @Override
-    public IdentityMessageContext get(String key) {
+    public GatewayMessageContext get(String key) {
         return persistentDAO.get(key);
     }
 

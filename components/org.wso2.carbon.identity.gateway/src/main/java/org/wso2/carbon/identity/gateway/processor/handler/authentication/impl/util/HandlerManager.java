@@ -18,8 +18,7 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util;
 
 
-import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
@@ -74,7 +73,7 @@ public class HandlerManager {
                 }
             }
         }
-        throw new FrameworkRuntimeException("Cannot find a Handler to handle this request.");
+        throw new GatewayRuntimeException("Cannot find a Handler to handle this request.");
     }
 
 }

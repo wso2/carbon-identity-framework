@@ -32,8 +32,7 @@ import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
-import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.dao.IdentityContextDAO;
+import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
@@ -75,7 +74,7 @@ public class FrameworkServiceComponent {
 
         //Registering processor
         AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
-        bundleContext.registerService(IdentityProcessor.class, authenticationProcessor, null);
+        bundleContext.registerService(GatewayProcessor.class, authenticationProcessor, null);
 
 
         //Registering this for demo perposes only
@@ -91,7 +90,7 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(IdentityProviderConfigStore.class, IdentityProviderConfigStore.getInstance(), null);
         bundleContext.registerService(GatewayClaimResolverService.class, GatewayClaimResolverService.getInstance(), null);
 
-        //bundleContext.registerService(HttpIdentityRequestFactory.class, new LocalAuthenticationRequestFactory(), null);
+        //bundleContext.registerService(GatewayRequestBuilderFactory.class, new LocalAuthenticationRequestBuilderFactory(), null);
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
 
         if (log.isDebugEnabled()) {

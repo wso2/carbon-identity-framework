@@ -23,21 +23,21 @@ package org.wso2.carbon.identity.gateway.api.exception;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 
-public class FrameworkRuntimeException extends IdentityRuntimeException {
+public class GatewayRuntimeException extends IdentityRuntimeException {
 
-    public FrameworkRuntimeException(String message) {
+    public GatewayRuntimeException(String message) {
         super(message);
     }
 
-    public FrameworkRuntimeException(String errorCode, String message) {
+    public GatewayRuntimeException(String errorCode, String message) {
         super(errorCode, message);
     }
 
-    public FrameworkRuntimeException(String errorCode, String message, Throwable cause) {
+    public GatewayRuntimeException(String errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
     }
 
-    public FrameworkRuntimeException(String errorCode, Throwable cause) {
+    public GatewayRuntimeException(String errorCode, Throwable cause) {
         super(errorCode, cause);
     }
 }

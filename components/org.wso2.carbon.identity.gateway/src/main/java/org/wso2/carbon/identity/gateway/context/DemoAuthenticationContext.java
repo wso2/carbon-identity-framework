@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.gateway.context;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
@@ -32,7 +32,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 public class DemoAuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends ClientAuthenticationRequest> extends
-        IdentityMessageContext<T1, T2, T3> {
+
+                                                                                                                                 GatewayMessageContext<T1, T2, T3> {
 
     private static final long serialVersionUID = 6821167819709907062L;
 

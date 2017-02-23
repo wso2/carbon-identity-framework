@@ -1,12 +1,12 @@
 package org.wso2.carbon.identity.gateway.dao;
 
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
 public abstract class IdentityContextDAO {
 
-    public abstract void put(String key, IdentityMessageContext context);
+    public abstract void put(String key, GatewayMessageContext context);
 
-    public abstract IdentityMessageContext get(String key);
+    public abstract GatewayMessageContext get(String key);
 
     public abstract void remove(String key);
 }

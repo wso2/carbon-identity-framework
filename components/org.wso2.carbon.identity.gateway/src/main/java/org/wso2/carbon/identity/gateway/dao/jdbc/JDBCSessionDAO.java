@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.jdbc.DataAccessException;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.dao.SessionDAO;
 
@@ -75,7 +75,7 @@ public class JDBCSessionDAO extends SessionDAO {
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new FrameworkRuntimeException("Error while storing session.", e);
+            throw new GatewayRuntimeException("Error while storing session.", e);
         }
     }
 
@@ -116,7 +116,7 @@ public class JDBCSessionDAO extends SessionDAO {
                 namedPreparedStatement.setString(KEY, key);
             });
         } catch (DataAccessException e) {
-            throw new FrameworkRuntimeException("Error while retrieving session.", e);
+            throw new GatewayRuntimeException("Error while retrieving session.", e);
         }
         return sessionContext.get();
     }
@@ -136,7 +136,7 @@ public class JDBCSessionDAO extends SessionDAO {
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new FrameworkRuntimeException("Error while storing session.", e);
+            throw new GatewayRuntimeException("Error while storing session.", e);
         }
     }
 }

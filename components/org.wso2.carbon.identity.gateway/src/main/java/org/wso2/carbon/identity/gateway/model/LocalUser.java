@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.gateway.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
 import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
@@ -50,7 +50,7 @@ public class LocalUser extends User {
             log.error("Error while reading user claims from local identity store.", e);
             return new HashSet();
         } catch (UserNotFoundException e) {
-            throw new FrameworkRuntimeException("User cannot be found in local identity store.", e);
+            throw new GatewayRuntimeException("User cannot be found in local identity store.", e);
         }
     }
 }

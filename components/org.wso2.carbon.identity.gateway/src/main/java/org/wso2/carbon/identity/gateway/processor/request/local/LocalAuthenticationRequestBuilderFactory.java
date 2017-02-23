@@ -19,13 +19,16 @@
 package org.wso2.carbon.identity.gateway.processor.request.local;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkClientException;
-import org.wso2.carbon.identity.gateway.api.request.HttpIdentityRequestFactory;
-import org.wso2.carbon.identity.gateway.api.response.HttpIdentityResponse;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
 import org.wso2.msf4j.Request;
 
+import javax.ws.rs.core.Response;
 
-public class LocalAuthenticationRequestFactory<T extends LocalAuthenticationRequest.LocalAuthenticationRequestBuilder> extends HttpIdentityRequestFactory<T>{
+
+public class LocalAuthenticationRequestBuilderFactory<T extends LocalAuthenticationRequest.LocalAuthenticationRequestBuilder> extends
+                                                                                                                              GatewayRequestBuilderFactory<T> {
     @Override
     public boolean canHandle(Request request) {
         String authenticatorName = (String) request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants
@@ -39,7 +42,7 @@ public class LocalAuthenticationRequestFactory<T extends LocalAuthenticationRequ
 
     @Override
     public void create(T builder, Request request)
-            throws FrameworkClientException {
+            throws GatewayClientException {
 
         super.create(builder, request);
         LocalAuthenticationRequest.LocalAuthenticationRequestBuilder localAuthenticationRequestBuilder = (LocalAuthenticationRequest.LocalAuthenticationRequestBuilder)builder ;
@@ -54,7 +57,7 @@ public class LocalAuthenticationRequestFactory<T extends LocalAuthenticationRequ
 
     @Override
     public LocalAuthenticationRequest.LocalAuthenticationRequestBuilder create(Request request)
-            throws FrameworkClientException {
+            throws GatewayClientException {
 
         LocalAuthenticationRequest.LocalAuthenticationRequestBuilder localAuthenticationRequestBuilder =  new LocalAuthenticationRequest.LocalAuthenticationRequestBuilder();
 
@@ -68,7 +71,7 @@ public class LocalAuthenticationRequestFactory<T extends LocalAuthenticationRequ
     }
 
     @Override
-    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(FrameworkClientException exception) {
+    public Response.ResponseBuilder handleException(GatewayClientException exception) {
         return super.handleException(exception);
     }
 

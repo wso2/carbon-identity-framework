@@ -18,21 +18,21 @@
 package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 
 
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
 public enum AuthenticationResponse {
     AUTHENTICATED,
     INCOMPLETE;
 
-    private IdentityResponse.IdentityResponseBuilder identityResponseBuilder;
+    private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder;
 
-    public IdentityResponse.IdentityResponseBuilder getIdentityResponseBuilder() {
-        return identityResponseBuilder;
+    public GatewayResponse.GatewayResponseBuilder getGatewayResponseBuilder() {
+        return gatewayResponseBuilder;
     }
 
-    public AuthenticationResponse setIdentityResponseBuilder(
-            IdentityResponse.IdentityResponseBuilder identityResponseBuilder) {
-        this.identityResponseBuilder = identityResponseBuilder;
+    public AuthenticationResponse setGatewayResponseBuilder(
+            GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+        this.gatewayResponseBuilder = gatewayResponseBuilder;
         return this;
     }
 }

@@ -24,7 +24,7 @@ import org.wso2.carbon.deployment.engine.Artifact;
 import org.wso2.carbon.deployment.engine.ArtifactType;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderEntity;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
@@ -67,7 +67,7 @@ public class IdentityProviderDeployer implements Deployer {
         try {
             IdentityProviderConfig IdentityProviderConfig = getIdentityProviderConfig(artifact);
             IdentityProviderConfigStore.getInstance().addIdentityProvider(IdentityProviderConfig);
-        } catch (FrameworkServerException e) {
+        } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while deploying Identity Provider. " + e.getMessage();
             logger.error(errorMessage);
             throw new CarbonDeploymentException(errorMessage, e);
@@ -90,7 +90,7 @@ public class IdentityProviderDeployer implements Deployer {
         try {
             String providerName = GatewayUtil.getProviderName((String) key);
             IdentityProviderConfigStore.getInstance().removeIdentityProvider(providerName);
-        } catch (FrameworkServerException e) {
+        } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while Un-Deploying the Identity Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
@@ -107,7 +107,7 @@ public class IdentityProviderDeployer implements Deployer {
         try {
             IdentityProviderConfig IdentityProviderConfig = getIdentityProviderConfig(artifact);
             IdentityProviderConfigStore.getInstance().addIdentityProvider(IdentityProviderConfig);
-        } catch (FrameworkServerException e) {
+        } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while updating the Identity Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
@@ -140,14 +140,14 @@ public class IdentityProviderDeployer implements Deployer {
      * @return IdentityProviderConfig
      */
     public synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact)
-            throws FrameworkServerException {
+            throws GatewayServerException {
         if (logger.isDebugEnabled()) {
             logger.debug("Read Identity Provider Configs.");
         }
         String providerName = GatewayUtil.getProviderName(artifact.getName());
         IdentityProviderEntity providerEntity = GatewayUtil.getProvider(artifact, IdentityProviderEntity.class);
         if (!providerEntity.getIdentityProviderConfig().getName().equals(providerName)) {
-            throw new FrameworkServerException("Provider name should be the same as file name.");
+            throw new GatewayServerException("Provider name should be the same as file name.");
         }
         return providerEntity.getIdentityProviderConfig();
     }

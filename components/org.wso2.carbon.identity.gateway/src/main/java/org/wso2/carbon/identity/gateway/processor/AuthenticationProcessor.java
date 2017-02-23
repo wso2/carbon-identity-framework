@@ -19,16 +19,15 @@
 package org.wso2.carbon.identity.gateway.processor;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.context.IdentityMessageContext;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkRuntimeException;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
-import org.wso2.carbon.identity.gateway.api.processor.IdentityProcessor;
-import org.wso2.carbon.identity.gateway.api.request.IdentityRequest;
-import org.wso2.carbon.identity.gateway.api.response.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.api.response.IdentityResponse;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
+import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
@@ -46,19 +45,19 @@ import org.wso2.carbon.identity.gateway.processor.util.HandlerManager;
  * AuthenticationProcessor is the main processor in Authentication framework that is executing the template
  * for client and callback request.
  */
-public class AuthenticationProcessor extends IdentityProcessor<AuthenticationRequest> {
+public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequest> {
 
     @Override
-    public boolean canHandle(IdentityRequest identityRequest) {
+    public boolean canHandle(GatewayRequest gatewayRequest) {
         //Since this the default processor, always can handle should be return and if some wants to override this,
         // they can override and give high priority to the new processor.
         return true;
     }
 
     @Override
-    public IdentityResponse.IdentityResponseBuilder process(AuthenticationRequest authenticationRequest)
-            throws FrameworkServerException {
-        IdentityResponse.IdentityResponseBuilder identityResponseBuilder = null;
+    public GatewayResponse.GatewayResponseBuilder process(AuthenticationRequest authenticationRequest)
+            throws GatewayServerException {
+        GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = null;
 
         /*
         If the authenticationRequest is ClientAuthenticationRequest, that mean this is an initial request that is
@@ -70,19 +69,19 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
 
             authenticationContext = initAuthenticationContext(
                     (ClientAuthenticationRequest) authenticationRequest);
-            identityResponseBuilder = processLoginRequest(authenticationContext);
+            gatewayResponseBuilder = processLoginRequest(authenticationContext);
         } else if (authenticationRequest instanceof CallbackAuthenticationRequest) {
 
             authenticationContext = loadAuthenticationContext(
                     (CallbackAuthenticationRequest) authenticationRequest);
             if (authenticationContext == null) {
-                throw new FrameworkRuntimeException("Invalid Request.");
+                throw new GatewayRuntimeException("Invalid Request.");
             }
-            identityResponseBuilder = processAuthenticationRequest(authenticationContext);
+            gatewayResponseBuilder = processAuthenticationRequest(authenticationContext);
 
         }
         updateAuthenticationContext(authenticationRequest.getRequestKey(), authenticationContext);
-        return identityResponseBuilder;
+        return gatewayResponseBuilder;
     }
 
 
@@ -91,10 +90,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
      *
      * @param authenticationContext
      * @return
-     * @throws FrameworkHandlerException
+     * @throws GatewayHandlerException
      */
-    protected IdentityResponse.IdentityResponseBuilder processLoginRequest(AuthenticationContext authenticationContext)
-            throws FrameworkHandlerException {
+    protected GatewayResponse.GatewayResponseBuilder processLoginRequest(AuthenticationContext authenticationContext)
+            throws GatewayHandlerException {
 
         FrameworkHandlerResponse identityFrameworkHandlerResponse = null;
         try {
@@ -117,7 +116,7 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
             // handler.
             identityFrameworkHandlerResponse = buildErrorResponse(authenticationContext, e);
         }
-        return identityFrameworkHandlerResponse.getIdentityResponseBuilder();
+        return identityFrameworkHandlerResponse.getGatewayResponseBuilder();
     }
 
 
@@ -126,10 +125,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
      *
      * @param authenticationContext
      * @return
-     * @throws FrameworkHandlerException
+     * @throws GatewayHandlerException
      */
-    protected IdentityResponse.IdentityResponseBuilder processAuthenticationRequest(
-            AuthenticationContext authenticationContext) throws FrameworkHandlerException {
+    protected GatewayResponse.GatewayResponseBuilder processAuthenticationRequest(
+            AuthenticationContext authenticationContext) throws GatewayHandlerException {
         FrameworkHandlerResponse frameworkHandlerResponse = null;
         try {
             //Authentication handler will start to execute.
@@ -147,7 +146,7 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
             // handler.
             frameworkHandlerResponse = buildErrorResponse(authenticationContext, e);
         }
-        return frameworkHandlerResponse.getIdentityResponseBuilder();
+        return frameworkHandlerResponse.getGatewayResponseBuilder();
     }
 
 
@@ -180,10 +179,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
 
         AuthenticationContext authenticationContext = null;
         String requestDataKey = authenticationRequest.getRequestKey();
-        IdentityMessageContext identityMessageContext =
+        GatewayMessageContext gatewayMessageContext =
                 IdentityMessageContextCache.getInstance().get(requestDataKey);
-        if (identityMessageContext != null) {
-            authenticationContext = (AuthenticationContext) identityMessageContext;
+        if (gatewayMessageContext != null) {
+            authenticationContext = (AuthenticationContext) gatewayMessageContext;
             //authenticationRequest is not the initial request , but this is subsequent request object that is not
             // going to store till end.
             authenticationContext.setIdentityRequest(authenticationRequest);
@@ -211,10 +210,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
      *
      * @param authenticationContext
      * @return
-     * @throws FrameworkHandlerException
+     * @throws GatewayHandlerException
      */
     protected FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
-            throws FrameworkHandlerException {
+            throws GatewayHandlerException {
         AbstractResponseHandler responseBuilderHandler =
                 HandlerManager.getInstance().getResponseHandler(authenticationContext);
         return responseBuilderHandler.buildResponse(authenticationContext);
@@ -225,10 +224,10 @@ public class AuthenticationProcessor extends IdentityProcessor<AuthenticationReq
      *
      * @param authenticationContext
      * @return
-     * @throws FrameworkHandlerException
+     * @throws GatewayHandlerException
      */
     protected FrameworkHandlerResponse updateSession(AuthenticationContext authenticationContext)
-            throws FrameworkHandlerException {
+            throws GatewayHandlerException {
         AbstractSessionHandler sessionHandler = new SessionHandler();
         return sessionHandler.updateSession(authenticationContext);
     }

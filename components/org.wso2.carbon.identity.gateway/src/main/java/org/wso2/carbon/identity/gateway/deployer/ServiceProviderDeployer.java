@@ -24,7 +24,7 @@ import org.wso2.carbon.deployment.engine.Artifact;
 import org.wso2.carbon.deployment.engine.ArtifactType;
 import org.wso2.carbon.deployment.engine.Deployer;
 import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
-import org.wso2.carbon.identity.gateway.api.exception.FrameworkServerException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderEntity;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent;
@@ -70,7 +70,7 @@ public class ServiceProviderDeployer implements Deployer {
         try {
             ServiceProviderConfig serviceProviderConfig = getServiceProviderConfig(artifact);
             ServiceProviderConfigStore.getInstance().addServiceProvider(serviceProviderConfig);
-        } catch (FrameworkServerException e) {
+        } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while deploying Service Provider. " + e.getMessage();
             logger.error(errorMessage);
             throw new CarbonDeploymentException(errorMessage, e);
@@ -93,7 +93,7 @@ public class ServiceProviderDeployer implements Deployer {
         try {
             String providerName = GatewayUtil.getProviderName((String) key);
             ServiceProviderConfigStore.getInstance().removeServiceProvider(providerName);
-        } catch (FrameworkServerException e) {
+        } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while Un-Deploying the Service Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
@@ -110,7 +110,7 @@ public class ServiceProviderDeployer implements Deployer {
         try {
             ServiceProviderConfig serviceProviderConfig = getServiceProviderConfig(artifact);
             ServiceProviderConfigStore.getInstance().addServiceProvider(serviceProviderConfig);
-        } catch (FrameworkServerException e) {
+        } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while updating the Service Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
@@ -143,14 +143,14 @@ public class ServiceProviderDeployer implements Deployer {
      * @return ServiceProviderConfig
      */
     public synchronized ServiceProviderConfig getServiceProviderConfig(Artifact artifact)
-            throws FrameworkServerException {
+            throws GatewayServerException {
         if (logger.isDebugEnabled()) {
             logger.debug("Read Service Provider Configs.");
         }
         String providerName = GatewayUtil.getProviderName(artifact.getName());
         ServiceProviderEntity providerEntity = GatewayUtil.getProvider(artifact, ServiceProviderEntity.class);
         if (!providerEntity.getServiceProviderConfig().getName().equals(providerName)) {
-            throw new FrameworkServerException("Provider name should be the same as file name.");
+            throw new GatewayServerException("Provider name should be the same as file name.");
         }
         return providerEntity.getServiceProviderConfig();
     }
