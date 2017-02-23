@@ -371,6 +371,19 @@
                 <artifactId>in-memory-connectors-test-artifact</artifactId>
                 <version>${carbon.identity.mgt.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
+
+            <!-- sample dependencies -->
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.inbound.sample</artifactId>
+                <version>${identity.gateway.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

@@ -107,11 +107,8 @@
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
             org.wso2.carbon.kernel;version="${carbon.kernel.package.import.version.range}",
-            org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.msf4j.*,
             javax.ws.rs.*,
-            org.opensaml.*,
-            org.joda.*,
             org.apache.xerces.util; resolution:=optional,
             javax.xml.*,
             org.xml.*,

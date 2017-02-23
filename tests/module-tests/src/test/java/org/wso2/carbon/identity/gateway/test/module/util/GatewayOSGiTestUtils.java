@@ -42,6 +42,15 @@ public class GatewayOSGiTestUtils {
         List<Option> defaultOptionList = new ArrayList<>();
 
         defaultOptionList.add(mavenBundle()
+                .groupId("org.ops4j.pax.logging")
+                .artifactId("pax-logging-log4j2")
+                .versionAsInProject());
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.ops4j.pax.logging")
+                .artifactId("pax-logging-api")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
                 .groupId("org.slf4j")
                 .artifactId("slf4j-api")
                 .versionAsInProject());
@@ -53,14 +62,16 @@ public class GatewayOSGiTestUtils {
                 .groupId("commons-io.wso2")
                 .artifactId("commons-io")
                 .versionAsInProject());
-        defaultOptionList.add(mavenBundle()
-                .groupId("net.minidev.wso2")
-                .artifactId("json-smart")
-                .versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("commons-pool.wso2").
+                artifactId("commons-pool").versionAsInProject());
         defaultOptionList.add(mavenBundle()
                 .groupId("net.minidev")
                 .artifactId("asm")
                 .versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("com.google.code.gson").
+                artifactId("gson").versionAsInProject());
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon")
                 .artifactId("org.wso2.carbon.core")
@@ -81,6 +92,37 @@ public class GatewayOSGiTestUtils {
                 .groupId("org.wso2.carbon.identity.mgt")
                 .artifactId("org.wso2.carbon.identity.claim")
                 .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle().
+                groupId("org.json").
+                artifactId("json")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle().
+                groupId("org.wso2.carbon.transport").
+                artifactId("org.wso2.carbon.transport.http.netty").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("io.netty").
+                artifactId("netty-transport").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("io.netty").
+                artifactId("netty-buffer").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("io.netty").
+                artifactId("netty-common").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("io.netty").
+                artifactId("netty-codec").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("io.netty").
+                artifactId("netty-codec-http").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("io.netty").
+                artifactId("netty-handler").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("javax.ws.rs").
+                artifactId("javax.ws.rs-api").versionAsInProject());
+
 //        defaultOptionList.add(mavenBundle()
 //                .groupId("org.wso2.carbon.identity.mgt")
 //                .artifactId("org.wso2.carbon.identity.recovery")
@@ -121,6 +163,12 @@ public class GatewayOSGiTestUtils {
                 .groupId("org.apache.commons")
                 .artifactId("commons-lang3")
                 .versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("org.apache.servicemix.bundles").
+                artifactId("org.apache.servicemix.bundles.commons-beanutils").versionAsInProject());
+        defaultOptionList.add(mavenBundle().
+                groupId("org.wso2.orbit.com.lmax").
+                artifactId("disruptor").versionAsInProject());
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.lcm")
                 .artifactId("org.wso2.carbon.lcm.core")
@@ -128,6 +176,47 @@ public class GatewayOSGiTestUtils {
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.lcm")
                 .artifactId("org.wso2.carbon.lcm.sql")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("commons-lang.wso2")
+                .artifactId("commons-lang")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.msf4j")
+                .artifactId("msf4j-core")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.deployment")
+                .artifactId("org.wso2.carbon.deployment.engine")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.identity.gateway")
+                .artifactId("org.wso2.carbon.identity.gateway")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.identity.gateway")
+                .artifactId("org.wso2.carbon.identity.gateway.api")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.identity.gateway")
+                .artifactId("org.wso2.carbon.identity.gateway.common")
+                .versionAsInProject());
+
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.identity.gateway")
+                .artifactId("org.wso2.carbon.identity.gateway.resource")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.identity.gateway")
+                .artifactId("org.wso2.carbon.identity.inbound.sample")
                 .versionAsInProject());
 
         CarbonSysPropConfiguration sysPropConfiguration = new CarbonSysPropConfiguration();

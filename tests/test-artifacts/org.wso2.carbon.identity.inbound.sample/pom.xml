@@ -27,10 +27,9 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.identity</groupId>
-    <artifactId>org.wso2.carbon.identity.inbound.samlple</artifactId>
+    <artifactId>org.wso2.carbon.identity.inbound.sample</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Sample OSGi Bundle</name>
+    <name>WSO2 Carbon - Sample inbound OSGi Bundle</name>
     <url>http://wso2.com</url>
 
     <dependencies>
@@ -53,17 +52,11 @@
     </dependencies>
 
     <properties>
-        <private.package>org.wso2.carbon.identity.saml.internal</private.package>
+        <private.package>org.wso2.carbon.identity.sample.inbound.internal</private.package>
         <export.package>
-            !org.wso2.carbon.identity.saml.internal,
-            org.wso2.carbon.identity.saml.*;version="${project.version}"
+            !org.wso2.carbon.identity.sample.inbound.internal,
+            org.wso2.carbon.identity.sample.inbound.*;version="${project.version}"
         </export.package>
-        <import.package>
-            org.osgi.framework.*;version="[1.8.0, 2.0.0)",
-            org.wso2.carbon.identity.gateway.*; version="${carbon.identity.gateway.import.version.range}",
-            org.apache.xerces.util.*,
-            org.apache.commons.ssl.*,
-        </import.package>
         <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>
         <dynamic.import.package>*</dynamic.import.package>
