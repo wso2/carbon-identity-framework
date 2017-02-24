@@ -35,9 +35,9 @@ public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestB
     }
 
     @Override
-    public GatewayRequest.IdentityRequestBuilder create(Request request) throws GatewayClientException {
+    public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
 
-        GatewayRequest.IdentityRequestBuilder builder = new SampleProtocolRequest.SampleProtocolRequestBuilder(request);
+        GatewayRequest.GatewayRequestBuilder builder = new SampleProtocolRequest.SampleProtocolRequestBuilder(request);
         super.create(builder, request);
         return builder;
     }
