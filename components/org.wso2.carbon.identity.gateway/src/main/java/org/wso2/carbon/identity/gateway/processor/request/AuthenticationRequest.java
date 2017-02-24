@@ -53,7 +53,7 @@ public class AuthenticationRequest extends GatewayRequest {
         return null;
     }
 
-    public static class AuthenticationRequestBuilder extends IdentityRequestBuilder {
+    public static class AuthenticationRequestBuilder extends GatewayRequestBuilder {
 
         protected String requestDataKey;
         protected String sessionCookie;

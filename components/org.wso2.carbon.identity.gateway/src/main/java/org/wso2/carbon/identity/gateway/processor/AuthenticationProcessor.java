@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.gateway.processor;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
@@ -51,12 +52,15 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
     public boolean canHandle(GatewayRequest gatewayRequest) {
         //Since this the default processor, always can handle should be return and if some wants to override this,
         // they can override and give high priority to the new processor.
-        return true;
+        if(gatewayRequest instanceof AuthenticationRequest){
+            return true;
+        }
+        return false;
     }
 
     @Override
     public GatewayResponse.GatewayResponseBuilder process(AuthenticationRequest authenticationRequest)
-            throws GatewayServerException {
+            throws GatewayServerException, GatewayClientException {
         GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = null;
 
         /*

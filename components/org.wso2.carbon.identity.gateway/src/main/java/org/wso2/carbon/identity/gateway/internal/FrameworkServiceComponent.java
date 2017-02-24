@@ -29,6 +29,8 @@ import org.osgi.service.jndi.JNDIContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Deployer;
+import org.wso2.carbon.deployment.engine.DeploymentConfigurationProvider;
+import org.wso2.carbon.deployment.engine.DeploymentService;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
@@ -92,6 +94,7 @@ public class FrameworkServiceComponent {
 
         //bundleContext.registerService(GatewayRequestBuilderFactory.class, new LocalAuthenticationRequestBuilderFactory(), null);
         //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
+
 
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");

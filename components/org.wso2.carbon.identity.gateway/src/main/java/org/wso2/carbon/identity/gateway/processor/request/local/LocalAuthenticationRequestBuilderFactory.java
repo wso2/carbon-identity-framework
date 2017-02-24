@@ -20,17 +20,17 @@ package org.wso2.carbon.identity.gateway.processor.request.local;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.api.response.HttpGatewayResponse;
 import org.wso2.msf4j.Request;
 
 import javax.ws.rs.core.Response;
 
 
-public class LocalAuthenticationRequestBuilderFactory<T extends LocalAuthenticationRequest.LocalAuthenticationRequestBuilder> extends
-                                                                                                                              GatewayRequestBuilderFactory<T> {
+public class LocalAuthenticationRequestBuilderFactory extends
+                                                                                                                              GatewayRequestBuilderFactory<LocalAuthenticationRequest.LocalAuthenticationRequestBuilder> {
     @Override
-    public boolean canHandle(Request request) {
+    public boolean canHandle(Request request) throws GatewayClientException {
         String authenticatorName = (String) request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants
                                                         .AUTHENTICATOR_NAME);
         String idpName = (String)request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants.IDP_NAME);
@@ -41,7 +41,7 @@ public class LocalAuthenticationRequestBuilderFactory<T extends LocalAuthenticat
     }
 
     @Override
-    public void create(T builder, Request request)
+    public void create(LocalAuthenticationRequest.LocalAuthenticationRequestBuilder builder, Request request)
             throws GatewayClientException {
 
         super.create(builder, request);

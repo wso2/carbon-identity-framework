@@ -35,6 +35,9 @@ public class GatewayResourceDataHolder {
     private List<GatewayProcessor> gatewayProcessors = new ArrayList<GatewayProcessor>();
     private List<GatewayRequestBuilderFactory> httpIdentityRequestFactories = new ArrayList<GatewayRequestBuilderFactory>();
     private List<GatewayResponseBuilderFactory> httpIdentityResponseFactories = new ArrayList<>();
+
+    GatewayRequestBuilderFactory defaultGatewayRequestBuilderFactory = null ;
+    GatewayResponseBuilderFactory defaultGatewayResponseBuilderFactory = null ;
     //Framework handlers
 
 
@@ -85,4 +88,21 @@ public class GatewayResourceDataHolder {
         return httpIdentityResponseFactories;
     }
 
+    public GatewayResponseBuilderFactory getDefaultGatewayResponseBuilderFactory() {
+        return defaultGatewayResponseBuilderFactory;
+    }
+
+    public void setDefaultGatewayResponseBuilderFactory(GatewayResponseBuilderFactory
+                                                                defaultGatewayResponseBuilderFactory) {
+        this.defaultGatewayResponseBuilderFactory = defaultGatewayResponseBuilderFactory;
+    }
+
+    public GatewayRequestBuilderFactory getDefaultGatewayRequestBuilderFactory() {
+        return defaultGatewayRequestBuilderFactory;
+    }
+
+    public void setDefaultGatewayRequestBuilderFactory(GatewayRequestBuilderFactory
+                                                               defaultGatewayRequestBuilderFactory) {
+        this.defaultGatewayRequestBuilderFactory = defaultGatewayRequestBuilderFactory;
+    }
 }
