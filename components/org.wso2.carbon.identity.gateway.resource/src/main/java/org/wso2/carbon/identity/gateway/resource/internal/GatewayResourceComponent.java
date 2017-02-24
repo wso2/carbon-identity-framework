@@ -90,7 +90,9 @@ public class GatewayResourceComponent {
             unbind = "unSetHttpIdentityRequestFactory"
     )
     protected void addHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
-
+        if(GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")){
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(factory);
+        }
         GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories(),
                          httpIdentityRequestFactory);
@@ -100,7 +102,9 @@ public class GatewayResourceComponent {
     }
 
     protected void unSetHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
-
+        if(GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")){
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(null);
+        }
         GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed GatewayRequestBuilderFactory : " + factory.getName());
@@ -116,6 +120,9 @@ public class GatewayResourceComponent {
     )
     protected void addHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
 
+        if(GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")){
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(factory);
+        }
         GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories(),
                          httpIdentityResponseFactory);
@@ -125,7 +132,9 @@ public class GatewayResourceComponent {
     }
 
     protected void unSetHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
-
+        if(GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")){
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(null);
+        }
         GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed GatewayResponseBuilderFactory : " + factory.getName());

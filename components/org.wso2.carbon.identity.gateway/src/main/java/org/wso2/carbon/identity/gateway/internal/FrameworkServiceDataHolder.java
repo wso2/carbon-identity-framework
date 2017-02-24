@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.gateway.internal;
 
 import org.osgi.framework.BundleContext;
+import org.wso2.carbon.deployment.engine.DeploymentService;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
@@ -71,6 +72,8 @@ public class FrameworkServiceDataHolder {
 
     private ClaimResolvingService claimResolvingService = null ;
     private ProfileMgtService profileMgtService = null ;
+
+
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -178,4 +181,5 @@ public class FrameworkServiceDataHolder {
     public void setProfileMgtService(ProfileMgtService profileMgtService) {
         this.profileMgtService = profileMgtService;
     }
+
 }

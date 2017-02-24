@@ -46,7 +46,7 @@ public class GatewayRequest implements Serializable {
     protected String contentType;
     protected String queryString;
 
-    protected GatewayRequest(IdentityRequestBuilder builder) {
+    protected GatewayRequest(GatewayRequestBuilder builder) {
         this.headers = builder.headers;
         this.parameters = builder.parameters;
         this.attributes = builder.attributes;
@@ -132,7 +132,7 @@ public class GatewayRequest implements Serializable {
         return requestURI;
     }
 
-    public static class IdentityRequestBuilder {
+    public static class GatewayRequestBuilder {
 
         private Map<String, Serializable> headers = new HashMap();
         private Map<String, Serializable> parameters = new HashMap();
@@ -142,14 +142,10 @@ public class GatewayRequest implements Serializable {
         private String contentType;
         private String queryString;
 
-        private Request request ;
-        public IdentityRequestBuilder( ) {
-        }
-        public IdentityRequestBuilder(Request request) {
-            this.request = request ;
+        public GatewayRequestBuilder( ) {
         }
 
-        public IdentityRequestBuilder addAttribute(String name, Serializable value) {
+        public GatewayRequestBuilder addAttribute(String name, Serializable value) {
             if (this.attributes.containsKey(name)) {
                 throw new GatewayRuntimeException("Attributes map trying to override existing key " + name);
             }
@@ -157,7 +153,7 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addAttributes(Map<String, Serializable> attributes) {
+        public GatewayRequestBuilder addAttributes(Map<String, Serializable> attributes) {
             for (Map.Entry<String, Serializable> attribute : attributes.entrySet()) {
                 if (this.attributes.containsKey(attribute.getKey())) {
                     throw new GatewayRuntimeException("Attributes map trying to override existing key " + attribute
@@ -168,7 +164,7 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addHeader(String name, String value) {
+        public GatewayRequestBuilder addHeader(String name, String value) {
             if (this.headers.containsKey(name)) {
                 throw new GatewayRuntimeException("Headers map trying to override existing header " + name);
             }
@@ -176,7 +172,7 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addHeaders(Map<String, String> headers) {
+        public GatewayRequestBuilder addHeaders(Map<String, String> headers) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
                     throw new GatewayRuntimeException("Headers map trying to override existing header " + header
@@ -187,7 +183,7 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addParameter(String name, Serializable value) {
+        public GatewayRequestBuilder addParameter(String name, Serializable value) {
             if (this.parameters.containsKey(name)) {
                 throw new GatewayRuntimeException("Parameters map trying to override existing key " + name);
             }
@@ -195,7 +191,7 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public IdentityRequestBuilder addParameters(Map<String, Serializable> parameters) {
+        public GatewayRequestBuilder addParameters(Map<String, Serializable> parameters) {
             for (Map.Entry<String, Serializable> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
                     throw new GatewayRuntimeException("Parameters map trying to override existing key " + parameter
@@ -210,7 +206,7 @@ public class GatewayRequest implements Serializable {
             return new GatewayRequest(this);
         }
 
-        public IdentityRequestBuilder setAttributes(Map<String, Serializable> attributes) {
+        public GatewayRequestBuilder setAttributes(Map<String, Serializable> attributes) {
 
             for (Map.Entry<String, Serializable> entry : attributes.entrySet())
             {
@@ -222,32 +218,32 @@ public class GatewayRequest implements Serializable {
 
         }
 
-        public IdentityRequestBuilder setContentType(String contentType) {
+        public GatewayRequestBuilder setContentType(String contentType) {
             this.contentType = contentType;
             return this;
         }
 
-        public IdentityRequestBuilder setHeaders(Map<String, Serializable> responseHeaders) {
+        public GatewayRequestBuilder setHeaders(Map<String, Serializable> responseHeaders) {
             this.headers = responseHeaders;
             return this;
         }
 
-        public IdentityRequestBuilder setHttpMethod(String httpMethod) {
+        public GatewayRequestBuilder setHttpMethod(String httpMethod) {
             this.httpMethod = httpMethod;
             return this;
         }
 
-        public IdentityRequestBuilder setParameters(Map<String, Serializable> parameters) {
+        public GatewayRequestBuilder setParameters(Map<String, Serializable> parameters) {
             this.parameters = parameters;
             return this;
         }
 
-        public IdentityRequestBuilder setQueryString(String queryString) {
+        public GatewayRequestBuilder setQueryString(String queryString) {
             this.queryString = queryString;
             return this;
         }
 
-        public IdentityRequestBuilder setRequestURI(String requestURI) {
+        public GatewayRequestBuilder setRequestURI(String requestURI) {
             this.requestURI = requestURI;
             return this;
         }
