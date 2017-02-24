@@ -27,9 +27,9 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.inbound.sample</artifactId>
+    <artifactId>org.wso2.carbon.identity.outbound.sample</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Sample inbound OSGi Bundle</name>
+    <name>WSO2 Carbon - Sample Outbound OSGi Bundle</name>
     <url>http://wso2.com</url>
 
     <dependencies>
@@ -52,10 +52,10 @@
     </dependencies>
 
     <properties>
-        <private.package>org.wso2.carbon.identity.sample.inbound.internal</private.package>
+        <private.package>org.wso2.carbon.identity.sample.outbound.internal</private.package>
         <export.package>
-            !org.wso2.carbon.identity.sample.inbound.internal,
-            org.wso2.carbon.identity.sample.inbound.*;version="${project.version}"
+            !org.wso2.carbon.identity.sample.outbound.internal,
+            org.wso2.carbon.identity.sample.outbound.*;version="${project.version}"
         </export.package>
         <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>

@@ -38,7 +38,7 @@ Kv4XHECwLtIVdAbIdWHEtVZJyMSktcyysFcvuhPQK8Qc/E/Wq8uHSCo="
       - "http://wso2.org/claims/lastName"
     authenticatorConfigs:
       -
-        name : "SAML2SSOAuthenticator"
+        name : "SampleFederatedAuthenticator"
         properties :
           RequestBinding : "POST"
           Force : "false"

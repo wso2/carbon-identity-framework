@@ -38,7 +38,7 @@ serviceProviderConfig:
         identityProviders :
           -
             identityProviderName : "myidp"
-            authenticatorName : "SAML2SSOAuthenticator"
+            authenticatorName : "SampleFederatedAuthenticator"
 
   responseBuildingConfig:
     responseBuilderConfigs:

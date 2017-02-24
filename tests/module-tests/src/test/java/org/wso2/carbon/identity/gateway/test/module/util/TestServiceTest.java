@@ -42,8 +42,13 @@ public class TestServiceTest {
 
     @Test
     public void testGetClaimMapping() {
-        System.out.println("====================");
-        assert true;
+//        try {
+//            Thread.sleep(50000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        System.out.println("====================");
+//        assert true;
     }
 
 

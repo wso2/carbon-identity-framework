@@ -1,6 +1,48 @@
 package org.wso2.carbon.identity.sample.inbound.request;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
+import org.wso2.msf4j.Request;
 
-public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestBuilderFactory{
+import javax.ws.rs.core.Response;
+
+public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestBuilderFactory {
+
+    private static Logger log = LoggerFactory.getLogger(SampleProtocolIdentityRequestBuilderFactory.class);
+
+    @Override
+    public String getName() {
+        return "SampleIdentityRequestBuilderFactory";
+    }
+
+    @Override
+    public boolean canHandle(Request request) {
+        String sampleProtocol = Utility.getParameter(request, "sampleProtocol");
+        if (StringUtils.isNotBlank(sampleProtocol)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int getPriority() {
+        return 50;
+    }
+
+    @Override
+    public GatewayRequest.IdentityRequestBuilder create(Request request) throws GatewayClientException {
+
+        GatewayRequest.IdentityRequestBuilder builder = new SampleProtocolRequest.SampleProtocolRequestBuilder(request);
+        super.create(builder, request);
+        return builder;
+    }
+
+    public Response.ResponseBuilder handleException(GatewayClientException exception) {
+        return null;
+    }
 }
