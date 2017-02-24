@@ -30,7 +30,7 @@
 
     <modules>
         <module>org.wso2.carbon.identity.inbound.sample</module>
-        <!--<module>org.wso2.carbon.identity.outbound.sample</module>-->
+        <module>org.wso2.carbon.identity.outbound.sample</module>
     </modules>
 
 </project>

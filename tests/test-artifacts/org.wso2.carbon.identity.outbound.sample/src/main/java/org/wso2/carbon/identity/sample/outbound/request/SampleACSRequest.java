@@ -4,12 +4,13 @@ import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthentication
 
 public class SampleACSRequest extends CallbackAuthenticationRequest {
 
-    public static class SAML2ACSRequestBuilder extends CallbackAuthenticationRequest.CallbackAuthenticationRequestBuilder {
+    protected SampleACSRequest(SampleACSRequestBuilder builder) {
+        super(builder);
+    }
 
-        protected String saml2SSOResponse;
+    public static class SampleACSRequestBuilder extends CallbackAuthenticationRequest.CallbackAuthenticationRequestBuilder {
 
-        public SAML2ACSRequestBuilder setSAML2SSOResponse(String saml2SSOResponse) {
-            this.saml2SSOResponse = saml2SSOResponse;
+        public SampleACSRequestBuilder setSAML2SSOResponse(String saml2SSOResponse) {
             return this;
         }
 
