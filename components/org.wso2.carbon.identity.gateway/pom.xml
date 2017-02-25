@@ -107,11 +107,8 @@
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",
             org.wso2.carbon.kernel;version="${carbon.kernel.package.import.version.range}",
-            org.slf4j.*;version="${slf4j.logging.package.import.version.range}",
             org.wso2.msf4j.*,
             javax.ws.rs.*,
-            org.opensaml.*,
-            org.joda.*,
             org.apache.xerces.util; resolution:=optional,
             javax.xml.*,
             org.xml.*,
@@ -130,6 +127,9 @@
             org.apache.commons.codec.*;version="${commons.codec.pkg.import.version.range}"; resolution:=optional,
             org.osgi.service.*;version="${carbon.jndi.import.version.range}",
         </import.package>
+        <carbon.component>
+            osgi.service;objectClass="org.wso2.carbon.deployment.engine.Deployer";serviceCount="2"
+        </carbon.component>
         <dynamic.import.package>*</dynamic.import.package>
         <org.snakeyaml.package.import.version.range>[1.16.0, 2.0.0)</org.snakeyaml.package.import.version.range>
     </properties>

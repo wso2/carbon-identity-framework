@@ -26,7 +26,6 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
 
     protected ClientAuthenticationRequest(ClientAuthenticationRequest.ClientAuthenticationRequestBuilder builder) {
         super(builder);
-
     }
 
     public static class ClientAuthenticationRequestBuilder extends AuthenticationRequest.AuthenticationRequestBuilder {

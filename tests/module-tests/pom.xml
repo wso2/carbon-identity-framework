@@ -200,6 +200,51 @@
             <groupId>org.wso2.carbon.lcm</groupId>
             <artifactId>org.wso2.carbon.lcm.sql</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.mgt</groupId>
+            <artifactId>in-memory-connectors-test-artifact</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.deployment</groupId>
+            <artifactId>org.wso2.carbon.deployment.engine</artifactId>
+            <version>${carbon.deployment.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+
+
+        <!-- sample dependencies -->
+
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.inbound.sample</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+
     </dependencies>
 
     <profiles>

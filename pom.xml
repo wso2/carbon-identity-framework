@@ -45,7 +45,7 @@
         <module>components/org.wso2.carbon.identity.gateway.resource</module>
         <module>features/org.wso2.carbon.identity.gateway.feature</module>
         <module>features/org.wso2.carbon.identity.gateway.resource.feature</module>
-        <!--<module>tests</module>-->
+        <module>tests</module>
     </modules>
 
     <dependencyManagement>
@@ -366,6 +366,24 @@
                 <artifactId>org.wso2.carbon.lcm.sql</artifactId>
                 <version>${org.wso2.carbon.lcm.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.mgt</groupId>
+                <artifactId>in-memory-connectors-test-artifact</artifactId>
+                <version>${carbon.identity.mgt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
+
+            <!-- sample dependencies -->
+            <dependency>
+                <groupId>org.wso2.carbon.identity</groupId>
+                <artifactId>org.wso2.carbon.identity.inbound.sample</artifactId>
+                <version>${identity.gateway.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
