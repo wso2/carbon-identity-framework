@@ -12,7 +12,15 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
 import javax.inject.Inject;
+import javax.net.ssl.HttpsURLConnection;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.HttpHeaders;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -28,6 +36,7 @@ public class TestServiceTest {
     @Inject
     private CarbonServerInfo carbonServerInfo;
 
+
     @Configuration
     public Option[] createConfiguration() {
 
@@ -42,13 +51,30 @@ public class TestServiceTest {
 
     @Test
     public void testGetClaimMapping() {
-//        try {
-//            Thread.sleep(50000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        System.out.println("====================");
-//        assert true;
+        try {
+            HttpURLConnection urlConnection = request("", HttpMethod.GET , true);
+            urlConnection.getResponseMessage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assert true;
+    }
+
+
+    private static HttpURLConnection request(String path, String method, boolean keepAlive) throws IOException {
+
+        URL url = new URL("http://localhost:8080/gateway?sampleProtocol=true");
+
+        HttpURLConnection httpURLConnection = null;
+
+            httpURLConnection = (HttpURLConnection) url.openConnection();
+
+        httpURLConnection.setRequestMethod(method);
+        if (!keepAlive) {
+            httpURLConnection.setRequestProperty("CONNECTION", "CLOSE");
+        }
+        return httpURLConnection;
+
     }
 
 

@@ -189,6 +189,11 @@ public class GatewayOSGiTestUtils {
                 .versionAsInProject());
 
         defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.msf4j")
+                .artifactId("msf4j-core")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.deployment")
                 .artifactId("org.wso2.carbon.deployment.engine")
                 .versionAsInProject());
@@ -217,6 +222,11 @@ public class GatewayOSGiTestUtils {
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.gateway")
                 .artifactId("org.wso2.carbon.identity.inbound.sample")
+                .versionAsInProject());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("org.wso2.carbon.identity.gateway")
+                .artifactId("org.wso2.carbon.identity.outbound.sample")
                 .versionAsInProject());
 
         CarbonSysPropConfiguration sysPropConfiguration = new CarbonSysPropConfiguration();

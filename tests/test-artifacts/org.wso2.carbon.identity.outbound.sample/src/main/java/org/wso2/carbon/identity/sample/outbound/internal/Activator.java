@@ -21,6 +21,13 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.processor.authenticator.AbstractApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.sample.outbound.authenticator.SampleFederatedAuthenticator;
+import org.wso2.carbon.identity.sample.outbound.request.SampleACSRequestBuilderFactory;
+import org.wso2.carbon.identity.sample.outbound.response.ACSRequestResponseBuilderFactory;
 
 @Component(
         name = "org.wso2.carbon.identity.sample.outbound.component",
@@ -34,8 +41,15 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) throws Exception {
         try {
 
+            bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                    new SampleFederatedAuthenticator(), null);
+            bundleContext.registerService(AbstractApplicationAuthenticator.class,
+                    new SampleFederatedAuthenticator(), null);
+            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SampleACSRequestBuilderFactory(), null);
+            bundleContext.registerService(GatewayResponseBuilderFactory.class, new ACSRequestResponseBuilderFactory(), null);
+
         } catch (Throwable e) {
-            System.out.println("Error while activating saml outbound component");
+            System.out.println("Error while activating sample outbound component");
         }
     }
 

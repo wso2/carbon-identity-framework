@@ -20,12 +20,14 @@ package org.wso2.carbon.identity.sample.outbound.authenticator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.authenticator.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AuthenticationResponse;
 import org.wso2.carbon.identity.sample.outbound.request.SampleACSRequest;
+import org.wso2.carbon.identity.sample.outbound.response.SampleProtocolRequestResponse;
 
 import java.util.List;
 import java.util.Properties;
@@ -80,7 +82,11 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
     @Override
     protected AuthenticationResponse processRequest(AuthenticationContext context)
             throws AuthenticationHandlerException {
-        return null;
+        AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE;
+        GatewayResponse.GatewayResponseBuilder builder = new SampleProtocolRequestResponse
+                .SampleProtocolRequestResponseBuilder();
+        authenticationResponse.setGatewayResponseBuilder(builder);
+        return authenticationResponse;
     }
 
     @Override

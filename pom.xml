@@ -256,11 +256,6 @@
                 <version>${xalan.version}</version>
             </dependency>
             <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>javax.ws.rs-api</artifactId>
-                <version>${test.javax.ws.rs-api.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport</artifactId>
                 <version>${netty.version}</version>
@@ -379,11 +374,15 @@
 
             <!-- sample dependencies -->
             <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
                 <artifactId>org.wso2.carbon.identity.inbound.sample</artifactId>
                 <version>${identity.gateway.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.wso2.carbon.identity.gateway</groupId>
+                <artifactId>org.wso2.carbon.identity.outbound.sample</artifactId>
+                <version>${identity.gateway.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -456,7 +455,6 @@
         <pax.exam.testng.version>4.6.0</pax.exam.testng.version>
         <pax.exam.link.mvn.version>4.6.0</pax.exam.link.mvn.version>
         <pax.url.aether.version>1.6.0</pax.url.aether.version>
-        <test.javax.ws.rs-api.version>2.0</test.javax.ws.rs-api.version>
 
         <carbon.osgi.test.util.version>5.1.0</carbon.osgi.test.util.version>
         <testng.version>6.9.4</testng.version>

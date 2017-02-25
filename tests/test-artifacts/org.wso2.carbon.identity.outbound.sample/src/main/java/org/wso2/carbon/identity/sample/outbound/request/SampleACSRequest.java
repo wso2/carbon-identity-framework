@@ -9,11 +9,6 @@ public class SampleACSRequest extends CallbackAuthenticationRequest {
     }
 
     public static class SampleACSRequestBuilder extends CallbackAuthenticationRequest.CallbackAuthenticationRequestBuilder {
-
-        public SampleACSRequestBuilder setSAML2SSOResponse(String saml2SSOResponse) {
-            return this;
-        }
-
     }
 
 }

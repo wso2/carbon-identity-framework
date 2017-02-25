@@ -48,14 +48,14 @@
             <!--<artifactId>org.wso2.carbon.transport.http.netty</artifactId>-->
             <!--<scope>test</scope>-->
         <!--</dependency>-->
+
+
         <dependency>
-            <groupId>org.wso2.msf4j</groupId>
-            <artifactId>msf4j-core</artifactId>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.wso2.msf4j</groupId>
-            <artifactId>jaxrs-delegates</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.wso2.orbit.com.lmax</groupId>
             <artifactId>disruptor</artifactId>
@@ -121,15 +121,13 @@
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-transport</artifactId>
@@ -191,6 +189,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.mgt</groupId>
             <artifactId>org.wso2.carbon.identity.claim</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.wso2.msf4j</groupId>
+                    <artifactId>msf4j-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.lcm</groupId>
@@ -208,6 +212,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.gateway.common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.gateway</groupId>
@@ -216,10 +226,22 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.gateway</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.gateway.resource</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.deployment</groupId>
@@ -235,13 +257,28 @@
             <artifactId>json</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+        </dependency>
+
 
         <!-- sample dependencies -->
 
         <dependency>
             <groupId>org.wso2.carbon.identity.gateway</groupId>
             <artifactId>org.wso2.carbon.identity.inbound.sample</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.gateway</groupId>
+            <artifactId>org.wso2.carbon.identity.outbound.sample</artifactId>
         </dependency>
 
 
@@ -319,11 +356,16 @@
                                 <jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
                                 <org.ops4j.pax.logging.DefaultServiceLog.level>INFO
                                 </org.ops4j.pax.logging.DefaultServiceLog.level>
+                                <osgi.console>6666</osgi.console>
                             </systemPropertyVariables>
                             <systemProperties>
                                 <property>
                                     <name>carbon.home</name>
                                     <value>${project.build.directory}/test-classes/carbon-home</value>
+                                </property>
+                                <property>
+                                    <name>osgi.console</name>
+                                    <value>6666</value>
                                 </property>
                             </systemProperties>
                             <suiteXmlFiles>
