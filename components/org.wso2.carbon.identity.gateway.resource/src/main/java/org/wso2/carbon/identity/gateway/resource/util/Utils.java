@@ -128,16 +128,6 @@ public class Utils {
         return MediaType.APPLICATION_FORM_URLENCODED.equalsIgnoreCase(contentType);
     }
 
-    public static Map<String, String> getRequestParameters2(Request request) {
-        Map<String,String> parameterMap = new HashMap<>();
-        String uri = request.getUri();
-        if(StringUtils.isNotBlank(uri)){
-            if(uri.indexOf("?") != -1) {
-                String queryString = uri.substring(uri.indexOf("?") + 1, uri.length());
-                parameterMap = splitQuery(queryString);
-            }
-        }
-        return parameterMap;
-    }
+
 
 }

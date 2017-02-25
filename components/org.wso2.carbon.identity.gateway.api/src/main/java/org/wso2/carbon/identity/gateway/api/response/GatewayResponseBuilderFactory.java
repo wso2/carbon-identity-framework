@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.gateway.api.response;
 
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
@@ -29,6 +30,10 @@ import javax.ws.rs.core.Response;
 public class GatewayResponseBuilderFactory extends AbstractHandler {
 
     public boolean canHandle(GatewayResponse gatewayResponse) {
+        return false;
+    }
+
+    public boolean canHandle(GatewayClientException exception) {
         return false;
     }
 
@@ -50,10 +55,22 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
         javax.ws.rs.core.Cookie cookie1 = new javax.ws.rs.core.Cookie(Constants.GATEWAY_COOKIE, gatewayResponse
                 .getSessionKey(), "/", "");
-        builder.cookie(new NewCookie(cookie1));
+
+        NewCookie newCookie = new NewCookie("Constan", gatewayResponse.getSessionKey(), "/", null,
+                                            "ffff",
+                                            60, true, true);
+        builder.cookie(newCookie);
     }
 
     public Response.ResponseBuilder handleException(GatewayServerException exception) {
+
+        Response.ResponseBuilder builder = Response.noContent();
+        builder.status(500);
+        builder.entity(exception.getMessage());
+        return builder;
+    }
+
+    public Response.ResponseBuilder handleException(GatewayClientException exception) {
 
         Response.ResponseBuilder builder = Response.noContent();
         builder.status(500);
