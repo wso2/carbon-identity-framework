@@ -89,7 +89,6 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
     }
 
 
-
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
         Response.ResponseBuilder builder = Response.noContent();
         builder.status(400);
@@ -97,18 +96,13 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         return builder;
     }
 
-    public Response.ResponseBuilder handleException(GatewayServerException exception) {
+    public Response.ResponseBuilder handleException(GatewayRuntimeException exception) {
         Response.ResponseBuilder builder = Response.noContent();
-        builder.status(400);
-        builder.entity(exception.getMessage());
+        builder.status(500);
+        builder.entity("something went wrong");
         return builder;
     }
 
-    public Response.ResponseBuilder handleException(RuntimeException exception) {
-        Response.ResponseBuilder builder = Response.noContent();
-        builder.status(400);
-        builder.entity(exception.getMessage());
-        return builder;
-    }
+
 
 }
