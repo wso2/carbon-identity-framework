@@ -18,6 +18,12 @@ public class SampleACSRequestBuilderFactory extends GatewayRequestBuilderFactory
         return false;
     }
 
+    @Override
+    public int getPriority() {
+        return 66;
+    }
+
+
     public SampleACSRequest.SampleACSRequestBuilder create(Request request) throws GatewayClientException {
         SampleACSRequest.SampleACSRequestBuilder builder = new SampleACSRequest.SampleACSRequestBuilder();
         this.create(builder, request);

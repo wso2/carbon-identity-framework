@@ -21,9 +21,11 @@ public class ACSRequestResponseBuilderFactory extends GatewayResponseBuilderFact
 
     @Override
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
-
-        SampleProtocolRequestResponse sampleProtocolRequestResponse = (SampleProtocolRequestResponse) gatewayResponse;
-        builder.status(200);
+        StringBuilder httpQueryString = new StringBuilder("RelayState=" + gatewayResponse.getSessionKey());
+        String location = "https://localhost:9443/externalIDP";
+        location = location.concat("?").concat(httpQueryString.toString());
+        builder.status(302);
+        builder.header("location", location);
     }
 
 }

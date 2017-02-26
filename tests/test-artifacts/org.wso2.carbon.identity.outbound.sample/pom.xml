@@ -54,13 +54,18 @@
             <groupId>org.wso2.carbon.identity.commons</groupId>
             <artifactId>org.wso2.carbon.identity.commons</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.msf4j</groupId>
+            <artifactId>msf4j-core</artifactId>
+        </dependency>
     </dependencies>
 
     <properties>
         <private.package>org.wso2.carbon.identity.sample.outbound.internal</private.package>
         <export.package>
             !org.wso2.carbon.identity.sample.outbound.internal,
-            org.wso2.carbon.identity.sample.outbound.*;version="${project.version}"
+            org.wso2.carbon.identity.sample.outbound.*;version="${project.version}",
+            javax.ws.rs.*,
         </export.package>
         <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>

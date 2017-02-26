@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.processor.authenticator.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
@@ -85,13 +86,17 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
         AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE;
         GatewayResponse.GatewayResponseBuilder builder = new SampleProtocolRequestResponse
                 .SampleProtocolRequestResponseBuilder();
+        builder.setSessionKey(context.getInitialAuthenticationRequest().getRequestKey());
         authenticationResponse.setGatewayResponseBuilder(builder);
         return authenticationResponse;
     }
 
     @Override
     protected AuthenticationResponse processResponse(AuthenticationContext context) throws AuthenticationHandlerException {
-        return null;
+        context.getSequenceContext().getCurrentStepContext().setUser(new FederatedUser(context.getIdentityRequest()
+                .getParameter("Assertion")));
+        AuthenticationResponse authenticationResponse =  AuthenticationResponse.AUTHENTICATED;
+        return authenticationResponse;
     }
 
 }

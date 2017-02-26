@@ -24,7 +24,7 @@ import java.util.Base64;
 import java.util.List;
 
 /**
- * Tests the ClaimResolvingService.
+ * Tests the TestService.
  */
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
@@ -54,6 +54,18 @@ public class TestServiceTest {
         try {
             HttpURLConnection urlConnection = request("", HttpMethod.GET , true);
             urlConnection.getResponseMessage();
+
+
+            // response will be
+            // https://localhost:9443/externalIDP?RelayState=c6a06c50-df7c-4ec1-aa58-c761ef447734
+
+            // Next request
+            // https://localhost:9292/gateway?RelayState=c6a06c50-df7c-4ec1-aa58-c761ef447734&Assertion
+            // =ExternalAuthenticatedUser
+
+            // Response
+            // https://localhost:9443/response?authenticatedUser=ExternalAuthenticatedUser
+
         } catch (IOException e) {
             e.printStackTrace();
         }
