@@ -21,6 +21,7 @@ public class SampleProtocolResponseBuilderFactory extends GatewayResponseBuilder
 
     @Override
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
+        super.createBuilder(builder,gatewayResponse);
         StringBuilder httpQueryString = new StringBuilder("authenticatedUser=" + ((SampleLoginResponse)
                 gatewayResponse).getSubject());
         String location = "https://localhost:9443/response";

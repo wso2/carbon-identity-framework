@@ -371,6 +371,11 @@
                 <artifactId>json</artifactId>
                 <version>${json.version}</version>
             </dependency>
+            <dependency>
+                <groupId>commons-codec.wso2</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons.codec.version}</version>
+            </dependency>
 
             <!-- sample dependencies -->
             <dependency>
@@ -456,6 +461,7 @@
         <pax.exam.link.mvn.version>4.6.0</pax.exam.link.mvn.version>
         <pax.url.aether.version>1.6.0</pax.url.aether.version>
 
+        <commons.codec.version>1.4.0.wso2v1</commons.codec.version>
         <carbon.osgi.test.util.version>5.1.0</carbon.osgi.test.util.version>
         <testng.version>6.9.4</testng.version>
         <javax.inject.version>1</javax.inject.version>
