@@ -211,17 +211,17 @@
                                 <% if (isUserChange != null) { %>
                                 <tr>
                                     <td><fmt:message key="current.password"/><font color="red">*</font></td>
-                                    <td><input type="password" name="currentPassword"/></td>
+                                    <td><input type="password" autocomplete="off" name="currentPassword"/></td>
                                 </tr>
                                 <% } %>
 
                                 <tr id="passwordRow">
                                     <td><fmt:message key="new.password"/><font color="red">*</font></td>
-                                    <td><input type="password" name="newPassword"/></td>
+                                    <td><input type="password" autocomplete="off" name="newPassword"/></td>
                                 </tr>
                                 <tr id="checkPasswordRow">
                                     <td><fmt:message key="new.password.repeat"/><font color="red">*</font></td>
-                                    <td><input type="password" name="checkPassword"/></td>
+                                    <td><input type="password" autocomplete="off" name="checkPassword"/></td>
                                 </tr>
 
                             </table>
