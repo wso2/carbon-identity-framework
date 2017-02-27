@@ -31,13 +31,13 @@ function getPattern(pattern) {
     var regex;
     switch (pattern) {
         case "digits-only":
-            regex = /^[0-9]+/;
+            regex = /^[0-9]+$/;
             break;
         case "alphabetic-only":
-            regex = /^[a-zA-Z]+/;
+            regex = /^[a-zA-Z]+$/;
             break;
         case "alphanumerics-only":
-            regex = /^[a-zA-Z0-9]+/;
+            regex = /^[a-zA-Z0-9]+$/;
             break;
         case "url":
             regex = /^(([^:/?#]+):)?(([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
@@ -68,6 +68,9 @@ function getPattern(pattern) {
             break;
         case "ftp-url":
             regex = /^(ftp:)([^/?#])?(:)?(([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
+            break;
+        case "registry-invalid-chars-exists":
+            regex = /[~!@#;%^*()+={}|<>\\"'/,]+/;
             break;
         default:
             regex = new RegExp(pattern);
@@ -160,8 +163,8 @@ function isValidConfirmationDialog(validationObj, msg, handleYes, handleNo, clos
     var whiteListPatterns = validationObj['whiteListPatterns'];
     var blackListPatterns = validationObj['blackListPatterns'];
 
-    var message = msg.replace('{0}', label).replace('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
-        .replace('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
+    var message = msg.replaceAll('{0}', label).replaceAll('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
+        .replaceAll('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
 
     CARBON.showConfirmationDialog(message, handleYes, handleNo, closeCallback);
     return false;
@@ -183,8 +186,8 @@ function isValid(validationObj, msg) {
     var whiteListPatterns = validationObj['whiteListPatterns'];
     var blackListPatterns = validationObj['blackListPatterns'];
 
-    var message = msg.replace('{0}', label).replace('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
-        .replace('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
+    var message = msg.replaceAll('{0}', label).replaceAll('{1}', whiteListPatterns === "" ? 'NONE' : whiteListPatterns)
+        .replaceAll('{2}', blackListPatterns === "" ? 'NONE' : blackListPatterns);
 
     CARBON.showErrorDialog(message);
     return false;
@@ -341,3 +344,18 @@ function doValidateForm(form, msg) {
 
     return isValid(validateForm(form), msg);
 }
+
+/**
+ * Util function to escape regex special characters
+ * @param str
+ * @returns {void|string|XML}
+ */
+function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
+String.prototype.replaceAll = function (find, replace) {
+    var str = this;
+    return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+};
+

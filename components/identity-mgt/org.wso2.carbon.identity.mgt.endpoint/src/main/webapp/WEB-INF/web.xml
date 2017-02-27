@@ -22,7 +22,7 @@
 <web-app>
     <context-param>
         <param-name>EnableEmailNotification</param-name>
-        <param-value>false</param-value>
+        <param-value>true</param-value>
     </context-param>
     <context-param>
         <param-name>ProcessAllSecurityQuestions</param-name>
@@ -40,6 +40,20 @@
     <listener>
         <listener-class>org.wso2.carbon.identity.mgt.endpoint.listener.IdentityManagementEndpointContextListener</listener-class>
     </listener>
+
+    <filter>
+        <filter-name>HttpHeaderSecurityFilter</filter-name>
+        <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+        <init-param>
+            <param-name>hstsEnabled</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>HttpHeaderSecurityFilter</filter-name>
+        <url-pattern>*</url-pattern>
+    </filter-mapping>
     
     <servlet>
         <servlet-name>recoverusername.do</servlet-name>
@@ -60,6 +74,12 @@
         <servlet-name>processsecurityquestions.do</servlet-name>
         <jsp-file>/challenge-question-process.jsp</jsp-file>
     </servlet>
+
+    <servlet>
+        <servlet-name>viewsecurityquestions.do</servlet-name>
+        <jsp-file>/challenge-question-view.jsp</jsp-file>
+    </servlet>
+
 
     <servlet>
         <servlet-name>confirmrecovery.do</servlet-name>
@@ -120,6 +140,12 @@
         <servlet-name>processsecurityquestions.do</servlet-name>
         <url-pattern>/processsecurityquestions.do</url-pattern>
     </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>viewsecurityquestions.do</servlet-name>
+        <url-pattern>/viewsecurityquestions.do</url-pattern>
+    </servlet-mapping>
+
 
     <servlet-mapping>
         <servlet-name>confirmrecovery.do</servlet-name>

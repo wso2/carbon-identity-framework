@@ -24,6 +24,8 @@ import org.apache.commons.collections.CollectionUtils;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +37,7 @@ public class InboundAuthenticationRequestConfig implements Serializable {
 
     private String inboundAuthKey;
     private String inboundAuthType;
+    private String inboundConfigType;
     private String friendlyName;
     private Property[] properties = new Property[0];
 
@@ -62,6 +65,8 @@ public class InboundAuthenticationRequestConfig implements Serializable {
                 inboundAuthenticationRequestConfig.setInboundAuthKey(member.getText());
             } else if ("InboundAuthType".equalsIgnoreCase(member.getLocalName())) {
                 inboundAuthenticationRequestConfig.setInboundAuthType(member.getText());
+            } else if ("InboundConfigType".equalsIgnoreCase(member.getLocalName())) {
+                inboundAuthenticationRequestConfig.setInboundConfigType(member.getText());
             } else if ("friendlyName".equalsIgnoreCase(member.getLocalName())) {
                 inboundAuthenticationRequestConfig.setFriendlyName(member.getText());
             } else if ("Properties".equalsIgnoreCase(member.getLocalName())) {
@@ -115,6 +120,22 @@ public class InboundAuthenticationRequestConfig implements Serializable {
     }
 
     /**
+     *
+     * @return inboundUIType
+     */
+    public String getInboundConfigType() {
+        return inboundConfigType;
+    }
+
+    /**
+     * Sets the UIType of the inbound authentication config.
+     * @param inboundConfigType
+     */
+    public void setInboundConfigType(String inboundConfigType) {
+        this.inboundConfigType = inboundConfigType;
+    }
+
+    /**
      * @return
      */
     public Property[] getProperties() {
@@ -129,7 +150,7 @@ public class InboundAuthenticationRequestConfig implements Serializable {
             return;
         }
         Set<Property> propertySet = new HashSet<Property>(Arrays.asList(properties));
-        this.properties = propertySet.toArray(new Property[propertySet.size()]);
+        this.properties = sortPropertiesByDisplayOrder(propertySet);
     }
 
     public String getFriendlyName() {
@@ -138,5 +159,17 @@ public class InboundAuthenticationRequestConfig implements Serializable {
 
     public void setFriendlyName(String friendlyName) {
         this.friendlyName = friendlyName;
+    }
+
+    private Property[] sortPropertiesByDisplayOrder ( Set<Property> propertySet) {
+
+        List<Property> list = new ArrayList(propertySet);
+        Collections.sort(list, new Comparator<Property>() {
+            @Override public int compare(Property pro1, Property pro2) {
+                return ((Integer) pro1.getDisplayOrder()).compareTo((Integer) pro2.getDisplayOrder());
+            }
+        });
+
+        return list.toArray(new Property[list.size()]);
     }
 }

@@ -29,6 +29,9 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="java.util.Enumeration" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -40,6 +43,24 @@
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     try {
+        Enumeration<String> paramNames = request.getParameterNames();
+        List<String> paramNamesList = new ArrayList<String>();
+        while (paramNames.hasMoreElements()) {
+            String param = paramNames.nextElement();
+            if (param.startsWith("property__")) {
+                paramNamesList.add(param);
+            }
+        }
+
+        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[paramNamesList.size() + 2];
+
+        for (int i = 0; i < paramNamesList.size(); i++) {
+            IdentityProviderProperty prop = new IdentityProviderProperty();
+            prop.setName(paramNamesList.get(i).substring(10, paramNamesList.get(i).length()));
+            prop.setValue(request.getParameter(paramNamesList.get(i)));
+            idpProperties[i] = prop;
+        }
+
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext =
@@ -80,12 +101,21 @@
         stsProperties[0] = stsProperty;
         passiveStsFedAuthn.setProperties(stsProperties);
 
-        FederatedAuthenticatorConfig[] federatedAuthenticators = new FederatedAuthenticatorConfig[2];
+        FederatedAuthenticatorConfig oidcAuthn = new FederatedAuthenticatorConfig();
+        oidcAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
+        Property[] oidcAuthnProperties = new Property[1];
+        Property oidcAuthnProperty = new Property();
+        oidcAuthnProperty.setName("IdPEntityId");
+        oidcAuthnProperty.setValue(request.getParameter("oidcIdPEntityId"));
+        oidcAuthnProperties[0] = oidcAuthnProperty;
+        oidcAuthn.setProperties(oidcAuthnProperties);
+
+        FederatedAuthenticatorConfig[] federatedAuthenticators = new FederatedAuthenticatorConfig[3];
         federatedAuthenticators[0] = samlFedAuthn;
         federatedAuthenticators[1] = passiveStsFedAuthn;
+        federatedAuthenticators[2] = oidcAuthn;
         identityProvider.setFederatedAuthenticatorConfigs(federatedAuthenticators);
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
         IdentityProviderProperty propertySessionIdelTimeout = new IdentityProviderProperty();
         propertySessionIdelTimeout.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
         propertySessionIdelTimeout.setValue(request.getParameter("sessionIdleTimeout"));
@@ -93,8 +123,8 @@
         IdentityProviderProperty propertyRememberMeTimeout = new IdentityProviderProperty();
         propertyRememberMeTimeout.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
         propertyRememberMeTimeout.setValue(request.getParameter("rememberMeTimeout"));
-        idpProperties[0] = propertySessionIdelTimeout;
-        idpProperties[1] = propertyRememberMeTimeout;
+        idpProperties[paramNamesList.size()] = propertySessionIdelTimeout;
+        idpProperties[paramNamesList.size() + 1] = propertyRememberMeTimeout;
         identityProvider.setIdpProperties(idpProperties);
 
         client.updateResidentIdP(identityProvider);
@@ -109,5 +139,5 @@
     }
 %>
 <script type="text/javascript">
-    location.href = "idp-mgt-list.jsp";
+    location.href = "idp-mgt-edit-load-local.jsp?region=region1&item=identity_providers_resident";
 </script>

@@ -17,39 +17,54 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
-<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
+<%@ page import="java.net.URLDecoder" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 
 <%
 
 
-    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
-
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
 
-    String userStoreDomain = Utils.getUserStoreDomainName(username);
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
+    User user = IdentityManagementServiceUtil.getInstance().getUser(username);
 
-    User user = new User();
-    user.setUserName(username);
-    user.setTenantDomain(tenantDomain);
-    user.setUserStoreDomain(userStoreDomain);
+    NotificationApi notificationApi = new NotificationApi();
 
-    Response sendNotificationResponse = userInfoRecoveryWithNotificationClient.sendPasswordRecoveryNotification(user);
+    RecoveryInitiatingRequest recoveryInitiatingRequest = new RecoveryInitiatingRequest();
+    recoveryInitiatingRequest.setUser(user);
+    String callback = (String) request.getAttribute("callback");
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
+    List<Property> properties = new ArrayList<Property>();
+    Property property = new Property();
+    property.setKey("callback");
+    property.setValue(URLEncoder.encode(callback, "UTF-8"));
+    properties.add(property);
+    recoveryInitiatingRequest.setProperties(properties);
 
-    if ((sendNotificationResponse == null) || (StringUtils.isBlank(Integer.toString(sendNotificationResponse.getStatus()))) ||
-            (Response.Status.OK.getStatusCode() != sendNotificationResponse.getStatus())) {
+    try {
+        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null);
+    } catch (ApiException e) {
+        Error error = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-            IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_1 + "\t" +
-                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_2);
+        if (error != null) {
+            request.setAttribute("errorMsg", error.getDescription());
+            request.setAttribute("errorCode", error.getCode());
+        }
+
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
@@ -89,8 +104,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
-                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>";
+            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
         })
     });
 </script>

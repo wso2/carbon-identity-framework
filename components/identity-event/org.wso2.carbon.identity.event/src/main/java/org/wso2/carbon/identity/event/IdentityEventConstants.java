@@ -61,6 +61,10 @@ public class IdentityEventConstants {
         public static final String PRE_DELETE_USER= "PRE_DELETE_USER";
         public static final String POST_DELETE_USER= "POST_DELETE_USER";
         public static final String PRE_SET_USER_CLAIM= "PRE_SET_USER_CLAIM";
+        public static final String PRE_GET_USER_CLAIM= "PRE_GET_USER_CLAIM";
+        public static final String PRE_GET_USER_CLAIMS= "PRE_GET_USER_CLAIMS";
+        public static final String POST_GET_USER_CLAIMS= "POST_GET_USER_CLAIMS";
+        public static final String POST_GET_USER_CLAIM= "POST_GET_USER_CLAIM";
         public static final String POST_SET_USER_CLAIM= "POST_SET_USER_CLAIM";
         public static final String PRE_DELETE_USER_CLAIMS= "PRE_DELETE_USER_CLAIMS";
         public static final String POST_DELETE_USER_CLAIMS= "POST_DELETE_USER_CLAIMS";
@@ -76,7 +80,7 @@ public class IdentityEventConstants {
         public static final String POST_UPDATE_USER_LIST_OF_ROLE= "POST_UPDATE_USER_LIST_OF_ROLE";
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER= "PRE_UPDATE_ROLE_LIST_OF_USER";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER= "POST_UPDATE_ROLE_LIST_OF_USER";
-
+        public static final String UPDATE_GOVERNANCE_CONFIGURATION= "UPDATE_GOVERNANCE_CONFIGURATION";
 
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
 

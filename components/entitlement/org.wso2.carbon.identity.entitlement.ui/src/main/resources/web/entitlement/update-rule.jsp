@@ -21,6 +21,7 @@
 <%@ page import="org.wso2.carbon.identity.entitlement.ui.dto.TargetDTO" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <jsp:useBean id="entitlementPolicyBean" type="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean"
              class="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean" scope="session"/>
 <jsp:setProperty name="entitlementPolicyBean" property="*" />
@@ -96,7 +97,7 @@
 
     String ruleElementOrder = request.getParameter("ruleElementOrder");
     String updateRule = request.getParameter("updateRule");
-    String nextPage = request.getParameter("nextPage");
+    String action = request.getParameter("action");
     String ruleId = request.getParameter("ruleId");
     String ruleEffect = request.getParameter("ruleEffect");
     String ruleDescription = request.getParameter("ruleDescription");
@@ -437,8 +438,6 @@
 //        rowNumber ++;
 //    }
 
-    String forwardTo;
-
     if(ruleElementOrder != null && ruleElementOrder.trim().length() > 0){
         if(ruleDTO.isCompletedRule() && !"true".equals(updateRule)){
             entitlementPolicyBean.setRuleElementOrder(ruleElementOrder.trim() + ", " +
@@ -448,12 +447,22 @@
         }
     }
 
-    if(completedRule != null && completedRule.equals("true")){
-        forwardTo = nextPage + ".jsp?";
-    } else {
-        forwardTo = nextPage + ".jsp?ruleId=" + ruleId;
+    String forwardTo = "policy-editor.jsp";
+    if ("completePolicy".equals(action)) {
+        forwardTo = "finish.jsp";
+    } else if ("updateRule".equals(action) || "addRule".equals(action) || "cancelRule".equals(action) ||
+               "editRule".equals(action)) {
+        forwardTo = "policy-editor.jsp";
+    } else if ("deleteRule".equals(action)) {
+        forwardTo = "delete-rule-entry.jsp";
+    } else if ("selectAttribute".equals(action)) {
+        forwardTo = "select-attribute.jsp";
+    }
+
+    if (completedRule == null || !Boolean.parseBoolean(completedRule)) {
+        forwardTo = forwardTo + "?ruleId=" + Encode.forJavaScript(ruleId);
         if(categoryType != null && categoryType.trim().length() > 0){
-            forwardTo = forwardTo + "&category=" + categoryType + "&returnPage=policy-editor";
+            forwardTo = forwardTo + "&category=" + categoryType + "&returnPage=policy-editor.jsp";
         }
         if(selectedAttributeDataType != null && selectedAttributeDataType.trim().length() > 0){
             forwardTo = forwardTo + "&selectedAttributeDataType=" + selectedAttributeDataType;

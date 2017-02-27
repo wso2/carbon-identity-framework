@@ -19,16 +19,17 @@
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityValidationUtil" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.WorkflowAdminServiceWorkflowException" %>
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowWizard" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.WorkflowUIConstants" %>
+
+<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.util.WorkflowUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.stub.metadata.WorkflowWizard" %>
-<%@ page import="org.wso2.carbon.identity.workflow.mgt.ui.util.WorkflowUIUtil" %>
 
 
 <%
@@ -62,7 +63,9 @@
 
         WorkflowWizard workflowWizard = (WorkflowWizard)session.getAttribute(requestToken);
         WorkflowUIUtil.loadWorkflowImplParameters(request.getParameterMap(),workflowWizard);
-        if(StringUtils.isNotBlank(reqPath)){
+        if (StringUtils.isNotBlank(reqPath) && IdentityValidationUtil
+                .isValidOverBlackListPatterns(reqPath,
+                                              IdentityValidationUtil.ValidatorPattern.URI_RESERVED_EXISTS.name())) {
             forwardTo = reqPath +".jsp?wizard=finish&" + WorkflowUIConstants.PARAM_WORKFLOW_NAME + "=" +workflowWizard.getWorkflowName() ;
         }
         try {

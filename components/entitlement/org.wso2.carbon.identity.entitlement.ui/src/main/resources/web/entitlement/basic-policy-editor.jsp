@@ -15,6 +15,7 @@
 * limitations under the License.
 */
 -->
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.balana.utils.policy.dto.BasicRuleDTO" %>
 <%@ page import="org.wso2.balana.utils.policy.dto.BasicTargetDTO" %>
 <%@ page import="org.wso2.carbon.identity.entitlement.common.EntitlementConstants" %>
@@ -25,7 +26,6 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 <jsp:useBean id="entitlementPolicyBean" type="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean"
@@ -416,7 +416,7 @@
         if(doValidationPolicyNameOnly()){
             document.getElementsByName("ruleId")[0].value = "";
             preSubmit();
-            document.dataForm.action = "basic-policy-update.jsp?nextPage=basic-policy-finish";
+            document.dataForm.action = "basic-policy-update.jsp?action=completePolicy";
             document.dataForm.submit();
         }
     }
@@ -473,34 +473,33 @@
     function doUpdate(){
         if(doValidation()){
             preSubmit();
-            document.dataForm.action = "basic-policy-update.jsp?nextPage=basic-policy-editor&completedRule=true&updateRule=true";
+            document.dataForm.action = "basic-policy-update.jsp?action=updateRule&completedRule=true&updateRule=true";
             document.dataForm.submit();
         }
     }
 
     function doCancelRule(){
         preSubmit();
-        document.dataForm.action = "basic-policy-update.jsp?nextPage=basic-policy-editor&ruleId=";
+        document.dataForm.action = "basic-policy-update.jsp?action=cancelRule&ruleId=";
         document.dataForm.submit();
     }
 
     function deleteRule(ruleId) {
         preSubmit();
-        document.dataForm.action = "basic-policy-update.jsp?nextPage=delete-rule-entry&ruleId="
-                + ruleId + "&returnPage=basic-policy-editor";
+        document.dataForm.action = "basic-policy-update.jsp?action=deleteRule&ruleId=" + ruleId;
         document.dataForm.submit();
     }
 
     function editRule(ruleId){
         preSubmit();
-        document.dataForm.action = "basic-policy-update.jsp?nextPage=basic-policy-editor&editRule=true&ruleId=" + ruleId;
+        document.dataForm.action = "basic-policy-update.jsp?action=editRule&editRule=true&ruleId=" + ruleId;
         document.dataForm.submit();
     }
 
     function doAdd() {
         if(doValidation()){
             preSubmit();
-            document.dataForm.action = "basic-policy-update.jsp?nextPage=basic-policy-editor&completedRule=true";
+            document.dataForm.action = "basic-policy-update.jsp?action=addRule&completedRule=true";
             document.dataForm.submit();
         }
     }
@@ -508,8 +507,8 @@
     function selectAttributes(attributeType){
         if(doValidationPolicyNameOnly()){
             preSubmit();
-            document.dataForm.action = "basic-policy-update.jsp?nextPage=select-attribute-values&updateRule=true&category="
-                    + attributeType + "&returnPage=basic-policy-editor.jsp";
+            document.dataForm.action =
+                    "basic-policy-update.jsp?action=selectAttributes&updateRule=true&category=" + attributeType;
             document.dataForm.submit();
         }
     }
@@ -518,8 +517,7 @@
     function selectAttributesForTarget(attributeType){
         if(doValidationPolicyNameOnly()){
             preSubmit();
-            document.dataForm.action = "basic-policy-update.jsp?nextPage=select-attribute-values&ruleId=&attributeType="
-                    + attributeType  + "&returnPage=basic-policy-editor.jsp";
+            document.dataForm.action = "basic-policy-update.jsp?action=selectAttributes&ruleId=&attributeType=" + attributeType;
             document.dataForm.submit();
         }
     }

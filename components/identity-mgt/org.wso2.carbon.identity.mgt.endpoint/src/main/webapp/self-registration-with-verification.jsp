@@ -18,43 +18,55 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.apache.cxf.jaxrs.impl.ResponseImpl" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
 
-    boolean isFirstNameInClaims = false;
-    boolean isFirstNameRequired = false;
-    boolean isLastNameInClaims = false;
-    boolean isLastNameRequired = false;
-    boolean isEmailInClaims = false;
-    boolean isEmailRequired = false;
+    boolean isFirstNameInClaims = true;
+    boolean isFirstNameRequired = true;
+    boolean isLastNameInClaims = true;
+    boolean isLastNameRequired = true;
+    boolean isEmailInClaims = true;
+    boolean isEmailRequired = true;
 
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
+    Claim[] claims = new Claim[0];
 
-    UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient
-            .getUserIdentitySupportedClaims(IdentityManagementEndpointConstants.WSO2_DIALECT);
+    List<Claim> claimsList;
+    UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
+    try {
+        claimsList = usernameRecoveryApi.claimsGet(null);
+        if (claimsList != null) {
+            claims = claimsList.toArray(new Claim[claimsList.size()]);
+        }
+        IdentityManagementEndpointUtil.addReCaptchaHeaders(request, usernameRecoveryApi.getApiClient().getResponseHeaders());
 
-    for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-        if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM)) {
-            isFirstNameInClaims = true;
-            isFirstNameRequired = claimDTO.getRequired();
+    } catch (ApiException e) {
+        Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
+        request.setAttribute("error", true);
+        if (errorD != null) {
+            request.setAttribute("errorMsg", errorD.getDescription());
+            request.setAttribute("errorCode", errorD.getCode());
         }
-        if (StringUtils.equals(claimDTO.getClaimUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM)) {
-            isLastNameInClaims = true;
-            isLastNameRequired = claimDTO.getRequired();
-        }
-        if (StringUtils.equals(claimDTO.getClaimUri(),
-                               IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
-            isEmailInClaims = true;
-            isEmailRequired = claimDTO.getRequired();
-        }
+
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
+%>
+<%
+    boolean reCaptchaEnabled = false;
+    if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
+        reCaptchaEnabled = true;
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -73,6 +85,13 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+        <%
+            if (reCaptchaEnabled) {
+        %>
+        <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
     </head>
 
     <body>
@@ -160,32 +179,54 @@
                                        data-validate="email"
                                     <% if (isEmailRequired) {%> required <%}%>>
                             </div>
-                            <%}%>
+                            <%
+                                }
 
-                            <% for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-                                if (!StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
-                                    !StringUtils.equals(claimDTO.getClaimUri(),
-                                                        IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
+                                String callback = Encode.forHtmlAttribute
+                                        (request.getParameter("callback"));
+                                if (StringUtils.isBlank(callback)) {
+                                    callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                                            application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+                                }
+
+                                if (callback != null) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
+                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                            </div>
+                            <%
+                                }
+
+                                for (Claim claim : claims) {
+                                if (!StringUtils.equals(claim.getUri(),
+                                        IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_URI_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_1_CLAIM) &&
+                                    !StringUtils.equals(claim.getUri(), IdentityManagementEndpointConstants.ClaimURIs.CHALLENGE_QUESTION_2_CLAIM)) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label <% if (claimDTO.getRequired()) {%> class="control-label" <%}%>>
-                                    <%= Encode.forHtmlContent(claimDTO.getDisplayName())%>
+                                <label <% if (claim.getRequired()) {%> class="control-label" <%}%>>
+                                    <%= Encode.forHtmlContent(claim.getDisplayName())%>
                                 </label>
-                                <input type="text" name="<%= Encode.forHtmlAttribute(claimDTO.getClaimUri()) %>"
+                                <input type="text" name="<%= Encode.forHtmlAttribute(claim.getUri()) %>"
                                        class="form-control"
-                                    <% if (claimDTO.getRequired()) {%> required <%}%>>
+                                        <% if (claim.getRequired()) {%> required <%}%>>
                             </div>
                             <%
                                     }
+                                }
+                            %>
+                            <%
+                                if (reCaptchaEnabled) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <div class="g-recaptcha"
+                                     data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                </div>
+                            </div>
+                            <%
                                 }
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">

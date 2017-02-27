@@ -26,9 +26,10 @@
         <parameter name="ServiceClass" locked="false">
             org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin
         </parameter>
+
     </service>
 
-    <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter> 
+    <parameter name="AuthorizationAction" locked="false">/permission/admin/login</parameter>
     <parameter name="adminService" locked="true">true</parameter>
     <parameter name="hiddenService" locked="true">true</parameter>
 </serviceGroup>

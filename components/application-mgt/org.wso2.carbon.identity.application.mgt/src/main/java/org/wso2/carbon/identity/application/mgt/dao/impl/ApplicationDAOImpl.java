@@ -76,7 +76,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -262,6 +261,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             storeAppPrepStmt.setString(6, ApplicationConstants.AUTH_TYPE_DEFAULT);
             storeAppPrepStmt.setString(7, "0");
             storeAppPrepStmt.setString(8, "0");
+            storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -331,15 +331,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             // update basic information of the application.
             // you can change application name, description, isSasApp...
             updateBasicApplicationData(serviceProvider, connection);
-            updateInboundProvisioningConfiguration(applicationId,
-                    serviceProvider.getInboundProvisioningConfig(), connection);
+            updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
+                    connection);
 
             // delete all in-bound authentication requests.
             deleteInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), connection);
 
             // update all in-bound authentication requests.
-            updateInboundAuthRequestConfiguration(serviceProvider.getApplicationID(),
-                    serviceProvider.getInboundAuthenticationConfig(), connection);
+            updateInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), serviceProvider
+                    .getInboundAuthenticationConfig(), connection);
 
             // delete local and out-bound authentication configuration.
             deleteLocalAndOutboundAuthenticationConfiguration(applicationId, connection);
@@ -349,12 +349,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig(), connection);
 
             deleteRequestPathAuthenticators(applicationId, connection);
-            updateRequestPathAuthenticators(applicationId,
-                    serviceProvider.getRequestPathAuthenticatorConfigs(), connection);
+            updateRequestPathAuthenticators(applicationId, serviceProvider.getRequestPathAuthenticatorConfigs(),
+                    connection);
 
             deteClaimConfiguration(applicationId, connection);
-            updateClaimConfiguration(serviceProvider.getApplicationID(),
-                    serviceProvider.getClaimConfig(), applicationId, connection);
+            updateClaimConfiguration(serviceProvider.getApplicationID(), serviceProvider.getClaimConfig(),
+                    applicationId, connection);
 
             deleteOutboundProvisioningConfiguration(applicationId, connection);
             updateOutboundProvisioningConfiguration(applicationId,
@@ -367,8 +367,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     serviceProvider.getPermissionAndRoleConfig().getPermissions());
 
             if (serviceProvider.getSpProperties() != null) {
-                updateServiceProviderProperties(connection, applicationId,
-                        Arrays.asList(serviceProvider.getSpProperties()), tenantID);
+                updateServiceProviderProperties(connection, applicationId, Arrays.asList(serviceProvider
+                        .getSpProperties()), tenantID);
             }
 
             if (!connection.getAutoCommit()) {
@@ -465,15 +465,25 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     }
 
+    private List<Property> filterEmptyProperties(Property[] propertiesArray) {
+        List<Property> propertyArrayList = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(propertiesArray)) {
+            for (Property property : propertiesArray) {
+                if (property != null && StringUtils.isNotBlank(property.getValue())) {
+                    propertyArrayList.add(property);
+                }
+            }
+        }
+        return propertyArrayList;
+    }
     /**
      * @param applicationId
      * @param inBoundAuthenticationConfig
      * @param connection
      * @throws SQLException
      */
-    private void updateInboundAuthRequestConfiguration(int applicationId,
-                                                       InboundAuthenticationConfig inBoundAuthenticationConfig, Connection connection)
-            throws SQLException {
+    private void updateInboundAuthRequestConfiguration(int applicationId, InboundAuthenticationConfig
+            inBoundAuthenticationConfig, Connection connection) throws IdentityApplicationManagementException {
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         PreparedStatement inboundAuthReqConfigPrepStmt = null;
@@ -486,39 +496,76 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 return;
             }
 
-            inboundAuthReqConfigPrepStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.STORE_CLIENT_INFO);
+            inboundAuthReqConfigPrepStmt = connection.prepareStatement(ApplicationMgtDBQueries.STORE_CLIENT_INFO);
             InboundAuthenticationRequestConfig[] authRequests = inBoundAuthenticationConfig
                     .getInboundAuthenticationRequestConfigs();
 
             for (InboundAuthenticationRequestConfig authRequest : authRequests) {
-                if (authRequest == null || authRequest.getInboundAuthKey() == null
-                        || authRequest.getInboundAuthType() == null) {
+                if (authRequest == null || authRequest.getInboundAuthType() == null) {
                     log.warn("Invalid in-bound authentication request");
                     // not a valid authentication request. Must have client and a type.
                     continue;
                 }
-                // TENANT_ID, INBOUND_AUTH_KEY,INBOUND_AUTH_TYPE,PROP_NAME, PROP_VALUE, APP_ID
 
-                Property[] properties = authRequest.getProperties();
+                Property[] propertiesArray = authRequest.getProperties();
+                List<Property> propertyArrayList = new ArrayList<>();
 
-                if (properties != null && properties.length > 0) {
-                    for (Property prop : properties) {
+                String authKey = null;
+                String inboundConfigType = ApplicationConstants.STANDARD_APPLICATION;
+                if (standardInboundAuthTypes.contains(authRequest.getInboundAuthType())) {
+                    authKey = authRequest.getInboundAuthKey();
+                    propertyArrayList = filterEmptyProperties(propertiesArray);
+                } else {
+                    AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig =
+                            ApplicationManagementServiceComponentHolder.getInboundAuthenticatorConfig(authRequest
+                                    .getInboundAuthType() + ":" + authRequest.getInboundConfigType());
+                    if (inboundAuthenticatorConfig != null &&
+                            StringUtils.isNotBlank(inboundAuthenticatorConfig.getRelyingPartyKey())) {
+                        if (propertiesArray != null && propertiesArray.length > 0) {
+                            for (Property prop : propertiesArray) {
+                                if (inboundAuthenticatorConfig.getRelyingPartyKey().equals(prop.getName())) {
+                                    if (StringUtils.isNotBlank(prop.getValue())) {
+                                        authKey = prop.getValue();
+                                    }
+                                } else {
+                                    if (StringUtils.isNotBlank(prop.getValue())) {
+                                        propertyArrayList.add(prop);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        propertyArrayList = filterEmptyProperties(propertiesArray);
+                    }
+                }
+                if (StringUtils.isBlank(authKey)) {
+                    String applicationName = getApplicationName(applicationId, connection);
+                    if (StringUtils.isNotBlank(applicationName)) {
+                        authKey = applicationName;
+                    }
+                }
+                if (StringUtils.isNotBlank(authRequest.getInboundConfigType())) {
+                    inboundConfigType = authRequest.getInboundConfigType();
+                }
+                if (!propertyArrayList.isEmpty()) {
+                    for (Property prop : propertyArrayList) {
                         inboundAuthReqConfigPrepStmt.setInt(1, tenantID);
-                        inboundAuthReqConfigPrepStmt.setString(2,authRequest.getInboundAuthKey());
+                        inboundAuthReqConfigPrepStmt.setString(2,authKey);
                         inboundAuthReqConfigPrepStmt.setString(3,authRequest.getInboundAuthType());
                         inboundAuthReqConfigPrepStmt.setString(4,prop.getName());
                         inboundAuthReqConfigPrepStmt.setString(5,prop.getValue());
                         inboundAuthReqConfigPrepStmt.setInt(6, applicationId);
+                        inboundAuthReqConfigPrepStmt.setString(7, inboundConfigType);
                         inboundAuthReqConfigPrepStmt.addBatch();
                     }
                 } else {
                     inboundAuthReqConfigPrepStmt.setInt(1, tenantID);
-                    inboundAuthReqConfigPrepStmt.setString(2,authRequest.getInboundAuthKey());
+                    inboundAuthReqConfigPrepStmt.setString(2,authKey);
                     inboundAuthReqConfigPrepStmt.setString(3,authRequest.getInboundAuthType());
                     inboundAuthReqConfigPrepStmt.setString(4, null);
                     inboundAuthReqConfigPrepStmt.setString(5, null);
                     inboundAuthReqConfigPrepStmt.setInt(6, applicationId);
+                    inboundAuthReqConfigPrepStmt.setString(7, inboundConfigType);
                     inboundAuthReqConfigPrepStmt.addBatch();
                 }
 
@@ -533,6 +580,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             }
 
             inboundAuthReqConfigPrepStmt.executeBatch();
+        } catch (SQLException e) {
+            log.error("Error occurred while updating the Inbound Authentication Request Configuration.", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(inboundAuthReqConfigPrepStmt);
         }
@@ -617,12 +666,20 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                         blocking = "1";
                     }
 
+                    String ruleEnabled = "0";
+
+                    if (proProvider.getDefaultProvisioningConnectorConfig() != null
+                        && proProvider.getDefaultProvisioningConnectorConfig().isRulesEnabled()) {
+                        ruleEnabled = "1";
+                    }
+
                     outboundProConfigPrepStmt.setInt(1, tenantID);
                     outboundProConfigPrepStmt.setString(2, proProvider.getIdentityProviderName());
                     outboundProConfigPrepStmt.setString(3, proConnector.getName());
                     outboundProConfigPrepStmt.setInt(4, applicationId);
                     outboundProConfigPrepStmt.setString(5, jitEnabled);
                     outboundProConfigPrepStmt.setString(6, blocking);
+                    outboundProConfigPrepStmt.setString(7, ruleEnabled);
                     outboundProConfigPrepStmt.addBatch();
 
                 }
@@ -713,13 +770,19 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     proConnector.setBlocking(false);
                 }
 
+                if ("1".equals(resultSet.getString(5))) {
+                    proConnector.setRulesEnabled(true);
+                } else {
+                    proConnector.setRulesEnabled(false);
+                }
+
                 fedIdp.setDefaultProvisioningConnectorConfig(proConnector);
                 idpProConnectors.add(fedIdp);
 
             }
 
-            outBoundProvisioningConfig.setProvisioningIdentityProviders(idpProConnectors
-                    .toArray(new IdentityProvider[idpProConnectors.size()]));
+            outBoundProvisioningConfig.setProvisioningIdentityProviders(idpProConnectors.toArray(new
+                    IdentityProvider[idpProConnectors.size()]));
 
         } finally {
             IdentityApplicationManagementUtil.closeStatement(outboundProConfigPrepStmt);
@@ -788,6 +851,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             storeUseUserstoreDomainInLocalSubjectIdStmt.executeUpdate();
         } finally {
             IdentityApplicationManagementUtil.closeStatement(storeUseUserstoreDomainInLocalSubjectIdStmt);
+        }
+
+        PreparedStatement enableAuthzStmt = null;
+        try {
+            enableAuthzStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.UPDATE_BASIC_APPINFO_WITH_ENABLE_AUTHORIZATION);
+            enableAuthzStmt.setString(1, localAndOutboundAuthConfig.isEnableAuthorization() ? "1" : "0");
+            enableAuthzStmt.setInt(2, tenantID);
+            enableAuthzStmt.setInt(3, applicationId);
+            enableAuthzStmt.executeUpdate();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(enableAuthzStmt);
         }
 
         PreparedStatement storeSubjectClaimUri = null;
@@ -1105,7 +1180,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 } else {
                     storeClaimMapPrepStmt.setString(5, "0");
                 }
-                storeClaimMapPrepStmt.setString(6, mapping.getDefaultValue());
+                if (mapping.isMandatory()) {
+                    storeClaimMapPrepStmt.setString(6, "1");
+                } else {
+                    storeClaimMapPrepStmt.setString(6, "0");
+                }
+                storeClaimMapPrepStmt.setString(7, mapping.getDefaultValue());
                 storeClaimMapPrepStmt.addBatch();
 
                 if (log.isDebugEnabled()) {
@@ -1306,13 +1386,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
                 LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new LocalAndOutboundAuthenticationConfig();
                 localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                        .equals(basicAppDataResultSet.getString(12)));
+                        .equals(basicAppDataResultSet.getString(14)));
+                localAndOutboundAuthenticationConfig.setEnableAuthorization("1".equals(basicAppDataResultSet
+                        .getString(15)));
                 localAndOutboundAuthenticationConfig.setSubjectClaimUri(basicAppDataResultSet
-                        .getString(15));
+                        .getString(16));
                 serviceProvider
                         .setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
 
-                serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(16)));
+                serviceProvider.setSaasApp("1".equals(basicAppDataResultSet.getString(17)));
 
                 if (log.isDebugEnabled()) {
                     log.debug("ApplicationID: " + serviceProvider.getApplicationID()
@@ -1327,7 +1409,140 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             IdentityApplicationManagementUtil.closeResultSet(basicAppDataResultSet);
             IdentityApplicationManagementUtil.closeStatement(loadBasicAppInfoStmt);
         }
+    }
 
+    @Override
+    public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        try {
+
+            // Load basic application data
+            ServiceProvider serviceProvider = getBasicApplicationData(applicationId, connection);
+            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
+            if (serviceProvider == null) {
+                return null;
+            }
+
+            serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
+                    applicationId, connection, tenantID));
+            serviceProvider
+                    .setLocalAndOutBoundAuthenticationConfig(getLocalAndOutboundAuthenticationConfig(
+                            applicationId, connection, tenantID));
+
+            serviceProvider.setInboundProvisioningConfig(getInboundProvisioningConfiguration(
+                    applicationId, connection, tenantID));
+
+            serviceProvider.setOutboundProvisioningConfig(getOutboundProvisioningConfiguration(
+                    applicationId, connection, tenantID));
+
+            // Load Claim Mapping
+            serviceProvider.setClaimConfig(getClaimConfiguration(applicationId, connection,
+                                                                 tenantID));
+
+            // Load Role Mappings
+            List<RoleMapping> roleMappings = getRoleMappingOfApplication(applicationId, connection,
+                                                                         tenantID);
+            PermissionsAndRoleConfig permissionAndRoleConfig = new PermissionsAndRoleConfig();
+            permissionAndRoleConfig.setRoleMappings(roleMappings
+                                                            .toArray(new RoleMapping[roleMappings.size()]));
+            serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
+
+            RequestPathAuthenticatorConfig[] requestPathAuthenticators = getRequestPathAuthenticators(
+                    applicationId, connection, tenantID);
+            serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
+
+            List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
+            serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
+
+            return serviceProvider;
+
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Failed to update service provider "
+                                                             + applicationId, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    /**
+     * @param appId
+     * @param connection
+     * @return
+     * @throws SQLException
+     */
+    private ServiceProvider getBasicApplicationData(int appId, Connection connection)
+            throws SQLException, IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = null;
+
+        if (log.isDebugEnabled()) {
+            log.debug("Loading Basic Application Data of application ID: " + appId);
+        }
+
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        try {
+            prepStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_BASIC_APP_INFO_BY_APP_ID);
+            prepStmt.setInt(1, appId);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                serviceProvider = new ServiceProvider();
+                serviceProvider.setApplicationID(rs.getInt(1));
+                serviceProvider.setApplicationName(rs.getString(3));
+                serviceProvider.setDescription(rs.getString(6));
+
+                String tenantDomain;
+                try {
+                    tenantDomain = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                            .getTenantManager()
+                            .getDomain(
+                                    rs.getInt(2));
+                } catch (UserStoreException e) {
+                    throw new IdentityApplicationManagementException("Error while reading tenant domain for " +
+                                                                     "application ID: " + appId);
+                }
+
+                User owner = new User();
+                owner.setUserName(rs.getString(5));
+                owner.setTenantDomain(tenantDomain);
+                owner.setUserStoreDomain(rs.getString(4));
+                serviceProvider.setOwner(owner);
+
+                ClaimConfig claimConfig = new ClaimConfig();
+                claimConfig.setRoleClaimURI(rs.getString(7));
+                claimConfig.setLocalClaimDialect("1".equals(rs.getString(10)));
+                claimConfig.setAlwaysSendMappedLocalSubjectId("1".equals(rs
+                                                                                 .getString(11)));
+                serviceProvider.setClaimConfig(claimConfig);
+
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = new LocalAndOutboundAuthenticationConfig();
+                localAndOutboundAuthenticationConfig.setAlwaysSendBackAuthenticatedListOfIdPs("1"
+                                                                                                      .equals(rs.getString(14)));
+                localAndOutboundAuthenticationConfig.setEnableAuthorization("1".equals(rs
+                                                                                               .getString(15)));
+                localAndOutboundAuthenticationConfig.setSubjectClaimUri(rs
+                                                                                .getString(16));
+                serviceProvider
+                        .setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig);
+
+                serviceProvider.setSaasApp("1".equals(rs.getString(17)));
+
+                if (log.isDebugEnabled()) {
+                    log.debug("ApplicationID: " + serviceProvider.getApplicationID()
+                              + " ApplicationName: " + serviceProvider.getApplicationName()
+                              + " UserName: " + serviceProvider.getOwner().getUserName()
+                              + " TenantDomain: " + serviceProvider.getOwner().getTenantDomain());
+                }
+            }
+
+            return serviceProvider;
+        } finally {
+            IdentityApplicationManagementUtil.closeResultSet(rs);
+            IdentityApplicationManagementUtil.closeStatement(prepStmt);
+        }
     }
 
     /**
@@ -1523,28 +1738,70 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return applicationId;
     }
 
+
+    /**
+     * Reading the mapping of properties.
+     *
+     * @param customAuthenticator
+     * @param propertyName
+     * @return
+     */
+    private Property getMappedProperty(AbstractInboundAuthenticatorConfig customAuthenticator, String propertyName) {
+        Property property = null;
+        if (customAuthenticator != null) {
+            Property[] confProps = customAuthenticator.getConfigurationProperties();
+            if (confProps != null) {
+                for (Property confProp : confProps) {
+                    if (propertyName != null && propertyName.equals(confProp.getName())) {
+                        property = confProp;
+                    }
+                }
+            }
+        }
+        return property;
+    }
+
+    /**
+     * Merge properties from config to request.
+     *
+     * @param sources
+     * @param destinations
+     */
+    private void mergedPropertiesMetaData(Property[] sources, Property[] destinations) {
+        Map<String, Property> destinationMap = new HashMap<>();
+        if (ArrayUtils.isNotEmpty(destinations)) {
+            for (Property destination : destinations) {
+                destinationMap.put(destination.getName(), destination);
+            }
+        }
+        if (ArrayUtils.isNotEmpty(sources)) {
+            for (Property source : sources) {
+                Property property = destinationMap.get(source.getName());
+                if (property == null) {
+                    destinationMap.put(source.getName(), source);
+                }
+            }
+        }
+    }
+
     /**
      * @param applicationId
      * @param connection
      * @return
      * @throws SQLException
      */
-    private InboundAuthenticationConfig getInboundAuthenticationConfig(int applicationId,
-                                                                       Connection connection, int tenantID) throws SQLException {
-
-        Map<String, InboundAuthenticationRequestConfig> authRequestMap = new HashMap<String, InboundAuthenticationRequestConfig>();
-
+    private InboundAuthenticationConfig getInboundAuthenticationConfig(int applicationId, Connection connection, int
+            tenantID) throws SQLException {
         if (log.isDebugEnabled()) {
             log.debug("Reading Clients of Application " + applicationId);
         }
+        Map<String, InboundAuthenticationRequestConfig> inboundAuthenticationRequestConfigMap =
+                new HashMap<String, InboundAuthenticationRequestConfig>();
 
         PreparedStatement getClientInfo = null;
         ResultSet resultSet = null;
-        Map<String, List<String>> customAuthenticatorsAlreadyIn = new HashMap<String, List<String>>();
 
         try {
-
-            // INBOUND_AUTH_KEY, INBOUND_AUTH_TYPE, PROP_NAME, PROP_VALUE
             getClientInfo = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_CLIENTS_INFO_BY_APP_ID);
 
@@ -1553,104 +1810,102 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             resultSet = getClientInfo.executeQuery();
 
             while (resultSet.next()) {
-
-                InboundAuthenticationRequestConfig inbountAuthRequest = null;
                 String authKey = resultSet.getString(1);
                 //this is done to handle empty string added to oracle database as null.
-                if (authKey == null){
+                if (authKey == null) {
                     authKey = new String();
                 }
                 String authType = resultSet.getString(2);
-                String mapKey = authType + ":" + authKey;
-                boolean isCustomAuthenticator = isCustomInboundAuthType(authType);
-
-                if (!authRequestMap.containsKey(mapKey)) {
-                    inbountAuthRequest = new InboundAuthenticationRequestConfig();
-                    inbountAuthRequest.setInboundAuthKey(authKey);
-                    inbountAuthRequest.setInboundAuthType(authType);
-                    inbountAuthRequest.setProperties(new Property[0]);
-                    authRequestMap.put(mapKey, inbountAuthRequest);
-                }
-
-                inbountAuthRequest = authRequestMap.get(mapKey);
-
                 String propName = resultSet.getString(3);
+                String propValue = resultSet.getString(4);
+                String configType = resultSet.getString(5);
 
+                String mapKey = authType + ":" + authKey;
+
+                InboundAuthenticationRequestConfig inboundAuthRequest = null;
+                if ((inboundAuthRequest = inboundAuthenticationRequestConfigMap.get(mapKey)) == null) {
+                    inboundAuthRequest = new InboundAuthenticationRequestConfig();
+                }
+                inboundAuthRequest.setInboundAuthKey(authKey);
+                inboundAuthRequest.setInboundAuthType(authType);
+                inboundAuthRequest.setInboundConfigType(configType);
+
+                boolean isCustomAuthenticator = isCustomInboundAuthType(authType);
+                AbstractInboundAuthenticatorConfig customAuthenticator = ApplicationManagementServiceComponentHolder
+                        .getInboundAuthenticatorConfig(authType + ":" + configType);
+                if (isCustomAuthenticator && customAuthenticator != null) {
+                    inboundAuthRequest.setFriendlyName(customAuthenticator.getFriendlyName());
+                }
                 if (propName != null) {
                     Property prop = new Property();
                     prop.setName(propName);
-                    prop.setValue(resultSet.getString(4));
-
-                    if (isCustomAuthenticator) {
-                        AbstractInboundAuthenticatorConfig customAuthenticator = ApplicationManagementServiceComponentHolder
-                                .getInboundAuthenticatorConfig(authType);
-                        if (customAuthenticator != null) {
-                            Property[] confProps = customAuthenticator.getConfigurationProperties();
-                            for (Property confProp : confProps) {
-                                if (confProp.getName().equals(propName)) {
-                                    prop.setDisplayName(confProp.getDisplayName());
-                                    break;
-                                }
-                            }
-                            inbountAuthRequest.setFriendlyName(customAuthenticator.getFriendlyName());
+                    prop.setValue(propValue);
+                    if (isCustomAuthenticator && customAuthenticator != null) {
+                        Property mappedProperty = getMappedProperty(customAuthenticator, propName);
+                        if (mappedProperty != null) {
+                            prop.setDisplayName(mappedProperty.getDisplayName());
                         }
-
-                        if (!customAuthenticatorsAlreadyIn.containsKey(authType)) {
-                            customAuthenticatorsAlreadyIn.put(authType, new ArrayList<String>());
-
-                        }
-
-                        List<String> propNamesIn = customAuthenticatorsAlreadyIn.get(authType);
-                        propNamesIn.add(propName);
                     }
-
-                    inbountAuthRequest.setProperties((ApplicationMgtUtil.concatArrays(
-                            new Property[]{prop}, inbountAuthRequest.getProperties())));
+                    inboundAuthRequest.setProperties((ApplicationMgtUtil.concatArrays(new Property[]{prop},
+                            inboundAuthRequest.getProperties())));
                 }
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Auth request key: " + inbountAuthRequest.getInboundAuthKey()
-                            + " Auth request type: " + inbountAuthRequest.getInboundAuthType());
-                }
+                inboundAuthenticationRequestConfigMap.put(mapKey, inboundAuthRequest);
             }
-
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getClientInfo);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
         }
-
-        Map<String, AbstractInboundAuthenticatorConfig> allCustomAuthenticators = ApplicationManagementServiceComponentHolder
-                .getAllInboundAuthenticatorConfig();
-
-        Iterator<Entry<String, AbstractInboundAuthenticatorConfig>> it = allCustomAuthenticators.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, AbstractInboundAuthenticatorConfig> entry = it.next();
-
-            if (!customAuthenticatorsAlreadyIn.containsKey(entry.getKey())) {
-                InboundAuthenticationRequestConfig inbountAuthRequest = new InboundAuthenticationRequestConfig();
-                inbountAuthRequest.setInboundAuthKey(entry.getValue().getAuthKey());
-                inbountAuthRequest.setInboundAuthType(entry.getValue().getName());
-                inbountAuthRequest.setFriendlyName(entry.getValue().getFriendlyName());
-                inbountAuthRequest.setProperties(entry.getValue().getConfigurationProperties());
-                authRequestMap.put(entry.getValue().getName() + ":" + entry.getValue().getAuthKey(), inbountAuthRequest);
-            } else {
-                InboundAuthenticationRequestConfig inbountAuthRequest = authRequestMap.get(entry.getValue().getName()
-                        + ":" + entry.getValue().getAuthKey());
-                List<String> propsAlreadyIn = customAuthenticatorsAlreadyIn.get(entry.getKey());
-                for (Property prop : entry.getValue().getConfigurationProperties()) {
-                    if (!propsAlreadyIn.contains(prop.getName())) {
-                        inbountAuthRequest.setProperties(ApplicationMgtUtil.concatArrays(new Property[] { prop },
-                                inbountAuthRequest.getProperties()));
-
+        Map<String, AbstractInboundAuthenticatorConfig> allCustomAuthenticators = new HashMap<>
+                (ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig());
+        for (Map.Entry<String, InboundAuthenticationRequestConfig> entry : inboundAuthenticationRequestConfigMap
+                .entrySet()) {
+            InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig = entry.getValue();
+            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = allCustomAuthenticators.remove
+                    (inboundAuthenticationRequestConfig.getInboundAuthType() + ":" +
+                            inboundAuthenticationRequestConfig.getInboundConfigType());
+            if (inboundAuthenticatorConfig != null && inboundAuthenticationRequestConfig != null) {
+                Property[] sources = inboundAuthenticatorConfig.getConfigurationProperties();
+                Property[] destinations = inboundAuthenticationRequestConfig.getProperties();
+                Map<String, Property> destinationMap = new HashMap<>();
+                for (Property destination : destinations) {
+                    destinationMap.put(destination.getName(), destination);
+                }
+                for (Property source : sources) {
+                    Property property = destinationMap.get(source.getName());
+                    if (property == null) {
+                        if (isCustomInboundAuthType(inboundAuthenticationRequestConfig.getInboundAuthType())) {
+                            if (inboundAuthenticatorConfig.isRelyingPartyKeyConfigured()) {
+                                if (StringUtils.equals(inboundAuthenticatorConfig.getRelyingPartyKey(), source
+                                        .getName())) {
+                                    source.setValue(inboundAuthenticationRequestConfig.getInboundAuthKey());
+                                }
+                            }
+                        }
+                        destinationMap.put(source.getName(), source);
                     }
                 }
+                inboundAuthenticationRequestConfig
+                        .setProperties(destinationMap.values().toArray(new Property[destinationMap.size()]));
             }
-
         }
+        List<InboundAuthenticationRequestConfig> returnList = new ArrayList<>(inboundAuthenticationRequestConfigMap
+                .values());
 
+        for (Map.Entry<String, AbstractInboundAuthenticatorConfig> entry : allCustomAuthenticators.entrySet()) {
+            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = entry.getValue();
+                InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig =
+                        new InboundAuthenticationRequestConfig();
+                inboundAuthenticationRequestConfig.setInboundAuthType(inboundAuthenticatorConfig.getName());
+                inboundAuthenticationRequestConfig.setInboundConfigType(inboundAuthenticatorConfig.getConfigName());
+                inboundAuthenticationRequestConfig.setFriendlyName(inboundAuthenticatorConfig.getFriendlyName());
+                inboundAuthenticationRequestConfig.setProperties(inboundAuthenticatorConfig
+                        .getConfigurationProperties());
+
+                returnList.add(inboundAuthenticationRequestConfig);
+        }
         InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
-        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(authRequestMap.values()
-                .toArray(new InboundAuthenticationRequestConfig[authRequestMap.size()]));
+        inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(returnList.toArray(new
+                InboundAuthenticationRequestConfig[returnList.size()]));
         return inboundAuthenticationConfig;
     }
 
@@ -1807,10 +2062,12 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                            .equals(localAndOutboundConfigResultSet.getString(1)));
                     localAndOutboundConfiguration.setUseUserstoreDomainInLocalSubjectIdentifier("1"
                            .equals(localAndOutboundConfigResultSet.getString(2)));
+                    localAndOutboundConfiguration.setEnableAuthorization("1"
+                            .equals(localAndOutboundConfigResultSet.getString(3)));
                     localAndOutboundConfiguration.setAlwaysSendBackAuthenticatedListOfIdPs("1"
-                           .equals(localAndOutboundConfigResultSet.getString(3)));
+                            .equals(localAndOutboundConfigResultSet.getString(4)));
                     localAndOutboundConfiguration.setSubjectClaimUri(localAndOutboundConfigResultSet
-                           .getString(4));
+                            .getString(5));
                 }
             } finally {
                 IdentityApplicationManagementUtil.closeStatement(localAndOutboundConfigPrepStmt);
@@ -1890,6 +2147,14 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     claimMapping.setRequested(false);
                 }
 
+                String mandatory = resultSet.getString(4);
+
+                if ("1".equalsIgnoreCase(mandatory)) {
+                    claimMapping.setMandatory(true);
+                } else {
+                    claimMapping.setMandatory(false);
+                }
+
                 if (remoteClaim.getClaimUri() == null
                         || remoteClaim.getClaimUri().trim().length() == 0) {
                     remoteClaim.setClaimUri(localClaim.getClaimUri());
@@ -1900,7 +2165,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                     localClaim.setClaimUri(remoteClaim.getClaimUri());
                 }
 
-                claimMapping.setDefaultValue(resultSet.getString(4));
+                claimMapping.setDefaultValue(resultSet.getString(5));
 
                 claimMapping.setLocalClaim(localClaim);
                 claimMapping.setRemoteClaim(remoteClaim);

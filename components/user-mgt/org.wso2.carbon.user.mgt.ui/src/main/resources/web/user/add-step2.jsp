@@ -17,6 +17,7 @@
   --%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page session="true" %>
 <%@ page import="org.owasp.encoder.Encode" %>
@@ -219,6 +220,11 @@
             unselectedRolesElem.setAttribute("name", "unselectedRoles");
             unselectedRolesElem.setAttribute("value", unselectedRolesStr);
             form.appendChild(unselectedRolesElem);
+            var CSRFTokenElem = document.createElement("input");
+            CSRFTokenElem.setAttribute("type", "hidden");
+            CSRFTokenElem.setAttribute("name", "<csrf:tokenname/>");
+            CSRFTokenElem.setAttribute("value", "<csrf:tokenvalue/>");
+            form.appendChild(CSRFTokenElem);
             document.body.appendChild(form);
             $("#paginateForm").submit();
         }
@@ -444,6 +450,11 @@
         selectedRolesElem.setAttribute("name", "selectedRoles");
         selectedRolesElem.setAttribute("value", "ALL");
         form.appendChild(selectedRolesElem);
+        var CSRFTokenElem = document.createElement("input");
+        CSRFTokenElem.setAttribute("type", "hidden");
+        CSRFTokenElem.setAttribute("name", "<csrf:tokenname/>");
+        CSRFTokenElem.setAttribute("value", "<csrf:tokenvalue/>");
+        form.appendChild(CSRFTokenElem);
         document.body.appendChild(form);
         $("#selectAllRetrievedForm").submit();
     }
@@ -458,6 +469,11 @@
         unselectedRolesElem.setAttribute("name", "unselectedRoles");
         unselectedRolesElem.setAttribute("value", "ALL");
         form.appendChild(unselectedRolesElem);
+        var CSRFTokenElem = document.createElement("input");
+        CSRFTokenElem.setAttribute("type", "hidden");
+        CSRFTokenElem.setAttribute("name", "<csrf:tokenname/>");
+        CSRFTokenElem.setAttribute("value", "<csrf:tokenvalue/>");
+        form.appendChild(CSRFTokenElem);
         document.body.appendChild(form);
         $("#unSelectAllRetrievedForm").submit();
     }

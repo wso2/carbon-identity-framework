@@ -149,6 +149,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
+        } finally {
+            IdentityUtil.clearIdentityErrorMsg();
         }
     }
 

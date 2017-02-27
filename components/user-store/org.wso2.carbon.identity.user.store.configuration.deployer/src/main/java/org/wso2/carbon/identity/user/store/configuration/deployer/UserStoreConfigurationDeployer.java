@@ -203,7 +203,7 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
     private OMElement initializeOMElement(String absoluteFilePath) throws
             UserStoreConfigurationDeployerException {
         StAXOMBuilder builder;
-        InputStream inStream;
+        InputStream inStream = null;
         try {
             inStream = new FileInputStream(absoluteFilePath);
             builder = new StAXOMBuilder(inStream);
@@ -214,6 +214,8 @@ public class UserStoreConfigurationDeployer extends AbstractDeployer {
         } catch (XMLStreamException e) {
             String errMsg = " Secondary storage file reading for repo = " + absoluteFilePath + " failed ";
             throw new UserStoreConfigurationDeployerException(errMsg, e);
+        } finally {
+            IdentityIOStreamUtils.closeInputStream(inStream);
         }
     }
 

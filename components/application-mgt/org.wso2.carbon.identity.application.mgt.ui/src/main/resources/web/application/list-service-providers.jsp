@@ -126,10 +126,10 @@
                 }
             %>
 
-            <div style="height:30px;">
-                <a href="load-service-provider.jsp?spName=wso2carbon-local-sp" class="icon-link"
-                   style="background-image:url(images/local-sp.png);"><fmt:message key='local.sp'/></a>
-            </div>
+            <%--<div style="height:30px;">--%>
+                <%--<a href="load-service-provider.jsp?spName=wso2carbon-local-sp" class="icon-link"--%>
+                   <%--style="background-image:url(images/local-sp.png);"><fmt:message key='local.sp'/></a>--%>
+            <%--</div>--%>
             <br/>
             <table style="width: 100%" class="styledLeft">
                 <tbody>

@@ -18,14 +18,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
 
 <%
-   ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse)session.getAttribute("challengeQuestionResponse");
-   ErrorResponse errorResponse = (ErrorResponse)request.getAttribute("errorResponse");
+    InitiateQuestionResponse initiateQuestionResponse = (InitiateQuestionResponse)
+            session.getAttribute("initiateChallengeQuestionResponse");
+    RetryError errorResponse = (RetryError) request.getAttribute("errorResponse");
+    boolean reCaptchaEnabled = false;
+    if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
+        reCaptchaEnabled = true;
+    }
 %>
 
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -44,6 +47,14 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+
+        <%
+            if (reCaptchaEnabled) {
+        %>
+        <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
     </head>
 
     <body>
@@ -68,22 +79,22 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-            <%
-                if(errorResponse != null) {
-            %>
-                     <div class="alert alert-danger" id="server-error-msg">
-                        <%=errorResponse.getMessage()%>
-                     </div>
-            <%
-                }
-            %>
+                <%
+                    if (errorResponse != null) {
+                %>
+                <div class="alert alert-danger" id="server-error-msg">
+                    <%=errorResponse.getDescription()%>
+                </div>
+                <%
+                    }
+                %>
                 <div class="clearfix"></div>
                 <div class="boarder-all ">
 
                     <div class="padding-double">
                         <form method="post" action="processsecurityquestions.do" id="securityQuestionForm">
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label"><%=challengeQuestionResponse.getQuestion().getQuestion()%>
+                                <label class="control-label"><%=initiateQuestionResponse.getQuestion().getQuestion()%>
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
@@ -95,6 +106,17 @@
                                 <input type="hidden" name="step"
                                        value="<%=Encode.forHtmlAttribute(request.getParameter("step"))%>"/>
                             </div>
+                            <%
+                                if (reCaptchaEnabled) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <div class="g-recaptcha"
+                                     data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                </div>
+                            </div>
+                            <%
+                                }
+                            %>
                             <div class="form-actions">
                                 <button id="answerSubmit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"

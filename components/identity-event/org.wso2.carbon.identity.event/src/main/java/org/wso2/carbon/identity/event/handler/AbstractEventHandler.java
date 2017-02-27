@@ -52,13 +52,19 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
         } catch (IdentityEventException e) {
             log.error("Error while retrieving event mgt config builder", e);
         }
-        List<Subscription> subscriptionList = notificationMgtConfigBuilder.getModuleConfigurations(moduleName)
-                .getSubscriptions();
-        for (Subscription subscription : subscriptionList) {
-            if (subscription.getSubscriptionName().equals(eventName)) {
-                return true;
+        List<Subscription> subscriptionList = null;
+        ModuleConfiguration moduleConfiguration = notificationMgtConfigBuilder.getModuleConfigurations(moduleName);
+        if (moduleConfiguration != null) {
+            subscriptionList = moduleConfiguration.getSubscriptions();
+        }
+        if (subscriptionList != null) {
+            for (Subscription subscription : subscriptionList) {
+                if (subscription.getSubscriptionName().equals(eventName)) {
+                    return true;
+                }
             }
         }
+
         return false;
     }
 

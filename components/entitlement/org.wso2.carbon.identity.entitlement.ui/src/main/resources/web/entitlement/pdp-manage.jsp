@@ -25,6 +25,7 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@ page import="java.util.ResourceBundle" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 <%
 
     PDPDataHolder pdpDataHolder = null;

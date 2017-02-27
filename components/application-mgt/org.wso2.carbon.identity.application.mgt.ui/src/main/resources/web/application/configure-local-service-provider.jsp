@@ -177,7 +177,7 @@
 				newRow+='<option>'+dataArray[i]+'</option>';
 			}
 		}
-		newRow+='</select></td><td><input type="checkbox" name="blocking_prov_' + selectedIDPName + '"  />Blocking</td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
+		newRow+='</select></td><td><input type="checkbox" name="blocking_prov_' + selectedIDPName + '"  />Blocking</td><td><input type="checkbox" name="rules_enabled_' + selectedIDPName + '"  />Enable Rules</td><td class="leftCol-small" ><a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a></td></tr>';
 		jQuery(obj)
 				.parent()
 				.parent()
@@ -306,6 +306,7 @@
 							      				if (idp != null) {
 													boolean jitEnabled = false;
 							      					boolean blocking = false;
+							      					boolean ruleEnabled = false;
 
 							      					if (idp.getJustInTimeProvisioningConfig()!=null &&
 							      							idp.getJustInTimeProvisioningConfig().getProvisioningEnabled())
@@ -318,6 +319,11 @@
 							      					{
 							      						blocking = true;
 							      					}
+							      					if (idp.getDefaultProvisioningConnectorConfig()!=null &&
+                                                    	    idp.getDefaultProvisioningConnectorConfig().getRulesEnabled())
+                                                    {
+                                                    	ruleEnabled = true;
+                                                    }
 	           %>
 							      
 							      	       <tr>
@@ -335,6 +341,11 @@
                                 						<input type="checkbox" id="blocking_prov_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="blocking_prov_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=blocking ? "checked" : "" %>>Blocking
                    									</div>
                         						</td>
+                        						 <td>
+                                                    <div class="sectionCheckbox">
+                                                       <input type="checkbox" id="rules_enabled_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" name="rules_enabled_<%=Encode.forHtmlAttribute(idp.getIdentityProviderName())%>" <%=ruleEnabled ? "checked" : "" %>>Enable Rules
+                                                    </div>
+                                                 </td>
 							      	      		 <td>
 							      	      		<td class="leftCol-small" >
 							      	      		<a onclick="deleteIDPRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete </a>
@@ -354,7 +365,6 @@
             <!-- sectionSub Div -->
             <div class="buttonRow">
                 <input type="button" value="<fmt:message key='button.update.service.provider'/>" onclick="createAppOnclick();"/>
-                <input type="button" value="<fmt:message key='button.cancel'/>" onclick="javascript:location.href='list-service-providers.jsp'"/>
             </div>
             </form>
         </div>

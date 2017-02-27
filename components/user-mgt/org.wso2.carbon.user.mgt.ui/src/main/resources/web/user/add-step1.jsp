@@ -401,7 +401,7 @@
                                 %>
                                 <tr id="passwordRow">
                                     <td><fmt:message key="password"/><font color="red">*</font></td>
-                                    <td><input type="password" autocomplete="off" name="password" style="width:150px"/></td>
+                                    <td><input type="password" name="password" style="width:150px" autocomplete="off"/></td>
                                 </tr>
                                 <tr id="retypeRow">
                                     <td><fmt:message key="password.repeat"/><font color="red">*</font></td>
@@ -413,7 +413,7 @@
                     <tr>
                         <td class="buttonRow">
                             <%
-                                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/configure/security")) {
+                                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
                             %>
                             <input type="button" class="button" value="<fmt:message key="next"/> >"
                                    onclick="doNext();"/>

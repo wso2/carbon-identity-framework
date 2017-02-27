@@ -18,15 +18,19 @@
 
 package org.wso2.carbon.identity.entitlement.pip;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.balana.ParsingException;
 import org.wso2.balana.attr.AttributeValue;
 import org.wso2.balana.attr.BagAttribute;
 import org.wso2.balana.cond.EvaluationResult;
+import org.wso2.balana.ctx.Attribute;
 import org.wso2.balana.ctx.EvaluationCtx;
 import org.wso2.balana.ctx.Status;
 import org.wso2.balana.finder.AttributeFinderModule;
+import org.wso2.balana.xacml3.Attributes;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.cache.PIPAttributeCache;
@@ -134,15 +138,22 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
 
         List<AttributeValue> attrBag = new ArrayList<AttributeValue>();
         // Get the list of attribute finders who are registered with this particular attribute.
-        List<PIPAttributeFinder> finders = attrFinders.get(attributeId.toString());
 
 
-        if (finders == null || finders.size() == 0) {
+        List<PIPAttributeFinder> finders = null;
+
+        if (StringUtils.isNotBlank(category.toString())) {
+            finders = attrFinders.get(category.toString());
+            if (log.isDebugEnabled()) {
+                log.debug("No attribute designators defined for the category " + category.toString());
+            }
+        }
+
+        if (CollectionUtils.isEmpty(finders)) {
             finders = attrFinders.get(attributeId.toString());
-            if (finders == null || finders.size() == 0) {
+            if (CollectionUtils.isEmpty(finders)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("No attribute designators defined for the attribute "
-                              + attributeId.toString());
+                    log.debug("No attribute designators defined for the attribute " + attributeId.toString());
                 }
                 return new EvaluationResult(BagAttribute.createEmptyBag(attributeType));
 
@@ -164,11 +175,11 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
 
                 if (attributeFinderCache != null && !pipAttributeFinder.overrideDefaultCache()) {
 
-                    key = attributeType.toString() + attributeId.toString() + category.toString() +
-                          encodeContext(context);
+                    key = "[" + attributeType.toString() + "][" + attributeId.toString() + "][" + category.toString() +
+                            "][" + encodeContext(context) + "]";
 
                     if (issuer != null) {
-                        key += issuer;
+                        key += "[" + issuer + "]";
                     }
 
                     if (key != null) {
@@ -288,6 +299,19 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
     private String encodeContext(EvaluationCtx evaluationCtx) throws TransformerException {
         OutputStream stream = new ByteArrayOutputStream();
         evaluationCtx.getRequestCtx().encode(stream);
-        return stream.toString();
+        String rowContext = stream.toString();
+        String contextWithAttributeValues = rowContext + "][";
+
+        StringBuilder builder = new StringBuilder();
+        for (Attributes attributes : evaluationCtx.getRequestCtx().getAttributesSet()) {
+            builder.append("<Attributes ").append(">");
+            for (Attribute attribute : attributes.getAttributes()) {
+                attribute.encode(builder);
+            }
+            builder.append("</Attributes>");
+        }
+        contextWithAttributeValues += builder.toString();
+
+        return contextWithAttributeValues;
     }
 }

@@ -19,67 +19,65 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
+<%@ page import="java.net.URLDecoder" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserPassword" %>
-<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
-<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
 <%
+    String passwordHistoryErrorCode = "20035";
+    String passwordPatternErrorCode = "22001";
 
-    UserInfoRecoveryWithNotificationClient userInfoRecoveryWithNotificationClient = new UserInfoRecoveryWithNotificationClient();
-    PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-
-    String username = IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("username"));
     String confirmationKey =
             IdentityManagementEndpointUtil.getStringValue(request.getSession().getAttribute("confirmationKey"));
-    boolean isPasswordRecoveryEmailConfirmation =
-            Boolean.parseBoolean(request.getParameter("isPasswordRecoveryEmailConfirmation"));
-
-    Response resetPasswordResponse = null;
 
     String newPassword = request.getParameter("reset-password");
+    String callback = request.getParameter("callback");
 
-    String userStoreDomain = Utils.getUserStoreDomainName(username);
-    String tenantDomain = MultitenantUtils.getTenantDomain(username);
-
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
     if (StringUtils.isNotBlank(newPassword)) {
-        if (isPasswordRecoveryEmailConfirmation) {
-            User user = new User();
-            user.setUserName(username);
-            user.setTenantDomain(tenantDomain);
-            user.setUserStoreDomain(userStoreDomain);
 
-            ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
-            resetPasswordRequest.setUser(user);
-            resetPasswordRequest.setPassword(newPassword);
-            resetPasswordRequest.setCode(confirmationKey);
+        NotificationApi notificationApi = new NotificationApi();
 
-            resetPasswordResponse = userInfoRecoveryWithNotificationClient.resetPassword(resetPasswordRequest);
+        ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
+        List<Property> properties = new ArrayList<Property>();
+        Property property = new Property();
+        property.setKey("callback");
+        property.setValue(URLEncoder.encode(callback, "UTF-8"));
+        properties.add(property);
 
-            if ((resetPasswordResponse == null) || (StringUtils.isBlank(Integer.toString(resetPasswordResponse.getStatus()))) ||
-                    (Response.Status.OK.getStatusCode() != resetPasswordResponse.getStatus())) {
-                request.setAttribute("error", true);
-                request.setAttribute("errorMsg",
-                        IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_3 + "\t" +
-                                IdentityManagementEndpointConstants.UserInfoRecoveryErrorDesc.NOTIFICATION_ERROR_4);
-                request.getRequestDispatcher("error.jsp").forward(request, response);
-                return;
+
+        resetPasswordRequest.setKey(confirmationKey);
+        resetPasswordRequest.setPassword(newPassword);
+        resetPasswordRequest.setProperties(properties);
+
+        try {
+            notificationApi.setPasswordPost(resetPasswordRequest);
+        } catch (ApiException e) {
+
+            Error error = new Gson().fromJson(e.getMessage(), Error.class);
+            request.setAttribute("error", true);
+            if (error != null) {
+                request.setAttribute("errorMsg", error.getDescription());
+                request.setAttribute("errorCode", error.getCode());
             }
-        } else {
-            ChallengeQuestionResponse challengeQuestionResponse = (ChallengeQuestionResponse) session.getAttribute("challengeQuestionResponse");
-            User user = (User) session.getAttribute("user");
 
-            UserPassword userPassword = new UserPassword();
-            userPassword.setCode(challengeQuestionResponse.getCode());
-            userPassword.setUser(user);
-            userPassword.setPassword(newPassword);
-            pwRecoverySecurityQuestionClient.updatePassword(userPassword);
+            if (passwordHistoryErrorCode.equals(error.getCode()) || passwordPatternErrorCode.equals(error.getCode())) {
+                request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+            } else {
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+            }
+            return;
         }
+
 
     } else {
         request.setAttribute("error", true);
@@ -123,8 +121,7 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
-                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>";
+            location.href = "<%= URLDecoder.decode(callback, "UTF-8")%>";
         })
     });
 </script>

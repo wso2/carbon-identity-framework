@@ -68,6 +68,10 @@ public abstract class HttpIdentityResponseFactory extends AbstractIdentityHandle
         return false;
     }
 
+    public boolean canHandle(RuntimeException exception) {
+        return false;
+    }
+
     public abstract HttpIdentityResponse.HttpIdentityResponseBuilder create(IdentityResponse identityResponse);
 
     public abstract void create(
@@ -77,7 +81,13 @@ public abstract class HttpIdentityResponseFactory extends AbstractIdentityHandle
 
         HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
         builder.setStatusCode(500);
-        builder.setBody(exception.getMessage());
+        return builder;
+    }
+
+    public HttpIdentityResponse.HttpIdentityResponseBuilder handleException(RuntimeException exception) {
+
+        HttpIdentityResponse.HttpIdentityResponseBuilder builder = new HttpIdentityResponse.HttpIdentityResponseBuilder();
+        builder.setStatusCode(500);
         return builder;
     }
 }

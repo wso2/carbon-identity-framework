@@ -177,10 +177,10 @@ public class UserRealmProxy {
             for (String user : users) {
                 flaggedNames[i] = new FlaggedName();
                 //check if display name present
-                int index = user.indexOf("|");
+                int index = user.indexOf(UserCoreConstants.NAME_COMBINER);
                 if (index > 0) { //if display name is appended
                     flaggedNames[i].setItemName(user.substring(0, index));
-                    flaggedNames[i].setItemDisplayName(user.substring(index + 1));
+                    flaggedNames[i].setItemDisplayName(user.substring(index + UserCoreConstants.NAME_COMBINER.length()));
                 } else {
                     //if only user name is present
                     flaggedNames[i].setItemName(user);
@@ -535,14 +535,14 @@ public class UserRealmProxy {
 
             RealmConfiguration realmConfig = realm.getRealmConfiguration();
             if (realm.getAuthorizationManager().isUserAuthorized(userName,
-                    "/permission/admin/configure/security", CarbonConstants.UI_PERMISSION_ACTION) ||
+                    "/permission/admin/manage/identity", CarbonConstants.UI_PERMISSION_ACTION) ||
                     realm.getAuthorizationManager().isUserAuthorized(userName,
-                            "/permission/admin/configure/security/usermgt/users", CarbonConstants.UI_PERMISSION_ACTION)
+                            "/permission/admin/manage/identity/usermgt/users", CarbonConstants.UI_PERMISSION_ACTION)
                     || realm.getAuthorizationManager().isUserAuthorized(userName,
-                    "/permission/admin/configure/security/usermgt/passwords",
+                    "/permission/admin/manage/identity/usermgt/passwords",
                     CarbonConstants.UI_PERMISSION_ACTION) ||
                     realm.getAuthorizationManager().isUserAuthorized(userName,
-                            "/permission/admin/configure/security/usermgt/profiles",
+                            "/permission/admin/manage/identity/usermgt/profiles",
                             CarbonConstants.UI_PERMISSION_ACTION)) {
 
                 userRealmInfo.setAdminRole(realmConfig.getAdminRoleName());

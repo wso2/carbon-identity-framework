@@ -150,6 +150,10 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_SSO_VALIDATE_SIGNATURE_IN_REQUESTS = "doValidateSignatureInRequests";
     public static final String PROP_SAML_SSO_SIGNING_ALGORITHM = "signingAlgorithm";
     public static final String PROP_SAML_SSO_DIGEST_ALGORITHM = "digestAlgorithm";
+    public static final String PROP_SAML_SSO_ASSERTION_QUERY_REQUEST_PROFILE_ENABLED =
+            "AssertionQueryRequestProfileEnabled";
+    public static final String PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
+            "SupportedAssertionQueryRequestTypes";
 
     // OpenID Admin
     public final static String SUB_DOMAIN = "SubDomain";
@@ -158,5 +162,10 @@ public class IdentityRegistryResources {
     // registry identifiers
     public static final String CONFIG_REGISTRY_IDENTIFIER = "conf";
     public static final String GOVERNANCE_REGISTRY_IDENTIFIER = "gov";
+
+    //IDP metadata
+    public static final String IDENTITY = "repository/identity/";
+    public static final String IDENTITYPROVIDER = IDENTITY+ "provider/";
+    public static final String SAMLIDP = IDENTITYPROVIDER + "saml/";
 
 }

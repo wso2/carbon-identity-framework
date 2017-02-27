@@ -25,32 +25,32 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../userstore_config/images/multiple-user-stores.png</icon>
-            <require-permission>/permission/admin</require-permission>
+            <require-permission>/permission/admin/manage/identity/userstore</require-permission>
         </menu>
         <menu>
             <id>userstores_mgt_menu_add</id>
             <i18n-key>add</i18n-key>
-            <i18n-bundle>org.wso2.carbon.claim.mgt.ui.i18n.Resources</i18n-bundle>
+            <i18n-bundle>org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources</i18n-bundle>
             <parent-menu>userstores_mgt_menu</parent-menu>
             <link>../userstore_config/userstore-config.jsp</link>
             <region>region1</region>
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../userstore_config/images/add.gif</icon>
-            <require-permission>/permission/admin</require-permission>
+            <require-permission>/permission/admin/manage/identity/userstore</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
         <menu>
             <id>userstores_mgt_menu_list</id>
             <i18n-key>list</i18n-key>
-            <i18n-bundle>org.wso2.carbon.claim.mgt.ui.i18n.Resources</i18n-bundle>
+            <i18n-bundle>org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources</i18n-bundle>
             <parent-menu>userstores_mgt_menu</parent-menu>
             <link>../userstore_config/index.jsp</link>
             <region>region1</region>
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../userstore_config/images/list.gif</icon>
-            <require-permission>/permission/admin</require-permission>
+            <require-permission>/permission/admin/manage/identity/userstore</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
     </menus>

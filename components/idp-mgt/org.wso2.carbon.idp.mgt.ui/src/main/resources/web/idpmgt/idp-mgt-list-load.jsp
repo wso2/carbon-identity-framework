@@ -17,9 +17,11 @@
 -->
 
 <%@page import="org.apache.axis2.context.ConfigurationContext"%>
-<%@page import="org.owasp.encoder.Encode"%>
+<%@page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityValidationUtil" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -30,12 +32,15 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.UUID" %>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String callback = request.getParameter("callback");
-    if(callback == null || callback != null && callback.equals("")){
+    if (StringUtils.isBlank(callback) || !IdentityValidationUtil
+            .isValidOverBlackListPatterns(callback, IdentityValidationUtil.ValidatorPattern.URI_RESERVED_EXISTS
+                    .name())) {
         callback = "idp-mgt-list.jsp";
     }
     try {

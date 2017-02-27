@@ -1,0 +1,85 @@
+<!--
+  ~ Copyright (c) 2016, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<serviceGroup>
+    <service name="ClaimMetadataManagementService" scope="transportsession">
+        <transports>
+            <transport>https</transport>
+        </transports>
+        <schema schemaNamespace="http://org.apache.axis2/xsd" elementFormDefaultQualified="true"/>
+        <description>
+            To administer claim metadata functionality.
+        </description>
+        <parameter name="ServiceClass">
+            org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementAdminService
+        </parameter>
+
+        <operation name="getClaimDialects">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/view
+            </parameter>
+        </operation>
+        <operation name="addClaimDialect">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/create
+            </parameter>
+        </operation>
+        <operation name="renameClaimDialect">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/update
+            </parameter>
+        </operation>
+        <operation name="removeClaimDialect">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/delete
+            </parameter>
+        </operation>
+        <operation name="getLocalClaims">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/view
+            </parameter>
+        </operation>
+        <operation name="addLocalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/create
+            </parameter>
+        </operation>
+        <operation name="updateLocalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/update
+            </parameter>
+        </operation>
+        <operation name="removeLocalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/delete
+            </parameter>
+        </operation>
+        <operation name="getExternalClaims">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/view
+            </parameter>
+        </operation>
+        <operation name="addExternalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/create
+            </parameter>
+        </operation>
+        <operation name="updateExternalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/update
+            </parameter>
+        </operation>
+        <operation name="removeExternalClaim">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/claimmgt/metadata/delete
+            </parameter>
+        </operation>
+
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/claimmgt/metadata
+        </parameter>
+    </service>
+
+    <parameter name="adminService" locked="true">true</parameter>
+    <parameter name="hiddenService" locked="true">true</parameter>
+</serviceGroup>

@@ -18,6 +18,7 @@
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
+<%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@ page session="true" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.apache.commons.collections.CollectionUtils" %>
@@ -287,6 +288,11 @@
             unselectedRolesElem.setAttribute("name", "unselectedRoles");
             unselectedRolesElem.setAttribute("value", unselectedRolesStr);
             form.appendChild(unselectedRolesElem);
+            var CSRFTokenElem = document.createElement("input");
+            CSRFTokenElem.setAttribute("type", "hidden");
+            CSRFTokenElem.setAttribute("name", "<csrf:tokenname/>");
+            CSRFTokenElem.setAttribute("value", "<csrf:tokenvalue/>");
+            form.appendChild(CSRFTokenElem);
             document.body.appendChild(form);
             $("#paginateForm").submit();
         }
@@ -301,6 +307,11 @@
             selectedRolesElem.setAttribute("name", "selectedRoles");
             selectedRolesElem.setAttribute("value", "ALL");
             form.appendChild(selectedRolesElem);
+            var CSRFTokenElem = document.createElement("input");
+            CSRFTokenElem.setAttribute("type", "hidden");
+            CSRFTokenElem.setAttribute("name", "<csrf:tokenname/>");
+            CSRFTokenElem.setAttribute("value", "<csrf:tokenvalue/>");
+            form.appendChild(CSRFTokenElem);
             document.body.appendChild(form);
             $("#selectAllRetrievedForm").submit();
         }
@@ -315,6 +326,11 @@
             unselectedRolesElem.setAttribute("name", "unselectedRoles");
             unselectedRolesElem.setAttribute("value", "ALL");
             form.appendChild(unselectedRolesElem);
+            var CSRFTokenElem = document.createElement("input");
+            CSRFTokenElem.setAttribute("type", "hidden");
+            CSRFTokenElem.setAttribute("name", "<csrf:tokenname/>");
+            CSRFTokenElem.setAttribute("value", "<csrf:tokenvalue/>");
+            form.appendChild(CSRFTokenElem);
             document.body.appendChild(form);
             $("#unSelectAllRetrievedForm").submit();
         }
@@ -358,7 +374,7 @@
                         </td>
                         <td>
                             <input class="button" type="submit"
-                                   value="<fmt:message key="user.search"/>"/>
+                                   value="<fmt:message key="role.search"/>"/>
                         </td>
                     </tr>
                 </table>
@@ -471,14 +487,14 @@
                                         <% if (!userRealmInfo.getAdminRole().equals(name.getItemName())) {%>
                                         <a style="background-image:url(images/edit.gif);"
                                            class="icon-link"
-                                           href="../role/edit-permissions.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=edit&prevUser=<%=Encode.forUriComponent(name.getItemName())%>&prevPageNumber=<%=pageNumber%>"><fmt:message
+                                           href="../role/edit-permissions.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=edit&prevUser=<%=Encode.forUriComponent(userName)%>&prevPageNumber=<%=pageNumber%>"><fmt:message
                                                 key="edit.permissions"/>
                                         </a>
                                         <% } %>
                                         <% if (!userRealmInfo.getEveryOneRole().equals(name.getItemName())) {%>
                                         <a style="background-image:url(images/view.gif);"
                                            class="icon-link"
-                                           href="../role/view-users.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=edit&prevUser=<%=Encode.forUriComponent(name.getItemName())%>&prevPageNumber=<%=pageNumber%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%if (!name.getEditable()) { %>true<% }else{ %>false<% } %>"><fmt:message
+                                           href="../role/view-users.jsp?roleName=<%=Encode.forUriComponent(name.getItemName())%>&prevPage=edit&prevUser=<%=Encode.forUriComponent(userName)%>&prevPageNumber=<%=pageNumber%>&<%=UserAdminUIConstants.ROLE_READ_ONLY%>=<%if (!name.getEditable()) { %>true<% }else{ %>false<% } %>"><fmt:message
                                                 key="view.users"/>
                                         </a>
                                         <% } %>

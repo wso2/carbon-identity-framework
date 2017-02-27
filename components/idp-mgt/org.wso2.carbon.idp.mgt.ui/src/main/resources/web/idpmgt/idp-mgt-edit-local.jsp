@@ -16,7 +16,7 @@
 ~ under the License.
 -->
 
-<%@ page import="org.apache.tools.ant.util.StringUtils" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
@@ -25,8 +25,18 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+
+<%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
+<%@ page trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
 
@@ -36,6 +46,22 @@
 
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<script type="text/javascript">
+    function setBooleanValueToTextBox(element) {
+        document.getElementById(element.value).value = element.checked;
+    }
+</script>
+<%
+    String DEFAULT = "DEFAULT";
+    String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+    String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+    ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
+            .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+    IdentityGovernanceAdminClient client = new IdentityGovernanceAdminClient(cookie, backendServerURL, configContext);
+   Map<String, Map<String, List<ConnectorConfig>>> catMap = client.getConnectorList();
+
+%>
+
 
 <%
     IdentityProvider residentIdentityProvider =
@@ -51,9 +77,13 @@
     String authzUrl = null;
     String tokenUrl = null;
     String revokeUrl = null;
+    String introspectUrl = null;
     String userInfoUrl = null;
+    String oidcCheckSessionEndpoint = null;
+    String oidcLogoutEndpoint = null;
     String passiveSTSUrl = null;
     String passivestsIdPEntityId = null;
+    String oidcIdpEntityId = null;
     String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
@@ -85,14 +115,21 @@
             oauth1AccessTokenUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.OAuth10A.OAUTH1_ACCESS_TOKEN_URL).getValue();
         } else if(IdentityApplicationConstants.Authenticator.OIDC.NAME.equals(federatedAuthenticator.getName())){
+            oidcIdpEntityId = IdPManagementUIUtil.getProperty(properties, "IdPEntityId").getValue();
             authzUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL).getValue();
             tokenUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL).getValue();
             revokeUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL).getValue();
+            introspectUrl = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL).getValue();
             userInfoUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL).getValue();
+            oidcCheckSessionEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL).getValue();
+            oidcLogoutEndpoint = IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL).getValue();
         } else if(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME.equals(federatedAuthenticator.getName())){
             passiveSTSUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL).getValue();
@@ -155,12 +192,13 @@ jQuery(document).ready(function(){
 })
 
     initSections("");
-    function idpMgtUpdate(){
-        if(doValidation()){
-            jQuery('#idp-mgt-edit-local-form').submit();
-        }
+function idpMgtUpdate() {
+    if(doValidation()){
+        jQuery('#idp-mgt-edit-local-form').submit();
     }
-    function idpMgtCancel(){
+}
+
+function idpMgtCancel(){
         location.href = "idp-mgt-list.jsp"
     }
     function doValidation() {
@@ -287,17 +325,24 @@ jQuery(document).ready(function(){
         }
     }
 </script>
-
+<script>
+        function downloadRIDPMetadata() {
+                jQuery('#idp-mgt-get-RIDP-form').submit();
+        }
+</script>
+<form id="idp-mgt-get-RIDP-form" name="idp-mgt-get-RIDP-form" method="post"
+      action="idp-mgt-get-ridp-metadata-finish-ajaxprocessor.jsp"></form>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
         <h2>
             <fmt:message key='resident.idp'/>
         </h2>
         <div id="workArea">
-            <form id="idp-mgt-edit-local-form" name="idp-mgt-edit-local-form" method="post"
-                  action="idp-mgt-edit-finish-local-ajaxprocessor.jsp">
+
                 <div class="sectionSeperator "><fmt:message key='resident.realm.config'/></div>
                 <div class="sectionSub">
+                            <form id="idp-mgt-edit-local-form" name="idp-mgt-edit-local-form" method="post"
+                                  action="idp-mgt-edit-finish-local-ajaxprocessor.jsp">
                     <table class="carbonFormTable">
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='home.realm.id'/>:</td>
@@ -424,6 +469,11 @@ jQuery(document).ready(function(){
                             <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
                         </tr>
                     </table>
+                        <br>
+                        <button onclick="downloadRIDPMetadata()" type="button" id="downloadResidentIdpMetadataData"
+                                                                  name="downloadResidentIdpMetadataData"><fmt:message
+                                key='download.metadata.saml'/>
+                        </button>
                     </div>
 
                     <h2 id="oauth1confighead"  class="sectionSeperator trigger active" style="background-color: beige;">
@@ -454,6 +504,17 @@ jQuery(document).ready(function(){
 
                     <table class="carbonFormTable">
                         <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:</td>
+                            <td>
+                                <input id="oidcIdPEntityId" name="oidcIdPEntityId" type="text"
+                                       value="<%=Encode.forHtmlAttribute(oidcIdpEntityId)%>"/>
+
+                                <div class="sectionHelp">
+                                    <fmt:message key='idp.entity.id.help'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(authzUrl)%></td>
                         </tr>
@@ -466,8 +527,20 @@ jQuery(document).ready(function(){
                             <td><%=Encode.forHtmlContent(revokeUrl)%></td>
                         </tr>
                         <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='introspect.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(introspectUrl)%></td>
+                        </tr>
+                        <tr>
                             <td class="leftCol-med labelField"><fmt:message key='user.endpoint'/>:</td>
                             <td><%=Encode.forHtmlContent(userInfoUrl)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='checksession.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oidcCheckSessionEndpoint)%></td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>:</td>
+                            <td><%=Encode.forHtmlContent(oidcLogoutEndpoint)%></td>
                         </tr>
                     </table>
                     </div>
@@ -519,7 +592,6 @@ jQuery(document).ready(function(){
                             </table>
                         </div>
                 </div>
-
                     <h2 id="inboundprovisioningconfighead"  class="sectionSeperator trigger active">
                 		<a href="#">Inbound Provisioning Configuration</a>
             		</h2>
@@ -536,12 +608,214 @@ jQuery(document).ready(function(){
                     </table>
 
             		</div>
+
+<%
+        for (String catName : catMap.keySet()) {
+            if (DEFAULT.equals(catName)) {
+                for (ConnectorConfig connectorConfig : catMap.get(DEFAULT).get(DEFAULT)) {
+%>
+            <h2 id="governance_config_category_header" class="sectionSeperator trigger active">
+                <a href="#"><%=Encode.forHtmlContent(connectorConfig.getFriendlyName())%>
+                </a>
+            </h2>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+                <table class="carbonFormTable">
+                    <%
+                    org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
+                        for (int k = 0; k < connectorProperties.length; k++) {
+                            String value = connectorProperties[k].getValue();%>
+                        <tr>
+                            <td style="width: 500px;">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
+                            </td>
+                            <%
+                                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                                    // assume as boolean value. But actually this must be sent from backend.
+                                    // will fix for next release.
+                            %>
+                            <td>
+                                <input class="sectionCheckbox" type="checkbox"
+                                       onclick="setBooleanValueToTextBox(this)"
+                                        <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
+                                       value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
+                            <%
+                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <div class="sectionHelp">
+                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                </div>
+                            <%}%>
+                                <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            </td>
+                            <%
+                            } else {%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                   id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                   style="width:400px"
+                                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            <%
+                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <div class="sectionHelp">
+                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                </div>
+                            <%}%>
+                            </td>
+                            <%}%>
+                        </tr>
+                    <%}%>
+                        </table></div>
+<%
+                }
+            } else {
+%>
+        <h2 id="governance_config_header_subcategory" class="sectionSeperator trigger active">
+            <a href="#"><%=Encode.forHtmlContent(catName)%></a>
+        </h2>
+          <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+<%
+                Map<String, List<ConnectorConfig>> subCatMap = catMap.get(catName);
+                for (String subCatName : subCatMap.keySet()) {
+                    if (DEFAULT.equals(subCatName)){
+                        for (ConnectorConfig connectorConfig : subCatMap.get(DEFAULT) ){
+%>
+            <h2 id="governance_config_header" class="active trigger" style="background-color: beige;">
+                <a href="#"><%=Encode.forHtmlContent(connectorConfig.getFriendlyName())%>
+                </a>
+            </h2>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+                <table class="carbonFormTable">
+                    <%
+                    org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
+                        for (int k = 0; k < connectorProperties.length; k++) {
+                            String value = connectorProperties[k].getValue();%>
+                        <tr>
+                            <td style="width: 500px;">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
+                            </td>
+                            <%
+                                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                                    // assume as boolean value. But actually this must be sent from backend.
+                                    // will fix for next release.
+                            %>
+                            <td>
+                                <input class="sectionCheckbox" type="checkbox"
+                                       onclick="setBooleanValueToTextBox(this)"
+                                        <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
+                                       value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
+                            <%
+                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <div class="sectionHelp">
+                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                </div>
+                            <%}%>
+                                <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            </td>
+                            <%
+                            } else {%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                   id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                   style="width:400px"
+                                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            <%
+                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <div class="sectionHelp">
+                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                </div>
+                            <%}%>
+                            </td>
+                            <%}%>
+                        </tr>
+                    <%}%>
+                        </table></div>
+<%
+                        }
+                    } else {
+%>
+        <h2 id="governance_config_header_subcategory2" class="active trigger" style="background-color: beige;">
+            <a href="#"><%=Encode.forHtmlContent(subCatName)%></a>
+        </h2>
+          <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+<%
+                        for (ConnectorConfig connectorConfig : subCatMap.get(subCatName) ){
+%>
+            <h2 id="governance_config_header2" class="sectionSeperator trigger active">
+                <a href="#"><%=Encode.forHtmlContent(connectorConfig.getFriendlyName())%>
+                </a>
+            </h2>
+            <div class="toggle_container sectionSub" style="margin-bottom:10px; display: none;" id="roleConfig2">
+                <table class="carbonFormTable">
+                    <%
+                    org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
+                        for (int k = 0; k < connectorProperties.length; k++) {
+                            String value = connectorProperties[k].getValue();%>
+
+                        <tr>
+                            <td style="width: 500px;">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
+                            </td>
+                            <%
+                                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                                    // assume as boolean value. But actually this must be sent from backend.
+                                    // will fix for next release.
+                            %>
+                            <td>
+                                <input class="sectionCheckbox" type="checkbox"
+                                       onclick="setBooleanValueToTextBox(this)"
+                                        <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
+                                       value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
+                            <%
+                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <div class="sectionHelp">
+                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                </div>
+                            <%}%>
+                                <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                       type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            </td>
+                            <%
+                            } else {%>
+                            <td colspan="2"><input type="text" name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                   id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                                   style="width:400px"
+                                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            <%
+                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                                <div class="sectionHelp">
+                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                                </div>
+                            <%}%>
+                            </td>
+                            <%}%>
+                        </tr>
+                    <%}%>
+                        </table></div>
+<%
+                        }
+%>
+            </div>
+<%
+                    }
+                }
+%>
+            </div>
+<%
+            }
+        }
+%>
+
+</form>
+</div>
+
+
                 </div>
                 <div class="buttonRow">
                     <input type="button" value="<fmt:message key='update'/>" onclick="idpMgtUpdate();"/>
-                    <input type="button" value="<fmt:message key='cancel'/>" onclick="idpMgtCancel();"/>
                 </div>
-            </form>
+
         </div>
     </div>
 </fmt:bundle>

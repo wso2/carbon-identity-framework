@@ -28,9 +28,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -73,7 +74,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
                                 context.setProperty("UserTenantDomainMismatch", true);
                                 throw new AuthenticationFailedException("Service Provider tenant domain must be " +
-                                        "equal to user tenant domain for non-SaaS applications");
+                                        "equal to user tenant domain for non-SaaS applications", context.getSubject());
                             }
                         }
                     }
@@ -124,32 +125,35 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     }
 
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
-                                                  AuthenticatedUser user, boolean success) {
+                                                  User user, boolean success) {
 
-        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             if (isFederated) {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
-                context.setProperty(FrameworkConstants.PublisherParamNames.HAS_FEDERATED_STEP, true);
-                paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, true);
+                context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_FEDERATED_STEP, true);
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, true);
             } else {
                 // Setting this value to authentication context in order to use in AuthenticationSuccess Event
-                context.setProperty(FrameworkConstants.PublisherParamNames.HAS_LOCAL_STEP, true);
-                paramMap.put(FrameworkConstants.PublisherParamNames.IS_FEDERATED, false);
+                context.setProperty(FrameworkConstants.AnalyticsAttributes.HAS_LOCAL_STEP, true);
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.IS_FEDERATED, false);
             }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (success) {
-                AuthnDataPublishHandlerManager.getInstance().publishAuthenticationStepSuccess(request, context,
+                authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
 
             } else {
-                AuthnDataPublishHandlerManager.getInstance().publishAuthenticationStepFailure(request, context,
+                authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);
             }
         }
     }
+
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {

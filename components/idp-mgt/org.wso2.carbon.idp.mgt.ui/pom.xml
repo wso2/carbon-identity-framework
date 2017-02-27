@@ -19,9 +19,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>org.wso2.carbon.identity</groupId>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-provider-management</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.7.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -36,7 +36,7 @@
             <artifactId>axiom</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.idp.mgt.stub</artifactId>
         </dependency>
         <dependency>
@@ -44,11 +44,11 @@
             <artifactId>org.wso2.carbon.ui</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.user.mgt.stub</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.common</artifactId>
         </dependency>
         <dependency>
@@ -56,8 +56,16 @@
             <artifactId>encoder</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core.ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.governance.stub</artifactId>
         </dependency>
     </dependencies>
 
@@ -66,28 +74,32 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
+                            javax.servlet,
+                            org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             javax.servlet.http; version="${imp.pkg.version.javax.servlet}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.fileupload.*; version="${commons-fileupload.imp.pkg.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-
                             org.wso2.carbon.ui;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.mgt.stub.*;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.governance.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.model.idp.xsd;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.stub; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.common.util,
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.idp.mgt.ui.*; version="${carbon.identity.package.export.version}",
@@ -98,5 +110,5 @@
             </plugin>
         </plugins>
     </build>
-    
+
 </project>

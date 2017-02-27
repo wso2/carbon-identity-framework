@@ -21,6 +21,11 @@ package org.wso2.carbon.identity.entitlement.ui;
 /**
  * Constants related with XACML policy such as per-defined Element Names and NameSpaces
  */
+
+/**
+ *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
+ */
+@Deprecated
 public class EntitlementPolicyConstants {
 
     public static final int DEFAULT_ITEMS_PER_PAGE = 10;
@@ -123,6 +128,16 @@ public class EntitlementPolicyConstants {
 
     public static final String STRING_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#string";
 
+    public static final String INT_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#integer";
+
+    public static final String BOOLEAN_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#boolean";
+
+    public static final String DATE_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#date";
+
+    public static final String TIME_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#time";
+
+    public static final String DATE_TIME_DATA_TYPE = "http://www.w3.org/2001/XMLSchema#dateTime";
+
     public static final String FUNCTION_BAG = "urn:oasis:names:tc:xacml:1.0:function:string-bag";
 
     public static final String SUBJECT_ID_DEFAULT = "urn:oasis:names:tc:xacml:1.0:subject:subject-id";
@@ -174,6 +189,8 @@ public class EntitlementPolicyConstants {
 //    public static final String MATCH_REGEXP_SET_OF = "a matching reg-ex set of";
 
     public static final String RULE_EFFECT_PERMIT = "Permit";
+
+    public static final String RULE_EFFECT_NOT_APPLICABLE = "Not Applicable";
 
     public static final String RULE_EFFECT_DENY = "Deny";
 

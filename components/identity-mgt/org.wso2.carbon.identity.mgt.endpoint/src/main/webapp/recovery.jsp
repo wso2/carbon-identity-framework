@@ -17,25 +17,20 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.wso2.carbon.identity.mgt.util.Utils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.beans.VerificationBean" %>
-<%@ page import="org.wso2.carbon.utils.multitenancy.MultitenantUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInfoRecoveryWithNotificationClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserIdentityClaimDTO" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.UserClaim" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 
 <%
-    UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
 
-    boolean isUserRegistrationEmailConfirmation =
-            Boolean.parseBoolean(request.getParameter("isUserRegistrationEmailConfirmation"));
+
     boolean isPasswordRecoveryEmailConfirmation =
             Boolean.parseBoolean(request.getParameter("isPasswordRecoveryEmailConfirmation"));
     boolean isUsernameRecovery = Boolean.parseBoolean(request.getParameter("isUsernameRecovery"));
@@ -43,91 +38,94 @@
     // Common parameters for password recovery with email and self registration with email
     String username = request.getParameter("username");
     String confirmationKey = request.getParameter("confirmationKey");
+    String callback = request.getParameter("callback");
+    String tenantDomain = request.getParameter("tenantDomain");
+
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
 
     // Password recovery parameters
     String recoveryOption = request.getParameter("recoveryOption");
 
-    // Captcha Related Request Parameters
-    String captchaImagePath = request.getParameter("captchaImagePath");
-    String captchaKey = request.getParameter("captchaKey");
-    String captchaAnswer = request.getParameter("captchaAnswer");
-    CaptchaInfoBean captchaInfoBean = new CaptchaInfoBean();
-    captchaInfoBean.setImagePath(captchaImagePath);
-    captchaInfoBean.setSecretKey(captchaKey);
-    captchaInfoBean.setUserAnswer(captchaAnswer);
 
-    VerificationBean verificationBean = null;
-
-    if (isUserRegistrationEmailConfirmation) {
-        // Self Registration Account Confirmation Scenario
-        verificationBean = userInformationRecoveryClient.confirmUserSelfRegistration(username, confirmationKey,
-                captchaInfoBean, MultitenantUtils.getTenantDomain(username));
-
-        if (verificationBean != null && verificationBean.getVerified()) {
-            request.getRequestDispatcher("challenge-question-add.jsp").forward(request, response);
-        } else {
-            request.setAttribute("username", username);
-            request.setAttribute("confirmationKey", confirmationKey);
-            request.setAttribute("error", true);
-            request.setAttribute("errorMsg",
-                    IdentityManagementEndpointUtil.getPrintableError("Invalid information provided.",
-                            "Either the user not found or captcha answer is incorrect.",
-                            verificationBean));
-            request.getRequestDispatcher("confirmregistration.do").forward(request, response);
-        }
-    } else if (isUsernameRecovery) {
+    if (isUsernameRecovery) {
         // Username Recovery Scenario
-        UserIdentityClaimDTO[] claimDTOs = userInformationRecoveryClient.getUserIdentitySupportedClaims(
-                IdentityManagementEndpointConstants.WSO2_DIALECT);
+        List<Claim> claims;
+        UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
+        try {
+            claims = usernameRecoveryApi.claimsGet(null);
+        } catch (ApiException e) {
 
-        List<UserIdentityClaimDTO> claimDTOList = new ArrayList<UserIdentityClaimDTO>();
+            Error error = new Gson().fromJson(e.getMessage(), Error.class);
+            request.setAttribute("error", true);
+            if (error != null) {
+                request.setAttribute("errorMsg", error.getDescription());
+                request.setAttribute("errorCode", error.getCode());
+            }
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
 
-        for (UserIdentityClaimDTO claimDTO : claimDTOs) {
-            if (claimDTO.getRequired()) {
-                UserIdentityClaimDTO userIdentityClaimDTO = new UserIdentityClaimDTO();
-                userIdentityClaimDTO.setClaimUri(claimDTO.getClaimUri());
-                userIdentityClaimDTO.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
-                claimDTOList.add(userIdentityClaimDTO);
-            } else if (StringUtils.equals(claimDTO.getClaimUri(),
+        List<UserClaim> claimDTOList = new ArrayList<UserClaim>();
+
+        for (Claim claimDTO : claims) {
+            if (StringUtils.equals(claimDTO.getUri(),
                     IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) ||
-                    StringUtils.equals(claimDTO.getClaimUri(),
+                    StringUtils.equals(claimDTO.getUri(),
                             IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) ||
-                    StringUtils.equals(claimDTO.getClaimUri(),
+                    StringUtils.equals(claimDTO.getUri(),
                             IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
-                UserIdentityClaimDTO userIdentityClaimDTO = new UserIdentityClaimDTO();
-                userIdentityClaimDTO.setClaimUri(claimDTO.getClaimUri());
-                userIdentityClaimDTO.setClaimValue(request.getParameter(claimDTO.getClaimUri()));
-                claimDTOList.add(userIdentityClaimDTO);
+                if (StringUtils.isNotBlank(request.getParameter(claimDTO.getUri()))) {
+                    UserClaim userClaim = new UserClaim();
+                    userClaim.setUri(claimDTO.getUri());
+                    userClaim.setValue(request.getParameter(claimDTO.getUri()));
+                    claimDTOList.add(userClaim);
+                }
             }
         }
 
-        UserIdentityClaimDTO[] claimDTOArray = new UserIdentityClaimDTO[claimDTOList.size()];
-        verificationBean =
-                userInformationRecoveryClient.verifyAccount(claimDTOList.toArray(claimDTOArray), captchaInfoBean, null);
-        if (verificationBean != null && verificationBean.getVerified()) {
+        try {
+            usernameRecoveryApi.recoverUsernamePost(claimDTOList, tenantDomain, null);
+            request.setAttribute("callback", callback);
             request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
-        } else {
+        } catch (ApiException e) {
+            if (e.getCode() == 204) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", "No valid user found");
+                request.getRequestDispatcher("recoverusername.do").forward(request, response);
+                return;
+            }
+
+            Error error = new Gson().fromJson(e.getMessage(), Error.class);
             request.setAttribute("error", true);
-            request.setAttribute("errorMsg",
-                    IdentityManagementEndpointUtil.getPrintableError("Invalid information provided.",
-                            "Either the user not found or captcha answer is incorrect.",
-                            verificationBean));
+            if (error != null) {
+                request.setAttribute("errorMsg", error.getDescription());
+                request.setAttribute("errorCode", error.getCode());
+            }
             request.getRequestDispatcher("recoverusername.do").forward(request, response);
+            return;
         }
+
     } else {
         if (isPasswordRecoveryEmailConfirmation) {
             session.setAttribute("username", username);
             session.setAttribute("confirmationKey", confirmationKey);
+            request.setAttribute("callback", callback);
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
         } else {
             request.setAttribute("username", username);
+            session.setAttribute("username", username);
 
             if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.EMAIL.equals(recoveryOption)) {
+                request.setAttribute("callback", callback);
                 request.getRequestDispatcher("password-recovery-notify.jsp").forward(request, response);
             } else if (IdentityManagementEndpointConstants.PasswordRecoveryOptions.SECURITY_QUESTIONS
                     .equals(recoveryOption)) {
+                request.setAttribute("callback", callback);
                 request.getRequestDispatcher("challenge-question-request.jsp?username=" + username).forward(request,
-                response);
+                        response);
             } else {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg", "Unknown Password Recovery Option");

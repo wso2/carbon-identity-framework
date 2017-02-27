@@ -19,46 +19,54 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.captcha.mgt.beans.xsd.CaptchaInfoBean" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SelfRegisterApi" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
 
-    CaptchaInfoBean captchaInfoBean = null;
-    String captchaImagePath = null;
-    String captchaImageUrl = null;
-    String captchaKey = null;
 
     String username = request.getParameter("username");
-    String userStoreDomain = request.getParameter("userstoredomain");
-    String tenantDomain = request.getParameter("tenantdomain");
     String confirmationKey = request.getParameter("confirmation");
+    String callback = request.getParameter("callback");
 
-    if (StringUtils.isBlank(username) || StringUtils.isBlank(confirmationKey)) {
-        username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-        confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
+    if (StringUtils.isBlank(callback)) {
+        callback = IdentityManagementEndpointUtil.getUserPortalUrl(
+                application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
     }
 
-    String fulQualifiedUsername = IdentityManagementEndpointUtil.getFullQualifiedUsername(username, tenantDomain,
-                                                                                          userStoreDomain);
-    if (StringUtils.isNotBlank(fulQualifiedUsername) && StringUtils.isNotBlank(confirmationKey)) {
-        UserInformationRecoveryClient userInformationRecoveryClient = new UserInformationRecoveryClient();
 
-        captchaInfoBean = userInformationRecoveryClient.generateCaptcha();
-        captchaImagePath = captchaInfoBean.getImagePath();
-        captchaImageUrl = IdentityUtil.getServerURL(null, false, false) + "/" + captchaImagePath;
-        captchaKey = captchaInfoBean.getSecretKey();
-    } else {
+    if (StringUtils.isBlank(username) || StringUtils.isBlank(confirmationKey)) {
+        confirmationKey = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("confirmationKey"));
+    }
+    String message = "" ;
+
+    try {
+        SelfRegisterApi selfRegisterApi = new SelfRegisterApi();
+        CodeValidationRequest validationRequest = new CodeValidationRequest();
+        validationRequest.setCode(confirmationKey);
+
+        selfRegisterApi.validateCodePostCall(validationRequest);
+
+        request.setAttribute("callback", callback);
+        request.setAttribute("confirm", "true");
+        request.getRequestDispatcher("self-registration-complete.jsp").forward(request,response);
+    } catch (Exception e) {
+
+        Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
-        request.setAttribute("errorMsg",
-                             "Cannot process the email notification confirmation. Either the username or confirmation code is missing.");
-        request.getRequestDispatcher("error.jsp").forward(request, response);
-        return;
+        if (errorD != null) {
+            errorMsg = errorD.getDescription();
+            request.setAttribute("errorMsg", errorD.getDescription());
+            request.setAttribute("errorCode", errorD.getCode());
+        } else {
+            errorMsg = e.getMessage();
+        }
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -101,75 +109,22 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-                <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
-                    Confirm Account
-                </h2>
 
-                <div class="clearfix"></div>
                 <div class="boarder-all ">
 
                     <% if (error) { %>
                     <div class="alert alert-danger" id="server-error-msg">
                         <%= Encode.forHtmlContent(errorMsg) %>
                     </div>
-                    <% } %>
+                    <% }else{
+                        %>
+                    <div class="alert alert-info"><%=message%></div>
+                    <%
+                    } %>
                     <div class="alert alert-danger" id="error-msg" hidden="hidden"></div>
-
-                    <div class="padding-double font-large">Enter below details to confirm your account</div>
-                    <div class="padding-double">
-                        <form method="post" action="verify.do" id="registrationConfirmationForm">
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
-                                <img src="<%=Encode.forHtmlAttribute(captchaImageUrl)%>"
-                                     alt='If you can not see the captcha image please refresh the page or click the link again.'/>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <label class="control-label">Enter Captcha Text</label>
-                                <input id="captchaAnswer" name="captchaAnswer" type="text" class="form-control"
-                                       required>
-                            </div>
-                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input id="hidden-username" name="username" type="hidden" class="form-control"
-                                       value="<%=Encode.forHtmlAttribute(username)%>">
-                                <input id="confirmationKey" type="hidden" name="confirmationKey"
-                                       value="<%=Encode.forHtmlAttribute(confirmationKey)%>"/>
-                                <input id="captchaImagePath" type="hidden" name="captchaImagePath"
-                                       value="<%=Encode.forHtmlAttribute(captchaImagePath)%>"/>
-                                <input id="captchaKey" type="hidden" name="captchaKey"
-                                       value="<%=Encode.forHtmlAttribute(captchaKey)%>"/>
-                                <input id="isUserRegistrationEmailConfirmation" type="hidden"
-                                       name="isUserRegistrationEmailConfirmation"
-                                       value="true"/>
-                            </div>
-
-                            <div class="form-actions">
-                                <table width="100%" class="styledLeft">
-                                    <tbody>
-                                    <tr class="buttonRow">
-                                        <td>
-                                            <button id="confirmationSubmit"
-                                                    class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                                    type="submit">Submit
-                                            </button>
-                                        </td>
-                                        <td>&nbsp;&nbsp;</td>
-                                        <td>
-                                            <button id="confirmationCancel"
-                                                    class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                                    onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
-                                                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>';">
-                                                Cancel
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </form>
-                    </div>
                 </div>
                 <div class="clearfix"></div>
             </div>
-            <!-- /content/body -->
 
         </div>
     </div>

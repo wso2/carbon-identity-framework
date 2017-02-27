@@ -20,19 +20,23 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import javax.servlet.http.Cookie;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpIdentityResponse {
+public class HttpIdentityResponse implements Serializable {
 
-    private Map<String, String> headers = new HashMap<String, String>();
-    private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
-    private String contentType;
-    private Map<String, String[]> parameters = new HashMap<>();
-    private String body;
-    private int statusCode;
-    private String redirectURL;
+    private static final long serialVersionUID = -1100735485859523120L;
+
+    protected Map<String, String> headers = new HashMap();
+    protected Map<String, Cookie> cookies = new HashMap();
+    protected String contentType;
+    protected Map<String, String[]> parameters = new HashMap();
+    protected String body;
+    protected int statusCode;
+    protected String redirectURL;
+    protected boolean isFragmentUrl;
 
     public Map<String, String> getHeaders() {
         return Collections.unmodifiableMap(headers);
@@ -74,6 +78,10 @@ public class HttpIdentityResponse {
         return body;
     }
 
+    public boolean isFragmentUrl() {
+        return isFragmentUrl;
+    }
+
     protected HttpIdentityResponse(HttpIdentityResponseBuilder builder) {
         this.headers = builder.headers;
         this.cookies = builder.cookies;
@@ -82,17 +90,19 @@ public class HttpIdentityResponse {
         this.statusCode = builder.statusCode;
         this.redirectURL = builder.redirectURL;
         this.body = builder.body;
+        this.isFragmentUrl = builder.isFragmentUrl;
     }
 
     public static class HttpIdentityResponseBuilder {
 
-        private Map<String, String> headers = new HashMap<String, String>();
-        private Map<String, Cookie> cookies = new HashMap<String, Cookie>();
-        private String contentType;
-        private Map<String, String[]> parameters = new HashMap<>();
-        private int statusCode;
-        private String redirectURL;
-        private String body;
+        protected Map<String, String> headers = new HashMap();
+        protected Map<String, Cookie> cookies = new HashMap();
+        protected String contentType;
+        protected Map<String, String[]> parameters = new HashMap();
+        protected int statusCode;
+        protected String redirectURL;
+        protected String body;
+        protected boolean isFragmentUrl;
 
         public HttpIdentityResponseBuilder setHeaders(Map<String, String> headers) {
             this.headers = headers;
@@ -196,6 +206,11 @@ public class HttpIdentityResponse {
 
         public HttpIdentityResponseBuilder setBody(String body) {
             this.body = body;
+            return this;
+        }
+
+        public HttpIdentityResponseBuilder setFragmentUrl(boolean isFragmentUrl) {
+            this.isFragmentUrl = isFragmentUrl;
             return this;
         }
 

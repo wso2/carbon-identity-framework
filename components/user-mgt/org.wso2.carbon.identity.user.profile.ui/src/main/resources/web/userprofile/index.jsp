@@ -30,13 +30,16 @@
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
-
+<%!
+    private static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
+%>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminClient"%>
 <%@page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants"%>
 <%@ page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.user.profile.stub.types.UserFieldDTO" %>
 
 <%
     boolean readOnlyUserStore = false;
@@ -47,6 +50,8 @@
     String editCancel = request.getParameter("editCancel");
     UserRealmInfo userRealmInfo = null;
     boolean multipleProfilesEnabled = false;
+    UserFieldDTO[] userFields = null;
+    boolean accountDisabled = false;
 
     if (username == null) {
         username = (String) request.getSession().getAttribute("logged-user");
@@ -74,7 +79,25 @@
         client = new UserProfileCient(cookie,
                 backendServerURL, configContext);
         readOnlyUserStore = client.isReadOnlyUserStore();
-     	profiles = client.getUserProfiles(username);
+        profiles = client.getUserProfiles(username);
+
+        if (profiles != null && profiles.length > 0) {
+            for (int i = 0; i < profiles.length; i++) {
+                userFields = client.getOrderedUserFields(profiles[i].getFieldValues());
+                if (userFields != null && userFields.length > 0) {
+                    for (int j = 0; j < userFields.length; j++) {
+                        if ((ACCOUNT_DISABLED_CLAIM_URI.equals(userFields[j].getClaimUri()))) {
+                            String claimValue = userFields[j].getFieldValue();
+                            if (Boolean.parseBoolean(claimValue)) {
+                                accountDisabled = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
 
 
         //read the domain of the user
@@ -201,7 +224,7 @@
             </script>
             <% if(!readOnlyUserStore) {%>
             <div style="height:30px;">
-                <%if (multipleProfilesEnabled) {%>
+                <%if (multipleProfilesEnabled && !accountDisabled) {%>
                 <a href="javascript:document.location.href='<%=Encode.forJavaScript(addAction)%>'" class="icon-link"
                    style="background-image:url(../admin/images/add.gif);"><fmt:message
                         key='add.new.profiles'/></a>

@@ -225,4 +225,55 @@ public class AuthenticatedUser extends User {
     public void setFederatedIdPName(String federatedIdPName) {
         this.federatedIdPName = federatedIdPName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if(!isFederatedUser) {
+            return super.equals(o);
+        } else {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof AuthenticatedUser)) {
+                return false;
+            }
+            if (!super.equals(o)) {
+                return false;
+            }
+
+            AuthenticatedUser that = (AuthenticatedUser) o;
+
+            if (!authenticatedSubjectIdentifier.equals(that.authenticatedSubjectIdentifier)) {
+                return false;
+            }
+            // checking for null because we can't be 100% sure that federatedIdPName is set to a non-null value in all
+            // places that use AuthenticatedUser
+            return federatedIdPName != null ? federatedIdPName.equals(that.federatedIdPName) : that.federatedIdPName == null;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+
+        if(!isFederatedUser) {
+            return super.hashCode();
+        } else {
+            int result = authenticatedSubjectIdentifier.hashCode();
+            // checking for null because we can't be 100% sure that federatedIdPName is set to a non-null value in all
+            // places that use AuthenticatedUser
+            result = 31 * result + (federatedIdPName != null ? federatedIdPName.hashCode() : 0);
+            return result;
+        }
+    }
+
+    @Override
+    public String toString() {
+
+        if (isFederatedUser && StringUtils.isBlank(userName)) {
+            //username,userstore domain may be null for federated users
+            return authenticatedSubjectIdentifier;
+        }
+        return super.toString();
+    }
 }

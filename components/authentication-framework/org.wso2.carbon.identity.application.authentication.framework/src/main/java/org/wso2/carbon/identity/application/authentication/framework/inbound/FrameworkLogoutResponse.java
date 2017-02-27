@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 public class FrameworkLogoutResponse extends IdentityResponse {
 
-    private String authName;
-    private String authType;
-    private String contextKey;
-    private String relyingParty;
-    private String callbackPath;
-    private String redirectUrl;
+    protected String authName;
+    protected String authType;
+    protected String contextKey;
+    protected String relyingParty;
+    protected String callbackPath;
+    protected String redirectUrl;
 
     public String getAuthName() {
         return authName;
@@ -63,12 +63,12 @@ public class FrameworkLogoutResponse extends IdentityResponse {
 
     public static class FrameworkLogoutResponseBuilder extends IdentityResponseBuilder {
 
-        private String authName;
-        private String authType;
-        private String contextKey;
-        private String relyingParty;
-        private String callbackPath;
-        private String redirectUrl;
+        protected String authName;
+        protected String authType;
+        protected String contextKey;
+        protected String relyingParty;
+        protected String callbackPath;
+        protected String redirectUrl;
 
         public FrameworkLogoutResponseBuilder(IdentityMessageContext context) {
             super(context);

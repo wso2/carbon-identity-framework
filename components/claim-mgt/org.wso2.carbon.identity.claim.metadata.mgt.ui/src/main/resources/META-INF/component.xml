@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright (c) 2016, WSO2 Inc. (http://wso2.com) All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<component xmlns="http://products.wso2.org/carbon">
+    <menus>
+        <menu>
+            <id>identity_claim_mgt_menu</id>
+            <i18n-key>main.menu.title</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>identity_menu</parent-menu>
+            <link>#</link>
+            <region>region1</region>
+            <order>3</order>
+            <style-class>manage</style-class>
+		    <icon>../identity-claim-mgt/images/claims.gif</icon>
+		    <require-permission>/permission/admin/manage/identity/claimmgt/metadata</require-permission>
+
+            <!--<at-least>/permission/admin/manage/identity/claim/create</at-least>-->
+            <!--<at-least>/permission/admin/manage/identity/claim/view</at-least>-->
+        </menu>
+        <menu>
+            <id>identity_claim_mgt_menu_add</id>
+            <i18n-key>add.menu.title</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>identity_claim_mgt_menu</parent-menu>
+            <link>../identity-claim-mgt/add.jsp</link>
+            <region>region1</region>
+            <order>1</order>
+            <style-class>manage</style-class>
+            <icon>../identity-claim-mgt/images/add.gif</icon>
+            <require-permission>/permission/admin/manage/identity/claimmgt/metadata</require-permission>
+            <!--<require-permission>/permission/admin/manage/identity/claim/create</require-permission>-->
+            <require-not-logged-in>false</require-not-logged-in>
+        </menu>
+        <menu>
+            <id>identity_claim_mgt_menu_list</id>
+            <i18n-key>list.menu.title</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>identity_claim_mgt_menu</parent-menu>
+            <link>../identity-claim-mgt/list.jsp</link>
+            <region>region1</region>
+            <order>2</order>
+            <style-class>manage</style-class>
+            <icon>../identity-claim-mgt/images/list.gif</icon>
+            <require-permission>/permission/admin/manage/identity/claimmgt/metadata</require-permission>
+            <!--<require-permission>/permission/admin/manage/identity/claim/view</require-permission>-->
+            <require-not-logged-in>false</require-not-logged-in>
+        </menu>
+    </menus>
+</component>

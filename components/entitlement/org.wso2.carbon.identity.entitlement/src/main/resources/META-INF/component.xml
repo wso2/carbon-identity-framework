@@ -1,0 +1,132 @@
+<!--
+ ~ Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
+<component xmlns="http://products.wso2.org/carbon">
+    <ManagementPermissions>
+        <ManagementPermission>
+            <DisplayName>Identity</DisplayName>
+            <ResourceId>/permission/admin/manage/identity</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Entitlement Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement</ResourceId>
+        </ManagementPermission>
+
+        <!--Entitlement PAP-->
+        <ManagementPermission>
+            <DisplayName>Entitlement PAP Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap</ResourceId>
+        </ManagementPermission>
+
+        <!--Entitlement Policy-->
+        <ManagementPermission>
+            <DisplayName>Entitlement Policy Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/delete</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Publish</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/publish</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Demote</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/demote</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Enable</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/enable</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Rollback</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/rollback</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Order</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/order</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>List</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/policy/list</ResourceId>
+        </ManagementPermission>
+
+
+        <!--Entitlement Subscriber-->
+        <ManagementPermission>
+            <DisplayName>Entitlement Subscriber Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/create</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/delete</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>List</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pap/subscriber/list</ResourceId>
+        </ManagementPermission>
+
+        <!--Entitlement PDP-->
+        <ManagementPermission>
+            <DisplayName>Entitlement PDP Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pdp</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Manage</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pdp/manage</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pdp/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Test</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pdp/test</ResourceId>
+        </ManagementPermission>
+
+        <!--Entitlement PEP-->
+        <ManagementPermission>
+            <DisplayName>Entitlement PEP Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/entitlement/pep</ResourceId>
+        </ManagementPermission>
+    </ManagementPermissions>
+</component>

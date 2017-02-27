@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
 public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
-
     /**
      *
      */

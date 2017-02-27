@@ -29,7 +29,15 @@ public class IdentityValidationException extends IdentityException {
         super(message);
     }
 
-    public IdentityValidationException(String message, Throwable e) {
-        super(message, e);
+    public IdentityValidationException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
+    public IdentityValidationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public IdentityValidationException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
     }
 }

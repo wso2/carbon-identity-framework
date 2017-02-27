@@ -741,6 +741,53 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
+     * @param appId
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public ServiceProvider getServiceProvider(int appId) throws IdentityApplicationManagementException {
+
+        // TODO: Need to have pre listeners. Don't have them because we didn't want to add listener methods to the
+        // TODO: ApplicationMgtListener interface since we didn't want to change APIs. Also pre listener aren't vital
+        // TODO: for getters. Mostly post listeners are enough.
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        ServiceProvider serviceProvider = appDAO.getApplication(appId);
+
+        String serviceProviderName = serviceProvider.getApplicationName();
+        String tenantDomain = serviceProvider.getOwner().getTenantDomain();
+
+        try {
+            startTenantFlow(tenantDomain);
+            if (serviceProvider != null) {
+                loadApplicationPermissions(serviceProviderName, serviceProvider);
+            }
+
+            if (serviceProvider == null
+                && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
+                    serviceProviderName)) {
+                serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(
+                        serviceProviderName);
+            }
+        } finally {
+            endTenantFlow();
+        }
+
+        // TODO: Since we didn't add post listener methods to the ApplicationMgtListener API to avoid API changes, we
+        // TODO: are invoking doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain) listener
+        // TODO: method here as well.
+        // invoking the post listeners
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain)) {
+                return null;
+            }
+        }
+        return serviceProvider;
+    }
+
+    /**
      * @param clientId
      * @param clientType
      * @param tenantDomain

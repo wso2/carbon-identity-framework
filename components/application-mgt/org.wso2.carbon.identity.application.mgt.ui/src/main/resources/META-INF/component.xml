@@ -27,7 +27,7 @@
             <order>4</order>
             <style-class>manage</style-class>
             <icon>../application/images/service-provider.png</icon>
-            <require-permission>/permission/admin/manage</require-permission>
+            <require-permission>/permission/admin/manage/identity/applicationmgt</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
             <hide-menu-id>manage_saml_sso</hide-menu-id>
             <hide-menu-id>generic_sts_menu</hide-menu-id>
@@ -44,7 +44,7 @@
             <order>1</order>
             <style-class>manage</style-class>
             <icon>../application/images/add.png</icon>
-            <require-permission>/permission/admin/manage</require-permission>
+            <require-permission>/permission/admin/manage/identity/applicationmgt</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
         <menu>
@@ -57,7 +57,20 @@
             <order>2</order>
             <style-class>manage</style-class>
             <icon>../application/images/list.png</icon>
-            <require-permission>/permission/admin/login</require-permission>
+            <require-permission>/permission/admin/manage/identity/applicationmgt</require-permission>
+            <require-not-logged-in>false</require-not-logged-in>
+        </menu>
+        <menu>
+            <id>service_provider_resident</id>
+            <i18n-key>menu.service.providers.resident</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.application.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>service_providers_menu</parent-menu>
+            <link>../application/load-service-provider.jsp?spName=wso2carbon-local-sp&amp;</link>
+            <region>region1</region>
+            <order>3</order>
+            <style-class>manage</style-class>
+            <icon>../application/images/local-sp.png</icon>
+            <require-permission>/permission/admin/manage/identity/applicationmgt</require-permission>
             <require-not-logged-in>false</require-not-logged-in>
         </menu>
 	</menus>
@@ -65,6 +78,30 @@
         <ManagementPermission>
             <DisplayName>Applications</DisplayName>
             <ResourceId>/permission/applications</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Identity</DisplayName>
+            <ResourceId>/permission/admin/manage/identity</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Application Management</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>View</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/view</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Delete</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/delete</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Update</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/update</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Create</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/applicationmgt/create</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
     <!-- framework-configuration>

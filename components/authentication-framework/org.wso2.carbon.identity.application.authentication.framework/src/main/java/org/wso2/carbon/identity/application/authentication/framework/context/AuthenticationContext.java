@@ -62,6 +62,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private boolean forceAuthenticate;
     private boolean reAuthenticate;
     private boolean passiveAuthenticate;
+    private boolean previousAuthTime;
     private AuthenticationRequest authenticationRequest;
 
     private Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs = new HashMap<String, AuthenticatedIdPData>();
@@ -351,5 +352,13 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setAuthenticationRequest(AuthenticationRequest authenticationRequest) {
         this.authenticationRequest = authenticationRequest;
+    }
+
+    public boolean isPreviousAuthTime() {
+        return previousAuthTime;
+    }
+
+    public void setPreviousAuthTime(boolean previousAuthTime) {
+        this.previousAuthTime = previousAuthTime;
     }
 }

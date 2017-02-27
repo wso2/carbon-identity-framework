@@ -23,8 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -38,6 +36,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -45,10 +45,7 @@ import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.UserStoreConfigConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,6 +133,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     spRequestedClaimMappings, context.getTenantDomain());
             spRequestedClaimMappings = mapRequestClaimsInStandardDialect(spRequestedClaimMappings,
                     carbonToStandardClaimMapping);
+            context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, spRequestedClaimMappings);
         }
 
         ApplicationAuthenticator authenticator = stepConfig.
@@ -381,6 +379,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     spToLocalClaimMappings, tenantDomain);
             requestedClaimMappings = mapRequestClaimsInStandardDialect(requestedClaimMappings,
                     carbonToStandardClaimMapping);
+            context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, requestedClaimMappings);
         }
 
         mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
@@ -724,10 +723,10 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         Map<String, String> claimMapping = null;
         try {
-            claimMapping = ClaimManagerHandler.getInstance()
+            claimMapping = ClaimMetadataHandler.getInstance()
                     .getMappingsMapFromOtherDialectToCarbon(otherDialect, keySet, tenantDomain,
                                                             useLocalDialectAsKey);
-        } catch (ClaimManagementException e) {
+        } catch (ClaimMetadataException e) {
             throw new FrameworkException("Error while loading mappings.", e);
         }
 

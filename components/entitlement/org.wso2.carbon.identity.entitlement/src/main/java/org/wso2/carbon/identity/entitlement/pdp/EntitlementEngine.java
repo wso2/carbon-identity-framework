@@ -57,8 +57,13 @@ import org.wso2.carbon.identity.entitlement.policy.finder.CarbonPolicyFinder;
 import org.wso2.carbon.identity.entitlement.policy.search.PolicySearch;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -156,8 +161,8 @@ public class EntitlementEngine {
 
         if (balanaConfig) {
             System.setProperty("org.wso2.balana.PDPConfigFile", CarbonUtils.getCarbonConfigDirPath()
-                                                                + File.separator + "security" + File.separator +
-                                                                "balana-config.xml");
+                    + File.separator + "security" + File.separator +
+                    "balana-config.xml");
         }
 
         // if PDP config file is not configured, then balana instance is created from default configurations
@@ -315,6 +320,72 @@ public class EntitlementEngine {
     }
 
     /**
+     * Evaluates the given XACML request and returns the ResponseCtx Response that the EntitlementEngine will
+     * hand back to the PEP. PEP needs construct the XACML request before sending it to the
+     * EntitlementEngine
+     *
+     * @param xacmlRequest XACML request as String
+     * @return ResponseCtx response
+     * @throws org.wso2.balana.ParsingException                          throws
+     * @throws org.wso2.carbon.identity.entitlement.EntitlementException throws
+     * @throws javax.xml.parsers.ParserConfigurationException            throws
+     * @throws org.xml.sax.SAXException                                  throws
+     * @throws java.io.IOException                                       throws
+     */
+
+    public ResponseCtx evaluateReturnResponseCtx(String xacmlRequest) throws EntitlementException, ParsingException,
+            ParserConfigurationException, SAXException, IOException {
+
+        if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_REQUEST)) {
+            log.debug("XACML Request : " + xacmlRequest);
+        }
+
+        String xacmlResponse;
+        ResponseCtx responseCtx;
+
+        if ((xacmlResponse = getFromCache(xacmlRequest, false)) != null) {
+            if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
+                log.debug("XACML Response : " + xacmlResponse);
+            }
+
+            Element node = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse
+                    (new ByteArrayInputStream(xacmlResponse.getBytes())).getDocumentElement();
+
+
+            return (ResponseCtx.getInstance(node));
+
+        }
+
+        Map<PIPExtension, Properties> extensions = EntitlementServiceComponent.getEntitlementConfig()
+                .getExtensions();
+
+        if (extensions != null && !extensions.isEmpty()) {
+            PolicyRequestBuilder policyRequestBuilder = new PolicyRequestBuilder();
+            Element xacmlRequestElement = policyRequestBuilder.getXacmlRequest(xacmlRequest);
+            AbstractRequestCtx requestCtx = RequestCtxFactory.getFactory().
+                    getRequestCtx(xacmlRequestElement);
+            Set<PIPExtension> pipExtensions = extensions.keySet();
+            for (PIPExtension pipExtension : pipExtensions) {
+                pipExtension.update(requestCtx);
+            }
+            responseCtx = pdp.evaluate(requestCtx);
+        } else {
+            responseCtx = pdp.evaluateReturnResponseCtx(xacmlRequest);
+        }
+
+        xacmlResponse = responseCtx.encode();
+
+        addToCache(xacmlRequest, xacmlResponse, false);
+
+        if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
+            log.debug("XACML Response : " + xacmlResponse);
+        }
+
+        return responseCtx;
+
+    }
+
+    /**
      * Evaluates XACML request directly. This is used by advance search module.
      * Therefore caching and logging has not be implemented for this
      *
@@ -347,7 +418,7 @@ public class EntitlementEngine {
         }
         String response;
         String request = (subject != null ? subject : "") + (resource != null ? resource : "") +
-                         (action != null ? action : "") + (environmentValue != null ? environmentValue : "");
+                (action != null ? action : "") + (environmentValue != null ? environmentValue : "");
 
         if ((response = getFromCache(request, true)) != null) {
             if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_REQUEST)) {

@@ -76,8 +76,15 @@
 		
 		session.removeAttribute(spName);
 
+		// Take the user to the SP list page if the edited SP is not the resident SP.
+		String nextPage = "list-service-providers.jsp";
+
+		if ("wso2carbon-local-sp".equals(spName)) {
+			nextPage = "load-service-provider.jsp?spName=wso2carbon-local-sp&?region=region1&item=service_provider_resident";
+		}
+
 	%>
 
 	<script>
-		location.href = 'list-service-providers.jsp';
+		location.href = '<%=nextPage%>';
 	</script>

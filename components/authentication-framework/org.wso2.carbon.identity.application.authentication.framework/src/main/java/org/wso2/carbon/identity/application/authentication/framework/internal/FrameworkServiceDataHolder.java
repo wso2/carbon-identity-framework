@@ -19,8 +19,8 @@
 package org.wso2.carbon.identity.application.authentication.framework.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor;
@@ -42,7 +42,7 @@ public class FrameworkServiceDataHolder {
     private List<IdentityProcessor> identityProcessors = new ArrayList<IdentityProcessor>();
     private List<HttpIdentityRequestFactory> httpIdentityRequestFactories = new ArrayList<HttpIdentityRequestFactory>();
     private List<HttpIdentityResponseFactory> httpIdentityResponseFactories = new ArrayList<>();
-    private List<AbstractAuthenticationDataPublisher> dataPublishers = new ArrayList<>();
+    private AuthenticationDataPublisher authnDataPublisherProxy = null;
 
     private FrameworkServiceDataHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -109,8 +109,12 @@ public class FrameworkServiceDataHolder {
         return httpIdentityResponseFactories;
     }
 
-    public List<AbstractAuthenticationDataPublisher> getDataPublishers() {
-
-        return dataPublishers;
+    public AuthenticationDataPublisher getAuthnDataPublisherProxy() {
+        return authnDataPublisherProxy;
     }
+
+    public void setAuthnDataPublisherProxy(AuthenticationDataPublisher authnDataPublisherProxy) {
+        this.authnDataPublisherProxy = authnDataPublisherProxy;
+    }
+
 }

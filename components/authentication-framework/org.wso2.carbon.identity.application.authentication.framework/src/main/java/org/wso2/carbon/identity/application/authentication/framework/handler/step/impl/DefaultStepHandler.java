@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.step.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -57,6 +58,7 @@ public class DefaultStepHandler implements StepHandler {
 
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
     private static volatile DefaultStepHandler instance;
+    private static String RE_CAPTCHA_USER_DOMAIN = "user-domain-recaptcha";
 
     public static DefaultStepHandler getInstance() {
 
@@ -104,6 +106,26 @@ public class DefaultStepHandler implements StepHandler {
 
             stepConfig.setCompleted(true);
             return;
+        } else {
+            long authTime = 0;
+            String max_age = request.getParameter(FrameworkConstants.RequestParams.MAX_AGE);
+            if (StringUtils.isNotBlank(max_age) && StringUtils.isNotBlank(context.getSessionIdentifier())) {
+                long maxAge = Long.parseLong((max_age));
+                if (FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                        .getProperty(FrameworkConstants.UPDATED_TIMESTAMP) != null) {
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                            .getProperty(FrameworkConstants.UPDATED_TIMESTAMP).toString());
+                } else {
+                    authTime = Long.parseLong(FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier())
+                            .getProperty(FrameworkConstants.CREATED_TIMESTAMP).toString());
+                }
+                long current_time = System.currentTimeMillis();
+                if (maxAge < (current_time - authTime) / 1000) {
+                    context.setForceAuthenticate(true);
+                } else {
+                    context.setPreviousAuthTime(true);
+                }
+            }
         }
 
         // if Request has fidp param and if this is the first step
@@ -500,9 +522,8 @@ public class DefaultStepHandler implements StepHandler {
 
         } catch (InvalidCredentialsException e) {
             if (log.isDebugEnabled()) {
-                log.debug("InvalidCredentialsException", e);
+                log.debug("A login attempt was failed due to invalid credentials", e);
             }
-            log.warn("A login attempt was failed due to invalid credentials");
             context.setRequestAuthenticated(false);
         } catch (AuthenticationFailedException e) {
             log.error(e.getMessage(), e);
@@ -563,12 +584,20 @@ public class DefaultStepHandler implements StepHandler {
                                 URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
                     }
                     return redirectURL;
-                } else if (errorCode.equals(UserCoreConstants.ErrorCode.USER_DOES_NOT_EXIST)) {
+                } else if (errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_NOT_CONFIRMED_ERROR_CODE)) {
+                    retryParam = "&authFailure=true&authFailureMsg=account.confirmation.pending";
+                    String username = request.getParameter("username");
+
+                    Object domain = IdentityUtil.threadLocalProperties.get().get(RE_CAPTCHA_USER_DOMAIN);
+                    if (domain != null) {
+                        username = IdentityUtil.addDomainToName(username, domain.toString());
+                    }
+
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
-                            (request.getParameter("username"), "UTF-8");
+                            (username, "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
-                } else if (errorCode.equals(IdentityCoreConstants.USER_ACCOUNT_DISABLED_ERROR_CODE)) {
+                } else {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
@@ -592,8 +621,6 @@ public class DefaultStepHandler implements StepHandler {
                         "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
             }
         }
-        return loginPage + ("?" + context.getContextIdIncludedQueryParams() + "&authenticators=" + URLEncoder.encode
-                (authenticatorNames, "UTF-8") + retryParam);
     }
 
     private AuthenticatorConfig getAuthenticatorConfig() {

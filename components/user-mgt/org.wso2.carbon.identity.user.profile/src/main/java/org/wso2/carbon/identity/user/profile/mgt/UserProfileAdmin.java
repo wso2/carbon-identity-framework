@@ -29,9 +29,11 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.AuthorizationManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -39,8 +41,8 @@ import org.wso2.carbon.user.core.claim.ClaimManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.profile.ProfileConfiguration;
 import org.wso2.carbon.user.core.profile.ProfileConfigurationManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.ServerConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -58,6 +60,10 @@ public class UserProfileAdmin extends AbstractAdmin {
     private static final Log log = LogFactory.getLog(UserProfileAdmin.class);
     private static UserProfileAdmin userProfileAdmin = new UserProfileAdmin();
     private String authorizationFailureMessage = "You are not authorized to perform this action.";
+
+    private static final String USER_PROFILE_DELETE_PERMISSION = "/manage/identity/userprofile/delete";
+    private static final String USER_PROFILE_VIEW_PERMISSION = "/manage/identity/userprofile/view";
+    private static final String USER_PROFILE_MANAGE_PERMISSION = "/manage/identity/userprofile";
 
     public static UserProfileAdmin getInstance() {
         return userProfileAdmin;
@@ -81,7 +87,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         UserRealm realm = null;
         try {
 
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_MANAGE_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -141,7 +147,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     public void deleteUserProfile(String username, String profileName) throws UserProfileException {
         UserRealm realm = null;
         try {
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_DELETE_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -172,7 +178,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         String[] availableProfileConfigurations = new String[0];
         String profileConfig = null;
         try {
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_VIEW_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -330,7 +336,7 @@ public class UserProfileAdmin extends AbstractAdmin {
                 throw new UserProfileException("Invalid input parameters");
             }
 
-            if (!this.isAuthorized(username)) {
+            if (!this.isAuthorized(username, USER_PROFILE_VIEW_PERMISSION)) {
                 throw new UserProfileException(authorizationFailureMessage);
             }
 
@@ -507,7 +513,8 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
 
-    private boolean isAuthorized(String targetUser) throws UserStoreException, CarbonException {
+    private boolean isAuthorized(String targetUser, String permissionString) throws UserStoreException,
+            CarbonException {
         boolean isAuthrized = false;
         MessageContext msgContext = MessageContext.getCurrentMessageContext();
         HttpServletRequest request = (HttpServletRequest) msgContext
@@ -515,7 +522,24 @@ public class UserProfileAdmin extends AbstractAdmin {
         HttpSession httpSession = request.getSession(false);
         if (httpSession != null) {
             String userName = (String) httpSession.getAttribute(ServerConstants.USER_LOGGED_IN);
-            isAuthrized = UserProfileUtil.isUserAuthorizedToConfigureProfile(getUserRealm(), userName, targetUser);
+            isAuthrized = isUserAuthorizedToConfigureProfile(getUserRealm(), userName, targetUser, permissionString);
+        }
+        return isAuthrized;
+    }
+
+    private static boolean isUserAuthorizedToConfigureProfile(UserRealm realm, String currentUserName,
+                                                              String targetUser, String permission)
+            throws UserStoreException {
+        boolean isAuthrized = false;
+        if (currentUserName == null) {
+            //do nothing
+        } else if (currentUserName.equals(targetUser)) {
+            isAuthrized = true;
+        } else {
+            AuthorizationManager authorizer = realm.getAuthorizationManager();
+            isAuthrized = authorizer.isUserAuthorized(currentUserName,
+                    CarbonConstants.UI_ADMIN_PERMISSION_COLLECTION + permission,
+                    "ui.execute");
         }
         return isAuthrized;
     }
@@ -568,10 +592,9 @@ public class UserProfileAdmin extends AbstractAdmin {
         PreparedStatement prepStmt = null;
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
-                                                                          .getUsername());
-        String domainName = getDomainName(tenantAwareUsername);
-        tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
+        String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
+        String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
         try {
             sql = "INSERT INTO IDN_ASSOCIATED_ID (TENANT_ID, IDP_ID, IDP_USER_ID, DOMAIN_NAME, USER_NAME) " +
@@ -582,8 +605,8 @@ public class UserProfileAdmin extends AbstractAdmin {
             prepStmt.setString(2, idpID);
             prepStmt.setInt(3, tenantID);
             prepStmt.setString(4, associatedID);
-            prepStmt.setString(5, domainName);
-            prepStmt.setString(6, tenantAwareUsername);
+            prepStmt.setString(5, userStoreDomainName);
+            prepStmt.setString(6, username);
 
 
             prepStmt.execute();
@@ -642,10 +665,9 @@ public class UserProfileAdmin extends AbstractAdmin {
         PreparedStatement prepStmt = null;
         ResultSet resultSet;
         String sql = null;
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
-                                                                          .getUsername());
-        String domainName = getDomainName(tenantAwareUsername);
-        tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
+        String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
+        String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
         List<AssociatedAccountDTO> associatedIDs = new ArrayList<AssociatedAccountDTO>();
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
@@ -654,8 +676,8 @@ public class UserProfileAdmin extends AbstractAdmin {
                   "WHERE IDN_ASSOCIATED_ID.TENANT_ID = ? AND USER_NAME = ? AND DOMAIN_NAME = ?";
             prepStmt = connection.prepareStatement(sql);
             prepStmt.setInt(1, tenantID);
-            prepStmt.setString(2, tenantAwareUsername);
-            prepStmt.setString(3, domainName);
+            prepStmt.setString(2, username);
+            prepStmt.setString(3, userStoreDomainName);
 
             resultSet = prepStmt.executeQuery();
             connection.commit();
@@ -681,10 +703,9 @@ public class UserProfileAdmin extends AbstractAdmin {
         PreparedStatement prepStmt = null;
         String sql = null;
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(CarbonContext.getThreadLocalCarbonContext()
-                                                                          .getUsername());
-        String domainName = getDomainName(tenantAwareUsername);
-        tenantAwareUsername = getUsernameWithoutDomain(tenantAwareUsername);
+        String tenantAwareUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(tenantAwareUsername);
+        String username = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
 
         try {
 
@@ -695,8 +716,8 @@ public class UserProfileAdmin extends AbstractAdmin {
             prepStmt.setString(2, idpID);
             prepStmt.setInt(3, tenantID);
             prepStmt.setString(4, associatedID);
-            prepStmt.setString(5, tenantAwareUsername);
-            prepStmt.setString(6, domainName);
+            prepStmt.setString(5, username);
+            prepStmt.setString(6, userStoreDomainName);
 
             prepStmt.executeUpdate();
             connection.commit();
@@ -707,22 +728,6 @@ public class UserProfileAdmin extends AbstractAdmin {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
 
-    }
-
-    private static String getDomainName(String username) {
-        int index = username.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
-        if (index < 0) {
-            return "PRIMARY";
-        }
-        return username.substring(0, index);
-    }
-
-    private static String getUsernameWithoutDomain(String username) {
-        int index = username.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
-        if (index < 0) {
-            return username;
-        }
-        return username.substring(index + 1, username.length());
     }
 
 }

@@ -72,6 +72,7 @@ public class ClaimConfig implements Serializable {
                         OMElement idpClaimsElement = (OMElement) (idpClaimsIter.next());
                         Claim claim = Claim.build(idpClaimsElement);
                         if (claim != null) {
+                            idpClaimsArrList.add(claim);
                         }
                     }
                 }

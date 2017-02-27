@@ -23,10 +23,16 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.equinox.http.helper.ContextPathServletAdaptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticationService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
@@ -41,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Ide
 import org.wso2.carbon.identity.application.authentication.framework.listener.AuthenticationEndpointTenantActivityListener;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -54,51 +61,16 @@ import org.wso2.carbon.user.core.service.RealmService;
 
 import javax.servlet.Servlet;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
- * @scr.component name="identity.application.authentication.framework.component"
- * immediate="true"
- * @scr.reference name="osgi.httpservice"
- * interface="org.osgi.service.http.HttpService"
- * cardinality="1..1" policy="dynamic" bind="setHttpService"
- * unbind="unsetHttpService"
- * @scr.reference name="user.realmservice.default"
- * interface="org.wso2.carbon.user.core.service.RealmService"
- * cardinality="1..1" policy="dynamic" bind="setRealmService"
- * unbind="unsetRealmService"
- * @scr.reference name="registry.service"
- * interface="org.wso2.carbon.registry.core.service.RegistryService"
- * cardinality="1..1" policy="dynamic" bind="setRegistryService"
- * unbind="unsetRegistryService"
- * @scr.reference name="application.authenticator"
- * interface="org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator"
- * cardinality="1..n" policy="dynamic" bind="setAuthenticator"
- * unbind="unsetAuthenticator"
- * @scr.reference name="identityCoreInitializedEventService"
- * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
- * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
- * @scr.reference name="identity.processor"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor"
- * cardinality="0..n" policy="dynamic" bind="addIdentityProcessor"
- * unbind="removeIdentityProcessor"
- * @scr.reference name="identity.request.factory"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory"
- * cardinality="0..n" policy="dynamic" bind="addHttpIdentityRequestFactory"
- * unbind="removeHttpIdentityRequestFactory"
- * @scr.reference name="identity.response.factory"
- * interface="org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory"
- * cardinality="0..n" policy="dynamic" bind="addHttpIdentityResponseFactory"
- * unbind="removeHttpIdentityResponseFactory"
- * @scr.reference name="identity.authentication.data.publisher"
- * interface="org.wso2.carbon.identity.application.authentication.framework.AbstractAuthenticationDataPublisher"
- * cardinality="0..n" policy="dynamic" bind="setAuthenticationDataPublisher"
- * unbind="unsetAuthenticationDataPublisher"
+ * OSGi declarative services component which handled registration and unregistration of FrameworkServiceComponent.
  */
 
-
-
+@Component(
+        name = "identity.application.authentication.framework.component",
+        immediate = true
+)
 public class FrameworkServiceComponent {
 
     public static final String COMMON_SERVLET_URL = "/commonauth";
@@ -111,6 +83,13 @@ public class FrameworkServiceComponent {
         return FrameworkServiceDataHolder.getInstance().getRealmService();
     }
 
+    @Reference(
+            name = "user.realmservice.default",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
     protected void setRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
             log.debug("RealmService is set in the Application Authentication Framework bundle");
@@ -122,6 +101,13 @@ public class FrameworkServiceComponent {
         return FrameworkServiceDataHolder.getInstance().getRegistryService();
     }
 
+    @Reference(
+            name = "registry.service",
+            service = org.wso2.carbon.registry.core.service.RegistryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRegistryService"
+    )
     protected void setRegistryService(RegistryService registryService) {
         if (log.isDebugEnabled()) {
             log.debug("RegistryService is set in the Application Authentication Framework bundle");
@@ -145,6 +131,7 @@ public class FrameworkServiceComponent {
     }
 
     @SuppressWarnings("unchecked")
+    @Activate
     protected void activate(ComponentContext ctxt) {
         BundleContext bundleContext = ctxt.getBundleContext();
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
@@ -168,7 +155,7 @@ public class FrameworkServiceComponent {
                 COMMON_SERVLET_URL);
 
         Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                IDENTITY_SERVLET_URL);
+                                                                 IDENTITY_SERVLET_URL);
         try {
             httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
             httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
@@ -193,6 +180,7 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is deactivated");
@@ -201,6 +189,13 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setBundleContext(null);
     }
 
+    @Reference(
+            name = "osgi.httpservice",
+            service = org.osgi.service.http.HttpService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetHttpService"
+    )
     protected void setHttpService(HttpService httpService) {
         if (log.isDebugEnabled()) {
             log.debug("HTTP Service is set in the Application Authentication Framework bundle");
@@ -231,6 +226,13 @@ public class FrameworkServiceComponent {
         FrameworkServiceDataHolder.getInstance().setRegistryService(null);
     }
 
+    @Reference(
+            name = "application.authenticator",
+            service = org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator.class,
+            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAuthenticator"
+    )
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
         FrameworkServiceDataHolder.getInstance().getAuthenticators().add(authenticator);
@@ -293,6 +295,13 @@ public class FrameworkServiceComponent {
 
     }
 
+    @Reference(
+            name = "identity.processor",
+            service = org.wso2.carbon.identity.application.authentication.framework.inbound.IdentityProcessor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeIdentityProcessor"
+    )
     protected void addIdentityProcessor(IdentityProcessor requestProcessor) {
 
         FrameworkServiceDataHolder.getInstance().getIdentityProcessors().add(requestProcessor);
@@ -313,6 +322,13 @@ public class FrameworkServiceComponent {
         }
     }
 
+    @Reference(
+            name = "identity.request.factory",
+            service = org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityRequestFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeHttpIdentityRequestFactory"
+    )
     protected void addHttpIdentityRequestFactory(HttpIdentityRequestFactory factory) {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
@@ -332,6 +348,14 @@ public class FrameworkServiceComponent {
         }
     }
 
+
+    @Reference(
+            name = "identity.response.factory",
+            service = org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponseFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "removeHttpIdentityResponseFactory"
+    )
     protected void addHttpIdentityResponseFactory(HttpIdentityResponseFactory factory) {
 
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
@@ -356,16 +380,37 @@ public class FrameworkServiceComponent {
          is started */
     }
 
+
+    @Reference(
+            name = "identityCoreInitializedEventService",
+            service = org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityCoreInitializedEventService"
+    )
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
     }
 
-    protected void setAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
-        FrameworkServiceDataHolder.getInstance().getDataPublishers().add(publisher);
+    @Reference(
+            name = "identity.authentication.data.publisher",
+            service = org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetAuthenticationDataPublisher"
+    )
+    protected void setAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
+        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_PROXY.equalsIgnoreCase(publisher.getName())
+                && publisher.isEnabled(null)) {
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(publisher);
+        }
     }
 
-    protected void unsetAuthenticationDataPublisher(AbstractAuthenticationDataPublisher publisher) {
-        FrameworkServiceDataHolder.getInstance().getDataPublishers().remove(publisher);
+    protected void unsetAuthenticationDataPublisher(AuthenticationDataPublisher publisher) {
+        if (FrameworkConstants.AnalyticsAttributes.AUTHN_DATA_PUBLISHER_PROXY.equalsIgnoreCase(publisher.getName())
+                && publisher.isEnabled(null)) {
+            FrameworkServiceDataHolder.getInstance().setAuthnDataPublisherProxy(null);
+        }
     }
 }

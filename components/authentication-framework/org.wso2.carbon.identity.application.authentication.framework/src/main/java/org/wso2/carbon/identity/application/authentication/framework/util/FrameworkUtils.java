@@ -22,10 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.claim.mgt.ClaimManagementException;
-import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
@@ -48,6 +47,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -56,9 +56,11 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultPostAuthenticationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
@@ -78,6 +80,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -93,6 +97,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -429,6 +434,42 @@ public class FrameworkUtils {
     }
 
     /**
+     * Gets the configured authorization handler at identity.xml
+     *
+     * @return Configured authorization handler
+     */
+    public static AuthorizationHandler getAuthorizationHandler() {
+
+        AuthorizationHandler authorizationHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER);
+
+        if (obj instanceof AuthorizationHandler) {
+            authorizationHandler = (AuthorizationHandler) obj;
+        }
+        return authorizationHandler;
+    }
+
+    /**
+     * Gets the configured post authentication handler at identity.xml
+     *
+     * @return Configured post authentication handler
+     */
+    public static PostAuthenticationHandler getPostAuthenticationHandler() {
+
+        PostAuthenticationHandler postAuthenticationHandler = null;
+        Object obj = ConfigurationFacade.getInstance().getExtensions()
+                .get(FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER);
+
+        if (obj instanceof PostAuthenticationHandler) {
+            postAuthenticationHandler = (PostAuthenticationHandler) obj;
+        } else {
+            postAuthenticationHandler = DefaultPostAuthenticationHandler.getInstance();
+        }
+        return postAuthenticationHandler;
+    }
+
+    /**
      * @param request
      * @param response
      * @throws IOException
@@ -611,7 +652,6 @@ public class FrameworkUtils {
             }
         }
         Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, null);
         if (authenticatedUserObj != null && authenticatedUserObj instanceof AuthenticatedUser) {
             AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
@@ -627,13 +667,14 @@ public class FrameworkUtils {
     public static SessionContext getSessionContextFromCache(String key) {
 
         SessionContext sessionContext = null;
-        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-        Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
+        if (StringUtils.isNotBlank(key)) {
+            SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+            Object cacheEntryObj = SessionContextCache.getInstance().getValueFromCache(cacheKey);
 
-        if (cacheEntryObj != null) {
-            sessionContext = ((SessionContextCacheEntry) cacheEntryObj).getContext();
+            if (cacheEntryObj != null) {
+                sessionContext = ((SessionContextCacheEntry) cacheEntryObj).getContext();
+            }
         }
-
         return sessionContext;
     }
 
@@ -1077,9 +1118,9 @@ public class FrameworkUtils {
             Map<String, String> extAttributesValueMap = FrameworkUtils.getClaimMappings(claimMappings, false);
             Map<String, String> mappedAttrs = null;
             try {
-                mappedAttrs = ClaimManagerHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
-                                                                                                       extAttributesValueMap.keySet(), context.getTenantDomain(), true);
-            } catch (ClaimManagementException e) {
+                mappedAttrs = ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(otherDialect,
+                        extAttributesValueMap.keySet(), context.getTenantDomain(), true);
+            } catch (ClaimMetadataException e) {
                 throw new FrameworkException("Error while loading claim mappings.", e);
             }
 
@@ -1090,6 +1131,7 @@ public class FrameworkUtils {
             Claim claim = new Claim();
             claim.setClaimUri(userIdClaimURI);
             claimMapping.setRemoteClaim(claim);
+            claimMapping.setLocalClaim(claim);
             value = claimMappings.get(claimMapping);
         }
         return value;
@@ -1153,7 +1195,7 @@ public class FrameworkUtils {
             String appender;
             if (url.contains("?")) {
                 appender = "&";
-            } else{
+            } else {
                 appender = "?";
             }
 
@@ -1166,6 +1208,28 @@ public class FrameworkUtils {
         }
 
         return queryAppendedUrl;
+    }
+
+    public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
+            context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
+            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            if (FrameworkConstants.AnalyticsAttributes.SESSION_CREATE.equalsIgnoreCase(status)) {
+                authnDataPublisherProxy.publishSessionCreation(request, context, sessionContext,
+                        unmodifiableParamMap);
+            } else if (FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE.equalsIgnoreCase(status)) {
+                authnDataPublisherProxy.publishSessionUpdate(request, context, sessionContext,
+                        unmodifiableParamMap);
+            } else if (FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE.equalsIgnoreCase(status)) {
+                authnDataPublisherProxy.publishSessionTermination(request, context, sessionContext,
+                        unmodifiableParamMap);
+            }
+        }
     }
 }
 

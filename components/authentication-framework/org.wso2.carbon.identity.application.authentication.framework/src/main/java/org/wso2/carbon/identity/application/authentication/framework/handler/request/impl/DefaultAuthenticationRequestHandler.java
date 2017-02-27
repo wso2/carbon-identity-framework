@@ -18,19 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.AuthnDataPublishHandlerManager;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.authz.AuthorizationHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
@@ -38,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -53,7 +58,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    public static final String DEFAULT_AUTHORIZATION_FAILED_MSG = "Authorization Failed";
     private static volatile DefaultAuthenticationRequestHandler instance;
+
+    public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
 
 
     public static DefaultAuthenticationRequestHandler getInstance() {
@@ -119,8 +127,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
         }
 
+        if (context.getSequenceConfig().isCompleted() && !isPostAuthenticationExtensionCompleted(context)) {
+            // call post authentication handler
+            FrameworkUtils.getPostAuthenticationHandler().handle(request, response, context);
+        }
+
         // if flow completed, send response back
-        if (context.getSequenceConfig().isCompleted()) {
+        if (isPostAuthenticationExtensionCompleted(context)) {
             concludeFlow(request, response, context);
         } else { // redirecting outside
             FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
@@ -135,6 +148,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         context.getSequenceConfig().setCompleted(true);
         context.setRequestAuthenticated(false);
+        //No need to handle authorization, because the authentication is not completed
         concludeFlow(request, response, context);
     }
 
@@ -261,10 +275,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
+            String sessionContextKey = null;
             if (FrameworkUtils.getAuthCookie(request) != null) {
+
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
+
                 if (commonAuthCookie != null) {
-                    sessionContext = FrameworkUtils.getSessionContextFromCache(commonAuthCookie);
+                    sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
+                    sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
                 }
             }
 
@@ -273,44 +291,46 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                                                                sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                long updatedSessionTime = System.currentTimeMillis();
+                if(!context.isPreviousAuthTime()) {
+                    sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
+                }
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
-                FrameworkUtils.addSessionContextToCache(commonAuthCookie, sessionContext);
-                publishSessionUpdate(commonAuthCookie, request, context, sessionContext, sequenceConfig.getAuthenticatedUser());
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
+                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
+                        .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
 
             } else {
                 sessionContext = new SessionContext();
+                // To identify first login
+                context.setProperty(FrameworkConstants.AnalyticsAttributes.IS_INITIAL_LOGIN, true);
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
-                                                               sequenceConfig);
+                        sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
                 sessionContext.setRememberMe(context.isRememberMe());
                 String sessionKey = UUIDGenerator.generateUUID();
+                sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                FrameworkUtils.addSessionContextToCache(sessionKey, sessionContext);
-
-                setAuthCookie(request, response, context, sessionKey, authenticatedUserTenantDomain);
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
-                publishSessionCreation(sessionKey, request, context, sessionContext, sequenceConfig.getAuthenticatedUser());
+                FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
+
+                String applicationTenantDomain = context.getTenantDomain();
+                if (StringUtils.isEmpty(applicationTenantDomain)) {
+                    applicationTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+                }
+                setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
+                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
+                        .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
+            }
+
+            if (context.getSequenceConfig().getApplicationConfig().isEnableAuthorization()) {
+                handleAuthorization(request, response, context);
             }
 
             if (authenticatedUserTenantDomain == null) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
-
-            String auditData = "\"" + "ContextIdentifier" + "\" : \"" + context.getContextIdentifier()
-                               + "\",\"" + "AuthenticatedUser" + "\" : \"" + sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier()
-                               + "\",\"" + "AuthenticatedUserTenantDomain" + "\" : \"" + authenticatedUserTenantDomain
-                               + "\",\"" + "ServiceProviderName" + "\" : \"" + context.getServiceProviderName()
-                               + "\",\"" + "RequestType" + "\" : \"" + context.getRequestType()
-                               + "\",\"" + "RelyingParty" + "\" : \"" + context.getRelyingParty()
-                               + "\",\"" + "AuthenticatedIdPs" + "\" : \"" + sequenceConfig.getAuthenticatedIdPs()
-                               + "\"";
-
-            AUDIT_LOG.info(String.format(
-                    FrameworkConstants.AUDIT_MESSAGE,
-                    sequenceConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(),
-                    "Login",
-                    "ApplicationAuthenticationFramework", auditData, FrameworkConstants.AUDIT_SUCCESS));
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
         }
@@ -341,36 +361,31 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
-        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            AuthnDataPublishHandlerManager.getInstance().publishAuthenticationSuccess(request, context, unmodifiableParamMap);
+            authnDataPublisherProxy.publishAuthenticationSuccess(request, context,
+                    unmodifiableParamMap);
+
         }
     }
 
+    private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
+                                              AuthenticatedUser user) {
 
-    private void publishSessionCreation(String sessionId, HttpServletRequest request, AuthenticationContext context,
-                                        SessionContext sessionContext, AuthenticatedUser user) {
-        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
+            paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            AuthnDataPublishHandlerManager.getInstance().publishSessionCreation(request, context, sessionContext,
+            authnDataPublisherProxy.publishAuthenticationFailure(request, context,
                     unmodifiableParamMap);
-        }
-    }
 
-    private void publishSessionUpdate(String sessionId, HttpServletRequest request, AuthenticationContext context,
-                                      SessionContext sessionContext, AuthenticatedUser user) {
-        if (AuthnDataPublishHandlerManager.getInstance().isListenersAvailable()) {
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put(FrameworkConstants.PublisherParamNames.USER, user);
-            paramMap.put(FrameworkConstants.PublisherParamNames.SESSION_ID, sessionId);
-            Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            AuthnDataPublishHandlerManager.getInstance().publishSessionUpdate(request, context, sessionContext,
-                    unmodifiableParamMap);
         }
     }
 
@@ -458,4 +473,39 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             throw new FrameworkException(e.getMessage(), e);
         }
     }
+
+    protected void handleAuthorization(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context) throws ApplicationAuthorizationException {
+
+        AuthorizationHandler authorizationHandler = FrameworkUtils.getAuthorizationHandler();
+        if (authorizationHandler != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Calling " + authorizationHandler.getClass().getName() + " to authorize the request");
+            }
+            if (!authorizationHandler.isAuthorized(request, response, context)) {
+                publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
+                Object authFailureMsgObj = context.getProperty(AUTHZ_FAIL_REASON);
+                String authzFailMsg;
+                if (authFailureMsgObj != null) {
+                    authzFailMsg = authFailureMsgObj.toString();
+                } else {
+                    authzFailMsg = DEFAULT_AUTHORIZATION_FAILED_MSG;
+                }
+                throw new ApplicationAuthorizationException(authzFailMsg);
+            }
+        } else {
+            log.warn("Authorization Handler is not set. Hence proceeding without authorization");
+        }
+    }
+
+    protected boolean isPostAuthenticationExtensionCompleted(AuthenticationContext context) {
+
+        Object object = context.getProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED);
+        if (object != null && object instanceof Boolean) {
+            return (Boolean) object;
+        } else {
+            return false;
+        }
+    }
+
 }

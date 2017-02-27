@@ -71,7 +71,10 @@ public class UserIdentityClaimsDO implements Serializable {
             }
         }
         if (userDataMap.get(UserIdentityDataStore.LAST_FAILED_LOGIN_ATTEMPT_TIME) != null) {
-            setLastFailAttemptTime(Long.parseLong(userDataMap.get(UserIdentityDataStore.LAST_FAILED_LOGIN_ATTEMPT_TIME)));
+            String lastFailedAttemptTime = userDataMap.get(UserIdentityDataStore.LAST_FAILED_LOGIN_ATTEMPT_TIME).trim();
+            if(!lastFailedAttemptTime.isEmpty()) {
+                setLastFailAttemptTime(Long.parseLong(lastFailedAttemptTime));
+            }
         }
         if (userDataMap.get(UserIdentityDataStore.UNLOCKING_TIME) != null) {
             String unlockTimeData = userDataMap.get(UserIdentityDataStore.UNLOCKING_TIME).trim();
@@ -94,7 +97,10 @@ public class UserIdentityClaimsDO implements Serializable {
             setPasswordChangeRequired(Boolean.parseBoolean(userDataMap.get(UserIdentityDataStore.PASSWORD_CHANGE_REQUIRED)));
         }
         if (userDataMap.get(UserIdentityDataStore.LAST_LOGON_TIME) != null) {
-            setLastLogonTime(Long.parseLong(userDataMap.get(UserIdentityDataStore.LAST_LOGON_TIME)));
+            String lastLogonTime = userDataMap.get(UserIdentityDataStore.LAST_LOGON_TIME).trim();
+            if(!lastLogonTime.isEmpty()) {
+                setLastLogonTime(Long.parseLong(lastLogonTime));
+            }
         }
         if (userDataMap.get(UserIdentityDataStore.ACCOUNT_LOCK) != null) {
             setAccountLock(Boolean.parseBoolean(userDataMap.get(UserIdentityDataStore.ACCOUNT_LOCK)));
@@ -275,6 +281,7 @@ public class UserIdentityClaimsDO implements Serializable {
 
     public void setAccountDisabled(boolean isAccountDisabled) {
         this.isAccountDisabled = isAccountDisabled;
+        this.userIdentityDataMap.put(UserIdentityDataStore.ACCOUNT_DISABLED, Boolean.toString(isAccountDisabled));
     }
 
     /**

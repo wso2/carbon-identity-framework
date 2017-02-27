@@ -24,9 +24,53 @@
         <parameter name="ServiceClass" locked="true">
             org.wso2.carbon.idp.mgt.IdentityProviderManagementService
         </parameter>
-        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage</parameter>
+        <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/idpmgt</parameter>
+        <operation name="addIdP">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/create
+            </parameter>
+        </operation>
+        <operation name="deleteIdP">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/delete
+            </parameter>
+        </operation>
+        <operation name="getAllFederatedAuthenticators">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
+        </operation>
         <operation name="getAllIdPs">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
+        <operation name="getAllLocalClaimUris">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
+        </operation>
+        <operation name="getAllProvisioningConnectors">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
+        </operation>
+        <operation name="getEnabledAllIdPs">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
+        </operation>
+        <operation name="getIdPByName">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
+        </operation>
+        <operation name="getResidentIdP">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
+        </operation>
+        <operation name="updateIdP">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/update
+            </parameter>
+        </operation>
+        <operation name="updateResidentIdP">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/update
+            </parameter>
+        </operation>
+        <operation name="getResidentIDPMetadata">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
+            </parameter>
         </operation>
     </service>
     <parameter name="adminService" locked="true">true</parameter>

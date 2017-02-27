@@ -34,6 +34,7 @@
         import="java.io.IOException" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <jsp:useBean id="entitlementPolicyBean" type="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean"
              class="org.wso2.carbon.identity.entitlement.ui.EntitlementPolicyBean" scope="session"/>
 <jsp:setProperty name="entitlementPolicyBean" property="*" />
@@ -94,10 +95,14 @@
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
 
     String ruleId = request.getParameter("ruleId");
-    String returnPage = request.getParameter("returnPage");
-    if(returnPage == null || returnPage.trim().length() == 0){
+    String initiatedPage = request.getParameter("initiatedFrom");
+    String returnPage;
+    if (StringUtils.equals("create-policy-set", initiatedPage)) {
+        returnPage = "create-policy-set.jsp";
+    } else {
         returnPage = "policy-editor.jsp";
     }
+
     selectedFinderModule = request.getParameter("finderModule");
     if(selectedFinderModule == null || selectedFinderModule.trim().length() < 1){
         selectedFinderModule = EntitlementPolicyConstants.DEFAULT_META_DATA_MODULE_NAME;
@@ -280,7 +285,7 @@
 
     function preSubmit(){
 
-        jQuery('#attributeValueTable > tbody:last').append('<tr><td><input type="hidden" name="category" id="category" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(category))%>" /><input type="hidden" name="ruleId" id="ruleId" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(ruleId))%>" /><input type="hidden" name="returnPage" id="returnPage" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(returnPage))%>" /></td></tr>') ;
+        jQuery('#attributeValueTable > tbody:last').append('<tr><td><input type="hidden" name="category" id="category" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(category))%>" /><input type="hidden" name="ruleId" id="ruleId" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(ruleId))%>" /><input type="hidden" name="initiatedFrom" id="initiatedFrom" value="<%=Encode.forJavaScript(Encode.forHtmlAttribute(initiatedPage))%>" /></td></tr>') ;
 
     }
 

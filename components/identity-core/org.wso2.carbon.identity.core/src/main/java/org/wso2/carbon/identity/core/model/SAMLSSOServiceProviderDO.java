@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.Serializable;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +63,12 @@ public class SAMLSSOServiceProviderDO implements Serializable {
     private boolean doValidateSignatureInRequests;
     private String signingAlgorithmUri;
     private String digestAlgorithmUri;
+    private String signingCertificate ;
+    private String encryptionCertificate ;
+    private X509Certificate x509Certificate;
+    private boolean isAssertionQueryRequestProfileEnabled;
+    private String supportedAssertionQueryRequestTypes;
+
 
     public SAMLSSOServiceProviderDO() {
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
@@ -80,12 +87,28 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         }
     }
 
+    public String getSigningCertificate() {
+        return signingCertificate;
+    }
+
+    public void setSigningCertificate(String signingCertificate) {
+        this.signingCertificate = signingCertificate;
+    }
+
     public String getNameIDFormat() {
         return nameIDFormat;
     }
 
     public void setNameIDFormat(String nameIDFormat) {
         this.nameIDFormat = nameIDFormat;
+    }
+
+    public String getEncryptionCertificatee() {
+        return encryptionCertificate;
+    }
+
+    public void setEncryptionCertificate(String encryptionCertificate) {
+        this.encryptionCertificate= encryptionCertificate;
     }
 
     public String getNameIdClaimUri() {
@@ -122,6 +145,22 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         if (assertionConsumerUrl != null) {
             this.assertionConsumerUrl = assertionConsumerUrl.replaceAll("[\n\r]", "").trim();
         }
+    }
+
+    public boolean isAssertionQueryRequestProfileEnabled() {
+        return isAssertionQueryRequestProfileEnabled;
+    }
+
+    public void setAssertionQueryRequestProfileEnabled(boolean isAssertionQueryRequestProfileEnabled) {
+        this.isAssertionQueryRequestProfileEnabled = isAssertionQueryRequestProfileEnabled;
+    }
+
+    public String getSupportedAssertionQueryRequestTypes() {
+        return supportedAssertionQueryRequestTypes;
+    }
+
+    public void setSupportedAssertionQueryRequestTypes(String supportedAssertionQueryRequestTypes) {
+        this.supportedAssertionQueryRequestTypes = supportedAssertionQueryRequestTypes;
     }
 
     public String getCertAlias() {
@@ -474,5 +513,13 @@ public class SAMLSSOServiceProviderDO implements Serializable {
         } else {
             this.idpInitSLOReturnToURLs = null;
         }
+    }
+
+    public X509Certificate getX509Certificate() {
+        return x509Certificate;
+    }
+
+    public void setX509Certificate(X509Certificate x509Certificate) {
+        this.x509Certificate = x509Certificate;
     }
 }

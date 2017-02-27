@@ -1,0 +1,705 @@
+
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:tns="http://mgt.metadata.claim.identity.carbon.wso2.org" xmlns:ax2333="http://dto.mgt.metadata.claim.identity.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ax2330="http://base.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ax2329="http://exception.mgt.metadata.claim.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://mgt.metadata.claim.identity.carbon.wso2.org">
+    <wsdl:documentation>ClaimMetadataManagementService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema xmlns:ax2332="http://exception.mgt.metadata.claim.identity.carbon.wso2.org/xsd" xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2334="http://dto.mgt.metadata.claim.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://exception.mgt.metadata.claim.identity.carbon.wso2.org/xsd"/>
+            <xs:import namespace="http://dto.mgt.metadata.claim.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="ClaimMetadataManagementServiceClaimMetadataException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="ClaimMetadataException" nillable="true" type="ax2332:ClaimMetadataException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getClaimDialects">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getClaimDialectsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2334:ClaimDialectDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addLocalClaim">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2334:LocalClaimDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateLocalClaim">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2334:LocalClaimDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeLocalClaim">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="localClaimURI" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getExternalClaims">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="externalClaimDialectURI" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getExternalClaimsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2334:ExternalClaimDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addExternalClaim">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="externalClaim" nillable="true" type="ax2334:ExternalClaimDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateExternalClaim">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="externalClaim" nillable="true" type="ax2334:ExternalClaimDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeExternalClaim">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="externalClaimDialectURI" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="externalClaimURI" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addClaimDialect">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="claimDialect" nillable="true" type="ax2334:ClaimDialectDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="renameClaimDialect">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="oldClaimDialect" nillable="true" type="ax2334:ClaimDialectDTO"/>
+                        <xs:element minOccurs="0" name="newClaimDialect" nillable="true" type="ax2334:ClaimDialectDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="removeClaimDialect">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="claimDialect" nillable="true" type="ax2334:ClaimDialectDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getLocalClaims">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getLocalClaimsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2334:LocalClaimDTO"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:ax2331="http://base.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://exception.mgt.metadata.claim.identity.carbon.wso2.org/xsd">
+            <xs:import namespace="http://base.identity.carbon.wso2.org/xsd"/>
+            <xs:complexType name="ClaimMetadataException">
+                <xs:complexContent>
+                    <xs:extension base="ax2331:IdentityException">
+                        <xs:sequence/>
+                    </xs:extension>
+                </xs:complexContent>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="IdentityException">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="errorCode" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://dto.mgt.metadata.claim.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="ClaimDialectDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="claimDialectURI" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="LocalClaimDTO">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="attributeMappings" nillable="true" type="ax2333:AttributeMappingDTO"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimProperties" nillable="true" type="ax2333:ClaimPropertyDTO"/>
+                    <xs:element minOccurs="0" name="localClaimURI" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="AttributeMappingDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="attributeName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="userStoreDomain" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ClaimPropertyDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="propertyName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="propertyValue" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ExternalClaimDTO">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="externalClaimDialectURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="externalClaimURI" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="mappedLocalClaimURI" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="addExternalClaimRequest">
+        <wsdl:part name="parameters" element="ns1:addExternalClaim"/>
+    </wsdl:message>
+    <wsdl:message name="addExternalClaimResponse"/>
+    <wsdl:message name="ClaimMetadataManagementServiceClaimMetadataException">
+        <wsdl:part name="parameters" element="ns1:ClaimMetadataManagementServiceClaimMetadataException"/>
+    </wsdl:message>
+    <wsdl:message name="getLocalClaimsRequest">
+        <wsdl:part name="parameters" element="ns1:getLocalClaims"/>
+    </wsdl:message>
+    <wsdl:message name="getLocalClaimsResponse">
+        <wsdl:part name="parameters" element="ns1:getLocalClaimsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getClaimDialectsRequest">
+        <wsdl:part name="parameters" element="ns1:getClaimDialects"/>
+    </wsdl:message>
+    <wsdl:message name="getClaimDialectsResponse">
+        <wsdl:part name="parameters" element="ns1:getClaimDialectsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="removeLocalClaimRequest">
+        <wsdl:part name="parameters" element="ns1:removeLocalClaim"/>
+    </wsdl:message>
+    <wsdl:message name="removeLocalClaimResponse"/>
+    <wsdl:message name="addLocalClaimRequest">
+        <wsdl:part name="parameters" element="ns1:addLocalClaim"/>
+    </wsdl:message>
+    <wsdl:message name="addLocalClaimResponse"/>
+    <wsdl:message name="removeClaimDialectRequest">
+        <wsdl:part name="parameters" element="ns1:removeClaimDialect"/>
+    </wsdl:message>
+    <wsdl:message name="removeClaimDialectResponse"/>
+    <wsdl:message name="updateLocalClaimRequest">
+        <wsdl:part name="parameters" element="ns1:updateLocalClaim"/>
+    </wsdl:message>
+    <wsdl:message name="updateLocalClaimResponse"/>
+    <wsdl:message name="removeExternalClaimRequest">
+        <wsdl:part name="parameters" element="ns1:removeExternalClaim"/>
+    </wsdl:message>
+    <wsdl:message name="removeExternalClaimResponse"/>
+    <wsdl:message name="getExternalClaimsRequest">
+        <wsdl:part name="parameters" element="ns1:getExternalClaims"/>
+    </wsdl:message>
+    <wsdl:message name="getExternalClaimsResponse">
+        <wsdl:part name="parameters" element="ns1:getExternalClaimsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="addClaimDialectRequest">
+        <wsdl:part name="parameters" element="ns1:addClaimDialect"/>
+    </wsdl:message>
+    <wsdl:message name="addClaimDialectResponse"/>
+    <wsdl:message name="updateExternalClaimRequest">
+        <wsdl:part name="parameters" element="ns1:updateExternalClaim"/>
+    </wsdl:message>
+    <wsdl:message name="updateExternalClaimResponse"/>
+    <wsdl:message name="renameClaimDialectRequest">
+        <wsdl:part name="parameters" element="ns1:renameClaimDialect"/>
+    </wsdl:message>
+    <wsdl:message name="renameClaimDialectResponse"/>
+    <wsdl:portType name="ClaimMetadataManagementServicePortType">
+        <wsdl:operation name="addExternalClaim">
+            <wsdl:input message="tns:addExternalClaimRequest" wsaw:Action="urn:addExternalClaim"/>
+            <wsdl:output message="tns:addExternalClaimResponse" wsaw:Action="urn:addExternalClaimResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:addExternalClaimClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getLocalClaims">
+            <wsdl:input message="tns:getLocalClaimsRequest" wsaw:Action="urn:getLocalClaims"/>
+            <wsdl:output message="tns:getLocalClaimsResponse" wsaw:Action="urn:getLocalClaimsResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:getLocalClaimsClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimDialects">
+            <wsdl:input message="tns:getClaimDialectsRequest" wsaw:Action="urn:getClaimDialects"/>
+            <wsdl:output message="tns:getClaimDialectsResponse" wsaw:Action="urn:getClaimDialectsResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:getClaimDialectsClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="removeLocalClaim">
+            <wsdl:input message="tns:removeLocalClaimRequest" wsaw:Action="urn:removeLocalClaim"/>
+            <wsdl:output message="tns:removeLocalClaimResponse" wsaw:Action="urn:removeLocalClaimResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:removeLocalClaimClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="addLocalClaim">
+            <wsdl:input message="tns:addLocalClaimRequest" wsaw:Action="urn:addLocalClaim"/>
+            <wsdl:output message="tns:addLocalClaimResponse" wsaw:Action="urn:addLocalClaimResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:addLocalClaimClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="removeClaimDialect">
+            <wsdl:input message="tns:removeClaimDialectRequest" wsaw:Action="urn:removeClaimDialect"/>
+            <wsdl:output message="tns:removeClaimDialectResponse" wsaw:Action="urn:removeClaimDialectResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:removeClaimDialectClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="updateLocalClaim">
+            <wsdl:input message="tns:updateLocalClaimRequest" wsaw:Action="urn:updateLocalClaim"/>
+            <wsdl:output message="tns:updateLocalClaimResponse" wsaw:Action="urn:updateLocalClaimResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:updateLocalClaimClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="removeExternalClaim">
+            <wsdl:input message="tns:removeExternalClaimRequest" wsaw:Action="urn:removeExternalClaim"/>
+            <wsdl:output message="tns:removeExternalClaimResponse" wsaw:Action="urn:removeExternalClaimResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:removeExternalClaimClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getExternalClaims">
+            <wsdl:input message="tns:getExternalClaimsRequest" wsaw:Action="urn:getExternalClaims"/>
+            <wsdl:output message="tns:getExternalClaimsResponse" wsaw:Action="urn:getExternalClaimsResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:getExternalClaimsClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="addClaimDialect">
+            <wsdl:input message="tns:addClaimDialectRequest" wsaw:Action="urn:addClaimDialect"/>
+            <wsdl:output message="tns:addClaimDialectResponse" wsaw:Action="urn:addClaimDialectResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:addClaimDialectClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="updateExternalClaim">
+            <wsdl:input message="tns:updateExternalClaimRequest" wsaw:Action="urn:updateExternalClaim"/>
+            <wsdl:output message="tns:updateExternalClaimResponse" wsaw:Action="urn:updateExternalClaimResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:updateExternalClaimClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+        <wsdl:operation name="renameClaimDialect">
+            <wsdl:input message="tns:renameClaimDialectRequest" wsaw:Action="urn:renameClaimDialect"/>
+            <wsdl:output message="tns:renameClaimDialectResponse" wsaw:Action="urn:renameClaimDialectResponse"/>
+            <wsdl:fault message="tns:ClaimMetadataManagementServiceClaimMetadataException" name="ClaimMetadataManagementServiceClaimMetadataException" wsaw:Action="urn:renameClaimDialectClaimMetadataManagementServiceClaimMetadataException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="ClaimMetadataManagementServiceSoap11Binding" type="tns:ClaimMetadataManagementServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="addExternalClaim">
+            <soap:operation soapAction="urn:addExternalClaim" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getLocalClaims">
+            <soap:operation soapAction="urn:getLocalClaims" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimDialects">
+            <soap:operation soapAction="urn:getClaimDialects" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeLocalClaim">
+            <soap:operation soapAction="urn:removeLocalClaim" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addLocalClaim">
+            <soap:operation soapAction="urn:addLocalClaim" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeClaimDialect">
+            <soap:operation soapAction="urn:removeClaimDialect" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateLocalClaim">
+            <soap:operation soapAction="urn:updateLocalClaim" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeExternalClaim">
+            <soap:operation soapAction="urn:removeExternalClaim" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getExternalClaims">
+            <soap:operation soapAction="urn:getExternalClaims" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addClaimDialect">
+            <soap:operation soapAction="urn:addClaimDialect" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateExternalClaim">
+            <soap:operation soapAction="urn:updateExternalClaim" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="renameClaimDialect">
+            <soap:operation soapAction="urn:renameClaimDialect" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="ClaimMetadataManagementServiceSoap12Binding" type="tns:ClaimMetadataManagementServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="addExternalClaim">
+            <soap12:operation soapAction="urn:addExternalClaim" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getLocalClaims">
+            <soap12:operation soapAction="urn:getLocalClaims" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimDialects">
+            <soap12:operation soapAction="urn:getClaimDialects" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeLocalClaim">
+            <soap12:operation soapAction="urn:removeLocalClaim" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addLocalClaim">
+            <soap12:operation soapAction="urn:addLocalClaim" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeClaimDialect">
+            <soap12:operation soapAction="urn:removeClaimDialect" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateLocalClaim">
+            <soap12:operation soapAction="urn:updateLocalClaim" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="removeExternalClaim">
+            <soap12:operation soapAction="urn:removeExternalClaim" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getExternalClaims">
+            <soap12:operation soapAction="urn:getExternalClaims" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="addClaimDialect">
+            <soap12:operation soapAction="urn:addClaimDialect" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateExternalClaim">
+            <soap12:operation soapAction="urn:updateExternalClaim" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="renameClaimDialect">
+            <soap12:operation soapAction="urn:renameClaimDialect" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="ClaimMetadataManagementServiceClaimMetadataException">
+                <soap12:fault use="literal" name="ClaimMetadataManagementServiceClaimMetadataException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="ClaimMetadataManagementServiceHttpBinding" type="tns:ClaimMetadataManagementServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="addExternalClaim">
+            <http:operation location="addExternalClaim"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getLocalClaims">
+            <http:operation location="getLocalClaims"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getClaimDialects">
+            <http:operation location="getClaimDialects"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="removeLocalClaim">
+            <http:operation location="removeLocalClaim"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addLocalClaim">
+            <http:operation location="addLocalClaim"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="removeClaimDialect">
+            <http:operation location="removeClaimDialect"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateLocalClaim">
+            <http:operation location="updateLocalClaim"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="removeExternalClaim">
+            <http:operation location="removeExternalClaim"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getExternalClaims">
+            <http:operation location="getExternalClaims"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addClaimDialect">
+            <http:operation location="addClaimDialect"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateExternalClaim">
+            <http:operation location="updateExternalClaim"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="renameClaimDialect">
+            <http:operation location="renameClaimDialect"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="ClaimMetadataManagementService">
+        <wsdl:port name="ClaimMetadataManagementServiceHttpsSoap11Endpoint" binding="tns:ClaimMetadataManagementServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/ClaimMetadataManagementService.ClaimMetadataManagementServiceHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="ClaimMetadataManagementServiceHttpsSoap12Endpoint" binding="tns:ClaimMetadataManagementServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/ClaimMetadataManagementService.ClaimMetadataManagementServiceHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="ClaimMetadataManagementServiceHttpsEndpoint" binding="tns:ClaimMetadataManagementServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/ClaimMetadataManagementService.ClaimMetadataManagementServiceHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

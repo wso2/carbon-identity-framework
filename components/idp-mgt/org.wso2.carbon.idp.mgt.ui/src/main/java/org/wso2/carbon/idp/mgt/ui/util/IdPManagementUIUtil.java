@@ -28,6 +28,7 @@ import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.Claim;
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ClaimConfig;
@@ -57,6 +58,8 @@ public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
 
+    private static final String META_DATA_SAML = "meta_data_saml";
+
     /**
      * Validates an URI.
      *
@@ -82,14 +85,14 @@ public class IdPManagementUIUtil {
 
     /**
      * Build a federated identity provider.
-     * @param request HttpServletRequest
+     *
+     * @param request    HttpServletRequest
      * @param oldIdpName This value will be populated if there is an old IDP.
      * @return IdentityProvider
      * @throws Exception
      */
     public static IdentityProvider buildFederatedIdentityProvider(HttpServletRequest request, StringBuilder oldIdpName)
             throws Exception {
-
         IdentityProvider fedIdp = new IdentityProvider();
 
         if (ServletFileUpload.isMultipartContent(request)) {
@@ -114,11 +117,17 @@ public class IdPManagementUIUtil {
                 if (diskFileItem != null) {
                     byte[] value = diskFileItem.get();
                     String key = diskFileItem.getFieldName();
-
                     if (StringUtils.equals(key, "idpUUID")) {
                         idpUUID = diskFileItem.getString();
                     }
+                    if (IdPManagementUIUtil.META_DATA_SAML.equals(key)) {
 
+                        if (StringUtils.isNotEmpty(diskFileItem.getName())  && !diskFileItem.getName().trim().endsWith(".xml")) {
+                            throw new CarbonException("File not supported!");
+                        } else {
+                            paramMap.put(key, Base64.encode(value));
+                        }
+                    }
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if ("google_prov_private_key".equals(key)) {
@@ -347,7 +356,7 @@ public class IdPManagementUIUtil {
             objectClass.setValue(paramMap.get("spml-oc"));
         }
 
-        if (paramMap.get("spml-unique-id") != null){
+        if (paramMap.get("spml-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("spml-unique-id"));
@@ -495,7 +504,7 @@ public class IdPManagementUIUtil {
             googleProvSeparator.setValue(paramMap.get("google_prov_separator"));
         }
 
-        if (paramMap.get("google-unique-id") != null){
+        if (paramMap.get("google-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("google-unique-id"));
@@ -592,7 +601,7 @@ public class IdPManagementUIUtil {
             defaultPwdProp.setValue(paramMap.get("scim-default-pwd"));
         }
 
-        if (paramMap.get("scim-unique-id") != null){
+        if (paramMap.get("scim-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("scim-unique-id"));
@@ -717,7 +726,7 @@ public class IdPManagementUIUtil {
             provisioningDomain.setValue(paramMap.get("sf-prov-domainName"));
         }
 
-        if (paramMap.get("sf-unique-id") != null){
+        if (paramMap.get("sf-unique-id") != null) {
             uniqueID = new Property();
             uniqueID.setName("UniqueID");
             uniqueID.setValue(paramMap.get("sf-unique-id"));
@@ -1065,7 +1074,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(facebookAuthnConfig);
         }
 
-        Property[] properties = new Property[7];
+        Property[] properties = new Property[8];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("fbClientId"));
@@ -1105,6 +1114,11 @@ public class IdPManagementUIUtil {
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.USER_INFO_ENDPOINT);
         property.setValue(paramMap.get("fbUserInfoEndpoint"));
         properties[6] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.Facebook.CALLBACK_URL);
+        property.setValue(paramMap.get("fbCallBackUrl"));
+        properties[7] = property;
 
         facebookAuthnConfig.setProperties(properties);
 
@@ -1225,7 +1239,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(passiveSTSAuthnConfig);
         }
 
-        Property[] properties = new Property[4];
+        Property[] properties = new Property[6];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.REALM_ID);
         property.setValue(paramMap.get("passiveSTSRealm"));
@@ -1237,11 +1251,31 @@ public class IdPManagementUIUtil {
         properties[1] = property;
 
         property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS);
+        property.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.IS_USER_ID_IN_CLAIMS);
         properties[2] = property;
         if ("1".equals(paramMap.get("passive_sts_user_id_location"))) {
             property.setValue("true");
             ;
+        } else {
+            property.setValue("false");
+        }
+
+        property = new Property();
+        property.setName(
+                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
+        properties[3] = property;
+        if ("on".equals(paramMap.get("isEnablePassiveSTSAssertionSignatureValidation"))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+
+        property = new Property();
+        property.setName(
+                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_AUDIENCE_VALIDATION);
+        properties[4] = property;
+        if ("on".equals(paramMap.get("isEnablePassiveSTSAssertionAudienceValidation"))) {
+            property.setValue("true");
         } else {
             property.setValue("false");
         }
@@ -1253,7 +1287,7 @@ public class IdPManagementUIUtil {
                 && paramMap.get("passiveSTSQueryParam").trim().length() > 0) {
             property.setValue(paramMap.get("passiveSTSQueryParam"));
         }
-        properties[3] = property;
+        properties[5] = property;
 
         passiveSTSAuthnConfig.setProperties(properties);
 
@@ -1377,6 +1411,14 @@ public class IdPManagementUIUtil {
         FederatedAuthenticatorConfig saml2SSOAuthnConfig = new FederatedAuthenticatorConfig();
         saml2SSOAuthnConfig.setName("SAMLSSOAuthenticator");
         saml2SSOAuthnConfig.setDisplayName("samlsso");
+        if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
+            saml2SSOAuthnConfig.setEnabled(true);
+        }
+
+        if ("on".equals(paramMap.get("saml2SSODefault"))) {
+            fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
+        }
+        Property[] properties  = new Property[25];
 
         if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
             saml2SSOAuthnConfig.setEnabled(true);
@@ -1386,7 +1428,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
         }
 
-        Property[] properties = new Property[24];
+
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
         property.setValue(paramMap.get("idPEntityId"));
@@ -1485,13 +1527,13 @@ public class IdPManagementUIUtil {
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD));
         properties[12] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM));
         properties[13] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.DIGEST_ALGORITHM);
         property.setValue(paramMap
@@ -1527,14 +1569,14 @@ public class IdPManagementUIUtil {
         properties[18] = property;
 
         String authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
-        if(IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)){
+        if (IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
             authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
         }
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
         property.setValue(authenticationContextClass);
         properties[19] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
         property.setValue(paramMap
@@ -1550,13 +1592,13 @@ public class IdPManagementUIUtil {
             property.setValue("false");
         }
         properties[21] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT);
         property.setValue(paramMap
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT));
         properties[22] = property;
-        
+
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING);
         if ("on".equals(paramMap
@@ -1566,18 +1608,36 @@ public class IdPManagementUIUtil {
             property.setValue("false");
         }
         properties[23] = property;
-        
+
+        property = new Property();
+        property.setName(IdPManagementUIUtil.META_DATA_SAML);
+        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
+            property.setValue(paramMap.get(IdPManagementUIUtil.META_DATA_SAML));
+        } else {
+            property.setValue(null);
+        }
+        properties[24] = property;
+
+
         saml2SSOAuthnConfig.setProperties(properties);
 
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
-
-        if (paramMap.get("ssoUrl") != null && !"".equals(paramMap.get("ssoUrl"))
-                && paramMap.get("idPEntityId") != null && !"".equals(paramMap.get("idPEntityId"))) {
+        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
             if (authenticators == null || authenticators.length == 0) {
                 fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig});
             } else {
                 fedIdp.setFederatedAuthenticatorConfigs(concatArrays(
                         new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig}, authenticators));
+            }
+        } else {
+            if (paramMap.get("ssoUrl") != null && !"".equals(paramMap.get("ssoUrl"))
+                    && paramMap.get("idPEntityId") != null && !"".equals(paramMap.get("idPEntityId"))) {
+                if (authenticators == null || authenticators.length == 0) {
+                    fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig});
+                } else {
+                    fedIdp.setFederatedAuthenticatorConfigs(concatArrays(
+                            new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig}, authenticators));
+                }
             }
         }
     }
@@ -1737,7 +1797,7 @@ public class IdPManagementUIUtil {
      * @return
      */
     public static List<Property> getPropertySetStartsWith(Property[] properties, String startWith) {
-        List<Property> propertySet = new ArrayList<>();
+        List<Property> propertySet = new ArrayList<Property>();
         for (Property property : properties) {
             if (property.getName().startsWith(startWith)) {
                 propertySet.add(property);

@@ -46,10 +46,14 @@ public class IdentityProcessCoordinator {
 
     private IdentityProcessor getIdentityProcessor(IdentityRequest identityRequest) {
         List<IdentityProcessor> processors = FrameworkServiceDataHolder.getInstance().getIdentityProcessors();
-        Collections.sort(processors, new HandlerComparator());
         for (IdentityProcessor requestProcessor : processors) {
-            if (requestProcessor.canHandle(identityRequest)) {
-                return requestProcessor;
+            try {
+                if (requestProcessor.canHandle(identityRequest)) {
+                    return requestProcessor;
+                }
+            } catch (Exception e) {
+                log.error("Error occurred while checking if " + requestProcessor.getName() + " can handle " +
+                          identityRequest.toString());
             }
         }
         return null;

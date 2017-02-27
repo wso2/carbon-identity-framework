@@ -20,6 +20,11 @@ package org.wso2.carbon.identity.entitlement.ui;
 /**
  * Policy editor related constants
  */
+
+/**
+ *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
+ */
+@Deprecated
 public class PolicyEditorConstants {
 
 

@@ -466,7 +466,8 @@ public class LDAPServerStoreManager {
 
     private String getServicePrincipleFilter(String servicePrincipleName) {
 
-        String serverNameInRealm = getFullyQualifiedPrincipalName(servicePrincipleName);
+        String serverNameInRealm = getFullyQualifiedPrincipalName(
+                LDAPServerStoreManagerUtil.escapeSpecialCharactersForFilter(servicePrincipleName));
         return "(&(" + LDAPServerManagerConstants.KRB5_PRINCIPAL_NAME_ATTRIBUTE + "=" + serverNameInRealm + ")" +
                getServerPrincipleIncludeString() + ")";
     }

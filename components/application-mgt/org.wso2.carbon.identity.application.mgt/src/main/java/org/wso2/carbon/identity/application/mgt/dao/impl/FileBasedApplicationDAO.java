@@ -49,6 +49,11 @@ public class FileBasedApplicationDAO implements ApplicationDAO {
     }
 
     @Override
+    public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
+        throw new IdentityApplicationManagementException("Not supported in file based dao.");
+    }
+
+    @Override
     public ApplicationBasicInfo[] getAllApplicationBasicInfo()
             throws IdentityApplicationManagementException {
         Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent

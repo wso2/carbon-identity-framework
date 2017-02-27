@@ -52,7 +52,32 @@
        <param-name>IdentityManagementEndpointContextURL</param-name>
        <param-value>https://localhost:9443/accountrecoveryendpoint</param-value>
    </context-param-->
+    <context-param>
+       <param-name>AccountRecoveryRESTEndpointURL</param-name>
+       <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v0.9/</param-value>
+   </context-param>
     <!-- *************** End of Account Recovery Endpoint Context URL Configuration ********************** -->
+
+    <!--Display scopes in the consent page.-->
+    <context-param>
+        <param-name>displayScopes</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <filter>
+        <filter-name>HttpHeaderSecurityFilter</filter-name>
+        <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+        <init-param>
+            <param-name>hstsEnabled</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>HttpHeaderSecurityFilter</filter-name>
+        <url-pattern>*</url-pattern>
+    </filter-mapping>
+
     <filter>
         <filter-name>AuthenticationEndpointFilter</filter-name>
         <filter-class>
@@ -65,26 +90,6 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <filter>
-        <filter-name>CRLFPreventionFilter</filter-name>
-        <filter-class>org.wso2.carbon.ui.filters.CRLFPreventionFilter</filter-class>
-    </filter>
-
-    <filter-mapping>
-        <filter-name>CRLFPreventionFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
-    <filter>
-        <filter-name>CSRFPreventionFilter</filter-name>
-        <filter-class>org.wso2.carbon.ui.filters.CSRFPreventionFilter</filter-class>
-    </filter>
-
-    <filter-mapping>
-        <filter-name>CSRFPreventionFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
     <listener>
         <listener-class>
             org.wso2.carbon.identity.application.authentication.endpoint.util.listener.AuthenticationEndpointContextListener
@@ -94,6 +99,11 @@
     <servlet>
         <servlet-name>retry.do</servlet-name>
         <jsp-file>/retry.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>claims.do</servlet-name>
+        <jsp-file>/requested-claims.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -249,6 +259,11 @@
     <servlet-mapping>
         <servlet-name>registration.do</servlet-name>
         <url-pattern>/registration.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>claims.do</servlet-name>
+        <url-pattern>/claims.do</url-pattern>
     </servlet-mapping>
 
     <error-page>

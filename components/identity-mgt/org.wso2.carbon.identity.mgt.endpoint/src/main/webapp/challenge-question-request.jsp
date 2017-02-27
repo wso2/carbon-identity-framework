@@ -17,63 +17,76 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.apache.commons.lang.ArrayUtils" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.UserInformationRecoveryClient" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.ChallengeQuestionIdsDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesCollectionDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ChallengeQuestionsResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ErrorResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.ChallengeQuestion" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.model.UserChallengeAnswer" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.serviceclient.PasswordRecoverySecurityQuestionClient" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="org.wso2.carbon.identity.mgt.beans.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SecurityQuestionApi" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
 
 <%
     String username = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("username"));
-    PasswordRecoverySecurityQuestionClient pwRecoverySecurityQuestionClient = new PasswordRecoverySecurityQuestionClient();
-    ErrorResponse errorResponse = (ErrorResponse)session.getAttribute("errorResponse");
-    ChallengeQuestion[] challengeQuestions = null;
+    RetryError errorResponse = (RetryError) request.getAttribute("errorResponse");
+    List<Question> challengeQuestions = null;
 
-    if(errorResponse != null) {
-        username = ((User)session.getAttribute("user")).getUserName();
+    if (errorResponse != null) {
+        username = (String) session.getAttribute("username");
     }
     if (StringUtils.isNotBlank(username)) {
         if (Boolean.parseBoolean(application.getInitParameter(
                 IdentityManagementEndpointConstants.ConfigConstants.PROCESS_ALL_SECURITY_QUESTIONS))) {
             User user = IdentityManagementServiceUtil.getInstance().getUser(username);
-            session.setAttribute("user", user);
-            Response responseJAXRS = pwRecoverySecurityQuestionClient.initiateUserChallengeQuestionAtOnce(user);
 
-            int statusCode = responseJAXRS.getStatus();
-            if(Response.Status.OK.getStatusCode() == statusCode) {
-                ChallengeQuestionsResponse challengeQuestionsResponse = responseJAXRS.readEntity(ChallengeQuestionsResponse.class);
-                session.setAttribute("challengeQuestionsResponse", challengeQuestionsResponse);
-                challengeQuestions = challengeQuestionsResponse.getQuestion();
-            } else if (Response.Status.BAD_REQUEST.getStatusCode() == statusCode || Response.Status.INTERNAL_SERVER_ERROR.getStatusCode() == statusCode) {
-                ErrorResponse errorResponseFetchChallengeQuestions = responseJAXRS.readEntity(ErrorResponse.class);
+            try {
+                SecurityQuestionApi securityQuestionApi = new SecurityQuestionApi();
+                InitiateAllQuestionResponse initiateAllQuestionResponse = securityQuestionApi.securityQuestionsGet(user.getUsername(),
+                        user.getRealm(), user.getTenantDomain());
+                IdentityManagementEndpointUtil.addReCaptchaHeaders(request, securityQuestionApi.getApiClient().getResponseHeaders());
+                session.setAttribute("initiateAllQuestionResponse", initiateAllQuestionResponse);
+
+                challengeQuestions = initiateAllQuestionResponse.getQuestions();
+            } catch (ApiException e) {
+                if (e.getCode() == 204) {
+
+                    //No questions found
+                    request.setAttribute("error", true);
+                    request.setAttribute("errorMsg",
+                            "No Security Questions Found to recover password. Please contact your system Administrator");
+                    request.setAttribute("errorCode", "18017");
+                    request.getRequestDispatcher("error.jsp").forward(request, response);
+                    return;
+
+                }
+                IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
+                Error error = new Gson().fromJson(e.getMessage(), Error.class);
                 request.setAttribute("error", true);
-                request.setAttribute("errorMsg", errorResponseFetchChallengeQuestions.getMessage());
+                if (error != null) {
+                    request.setAttribute("errorMsg", error.getDescription());
+                    request.setAttribute("errorCode", error.getCode());
+                }
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
+
         } else {
             request.getRequestDispatcher("challenge-question-process.jsp?username=" + username).forward(request,
-                            response);
+                    response);
         }
     } else {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg", "Username is missing.");
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
+    }
+
+    boolean reCaptchaEnabled = false;
+    if (request.getAttribute("reCaptcha") != null && "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
+        reCaptchaEnabled = true;
     }
 %>
 <fmt:bundle basename="org.wso2.carbon.identity.mgt.endpoint.i18n.Resources">
@@ -92,6 +105,14 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+
+        <%
+            if (reCaptchaEnabled) {
+        %>
+        <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
     </head>
 
     <body>
@@ -116,15 +137,15 @@
         <div class="row">
             <!-- content -->
             <div class="col-xs-12 col-sm-10 col-md-8 col-lg-5 col-centered wr-login">
-             <%
-                if(errorResponse != null) {
-             %>
+                <%
+                    if (errorResponse != null) {
+                %>
                 <div class="alert alert-danger" id="server-error-msg">
-                    <%=errorResponse.getMessage()%>
+                    <%=errorResponse.getDescription()%>
                 </div>
-             <%
-                }
-             %>
+                <%
+                    }
+                %>
                 <div class="clearfix"></div>
                 <div class="boarder-all ">
 
@@ -133,14 +154,15 @@
                             <%
                                 int count = 0;
                                 if (challengeQuestions != null) {
-                                    for (ChallengeQuestion challengeQuestion : challengeQuestions) {
+                                    for (Question challengeQuestion : challengeQuestions) {
                             %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
                                 <label class="control-label"><%=Encode.forHtml(challengeQuestion.getQuestion())%>
                                 </label>
                             </div>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-                                <input name="<%=Encode.forHtmlAttribute(challengeQuestion.getQuestionSetId())%>" type="text"
+                                <input name="<%=Encode.forHtmlAttribute(challengeQuestion.getQuestionSetId())%>"
+                                       type="text"
                                        class="form-control"
                                        tabindex="0" autocomplete="off" required/>
                             </div>
@@ -148,7 +170,17 @@
                                     }
                                 }
                             %>
-
+                            <%
+                                if (reCaptchaEnabled) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <div class="g-recaptcha"
+                                     data-sitekey="<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                </div>
+                            </div>
+                            <%
+                                }
+                            %>
                             <div class="form-actions">
                                 <button id="answerSubmit"
                                         class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"

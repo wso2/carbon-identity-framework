@@ -179,7 +179,7 @@
     jQuery(document).ready(function () {
         jQuery('#domainId').keyup(function () {
                     $('#userStoreTypeSub strong').html(
-                            $(this).val()
+                      htmlEncode($(this).val())
                     );
                 }
         );
@@ -355,6 +355,16 @@
             }
         }
         return true;
+    }
+
+    function htmlEncode(value) {
+        // Create a in-memory div, set it's inner text(which jQuery automatically encodes)
+        // then grab the encoded contents back out.  The div never exists on the page.
+        var output = $('<div/>').text(value).html();
+        output = output.replace(/"/g,"&quot;");
+        output = output.replace(/'/g,'&#39;');
+
+        return output;
     }
 
 
@@ -535,7 +545,7 @@
                                    class="checkbox"/>
                             <%
                             } else if (propertyName.endsWith("password") || propertyName.endsWith("Password")) { %>
-                            <input type="password" name=<%=value%>
+                            <input autocomplete="off" type="password" name=<%=value%>
                             id=<%=value%> style="width:95%"
                                    value="<%=propertyValue%>"/>
                             <%
@@ -881,8 +891,8 @@
             var connectionPassword = document.getElementById("propertyValue_3").value;
             var driverName = document.getElementById("propertyValue_4").value;
 
-			var url = 'validateconnection-ajaxprocessor.jsp?' +
-                    '&domainName=' + encodeURIComponent(domainName) +
+            var url = 'validateconnection-ajaxprocessor.jsp?';
+            var data = '&domainName=' + encodeURIComponent(domainName) +
                     '&driverName=' + encodeURIComponent(driverName) +
                     '&connectionURL=' + encodeURIComponent(connectionURL) +
                     '&username=' + encodeURIComponent(username) +
@@ -891,21 +901,24 @@
             <%if(messageID != null && !"".equals(messageID)) {%>
             url += '&messageID=<%=messageID%>';
             <%}%>
-		
-			$.ajax({
-				  url: url,
-				  context: document.body
-				}).done(function(msg) {
-					var successMsg  =  new RegExp("true");
-		        	if (msg.search(successMsg)==-1) //if match failed
-		        	{
-		        		CARBON.showErrorDialog(msg);
-		        	} else {
-		        		CARBON.showInfoDialog("Connection is healthy");
-		        	}
-				}).fail(function(){
-					CARBON.showErrorDialog("Error while testing the connection");
-				});
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: data,
+                dataType: "text",
+                context: document.body
+            }).done(function (msg) {
+                var successMsg = new RegExp("true");
+                if (msg.search(successMsg) == -1) //if match failed
+                {
+                    CARBON.showErrorDialog(msg);
+                } else {
+                    CARBON.showInfoDialog("Connection is healthy");
+                }
+            }).fail(function () {
+                CARBON.showErrorDialog("Error while testing the connection");
+            });
 		}
 		
 		

@@ -43,12 +43,7 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
-import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
-import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.*;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -61,6 +56,7 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -172,6 +168,8 @@ public class IdentityUtil {
     public static IdentityCookieConfig getIdentityCookieConfig(String cookieName)   {
         return identityCookiesConfigurationHolder.get(cookieName);
     }
+
+
 
     public static Map<String, IdentityCookieConfig> getIdentityCookiesConfigurationHolder() {
         return identityCookiesConfigurationHolder;
@@ -792,7 +790,51 @@ public class IdentityUtil {
 
     public static String buildQueryString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
 
-        StringBuilder queryString = new StringBuilder("?");
+        return "?" + buildQueryComponent(parameterMap);
+    }
+
+    public static String buildFragmentString(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
+
+        return "#" + buildQueryComponent(parameterMap);
+    }
+
+    public static String buildQueryUrl(String baseUrl, Map<String, String[]> parameterMap) throws
+                                                                                              UnsupportedEncodingException {
+
+
+        if(StringUtils.isBlank(baseUrl)) {
+            throw IdentityRuntimeException.error("Base URL is blank: " + baseUrl);
+        } else if(baseUrl.contains("#")) {
+            throw IdentityRuntimeException.error("Query URL cannot contain \'#\': " + baseUrl);
+        }
+        StringBuilder queryString = new StringBuilder(baseUrl);
+        if(queryString.indexOf("?") < 0) {
+            queryString.append("?");
+        }
+        queryString.append(buildQueryComponent(parameterMap));
+        return queryString.toString();
+    }
+
+    public static String buildFragmentUrl(String baseUrl, Map<String, String[]> parameterMap) throws
+                                                                                    UnsupportedEncodingException {
+
+
+        if(StringUtils.isBlank(baseUrl)) {
+            throw IdentityRuntimeException.error("Base URL is blank: " + baseUrl);
+        } else if(baseUrl.contains("?")) {
+            throw IdentityRuntimeException.error("Fragment URL cannot contain \'?\': " + baseUrl);
+        }
+        StringBuilder queryString = new StringBuilder(baseUrl);
+        if(queryString.indexOf("#") < 0) {
+            queryString.append("#");
+        }
+        queryString.append(buildQueryComponent(parameterMap));
+        return queryString.toString();
+    }
+
+    public static String buildQueryComponent(Map<String, String[]> parameterMap) throws UnsupportedEncodingException {
+
+        StringBuilder queryString = new StringBuilder("");
         boolean isFirst = true;
         for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
             for (String paramValue : entry.getValue()) {
@@ -808,5 +850,48 @@ public class IdentityUtil {
             }
         }
         return queryString.toString();
+    }
+
+    /**
+     * Get client IP address from the http request
+     *
+     * @param request http servlet request
+     * @return IP address of the initial client
+     */
+    public static String getClientIpAddress(HttpServletRequest request) {
+        for (String header : IdentityConstants.HEADERS_WITH_IP) {
+            String ip = request.getHeader(header);
+            if (ip != null && ip.length() != 0 && !IdentityConstants.UNKNOWN.equalsIgnoreCase(ip)) {
+                return getFirstIP(ip);
+            }
+        }
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * Get the first IP from a comma separated list of IPs
+     *
+     * @param commaSeparatedIPs String which contains comma+space separated IPs
+     * @return First IP
+     */
+    public static String getFirstIP(String commaSeparatedIPs) {
+        if (StringUtils.isNotEmpty(commaSeparatedIPs) && commaSeparatedIPs.contains(",")) {
+            return commaSeparatedIPs.split(",")[0];
+        }
+        return commaSeparatedIPs;
+    }
+
+    /**
+     * Get the server synchronization tolerance value in seconds
+     *
+     * @return clock skew in seconds
+     */
+    public static int getClockSkewInSeconds() {
+
+        String clockSkewConfigValue = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLOCK_SKEW);
+        if (StringUtils.isBlank(clockSkewConfigValue) || !StringUtils.isNumeric(clockSkewConfigValue)) {
+            clockSkewConfigValue = IdentityConstants.ServerConfig.CLOCK_SKEW_DEFAULT;
+        }
+        return Integer.parseInt(clockSkewConfigValue);
     }
 }

@@ -33,6 +33,10 @@ public class MessageHandlerComparator implements Comparator<IdentityMessageHandl
         this.messageContext = messageContext;
     }
 
+    public MessageHandlerComparator(){
+
+    }
+
     @Override
     public int compare(IdentityMessageHandler o1, IdentityMessageHandler o2) {
 

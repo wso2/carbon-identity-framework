@@ -75,6 +75,11 @@ import java.util.UUID;
 /**
  * Util class that helps to create the XACML policy which is defined by the XACML basic policy editor
  */
+
+/**
+ *  @deprecated  As this moved to org.wso2.carbon.identity.entitlement.common
+ */
+@Deprecated
 public class PolicyEditorUtil {
 
     private static Log log = LogFactory.getLog(PolicyEditorUtil.class);

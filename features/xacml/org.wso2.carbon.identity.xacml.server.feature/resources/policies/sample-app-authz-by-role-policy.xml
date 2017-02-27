@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="travelocity-auth-by-role-policy"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable" Version="1.0">
+    <Description>This is a reference policy for service provider authorization by role. This will only allow users in
+        admin role to login to travelocity SP and anyone else will be denied.
+    </Description>
+    <Target>
+        <AnyOf>
+            <AllOf>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">travelocity</AttributeValue>
+                    <AttributeDesignator AttributeId="http://wso2.org/identity/sp/sp-name"
+                                         Category="http://wso2.org/identity/sp"
+                                         DataType="http://www.w3.org/2001/XMLSchema#string"
+                                         MustBePresent="true"></AttributeDesignator>
+                </Match>
+                <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                    <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">authenticate</AttributeValue>
+                    <AttributeDesignator AttributeId="http://wso2.org/identity/identity-action/action-name"
+                                         Category="http://wso2.org/identity/identity-action"
+                                         DataType="http://www.w3.org/2001/XMLSchema#string"
+                                         MustBePresent="true"></AttributeDesignator>
+                </Match>
+            </AllOf>
+        </AnyOf>
+    </Target>
+    <Rule Effect="Permit" RuleId="allow-if-in-admin">
+        <Condition>
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:string-is-in">
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">admin</AttributeValue>
+                <AttributeDesignator AttributeId="http://wso2.org/claims/role"
+                                     Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject"
+                                     DataType="http://www.w3.org/2001/XMLSchema#string"
+                                     MustBePresent="true"></AttributeDesignator>
+            </Apply>
+        </Condition>
+    </Rule>
+    <Rule Effect="Deny" RuleId="deny-all-others"></Rule>
+</Policy>

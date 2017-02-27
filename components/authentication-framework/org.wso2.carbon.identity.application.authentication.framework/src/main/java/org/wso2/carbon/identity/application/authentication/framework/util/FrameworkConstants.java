@@ -34,6 +34,7 @@ public abstract class FrameworkConstants {
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
+    public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";
     public static final String LOCAL_IDP_NAME = "LOCAL";
     public static final String FEDERATED_IDP_NAME = "FEDERATED";
     public static final String REQ_ATTR_HANDLED = "commonAuthHandled";
@@ -61,6 +62,12 @@ public abstract class FrameworkConstants {
     public static final String SHOW_AUTHFAILURE_RESON_CONFIG = "showAuthFailureReason";
     public static final String AUTHENTICATED_USER = "AuthenticatedUser";
     public static final String CREATED_TIMESTAMP = "CreatedTimestamp";
+    public static final String UPDATED_TIMESTAMP = "UpdatedTimestamp";
+
+    public static final String POST_AUTHENTICATION_EXTENSION_COMPLETED = "postAuthenticationExtensionCompleted";
+    public static final String POST_AUTHENTICATION_REDIRECTION_TRIGGERED = "postAuthenticationRedirectionTriggered";
+    public static final String MISSING_CLAIMS = "missingClaims";
+    public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
 
     private FrameworkConstants() {
 
@@ -129,6 +136,9 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_CLAIM_HANDLER = "ClaimHandler";
         public static final String QNAME_EXT_ROLE_HANDLER = "ClaimHandler";
         public static final String QNAME_EXT_PROVISIONING_HANDLER = "ProvisioningHandler";
+        public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
+        public static final String QNAME_EXT_POST_AUTHENTICATION_HANDLER = "PostAuthenticationHandler";
+
         private Config() {
         }
 
@@ -151,6 +161,9 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATOR = "authenticator";
         public static final String FLOW_STATUS = "authenticatorFlowStatus";
         public static final String TO_COMMONAUTH = "tocommonauth";
+        public static final String MAX_AGE = "max_age";
+        public static final String MANDOTARY_CLAIM_PREFIX = "claim_mand_";
+
         private RequestParams() {
         }
     }
@@ -162,6 +175,7 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATED_IDPS = "authenticatedIdPs";
         public static final String LOGGED_OUT = "commonAuthLoggedOut";
         public static final String USER_ATTRIBUTES = "userAttributes";
+
         private ResponseParams() {
         }
     }
@@ -174,6 +188,7 @@ public abstract class FrameworkConstants {
         public static final String CLAIM_TYPE_SAML_SSO = "samlsso";
         public static final String CLAIM_TYPE_SCIM = "scim";
         public static final String CLAIM_TYPE_OIDC = "oidc";
+
         private RequestType() {
         }
     }
@@ -188,12 +203,17 @@ public abstract class FrameworkConstants {
         }
     }
 
-    public static class PublisherParamNames {
+    public static class AnalyticsAttributes {
 
         public static final String USER = "user";
         public static final String SESSION_ID = "sessionId";
         public static final String IS_FEDERATED = "isFederated";
+        public static final String IS_INITIAL_LOGIN = "isInitialLogin";
         public static final String HAS_FEDERATED_STEP = "hasFederatedStep";
         public static final String HAS_LOCAL_STEP = "hasLocalStep";
+        public static final String AUTHN_DATA_PUBLISHER_PROXY = "AuthnDataPublisherProxy";
+        public static final String SESSION_CREATE = "sessionCreated";
+        public static final String SESSION_UPDATE = "sessionUpdated";
+        public static final String SESSION_TERMINATE = "sessionTerminated";
     }
 }
