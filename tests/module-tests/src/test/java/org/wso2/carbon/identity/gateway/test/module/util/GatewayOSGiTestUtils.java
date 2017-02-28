@@ -193,6 +193,16 @@ public class GatewayOSGiTestUtils {
                 .artifactId("msf4j-core")
                 .versionAsInProject());
 
+        defaultOptionList.add(mavenBundle().
+                groupId("org.wso2.msf4j").
+                artifactId("jaxrs-delegates")
+                .versionAsInProject().noStart());
+
+        defaultOptionList.add(mavenBundle()
+                .groupId("commons-codec.wso2")
+                .artifactId("commons-codec")
+                .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.deployment")
                 .artifactId("org.wso2.carbon.deployment.engine")
