@@ -31,8 +31,8 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
+import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
 import org.wso2.carbon.identity.gateway.processor.handler.session.AbstractSessionHandler;
@@ -200,11 +200,11 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
      * @param authenticationContext
      * @return
      * @throws AuthenticationHandlerException
-     * @throws RequestHandlerException
+     * @throws RequestValidatorException
      */
     protected FrameworkHandlerResponse validate(AuthenticationContext authenticationContext)
-            throws AuthenticationHandlerException, RequestHandlerException {
-        AbstractRequestHandler protocolRequestHandler =
+            throws RequestValidatorException {
+        AbstractRequestValidator protocolRequestHandler =
                 HandlerManager.getInstance().getProtocolRequestHandler(authenticationContext);
         return protocolRequestHandler.validate(authenticationContext);
     }

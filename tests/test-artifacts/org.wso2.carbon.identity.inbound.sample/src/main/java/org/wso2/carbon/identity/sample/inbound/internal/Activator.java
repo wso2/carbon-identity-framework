@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.sample.inbound.request.SampleProtocolIdentityRequestBuilderFactory;
 import org.wso2.carbon.identity.sample.inbound.response.SampleProtocolResponseBuilderFactory;
@@ -43,7 +43,7 @@ public class Activator implements BundleActivator {
         try {
             bundleContext.registerService(GatewayRequestBuilderFactory.class, new SampleProtocolIdentityRequestBuilderFactory(), null);
             bundleContext.registerService(GatewayResponseBuilderFactory.class, new SampleProtocolResponseBuilderFactory(), null);
-            bundleContext.registerService(AbstractRequestHandler.class, new SampleProtocolValidator(), null);
+            bundleContext.registerService(AbstractRequestValidator.class, new SampleProtocolValidator(), null);
             bundleContext.registerService(AbstractResponseHandler.class, new SampleProtocolResponseHandler(), null);
         } catch (Throwable e) {
             System.out.println("Error while activating saml inbound component");

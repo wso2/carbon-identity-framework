@@ -19,12 +19,12 @@ package org.wso2.carbon.identity.gateway.processor.handler.request;
 
 import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
 
-public class RequestHandlerException extends GatewayHandlerException {
-    public RequestHandlerException(String message) {
+public class RequestValidatorException extends GatewayHandlerException {
+    public RequestValidatorException(String message) {
         super(message);
     }
 
-    public RequestHandlerException(String message, Throwable cause) {
+    public RequestValidatorException(String message, Throwable cause) {
         super(message, cause);
     }
 }

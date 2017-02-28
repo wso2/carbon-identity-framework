@@ -22,7 +22,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 
 import java.util.List;
@@ -68,16 +68,16 @@ public class HandlerManager {
     }
 
 
-    public AbstractRequestHandler getProtocolRequestHandler(GatewayMessageContext messageContext) {
-        List<AbstractRequestHandler> protocolRequestHandlers =
+    public AbstractRequestValidator getProtocolRequestHandler(GatewayMessageContext messageContext) {
+        List<AbstractRequestValidator> protocolRequestHandlers =
                 FrameworkServiceDataHolder.getInstance().getRequestHandlers();
         if(protocolRequestHandlers != null) {
-            for (AbstractRequestHandler protocolRequestHandler : protocolRequestHandlers) {
+            for (AbstractRequestValidator protocolRequestHandler : protocolRequestHandlers) {
                 if (protocolRequestHandler.canHandle(messageContext)) {
                     return protocolRequestHandler;
                 }
             }
         }
-        throw new GatewayRuntimeException("Cannot find AbstractRequestHandler to handle this request.");
+        throw new GatewayRuntimeException("Cannot find AbstractRequestValidator to handle this request.");
     }
 }

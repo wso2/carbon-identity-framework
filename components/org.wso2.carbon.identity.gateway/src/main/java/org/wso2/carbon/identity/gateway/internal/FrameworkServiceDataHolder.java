@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.gateway.internal;
 
 import org.osgi.framework.BundleContext;
-import org.wso2.carbon.deployment.engine.DeploymentService;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
@@ -34,7 +33,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.Co
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class FrameworkServiceDataHolder {
     private List<GatewayRequestBuilderFactory> httpIdentityRequestFactories = new ArrayList<GatewayRequestBuilderFactory>();
     private List<GatewayResponseBuilderFactory> httpIdentityResponseFactories = new ArrayList<>();
     //Framework handlers
-    private List<AbstractRequestHandler> requestHandlers = new ArrayList<>();
+    private List<AbstractRequestValidator> requestHandlers = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
 
     //SequenceManager
@@ -125,7 +124,7 @@ public class FrameworkServiceDataHolder {
         return authenticationHandlers;
     }
 
-    public List<AbstractRequestHandler> getRequestHandlers() {
+    public List<AbstractRequestValidator> getRequestHandlers() {
         return requestHandlers;
     }
 

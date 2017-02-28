@@ -28,16 +28,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class AbstractRequestHandler extends FrameworkHandler {
+public abstract class AbstractRequestValidator extends FrameworkHandler {
     public abstract FrameworkHandlerResponse validate(AuthenticationContext authenticationContext)
-            throws RequestHandlerException;
+            throws RequestValidatorException;
 
     protected abstract String getValidatorType();
 
-    public Properties getValidatorConfig(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
+    public Properties getValidatorConfig(AuthenticationContext authenticationContext) throws RequestValidatorException {
 
         if (authenticationContext.getServiceProvider() == null) {
-            throw new AuthenticationHandlerException("Error while getting validator configs : No service provider " +
+            throw new RequestValidatorException("Error while getting validator configs : No service provider " +
                     "found with uniqueId : " + authenticationContext.getUniqueId());
         }
         RequestValidationConfig validatorConfig = authenticationContext.getServiceProvider()
