@@ -45,6 +45,7 @@ public class GatewayOSGiTestUtils {
                 .groupId("org.ops4j.pax.logging")
                 .artifactId("pax-logging-log4j2")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.ops4j.pax.logging")
                 .artifactId("pax-logging-api")
@@ -54,40 +55,51 @@ public class GatewayOSGiTestUtils {
                 .groupId("org.slf4j")
                 .artifactId("slf4j-api")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("net.minidev.wso2")
                 .artifactId("json-smart")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("commons-io.wso2")
                 .artifactId("commons-io")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("commons-pool.wso2").
-                artifactId("commons-pool").versionAsInProject());
+                artifactId("commons-pool")
+                .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("net.minidev")
                 .artifactId("asm")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("com.google.code.gson").
                 artifactId("gson").versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon")
                 .artifactId("org.wso2.carbon.core")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.messaging")
                 .artifactId("org.wso2.carbon.messaging")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.caching")
                 .artifactId("org.wso2.carbon.caching")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.mgt")
                 .artifactId("org.wso2.carbon.identity.mgt")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.mgt")
                 .artifactId("org.wso2.carbon.identity.claim")
@@ -100,79 +112,99 @@ public class GatewayOSGiTestUtils {
 
         defaultOptionList.add(mavenBundle().
                 groupId("org.wso2.carbon.transport").
-                artifactId("org.wso2.carbon.transport.http.netty").versionAsInProject());
+                artifactId("org.wso2.carbon.transport.http.netty").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("io.netty").
-                artifactId("netty-transport").versionAsInProject());
+                artifactId("netty-transport").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("io.netty").
-                artifactId("netty-buffer").versionAsInProject());
+                artifactId("netty-buffer").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("io.netty").
-                artifactId("netty-common").versionAsInProject());
+                artifactId("netty-common").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("io.netty").
-                artifactId("netty-codec").versionAsInProject());
+                artifactId("netty-codec").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("io.netty").
-                artifactId("netty-codec-http").versionAsInProject());
+                artifactId("netty-codec-http").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("io.netty").
-                artifactId("netty-handler").versionAsInProject());
+                artifactId("netty-handler").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("javax.ws.rs").
-                artifactId("javax.ws.rs-api").versionAsInProject());
+                artifactId("javax.ws.rs-api").
+                versionAsInProject());
 
-//        defaultOptionList.add(mavenBundle()
-//                .groupId("org.wso2.carbon.identity.mgt")
-//                .artifactId("org.wso2.carbon.identity.recovery")
-//                .versionAsInProject());
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.mgt")
                 .artifactId("in-memory-connectors-test-artifact")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.commons")
                 .artifactId("org.wso2.carbon.identity.event")
                 .versionAsInProject());
-//        defaultOptionList.add(mavenBundle()
-//                .groupId("org.wso2.carbon.identity.mgt")
-//                .artifactId("identity-store-handler-test-artifact")
-//                .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.datasources")
                 .artifactId("org.wso2.carbon.datasource.core")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.jndi")
                 .artifactId("org.wso2.carbon.jndi")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("com.zaxxer")
                 .artifactId("HikariCP")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("com.h2database")
                 .artifactId("h2")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.commons")
                 .artifactId("org.wso2.carbon.identity.commons")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.apache.commons")
                 .artifactId("commons-lang3")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("org.apache.servicemix.bundles").
-                artifactId("org.apache.servicemix.bundles.commons-beanutils").versionAsInProject());
+                artifactId("org.apache.servicemix.bundles.commons-beanutils").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle().
                 groupId("org.wso2.orbit.com.lmax").
-                artifactId("disruptor").versionAsInProject());
+                artifactId("disruptor").
+                versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.lcm")
                 .artifactId("org.wso2.carbon.lcm.core")
                 .versionAsInProject());
+
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.lcm")
                 .artifactId("org.wso2.carbon.lcm.sql")
@@ -181,11 +213,6 @@ public class GatewayOSGiTestUtils {
         defaultOptionList.add(mavenBundle()
                 .groupId("commons-lang.wso2")
                 .artifactId("commons-lang")
-                .versionAsInProject());
-
-        defaultOptionList.add(mavenBundle()
-                .groupId("org.wso2.msf4j")
-                .artifactId("msf4j-core")
                 .versionAsInProject());
 
         defaultOptionList.add(mavenBundle()
@@ -222,7 +249,6 @@ public class GatewayOSGiTestUtils {
                 .groupId("org.wso2.carbon.identity.gateway")
                 .artifactId("org.wso2.carbon.identity.gateway.common")
                 .versionAsInProject());
-
 
         defaultOptionList.add(mavenBundle()
                 .groupId("org.wso2.carbon.identity.gateway")
