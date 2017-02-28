@@ -73,9 +73,7 @@ public class IdentityProviderDeployer implements Deployer {
             throw new CarbonDeploymentException(errorMessage, e);
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Successfully deployed the IdentityProvider configs : " + artifact.getName());
-        }
+        logger.info("Successfully deployed the IdentityProvider configs : " + artifact.getName());
         return artifact.getName();
     }
 
@@ -94,9 +92,7 @@ public class IdentityProviderDeployer implements Deployer {
             String errorMessage = "Error occurred while Un-Deploying the Identity Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Successfully Un-Deployed the IdentityProvider configs : " + key);
-        }
+        logger.info("Successfully Un-Deployed the IdentityProvider configs : " + key);
     }
 
     @Override
@@ -111,9 +107,7 @@ public class IdentityProviderDeployer implements Deployer {
             String errorMessage = "Error occurred while updating the Identity Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Successfully updated the IdentityProvider configs : " + artifact.getName());
-        }
+        logger.info("Successfully updated the IdentityProvider configs : " + artifact.getName());
         return artifact.getName();
     }
 

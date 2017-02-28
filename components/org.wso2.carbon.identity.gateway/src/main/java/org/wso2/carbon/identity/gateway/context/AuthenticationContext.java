@@ -94,8 +94,7 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         this.sequence = sequence;
     }
 
-    public ServiceProviderConfig getServiceProvider() throws AuthenticationHandlerException {
-        ClientAuthenticationRequest clientAuthenticationRequest = getInitialAuthenticationRequest();
+    public ServiceProviderConfig getServiceProvider()  {
         String uniqueId = getUniqueId();
         ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(uniqueId);
         return serviceProvider;

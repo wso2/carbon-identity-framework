@@ -1,28 +1,28 @@
 /*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *  *
- *  * WSO2 Inc. licenses this file to you under the Apache License,
- *  * Version 2.0 (the "License"); you may not use this file except
- *  * in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing,
- *  * software distributed under the License is distributed on an
- *  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  * KIND, either express or implied.  See the License for the
- *  * specific language governing permissions and limitations
- *  * under the License.
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package org.wso2.carbon.identity.gateway.api.request;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
-import org.wso2.msf4j.Request;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +36,7 @@ import java.util.Map;
 
 public class GatewayRequest implements Serializable {
 
+    private static Logger log = LoggerFactory.getLogger(GatewayRequest.class);
     private static final long serialVersionUID = 5418537216546873566L;
 
     protected Map<String, Serializable> headers = new HashMap();
@@ -78,11 +79,11 @@ public class GatewayRequest implements Serializable {
     }
 
     public String getHeader(String name) {
-        return (String)headers.get(name);
+        return (String) headers.get(name);
     }
 
     public Map<String, String> getHeaderMap() {
-        return Collections.unmodifiableMap((Map)headers);
+        return Collections.unmodifiableMap((Map) headers);
     }
 
     public Enumeration<String> getHeaderNames() {
@@ -90,7 +91,7 @@ public class GatewayRequest implements Serializable {
     }
 
     public Enumeration<String> getHeaders(String name) {
-        String headerValue = (String)headers.get(name);
+        String headerValue = (String) headers.get(name);
         String[] multiValuedHeader = headerValue.split(",");
         return Collections.enumeration(Arrays.asList(multiValuedHeader));
     }
@@ -99,14 +100,24 @@ public class GatewayRequest implements Serializable {
         return httpMethod;
     }
 
-    public String getParameter(String paramName) {
+    public String getParameter(String paramName)  {
+
+        String decode = null;
         Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
         Map<String, String> bodyParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
-        if (queryParams.get(paramName) != null) {
-            return queryParams.get(paramName);
-        } else {
+
+        if (bodyParams.get(paramName) != null) {
             return bodyParams.get(paramName);
+        } else {
+            if (StringUtils.isNotBlank(queryParams.get(paramName))) {
+                try {
+                    decode = URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+        return decode;
     }
 
     public Map<String, Serializable> getParameterMap() {
@@ -142,7 +153,7 @@ public class GatewayRequest implements Serializable {
         private String contentType;
         private String queryString;
 
-        public GatewayRequestBuilder( ) {
+        public GatewayRequestBuilder() {
         }
 
         public GatewayRequestBuilder addAttribute(String name, Serializable value) {
@@ -208,14 +219,12 @@ public class GatewayRequest implements Serializable {
 
         public GatewayRequestBuilder setAttributes(Map<String, Serializable> attributes) {
 
-            for (Map.Entry<String, Serializable> entry : attributes.entrySet())
-            {
+            for (Map.Entry<String, Serializable> entry : attributes.entrySet()) {
                 if (entry instanceof Serializable) {
                     this.attributes.put(entry.getKey(), entry.getValue());
                 }
             }
             return this;
-
         }
 
         public GatewayRequestBuilder setContentType(String contentType) {

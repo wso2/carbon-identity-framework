@@ -76,9 +76,7 @@ public class ServiceProviderDeployer implements Deployer {
             throw new CarbonDeploymentException(errorMessage, e);
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Successfully deployed the ServiceProvider configs : " + artifact.getName());
-        }
+        logger.info("Successfully deployed the ServiceProvider configs : " + artifact.getName());
         return artifact.getName();
     }
 
@@ -97,9 +95,7 @@ public class ServiceProviderDeployer implements Deployer {
             String errorMessage = "Error occurred while Un-Deploying the Service Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Successfully Un-Deployed the ServiceProvider configs : " + key);
-        }
+        logger.info("Successfully Un-Deployed the ServiceProvider configs : " + key);
     }
 
     @Override
@@ -114,9 +110,7 @@ public class ServiceProviderDeployer implements Deployer {
             String errorMessage = "Error occurred while updating the Service Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Successfully updated the ServiceProvider configs : " + artifact.getName());
-        }
+        logger.info("Successfully updated the ServiceProvider configs : " + artifact.getName());
         return artifact.getName();
     }
 

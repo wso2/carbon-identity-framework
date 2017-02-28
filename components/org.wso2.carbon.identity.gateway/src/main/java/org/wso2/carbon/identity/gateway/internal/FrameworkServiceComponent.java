@@ -29,8 +29,6 @@ import org.osgi.service.jndi.JNDIContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Deployer;
-import org.wso2.carbon.deployment.engine.DeploymentConfigurationProvider;
-import org.wso2.carbon.deployment.engine.DeploymentService;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
@@ -50,7 +48,7 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.Ab
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
@@ -153,26 +151,26 @@ public class FrameworkServiceComponent {
 
     @Reference(
             name = "identity.handlers.request",
-            service = AbstractRequestHandler.class,
+            service = AbstractRequestValidator.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unSetRequestHandler"
     )
-    protected void addRequestHandler(AbstractRequestHandler abstractRequestHandler) {
+    protected void addRequestHandler(AbstractRequestValidator abstractRequestValidator) {
 
-            FrameworkServiceDataHolder.getInstance().getRequestHandlers().add(abstractRequestHandler);
+            FrameworkServiceDataHolder.getInstance().getRequestHandlers().add(abstractRequestValidator);
 
         if (log.isDebugEnabled()) {
-            log.debug("Added AuthenticationHandler : " + abstractRequestHandler.getName());
+            log.debug("Added AuthenticationHandler : " + abstractRequestValidator.getName());
         }
     }
 
-    protected void unSetRequestHandler(AbstractRequestHandler abstractRequestHandler) {
+    protected void unSetRequestHandler(AbstractRequestValidator abstractRequestValidator) {
 
-        FrameworkServiceDataHolder.getInstance().getRequestHandlers().remove(abstractRequestHandler);
+        FrameworkServiceDataHolder.getInstance().getRequestHandlers().remove(abstractRequestValidator);
 
         if (log.isDebugEnabled()) {
-            log.debug("Removed AuthenticationHandler : " + abstractRequestHandler.getName());
+            log.debug("Removed AuthenticationHandler : " + abstractRequestValidator.getName());
         }
     }
 

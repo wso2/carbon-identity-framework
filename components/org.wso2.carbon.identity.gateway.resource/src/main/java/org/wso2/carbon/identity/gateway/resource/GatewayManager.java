@@ -45,87 +45,106 @@ public class GatewayManager {
         GatewayRequest gatewayRequest = null;
         Response.ResponseBuilder responseBuilder = null;
 
-        factory = getIdentityRequestFactory(request);
-
 
         try {
 
 
-            gatewayRequest = factory.create(request).build();
+
+            factory = getIdentityRequestFactory(request);
 
 
-            if (gatewayRequest == null) {
-                throw new GatewayRuntimeException("GatewayRequest is Null. Cannot proceed!!");
+            try {
+
+
+                gatewayRequest = factory.create(request).build();
+
+
+                if (gatewayRequest == null) {
+                    throw new GatewayRuntimeException("GatewayRequest is Null. Cannot proceed!!");
+                }
+
+
+            } catch (GatewayClientException e) {
+                responseBuilder = factory.handleException(e);
+                if (responseBuilder == null) {
+                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                }
+                //#TODO Enable this to new response
+                return responseBuilder.build();
+
+            } catch (GatewayRuntimeException e){
+                if(factory == null) {
+                    //Use defaultFactory exception handling
+                }
+                responseBuilder = factory.handleException(e);
+                if (responseBuilder == null) {
+                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                }
+                //#TODO Enable this to new response
+                return responseBuilder.build();
+
+            }
+
+            GatewayResponse gatewayResponse = null;
+            GatewayResponseBuilderFactory responseFactory = null;
+
+            GatewayProcessor processor = getIdentityProcessor(gatewayRequest);
+
+
+            try {
+                gatewayResponse = processor.process(gatewayRequest).build();
+                if (gatewayResponse == null) {
+                    throw new GatewayRuntimeException("GatewayResponse is Null. Cannot proceed!!");
+                }
+                responseFactory = getIdentityResponseFactory(gatewayResponse);
+                Response.ResponseBuilder builder = responseFactory.createBuilder(gatewayResponse);
+                if (builder == null) {
+                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                }
+                return builder.build();
+
+
+            } catch (GatewayServerException e) {
+
+                responseFactory = getIdentityResponseFactory(e);
+                responseBuilder = responseFactory.handleException(e);
+                if (responseBuilder == null) {
+                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                }
+                //#TODO Enable this to new response
+                //return responseBuilder.build();
+            } catch (GatewayClientException e) {
+                responseFactory = getIdentityResponseFactory(e);
+                responseBuilder = responseFactory.handleException(e);
+                if (responseBuilder == null) {
+                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                }
+                return responseBuilder.build();
+            }catch (GatewayRuntimeException e) {
+                responseBuilder = factory.handleException(e);
+                if (responseBuilder == null) {
+                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                }
+                return responseBuilder.build();
             }
 
 
-        } catch (GatewayClientException e) {
-            responseBuilder = factory.handleException(e);
-            if (responseBuilder == null) {
-                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-            }
-            //#TODO Enable this to new response
-            return responseBuilder.build();
-
-        } catch (GatewayRuntimeException e){
-            if(factory == null) {
-                //Use defaultFactory exception handling
-            }
-            responseBuilder = factory.handleException(e);
-            if (responseBuilder == null) {
-                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-            }
-            //#TODO Enable this to new response
-            return responseBuilder.build();
-
-        }
-
-        GatewayResponse gatewayResponse = null;
-        GatewayResponseBuilderFactory responseFactory = null;
-
-        GatewayProcessor processor = getIdentityProcessor(gatewayRequest);
-
-
-        try {
-            gatewayResponse = processor.process(gatewayRequest).build();
-            if (gatewayResponse == null) {
-                throw new GatewayRuntimeException("GatewayResponse is Null. Cannot proceed!!");
-            }
-            responseFactory = getIdentityResponseFactory(gatewayResponse);
-            Response.ResponseBuilder builder = responseFactory.createBuilder(gatewayResponse);
-            if (builder == null) {
-                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-            }
+        } catch (RuntimeException exception) {
+            log.error("Error occured while processing the request in GatewayManager : " + exception.getMessage());
+            Response.ResponseBuilder builder = handleException(exception);
             return builder.build();
-
-
-        } catch (GatewayServerException e) {
-
-            responseFactory = getIdentityResponseFactory(e);
-            responseBuilder = responseFactory.handleException(e);
-            if (responseBuilder == null) {
-                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-            }
-            //#TODO Enable this to new response
-            //return responseBuilder.build();
-        } catch (GatewayClientException e) {
-            responseFactory = getIdentityResponseFactory(e);
-            responseBuilder = responseFactory.handleException(e);
-            if (responseBuilder == null) {
-                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-            }
-            return responseBuilder.build();
-        }catch (GatewayRuntimeException e) {
-            responseBuilder = factory.handleException(e);
-            if (responseBuilder == null) {
-                throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-            }
-            return responseBuilder.build();
         }
 
         return Response.serverError().build();
     }
 
+    public Response.ResponseBuilder handleException(RuntimeException exception) {
+
+        Response.ResponseBuilder builder = Response.noContent();
+        builder.status(500);
+        builder.entity("Server Error: Something went wrong.");
+        return builder;
+    }
 
 
     private GatewayProcessor getIdentityProcessor(GatewayRequest gatewayRequest) {
