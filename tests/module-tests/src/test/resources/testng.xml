@@ -17,7 +17,7 @@ limitations under the License.
 <suite name="Identity-Mgt-Test-Suite">
     <test name="identity-store-tests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.gateway.test.module.util.TestServiceTest"/>
+            <class name="org.wso2.carbon.identity.gateway.test.module.util.GatewayTests"/>
         </classes>
     </test>
 </suite>
