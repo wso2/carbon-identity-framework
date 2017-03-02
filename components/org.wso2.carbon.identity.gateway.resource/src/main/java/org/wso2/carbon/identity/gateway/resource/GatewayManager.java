@@ -129,8 +129,8 @@ public class GatewayManager {
             }
 
 
-        } catch (RuntimeException exception) {
-            log.error("Error occured while processing the request in GatewayManager : " + exception.getMessage());
+        } catch (Throwable exception) {
+            log.error("Error occurred while processing the request in GatewayManager : " + exception);
             Response.ResponseBuilder builder = handleException(exception);
             return builder.build();
         }
@@ -138,7 +138,7 @@ public class GatewayManager {
         return Response.serverError().build();
     }
 
-    public Response.ResponseBuilder handleException(RuntimeException exception) {
+    public Response.ResponseBuilder handleException(Throwable exception) {
 
         Response.ResponseBuilder builder = Response.noContent();
         builder.status(500);

@@ -34,24 +34,27 @@ public abstract class AbstractRequestValidator extends FrameworkHandler {
 
     protected abstract String getValidatorType();
 
-    public Properties getValidatorConfig(AuthenticationContext authenticationContext) throws RequestValidatorException {
+    public RequestValidatorConfig getValidatorConfig(AuthenticationContext authenticationContext) throws RequestValidatorException {
 
         if (authenticationContext.getServiceProvider() == null) {
             throw new RequestValidatorException("Error while getting validator configs : No service provider " +
                     "found with uniqueId : " + authenticationContext.getUniqueId());
         }
+        RequestValidatorConfig validationConfig = null ;
+
         RequestValidationConfig validatorConfig = authenticationContext.getServiceProvider()
                 .getRequestValidationConfig();
         List<RequestValidatorConfig> validatorConfigs = validatorConfig.getRequestValidatorConfigs();
 
         Iterator<RequestValidatorConfig> validatorConfigIterator = validatorConfigs.iterator();
         while (validatorConfigIterator.hasNext()) {
-            RequestValidatorConfig validationConfig = validatorConfigIterator.next();
-            if (getValidatorType().equalsIgnoreCase(validationConfig.getType())) {
-                return validationConfig.getProperties();
+            RequestValidatorConfig tmpValidationConfig = validatorConfigIterator.next();
+            if (getValidatorType().equalsIgnoreCase(tmpValidationConfig.getType())) {
+                validationConfig = tmpValidationConfig ;
+                break;
             }
         }
 
-        return new Properties();
+        return validationConfig;
     }
 }

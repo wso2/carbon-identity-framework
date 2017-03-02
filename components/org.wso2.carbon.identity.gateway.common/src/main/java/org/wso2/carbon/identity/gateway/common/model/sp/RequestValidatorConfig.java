@@ -17,9 +17,10 @@
  */
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
+import java.io.Serializable;
 import java.util.Properties;
 
-public class RequestValidatorConfig {
+public class RequestValidatorConfig implements Serializable{
     private String type;
     private String uniquePropertyName;
 
