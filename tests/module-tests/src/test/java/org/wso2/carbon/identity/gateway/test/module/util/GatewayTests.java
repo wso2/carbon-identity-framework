@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
+import org.wso2.carbon.identity.gateway.common.util.Utils;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
@@ -25,7 +26,9 @@ import javax.ws.rs.HttpMethod;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tests the TestService.
@@ -99,7 +102,6 @@ public class GatewayTests {
 
             String relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
             relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
-            System.out.println(relayState);
 
             urlConnection = GatewayTestUtils.request
                     (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "=" + relayState +
@@ -148,5 +150,13 @@ public class GatewayTests {
         Assert.assertEquals(identityProviderConfig.getName(), "myidp");
     }
 
+    @Test
+    public void testUtils() {
+        Map<String, String[]> map = new HashMap<String, String[]>();
+        map.put("param1",new String[] {"value1" , "value2"});
+        map.put("param1", new String[]{"value3", "value4"});
+        String queryString = Utils.buildQueryString(map);
+        Assert.assertTrue(queryString.contains("?param1=value3&param1=value4"));
+    }
 
 }
