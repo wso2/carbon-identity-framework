@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
@@ -21,8 +22,17 @@ public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestB
     }
 
     @Override
-    public boolean canHandle(Request request) {
+    public boolean canHandle(Request request) throws GatewayClientException, GatewayServerException {
         String sampleProtocol = Utility.getParameter(request, "sampleProtocol");
+        String errorWhileCanHandleClient = Utility.getParameter(request, "canHandleErrorClient");
+        String errorWhileCanHandleServer = Utility.getParameter(request, "canHandleErrorServer");
+        if (errorWhileCanHandleClient != null) {
+            throw new GatewayClientException("Throwing client exception");
+        }
+
+        if (errorWhileCanHandleServer != null) {
+            throw new GatewayServerException("Throwing Server exception");
+        }
         if (StringUtils.isNotBlank(sampleProtocol)) {
             return true;
         }
@@ -43,6 +53,6 @@ public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestB
     }
 
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
-        return null;
+      return  super.handleException(exception);
     }
 }

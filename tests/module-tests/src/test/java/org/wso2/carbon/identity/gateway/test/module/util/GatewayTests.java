@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.gateway.test.module.util;
 
 import com.google.common.net.HttpHeaders;
+import org.apache.commons.io.Charsets;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
@@ -80,7 +81,6 @@ public class GatewayTests {
 
             String relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
             relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
-            System.out.println(relayState);
 
             urlConnection = GatewayTestUtils.request
                     (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "="
@@ -95,6 +95,150 @@ public class GatewayTests {
             Assert.assertNotNull(cookie);
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
+        } catch (IOException e) {
+            log.error("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void testFederatedAuthenticationWithPostRequest() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT,
+                    HttpMethod.POST, true);
+            String postData = GatewayTestConstants.SAMPLE_PROTOCOL + "=true";
+            urlConnection.setDoOutput(true);
+            urlConnection.getOutputStream().write(postData.toString().getBytes(Charsets.UTF_8));
+            String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = GatewayTestUtils.request
+                    (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "="
+                            + relayState + GatewayTestConstants.QUERY_PARAM_SEPARATOR + GatewayTestConstants
+                            .ASSERTION + "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.RESPONSE_CONTEXT));
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.AUTHENTICATED_USER +
+                    "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME));
+            String cookie = GatewayTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+            Assert.assertNotNull(cookie);
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case with post body");
+        }
+    }
+
+
+
+    @Test
+    public void illegalRelayState() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true", HttpMethod.GET, false);
+            String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = GatewayTestUtils.request
+                    (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "="
+                            + relayState + "randomString" + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
+                            GatewayTestConstants
+                            .ASSERTION + "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            Assert.assertEquals(500, urlConnection.getResponseCode());
+
+
+        } catch (IOException e) {
+            log.error("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void requestFactoryCanHandleClientFail() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true" + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
+                            "canHandleErrorClient=true",
+                    HttpMethod.GET, false);
+            Assert.assertEquals(500, urlConnection.getResponseCode());
+
+        } catch (IOException e) {
+            log.error("Error while running federated authentication test case", e);
+        }
+    }
+
+
+    @Test
+    public void requestFactoryCanHandleServerFail() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                            GatewayTestConstants.SAMPLE_PROTOCOL + "=true" + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
+                            "canHandleErrorServer=true",
+                    HttpMethod.GET, false);
+            Assert.assertEquals(500, urlConnection.getResponseCode());
+
+        } catch (IOException e) {
+            log.error("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void failFederatedProcessResponse() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true", HttpMethod.GET, false);
+            String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = GatewayTestUtils.request
+                    (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "="
+                            + relayState  + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
+                            GatewayTestConstants
+                                    .ASSERTION + "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME +
+                            GatewayTestConstants.QUERY_PARAM_SEPARATOR + "validation=false", HttpMethod
+                            .GET, false);
+
+            Assert.assertEquals(500, urlConnection.getResponseCode());
+
+
+        } catch (IOException e) {
+            log.error("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void testRequestValidationFailure() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true&NotProtocolCompliant=true", HttpMethod.GET, false);
+            String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertNull(locationHeader);
+            Assert.assertEquals(urlConnection.getResponseCode(), 500);
+        } catch (IOException e) {
+            log.error("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void testNonExistingProtocolRequest() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.NON_EXISTING_PROTOCOL + "=true&NotProtocolCompliant=true", HttpMethod.GET, false);
+            String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertNull(locationHeader);
+            Assert.assertTrue(urlConnection.getResponseCode() == 500);
         } catch (IOException e) {
             log.error("Error while running federated authentication test case", e);
         }
@@ -261,12 +405,42 @@ public class GatewayTests {
     }
 
     @Test
+    public void testWrongServiceProviderUpdate() {
+        ServiceProviderDeployer serviceProviderDeployer = new ServiceProviderDeployer();
+        Artifact artifact = new Artifact(new File(GatewayOSGiTestUtils.getCarbonHome() + File.separator +
+                "deployment" + File.separator + "serviceprovider" + File.separator + "sample_dummy_nonExisting.yaml"));
+        artifact.setType(new ArtifactType("serviceprovider"));
+        try {
+            serviceProviderDeployer.update(artifact);
+            Assert.fail();
+        } catch (CarbonDeploymentException e) {
+            log.info("failed service provider deployment from non existing file");
+        }
+    }
+
+
+
+    @Test
     public void testIdentityProviderUnDeploy() {
         IdentityProviderDeployer identityProviderDeployer = new IdentityProviderDeployer();
         try {
             identityProviderDeployer.undeploy("myidp_dummy.yaml");
         } catch (CarbonDeploymentException e) {
             Assert.fail();
+        }
+    }
+
+    @Test
+    public void testWrongIdentityProviderUpdate() {
+        IdentityProviderDeployer identityProviderDeployer = new IdentityProviderDeployer();
+        Artifact artifact = new Artifact(new File(GatewayOSGiTestUtils.getCarbonHome() + File.separator +
+                "deployment" + File.separator + "identityprovider" + File.separator + "myidp_dummy_non_existing.yaml"));
+        artifact.setType(new ArtifactType("identityprovider"));
+        try {
+            identityProviderDeployer.update(artifact);
+            Assert.fail();
+        } catch (CarbonDeploymentException e) {
+            log.info("Non existing idp deployment failed");
         }
     }
 

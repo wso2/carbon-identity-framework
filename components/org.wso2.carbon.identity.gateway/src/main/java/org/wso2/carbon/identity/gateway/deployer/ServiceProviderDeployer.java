@@ -143,6 +143,9 @@ public class ServiceProviderDeployer implements Deployer {
         }
         String providerName = GatewayUtil.getProviderName(artifact.getName());
         ServiceProviderEntity providerEntity = GatewayUtil.getProvider(artifact, ServiceProviderEntity.class);
+        if (providerEntity == null) {
+            throw new GatewayServerException("Provider name cannot be found.");
+        }
         if (!providerEntity.getServiceProviderConfig().getName().equals(providerName)) {
             throw new GatewayServerException("Provider name should be the same as file name.");
         }

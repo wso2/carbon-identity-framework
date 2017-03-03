@@ -17,6 +17,10 @@ public class SampleProtocolValidator extends AbstractRequestValidator {
         if (authenticationContext.getServiceProvider() == null) {
             throw new RequestValidatorException("No Service Provider Found for this Unique ID");
         }
+        if (authenticationContext.getIdentityRequest().getParameter("NotProtocolCompliant") != null) {
+            throw new RequestValidatorException("Error while validating request");
+        }
+        // Can access validator configurations.
         getValidatorConfig(authenticationContext);
         return FrameworkHandlerResponse.CONTINUE;
     }

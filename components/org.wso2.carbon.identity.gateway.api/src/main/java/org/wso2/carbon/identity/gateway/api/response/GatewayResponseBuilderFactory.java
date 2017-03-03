@@ -53,9 +53,6 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
     }
 
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
-        javax.ws.rs.core.Cookie cookie1 = new javax.ws.rs.core.Cookie(Constants.GATEWAY_COOKIE, gatewayResponse
-                .getSessionKey(), "/", "");
-
         NewCookie newCookie = new NewCookie(Constants.GATEWAY_COOKIE , gatewayResponse.getSessionKey(), "/", null,
                                             "GatewayCookie", 6000, true, true);
         builder.cookie(newCookie);

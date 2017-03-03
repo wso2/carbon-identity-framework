@@ -94,14 +94,18 @@
                                                 <fileset dir="../../components/org.wso2.carbon.identity.gateway/target">
                                                     <include name="jacoco.exec"/>
                                                 </fileset>
+                                                <fileset dir="../../components/org.wso2.carbon.identity.gateway.api/target">
+                                                    <include name="jacoco.exec"/>
+                                                </fileset>
                                             </executiondata>
                                             <structure name="Identity Server Tests">
                                                 <classfiles>
                                                     <fileset dir="../../components/org.wso2.carbon.identity.gateway/target/classes">
                                                         <exclude name="**/*Constants.class" />
                                                         <exclude name="**/*Exception.class" />
+                                                        <!-- excluding local authentication related classes since they are not planned for M4-->
                                                         <exclude name="**/*LocalAuthenticationRequestBuilderFactory.class" />
-
+                                                        <exclude name="**/*LocalUser.class" />
                                                     </fileset>
                                                     <fileset dir="../../components/org.wso2.carbon.identity.gateway.api/target/classes">
                                                         <exclude name="**/*Constants.class" />
@@ -110,6 +114,9 @@
                                                     <fileset dir="../../components/org.wso2.carbon.identity.gateway.common/target/classes" >
                                                         <exclude name="**/*Constants.class" />
                                                         <exclude name="**/*Exception.class" />
+                                                        <!-- excluding model classes since setters are not getting called ever. We load these objects from a yaml -->
+                                                        <exclude name="**/org/wso2/carbon/identity/gateway/common/model/sp/*"/>
+                                                        <exclude name="**/org/wso2/carbon/identity/gateway/common/model/idp/*"/>
                                                     </fileset>
                                                     <fileset dir="../../components/org.wso2.carbon.identity.gateway.resource/target/classes">
                                                         <exclude name="**/*Constants.class" />
@@ -126,7 +133,7 @@
                                             <html destdir="${project.build.directory}/site/jacoco"/>
                                             <check>
                                                 <rule element="PACKAGE">
-                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.20"/>
+                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.65"/>
                                                 </rule>
                                             </check>
                                         </jacoco:report>

@@ -25,31 +25,33 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
-import org.wso2.carbon.identity.gateway.dao.AsyncIdentityContextDAO;
-import org.wso2.carbon.identity.gateway.dao.IdentityContextDAO;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.model.LocalUser;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.model.UserClaim;
+import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.HandlerManager;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 import org.wso2.carbon.identity.gateway.processor.request.local.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.local.LocalAuthenticationRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.mgt.IdentityStore;
 import org.wso2.carbon.identity.mgt.RealmService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.mgt.event.IdentityMgtMessageContext;
 import org.wso2.carbon.identity.mgt.exception.DomainException;
-import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
 import org.wso2.carbon.identity.mgt.impl.Domain;
-import org.wso2.carbon.identity.mgt.impl.IdentityStoreImpl;
 import org.wso2.carbon.identity.mgt.impl.internal.IdentityMgtDataHolder;
-import org.wso2.carbon.messaging.DefaultCarbonMessage;
-import org.wso2.msf4j.Request;
 
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Identity Store Tests.
@@ -117,7 +119,7 @@ public class GatewayUnitTests {
         localAuthenticationRequestBuilder.setAuthenticatorName("testAuthenticator");
         localAuthenticationRequestBuilder.setIdentityProviderName("testIdentityProvider");
         LocalAuthenticationRequest localAuthenticationRequest = localAuthenticationRequestBuilder.build();
-        Assert.assertEquals("testAuthenticator" , localAuthenticationRequest.getAuthenticatorName());
+        Assert.assertEquals("testAuthenticator", localAuthenticationRequest.getAuthenticatorName());
         Assert.assertEquals("testIdentityProvider", localAuthenticationRequest.getIdentityProviderName());
     }
 
@@ -130,4 +132,45 @@ public class GatewayUnitTests {
         Assert.assertNotNull(builder.build());
         Assert.assertNotNull(factory.getPriority());
     }
+
+    @Test
+    public void testHandlerManager() throws GatewayClientException {
+        try {
+            HandlerManager.getInstance().getContextInitializerHandler(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+        try {
+            HandlerManager.getInstance().getRequestPathHandler(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+        try {
+            HandlerManager.getInstance().getSequenceBuildFactory(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+        try {
+            HandlerManager.getInstance().getStepHandler(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+        try {
+            HandlerManager.getInstance().getSequenceManager(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+
+    }
+
+    @Test
+    public void testUtility() throws GatewayClientException {
+        Assert.assertNull(Utility.getFederatedApplicationAuthenticator("federatedAuthenticator"));
+        Assert.assertNull(Utility.getLocalApplicationAuthenticator("localAuthenticator"));
+        Assert.assertNull(Utility.getRequestPathApplicationAuthenticator("requestPathAuthenticators"));
+
+    }
+
+
+
 }
