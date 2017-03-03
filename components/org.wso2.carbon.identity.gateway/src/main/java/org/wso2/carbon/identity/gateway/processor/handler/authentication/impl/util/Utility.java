@@ -31,20 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Utility {
-    public static ServiceProviderConfig getServiceProvider(String requestType, String clientId)
-            throws AuthenticationHandlerException {
-        ServiceProviderConfig  serviceProvider = null;
-        /*ApplicationManagementService applicationManagementService = ApplicationManagementService.getInstance();
-        try {
-            serviceProvider =
-                    applicationManagementService.getServiceProviderByClientId(requestType, clientId, tenantDomain);
-        } catch (IdentityApplicationManagementException e) {
-            String errorMessage =
-                    "Error occured while trying to get service providers by calling admin service, " + e.getMessage();
-            throw new AuthenticationHandlerException(errorMessage, e);
-        }*/
-        return serviceProvider;
-    }
 
     public static LocalApplicationAuthenticator getLocalApplicationAuthenticator(String name) {
         LocalApplicationAuthenticator localApplicationAuthenticator = null;

@@ -100,6 +100,8 @@
                                                     <fileset dir="../../components/org.wso2.carbon.identity.gateway/target/classes">
                                                         <exclude name="**/*Constants.class" />
                                                         <exclude name="**/*Exception.class" />
+                                                        <exclude name="**/*LocalAuthenticationRequestBuilderFactory.class" />
+
                                                     </fileset>
                                                     <fileset dir="../../components/org.wso2.carbon.identity.gateway.api/target/classes">
                                                         <exclude name="**/*Constants.class" />
@@ -124,7 +126,7 @@
                                             <html destdir="${project.build.directory}/site/jacoco"/>
                                             <check>
                                                 <rule element="PACKAGE">
-                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.00"/>
+                                                    <limit counter="LINE" value="COVEREDRATIO" minimum="0.20"/>
                                                 </rule>
                                             </check>
                                         </jacoco:report>

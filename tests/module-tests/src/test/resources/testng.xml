@@ -18,6 +18,8 @@ limitations under the License.
     <test name="identity-store-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.gateway.test.module.util.GatewayTests"/>
+            <class name="org.wso2.carbon.identity.gateway.test.module.util.GatewayDAOTests"/>
+            <class name="org.wso2.carbon.identity.gateway.test.module.util.GatewayAuthenticatorTests"/>
         </classes>
     </test>
 </suite>

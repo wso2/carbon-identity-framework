@@ -23,6 +23,11 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
         SampleLoginResponse.SampleLoginResponseBuilder builder = new SampleLoginResponse.SampleLoginResponseBuilder
                 (authenticationContext);
         builder.setSubject(authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier());
+        try {
+            getResponseBuilderConfigs(authenticationContext);
+        } catch (AuthenticationHandlerException e) {
+            throw new ResponseException("Error while getting response configs");
+        }
         addSessionKey(builder, authenticationContext);
         response.setGatewayResponseBuilder(builder);
         return response;

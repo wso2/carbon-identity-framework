@@ -17,11 +17,13 @@ public class SampleProtocolValidator extends AbstractRequestValidator {
         if (authenticationContext.getServiceProvider() == null) {
             throw new RequestValidatorException("No Service Provider Found for this Unique ID");
         }
+        getValidatorConfig(authenticationContext);
         return FrameworkHandlerResponse.CONTINUE;
     }
 
     @Override
     public boolean canHandle(MessageContext messageContext) {
+        super.canHandle(messageContext);
         if (messageContext instanceof GatewayMessageContext) {
             GatewayMessageContext gatewayMessageContext = (GatewayMessageContext) messageContext;
             if (gatewayMessageContext.getIdentityRequest() instanceof SampleProtocolRequest) {
