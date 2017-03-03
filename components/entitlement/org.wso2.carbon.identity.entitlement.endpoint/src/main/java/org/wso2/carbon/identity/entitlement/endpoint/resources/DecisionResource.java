@@ -125,7 +125,7 @@ public class DecisionResource extends AbstractResource {
 
         if (contentType.equals(EntitlementEndpointConstants.APPLICATION_JSON)) {
             RequestCtx requestCtx = JSONRequestParser.parse(xacmlRequest);
-            ResponseCtx responseCtx = entitlementEngine.evaluateByContext(requestCtx);
+            ResponseCtx responseCtx = entitlementEngine.evaluate(requestCtx, xacmlRequest);
             return gson.toJson(JSONResponseWriter.write(responseCtx));
         } else {
             return entitlementEngine.evaluate(xacmlRequest);

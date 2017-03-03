@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A base class for all cache implementations in user entitlement module.
  */
-public class EntitlementBaseCache<K extends IdentityCacheKey, V extends Serializable> {
+public class EntitlementBaseCache<K extends IdentityCacheKey, V extends Object> {
 
     private static final String ENTITLEMENT_CACHE_MANAGER = "ENTITLEMENT_CACHE_MANAGER";
     private static Log log = LogFactory.getLog(EntitlementBaseCache.class);
