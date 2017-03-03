@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.entitlement.PDPConstants;
 /**
  * Decision cache to handle request against response cache within the cluster.
  */
-public class DecisionCache extends EntitlementBaseCache<IdentityCacheKey, String> {
+public class DecisionCache extends EntitlementBaseCache<IdentityCacheKey, Object> {
 
     private static Log log = LogFactory.getLog(DecisionCache.class);
 
@@ -42,7 +42,7 @@ public class DecisionCache extends EntitlementBaseCache<IdentityCacheKey, String
      * @param key
      * @param decision
      */
-    public void addToCache(String key, String decision) {
+    public void addToCache(String key, Object decision) {
         if (log.isDebugEnabled()) {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -61,7 +61,7 @@ public class DecisionCache extends EntitlementBaseCache<IdentityCacheKey, String
      * @param key
      * @return
      */
-    public String getFromCache(String key) {
+    public Object getFromCache(String key) {
 
         if (log.isDebugEnabled()) {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -76,7 +76,7 @@ public class DecisionCache extends EntitlementBaseCache<IdentityCacheKey, String
 
         Object entry = getValueFromCache(cacheKey);
         if (entry != null) {
-            return (String) entry;
+            return entry;
         }
 
         return null;

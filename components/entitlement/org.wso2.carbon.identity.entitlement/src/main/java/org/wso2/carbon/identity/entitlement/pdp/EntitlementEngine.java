@@ -284,7 +284,7 @@ public class EntitlementEngine {
 
         String xacmlResponse;
 
-        if ((xacmlResponse = getFromCache(xacmlRequest, false)) != null) {
+        if ((xacmlResponse = (String) getFromCache(xacmlRequest, false)) != null) {
             if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
                 log.debug("XACML Response : " + xacmlResponse);
             }
@@ -343,7 +343,7 @@ public class EntitlementEngine {
         String xacmlResponse;
         ResponseCtx responseCtx;
 
-        if ((xacmlResponse = getFromCache(xacmlRequest, false)) != null) {
+        if ((xacmlResponse = (String) getFromCache(xacmlRequest, false)) != null) {
             if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
                 log.debug("XACML Response : " + xacmlResponse);
             }
@@ -397,6 +397,38 @@ public class EntitlementEngine {
     }
 
     /**
+     * Evaluates the given XACML request and returns the Response
+     *
+     * @param requestCtx Balana Object model for request
+     * @param xacmlRequest Balana Object model for request
+     * @return ResponseCtx  Balana Object model for response
+     */
+    public ResponseCtx evaluate(AbstractRequestCtx requestCtx, String xacmlRequest) {
+
+        if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_REQUEST)) {
+            log.debug("XACML Request : " + xacmlRequest);
+        }
+
+        ResponseCtx xacmlResponse;
+
+        if ((xacmlResponse = (ResponseCtx) getFromCache(xacmlRequest, false)) != null) {
+            if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
+                log.debug("XACML Response : " + xacmlResponse);
+            }
+            return xacmlResponse;
+        }
+
+        xacmlResponse = pdp.evaluate(requestCtx);
+
+        addToCache(xacmlRequest, xacmlResponse, false);
+
+        if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_RESPONSE)) {
+            log.debug("XACML Response : " + xacmlResponse);
+        }
+        return xacmlResponse;
+    }
+
+    /**
      * Evaluates the given XACML request and returns the Response that the EntitlementEngine will
      * hand back to the PEP. Here PEP does not need construct the XACML request before sending it to the
      * EntitlementEngine. Just can send the single attribute value. But here default attribute ids and data types
@@ -420,7 +452,7 @@ public class EntitlementEngine {
         String request = (subject != null ? subject : "") + (resource != null ? resource : "") +
                 (action != null ? action : "") + (environmentValue != null ? environmentValue : "");
 
-        if ((response = getFromCache(request, true)) != null) {
+        if ((response = (String) getFromCache(request, true)) != null) {
             if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.XACML_REQUEST)) {
                 log.debug("XACML Request : " + EntitlementUtil.
                         createSimpleXACMLRequest(subject, resource, action, environmentValue));
@@ -493,12 +525,12 @@ public class EntitlementEngine {
      * @param simpleCache whether using simple cache or not
      * @return XACML response as String
      */
-    private String getFromCache(String request, boolean simpleCache) {
+    private Object getFromCache(String request, boolean simpleCache) {
 
         if (pdpDecisionCacheEnable) {
 
             String tenantRequest = tenantId + "+" + request;
-            String decision;
+            Object decision;
 
 
             //There is no any local cache hereafter and always get from distribute cache if there.
@@ -528,7 +560,7 @@ public class EntitlementEngine {
      * @param response    XACML response as String
      * @param simpleCache whether using simple cache or not
      */
-    private void addToCache(String request, String response, boolean simpleCache) {
+    private void addToCache(String request, Object response, boolean simpleCache) {
         if (pdpDecisionCacheEnable) {
             String tenantRequest = tenantId + "+" + request;
             if (simpleCache) {
