@@ -27,11 +27,16 @@ import org.wso2.carbon.identity.gateway.processor.authenticator.AbstractApplicat
 import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AuthenticationResponse;
+import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.sample.outbound.request.SampleACSRequest;
 import org.wso2.carbon.identity.sample.outbound.response.SampleProtocolRequestResponse;
 
+import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * SAML2 SSO Outbound Authenticator.
@@ -93,8 +98,29 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
 
     @Override
     protected AuthenticationResponse processResponse(AuthenticationContext context) throws AuthenticationHandlerException {
-        context.getSequenceContext().getCurrentStepContext().setUser(new FederatedUser(context.getIdentityRequest()
-                .getParameter("Assertion")));
+        FederatedUser federatedUser = new FederatedUser(context.getIdentityRequest()
+                .getParameter("Assertion"));
+
+        String validationFail = context.getIdentityRequest().getParameter("validation");
+        if (validationFail != null) {
+            throw new AuthenticationHandlerException("An error occured while processing authentication response");
+        }
+        // Access header map in the following way.
+        Map<String, String> headerMap = context.getIdentityRequest().getHeaderMap();
+        // Access body params and query params in two different ways.
+        try {
+            context.getIdentityRequest().getQueryParameter("Assertion");
+            context.getIdentityRequest().getBodyParameter("bodyParamName");
+            context.getIdentityRequest().getHeaderNames();
+            context.getIdentityRequest().getHeaders("header");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error while accessing parameters");
+        }
+        Set<Claim> claims = new HashSet<Claim>();
+        Claim claim = new Claim("http://org.harsha/claims", "http://org.harsha/claims/email" , "harsha@wso2.com");
+        claims.add(claim);
+        federatedUser.setUserClaims(claims);
+        context.getSequenceContext().getCurrentStepContext().setUser(federatedUser);
         AuthenticationResponse authenticationResponse =  AuthenticationResponse.AUTHENTICATED;
         return authenticationResponse;
     }

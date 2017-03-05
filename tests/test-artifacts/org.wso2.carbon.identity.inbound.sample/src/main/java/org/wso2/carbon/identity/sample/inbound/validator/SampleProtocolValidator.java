@@ -2,8 +2,8 @@ package org.wso2.carbon.identity.sample.inbound.validator;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.sample.inbound.request.SampleProtocolRequest;
@@ -16,6 +16,12 @@ public class SampleProtocolValidator extends AbstractRequestValidator {
         if (authenticationContext.getServiceProvider() == null) {
             throw new RequestValidatorException("No Service Provider Found for this Unique ID");
         }
+
+        if (authenticationContext.getIdentityRequest().getParameter("NotProtocolCompliant") != null) {
+            throw new RequestValidatorException("Error while validating request");
+        }
+        // Can access validator configurations.
+        getValidatorConfig(authenticationContext);
         return GatewayHandlerResponse.CONTINUE;
     }
 

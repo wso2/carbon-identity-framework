@@ -47,7 +47,7 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
     private AsyncIdentityContextDAO() {
 
         //
-        String poolSizeConfig = "0";
+        String poolSizeConfig = "2";
         if (NumberUtils.isNumber(poolSizeConfig)) {
             poolSize = Integer.parseInt(poolSizeConfig);
             if (log.isDebugEnabled()) {

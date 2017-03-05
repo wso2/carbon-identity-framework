@@ -6,6 +6,7 @@ public class GatewayTestConstants {
     public static int PORT = 8080;
     public static String GATEWAY_ENDPOINT = "http://" + HOST_NAME + ":" + PORT + "/gateway";
     public static String SAMPLE_PROTOCOL = "sampleProtocol";
+    public static String NON_EXISTING_PROTOCOL = "NonExistingProtocol";
     public static String RELAY_STATE = "RelayState";
     public static String EXTERNAL_IDP = "externalIDP";
     public static String ASSERTION = "Assertion";

@@ -5,6 +5,7 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
 import org.wso2.carbon.identity.sample.inbound.request.SampleProtocolRequest;
@@ -25,6 +26,11 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
         SampleLoginResponse.SampleLoginResponseBuilder builder = new SampleLoginResponse.SampleLoginResponseBuilder
                 (authenticationContext);
         builder.setSubject(authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier());
+        try {
+            getResponseBuilderConfigs(authenticationContext);
+        } catch (AuthenticationHandlerException e) {
+            throw new ResponseHandlerException("Error while getting response configs");
+        }
         addSessionKey(builder, authenticationContext);
         response.setGatewayResponseBuilder(builder);
         return response;

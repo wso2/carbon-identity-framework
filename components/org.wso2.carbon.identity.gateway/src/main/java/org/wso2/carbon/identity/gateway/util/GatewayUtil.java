@@ -38,30 +38,6 @@ public class GatewayUtil {
 
     private Logger logger = LoggerFactory.getLogger(GatewayUtil.class);
 
-
-
-
-    private synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact) {
-        String artifactName = artifact.getPath();
-        IdentityProviderConfig identityProviderConfig = null;
-        Path path = Paths.get(artifactName);
-        if (Files.exists(path)) {
-            try {
-                Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
-                Yaml yaml = new Yaml();
-                yaml.setBeanAccess(BeanAccess.FIELD);
-                IdentityProviderEntity identityProviderEntity = yaml.loadAs(in, IdentityProviderEntity.class);
-                if (identityProviderEntity != null) {
-                    identityProviderConfig = identityProviderEntity.getIdentityProviderConfig();
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return identityProviderConfig;
-    }
-
     /**
      * Read provide name by using file name.
      *

@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderEntity;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -140,7 +141,11 @@ public class IdentityProviderDeployer implements Deployer {
         }
         String providerName = GatewayUtil.getProviderName(artifact.getName());
         IdentityProviderEntity providerEntity = GatewayUtil.getProvider(artifact, IdentityProviderEntity.class);
+        if (providerEntity == null) {
+            throw new GatewayServerException("Provider name cannot be found.");
+        }
         if (!providerEntity.getIdentityProviderConfig().getName().equals(providerName)) {
+
             throw new GatewayServerException("Provider name should be the same as file name.");
         }
         return providerEntity.getIdentityProviderConfig();

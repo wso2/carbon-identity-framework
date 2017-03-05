@@ -19,6 +19,7 @@ public class SampleProtocolRequest extends ClientAuthenticationRequest {
         }
 
         public SampleProtocolRequest build() throws GatewayRuntimeException {
+            super.build();
             return new SampleProtocolRequest(this);
         }
     }
