@@ -58,7 +58,7 @@ public class GatewayRequest implements Serializable {
     }
 
     public Serializable getAttribute(String attributeName) {
-        return parameters.get(attributeName);
+        return attributes.get(attributeName);
     }
 
     public Map<String, Serializable> getAttributeMap() {
@@ -92,8 +92,11 @@ public class GatewayRequest implements Serializable {
 
     public Enumeration<String> getHeaders(String name) {
         String headerValue = (String) headers.get(name);
-        String[] multiValuedHeader = headerValue.split(",");
-        return Collections.enumeration(Arrays.asList(multiValuedHeader));
+        if (StringUtils.isNotEmpty(headerValue)) {
+            String[] multiValuedHeader = headerValue.split(",");
+            return Collections.enumeration(Arrays.asList(multiValuedHeader));
+        }
+        return Collections.emptyEnumeration();
     }
 
     public String getHttpMethod() {
