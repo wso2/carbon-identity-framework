@@ -84,6 +84,12 @@ public class GatewayManager {
         }
     }
 
+    /**
+     * Handler the exception that is not handle by the gateway and throw 500 status.
+     *
+     * @param exception
+     * @return
+     */
     public Response.ResponseBuilder handleException(RuntimeException exception) {
 
         Response.ResponseBuilder builder = Response.noContent();
@@ -92,6 +98,14 @@ public class GatewayManager {
         return builder;
     }
 
+
+    /**
+     * Find the Processor Implementation based on the GatewayRequest. If it is not there, throw GatewayRuntimeException
+     * exception.
+     *
+     * @param gatewayRequest
+     * @return
+     */
     private GatewayProcessor getIdentityProcessor(GatewayRequest gatewayRequest) {
         List<GatewayProcessor> processors = GatewayResourceDataHolder.getInstance().getGatewayProcessors();
 
@@ -108,6 +122,13 @@ public class GatewayManager {
         throw new GatewayRuntimeException("No GatewayProcessor found to process the request.");
     }
 
+    /**
+     * Find the RequestFactory based on Request. If not find any extended version of GatewayRequestBuilderFactory,
+     * then it will pick up the GatewayRequestBuilderFactory as the default one.
+     *
+     * @param request
+     * @return
+     */
     private GatewayRequestBuilderFactory getIdentityRequestFactory(Request request) {
 
         List<GatewayRequestBuilderFactory> factories =
@@ -128,6 +149,13 @@ public class GatewayManager {
     }
 
 
+    /**
+     * Find the ResponseFactory based on GatewayResponse. If not find any extended version of
+     * GatewayResponseBuilderFactory, then it will pick up the GatewayResponseBuilderFactory as the default one.
+     *
+     * @param gatewayResponse
+     * @return
+     */
     private GatewayResponseBuilderFactory getIdentityResponseFactory(GatewayResponse gatewayResponse) {
 
         List<GatewayResponseBuilderFactory> factories = GatewayResourceDataHolder.getInstance()

@@ -30,9 +30,9 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.resource.util.Utils;
 
 import java.util.Collections;
-import java.util.Comparator;
 
 
 @Component(
@@ -41,54 +41,6 @@ import java.util.Comparator;
 )
 public class GatewayResourceComponent {
 
-    private static Comparator<GatewayProcessor> identityProcessor =
-            new Comparator<GatewayProcessor>() {
-
-                @Override
-                public int compare(GatewayProcessor gatewayProcessor1,
-                                   GatewayProcessor gatewayProcessor2) {
-
-                    if (gatewayProcessor1.getPriority() > gatewayProcessor2.getPriority()) {
-                        return 1;
-                    } else if (gatewayProcessor1.getPriority() < gatewayProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<GatewayRequestBuilderFactory> httpIdentityRequestFactory =
-            new Comparator<GatewayRequestBuilderFactory>() {
-
-                @Override
-                public int compare(GatewayRequestBuilderFactory factory1,
-                                   GatewayRequestBuilderFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    private static Comparator<GatewayResponseBuilderFactory> httpIdentityResponseFactory =
-            new Comparator<GatewayResponseBuilderFactory>() {
-
-                @Override
-                public int compare(GatewayResponseBuilderFactory factory1,
-                                   GatewayResponseBuilderFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
     private Logger log = LoggerFactory.getLogger(GatewayResourceComponent.class);
 
     @Activate
@@ -115,7 +67,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getGatewayProcessors().add(requestProcessor);
         Collections.sort(GatewayResourceDataHolder.getInstance().getGatewayProcessors(),
-                         identityProcessor);
+                         Utils.identityProcessor);
     }
 
     protected void unSetIdentityProcessor(GatewayProcessor requestProcessor) {
@@ -131,21 +83,16 @@ public class GatewayResourceComponent {
             unbind = "unSetHttpIdentityRequestFactory"
     )
     protected void addHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
-        if (GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")) {
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(factory);
-        }
+
         GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         httpIdentityRequestFactory);
+                         Utils.httpIdentityRequestFactory);
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayRequestBuilderFactory : " + factory.getName());
         }
     }
 
     protected void unSetHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
-        if (GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")) {
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(null);
-        }
         GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed GatewayRequestBuilderFactory : " + factory.getName());
@@ -161,21 +108,16 @@ public class GatewayResourceComponent {
     )
     protected void addHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
 
-        if (GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")) {
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(factory);
-        }
         GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         httpIdentityResponseFactory);
+                         Utils.httpIdentityResponseFactory);
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayResponseBuilderFactory : " + factory.getName());
         }
     }
 
     protected void unSetHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
-        if (GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")) {
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(null);
-        }
+
         GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
         if (log.isDebugEnabled()) {
             log.debug("Removed GatewayResponseBuilderFactory : " + factory.getName());
