@@ -105,9 +105,13 @@ public class GatewayManager {
 
 
             } catch (GatewayRuntimeException e) {
+                String errorMessage = "Error occurred while processing the request, " + e.getMessage() ;
+                log.error(errorMessage, e);
                 responseBuilder = factory.handleException(e);
                 if (responseBuilder == null) {
-                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
+                    errorMessage = "Error occurred while trying to load a response factory to handle the error"
+                                          + " response" ;
+                    throw new GatewayRuntimeException(errorMessage);
                 }
                 return responseBuilder.build();
             }

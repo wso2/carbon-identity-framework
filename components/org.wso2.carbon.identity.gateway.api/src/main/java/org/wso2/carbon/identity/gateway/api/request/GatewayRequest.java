@@ -58,7 +58,7 @@ public class GatewayRequest implements Serializable {
     }
 
     public Serializable getAttribute(String attributeName) {
-        return attributes.get(attributeName);
+        return parameters.get(attributeName);
     }
 
     public Map<String, Serializable> getAttributeMap() {
@@ -92,31 +92,28 @@ public class GatewayRequest implements Serializable {
 
     public Enumeration<String> getHeaders(String name) {
         String headerValue = (String) headers.get(name);
-        if(StringUtils.isNotEmpty(headerValue)) {
-            String[] multiValuedHeader = headerValue.split(",");
-            return Collections.enumeration(Arrays.asList(multiValuedHeader));
-        }
-        return Collections.emptyEnumeration();
+        String[] multiValuedHeader = headerValue.split(",");
+        return Collections.enumeration(Arrays.asList(multiValuedHeader));
     }
 
     public String getHttpMethod() {
         return httpMethod;
     }
 
-    public String getParameter(String paramName) {
+    public String getParameter(String paramName)  {
 
         String decode = null;
         Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
         Map<String, String> bodyParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
 
-        if (bodyParams != null && bodyParams.get(paramName) != null) {
+        if (bodyParams.get(paramName) != null) {
             return bodyParams.get(paramName);
-        } else if (queryParams != null) {
+        } else {
             if (StringUtils.isNotBlank(queryParams.get(paramName))) {
                 try {
                     decode = URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
                 } catch (UnsupportedEncodingException e) {
-                    log.error("Error while decoding query parameter", e);
+                    e.printStackTrace();
                 }
             }
         }
@@ -133,11 +130,9 @@ public class GatewayRequest implements Serializable {
 
     public String getQueryParameter(String paramName) throws UnsupportedEncodingException {
         Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
-        String parameter = queryParams.get(paramName);
-        if(StringUtils.isNotEmpty(parameter)) {
-           return URLDecoder.decode(parameter, StandardCharsets.UTF_8.name());
-        }
-        return parameter;
+        URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
+
+        return queryParams.get(paramName);
     }
 
     public String getQueryString() {
