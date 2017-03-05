@@ -24,6 +24,8 @@ import org.wso2.carbon.deployment.engine.Artifact;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderEntity;
+import org.wso2.carbon.identity.gateway.common.util.*;
+import org.wso2.msf4j.Request;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
@@ -33,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class GatewayUtil {
 
@@ -46,7 +49,7 @@ public class GatewayUtil {
      * @throws GatewayServerException
      */
     public static String getProviderName(String fileName) throws GatewayServerException {
-        if(!fileName.endsWith("." + Constants.YAML_EXTENSION)){
+        if(!fileName.endsWith("." + org.wso2.carbon.identity.gateway.common.util.Constants.YAML_EXTENSION)){
             throw new GatewayServerException("Provider config file should be yaml.");
         }
         return fileName.substring(0, fileName.indexOf(".yaml"));
@@ -79,5 +82,17 @@ public class GatewayUtil {
             }
         }
         return provider;
+    }
+
+    public static String getParameter(Request request, String paramName) {
+        Map<String, String> queryParams = (Map<String, String>) request.getProperty(
+                org.wso2.carbon.identity.gateway.common.util.Constants.QUERY_PARAMETERS);
+        Map<String, String> bodyParams = (Map<String, String>) request.getProperty(
+                org.wso2.carbon.identity.gateway.common.util.Constants.BODY_PARAMETERS);
+        if (queryParams.get(paramName) != null) {
+            return queryParams.get(paramName);
+        } else {
+            return bodyParams.get(paramName);
+        }
     }
 }

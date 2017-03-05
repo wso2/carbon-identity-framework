@@ -1,6 +1,6 @@
 package org.wso2.carbon.identity.sample.outbound.request;
 
-import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
 
 public class SampleACSRequest extends CallbackAuthenticationRequest {
 

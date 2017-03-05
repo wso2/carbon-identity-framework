@@ -23,4 +23,10 @@ public class Constants {
     public static final String REQUEST_BODY = "REQUEST_BODY";
 
     public static final String GATEWAY_COOKIE = "GWSSOSC";
+
+
+
+
+    public final static String YAML_EXTENSION = "yaml" ;
+
 }

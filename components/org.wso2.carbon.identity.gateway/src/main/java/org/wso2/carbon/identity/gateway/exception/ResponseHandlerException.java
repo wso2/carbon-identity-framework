@@ -15,9 +15,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.util;
+package org.wso2.carbon.identity.gateway.exception;
 
 
-public class Constants {
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
+public class ResponseHandlerException extends GatewayServerException {
+    public ResponseHandlerException(String message) {
+        super(message);
+    }
+
+    public ResponseHandlerException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -15,9 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.util;
+package org.wso2.carbon.identity.gateway.authentication;
 
 
-public class Constants {
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
+
+public abstract class AbstractSequenceBuildFactory extends AbstractGatewayHandler {
+    public abstract AbstractSequence buildSequence(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException;
 }

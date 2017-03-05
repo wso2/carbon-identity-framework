@@ -83,25 +83,15 @@ public class GatewayUnitTests {
     @Test
     public void testResponseStatusInErrors() {
         GatewayResponseBuilderFactory gatewayResponseBuilderFactory = new GatewayResponseBuilderFactory();
-        Response.ResponseBuilder responseBuilder = gatewayResponseBuilderFactory.handleException(new
-                GatewayClientException("This is a gateway client Exception"));
-        Response response = responseBuilder.build();
-        Assert.assertEquals(500, response.getStatus());
-        Assert.assertEquals("This is a gateway client Exception", response.getEntity());
 
-        responseBuilder = gatewayResponseBuilderFactory.handleException(new GatewayRuntimeException("This is a " +
+        Response.ResponseBuilder responseBuilder = gatewayResponseBuilderFactory.handleException(new GatewayRuntimeException("This is a " +
                 "gateway runtime exception"));
-        response = responseBuilder.build();
+        Response response = responseBuilder.build();
         Assert.assertEquals(500, response.getStatus());
         Assert.assertEquals("This is a gateway runtime exception", response.getEntity());
 
-        responseBuilder = gatewayResponseBuilderFactory.handleException(new GatewayServerException("This is a " +
-                "gateway server exception"));
-        response = responseBuilder.build();
-        Assert.assertEquals(500, response.getStatus());
-        Assert.assertEquals("This is a gateway server exception", response.getEntity());
 
-        responseBuilder = gatewayResponseBuilderFactory.handleException(new RuntimeException ("This is a run time " +
+        responseBuilder = gatewayResponseBuilderFactory.handleException(new GatewayRuntimeException ("This is a run time " +
                 "exception"));
         response = responseBuilder.build();
         Assert.assertEquals(500, response.getStatus());

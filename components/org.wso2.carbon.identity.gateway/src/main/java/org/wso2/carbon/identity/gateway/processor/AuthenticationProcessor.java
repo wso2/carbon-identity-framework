@@ -27,11 +27,11 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
-import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.util.HandlerManager;
+import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.handler.HandlerManager;
 
 /**
  * AuthenticationProcessor is the main processor in Authentication framework that is executing the template

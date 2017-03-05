@@ -22,9 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequence;
-import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
+import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 
 import java.io.Serializable;

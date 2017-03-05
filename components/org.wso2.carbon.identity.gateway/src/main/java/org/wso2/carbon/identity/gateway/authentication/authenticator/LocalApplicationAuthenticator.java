@@ -15,9 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.util;
+package org.wso2.carbon.identity.gateway.authentication.authenticator;
 
 
-public class Constants {
-
+public interface LocalApplicationAuthenticator extends ApplicationAuthenticator {
 }

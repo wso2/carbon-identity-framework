@@ -15,9 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.util;
+package org.wso2.carbon.identity.gateway.authentication.authenticator;
 
 
-public class Constants {
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 
+public interface RequestPathApplicationAuthenticator extends ApplicationAuthenticator {
+    public boolean canHandle(AuthenticationContext authenticationContext);
 }

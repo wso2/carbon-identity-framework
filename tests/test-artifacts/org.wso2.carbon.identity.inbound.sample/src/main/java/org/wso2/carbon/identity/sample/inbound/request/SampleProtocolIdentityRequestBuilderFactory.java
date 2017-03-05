@@ -7,7 +7,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.processor.util.Utility;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.msf4j.Request;
 
 import javax.ws.rs.core.Response;
@@ -23,9 +23,9 @@ public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestB
 
     @Override
     public boolean canHandle(Request request) throws GatewayClientException, GatewayServerException {
-        String sampleProtocol = Utility.getParameter(request, "sampleProtocol");
-        String errorWhileCanHandleClient = Utility.getParameter(request, "canHandleErrorClient");
-        String errorWhileCanHandleServer = Utility.getParameter(request, "canHandleErrorServer");
+        String sampleProtocol = GatewayUtil.getParameter(request, "sampleProtocol");
+        String errorWhileCanHandleClient = GatewayUtil.getParameter(request, "canHandleErrorClient");
+        String errorWhileCanHandleServer = GatewayUtil.getParameter(request, "canHandleErrorServer");
         if (errorWhileCanHandleClient != null) {
             throw new GatewayClientException("Throwing client exception");
         }

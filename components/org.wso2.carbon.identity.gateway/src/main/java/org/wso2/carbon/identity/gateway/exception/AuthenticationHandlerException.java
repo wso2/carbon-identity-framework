@@ -15,9 +15,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.util;
+package org.wso2.carbon.identity.gateway.exception;
 
 
-public class Constants {
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
+public class AuthenticationHandlerException extends GatewayServerException {
+
+    private static final long serialVersionUID = -8680134348172156343L;
+
+    public AuthenticationHandlerException(String message) {
+        super(message);
+    }
+
+    public AuthenticationHandlerException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

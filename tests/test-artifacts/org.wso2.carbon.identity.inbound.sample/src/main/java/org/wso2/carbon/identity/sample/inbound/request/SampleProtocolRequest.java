@@ -1,7 +1,7 @@
 package org.wso2.carbon.identity.sample.inbound.request;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 import org.wso2.msf4j.Request;
 
 public class SampleProtocolRequest extends ClientAuthenticationRequest {

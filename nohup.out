@@ -3186,3 +3186,14 @@ WARN: Can't load Scala: since build 163.4396 does not match IU-162.1628.40
 	at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:93)
 	at java.awt.EventDispatchThread.run(EventDispatchThread.java:82)
 ] 
+[90436047]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: GatewayDAOTests.java 
+[90533640]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: GatewayUnitTests.java 
+[90533640]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: Utility.java 
+[90669491]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: RequestValidatorException.java 
+[90669491]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: AbstractSessionHandler.java 
+[90669492]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: ResponseHandlerException.java 
+[90669492]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: SessionHandlerException.java 
+[91064475]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: AuthenticationContext.java 
+[91067978]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: AuthenticationContext.java 
+[91143106]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: SessionContext.java 
+[94123795]   WARN - tectAndAdjustIndentOptionsTask - Indent detection is too long for: SampleProtocolIdentityRequestBuilderFactory.java 

@@ -15,9 +15,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.util;
+package org.wso2.carbon.identity.gateway.authentication;
 
 
-public class Constants {
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
+public enum AuthenticationResponse {
+    AUTHENTICATED,
+    INCOMPLETE;
+
+    private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder;
+
+    public GatewayResponse.GatewayResponseBuilder getGatewayResponseBuilder() {
+        return gatewayResponseBuilder;
+    }
+
+    public AuthenticationResponse setGatewayResponseBuilder(
+            GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+        this.gatewayResponseBuilder = gatewayResponseBuilder;
+        return this;
+    }
 }

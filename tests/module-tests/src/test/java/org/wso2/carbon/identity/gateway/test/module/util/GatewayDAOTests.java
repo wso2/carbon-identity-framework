@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.gateway.dao.IdentityContextDAO;
 import org.wso2.carbon.identity.gateway.dao.SessionDAO;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
-import org.wso2.carbon.identity.mgt.event.IdentityMgtMessageContext;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
 import javax.inject.Inject;

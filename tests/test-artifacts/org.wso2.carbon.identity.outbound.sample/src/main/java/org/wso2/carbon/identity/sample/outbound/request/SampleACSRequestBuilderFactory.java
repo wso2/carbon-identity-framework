@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.processor.util.Utility;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.msf4j.Request;
 
 public class SampleACSRequestBuilderFactory extends GatewayRequestBuilderFactory {
@@ -12,7 +12,7 @@ public class SampleACSRequestBuilderFactory extends GatewayRequestBuilderFactory
     @Override
     public boolean canHandle(Request request) throws GatewayException {
         super.canHandle(request);
-        String assertion = Utility.getParameter(request, "Assertion");
+        String assertion = GatewayUtil.getParameter(request, "Assertion");
         if (StringUtils.isNotBlank(assertion)) {
             return true;
         }
@@ -34,7 +34,7 @@ public class SampleACSRequestBuilderFactory extends GatewayRequestBuilderFactory
 
     public void create(SampleACSRequest.SampleACSRequestBuilder builder, Request request) throws GatewayClientException {
         super.create(builder, request);
-        builder.setRequestDataKey(Utility.getParameter(request, "RelayState"));
+        builder.setRequestDataKey(GatewayUtil.getParameter(request, "RelayState"));
     }
 
 }
