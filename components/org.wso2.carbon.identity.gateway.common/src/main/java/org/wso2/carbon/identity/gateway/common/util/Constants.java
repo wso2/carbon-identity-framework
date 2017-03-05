@@ -25,8 +25,5 @@ public class Constants {
     public static final String GATEWAY_COOKIE = "GWSSOSC";
 
 
-
-
-    public final static String YAML_EXTENSION = "yaml" ;
-
+    public final static String YAML_EXTENSION = "yaml";
 }

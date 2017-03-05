@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.gateway.resource;
 
 import org.osgi.service.component.annotations.Component;
-import static org.wso2.carbon.identity.gateway.resource.util.Utils.processParameters;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
 
@@ -29,10 +28,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.identity.gateway.resource.util.Utils.processParameters;
+
 /**
  * GatewayResource is a MicroService.
  * All the request that is coming to the gateway are captured by this service.
- *
  */
 @Component(
         name = "org.wso2.carbon.identity.framework.resource.GatewayResource",
@@ -64,7 +64,8 @@ public class GatewayResource implements Microservice {
     /**
      * All the POST request are come to this API and process by the GatewayManager.
      *
-     * @param request is an MSF4J request.
+     * @param request
+     *         is an MSF4J request.
      * @return Response
      */
     @POST

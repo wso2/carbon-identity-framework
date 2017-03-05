@@ -28,18 +28,16 @@ import java.util.List;
 
 public class GatewayResourceDataHolder {
     private static GatewayResourceDataHolder instance = new GatewayResourceDataHolder();
-
+    GatewayRequestBuilderFactory defaultGatewayRequestBuilderFactory = null;
+    GatewayResponseBuilderFactory defaultGatewayResponseBuilderFactory = null;
     private BundleContext bundleContext = null;
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
     private List<GatewayProcessor> gatewayProcessors = new ArrayList<GatewayProcessor>();
-    private List<GatewayRequestBuilderFactory> httpIdentityRequestFactories = new ArrayList<GatewayRequestBuilderFactory>();
+    private List<GatewayRequestBuilderFactory> httpIdentityRequestFactories
+            = new ArrayList<GatewayRequestBuilderFactory>();
     private List<GatewayResponseBuilderFactory> httpIdentityResponseFactories = new ArrayList<>();
-
-    GatewayRequestBuilderFactory defaultGatewayRequestBuilderFactory = null ;
-    GatewayResponseBuilderFactory defaultGatewayResponseBuilderFactory = null ;
     //Framework handlers
-
 
 
     private GatewayResourceDataHolder() {
@@ -60,6 +58,36 @@ public class GatewayResourceDataHolder {
         this.bundleContext = bundleContext;
     }
 
+    public GatewayRequestBuilderFactory getDefaultGatewayRequestBuilderFactory() {
+        return defaultGatewayRequestBuilderFactory;
+    }
+
+    public void setDefaultGatewayRequestBuilderFactory(GatewayRequestBuilderFactory
+                                                               defaultGatewayRequestBuilderFactory) {
+        this.defaultGatewayRequestBuilderFactory = defaultGatewayRequestBuilderFactory;
+    }
+
+    public GatewayResponseBuilderFactory getDefaultGatewayResponseBuilderFactory() {
+        return defaultGatewayResponseBuilderFactory;
+    }
+
+    public void setDefaultGatewayResponseBuilderFactory(GatewayResponseBuilderFactory
+                                                                defaultGatewayResponseBuilderFactory) {
+        this.defaultGatewayResponseBuilderFactory = defaultGatewayResponseBuilderFactory;
+    }
+
+    public List<GatewayProcessor> getGatewayProcessors() {
+        return gatewayProcessors;
+    }
+
+    public List<GatewayRequestBuilderFactory> getHttpIdentityRequestFactories() {
+        return httpIdentityRequestFactories;
+    }
+
+    public List<GatewayResponseBuilderFactory> getHttpIdentityResponseFactories() {
+        return httpIdentityResponseFactories;
+    }
+
     public long getNanoTimeReference() {
         return nanoTimeReference;
     }
@@ -74,35 +102,5 @@ public class GatewayResourceDataHolder {
 
     private void setUnixTimeReference(long unixTimeReference) {
         this.unixTimeReference = unixTimeReference;
-    }
-
-    public List<GatewayRequestBuilderFactory> getHttpIdentityRequestFactories() {
-        return httpIdentityRequestFactories;
-    }
-
-    public List<GatewayProcessor> getGatewayProcessors() {
-        return gatewayProcessors;
-    }
-
-    public List<GatewayResponseBuilderFactory> getHttpIdentityResponseFactories() {
-        return httpIdentityResponseFactories;
-    }
-
-    public GatewayResponseBuilderFactory getDefaultGatewayResponseBuilderFactory() {
-        return defaultGatewayResponseBuilderFactory;
-    }
-
-    public void setDefaultGatewayResponseBuilderFactory(GatewayResponseBuilderFactory
-                                                                defaultGatewayResponseBuilderFactory) {
-        this.defaultGatewayResponseBuilderFactory = defaultGatewayResponseBuilderFactory;
-    }
-
-    public GatewayRequestBuilderFactory getDefaultGatewayRequestBuilderFactory() {
-        return defaultGatewayRequestBuilderFactory;
-    }
-
-    public void setDefaultGatewayRequestBuilderFactory(GatewayRequestBuilderFactory
-                                                               defaultGatewayRequestBuilderFactory) {
-        this.defaultGatewayRequestBuilderFactory = defaultGatewayRequestBuilderFactory;
     }
 }

@@ -18,10 +18,7 @@
 package org.wso2.carbon.identity.gateway.resource.util;
 
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.common.util.*;
-import org.wso2.carbon.identity.gateway.resource.GatewayResource;
 import org.wso2.msf4j.Request;
 import org.wso2.msf4j.util.BufferUtil;
 
@@ -40,7 +37,6 @@ import java.util.Optional;
 public class Utils {
 
 
-
     public static void processParameters(Request request) {
 
         Map<String, String> queryParams = getRequestParameters(request);
@@ -55,7 +51,8 @@ public class Utils {
                 throw new GatewayRuntimeException("Error while building request body");
             }
         } else {
-            request.setProperty(org.wso2.carbon.identity.gateway.common.util.Constants.BODY_PARAMETERS, new HashMap<String, String>());
+            request.setProperty(org.wso2.carbon.identity.gateway.common.util.Constants.BODY_PARAMETERS,
+                                new HashMap<String, String>());
         }
     }
 
@@ -127,7 +124,4 @@ public class Utils {
     private static boolean isFormParamRequest(String contentType) {
         return MediaType.APPLICATION_FORM_URLENCODED.equalsIgnoreCase(contentType);
     }
-
-
-
 }

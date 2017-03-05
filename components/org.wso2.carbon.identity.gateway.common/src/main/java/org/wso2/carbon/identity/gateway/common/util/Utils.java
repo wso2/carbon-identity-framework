@@ -17,8 +17,6 @@
  */
 package org.wso2.carbon.identity.gateway.common.util;
 
-import org.wso2.msf4j.Request;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -27,7 +25,7 @@ import java.util.Map;
 
 
 public class Utils {
-    public static String buildQueryString(Map<String, String[]> parameterMap)   {
+    public static String buildQueryString(Map<String, String[]> parameterMap) {
         StringBuilder queryString = new StringBuilder("?");
         try {
             boolean isFirst = true;

@@ -67,7 +67,6 @@ public class GatewayManager {
             GatewayResponseBuilderFactory responseFactory = getIdentityResponseFactory(gatewayResponse);
             Response.ResponseBuilder builder = responseFactory.createBuilder(gatewayResponse);
             return builder.build();
-
         } catch (GatewayClientException exception) {
 
             log.error("Error occurred while building the request, " + exception);

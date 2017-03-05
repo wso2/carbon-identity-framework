@@ -41,109 +41,6 @@ import java.util.Comparator;
 )
 public class GatewayResourceComponent {
 
-    private Logger log = LoggerFactory.getLogger(GatewayResourceComponent.class);
-
-
-    @Activate
-    protected void start(BundleContext bundleContext) throws Exception {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Application Authentication Framework bundle is activated");
-        }
-    }
-
-    @Deactivate
-    protected void stop() throws Exception {
-
-    }
-
-
-
-    @Reference(
-            name = "identity.processor",
-            service = GatewayProcessor.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetIdentityProcessor"
-    )
-    protected void addIdentityProcessor(GatewayProcessor requestProcessor) {
-
-        GatewayResourceDataHolder.getInstance().getGatewayProcessors().add(requestProcessor);
-        Collections.sort(GatewayResourceDataHolder.getInstance().getGatewayProcessors(),
-                         identityProcessor);
-
-    }
-
-    protected void unSetIdentityProcessor(GatewayProcessor requestProcessor) {
-
-        GatewayResourceDataHolder.getInstance().getGatewayProcessors().remove(requestProcessor);
-
-    }
-
-
-
-    @Reference(
-            name = "identity.application.request.factory",
-            service = GatewayRequestBuilderFactory.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetHttpIdentityRequestFactory"
-    )
-    protected void addHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
-        if(GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")){
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(factory);
-        }
-        GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
-        Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         httpIdentityRequestFactory);
-        if (log.isDebugEnabled()) {
-            log.debug("Added GatewayRequestBuilderFactory : " + factory.getName());
-        }
-    }
-
-    protected void unSetHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
-        if(GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")){
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(null);
-        }
-        GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().remove(factory);
-        if (log.isDebugEnabled()) {
-            log.debug("Removed GatewayRequestBuilderFactory : " + factory.getName());
-        }
-    }
-
-    @Reference(
-            name = "identity.application.response.factory",
-            service = GatewayResponseBuilderFactory.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetHttpIdentityResponseFactory"
-    )
-    protected void addHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
-
-        if(GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")){
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(factory);
-        }
-        GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
-        Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         httpIdentityResponseFactory);
-        if (log.isDebugEnabled()) {
-            log.debug("Added GatewayResponseBuilderFactory : " + factory.getName());
-        }
-    }
-
-    protected void unSetHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
-        if(GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")){
-            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(null);
-        }
-        GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
-        if (log.isDebugEnabled()) {
-            log.debug("Removed GatewayResponseBuilderFactory : " + factory.getName());
-        }
-    }
-
-
-
-
     private static Comparator<GatewayProcessor> identityProcessor =
             new Comparator<GatewayProcessor>() {
 
@@ -192,8 +89,96 @@ public class GatewayResourceComponent {
                     }
                 }
             };
+    private Logger log = LoggerFactory.getLogger(GatewayResourceComponent.class);
 
+    @Activate
+    protected void start(BundleContext bundleContext) throws Exception {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Application Authentication Framework bundle is activated");
+        }
+    }
 
+    @Deactivate
+    protected void stop() throws Exception {
 
+    }
+
+    @Reference(
+            name = "identity.processor",
+            service = GatewayProcessor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetIdentityProcessor"
+    )
+    protected void addIdentityProcessor(GatewayProcessor requestProcessor) {
+
+        GatewayResourceDataHolder.getInstance().getGatewayProcessors().add(requestProcessor);
+        Collections.sort(GatewayResourceDataHolder.getInstance().getGatewayProcessors(),
+                         identityProcessor);
+    }
+
+    protected void unSetIdentityProcessor(GatewayProcessor requestProcessor) {
+
+        GatewayResourceDataHolder.getInstance().getGatewayProcessors().remove(requestProcessor);
+    }
+
+    @Reference(
+            name = "identity.application.request.factory",
+            service = GatewayRequestBuilderFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetHttpIdentityRequestFactory"
+    )
+    protected void addHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
+        if (GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")) {
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(factory);
+        }
+        GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
+        Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories(),
+                         httpIdentityRequestFactory);
+        if (log.isDebugEnabled()) {
+            log.debug("Added GatewayRequestBuilderFactory : " + factory.getName());
+        }
+    }
+
+    protected void unSetHttpIdentityRequestFactory(GatewayRequestBuilderFactory factory) {
+        if (GatewayResponseBuilderFactory.class.getName().equals("GatewayRequestBuilderFactory")) {
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayRequestBuilderFactory(null);
+        }
+        GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().remove(factory);
+        if (log.isDebugEnabled()) {
+            log.debug("Removed GatewayRequestBuilderFactory : " + factory.getName());
+        }
+    }
+
+    @Reference(
+            name = "identity.application.response.factory",
+            service = GatewayResponseBuilderFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetHttpIdentityResponseFactory"
+    )
+    protected void addHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
+
+        if (GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")) {
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(factory);
+        }
+        GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
+        Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories(),
+                         httpIdentityResponseFactory);
+        if (log.isDebugEnabled()) {
+            log.debug("Added GatewayResponseBuilderFactory : " + factory.getName());
+        }
+    }
+
+    protected void unSetHttpIdentityResponseFactory(GatewayResponseBuilderFactory factory) {
+        if (GatewayResponseBuilderFactory.class.getSimpleName().equals("GatewayResponseBuilderFactory")) {
+            GatewayResourceDataHolder.getInstance().setDefaultGatewayResponseBuilderFactory(null);
+        }
+        GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().remove(factory);
+        if (log.isDebugEnabled()) {
+            log.debug("Removed GatewayResponseBuilderFactory : " + factory.getName());
+        }
+    }
 }

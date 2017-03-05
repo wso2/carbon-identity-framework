@@ -24,12 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class IDPMetaData{
+public class IDPMetaData {
 
     private List<IDPCertificate> certificates = new ArrayList<>();
-    private String federationHub ;
-    private String homeRealm ;
-    private ClaimConfig claimConfig ;
+    private String federationHub;
+    private String homeRealm;
+    private ClaimConfig claimConfig;
     private RoleConfig roleConfig;
     private Properties properties = new Properties();
 
@@ -39,6 +39,14 @@ public class IDPMetaData{
 
     public void setCertificates(List<IDPCertificate> certificates) {
         this.certificates = certificates;
+    }
+
+    public ClaimConfig getClaimConfig() {
+        return claimConfig;
+    }
+
+    public void setClaimConfig(ClaimConfig claimConfig) {
+        this.claimConfig = claimConfig;
     }
 
     public String getFederationHub() {
@@ -57,14 +65,6 @@ public class IDPMetaData{
         this.homeRealm = homeRealm;
     }
 
-    public RoleConfig getRoleConfig() {
-        return roleConfig;
-    }
-
-    public void setRoleConfig(RoleConfig roleConfig) {
-        this.roleConfig = roleConfig;
-    }
-
     public Properties getProperties() {
         return properties;
     }
@@ -73,11 +73,11 @@ public class IDPMetaData{
         this.properties = properties;
     }
 
-    public ClaimConfig getClaimConfig() {
-        return claimConfig;
+    public RoleConfig getRoleConfig() {
+        return roleConfig;
     }
 
-    public void setClaimConfig(ClaimConfig claimConfig) {
-        this.claimConfig = claimConfig;
+    public void setRoleConfig(RoleConfig roleConfig) {
+        this.roleConfig = roleConfig;
     }
 }

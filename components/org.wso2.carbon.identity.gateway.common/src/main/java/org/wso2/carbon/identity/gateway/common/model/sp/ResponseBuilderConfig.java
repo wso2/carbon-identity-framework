@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 import java.io.Serializable;
 import java.util.Properties;
 
-public class ResponseBuilderConfig implements Serializable{
+public class ResponseBuilderConfig implements Serializable {
     private String type;
     private Properties properties = new Properties();
 

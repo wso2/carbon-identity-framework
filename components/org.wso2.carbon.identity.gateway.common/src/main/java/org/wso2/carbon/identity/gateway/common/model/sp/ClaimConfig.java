@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 
 public class ClaimConfig {
 
-    private String dialectUri ;
-    private String profile ;
-    private String subjectClaimUri ;
+    private String dialectUri;
+    private String profile;
+    private String subjectClaimUri;
 
 
     public String getDialectUri() {

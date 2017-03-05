@@ -21,11 +21,10 @@ public class ServiceProviderConfig {
 
     private String name;
 
-    private RequestValidationConfig requestValidationConfig ;
-    private ClaimConfig claimConfig ;
+    private RequestValidationConfig requestValidationConfig;
+    private ClaimConfig claimConfig;
     private AuthenticationConfig authenticationConfig;
     private ResponseBuildingConfig responseBuildingConfig;
-
 
 
     public AuthenticationConfig getAuthenticationConfig() {
@@ -36,12 +35,12 @@ public class ServiceProviderConfig {
         this.authenticationConfig = authenticationConfig;
     }
 
-    public RequestValidationConfig getRequestValidationConfig() {
-        return requestValidationConfig;
+    public ClaimConfig getClaimConfig() {
+        return claimConfig;
     }
 
-    public void setRequestValidationConfig(RequestValidationConfig requestValidationConfig) {
-        this.requestValidationConfig = requestValidationConfig;
+    public void setClaimConfig(ClaimConfig claimConfig) {
+        this.claimConfig = claimConfig;
     }
 
     public String getName() {
@@ -52,20 +51,20 @@ public class ServiceProviderConfig {
         this.name = name;
     }
 
+    public RequestValidationConfig getRequestValidationConfig() {
+        return requestValidationConfig;
+    }
+
+    public void setRequestValidationConfig(RequestValidationConfig requestValidationConfig) {
+        this.requestValidationConfig = requestValidationConfig;
+    }
+
     public ResponseBuildingConfig getResponseBuildingConfig() {
         return responseBuildingConfig;
     }
 
     public void setResponseBuildingConfig(ResponseBuildingConfig responseBuildingConfig) {
         this.responseBuildingConfig = responseBuildingConfig;
-    }
-
-    public ClaimConfig getClaimConfig() {
-        return claimConfig;
-    }
-
-    public void setClaimConfig(ClaimConfig claimConfig) {
-        this.claimConfig = claimConfig;
     }
 }
 
