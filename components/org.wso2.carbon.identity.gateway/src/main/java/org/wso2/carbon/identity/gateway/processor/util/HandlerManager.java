@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
@@ -52,7 +52,7 @@ public class HandlerManager {
      */
     public AuthenticationHandler getAuthenticationHandler(GatewayMessageContext messageContext) {
         List<AuthenticationHandler> authenticationHandlers =
-                FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers();
+                GatewayServiceHolder.getInstance().getAuthenticationHandlers();
         if(authenticationHandlers != null) {
             for (AuthenticationHandler authenticationHandler : authenticationHandlers) {
                 try {
@@ -79,7 +79,7 @@ public class HandlerManager {
     public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext) {
 
         List<AbstractResponseHandler> responseBuilderHandlers =
-                FrameworkServiceDataHolder.getInstance().getResponseHandlers();
+                GatewayServiceHolder.getInstance().getResponseHandlers();
         if(responseBuilderHandlers != null) {
             for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
                 try {
@@ -106,7 +106,34 @@ public class HandlerManager {
     public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext, GatewayException e) {
 
         List<AbstractResponseHandler> responseBuilderHandlers =
-                FrameworkServiceDataHolder.getInstance().getResponseHandlers();
+                GatewayServiceHolder.getInstance().getResponseHandlers();
+        if(responseBuilderHandlers != null) {
+            for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
+                try {
+                    if (responseBuilderHandler.canHandle(authenticationContext, e)) {
+                        return responseBuilderHandler;
+                    }
+                } catch (Throwable throwable) {
+                    String errorMessage = "Error occurred while calling can handle to get response handler. " +
+                                          throwable.getMessage() ;
+                    log.error(errorMessage);
+                }
+            }
+        }
+        throw new GatewayRuntimeException("Can not find a ResponseHandler to handle this request.");
+    }
+
+
+    /**
+     * Get Response Handler.
+     *
+     * @param authenticationContext
+     * @return
+     */
+    public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext, GatewayRuntimeException e) {
+
+        List<AbstractResponseHandler> responseBuilderHandlers =
+                GatewayServiceHolder.getInstance().getResponseHandlers();
         if(responseBuilderHandlers != null) {
             for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
                 try {
@@ -133,7 +160,7 @@ public class HandlerManager {
     public AbstractRequestValidator getRequestValidator(GatewayMessageContext messageContext) {
 
         List<AbstractRequestValidator> requestHandlers =
-                FrameworkServiceDataHolder.getInstance().getRequestHandlers();
+                GatewayServiceHolder.getInstance().getRequestHandlers();
         if(requestHandlers != null) {
             for (AbstractRequestValidator requestValidator : requestHandlers) {
                 try {
@@ -159,7 +186,7 @@ public class HandlerManager {
     public AbstractSessionHandler getSessionHandler(GatewayMessageContext messageContext) {
 
         List<AbstractSessionHandler> sessionHandlers =
-                FrameworkServiceDataHolder.getInstance().getSessionHandlers();
+                GatewayServiceHolder.getInstance().getSessionHandlers();
         if(sessionHandlers != null) {
             for (AbstractSessionHandler sessionHandler  : sessionHandlers) {
                 try {

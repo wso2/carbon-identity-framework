@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.processor.authenticator;
+package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator;
 
 
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;

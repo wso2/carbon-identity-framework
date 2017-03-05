@@ -38,10 +38,10 @@ import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
 import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
-import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.DefaultSequenceBuilderFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
@@ -63,12 +63,12 @@ import javax.sql.DataSource;
 
 
 @Component(
-        name = "org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent",
+        name = "org.wso2.carbon.identity.gateway.internal.GatewayActivator",
         immediate = true
 )
-public class FrameworkServiceComponent {
+public class GatewayActivator {
 
-    private Logger log = LoggerFactory.getLogger(FrameworkServiceComponent.class);
+    private Logger log = LoggerFactory.getLogger(GatewayActivator.class);
 
 
     @Activate
@@ -94,7 +94,7 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(GatewayClaimResolverService.class, GatewayClaimResolverService.getInstance(), null);
 
         //bundleContext.registerService(GatewayRequestBuilderFactory.class, new LocalAuthenticationRequestBuilderFactory(), null);
-        //FrameworkServiceDataHolder.getInstance().setBundleContext(bundleContext);
+        //GatewayServiceHolder.getInstance().setBundleContext(bundleContext);
 
 
         if (log.isDebugEnabled()) {
@@ -118,13 +118,13 @@ public class FrameworkServiceComponent {
     protected void setAuthenticator(ApplicationAuthenticator authenticator) {
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators()
+            GatewayServiceHolder.getInstance().getLocalApplicationAuthenticators()
                     .add((LocalApplicationAuthenticator) authenticator);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators()
+            GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticators()
                     .add((FederatedApplicationAuthenticator) authenticator);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators()
+            GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticators()
                     .add((RequestPathApplicationAuthenticator) authenticator);
         } else {
             log.error("Unsupported Authenticator found : " + authenticator.getName());
@@ -138,11 +138,11 @@ public class FrameworkServiceComponent {
     protected void unSetAuthenticator(ApplicationAuthenticator authenticator) {
 
         if (authenticator instanceof LocalApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getLocalApplicationAuthenticators().remove(authenticator);
+            GatewayServiceHolder.getInstance().getLocalApplicationAuthenticators().remove(authenticator);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getFederatedApplicationAuthenticators().remove(authenticator);
+            GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticators().remove(authenticator);
         } else if (authenticator instanceof RequestPathApplicationAuthenticator) {
-            FrameworkServiceDataHolder.getInstance().getRequestPathApplicationAuthenticators().remove(authenticator);
+            GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticators().remove(authenticator);
         }
 
         if (log.isDebugEnabled()) {
@@ -161,7 +161,7 @@ public class FrameworkServiceComponent {
     )
     protected void addRequestHandler(AbstractRequestValidator abstractRequestValidator) {
 
-            FrameworkServiceDataHolder.getInstance().getRequestHandlers().add(abstractRequestValidator);
+            GatewayServiceHolder.getInstance().getRequestHandlers().add(abstractRequestValidator);
 
         if (log.isDebugEnabled()) {
             log.debug("Added AuthenticationHandler : " + abstractRequestValidator.getName());
@@ -170,7 +170,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetRequestHandler(AbstractRequestValidator abstractRequestValidator) {
 
-        FrameworkServiceDataHolder.getInstance().getRequestHandlers().remove(abstractRequestValidator);
+        GatewayServiceHolder.getInstance().getRequestHandlers().remove(abstractRequestValidator);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AuthenticationHandler : " + abstractRequestValidator.getName());
@@ -187,7 +187,7 @@ public class FrameworkServiceComponent {
     )
     protected void addSessionHandler(AbstractSessionHandler abstractSessionHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getSessionHandlers().add(abstractSessionHandler);
+        GatewayServiceHolder.getInstance().getSessionHandlers().add(abstractSessionHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Added AuthenticationHandler : " + abstractSessionHandler.getName());
@@ -196,7 +196,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetSessionRequestHandler(AbstractSessionHandler abstractSessionHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getSessionHandlers().remove(abstractSessionHandler);
+        GatewayServiceHolder.getInstance().getSessionHandlers().remove(abstractSessionHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AuthenticationHandler : " + abstractSessionHandler.getName());
@@ -214,7 +214,7 @@ public class FrameworkServiceComponent {
     )
     protected void addAuthenticationHandler(AuthenticationHandler authenticationHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers().add(authenticationHandler);
+        GatewayServiceHolder.getInstance().getAuthenticationHandlers().add(authenticationHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Added AuthenticationHandler : " + authenticationHandler.getName());
@@ -223,7 +223,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetAuthenticationHandler(AuthenticationHandler authenticationHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getAuthenticationHandlers().remove(authenticationHandler);
+        GatewayServiceHolder.getInstance().getAuthenticationHandlers().remove(authenticationHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AuthenticationHandler : " + authenticationHandler.getName());
@@ -241,7 +241,7 @@ public class FrameworkServiceComponent {
     )
     protected void addResponseHandler(AbstractResponseHandler responseHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getResponseHandlers().add(responseHandler);
+        GatewayServiceHolder.getInstance().getResponseHandlers().add(responseHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Added AbstractResponseHandler : " + responseHandler.getName());
@@ -250,7 +250,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetResponseHandler(AbstractResponseHandler responseHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getResponseHandlers().remove(responseHandler);
+        GatewayServiceHolder.getInstance().getResponseHandlers().remove(responseHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AbstractResponseHandler : " + responseHandler.getName());
@@ -266,7 +266,7 @@ public class FrameworkServiceComponent {
     )
     protected void addSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
 
-        FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories().add(sequenceBuildFactory);
+        GatewayServiceHolder.getInstance().getSequenceBuildFactories().add(sequenceBuildFactory);
 
         if (log.isDebugEnabled()) {
             log.debug("Added AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
@@ -275,7 +275,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetSequenceBuildFactory(AbstractSequenceBuildFactory sequenceBuildFactory) {
 
-        FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories().remove(sequenceBuildFactory);
+        GatewayServiceHolder.getInstance().getSequenceBuildFactories().remove(sequenceBuildFactory);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed AbstractSequenceBuildFactory : " + sequenceBuildFactory.getName());
@@ -291,7 +291,7 @@ public class FrameworkServiceComponent {
     )
     protected void addSequenceManager(SequenceManager sequenceManager) {
 
-        FrameworkServiceDataHolder.getInstance().getSequenceManagers().add(sequenceManager);
+        GatewayServiceHolder.getInstance().getSequenceManagers().add(sequenceManager);
 
         if (log.isDebugEnabled()) {
             log.debug("Added SequenceManager : " + sequenceManager.getName());
@@ -300,7 +300,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetSequenceManager(SequenceManager sequenceManager) {
 
-        FrameworkServiceDataHolder.getInstance().getSequenceManagers().remove(sequenceManager);
+        GatewayServiceHolder.getInstance().getSequenceManagers().remove(sequenceManager);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed SequenceManager : " + sequenceManager.getName());
@@ -316,7 +316,7 @@ public class FrameworkServiceComponent {
     )
     protected void addRequestPathHandler(RequestPathHandler requestPathHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getRequestPathHandlers().add(requestPathHandler);
+        GatewayServiceHolder.getInstance().getRequestPathHandlers().add(requestPathHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Added RequestPathHandler : " + requestPathHandler.getName());
@@ -325,7 +325,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetRequestPathHandler(RequestPathHandler requestPathHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getRequestPathHandlers().remove(requestPathHandler);
+        GatewayServiceHolder.getInstance().getRequestPathHandlers().remove(requestPathHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed RequestPathHandler : " + requestPathHandler.getName());
@@ -341,7 +341,7 @@ public class FrameworkServiceComponent {
     )
     protected void addStepHandler(StepHandler stepHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getStepHandlers().add(stepHandler);
+        GatewayServiceHolder.getInstance().getStepHandlers().add(stepHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Added StepHandler : " + stepHandler.getName());
@@ -350,7 +350,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetStepHandler(StepHandler stepHandler) {
 
-        FrameworkServiceDataHolder.getInstance().getStepHandlers().remove(stepHandler);
+        GatewayServiceHolder.getInstance().getStepHandlers().remove(stepHandler);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed StepHandler : " + stepHandler.getName());
@@ -366,7 +366,7 @@ public class FrameworkServiceComponent {
     )
     protected void addClaimResolvingService(ClaimResolvingService claimResolvingService) {
 
-        FrameworkServiceDataHolder.getInstance().setClaimResolvingService(claimResolvingService);
+        GatewayServiceHolder.getInstance().setClaimResolvingService(claimResolvingService);
 
         if (log.isDebugEnabled()) {
             log.debug("Added ClaimResolvingService : " + ClaimResolvingService.class);
@@ -375,7 +375,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetClaimResolvingService(ClaimResolvingService claimResolvingService) {
 
-        FrameworkServiceDataHolder.getInstance().setClaimResolvingService(null);
+        GatewayServiceHolder.getInstance().setClaimResolvingService(null);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed ClaimResolvingService : " + ClaimResolvingService.class);
@@ -393,7 +393,7 @@ public class FrameworkServiceComponent {
     )
     protected void addProfileMgtService(ProfileMgtService profileMgtService) {
 
-        FrameworkServiceDataHolder.getInstance().setProfileMgtService(profileMgtService);
+        GatewayServiceHolder.getInstance().setProfileMgtService(profileMgtService);
 
         if (log.isDebugEnabled()) {
             log.debug("Added ProfileMgtService : " + ProfileMgtService.class);
@@ -402,7 +402,7 @@ public class FrameworkServiceComponent {
 
     protected void unSetProfileMgtService(ProfileMgtService profileMgtService) {
 
-        FrameworkServiceDataHolder.getInstance().setProfileMgtService(null);
+        GatewayServiceHolder.getInstance().setProfileMgtService(null);
 
         if (log.isDebugEnabled()) {
             log.debug("Removed ProfileMgtService : " + ProfileMgtService.class);

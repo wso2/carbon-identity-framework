@@ -15,17 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util;
+package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
 
 import java.util.List;
 
@@ -43,19 +39,19 @@ public class HandlerManager {
 
 
     public SequenceManager getSequenceManager(AuthenticationContext authenticationContext) {
-        return (SequenceManager)getHandler(FrameworkServiceDataHolder.getInstance().getSequenceManagers(), authenticationContext);
+        return (SequenceManager)getHandler(GatewayServiceHolder.getInstance().getSequenceManagers(), authenticationContext);
     }
 
     public AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
-        return (AbstractSequenceBuildFactory)getHandler(FrameworkServiceDataHolder.getInstance().getSequenceBuildFactories(), authenticationContext);
+        return (AbstractSequenceBuildFactory)getHandler(GatewayServiceHolder.getInstance().getSequenceBuildFactories(), authenticationContext);
     }
 
     public StepHandler getStepHandler(AuthenticationContext authenticationContext) {
-        return (StepHandler)getHandler(FrameworkServiceDataHolder.getInstance().getStepHandlers(), authenticationContext);
+        return (StepHandler)getHandler(GatewayServiceHolder.getInstance().getStepHandlers(), authenticationContext);
     }
 
     public RequestPathHandler getRequestPathHandler(AuthenticationContext authenticationContext) {
-        return (RequestPathHandler)getHandler(FrameworkServiceDataHolder.getInstance().getRequestPathHandlers(), authenticationContext);
+        return (RequestPathHandler)getHandler(GatewayServiceHolder.getInstance().getRequestPathHandlers(), authenticationContext);
     }
 
 

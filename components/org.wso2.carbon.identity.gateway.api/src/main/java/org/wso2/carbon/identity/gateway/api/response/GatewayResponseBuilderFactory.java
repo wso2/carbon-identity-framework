@@ -33,13 +33,10 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
         return false;
     }
 
-    public boolean canHandle(GatewayClientException exception) {
-        return false;
-    }
-
-    public boolean canHandle(GatewayServerException exception) {
+    public boolean canHandle(GatewayRuntimeException exception) {
         return true;
     }
+
 
     @Override
     public int getPriority() {
@@ -58,21 +55,6 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
         builder.cookie(newCookie);
     }
 
-    public Response.ResponseBuilder handleException(GatewayServerException exception) {
-
-        Response.ResponseBuilder builder = Response.noContent();
-        builder.status(500);
-        builder.entity(exception.getMessage());
-        return builder;
-    }
-
-    public Response.ResponseBuilder handleException(GatewayClientException exception) {
-
-        Response.ResponseBuilder builder = Response.noContent();
-        builder.status(500);
-        builder.entity(exception.getMessage());
-        return builder;
-    }
 
     public Response.ResponseBuilder handleException(GatewayRuntimeException exception) {
 
@@ -82,11 +64,4 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
         return builder;
     }
 
-    public Response.ResponseBuilder handleException(RuntimeException exception) {
-
-        Response.ResponseBuilder builder = Response.noContent();
-        builder.status(500);
-        builder.entity(exception.getMessage());
-        return builder;
-    }
 }

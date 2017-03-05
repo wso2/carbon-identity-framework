@@ -29,12 +29,12 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFacto
 
 
 @Component(
-        name = "org.wso2.carbon.identity.gateway.api.internal.GatewayActivator",
+        name = "org.wso2.carbon.identity.gateway.api.internal.GatewayAPIActivator",
         immediate = true
 )
-public class GatewayActivator {
+public class GatewayAPIActivator {
 
-    private Logger log = LoggerFactory.getLogger(GatewayActivator.class);
+    private Logger log = LoggerFactory.getLogger(GatewayAPIActivator.class);
 
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {

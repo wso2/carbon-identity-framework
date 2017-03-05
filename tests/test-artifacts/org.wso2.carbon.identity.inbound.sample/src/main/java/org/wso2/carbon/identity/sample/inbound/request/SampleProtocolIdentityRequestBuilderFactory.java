@@ -7,7 +7,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
+import org.wso2.carbon.identity.gateway.processor.util.Utility;
 import org.wso2.msf4j.Request;
 
 import javax.ws.rs.core.Response;

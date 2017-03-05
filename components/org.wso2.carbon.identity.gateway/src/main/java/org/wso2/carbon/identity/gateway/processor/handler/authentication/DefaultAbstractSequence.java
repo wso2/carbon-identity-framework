@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequence;
 
 import java.util.List;
 

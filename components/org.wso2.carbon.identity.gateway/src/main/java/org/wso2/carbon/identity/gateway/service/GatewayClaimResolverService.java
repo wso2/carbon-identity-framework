@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.claim.mapping.profile.ProfileEntry;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.util.HashMap;
@@ -53,7 +53,7 @@ public class GatewayClaimResolverService {
             profile){
         AtomicReference<Set<Claim>> transformedClaims = new AtomicReference<>(new HashSet<>());
         try {
-            ClaimResolvingService claimResolvingService = FrameworkServiceDataHolder.getInstance()
+            ClaimResolvingService claimResolvingService = GatewayServiceHolder.getInstance()
                     .getClaimResolvingService();
             Map<String, String> claimMapping = claimResolvingService.getClaimMapping(claimDialect);
 
@@ -71,7 +71,7 @@ public class GatewayClaimResolverService {
                     });
 
             if(profile.isPresent()) {
-                ProfileMgtService profileMgtService = FrameworkServiceDataHolder.getInstance().getProfileMgtService();
+                ProfileMgtService profileMgtService = GatewayServiceHolder.getInstance().getProfileMgtService();
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
                 List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
                 Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
@@ -93,14 +93,14 @@ public class GatewayClaimResolverService {
             profile) {
 
         Set<Claim> transformedClaims = new HashSet<>();
-        ClaimResolvingService claimResolvingService = FrameworkServiceDataHolder.getInstance()
+        ClaimResolvingService claimResolvingService = GatewayServiceHolder.getInstance()
                 .getClaimResolvingService();
         try {
 
             Map<String, Claim> claimMap = new HashMap<>();
 
             if(profile.isPresent()) {
-                ProfileMgtService profileMgtService = FrameworkServiceDataHolder.getInstance().getProfileMgtService();
+                ProfileMgtService profileMgtService = GatewayServiceHolder.getInstance().getProfileMgtService();
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
                 if(profileEntry == null) {
                     throw new GatewayServerException("Profile not found : " + profile.get());

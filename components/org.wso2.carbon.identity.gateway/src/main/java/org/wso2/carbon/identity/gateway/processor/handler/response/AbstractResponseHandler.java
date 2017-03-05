@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.gateway.processor.handler.response;
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
@@ -40,10 +41,15 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
                                                               GatewayException exception)
             throws ResponseHandlerException;
 
+    public abstract GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
+                                                              GatewayRuntimeException exception)
+            throws ResponseHandlerException;
+
     public abstract GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
             throws ResponseHandlerException;
 
     public abstract boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) ;
+    public abstract boolean canHandle(AuthenticationContext authenticationContext, GatewayRuntimeException e) ;
 
     protected abstract String getValidatorType();
 

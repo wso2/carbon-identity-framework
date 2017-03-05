@@ -28,12 +28,12 @@ import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.model.User;
-import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
+import org.wso2.carbon.identity.gateway.processor.util.Utility;
 import org.wso2.carbon.identity.gateway.processor.request.local.LocalAuthenticationRequest;
 
 import java.util.Collection;
@@ -58,10 +58,11 @@ public class StepHandler extends AbstractGatewayHandler {
         if (currentStepContext != null) {
             if (!currentStepContext.isAuthenticated()) {
                 applicationAuthenticator =
-                        Utility.getLocalApplicationAuthenticator(currentStepContext.getAuthenticatorName());
+                        GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(currentStepContext
+                                                                                                       .getAuthenticatorName());
                 if (applicationAuthenticator == null) {
                     applicationAuthenticator =
-                            Utility.getFederatedApplicationAuthenticator(currentStepContext.getAuthenticatorName());
+                            GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator(currentStepContext.getAuthenticatorName());
                 }
             } else {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
@@ -84,9 +85,9 @@ public class StepHandler extends AbstractGatewayHandler {
                     if (StringUtils.isNotBlank(authenticatorName)) {
                         currentStepContext.setAuthenticatorName(authenticatorName);
                         applicationAuthenticator =
-                                Utility.getLocalApplicationAuthenticator(authenticatorName);
+                                GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(authenticatorName);
                         if (applicationAuthenticator == null) {
-                            applicationAuthenticator = Utility.getFederatedApplicationAuthenticator(authenticatorName);
+                            applicationAuthenticator = GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator(authenticatorName);
                         }
                     } else {
                         if (lookUpSessionValidity(authenticationContext)) {
@@ -106,10 +107,10 @@ public class StepHandler extends AbstractGatewayHandler {
                     IdentityProvider identityProvider = config.getIdentityProviders().get(0);
                     if (identityProvider != null) {
                         applicationAuthenticator =
-                                Utility.getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                                GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
                         if (applicationAuthenticator == null) {
                             applicationAuthenticator =
-                                    Utility.getFederatedApplicationAuthenticator(identityProvider.getAuthenticatorName());
+                                    GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator(identityProvider.getAuthenticatorName());
                         }
                         if (applicationAuthenticator != null) {
                         authenticationResponse = AuthenticationResponse.AUTHENTICATED;

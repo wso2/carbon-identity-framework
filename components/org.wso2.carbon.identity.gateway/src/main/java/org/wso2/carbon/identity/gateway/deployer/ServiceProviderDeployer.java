@@ -27,7 +27,7 @@ import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderEntity;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.gateway.internal.GatewayActivator;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 
@@ -43,7 +43,7 @@ import java.nio.file.Paths;
  */
 public class ServiceProviderDeployer implements Deployer {
 
-    private Logger logger = LoggerFactory.getLogger(FrameworkServiceComponent.class);
+    private Logger logger = LoggerFactory.getLogger(GatewayActivator.class);
     private ArtifactType artifactType;
     private URL repository;
     private static final String SERVICE_PROVIDER_TYPE = "serviceprovider";

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.processor.authenticator;
+package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator;
 
 
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.claim.mapping.profile.ProfileEntry;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AuthenticationResponse;
 import org.wso2.carbon.identity.mgt.claim.Claim;
@@ -77,7 +77,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             } else {
                 claimDialect = claims.stream().findFirst().get().getDialectUri();
             }
-            ClaimResolvingService claimResolvingService = FrameworkServiceDataHolder.getInstance()
+            ClaimResolvingService claimResolvingService = GatewayServiceHolder.getInstance()
                     .getClaimResolvingService();
             Map<String, String> claimMapping = claimResolvingService.getClaimMapping(claimDialect);
 
@@ -90,7 +90,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     });
 
             if (profile.isPresent()) {
-                ProfileMgtService profileMgtService = FrameworkServiceDataHolder.getInstance().getProfileMgtService();
+                ProfileMgtService profileMgtService = GatewayServiceHolder.getInstance().getProfileMgtService();
                 // fix null pointer for profile.get()
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
                 List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();

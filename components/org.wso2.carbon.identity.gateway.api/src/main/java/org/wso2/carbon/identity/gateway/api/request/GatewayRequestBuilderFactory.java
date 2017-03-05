@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
@@ -47,7 +48,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
      * @param request
      * @return boolean
      */
-    public boolean canHandle(Request request) throws GatewayClientException, GatewayServerException {
+    public boolean canHandle(Request request) throws GatewayException {
         return true;
     }
 

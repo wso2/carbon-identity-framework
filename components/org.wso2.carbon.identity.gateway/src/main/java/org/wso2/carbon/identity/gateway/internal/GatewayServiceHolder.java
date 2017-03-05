@@ -24,9 +24,9 @@ import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.processor.authenticator.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
@@ -39,8 +39,8 @@ import org.wso2.carbon.identity.gateway.processor.handler.session.AbstractSessio
 import java.util.ArrayList;
 import java.util.List;
 
-public class FrameworkServiceDataHolder {
-    private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
+public class GatewayServiceHolder {
+    private static GatewayServiceHolder instance = new GatewayServiceHolder();
     //Authenticators
     List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
     List<LocalApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
@@ -71,12 +71,12 @@ public class FrameworkServiceDataHolder {
 
 
 
-    private FrameworkServiceDataHolder() {
+    private GatewayServiceHolder() {
         setNanoTimeReference(System.nanoTime());
         setUnixTimeReference(System.currentTimeMillis());
     }
 
-    public static FrameworkServiceDataHolder getInstance() {
+    public static GatewayServiceHolder getInstance() {
         return instance;
     }
 
@@ -181,5 +181,40 @@ public class FrameworkServiceDataHolder {
 
     public void setSessionHandlers(List<AbstractSessionHandler> sessionHandlers) {
         this.sessionHandlers = sessionHandlers;
+    }
+
+
+    public LocalApplicationAuthenticator getLocalApplicationAuthenticator(String name) {
+        LocalApplicationAuthenticator localApplicationAuthenticator = null;
+        for (LocalApplicationAuthenticator tmpLocalApplicationAuthenticator : localApplicationAuthenticators) {
+            if (tmpLocalApplicationAuthenticator.getName().equals(name)) {
+                localApplicationAuthenticator = tmpLocalApplicationAuthenticator;
+                break;
+            }
+        }
+        return localApplicationAuthenticator;
+    }
+
+    public FederatedApplicationAuthenticator getFederatedApplicationAuthenticator(String name) {
+        FederatedApplicationAuthenticator federatedApplicationAuthenticator = null;
+        for (FederatedApplicationAuthenticator tmpFederatedApplicationAuthenticator :
+                federatedApplicationAuthenticators) {
+            if (tmpFederatedApplicationAuthenticator.getName().equals(name)) {
+                federatedApplicationAuthenticator = tmpFederatedApplicationAuthenticator;
+                break;
+            }
+        }
+        return federatedApplicationAuthenticator;
+    }
+
+    public RequestPathApplicationAuthenticator getRequestPathApplicationAuthenticator(String name) {
+        RequestPathApplicationAuthenticator requestPathApplicationAuthenticator = null;
+        for (RequestPathApplicationAuthenticator authenticator : requestPathApplicationAuthenticators) {
+            if (authenticator.getName().equals(name)) {
+                requestPathApplicationAuthenticator = authenticator;
+                break;
+            }
+        }
+        return requestPathApplicationAuthenticator;
     }
 }

@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.HandlerManager;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequence;
+import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.HandlerManager;
 
 public class AuthenticationHandler extends AbstractGatewayHandler {
     @Override

@@ -27,10 +27,7 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.session.SessionHandlerException;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
@@ -43,10 +40,24 @@ import org.wso2.carbon.identity.gateway.processor.util.HandlerManager;
 public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequest> {
 
     @Override
+    public boolean canHandle(GatewayRequest gatewayRequest) {
+
+        if (gatewayRequest instanceof ClientAuthenticationRequest
+            || gatewayRequest instanceof CallbackAuthenticationRequest) {
+            return true;
+        }
+        return false;
+    }
+
+    public int getPriority() {
+        return 50;
+    }
+
+    @Override
     public GatewayResponse.GatewayResponseBuilder process(AuthenticationRequest authenticationRequest) {
 
         AuthenticationContext authenticationContext = null;
-        GatewayHandlerResponse response = GatewayHandlerResponse.CONTINUE ;
+        GatewayHandlerResponse response = GatewayHandlerResponse.CONTINUE;
         HandlerManager handlerManager = HandlerManager.getInstance();
         try {
             authenticationContext = loadAuthenticationContext(authenticationRequest);
@@ -76,12 +87,18 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             } catch (ResponseHandlerException e) {
                 throw new GatewayRuntimeException("Error occurred while processing the response, " + e.getMessage(), e);
             }
+        } catch (GatewayRuntimeException exception) {
+            try {
+                response = handlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
+                        (authenticationContext, exception);
+            } catch (ResponseHandlerException e) {
+                throw new GatewayRuntimeException("Error occurred while processing the response, " + e.getMessage(), e);
+            }
         }
 
         IdentityMessageContextCache.getInstance().put(authenticationRequest.getRequestKey(), authenticationContext);
         return response.getGatewayResponseBuilder();
     }
-
 
     /**
      * Load last AuthenticationContext from cache for given requestKey.
@@ -107,20 +124,5 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             authenticationContext.setIdentityRequest(authenticationRequest);
         }
         return authenticationContext;
-    }
-
-
-    @Override
-    public boolean canHandle(GatewayRequest gatewayRequest) {
-
-        if (gatewayRequest instanceof ClientAuthenticationRequest
-            || gatewayRequest instanceof CallbackAuthenticationRequest) {
-            return true;
-        }
-        return false;
-    }
-
-    public int getPriority() {
-        return 50;
     }
 }
