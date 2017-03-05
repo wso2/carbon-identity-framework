@@ -97,7 +97,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         return builder;
     }
 
-    public Response.ResponseBuilder handleException(GatewayRuntimeException exception) {
+    public Response.ResponseBuilder handleException(RuntimeException exception) {
         Response.ResponseBuilder builder = Response.noContent();
         builder.status(500);
         builder.entity("something went wrong");

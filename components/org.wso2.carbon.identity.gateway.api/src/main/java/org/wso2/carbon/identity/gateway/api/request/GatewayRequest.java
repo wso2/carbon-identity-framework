@@ -213,7 +213,7 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public GatewayRequest build() throws GatewayRuntimeException {
+        public GatewayRequest build(){
             return new GatewayRequest(this);
         }
 
