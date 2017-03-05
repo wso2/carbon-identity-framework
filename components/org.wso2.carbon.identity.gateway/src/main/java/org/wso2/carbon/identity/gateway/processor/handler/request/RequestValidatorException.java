@@ -17,14 +17,29 @@
  */
 package org.wso2.carbon.identity.gateway.processor.handler.request;
 
-import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.handler.GatewayHandlerException;
 
-public class RequestValidatorException extends GatewayHandlerException {
+public class RequestValidatorException extends GatewayClientException {
+
     public RequestValidatorException(String message) {
         super(message);
+    }
+
+    public RequestValidatorException(Throwable cause) {
+        super(cause);
+    }
+
+    public RequestValidatorException(String errorCode, String message) {
+        super(errorCode, message);
     }
 
     public RequestValidatorException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public RequestValidatorException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
+    }
+
 }

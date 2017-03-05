@@ -21,14 +21,14 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
 
 import java.util.List;
 
-public class RequestPathHandler extends FrameworkHandler {
+public class RequestPathHandler extends AbstractGatewayHandler {
     @Override
     public String getName() {
         return null;

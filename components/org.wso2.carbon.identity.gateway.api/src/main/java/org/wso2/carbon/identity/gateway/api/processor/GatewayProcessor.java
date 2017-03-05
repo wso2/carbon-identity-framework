@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.gateway.api.processor;
 
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
@@ -44,6 +43,5 @@ public abstract class GatewayProcessor<T extends GatewayRequest> extends Abstrac
      * @throws GatewayServerException
      *         Error occurred while processing GatewayRequest
      */
-    public abstract GatewayResponse.GatewayResponseBuilder process(T identityRequest)
-            throws GatewayServerException,GatewayClientException;
+    public abstract GatewayResponse.GatewayResponseBuilder process(T identityRequest);
 }

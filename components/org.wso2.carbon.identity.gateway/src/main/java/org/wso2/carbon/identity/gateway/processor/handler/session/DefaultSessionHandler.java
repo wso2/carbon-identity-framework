@@ -20,21 +20,27 @@ package org.wso2.carbon.identity.gateway.processor.handler.session;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.dao.CacheBackedSessionDAO;
-import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
+import org.wso2.carbon.identity.gateway.api.handler.GatewayHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 
 import java.util.UUID;
 
-public class SessionHandler extends AbstractSessionHandler {
+public class DefaultSessionHandler extends AbstractSessionHandler {
 
     @Override
-    public FrameworkHandlerResponse updateSession(AuthenticationContext context) throws GatewayHandlerException {
+    public boolean canHandle(MessageContext messageContext) {
+        return true;
+    }
+
+    @Override
+    public GatewayHandlerResponse updateSession(AuthenticationContext context) throws SessionHandlerException {
 
         String sessionKey = ((AuthenticationRequest)context.getIdentityRequest()).getSessionKey();
         String sessionKeyHash = null;
@@ -59,11 +65,11 @@ public class SessionHandler extends AbstractSessionHandler {
         }
         int currentStep = currentSequenceContext.getCurrentStep();
         boolean isLastStepAuthenticated = existingSequenceContext.getCurrentStepContext().isAuthenticated();
-        boolean isSequenceCompleted = !context.getSequence().hasNext(currentStep) && isLastStepAuthenticated;
+        //boolean isSequenceCompleted = !context.getSequence().hasNext(currentStep) && isLastStepAuthenticated;
 
         sessionContext.addSequenceContext(serviceProviderName, currentSequenceContext);
         CacheBackedSessionDAO.getInstance().put(sessionKeyHash, sessionContext);
-        return FrameworkHandlerResponse.CONTINUE;
+        return GatewayHandlerResponse.CONTINUE;
 
 //        if(existingSequenceContext == null) { // if new service provider
 //
@@ -104,14 +110,13 @@ public class SessionHandler extends AbstractSessionHandler {
         
     }
 
-    private SessionContext createSession (AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
+    private SessionContext createSession (AuthenticationContext authenticationContext){
         SessionContext sessionContext = new SessionContext();
         sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(), authenticationContext.getSequenceContext());
         return sessionContext;
     }
 
-    private SessionContext updateSession (AuthenticationContext authenticationContext, SessionContext sessionContext) throws
-            AuthenticationHandlerException {
+    private SessionContext updateSession (AuthenticationContext authenticationContext, SessionContext sessionContext) {
         sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(), authenticationContext.getSequenceContext());
         return sessionContext;
     }

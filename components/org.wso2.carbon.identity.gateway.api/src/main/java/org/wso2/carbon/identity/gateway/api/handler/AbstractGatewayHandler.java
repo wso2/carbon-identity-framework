@@ -15,15 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.processor.handler;
+package org.wso2.carbon.identity.gateway.api.handler;
 
 
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 
-public abstract class FrameworkHandler extends AbstractMessageHandler{
+public abstract class AbstractGatewayHandler extends AbstractMessageHandler{
 
-    public boolean canHandle(MessageContext messageContext) {
-        return true ;
-    }
+    public abstract boolean canHandle(MessageContext messageContext) ;
 }

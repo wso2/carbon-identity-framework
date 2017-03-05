@@ -18,14 +18,15 @@
 package org.wso2.carbon.identity.gateway.processor.handler.response;
 
 
-import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
+import org.wso2.carbon.identity.gateway.api.handler.GatewayHandlerException;
 
-public class ResponseException extends GatewayHandlerException {
-    public ResponseException(String message) {
+public class ResponseHandlerException extends GatewayServerException {
+    public ResponseHandlerException(String message) {
         super(message);
     }
 
-    public ResponseException(String message, Throwable cause) {
+    public ResponseHandlerException(String message, Throwable cause) {
         super(message, cause);
     }
 }

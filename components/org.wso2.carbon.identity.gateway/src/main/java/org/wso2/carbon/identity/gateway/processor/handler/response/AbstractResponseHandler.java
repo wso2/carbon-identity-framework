@@ -19,12 +19,14 @@ package org.wso2.carbon.identity.gateway.processor.handler.response;
 
 
 import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuildingConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 
@@ -32,27 +34,30 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class AbstractResponseHandler extends FrameworkHandler {
+public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
 
-    public abstract FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,IdentityException identityException)
-            throws ResponseException;
+    public abstract GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
+                                                              GatewayException exception)
+            throws ResponseHandlerException;
 
-    public abstract FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
-            throws ResponseException;
+    public abstract GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
+            throws ResponseHandlerException;
+
+    public abstract boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) ;
 
     protected abstract String getValidatorType();
 
     protected void addSessionKey(GatewayResponse.GatewayResponseBuilder responseBuilder,
-                                 AuthenticationContext context) throws ResponseException {
+                                 AuthenticationContext context) throws ResponseHandlerException {
 
         responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants
                                                                     .SESSION_KEY));
     }
 
 
-    public Properties getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
+    public ResponseBuilderConfig getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
             AuthenticationHandlerException {
-
+        ResponseBuilderConfig responseBuilderConfig = null ;
         if (authenticationContext.getServiceProvider() == null) {
             throw new AuthenticationHandlerException("Error while getting validator configs : No service provider " +
                     "found with uniqueId : " + authenticationContext.getUniqueId());
@@ -64,12 +69,12 @@ public abstract class AbstractResponseHandler extends FrameworkHandler {
 
         Iterator<ResponseBuilderConfig> responseBuilderConfigIterator = responseBuilderConfigs.iterator();
         while (responseBuilderConfigIterator.hasNext()) {
-            ResponseBuilderConfig responseBuilderConfig = responseBuilderConfigIterator.next();
-            if (getValidatorType().equalsIgnoreCase(responseBuilderConfig.getType())) {
-                return responseBuilderConfig.getProperties();
+            ResponseBuilderConfig responseBuilderConfigTmp = responseBuilderConfigIterator.next();
+            if (getValidatorType().equalsIgnoreCase(responseBuilderConfigTmp.getType())) {
+                responseBuilderConfig = responseBuilderConfigTmp ;
             }
         }
-        return new Properties();
+        return responseBuilderConfig;
     }
 
 }

@@ -19,10 +19,14 @@ package org.wso2.carbon.identity.gateway.api.exception;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityClientException;
 
-public class GatewayClientException extends IdentityClientException {
+public class GatewayClientException extends GatewayException {
 
-    public GatewayClientException(String errorDescription) {
-        super(errorDescription);
+    public GatewayClientException(String message) {
+        super(message);
+    }
+
+    public GatewayClientException(Throwable cause) {
+        super(cause);
     }
 
     public GatewayClientException(String errorCode, String message) {

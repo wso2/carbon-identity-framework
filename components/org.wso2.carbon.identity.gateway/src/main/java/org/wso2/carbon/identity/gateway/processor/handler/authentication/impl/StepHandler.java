@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.processor.authenticator.ApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.Utility;
@@ -39,7 +39,7 @@ import org.wso2.carbon.identity.gateway.processor.request.local.LocalAuthenticat
 import java.util.Collection;
 import java.util.Iterator;
 
-public class StepHandler extends FrameworkHandler {
+public class StepHandler extends AbstractGatewayHandler {
     @Override
     public String getName() {
         return null;

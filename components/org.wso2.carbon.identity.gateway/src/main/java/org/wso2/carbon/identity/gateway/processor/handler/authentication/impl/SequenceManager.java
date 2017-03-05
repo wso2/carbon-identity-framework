@@ -20,12 +20,12 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.HandlerManager;
 
-public class SequenceManager extends FrameworkHandler {
+public class SequenceManager extends AbstractGatewayHandler {
     @Override
     public String getName() {
         return null;

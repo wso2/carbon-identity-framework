@@ -47,7 +47,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
      * @param request
      * @return boolean
      */
-    public boolean canHandle(Request request) throws GatewayClientException, GatewayServerException{
+    public boolean canHandle(Request request) throws GatewayClientException, GatewayServerException {
         return true;
     }
 

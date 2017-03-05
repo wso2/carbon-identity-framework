@@ -50,6 +50,8 @@ import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.Se
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.session.AbstractSessionHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.session.DefaultSessionHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
@@ -80,6 +82,7 @@ public class FrameworkServiceComponent {
         //Registering this for demo perposes only
         bundleContext.registerService(AbstractSequenceBuildFactory.class, new DefaultSequenceBuilderFactory(), null);
         bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
+        bundleContext.registerService(AbstractSessionHandler.class, new DefaultSessionHandler(), null);
         bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
         bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
         bundleContext.registerService(StepHandler.class, new StepHandler(), null);
@@ -173,6 +176,34 @@ public class FrameworkServiceComponent {
             log.debug("Removed AuthenticationHandler : " + abstractRequestValidator.getName());
         }
     }
+
+
+    @Reference(
+            name = "identity.handlers.session",
+            service = AbstractSessionHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetSessionRequestHandler"
+    )
+    protected void addSessionHandler(AbstractSessionHandler abstractSessionHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getSessionHandlers().add(abstractSessionHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AuthenticationHandler : " + abstractSessionHandler.getName());
+        }
+    }
+
+    protected void unSetSessionRequestHandler(AbstractSessionHandler abstractSessionHandler) {
+
+        FrameworkServiceDataHolder.getInstance().getSessionHandlers().remove(abstractSessionHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AuthenticationHandler : " + abstractSessionHandler.getName());
+        }
+    }
+
+
 
     @Reference(
             name = "identity.handlers.authentication",

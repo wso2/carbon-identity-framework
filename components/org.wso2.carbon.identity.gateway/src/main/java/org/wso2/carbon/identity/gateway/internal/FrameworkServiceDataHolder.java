@@ -29,12 +29,12 @@ import org.wso2.carbon.identity.gateway.processor.authenticator.LocalApplication
 import org.wso2.carbon.identity.gateway.processor.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.ContextInitializer;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.session.AbstractSessionHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,11 +63,8 @@ public class FrameworkServiceDataHolder {
     //Framework handlers
     private List<AbstractRequestValidator> requestHandlers = new ArrayList<>();
     private List<AuthenticationHandler> authenticationHandlers = new ArrayList<>();
-
-    //SequenceManager
     private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
-    //AuthenticationHandler sub-handler
-    private List<ContextInitializer> contextInitializers = new ArrayList<>();
+    private List<AbstractSessionHandler> sessionHandlers = new ArrayList<>();
 
     private ClaimResolvingService claimResolvingService = null ;
     private ProfileMgtService profileMgtService = null ;
@@ -132,9 +129,6 @@ public class FrameworkServiceDataHolder {
         return responseHandlers;
     }
 
-    public List<ContextInitializer> getContextInitializers() {
-        return contextInitializers;
-    }
 
     public List<RequestPathApplicationAuthenticator> getRequestPathApplicationAuthenticators() {
         return requestPathApplicationAuthenticators;
@@ -181,4 +175,11 @@ public class FrameworkServiceDataHolder {
         this.profileMgtService = profileMgtService;
     }
 
+    public List<AbstractSessionHandler> getSessionHandlers() {
+        return sessionHandlers;
+    }
+
+    public void setSessionHandlers(List<AbstractSessionHandler> sessionHandlers) {
+        this.sessionHandlers = sessionHandlers;
+    }
 }

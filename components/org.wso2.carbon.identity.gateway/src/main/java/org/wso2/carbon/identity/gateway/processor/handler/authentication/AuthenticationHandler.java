@@ -20,26 +20,26 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.model.AbstractSequence;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.util.HandlerManager;
 
-public class AuthenticationHandler extends FrameworkHandler {
+public class AuthenticationHandler extends AbstractGatewayHandler {
     @Override
     public String getName() {
         return null;
     }
 
-    public FrameworkHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
+    public GatewayHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
                                                                                                 AuthenticationHandlerException {
 
 
-        FrameworkHandlerResponse frameworkHandlerResponse = null;
+        GatewayHandlerResponse gatewayHandlerResponse = null;
 
         HandlerManager handlerManager = HandlerManager.getInstance();
 
@@ -60,10 +60,10 @@ public class AuthenticationHandler extends FrameworkHandler {
         AuthenticationResponse authenticationResponse =
                 sequenceManager.handleSequence(authenticationContext);
 
-        frameworkHandlerResponse = buildFrameworkHandlerResponse(authenticationResponse);
+        gatewayHandlerResponse = buildFrameworkHandlerResponse(authenticationResponse);
 
 
-        return frameworkHandlerResponse;
+        return gatewayHandlerResponse;
     }
 
     @Override
@@ -71,15 +71,15 @@ public class AuthenticationHandler extends FrameworkHandler {
         return true;
     }
 
-    private FrameworkHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
-        FrameworkHandlerResponse frameworkHandlerResponse = null;
+    private GatewayHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
+        GatewayHandlerResponse gatewayHandlerResponse = null;
         if (AuthenticationResponse.AUTHENTICATED.equals(handlerResponse)) {
-            frameworkHandlerResponse = FrameworkHandlerResponse.CONTINUE;
+            gatewayHandlerResponse = GatewayHandlerResponse.CONTINUE;
         } else if (AuthenticationResponse.INCOMPLETE.equals(handlerResponse)) {
-            frameworkHandlerResponse = FrameworkHandlerResponse.REDIRECT;
-            frameworkHandlerResponse.setGatewayResponseBuilder(handlerResponse.getGatewayResponseBuilder());
+            gatewayHandlerResponse = GatewayHandlerResponse.REDIRECT;
+            gatewayHandlerResponse.setGatewayResponseBuilder(handlerResponse.getGatewayResponseBuilder());
         }
-        return frameworkHandlerResponse;
+        return gatewayHandlerResponse;
     }
 
 

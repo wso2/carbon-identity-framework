@@ -15,17 +15,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.identity.gateway.processor.handler;
+package org.wso2.carbon.identity.gateway.processor.handler.session;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
+import org.wso2.carbon.identity.gateway.api.handler.GatewayHandlerException;
 
+public class SessionHandlerException extends GatewayServerException {
 
-public class GatewayHandlerException extends GatewayServerException {
-    public GatewayHandlerException(String message) {
+    public SessionHandlerException(String message) {
         super(message);
     }
 
-    public GatewayHandlerException(String message, Throwable cause) {
+    public SessionHandlerException(Throwable cause) {
+        super(cause);
+    }
+
+    public SessionHandlerException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
+    public SessionHandlerException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public SessionHandlerException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
+    }
+
 }

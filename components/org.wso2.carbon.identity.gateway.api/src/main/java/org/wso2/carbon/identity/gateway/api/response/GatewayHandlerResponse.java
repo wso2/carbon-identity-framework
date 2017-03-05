@@ -18,11 +18,11 @@
  *
  */
 
-package org.wso2.carbon.identity.gateway.processor;
+package org.wso2.carbon.identity.gateway.api.response;
 
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
-public enum FrameworkHandlerResponse {
+public enum GatewayHandlerResponse {
     REDIRECT, CONTINUE;
 
     private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder;

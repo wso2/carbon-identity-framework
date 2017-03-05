@@ -3,21 +3,20 @@ package org.wso2.carbon.identity.sample.inbound.validator;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
 import org.wso2.carbon.identity.sample.inbound.request.SampleProtocolRequest;
 
 public class SampleProtocolValidator extends AbstractRequestValidator {
     @Override
-    public FrameworkHandlerResponse validate(AuthenticationContext authenticationContext) throws
+    public GatewayHandlerResponse validate(AuthenticationContext authenticationContext) throws
                                                                                           RequestValidatorException {
         authenticationContext.setUniqueId("travelocity.com");
         if (authenticationContext.getServiceProvider() == null) {
             throw new RequestValidatorException("No Service Provider Found for this Unique ID");
         }
-        return FrameworkHandlerResponse.CONTINUE;
+        return GatewayHandlerResponse.CONTINUE;
     }
 
     @Override

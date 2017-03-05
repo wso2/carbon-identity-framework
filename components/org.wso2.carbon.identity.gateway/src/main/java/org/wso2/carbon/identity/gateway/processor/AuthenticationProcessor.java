@@ -18,25 +18,19 @@
 
 package org.wso2.carbon.identity.gateway.processor;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityException;
-import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.processor.handler.request.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.processor.handler.request.RequestValidatorException;
-import org.wso2.carbon.identity.gateway.processor.handler.response.AbstractResponseHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseException;
-import org.wso2.carbon.identity.gateway.processor.handler.session.AbstractSessionHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.session.SessionHandler;
+import org.wso2.carbon.identity.gateway.processor.handler.response.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.processor.handler.session.SessionHandlerException;
 import org.wso2.carbon.identity.gateway.processor.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.CallbackAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.processor.request.ClientAuthenticationRequest;
@@ -49,129 +43,45 @@ import org.wso2.carbon.identity.gateway.processor.util.HandlerManager;
 public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequest> {
 
     @Override
-    public boolean canHandle(GatewayRequest gatewayRequest) {
-        //Since this the default processor, always can handle should be return and if some wants to override this,
-        // they can override and give high priority to the new processor.
-        if(gatewayRequest instanceof AuthenticationRequest){
-            return true;
-        }
-        return false;
-    }
+    public GatewayResponse.GatewayResponseBuilder process(AuthenticationRequest authenticationRequest) {
 
-    @Override
-    public GatewayResponse.GatewayResponseBuilder process(AuthenticationRequest authenticationRequest)
-            throws GatewayServerException, GatewayClientException {
-        GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = null;
-
-        /*
-        If the authenticationRequest is ClientAuthenticationRequest, that mean this is an initial request that is
-        coming from the client. If it is CallbackAuthenticationRequest, so it should be a subsequent call to the
-        gateway by local or external parties.
-         */
         AuthenticationContext authenticationContext = null;
-        if (authenticationRequest instanceof ClientAuthenticationRequest) {
-
-            authenticationContext = initAuthenticationContext(
-                    (ClientAuthenticationRequest) authenticationRequest);
-            gatewayResponseBuilder = processLoginRequest(authenticationContext);
-        } else if (authenticationRequest instanceof CallbackAuthenticationRequest) {
-
-            authenticationContext = loadAuthenticationContext(
-                    (CallbackAuthenticationRequest) authenticationRequest);
-            if (authenticationContext == null) {
-                throw new GatewayRuntimeException("Invalid Request.");
-            }
-            gatewayResponseBuilder = processAuthenticationRequest(authenticationContext);
-
-        }
-        updateAuthenticationContext(authenticationRequest.getRequestKey(), authenticationContext);
-        return gatewayResponseBuilder;
-    }
-
-
-    /**
-     * This is an initial request that is coming from the client.
-     *
-     * @param authenticationContext
-     * @return
-     * @throws GatewayHandlerException
-     */
-    protected GatewayResponse.GatewayResponseBuilder processLoginRequest(AuthenticationContext authenticationContext)
-            throws GatewayHandlerException {
-
-        FrameworkHandlerResponse identityFrameworkHandlerResponse = null;
+        GatewayHandlerResponse response = GatewayHandlerResponse.CONTINUE ;
+        HandlerManager handlerManager = HandlerManager.getInstance();
         try {
-            //Protocol validator request validate in this level.
-            identityFrameworkHandlerResponse = validate(authenticationContext);
-            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
-                //Authentication handler will start to execute.
-                identityFrameworkHandlerResponse = authenticate(authenticationContext);
+            authenticationContext = loadAuthenticationContext(authenticationRequest);
+
+            if (authenticationRequest instanceof ClientAuthenticationRequest) {
+                response = handlerManager.getRequestValidator(authenticationContext).validate(authenticationContext);
             }
-            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
-                //If the authentication is done, now it should update the session.
-                identityFrameworkHandlerResponse = updateSession(authenticationContext);
+            if (response.equals(GatewayHandlerResponse.CONTINUE)) {
+
+                response = handlerManager.getAuthenticationHandler(authenticationContext)
+                        .doAuthenticate(authenticationContext);
+                if (response.equals(GatewayHandlerResponse.CONTINUE)) {
+
+                    response = handlerManager.getSessionHandler(authenticationContext)
+                            .updateSession(authenticationContext);
+                    if (response.equals(GatewayHandlerResponse.CONTINUE)) {
+
+                        response = handlerManager.getResponseHandler(authenticationContext)
+                                .buildResponse(authenticationContext);
+                    }
+                }
             }
-            if (identityFrameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
-                //If the authentication is done, now it should be built the response based on inbound protocol.
-                identityFrameworkHandlerResponse = buildResponse(authenticationContext);
+        } catch (GatewayServerException | GatewayClientException exception) {
+            try {
+                response = handlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
+                        (authenticationContext, exception);
+            } catch (ResponseHandlerException e) {
+                throw new GatewayRuntimeException("Error occurred while processing the response, " + e.getMessage(), e);
             }
-        } catch (AuthenticationHandlerException e) {
-            //If the authentication failed, then it should be build the error response based on the protocol level
-            // handler.
-            identityFrameworkHandlerResponse = buildErrorResponse(authenticationContext, e);
         }
-        return identityFrameworkHandlerResponse.getGatewayResponseBuilder();
+
+        IdentityMessageContextCache.getInstance().put(authenticationRequest.getRequestKey(), authenticationContext);
+        return response.getGatewayResponseBuilder();
     }
 
-
-    /**
-     * This method will execute for the subsequent call to the gateway.
-     *
-     * @param authenticationContext
-     * @return
-     * @throws GatewayHandlerException
-     */
-    protected GatewayResponse.GatewayResponseBuilder processAuthenticationRequest(
-            AuthenticationContext authenticationContext) throws GatewayHandlerException {
-        FrameworkHandlerResponse frameworkHandlerResponse = null;
-        try {
-            //Authentication handler will start to execute.
-            frameworkHandlerResponse = authenticate(authenticationContext);
-            if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
-                //If the authentication is done, now it should update the session.
-                frameworkHandlerResponse = updateSession(authenticationContext);
-            }
-            if (frameworkHandlerResponse.equals(FrameworkHandlerResponse.CONTINUE)) {
-                //If the authentication is done, now it should be built the response based on inbound protocol.
-                frameworkHandlerResponse = buildResponse(authenticationContext);
-            }
-        } catch (AuthenticationHandlerException e) {
-            //If the authentication failed, then it should be build the error response based on the protocol level
-            // handler.
-            frameworkHandlerResponse = buildErrorResponse(authenticationContext, e);
-        }
-        return frameworkHandlerResponse.getGatewayResponseBuilder();
-    }
-
-
-    /**
-     * Build new AuthenticationContext for the initial request to start the flow through the framework.
-     *
-     * @param clientAuthenticationRequest
-     * @return
-     */
-    protected AuthenticationContext initAuthenticationContext(ClientAuthenticationRequest clientAuthenticationRequest) {
-
-        AuthenticationContext authenticationContext = new AuthenticationContext(clientAuthenticationRequest);
-        //requestKey is the co-relation key to re-load the context after subsequent call to the system.
-        String requestDataKey = clientAuthenticationRequest.getRequestKey();
-        IdentityMessageContextCache.getInstance().put(requestDataKey, authenticationContext);
-        return authenticationContext;
-    }
-
-    protected void updateAuthenticationContext(String requestDatakey, AuthenticationContext authenticationContext) {
-        IdentityMessageContextCache.getInstance().put(requestDatakey, authenticationContext);
-    }
 
     /**
      * Load last AuthenticationContext from cache for given requestKey.
@@ -183,91 +93,34 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
 
         AuthenticationContext authenticationContext = null;
         String requestDataKey = authenticationRequest.getRequestKey();
-        GatewayMessageContext gatewayMessageContext =
-                IdentityMessageContextCache.getInstance().get(requestDataKey);
-        if (gatewayMessageContext != null) {
-            authenticationContext = (AuthenticationContext) gatewayMessageContext;
-            //authenticationRequest is not the initial request , but this is subsequent request object that is not
-            // going to store till end.
+        if (authenticationRequest instanceof ClientAuthenticationRequest) {
+            authenticationContext = new AuthenticationContext((ClientAuthenticationRequest) authenticationRequest);
+            //requestKey is the co-relation key to re-load the context after subsequent call to the system.
+
+            IdentityMessageContextCache.getInstance().put(requestDataKey, authenticationContext);
+        } else {
+            authenticationContext =
+                    (AuthenticationContext) IdentityMessageContextCache.getInstance().get(requestDataKey);
+            if (authenticationContext == null) {
+                throw new GatewayRuntimeException("AuthenticationContext is not available for give state value.");
+            }
             authenticationContext.setIdentityRequest(authenticationRequest);
         }
         return authenticationContext;
     }
 
-    /**
-     * Do the validation of the request based on selected protocol.
-     *
-     * @param authenticationContext
-     * @return
-     * @throws AuthenticationHandlerException
-     * @throws RequestValidatorException
-     */
-    protected FrameworkHandlerResponse validate(AuthenticationContext authenticationContext)
-            throws RequestValidatorException {
-        AbstractRequestValidator protocolRequestHandler =
-                HandlerManager.getInstance().getProtocolRequestHandler(authenticationContext);
-        return protocolRequestHandler.validate(authenticationContext);
-    }
 
-    /**
-     * Build successful response based on selected protocol.
-     *
-     * @param authenticationContext
-     * @return
-     * @throws GatewayHandlerException
-     */
-    protected FrameworkHandlerResponse buildResponse(AuthenticationContext authenticationContext)
-            throws GatewayHandlerException {
-        AbstractResponseHandler responseBuilderHandler =
-                HandlerManager.getInstance().getResponseHandler(authenticationContext);
-        return responseBuilderHandler.buildResponse(authenticationContext);
-    }
+    @Override
+    public boolean canHandle(GatewayRequest gatewayRequest) {
 
-    /**
-     * Update session.
-     *
-     * @param authenticationContext
-     * @return
-     * @throws GatewayHandlerException
-     */
-    protected FrameworkHandlerResponse updateSession(AuthenticationContext authenticationContext)
-            throws GatewayHandlerException {
-        AbstractSessionHandler sessionHandler = new SessionHandler();
-        return sessionHandler.updateSession(authenticationContext);
-    }
-
-    /**
-     * Do authentication if there any authenticators.
-     *
-     * @param authenticationContext
-     * @return
-     * @throws AuthenticationHandlerException
-     */
-    protected FrameworkHandlerResponse authenticate(AuthenticationContext authenticationContext)
-            throws AuthenticationHandlerException {
-        AuthenticationHandler authenticationHandler =
-                HandlerManager.getInstance().getAuthenticationHandler(authenticationContext);
-        return authenticationHandler.doAuthenticate(authenticationContext);
-    }
-
-    /**
-     * Build Error Response based on
-     *
-     * @param identityException
-     * @param authenticationContext
-     * @return
-     * @throws ResponseException
-     */
-    protected FrameworkHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
-                                                          IdentityException identityException) throws
-            ResponseException {
-        AbstractResponseHandler responseBuilderHandler =
-                HandlerManager.getInstance().getResponseHandler(authenticationContext);
-        return responseBuilderHandler.buildErrorResponse(authenticationContext, identityException);
+        if (gatewayRequest instanceof ClientAuthenticationRequest
+            || gatewayRequest instanceof CallbackAuthenticationRequest) {
+            return true;
+        }
+        return false;
     }
 
     public int getPriority() {
         return 50;
     }
-
 }

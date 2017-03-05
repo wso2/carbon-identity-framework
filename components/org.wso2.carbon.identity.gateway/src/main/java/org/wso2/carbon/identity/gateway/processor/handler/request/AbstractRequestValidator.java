@@ -17,28 +17,29 @@
  */
 package org.wso2.carbon.identity.gateway.processor.handler.request;
 
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
-public abstract class AbstractRequestValidator extends FrameworkHandler {
-    public abstract FrameworkHandlerResponse validate(AuthenticationContext authenticationContext)
+public abstract class AbstractRequestValidator extends AbstractGatewayHandler {
+
+
+    public abstract GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
             throws RequestValidatorException;
 
     protected abstract String getValidatorType();
 
-    public RequestValidatorConfig getValidatorConfig(AuthenticationContext authenticationContext) throws RequestValidatorException {
+    public RequestValidatorConfig getValidatorConfig(AuthenticationContext authenticationContext) {
 
         if (authenticationContext.getServiceProvider() == null) {
-            throw new RequestValidatorException("Error while getting validator configs : No service provider " +
-                    "found with uniqueId : " + authenticationContext.getUniqueId());
+            throw new GatewayRuntimeException("Error while getting validator configs : No service provider " +
+                                              "found with uniqueId : " + authenticationContext.getUniqueId());
         }
         RequestValidatorConfig validationConfig = null ;
 

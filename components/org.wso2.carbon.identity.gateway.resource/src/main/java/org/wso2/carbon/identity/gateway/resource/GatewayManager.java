@@ -104,23 +104,7 @@ public class GatewayManager {
                 return builder.build();
 
 
-            } catch (GatewayServerException e) {
-
-                responseFactory = getIdentityResponseFactory(e);
-                responseBuilder = responseFactory.handleException(e);
-                if (responseBuilder == null) {
-                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-                }
-                //#TODO Enable this to new response
-                //return responseBuilder.build();
-            } catch (GatewayClientException e) {
-                responseFactory = getIdentityResponseFactory(e);
-                responseBuilder = responseFactory.handleException(e);
-                if (responseBuilder == null) {
-                    throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
-                }
-                return responseBuilder.build();
-            }catch (GatewayRuntimeException e) {
+            } catch (GatewayRuntimeException e) {
                 responseBuilder = factory.handleException(e);
                 if (responseBuilder == null) {
                     throw new GatewayRuntimeException("HttpIdentityResponseBuilder is Null. Cannot proceed!!");
@@ -134,8 +118,6 @@ public class GatewayManager {
             Response.ResponseBuilder builder = handleException(exception);
             return builder.build();
         }
-
-        return Response.serverError().build();
     }
 
     public Response.ResponseBuilder handleException(Throwable exception) {

@@ -21,9 +21,8 @@ package org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.u
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.ContextInitializer;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.SequenceManager;
 import org.wso2.carbon.identity.gateway.processor.handler.authentication.impl.StepHandler;
@@ -40,10 +39,6 @@ public class HandlerManager {
 
     public static HandlerManager getInstance() {
         return instance;
-    }
-
-    public ContextInitializer getContextInitializerHandler(AuthenticationContext authenticationContext) {
-        return (ContextInitializer)getHandler(FrameworkServiceDataHolder.getInstance().getContextInitializers(), authenticationContext);
     }
 
 
@@ -64,12 +59,12 @@ public class HandlerManager {
     }
 
 
-    private FrameworkHandler getHandler(List<? extends FrameworkHandler> frameworkHandlers,
-                                                      AuthenticationContext authenticationContext){
+    private AbstractGatewayHandler getHandler(List<? extends AbstractGatewayHandler> frameworkHandlers,
+                                              AuthenticationContext authenticationContext){
         if(frameworkHandlers != null){
-            for(FrameworkHandler frameworkHandler: frameworkHandlers){
-                if(frameworkHandler.canHandle(authenticationContext)){
-                    return frameworkHandler ;
+            for(AbstractGatewayHandler abstractGatewayHandler : frameworkHandlers){
+                if(abstractGatewayHandler.canHandle(authenticationContext)){
+                    return abstractGatewayHandler;
                 }
             }
         }

@@ -18,18 +18,18 @@
 
 package org.wso2.carbon.identity.gateway.processor.handler.session;
 
-import org.wso2.carbon.identity.gateway.processor.FrameworkHandlerResponse;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.processor.handler.FrameworkHandler;
-import org.wso2.carbon.identity.gateway.processor.handler.GatewayHandlerException;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.api.handler.GatewayHandlerException;
 
-public abstract class AbstractSessionHandler extends FrameworkHandler {
+public abstract class AbstractSessionHandler extends AbstractGatewayHandler {
 
     @Override
     public String getName() {
         return "SessionPersistenceHandler";
     }
 
-    public abstract FrameworkHandlerResponse updateSession(AuthenticationContext context) throws
-                                                                                          GatewayHandlerException;
+    public abstract GatewayHandlerResponse updateSession(AuthenticationContext context) throws
+                                                                                          SessionHandlerException;
 }
