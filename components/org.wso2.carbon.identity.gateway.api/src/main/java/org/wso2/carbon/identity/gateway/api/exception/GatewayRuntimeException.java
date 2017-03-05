@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.gateway.api.exception;
 
-
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 
+/**
+ * All the Runtime exception under the gateway should extends this class.
+ */
 public class GatewayRuntimeException extends IdentityRuntimeException {
     public GatewayRuntimeException(String message) {
         super(message);

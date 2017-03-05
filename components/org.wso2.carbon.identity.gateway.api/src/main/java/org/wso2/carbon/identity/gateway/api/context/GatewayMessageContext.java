@@ -24,6 +24,14 @@ import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import java.io.Serializable;
 import java.util.Map;
 
+/**
+ * GatewayMessageContext is the context that is used to create domain specific context class that can be pass through
+ * the API to share the contents.
+ *
+ * @param <T1>
+ * @param <T2>
+ * @param <T3>
+ */
 public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends GatewayRequest>
         extends
         MessageContext<T1, T2>
@@ -33,19 +41,36 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
 
     protected T3 identityRequest;
 
+    /**
+     * @param identityRequest
+     * @param parameters
+     */
     public GatewayMessageContext(T3 identityRequest, Map<T1, T2> parameters) {
         super(parameters);
         this.identityRequest = identityRequest;
     }
 
+    /**
+     * @param identityRequest
+     */
     public GatewayMessageContext(T3 identityRequest) {
         this.identityRequest = identityRequest;
     }
 
+    /**
+     * Get Identity Request.
+     *
+     * @return
+     */
     public T3 getIdentityRequest() {
         return identityRequest;
     }
 
+    /**
+     * Set Identity Request.
+     *
+     * @param identityRequest
+     */
     public void setIdentityRequest(T3 identityRequest) {
         this.identityRequest = identityRequest;
     }

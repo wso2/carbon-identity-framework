@@ -24,12 +24,12 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
-import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
-import org.wso2.carbon.identity.gateway.handler.HandlerManager;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
@@ -64,35 +64,36 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
         }
         AuthenticationContext authenticationContext = null;
         GatewayHandlerResponse response = GatewayHandlerResponse.CONTINUE;
-        HandlerManager handlerManager = HandlerManager.getInstance();
+        GatewayHandlerManager gatewayHandlerManager = GatewayHandlerManager.getInstance();
         try {
             authenticationContext = loadAuthenticationContext(authenticationRequest);
             if (log.isDebugEnabled()) {
                 log.debug("AuthenticationProcessor loaded the AuthenticationContext.");
             }
             if (authenticationRequest instanceof ClientAuthenticationRequest) {
-                response = handlerManager.getRequestValidator(authenticationContext).validate(authenticationContext);
+                response = gatewayHandlerManager
+                        .getRequestValidator(authenticationContext).validate(authenticationContext);
                 if (log.isDebugEnabled()) {
                     log.debug("AuthenticationProcessor called the validation.");
                 }
             }
             if (response.equals(GatewayHandlerResponse.CONTINUE)) {
 
-                response = handlerManager.getAuthenticationHandler(authenticationContext)
+                response = gatewayHandlerManager.getAuthenticationHandler(authenticationContext)
                         .doAuthenticate(authenticationContext);
                 if (log.isDebugEnabled()) {
                     log.debug("AuthenticationProcessor called the authentication.");
                 }
                 if (response.equals(GatewayHandlerResponse.CONTINUE)) {
 
-                    response = handlerManager.getSessionHandler(authenticationContext)
+                    response = gatewayHandlerManager.getSessionHandler(authenticationContext)
                             .updateSession(authenticationContext);
                     if (log.isDebugEnabled()) {
                         log.debug("AuthenticationProcessor called the update session.");
                     }
                     if (response.equals(GatewayHandlerResponse.CONTINUE)) {
 
-                        response = handlerManager.getResponseHandler(authenticationContext)
+                        response = gatewayHandlerManager.getResponseHandler(authenticationContext)
                                 .buildResponse(authenticationContext);
                         if (log.isDebugEnabled()) {
                             log.debug("AuthenticationProcessor called the response handler.");
@@ -106,7 +107,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
                 log.debug(errorMessage, exception);
             }
             try {
-                response = handlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
+                response = gatewayHandlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
                         (authenticationContext, exception);
             } catch (ResponseHandlerException e) {
                 String errorMessage = "Error occurred while processing the response, " + e.getMessage();
@@ -119,7 +120,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
                 log.debug(errorMessage, exception);
             }
             try {
-                response = handlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
+                response = gatewayHandlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
                         (authenticationContext, exception);
             } catch (ResponseHandlerException e) {
                 String errorMessage = "Error occurred while processing the response, " + e.getMessage();

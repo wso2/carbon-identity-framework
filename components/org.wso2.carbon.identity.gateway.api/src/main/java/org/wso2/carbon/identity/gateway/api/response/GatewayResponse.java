@@ -22,7 +22,8 @@ import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import java.io.Serializable;
 
 /*
- * Abstract type that represents any return value from an GatewayProcessor
+ * Return type of the gateway framework. Processor return this type of instance and each protocol can have its own
+ * return sub type of this.
  */
 public class GatewayResponse implements Serializable {
 
@@ -31,6 +32,11 @@ public class GatewayResponse implements Serializable {
     protected GatewayMessageContext context;
     protected String sessionKey;
 
+    /**
+     * Default Cosntructor.
+     *
+     * @param builder
+     */
     protected GatewayResponse(GatewayResponseBuilder builder) {
         this.context = builder.context;
         this.sessionKey = builder.sessionKey;
@@ -40,6 +46,9 @@ public class GatewayResponse implements Serializable {
         return sessionKey;
     }
 
+    /**
+     * Default builder - GatewayResponseBuilder.
+     */
     public static class GatewayResponseBuilder {
 
         protected GatewayMessageContext context;
@@ -53,13 +62,13 @@ public class GatewayResponse implements Serializable {
 
         }
 
+        public GatewayResponse build() {
+            return new GatewayResponse(this);
+        }
+
         public GatewayResponseBuilder setSessionKey(String sessionKey) {
             this.sessionKey = sessionKey;
             return this;
-        }
-
-        public GatewayResponse build() {
-            return new GatewayResponse(this);
         }
     }
 }

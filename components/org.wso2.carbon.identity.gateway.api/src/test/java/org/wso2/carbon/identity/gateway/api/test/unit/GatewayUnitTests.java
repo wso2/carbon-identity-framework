@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.gateway.api.test.unit;
 
-import org.apache.http.protocol.HTTP;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -28,10 +27,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 import org.wso2.carbon.identity.mgt.IdentityStore;
 import org.wso2.carbon.identity.mgt.RealmService;
@@ -50,8 +47,8 @@ public class GatewayUnitTests {
     @Mock
     private RealmService realmService;
 
-//    @Mock
-//    private AuthorizationStore authorizationStore;
+    //    @Mock
+    //    private AuthorizationStore authorizationStore;
 
     @Mock
     private IdentityMgtDataHolder identityMgtDataHolder;
@@ -76,47 +73,12 @@ public class GatewayUnitTests {
     public void resetMocks() {
 
         Mockito.reset(realmService);
-//      Mockito.reset(authorizationStore);
+        //      Mockito.reset(authorizationStore);
         Mockito.reset(identityMgtDataHolder);
     }
 
     @Test
-    public void testResponseStatusInErrors() {
-        GatewayResponseBuilderFactory gatewayResponseBuilderFactory = new GatewayResponseBuilderFactory();
-
-        Response.ResponseBuilder responseBuilder = gatewayResponseBuilderFactory.handleException(new GatewayRuntimeException("This is a " +
-                "gateway runtime exception"));
-        Response response = responseBuilder.build();
-        Assert.assertEquals(500, response.getStatus());
-        Assert.assertEquals("This is a gateway runtime exception", response.getEntity());
-
-
-        responseBuilder = gatewayResponseBuilderFactory.handleException(new GatewayRuntimeException ("This is a run time " +
-                "exception"));
-        response = responseBuilder.build();
-        Assert.assertEquals(500, response.getStatus());
-        Assert.assertEquals("This is a run time exception", response.getEntity());
-    }
-
-    @Test
-    public void testRequestBuilderFactoryErrorHandling() {
-        GatewayRequestBuilderFactory gatewayRequestBuilderFactory = new GatewayRequestBuilderFactory();
-        Response.ResponseBuilder responseBuilder = gatewayRequestBuilderFactory.handleException(new
-                GatewayClientException("This is a gateway client exception"));
-        Response response = responseBuilder.build();
-        Assert.assertEquals(400, response.getStatus());
-        Assert.assertEquals("This is a gateway client exception", response.getEntity());
-
-        responseBuilder = gatewayRequestBuilderFactory.handleException(new
-                GatewayRuntimeException("This is a gateway runtime exception"));
-        response = responseBuilder.build();
-        Assert.assertEquals(500, response.getStatus());
-        Assert.assertEquals("something went wrong", response.getEntity());
-
-    }
-
-    @Test
-    public void testGatewayRequestBuilder(){
+    public void testGatewayRequestBuilder() {
         GatewayRequest.GatewayRequestBuilder builder = new GatewayRequest.GatewayRequestBuilder();
         builder.addAttribute("testAttribute", "testAttributeValue");
         builder.addHeader("testHeader", "testHeaderValue");
@@ -131,5 +93,43 @@ public class GatewayUnitTests {
         Assert.assertEquals(gatewayRequest.getContentType(), "application/json");
         Assert.assertEquals(gatewayRequest.getRequestURI(),"gateway/someContext");
         Assert.assertEquals(gatewayRequest.getQueryString(), "param1=param1value&param2=param2value");*/
+    }
+
+    @Test
+    public void testRequestBuilderFactoryErrorHandling() {
+        GatewayRequestBuilderFactory gatewayRequestBuilderFactory = new GatewayRequestBuilderFactory();
+        Response.ResponseBuilder responseBuilder = gatewayRequestBuilderFactory.handleException(new
+                                                                                                        GatewayClientException(
+                "This is a gateway client exception"));
+        Response response = responseBuilder.build();
+        Assert.assertEquals(400, response.getStatus());
+        Assert.assertEquals("This is a gateway client exception", response.getEntity());
+
+        responseBuilder = gatewayRequestBuilderFactory.handleException(new
+                                                                               GatewayRuntimeException(
+                "This is a gateway runtime exception"));
+        response = responseBuilder.build();
+        Assert.assertEquals(500, response.getStatus());
+        Assert.assertEquals("something went wrong", response.getEntity());
+    }
+
+    @Test
+    public void testResponseStatusInErrors() {
+        GatewayResponseBuilderFactory gatewayResponseBuilderFactory = new GatewayResponseBuilderFactory();
+
+        Response.ResponseBuilder responseBuilder = gatewayResponseBuilderFactory
+                .handleException(new GatewayRuntimeException("This is a " +
+                                                             "gateway runtime exception"));
+        Response response = responseBuilder.build();
+        Assert.assertEquals(500, response.getStatus());
+        Assert.assertEquals("This is a gateway runtime exception", response.getEntity());
+
+
+        responseBuilder = gatewayResponseBuilderFactory
+                .handleException(new GatewayRuntimeException("This is a run time " +
+                                                             "exception"));
+        response = responseBuilder.build();
+        Assert.assertEquals(500, response.getStatus());
+        Assert.assertEquals("This is a run time exception", response.getEntity());
     }
 }

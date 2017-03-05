@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.authentication.HandlerManager;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.handler.session.DefaultSessionHandler;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.model.FederatedUser;
@@ -97,11 +98,10 @@ public class GatewayUnitTests {
 
     @Test
     public void testGetAuthenticationHandlerError() {
-        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
-                .handler.HandlerManager.getInstance();
+        GatewayHandlerManager gatewayHandlerManager = GatewayHandlerManager.getInstance();
 
         try {
-            handlerManager.getAuthenticationHandler(null);
+            gatewayHandlerManager.getAuthenticationHandler(null);
         } catch (GatewayRuntimeException e) {
             Assert.assertTrue(e.getMessage().contains("Cannot find AuthenticationHandler"));
         }
@@ -110,7 +110,7 @@ public class GatewayUnitTests {
         gatewayServiceHolder.getAuthenticationHandlers().add(new SampleAuthenticationHandler());
 
         try {
-            handlerManager.getAuthenticationHandler(null);
+            gatewayHandlerManager.getAuthenticationHandler(null);
         } catch (GatewayRuntimeException e) {
             Assert.assertTrue(e.getMessage().contains("Cannot find AuthenticationHandler"));
         }
@@ -118,11 +118,10 @@ public class GatewayUnitTests {
 
     @Test
     public void testGetRequestValidatorError() {
-        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
-                .handler.HandlerManager.getInstance();
+        GatewayHandlerManager gatewayHandlerManager = GatewayHandlerManager.getInstance();
 
         try {
-            handlerManager.getRequestValidator(null);
+            gatewayHandlerManager.getRequestValidator(null);
         } catch (GatewayRuntimeException e) {
             Assert.assertTrue(e.getMessage().contains("Can not find AbstractRequestValidator"));
         }
@@ -130,11 +129,10 @@ public class GatewayUnitTests {
 
     @Test
     public void testGetResponseHandlerError() {
-        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
-                .handler.HandlerManager.getInstance();
+        GatewayHandlerManager gatewayHandlerManager = GatewayHandlerManager.getInstance();
 
         try {
-            handlerManager.getResponseHandler(null);
+            gatewayHandlerManager.getResponseHandler(null);
         } catch (GatewayRuntimeException e) {
             Assert.assertTrue(e.getMessage().contains("Can not find a ResponseHandler"));
         }
@@ -142,11 +140,10 @@ public class GatewayUnitTests {
 
     @Test
     public void testGetSessionHandlers() {
-        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
-                .handler.HandlerManager.getInstance();
+        GatewayHandlerManager gatewayHandlerManager = GatewayHandlerManager.getInstance();
 
         try {
-            handlerManager.getSessionHandler(null);
+            gatewayHandlerManager.getSessionHandler(null);
         } catch (GatewayRuntimeException e) {
             Assert.assertTrue(e.getMessage().contains("Can not find AbstractSessionHandler"));
         }
@@ -154,11 +151,11 @@ public class GatewayUnitTests {
         DefaultSessionHandler defaultSessionHandler = new DefaultSessionHandler();
         gatewayServiceHolder.getSessionHandlers().add(defaultSessionHandler);
 
-        Assert.assertNotNull(handlerManager.getSessionHandler(null));
+        Assert.assertNotNull(gatewayHandlerManager.getSessionHandler(null));
         gatewayServiceHolder.getSessionHandlers().remove(defaultSessionHandler);
         gatewayServiceHolder.getSessionHandlers().add(new SampleSessionHandler());
         try {
-            handlerManager.getSessionHandler(null);
+            gatewayHandlerManager.getSessionHandler(null);
         } catch (GatewayRuntimeException e) {
             Assert.assertTrue(e.getMessage().contains("Can not find AbstractSessionHandler"));
         }

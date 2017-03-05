@@ -17,8 +17,9 @@
  */
 package org.wso2.carbon.identity.gateway.api.exception;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityServerException;
-
+/**
+ * All the server exception should extends from this.
+ */
 public class GatewayServerException extends GatewayException {
     public GatewayServerException(String message) {
         super(message);

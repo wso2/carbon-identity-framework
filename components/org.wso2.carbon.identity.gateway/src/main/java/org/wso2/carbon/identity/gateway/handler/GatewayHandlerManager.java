@@ -31,17 +31,17 @@ import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 
 import java.util.List;
 
-public class HandlerManager {
+public class GatewayHandlerManager {
 
 
-    private static Logger log = org.slf4j.LoggerFactory.getLogger(HandlerManager.class);
-    private static volatile HandlerManager instance = new HandlerManager();
+    private static Logger log = org.slf4j.LoggerFactory.getLogger(GatewayHandlerManager.class);
+    private static volatile GatewayHandlerManager instance = new GatewayHandlerManager();
 
-    private HandlerManager() {
+    private GatewayHandlerManager() {
 
     }
 
-    public static HandlerManager getInstance() {
+    public static GatewayHandlerManager getInstance() {
         return instance;
     }
 

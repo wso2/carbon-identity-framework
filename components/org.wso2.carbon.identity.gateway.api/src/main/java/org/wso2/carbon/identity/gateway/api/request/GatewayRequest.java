@@ -34,11 +34,14 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Basic Request Object for the Gateway and we can create sub classed of this to handle different protocol request.
+ */
 public class GatewayRequest implements Serializable {
 
-    private static Logger log = LoggerFactory.getLogger(GatewayRequest.class);
     private static final long serialVersionUID = 5418537216546873566L;
 
+    private static Logger log = LoggerFactory.getLogger(GatewayRequest.class);
     protected Map<String, Serializable> headers = new HashMap();
     protected Map<String, Serializable> parameters = new HashMap();
     protected Map<String, Serializable> attributes = new HashMap();
@@ -103,7 +106,7 @@ public class GatewayRequest implements Serializable {
         return httpMethod;
     }
 
-    public String getParameter(String paramName)  {
+    public String getParameter(String paramName) {
 
         String decode = null;
         Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
@@ -146,6 +149,9 @@ public class GatewayRequest implements Serializable {
         return requestURI;
     }
 
+    /**
+     * GatewayRequestBuilder is the builder of gatewayRequest.
+     */
     public static class GatewayRequestBuilder {
 
         private Map<String, Serializable> headers = new HashMap();
@@ -155,9 +161,6 @@ public class GatewayRequest implements Serializable {
         private String requestURI;
         private String contentType;
         private String queryString;
-
-        public GatewayRequestBuilder() {
-        }
 
         public GatewayRequestBuilder addAttribute(String name, Serializable value) {
             if (this.attributes.containsKey(name)) {
@@ -216,7 +219,7 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public GatewayRequest build(){
+        public GatewayRequest build() {
             return new GatewayRequest(this);
         }
 
@@ -261,6 +264,9 @@ public class GatewayRequest implements Serializable {
         }
     }
 
+    /**
+     * Constants for this request type.
+     */
     public static class IdentityRequestConstants {
 
     }

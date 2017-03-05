@@ -19,9 +19,7 @@
 package org.wso2.carbon.identity.gateway.api.response;
 
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
 
 import javax.ws.rs.core.NewCookie;
@@ -37,12 +35,6 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
         return true;
     }
 
-
-    @Override
-    public int getPriority() {
-        return 100 ;
-    }
-
     public Response.ResponseBuilder createBuilder(GatewayResponse gatewayResponse) {
         Response.ResponseBuilder builder = Response.noContent();
         createBuilder(builder, gatewayResponse);
@@ -50,11 +42,15 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
     }
 
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
-        NewCookie newCookie = new NewCookie(Constants.GATEWAY_COOKIE , gatewayResponse.getSessionKey(), "/", null,
+        NewCookie newCookie = new NewCookie(Constants.GATEWAY_COOKIE, gatewayResponse.getSessionKey(), "/", null,
                                             "GatewayCookie", 6000, true, true);
         builder.cookie(newCookie);
     }
 
+    @Override
+    public int getPriority() {
+        return 100;
+    }
 
     public Response.ResponseBuilder handleException(GatewayRuntimeException exception) {
 
@@ -63,5 +59,4 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
         builder.entity(exception.getMessage());
         return builder;
     }
-
 }

@@ -20,12 +20,19 @@ package org.wso2.carbon.identity.gateway.api.handler;
 
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
-public abstract class AbstractGatewayHandler extends AbstractMessageHandler{
+/**
+ * AbstractGatewayHandler is the root handler class to the gateway. All the handlers should extends this class.
+ * Except that, this has AbstractMessageHandler as the super class and all the event based common functionality will
+ * be inherited from that.
+ */
+public abstract class AbstractGatewayHandler extends AbstractMessageHandler {
 
-    public abstract boolean canHandle(MessageContext messageContext) ;
-
-
+    /**
+     * Default canHandle method for all the generic handlers.
+     *
+     * @param messageContext
+     * @return
+     */
+    public abstract boolean canHandle(MessageContext messageContext);
 }

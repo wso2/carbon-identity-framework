@@ -17,8 +17,10 @@
  */
 package org.wso2.carbon.identity.gateway.api.exception;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityClientException;
-
+/**
+ * GatewayClientException is the root client exception class for the gateway. All the client exception classes should
+ * extends this class.
+ */
 public class GatewayClientException extends GatewayException {
 
     public GatewayClientException(String message) {

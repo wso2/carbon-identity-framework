@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.msf4j.Request;
 
@@ -33,11 +31,13 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- *  GatewayRequestBuilderFactory is a base class to create RequstBuilderFactories based on different
- *  Protocols. This also will register as a Service and can be used as a default request builder.
+ * GatewayRequestBuilderFactory is a base class to create RequstBuilderFactories based on different
+ * Protocols. This also will register as a Service and can be used as a default request builder.
  *
- * @param <T> Extended type of GatewayRequest.GatewayRequestBuilder
+ * @param <T>
+ *         Extended type of GatewayRequest.GatewayRequestBuilder
  */
+
 public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayRequestBuilder> extends AbstractHandler {
 
     private Logger log = LoggerFactory.getLogger(GatewayRequestBuilderFactory.class);
@@ -52,20 +52,27 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         return true;
     }
 
-    @Override
-    public int getPriority() {
-        //Least priority for this factory.
-        return 100;
-    }
-
-
+    /**
+     * Create GatewayRequestBuilder.
+     *
+     * @param request
+     * @return
+     * @throws GatewayClientException
+     */
     public T create(Request request)
             throws GatewayClientException {
         GatewayRequest.GatewayRequestBuilder builder = new GatewayRequest.GatewayRequestBuilder();
         this.create((T) builder, request);
-        return (T)builder;
+        return (T) builder;
     }
 
+    /**
+     * Update GatewayRequestBuilder.
+     *
+     * @param builder
+     * @param request
+     * @throws GatewayClientException
+     */
     public void create(T builder, Request request)
             throws GatewayClientException {
 
@@ -77,9 +84,10 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         builder.setContentType(request.getContentType());
         builder.setRequestURI(request.getUri());
         builder.setHttpMethod(request.getHttpMethod());
-        builder.setAttributes((Map)request.getProperties());
-        builder.addParameter(Constants.QUERY_PARAMETERS, (Serializable) request.getProperty(Constants.QUERY_PARAMETERS));
-        builder.addParameter(Constants.BODY_PARAMETERS, (Serializable)request.getProperty(Constants.BODY_PARAMETERS));
+        builder.setAttributes((Map) request.getProperties());
+        builder.addParameter(Constants.QUERY_PARAMETERS,
+                             (Serializable) request.getProperty(Constants.QUERY_PARAMETERS));
+        builder.addParameter(Constants.BODY_PARAMETERS, (Serializable) request.getProperty(Constants.BODY_PARAMETERS));
 
         String[] queryStringParams = request.getUri().split("\\?");
         if (queryStringParams != null && queryStringParams.length > 1) {
@@ -89,7 +97,20 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         }
     }
 
+    //#TODO: Priority value should be checked to put here.
+    @Override
+    public int getPriority() {
+        return 100;
+    }
 
+    //#TODO: Think about more this exception handling.
+
+    /**
+     * Handling exception for GatewayClientException.
+     *
+     * @param exception
+     * @return
+     */
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
         Response.ResponseBuilder builder = Response.noContent();
         builder.status(400);
@@ -97,13 +118,18 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         return builder;
     }
 
+    //#TODO: Think about more this exception handling.
+
+    /**
+     * Handling exception for RuntimeException.
+     *
+     * @param exception
+     * @return
+     */
     public Response.ResponseBuilder handleException(RuntimeException exception) {
         Response.ResponseBuilder builder = Response.noContent();
         builder.status(500);
         builder.entity("something went wrong");
         return builder;
     }
-
-
-
 }

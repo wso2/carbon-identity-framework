@@ -23,10 +23,18 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
+/**
+ * GatewayProcessor is the base class of Processor in gateway framework. If we want to handle a custom request, then
+ * we have to write a custom processor and should accept this in canHandle method. Then when we send a request to the
+ * gateway, it will pick this processor and call the process method.
+ *
+ * @param <T>
+ */
 public abstract class GatewayProcessor<T extends GatewayRequest> extends AbstractHandler {
 
     /**
-     * Tells if this processor can handle this GatewayRequest
+     * Tells if this processor can handle this GatewayRequest. There can be any extended type of GatewayRequest in
+     * runtime and we can check the instance of and accept it.
      *
      * @param gatewayRequest
      *         GatewayRequest
@@ -35,7 +43,7 @@ public abstract class GatewayProcessor<T extends GatewayRequest> extends Abstrac
     public abstract boolean canHandle(GatewayRequest gatewayRequest);
 
     /**
-     * Process GatewayRequest
+     * Process method can process any subclass of the GatewayRequest if the canHandle method accept it.
      *
      * @param identityRequest
      *         GatewayRequest

@@ -39,8 +39,12 @@ public class GatewayAPIActivator {
     @Activate
     protected void start(BundleContext bundleContext) throws Exception {
         try {
+
+            //Registering Services.
             bundleContext.registerService(GatewayRequestBuilderFactory.class, new GatewayRequestBuilderFactory(), null);
-            bundleContext.registerService(GatewayResponseBuilderFactory.class, new GatewayResponseBuilderFactory(), null);
+            bundleContext
+                    .registerService(GatewayResponseBuilderFactory.class, new GatewayResponseBuilderFactory(), null);
+
             if (log.isDebugEnabled()) {
                 log.debug("org.wso2.carbon.identity.gateway.api bundle is activated");
             }
