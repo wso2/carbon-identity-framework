@@ -43,24 +43,10 @@ import java.nio.file.Paths;
  */
 public class ServiceProviderDeployer implements Deployer {
 
+    private static final String SERVICE_PROVIDER_TYPE = "serviceprovider";
     private Logger logger = LoggerFactory.getLogger(GatewayActivator.class);
     private ArtifactType artifactType;
     private URL repository;
-    private static final String SERVICE_PROVIDER_TYPE = "serviceprovider";
-
-    @Override
-    public void init() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Initializing ServiceProviderDeployer.");
-        }
-        artifactType = new ArtifactType<>(SERVICE_PROVIDER_TYPE);
-        Path path = Paths.get(System.getProperty("carbon.home", "."), "deployment", "serviceprovider");
-        try {
-            repository = new URL("file:" + path.toString());
-        } catch (MalformedURLException e) {
-            logger.error("Error while reading the file path : " + e.getMessage());
-        }
-    }
 
     @Override
     public String deploy(Artifact artifact) throws CarbonDeploymentException {
@@ -78,6 +64,52 @@ public class ServiceProviderDeployer implements Deployer {
 
         logger.info("Successfully deployed the ServiceProvider configs : " + artifact.getName());
         return artifact.getName();
+    }
+
+    @Override
+    public ArtifactType getArtifactType() {
+        return artifactType;
+    }
+
+    @Override
+    public URL getLocation() {
+        return repository;
+    }
+
+    /**
+     * Read Service Provider Config Object.
+     *
+     * @param artifact
+     * @return ServiceProviderConfig
+     */
+    public synchronized ServiceProviderConfig getServiceProviderConfig(Artifact artifact)
+            throws GatewayServerException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Read Service Provider Configs.");
+        }
+        String providerName = GatewayUtil.getProviderName(artifact.getName());
+        ServiceProviderEntity providerEntity = GatewayUtil.getProvider(artifact, ServiceProviderEntity.class);
+        if (providerEntity == null) {
+            throw new GatewayServerException("Provider name cannot be found.");
+        }
+        if (!providerEntity.getServiceProviderConfig().getName().equals(providerName)) {
+            throw new GatewayServerException("Provider name should be the same as file name.");
+        }
+        return providerEntity.getServiceProviderConfig();
+    }
+
+    @Override
+    public void init() {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Initializing ServiceProviderDeployer.");
+        }
+        artifactType = new ArtifactType<>(SERVICE_PROVIDER_TYPE);
+        Path path = Paths.get(System.getProperty("carbon.home", "."), "deployment", "serviceprovider");
+        try {
+            repository = new URL("file:" + path.toString());
+        } catch (MalformedURLException e) {
+            logger.error("Error while reading the file path : " + e.getMessage());
+        }
     }
 
     @Override
@@ -112,43 +144,5 @@ public class ServiceProviderDeployer implements Deployer {
         }
         logger.info("Successfully updated the ServiceProvider configs : " + artifact.getName());
         return artifact.getName();
-    }
-
-    @Override
-    public URL getLocation() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get Location for the Service Provider.");
-        }
-        return repository;
-    }
-
-    @Override
-    public ArtifactType getArtifactType() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get Type for the Service Provider.");
-        }
-        return artifactType;
-    }
-
-    /**
-     * Read Service Provider Config Object.
-     *
-     * @param artifact
-     * @return ServiceProviderConfig
-     */
-    public synchronized ServiceProviderConfig getServiceProviderConfig(Artifact artifact)
-            throws GatewayServerException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Read Service Provider Configs.");
-        }
-        String providerName = GatewayUtil.getProviderName(artifact.getName());
-        ServiceProviderEntity providerEntity = GatewayUtil.getProvider(artifact, ServiceProviderEntity.class);
-        if (providerEntity == null) {
-            throw new GatewayServerException("Provider name cannot be found.");
-        }
-        if (!providerEntity.getServiceProviderConfig().getName().equals(providerName)) {
-            throw new GatewayServerException("Provider name should be the same as file name.");
-        }
-        return providerEntity.getServiceProviderConfig();
     }
 }

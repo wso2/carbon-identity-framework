@@ -19,11 +19,16 @@ package org.wso2.carbon.identity.gateway.authentication;
 
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
 public class SequenceManager extends AbstractGatewayHandler {
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true;
+    }
+
     @Override
     public String getName() {
         return null;
@@ -50,15 +55,9 @@ public class SequenceManager extends AbstractGatewayHandler {
         return requestPathHandler.handleRequestPathAuthentication(authenticationContext);
     }
 
-
     protected AuthenticationResponse handleStepAuthentication(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
         StepHandler stepHandler = HandlerManager.getInstance().getStepHandler(authenticationContext);
         return stepHandler.handleStepAuthentication(authenticationContext);
-    }
-
-    @Override
-    public boolean canHandle(MessageContext messageContext) {
-        return true ;
     }
 }

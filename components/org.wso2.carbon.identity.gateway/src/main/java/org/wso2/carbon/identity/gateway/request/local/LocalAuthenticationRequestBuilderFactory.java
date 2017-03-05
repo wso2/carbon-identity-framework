@@ -30,9 +30,11 @@ public class LocalAuthenticationRequestBuilderFactory extends GatewayRequestBuil
         .LocalAuthenticationRequestBuilder> {
     @Override
     public boolean canHandle(Request request) throws GatewayClientException {
-        String authenticatorName = (String) request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants
-                .AUTHENTICATOR_NAME);
-        String idpName = (String) request.getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants.IDP_NAME);
+        String authenticatorName = (String) request
+                .getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants
+                                     .AUTHENTICATOR_NAME);
+        String idpName = (String) request
+                .getProperty(LocalAuthenticationRequest.FrameworkLoginRequestConstants.IDP_NAME);
         if (StringUtils.isNotBlank(authenticatorName) && StringUtils.isNotBlank(idpName)) {
             return true;
         }
@@ -48,10 +50,11 @@ public class LocalAuthenticationRequestBuilderFactory extends GatewayRequestBuil
                 (LocalAuthenticationRequest.LocalAuthenticationRequestBuilder) builder;
 
         localAuthenticationRequestBuilder.setAuthenticatorName((String) request.getProperty(LocalAuthenticationRequest
-                .FrameworkLoginRequestConstants.AUTHENTICATOR_NAME));
-        localAuthenticationRequestBuilder.setIdentityProviderName((String) request.getProperty(LocalAuthenticationRequest
-                .FrameworkLoginRequestConstants
-                .IDP_NAME));
+                                                                                                    .FrameworkLoginRequestConstants.AUTHENTICATOR_NAME));
+        localAuthenticationRequestBuilder
+                .setIdentityProviderName((String) request.getProperty(LocalAuthenticationRequest
+                                                                              .FrameworkLoginRequestConstants
+                                                                              .IDP_NAME));
     }
 
 
@@ -63,17 +66,13 @@ public class LocalAuthenticationRequestBuilderFactory extends GatewayRequestBuil
                 LocalAuthenticationRequest.LocalAuthenticationRequestBuilder();
 
         localAuthenticationRequestBuilder.setAuthenticatorName((String) request.getProperty(LocalAuthenticationRequest
-                .FrameworkLoginRequestConstants
-                .AUTHENTICATOR_NAME));
-        localAuthenticationRequestBuilder.setIdentityProviderName((String) request.getProperty(LocalAuthenticationRequest
-                .FrameworkLoginRequestConstants
-                .IDP_NAME));
+                                                                                                    .FrameworkLoginRequestConstants
+                                                                                                    .AUTHENTICATOR_NAME));
+        localAuthenticationRequestBuilder
+                .setIdentityProviderName((String) request.getProperty(LocalAuthenticationRequest
+                                                                              .FrameworkLoginRequestConstants
+                                                                              .IDP_NAME));
         return localAuthenticationRequestBuilder;
-    }
-
-    @Override
-    public Response.ResponseBuilder handleException(GatewayClientException exception) {
-        return super.handleException(exception);
     }
 
     @Override
@@ -86,4 +85,8 @@ public class LocalAuthenticationRequestBuilderFactory extends GatewayRequestBuil
         return super.getPriority();
     }
 
+    @Override
+    public Response.ResponseBuilder handleException(GatewayClientException exception) {
+        return super.handleException(exception);
+    }
 }

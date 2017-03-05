@@ -18,16 +18,21 @@
 package org.wso2.carbon.identity.gateway.authentication;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 
 import java.util.List;
 
 public class RequestPathHandler extends AbstractGatewayHandler {
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true;
+    }
+
     @Override
     public String getName() {
         return null;
@@ -44,16 +49,12 @@ public class RequestPathHandler extends AbstractGatewayHandler {
         for (RequestPathAuthenticatorConfig requestPathAuthenticatorConfig : requestPathAuthenticatorConfigs) {
             RequestPathApplicationAuthenticator requestPathApplicationAuthenticator =
                     GatewayServiceHolder
-                            .getInstance().getRequestPathApplicationAuthenticator(requestPathAuthenticatorConfig.getAuthenticatorName());
+                            .getInstance().getRequestPathApplicationAuthenticator(
+                            requestPathAuthenticatorConfig.getAuthenticatorName());
             if (requestPathApplicationAuthenticator.canHandle(authenticationContext)) {
                 authenticationResponse = requestPathApplicationAuthenticator.process(authenticationContext);
             }
         }
         return authenticationResponse;
-    }
-
-    @Override
-    public boolean canHandle(MessageContext messageContext) {
-        return true ;
     }
 }

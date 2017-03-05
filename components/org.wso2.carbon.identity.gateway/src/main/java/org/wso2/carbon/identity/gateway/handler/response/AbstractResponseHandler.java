@@ -18,14 +18,15 @@
 package org.wso2.carbon.identity.gateway.handler.response;
 
 
+import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuildingConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
@@ -46,25 +47,16 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
     public abstract GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
             throws ResponseHandlerException;
 
-    public abstract boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) ;
-    public abstract boolean canHandle(AuthenticationContext authenticationContext, GatewayRuntimeException e) ;
+    public abstract boolean canHandle(MessageContext messageContext, GatewayException exception);
 
-    protected abstract String getValidatorType();
-
-    protected void addSessionKey(GatewayResponse.GatewayResponseBuilder responseBuilder,
-                                 AuthenticationContext context) throws ResponseHandlerException {
-
-        responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants
-                                                                    .SESSION_KEY));
-    }
-
+    public abstract boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception);
 
     public ResponseBuilderConfig getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException {
-        ResponseBuilderConfig responseBuilderConfig = null ;
+                                                                                                        AuthenticationHandlerException {
+        ResponseBuilderConfig responseBuilderConfig = null;
         if (authenticationContext.getServiceProvider() == null) {
             throw new AuthenticationHandlerException("Error while getting validator configs : No service provider " +
-                    "found with uniqueId : " + authenticationContext.getUniqueId());
+                                                     "found with uniqueId : " + authenticationContext.getUniqueId());
         }
 
         ResponseBuildingConfig responseBuildingConfig = authenticationContext.getServiceProvider()
@@ -75,10 +67,18 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
         while (responseBuilderConfigIterator.hasNext()) {
             ResponseBuilderConfig responseBuilderConfigTmp = responseBuilderConfigIterator.next();
             if (getValidatorType().equalsIgnoreCase(responseBuilderConfigTmp.getType())) {
-                responseBuilderConfig = responseBuilderConfigTmp ;
+                responseBuilderConfig = responseBuilderConfigTmp;
             }
         }
         return responseBuilderConfig;
     }
 
+    protected abstract String getValidatorType();
+
+    protected void addSessionKey(GatewayResponse.GatewayResponseBuilder responseBuilder,
+                                 AuthenticationContext context) throws ResponseHandlerException {
+
+        responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants
+                                                                            .SESSION_KEY));
+    }
 }

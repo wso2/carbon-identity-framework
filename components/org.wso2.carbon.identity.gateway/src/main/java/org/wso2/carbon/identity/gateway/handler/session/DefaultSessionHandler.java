@@ -41,13 +41,13 @@ public class DefaultSessionHandler extends AbstractSessionHandler {
     @Override
     public GatewayHandlerResponse updateSession(AuthenticationContext context) throws SessionHandlerException {
 
-        String sessionKey = ((AuthenticationRequest)context.getIdentityRequest()).getSessionKey();
+        String sessionKey = ((AuthenticationRequest) context.getIdentityRequest()).getSessionKey();
         String sessionKeyHash = null;
-        if(StringUtils.isBlank(sessionKey)) {
+        if (StringUtils.isBlank(sessionKey)) {
             sessionKey = UUID.randomUUID().toString();
         }
         sessionKeyHash = DigestUtils.sha256Hex(sessionKey);
-        if(context.getParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY) == null) {
+        if (context.getParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY) == null) {
             context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY, sessionKey);
         }
 
@@ -70,54 +70,59 @@ public class DefaultSessionHandler extends AbstractSessionHandler {
         CacheBackedSessionDAO.getInstance().put(sessionKeyHash, sessionContext);
         return GatewayHandlerResponse.CONTINUE;
 
-//        if(existingSequenceContext == null) { // if new service provider
-//
-//            // insert new service provider to DB. The last step may be authenticated or not based on if the sequence
-//            // was completed or not
-//            context.getSessionContext().addSequenceContext(serviceProviderName, currentSequenceContext);
-//            CacheBackedSessionDAO.getInstance().put(cookieHash, context.getSessionContext());
-//
-//        } else { // if existing service provider
-//
-//            if(isSequenceCompleted) { // all steps are successful
-//
-//                // check for existing steps of service provider and if IDP is different in any of the steps update
-//                // them persist
-//                // add more steps if needed
-//                context.getSessionContext().addSequenceContext(serviceProviderName, currentSequenceContext);
-//                CacheBackedSessionDAO.getInstance().put(cookieHash, context.getSessionContext());
-//
-//                for(int i = 1; i == currentStep; i++) {
-//                    SequenceContext.StepContext existingStepContext = existingSequenceContext.getStepContext(i);
-//                    SequenceContext.StepContext currentStepContext = currentSequenceContext.getStepContext(i);
-//                    if(currentStepContext.isAuthenticated() && existingStepContext != null) {
-//                        if(!existingStepContext.getIdentityProviderName().equals(currentStepContext
-//                                                                                     .getIdentityProviderName())) {
-//
-//                        }
-//
-//                    }
-//                }
-//
-//            } else { // all steps are not successful
-//
-//                // do the above only for the successful steps
-//
-//            }
-//
-//        }
-        
+        //        if(existingSequenceContext == null) { // if new service provider
+        //
+        //            // insert new service provider to DB. The last step may be authenticated or not based on if the
+        // sequence
+        //            // was completed or not
+        //            context.getSessionContext().addSequenceContext(serviceProviderName, currentSequenceContext);
+        //            CacheBackedSessionDAO.getInstance().put(cookieHash, context.getSessionContext());
+        //
+        //        } else { // if existing service provider
+        //
+        //            if(isSequenceCompleted) { // all steps are successful
+        //
+        //                // check for existing steps of service provider and if IDP is different in any of the steps
+        // update
+        //                // them persist
+        //                // add more steps if needed
+        //                context.getSessionContext().addSequenceContext(serviceProviderName, currentSequenceContext);
+        //                CacheBackedSessionDAO.getInstance().put(cookieHash, context.getSessionContext());
+        //
+        //                for(int i = 1; i == currentStep; i++) {
+        //                    SequenceContext.StepContext existingStepContext = existingSequenceContext
+        // .getStepContext(i);
+        //                    SequenceContext.StepContext currentStepContext = currentSequenceContext.getStepContext(i);
+        //                    if(currentStepContext.isAuthenticated() && existingStepContext != null) {
+        //                        if(!existingStepContext.getIdentityProviderName().equals(currentStepContext
+        //
+        // .getIdentityProviderName())) {
+        //
+        //                        }
+        //
+        //                    }
+        //                }
+        //
+        //            } else { // all steps are not successful
+        //
+        //                // do the above only for the successful steps
+        //
+        //            }
+        //
+        //        }
+
     }
 
-    private SessionContext createSession (AuthenticationContext authenticationContext){
+    private SessionContext createSession(AuthenticationContext authenticationContext) {
         SessionContext sessionContext = new SessionContext();
-        sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(), authenticationContext.getSequenceContext());
+        sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(),
+                                          authenticationContext.getSequenceContext());
         return sessionContext;
     }
 
-    private SessionContext updateSession (AuthenticationContext authenticationContext, SessionContext sessionContext) {
-        sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(), authenticationContext.getSequenceContext());
+    private SessionContext updateSession(AuthenticationContext authenticationContext, SessionContext sessionContext) {
+        sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(),
+                                          authenticationContext.getSequenceContext());
         return sessionContext;
     }
-
 }

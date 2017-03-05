@@ -32,7 +32,8 @@ public class IdentityContextPersistenceTask implements Runnable {
     private BlockingDeque<IdentityContextJob> identityContextJobQueue;
     private IdentityContextDAO persistentDAO;
 
-    IdentityContextPersistenceTask(BlockingDeque<IdentityContextJob> identityContextJobQueue, IdentityContextDAO persistentDAO) {
+    IdentityContextPersistenceTask(BlockingDeque<IdentityContextJob> identityContextJobQueue,
+                                   IdentityContextDAO persistentDAO) {
         this.identityContextJobQueue = identityContextJobQueue;
         this.persistentDAO = persistentDAO;
     }
@@ -54,7 +55,6 @@ public class IdentityContextPersistenceTask implements Runnable {
                     } else {
                         persistentDAO.remove(job.key);
                     }
-
                 }
             } catch (InterruptedException | GatewayRuntimeException e) {
                 log.error("Error occurred while running task for SessionJob", e);
@@ -76,5 +76,4 @@ public class IdentityContextPersistenceTask implements Runnable {
             this.gatewayMessageContext = sessionContext;
         }
     }
-
 }

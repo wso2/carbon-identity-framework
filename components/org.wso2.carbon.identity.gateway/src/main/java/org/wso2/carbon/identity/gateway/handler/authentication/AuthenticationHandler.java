@@ -20,20 +20,20 @@ package org.wso2.carbon.identity.gateway.handler.authentication;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
-import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.HandlerManager;
+import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
 public class AuthenticationHandler extends AbstractGatewayHandler {
     @Override
-    public String getName() {
-        return null;
+    public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
+        return true;
     }
 
     public GatewayHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
@@ -68,8 +68,8 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
-        return true;
+    public String getName() {
+        return null;
     }
 
     private GatewayHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
@@ -82,6 +82,4 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
         }
         return gatewayHandlerResponse;
     }
-
-
 }

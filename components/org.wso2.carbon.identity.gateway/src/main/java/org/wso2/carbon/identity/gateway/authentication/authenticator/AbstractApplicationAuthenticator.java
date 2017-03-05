@@ -26,10 +26,10 @@ import org.wso2.carbon.identity.claim.mapping.profile.ClaimConfigEntry;
 import org.wso2.carbon.identity.claim.mapping.profile.ProfileEntry;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
-import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.util.HashMap;
@@ -42,28 +42,6 @@ import java.util.Set;
 public abstract class AbstractApplicationAuthenticator implements ApplicationAuthenticator {
     private static final long serialVersionUID = -4406878411547612129L;
     private static final Logger log = LoggerFactory.getLogger(AbstractApplicationAuthenticator.class);
-
-
-    @Override
-    public AuthenticationResponse process(AuthenticationContext authenticationContext)
-            throws AuthenticationHandlerException {
-        AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE;
-        if (isInitialRequest(authenticationContext)) {
-            authenticationResponse = processRequest(authenticationContext);
-        } else {
-            authenticationResponse = processResponse(authenticationContext);
-        }
-        return authenticationResponse;
-    }
-
-    protected abstract boolean isInitialRequest(AuthenticationContext authenticationContext)
-            throws AuthenticationHandlerException;
-
-    protected abstract AuthenticationResponse processRequest(AuthenticationContext context)
-            throws AuthenticationHandlerException;
-
-    protected abstract AuthenticationResponse processResponse(AuthenticationContext context)
-            throws AuthenticationHandlerException;
 
     public Set<Claim> getMappedRootClaims(Set<Claim> claims, Optional<String> profile, Optional<String> dialect)
             throws AuthenticationHandlerException {
@@ -85,7 +63,8 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             claims.stream().filter(claim -> claimMapping.containsKey(claim.getClaimUri()))
                     .forEach(claim -> {
                         //#TODO:replace root dialect URI
-                        Claim tmpClaim = new Claim("rootdialect", claimMapping.get(claim.getClaimUri()), claim.getValue());
+                        Claim tmpClaim = new Claim("rootdialect", claimMapping.get(claim.getClaimUri()),
+                                                   claim.getValue());
                         transformedClaimsTmp.add(tmpClaim);
                     });
 
@@ -106,6 +85,27 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             throw new AuthenticationHandlerException(e.getMessage(), e);
         }
     }
+
+    @Override
+    public AuthenticationResponse process(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException {
+        AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE;
+        if (isInitialRequest(authenticationContext)) {
+            authenticationResponse = processRequest(authenticationContext);
+        } else {
+            authenticationResponse = processResponse(authenticationContext);
+        }
+        return authenticationResponse;
+    }
+
+    protected abstract boolean isInitialRequest(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException;
+
+    protected abstract AuthenticationResponse processRequest(AuthenticationContext context)
+            throws AuthenticationHandlerException;
+
+    protected abstract AuthenticationResponse processResponse(AuthenticationContext context)
+            throws AuthenticationHandlerException;
 
 
 

@@ -57,8 +57,8 @@ public class GatewayUnitTests {
     @Mock
     private RealmService realmService;
 
-//    @Mock
-//    private AuthorizationStore authorizationStore;
+    //    @Mock
+    //    private AuthorizationStore authorizationStore;
 
     @Mock
     private IdentityMgtDataHolder identityMgtDataHolder;
@@ -83,7 +83,7 @@ public class GatewayUnitTests {
     public void resetMocks() {
 
         Mockito.reset(realmService);
-//      Mockito.reset(authorizationStore);
+        //      Mockito.reset(authorizationStore);
         Mockito.reset(identityMgtDataHolder);
     }
 
@@ -96,72 +96,49 @@ public class GatewayUnitTests {
     }
 
     @Test
-    public void testLocalUser() {
-        LocalUser localUser = new LocalUser(null);
-    }
+    public void testGetAuthenticationHandlerError() {
+        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
+                .handler.HandlerManager.getInstance();
 
-    @Test
-    public void testUserClaim() {
-        UserClaim userClaim = new UserClaim("http://org.wso2/claim/username", "testuser");
-        userClaim.setUri("http://org.wso2/claim/username");
-        Assert.assertEquals("http://org.wso2/claim/username", userClaim.getUri());
-    }
-
-    @Test
-    public void testLocalAuthentication() {
-        LocalAuthenticationRequest.LocalAuthenticationRequestBuilder localAuthenticationRequestBuilder = new
-                LocalAuthenticationRequest.LocalAuthenticationRequestBuilder();
-        localAuthenticationRequestBuilder.setAuthenticatorName("testAuthenticator");
-        localAuthenticationRequestBuilder.setIdentityProviderName("testIdentityProvider");
-        LocalAuthenticationRequest localAuthenticationRequest = localAuthenticationRequestBuilder.build();
-        Assert.assertEquals("testAuthenticator", localAuthenticationRequest.getAuthenticatorName());
-        Assert.assertEquals("testIdentityProvider", localAuthenticationRequest.getIdentityProviderName());
-    }
-
-    @Test
-    public void testLocalAuthenticationBuilderFactor() throws GatewayClientException {
-        LocalAuthenticationRequestBuilderFactory factory = new LocalAuthenticationRequestBuilderFactory();
-        Assert.assertNotNull(factory.getName());
-        Response.ResponseBuilder builder = factory.handleException(new GatewayClientException("Error while validating" +
-                " request"));
-        Assert.assertNotNull(builder.build());
-        Assert.assertNotNull(factory.getPriority());
-    }
-
-    @Test
-    public void testHandlerManager() throws GatewayClientException {
         try {
-            HandlerManager.getInstance().getRequestPathHandler(new AuthenticationContext(null));
+            handlerManager.getAuthenticationHandler(null);
         } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
-        }
-        try {
-            HandlerManager.getInstance().getSequenceBuildFactory(new AuthenticationContext(null));
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
-        }
-        try {
-            HandlerManager.getInstance().getStepHandler(new AuthenticationContext(null));
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
-        }
-        try {
-            HandlerManager.getInstance().getSequenceManager(new AuthenticationContext(null));
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+            Assert.assertTrue(e.getMessage().contains("Cannot find AuthenticationHandler"));
         }
 
+        GatewayServiceHolder gatewayServiceHolder = GatewayServiceHolder.getInstance();
+        gatewayServiceHolder.getAuthenticationHandlers().add(new SampleAuthenticationHandler());
+
+        try {
+            handlerManager.getAuthenticationHandler(null);
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find AuthenticationHandler"));
+        }
     }
 
     @Test
-    public void testUtility() throws GatewayClientException {
-        Assert.assertNull(
-                GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator("federatedAuthenticator"));
-        Assert.assertNull(GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator("localAuthenticator"));
-        Assert.assertNull(GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticator("requestPathAuthenticators"));
+    public void testGetRequestValidatorError() {
+        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
+                .handler.HandlerManager.getInstance();
 
+        try {
+            handlerManager.getRequestValidator(null);
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Can not find AbstractRequestValidator"));
+        }
     }
 
+    @Test
+    public void testGetResponseHandlerError() {
+        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
+                .handler.HandlerManager.getInstance();
+
+        try {
+            handlerManager.getResponseHandler(null);
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Can not find a ResponseHandler"));
+        }
+    }
 
     @Test
     public void testGetSessionHandlers() {
@@ -188,51 +165,69 @@ public class GatewayUnitTests {
     }
 
     @Test
-    public void testGetRequestValidatorError() {
-        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
-                .handler.HandlerManager.getInstance();
-
+    public void testHandlerManager() throws GatewayClientException {
         try {
-            handlerManager.getRequestValidator(null);
+            HandlerManager.getInstance().getRequestPathHandler(new AuthenticationContext(null));
         } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Can not find AbstractRequestValidator"));
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+        try {
+            HandlerManager.getInstance().getSequenceBuildFactory(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+        try {
+            HandlerManager.getInstance().getStepHandler(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
+        }
+        try {
+            HandlerManager.getInstance().getSequenceManager(new AuthenticationContext(null));
+        } catch (GatewayRuntimeException e) {
+            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
         }
     }
-
 
     @Test
-    public void testGetResponseHandlerError() {
-        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
-                .handler.HandlerManager.getInstance();
-
-        try {
-            handlerManager.getResponseHandler(null);
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Can not find a ResponseHandler"));
-        }
+    public void testLocalAuthentication() {
+        LocalAuthenticationRequest.LocalAuthenticationRequestBuilder localAuthenticationRequestBuilder = new
+                LocalAuthenticationRequest.LocalAuthenticationRequestBuilder();
+        localAuthenticationRequestBuilder.setAuthenticatorName("testAuthenticator");
+        localAuthenticationRequestBuilder.setIdentityProviderName("testIdentityProvider");
+        LocalAuthenticationRequest localAuthenticationRequest = localAuthenticationRequestBuilder.build();
+        Assert.assertEquals("testAuthenticator", localAuthenticationRequest.getAuthenticatorName());
+        Assert.assertEquals("testIdentityProvider", localAuthenticationRequest.getIdentityProviderName());
     }
 
     @Test
-    public void testGetAuthenticationHandlerError() {
-        org.wso2.carbon.identity.gateway.handler.HandlerManager handlerManager = org.wso2.carbon.identity.gateway
-                .handler.HandlerManager.getInstance();
-
-        try {
-            handlerManager.getAuthenticationHandler(null);
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find AuthenticationHandler"));
-        }
-
-        GatewayServiceHolder gatewayServiceHolder = GatewayServiceHolder.getInstance();
-        gatewayServiceHolder.getAuthenticationHandlers().add(new SampleAuthenticationHandler());
-
-        try {
-            handlerManager.getAuthenticationHandler(null);
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find AuthenticationHandler"));
-        }
+    public void testLocalAuthenticationBuilderFactor() throws GatewayClientException {
+        LocalAuthenticationRequestBuilderFactory factory = new LocalAuthenticationRequestBuilderFactory();
+        Assert.assertNotNull(factory.getName());
+        Response.ResponseBuilder builder = factory.handleException(new GatewayClientException("Error while validating" +
+                                                                                              " request"));
+        Assert.assertNotNull(builder.build());
+        Assert.assertNotNull(factory.getPriority());
     }
 
+    @Test
+    public void testLocalUser() {
+        LocalUser localUser = new LocalUser(null);
+    }
 
+    @Test
+    public void testUserClaim() {
+        UserClaim userClaim = new UserClaim("http://org.wso2/claim/username", "testuser");
+        userClaim.setUri("http://org.wso2/claim/username");
+        Assert.assertEquals("http://org.wso2/claim/username", userClaim.getUri());
+    }
+
+    @Test
+    public void testUtility() throws GatewayClientException {
+        Assert.assertNull(
+                GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator("federatedAuthenticator"));
+        Assert.assertNull(GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator("localAuthenticator"));
+        Assert.assertNull(
+                GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticator("requestPathAuthenticators"));
+    }
 }
 

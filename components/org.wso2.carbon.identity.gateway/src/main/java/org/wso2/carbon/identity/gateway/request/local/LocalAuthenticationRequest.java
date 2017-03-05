@@ -30,7 +30,7 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
     protected LocalAuthenticationRequest(LocalAuthenticationRequestBuilder builder) {
         super(builder);
         authenticatorName = builder.authenticatorName;
-        identityProviderName = builder.identityProviderName ;
+        identityProviderName = builder.identityProviderName;
     }
 
     public String getAuthenticatorName() {
@@ -50,24 +50,24 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
             super();
         }
 
-
+        @Override
+        public LocalAuthenticationRequest build() throws GatewayRuntimeException {
+            return new LocalAuthenticationRequest(this);
+        }
 
         public LocalAuthenticationRequestBuilder setAuthenticatorName(String authenticatorName) {
             this.authenticatorName = authenticatorName;
             return this;
         }
+
         public LocalAuthenticationRequestBuilder setIdentityProviderName(String identityProviderName) {
             this.identityProviderName = identityProviderName;
             return this;
         }
-
-        @Override
-        public LocalAuthenticationRequest build() throws GatewayRuntimeException {
-            return new LocalAuthenticationRequest(this);
-        }
     }
 
-    public static class FrameworkLoginRequestConstants extends CallbackAuthenticationRequest.CallbackAuthenticationRequestConstants {
+    public static class FrameworkLoginRequestConstants
+            extends CallbackAuthenticationRequest.CallbackAuthenticationRequestConstants {
         public static final String AUTHENTICATOR_NAME = "authenticator";
         public static final String IDP_NAME = "idp";
     }

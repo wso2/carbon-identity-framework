@@ -40,10 +40,6 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
     private BlockingDeque<IdentityContextPersistenceTask.IdentityContextJob> identityContextJobs = new
             LinkedBlockingDeque();
 
-    public static IdentityContextDAO getInstance() {
-        return instance;
-    }
-
     private AsyncIdentityContextDAO() {
 
         //
@@ -66,6 +62,15 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
         }
     }
 
+    public static IdentityContextDAO getInstance() {
+        return instance;
+    }
+
+    @Override
+    public GatewayMessageContext get(String key) {
+        return persistentDAO.get(key);
+    }
+
     @Override
     public void put(String key, GatewayMessageContext context) {
 
@@ -76,11 +81,6 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
         } else {
             persistentDAO.put(key, context);
         }
-    }
-
-    @Override
-    public GatewayMessageContext get(String key) {
-        return persistentDAO.get(key);
     }
 
     @Override

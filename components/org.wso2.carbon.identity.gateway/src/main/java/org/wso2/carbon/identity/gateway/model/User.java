@@ -26,8 +26,7 @@ public abstract class User implements Serializable {
 
     private static final long serialVersionUID = 9023615951116124234L;
 
-    public abstract String getUserIdentifier();
-
     public abstract Set<Claim> getClaims();
 
+    public abstract String getUserIdentifier();
 }

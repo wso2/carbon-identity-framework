@@ -29,11 +29,10 @@ public class IdentityMessageContextCache extends BaseCache<String, GatewayMessag
 
     private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
     private static volatile IdentityMessageContextCache instance;
-    private static Map<String,GatewayMessageContext> authenticationContextMap = new HashMap();
+    private static Map<String, GatewayMessageContext> authenticationContextMap = new HashMap();
 
     private IdentityMessageContextCache(String cacheName) {
         super(cacheName);
-
     }
 
     public static IdentityMessageContextCache getInstance() {
@@ -47,21 +46,21 @@ public class IdentityMessageContextCache extends BaseCache<String, GatewayMessag
         return instance;
     }
 
-    public void put(String key, GatewayMessageContext context) {
-        super.put(key, context);
-        JDBCIdentityContextDAO.getInstance().put(key, context);
+    public void clear(String key) {
+        super.clear(key);
+        JDBCIdentityContextDAO.getInstance().remove(key);
     }
 
     public GatewayMessageContext get(String key) {
         GatewayMessageContext context = super.get(key);
-        if(context == null) {
+        if (context == null) {
             context = JDBCIdentityContextDAO.getInstance().get(key);
         }
         return context;
     }
 
-    public void clear(String key) {
-        super.clear(key);
-        JDBCIdentityContextDAO.getInstance().remove(key);
+    public void put(String key, GatewayMessageContext context) {
+        super.put(key, context);
+        JDBCIdentityContextDAO.getInstance().put(key, context);
     }
 }

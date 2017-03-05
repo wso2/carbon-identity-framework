@@ -41,24 +41,10 @@ import java.nio.file.Paths;
  */
 public class IdentityProviderDeployer implements Deployer {
 
+    private static final String IDENTITY_PROVIDER_TYPE = "identityprovider";
     private Logger logger = LoggerFactory.getLogger(IdentityProviderDeployer.class);
     private ArtifactType artifactType;
     private URL repository;
-    private static final String IDENTITY_PROVIDER_TYPE = "identityprovider";
-
-    @Override
-    public void init() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Initializing IdentityProviderDeployer.");
-        }
-        artifactType = new ArtifactType<>(IDENTITY_PROVIDER_TYPE);
-        Path path = Paths.get(System.getProperty("carbon.home", "."), "deployment", "identityprovider");
-        try {
-            repository = new URL("file:" + path.toString());
-        } catch (MalformedURLException e) {
-            logger.error("Error while reading the file path : " + e.getMessage());
-        }
-    }
 
     @Override
     public String deploy(Artifact artifact) throws CarbonDeploymentException {
@@ -76,6 +62,53 @@ public class IdentityProviderDeployer implements Deployer {
 
         logger.info("Successfully deployed the IdentityProvider configs : " + artifact.getName());
         return artifact.getName();
+    }
+
+    @Override
+    public ArtifactType getArtifactType() {
+        return artifactType;
+    }
+
+    /**
+     * Read Identity Provider Config Object.
+     *
+     * @param artifact
+     * @return IdentityProviderConfig
+     */
+    public synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact)
+            throws GatewayServerException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Read Identity Provider Configs.");
+        }
+        String providerName = GatewayUtil.getProviderName(artifact.getName());
+        IdentityProviderEntity providerEntity = GatewayUtil.getProvider(artifact, IdentityProviderEntity.class);
+        if (providerEntity == null) {
+            throw new GatewayServerException("Provider name cannot be found.");
+        }
+        if (!providerEntity.getIdentityProviderConfig().getName().equals(providerName)) {
+
+            throw new GatewayServerException("Provider name should be the same as file name.");
+        }
+        return providerEntity.getIdentityProviderConfig();
+    }
+
+    @Override
+    public URL getLocation() {
+        return repository;
+    }
+
+    @Override
+    public void init() {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Initializing IdentityProviderDeployer.");
+        }
+        artifactType = new ArtifactType<>(IDENTITY_PROVIDER_TYPE);
+        Path path = Paths.get(System.getProperty("carbon.home", "."), "deployment", "identityprovider");
+        try {
+            repository = new URL("file:" + path.toString());
+        } catch (MalformedURLException e) {
+            logger.error("Error while reading the file path : " + e.getMessage());
+        }
     }
 
     @Override
@@ -110,45 +143,6 @@ public class IdentityProviderDeployer implements Deployer {
         }
         logger.info("Successfully updated the IdentityProvider configs : " + artifact.getName());
         return artifact.getName();
-    }
-
-    @Override
-    public URL getLocation() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get Location for the Identity Provider.");
-        }
-        return repository;
-    }
-
-    @Override
-    public ArtifactType getArtifactType() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get Type for the Identity Provider.");
-        }
-        return artifactType;
-    }
-
-    /**
-     * Read Identity Provider Config Object.
-     *
-     * @param artifact
-     * @return IdentityProviderConfig
-     */
-    public synchronized IdentityProviderConfig getIdentityProviderConfig(Artifact artifact)
-            throws GatewayServerException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Read Identity Provider Configs.");
-        }
-        String providerName = GatewayUtil.getProviderName(artifact.getName());
-        IdentityProviderEntity providerEntity = GatewayUtil.getProvider(artifact, IdentityProviderEntity.class);
-        if (providerEntity == null) {
-            throw new GatewayServerException("Provider name cannot be found.");
-        }
-        if (!providerEntity.getIdentityProviderConfig().getName().equals(providerName)) {
-
-            throw new GatewayServerException("Provider name should be the same as file name.");
-        }
-        return providerEntity.getIdentityProviderConfig();
     }
 }
 

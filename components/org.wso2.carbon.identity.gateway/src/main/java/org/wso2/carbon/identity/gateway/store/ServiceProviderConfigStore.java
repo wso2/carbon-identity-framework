@@ -56,20 +56,6 @@ public class ServiceProviderConfigStore {
         }
     }
 
-    public void removeServiceProvider(String serviceProviderName) {
-        if (serviceProviderName != null) {
-            Iterator entries = spUniqueKeyMap.entrySet().iterator();
-            while (entries.hasNext()) {
-                Map.Entry thisEntry = (Map.Entry) entries.next();
-                Object value = thisEntry.getValue();
-                if(value.equals(serviceProviderName)){
-                    entries.remove();
-                }
-            }
-            spEntityMap.remove(serviceProviderName);
-        }
-    }
-
     public ServiceProviderConfig getServiceProvider(String uniqueKey) {
         ServiceProviderConfig serviceProvider = null;
         String spName = spUniqueKeyMap.get(uniqueKey);
@@ -82,6 +68,19 @@ public class ServiceProviderConfigStore {
         return serviceProvider;
     }
 
+    public void removeServiceProvider(String serviceProviderName) {
+        if (serviceProviderName != null) {
+            Iterator entries = spUniqueKeyMap.entrySet().iterator();
+            while (entries.hasNext()) {
+                Map.Entry thisEntry = (Map.Entry) entries.next();
+                Object value = thisEntry.getValue();
+                if (value.equals(serviceProviderName)) {
+                    entries.remove();
+                }
+            }
+            spEntityMap.remove(serviceProviderName);
+        }
+    }
 
     private void buildServiceProvider(ServiceProviderConfig serviceProviderConfig) {
 

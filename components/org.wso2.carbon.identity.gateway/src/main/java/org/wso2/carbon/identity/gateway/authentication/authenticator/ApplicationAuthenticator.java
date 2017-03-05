@@ -17,9 +17,9 @@
  */
 package org.wso2.carbon.identity.gateway.authentication.authenticator;
 
+import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.util.List;
@@ -32,22 +32,19 @@ public interface ApplicationAuthenticator {
 
     public boolean canHandle(AuthenticationContext authenticationContext);
 
-
-    public AuthenticationResponse process(AuthenticationContext authenticationContext)
-            throws AuthenticationHandlerException;
-
-    public String getContextIdentifier(AuthenticationContext authenticationContext);
-
-    public String getName();
-
-
-    public String getFriendlyName();
-
-
     public String getClaimDialectURI();
 
     public List<Properties> getConfigurationProperties();
 
+    public String getContextIdentifier(AuthenticationContext authenticationContext);
+
+    public String getFriendlyName();
+
     public Set<Claim> getMappedRootClaims(Set<Claim> claims, Optional<String> profile, Optional<String> dialect)
+            throws AuthenticationHandlerException;
+
+    public String getName();
+
+    public AuthenticationResponse process(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException;
 }

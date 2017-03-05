@@ -20,9 +20,9 @@ package org.wso2.carbon.identity.gateway.context;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
@@ -30,9 +30,11 @@ import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import java.io.Serializable;
 import java.util.Map;
 
-public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends ClientAuthenticationRequest> extends
+public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable, T3 extends
+        ClientAuthenticationRequest>
+        extends
 
-                                                                                                                             GatewayMessageContext<T1, T2, T3> {
+        GatewayMessageContext<T1, T2, T3> {
 
     private static final long serialVersionUID = 6821167819709907062L;
 
@@ -52,36 +54,8 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         this.initialAuthenticationRequest = authenticationRequest;
     }
 
-    public String getUniqueId() {
-        return uniqueId;
-    }
-
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
-    }
-
-
     public ClientAuthenticationRequest getInitialAuthenticationRequest() {
         return initialAuthenticationRequest;
-    }
-
-    public SessionContext getSessionContext() {
-        AuthenticationRequest authenticationRequest = getIdentityRequest();
-        String sessionKey = authenticationRequest.getSessionKey();
-        if (StringUtils.isNotBlank(sessionKey)) {
-            return SessionContextCache.getInstance().get(DigestUtils.sha256Hex(sessionKey));
-        }
-        return null;
-    }
-
-
-    public SequenceContext getSequenceContext() {
-        return sequenceContext;
-    }
-
-    public void setSequenceContext(
-            SequenceContext sequenceContext) {
-        this.sequenceContext = sequenceContext;
     }
 
     public AbstractSequence getSequence() {
@@ -93,9 +67,35 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
         this.sequence = sequence;
     }
 
-    public ServiceProviderConfig getServiceProvider()  {
+    public SequenceContext getSequenceContext() {
+        return sequenceContext;
+    }
+
+    public void setSequenceContext(
+            SequenceContext sequenceContext) {
+        this.sequenceContext = sequenceContext;
+    }
+
+    public ServiceProviderConfig getServiceProvider() {
         String uniqueId = getUniqueId();
         ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(uniqueId);
         return serviceProvider;
+    }
+
+    public SessionContext getSessionContext() {
+        AuthenticationRequest authenticationRequest = getIdentityRequest();
+        String sessionKey = authenticationRequest.getSessionKey();
+        if (StringUtils.isNotBlank(sessionKey)) {
+            return SessionContextCache.getInstance().get(DigestUtils.sha256Hex(sessionKey));
+        }
+        return null;
+    }
+
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
     }
 }

@@ -37,13 +37,13 @@ public class FederatedUser extends User {
     }
 
     @Override
-    public String getUserIdentifier() {
-        return identifier;
+    public Set<Claim> getClaims() {
+        return this.claims;
     }
 
     @Override
-    public Set<Claim> getClaims() {
-        return this.claims;
+    public String getUserIdentifier() {
+        return identifier;
     }
 
     public void setUserClaims(Set<Claim> claims) {

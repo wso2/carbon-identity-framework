@@ -44,14 +44,15 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
     }
 
     @Override
-    public boolean canHandle(AuthenticationContext authenticationContext, GatewayException e) {
-        return false;
+    public boolean canHandle(MessageContext messageContext, GatewayException exception) {
+        return true;
     }
 
     @Override
-    public boolean canHandle(AuthenticationContext authenticationContext, GatewayRuntimeException e) {
-        return false;
+    public boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception) {
+        return true;
     }
+
 
     protected String getValidatorType() {
         return "SAMPLE";

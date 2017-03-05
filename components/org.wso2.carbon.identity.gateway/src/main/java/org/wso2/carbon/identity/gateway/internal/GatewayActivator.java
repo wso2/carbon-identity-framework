@@ -33,25 +33,25 @@ import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
-import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
-import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
-import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
-import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
-import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
+import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.gateway.authentication.DefaultSequenceBuilderFactory;
+import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
+import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
+import org.wso2.carbon.identity.gateway.authentication.StepHandler;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
+import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
+import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.gateway.authentication.DefaultSequenceBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
-import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
-import org.wso2.carbon.identity.gateway.authentication.StepHandler;
-import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.session.AbstractSessionHandler;
 import org.wso2.carbon.identity.gateway.handler.session.DefaultSessionHandler;
+import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
+import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
@@ -90,10 +90,13 @@ public class GatewayActivator {
         bundleContext.registerService(Deployer.class, new ServiceProviderDeployer(), null);
         bundleContext.registerService(Deployer.class, new IdentityProviderDeployer(), null);
         bundleContext.registerService(ServiceProviderConfigStore.class, ServiceProviderConfigStore.getInstance(), null);
-        bundleContext.registerService(IdentityProviderConfigStore.class, IdentityProviderConfigStore.getInstance(), null);
-        bundleContext.registerService(GatewayClaimResolverService.class, GatewayClaimResolverService.getInstance(), null);
+        bundleContext
+                .registerService(IdentityProviderConfigStore.class, IdentityProviderConfigStore.getInstance(), null);
+        bundleContext
+                .registerService(GatewayClaimResolverService.class, GatewayClaimResolverService.getInstance(), null);
 
-        //bundleContext.registerService(GatewayRequestBuilderFactory.class, new LocalAuthenticationRequestBuilderFactory(), null);
+        //bundleContext.registerService(GatewayRequestBuilderFactory.class, new
+        // LocalAuthenticationRequestBuilderFactory(), null);
         //GatewayServiceHolder.getInstance().setBundleContext(bundleContext);
 
 
@@ -148,7 +151,6 @@ public class GatewayActivator {
         if (log.isDebugEnabled()) {
             log.debug("Removed application authenticator : " + authenticator.getName());
         }
-
     }
 
 
@@ -161,7 +163,7 @@ public class GatewayActivator {
     )
     protected void addRequestHandler(AbstractRequestValidator abstractRequestValidator) {
 
-            GatewayServiceHolder.getInstance().getRequestHandlers().add(abstractRequestValidator);
+        GatewayServiceHolder.getInstance().getRequestHandlers().add(abstractRequestValidator);
 
         if (log.isDebugEnabled()) {
             log.debug("Added AuthenticationHandler : " + abstractRequestValidator.getName());
@@ -204,7 +206,6 @@ public class GatewayActivator {
     }
 
 
-
     @Reference(
             name = "identity.handlers.authentication",
             service = AuthenticationHandler.class,
@@ -229,7 +230,6 @@ public class GatewayActivator {
             log.debug("Removed AuthenticationHandler : " + authenticationHandler.getName());
         }
     }
-
 
 
     @Reference(
@@ -383,7 +383,6 @@ public class GatewayActivator {
     }
 
 
-
     @Reference(
             name = "identity.claim.profile",
             service = ProfileMgtService.class,
@@ -414,7 +413,8 @@ public class GatewayActivator {
             service = JNDIContextManager.class,
             cardinality = ReferenceCardinality.AT_LEAST_ONE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "onJNDIUnregister") protected void onJNDIReady(JNDIContextManager jndiContextManager) {
+            unbind = "onJNDIUnregister")
+    protected void onJNDIReady(JNDIContextManager jndiContextManager) {
         try {
             Context ctx = jndiContextManager.newInitialContext();
             DataSource dsObject = (DataSource) ctx.lookup("java:comp/env/jdbc/WSO2CARBON_DB");
@@ -428,9 +428,11 @@ public class GatewayActivator {
             log.error("Error occurred while looking up the Datasource", e);
         }
     }
+
     protected void onJNDIUnregister(JNDIContextManager jndiContextManager) {
         log.info("Un-registering data sources");
     }
+
     private void initializeDao(JdbcTemplate jdbcTemplate) {
         JDBCSessionDAO.getInstance().setJdbcTemplate(jdbcTemplate);
         JDBCIdentityContextDAO.getInstance().setJdbcTemplate(jdbcTemplate);
@@ -454,6 +456,4 @@ public class GatewayActivator {
         log.debug("UnSetting the Realm Service");
         //dataHolder.setRealmService(null);
     }
-
-
 }

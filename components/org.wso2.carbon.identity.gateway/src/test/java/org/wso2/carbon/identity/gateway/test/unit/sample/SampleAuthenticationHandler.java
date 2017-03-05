@@ -2,7 +2,6 @@ package org.wso2.carbon.identity.gateway.test.unit.sample;
 
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
 

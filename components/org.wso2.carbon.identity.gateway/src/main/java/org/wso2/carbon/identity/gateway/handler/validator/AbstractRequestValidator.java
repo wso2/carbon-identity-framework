@@ -17,12 +17,11 @@
  */
 package org.wso2.carbon.identity.gateway.handler.validator;
 
-import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
 
 import java.util.Iterator;
@@ -31,18 +30,9 @@ import java.util.List;
 public abstract class AbstractRequestValidator extends AbstractGatewayHandler {
 
 
-    public abstract GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
-            throws RequestValidatorException;
-
-    protected abstract String getValidatorType();
-
     public RequestValidatorConfig getValidatorConfig(AuthenticationContext authenticationContext) {
 
-        if (authenticationContext.getServiceProvider() == null) {
-            throw new GatewayRuntimeException("Error while getting validator configs : No service provider " +
-                                              "found with uniqueId : " + authenticationContext.getUniqueId());
-        }
-        RequestValidatorConfig validationConfig = null ;
+        RequestValidatorConfig validationConfig = null;
 
         RequestValidationConfig validatorConfig = authenticationContext.getServiceProvider()
                 .getRequestValidationConfig();
@@ -52,11 +42,16 @@ public abstract class AbstractRequestValidator extends AbstractGatewayHandler {
         while (validatorConfigIterator.hasNext()) {
             RequestValidatorConfig tmpValidationConfig = validatorConfigIterator.next();
             if (getValidatorType().equalsIgnoreCase(tmpValidationConfig.getType())) {
-                validationConfig = tmpValidationConfig ;
+                validationConfig = tmpValidationConfig;
                 break;
             }
         }
 
         return validationConfig;
     }
+
+    public abstract GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
+            throws RequestValidatorException;
+
+    protected abstract String getValidatorType();
 }

@@ -37,19 +37,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class JDBCSessionDAO extends SessionDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(JDBCSessionDAO.class);
-
-    private static volatile JDBCSessionDAO instance = new JDBCSessionDAO();
-
-    private JdbcTemplate jdbcTemplate;
-
     private static final String KEY = "KEY";
     private static final String OPERATION = "OPERATION";
     private static final String SESSION_OBJECT = "SESSION_OBJECT";
     private static final String TIME_CREATED = "TIME_CREATED";
-
-    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    private static volatile JDBCSessionDAO instance = new JDBCSessionDAO();
+    private JdbcTemplate jdbcTemplate;
 
     private JDBCSessionDAO() {
 
@@ -60,31 +53,11 @@ public class JDBCSessionDAO extends SessionDAO {
     }
 
     @Override
-    public void put(String key, SessionContext session) {
-
-        final String storeSession =
-                "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, SESSION_OBJECT, TIME_CREATED)"
-                        + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :" + SESSION_OBJECT + ";, :"
-                        + TIME_CREATED + ";)";
-
-        try {
-            jdbcTemplate.executeInsert(storeSession, (namedPreparedStatement) -> {
-                namedPreparedStatement.setString(KEY, key);
-                namedPreparedStatement.setString(OPERATION, "STORE");
-                namedPreparedStatement.setBlob(SESSION_OBJECT, session);
-                namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
-            }, null, false);
-        } catch (DataAccessException e) {
-            throw new GatewayRuntimeException("Error while storing session.", e);
-        }
-    }
-
-    @Override
     public SessionContext get(String key) {
 
         final String retrieveSession =
                 "SELECT " + "OPERATION, TIME_CREATED, SESSION_OBJECT FROM IDN_SESSION WHERE KEY = :" + KEY + "; " +
-                        "ORDER BY TIME_CREATED DESC LIMIT 1";
+                "ORDER BY TIME_CREATED DESC LIMIT 1";
 
         AtomicReference<SessionContext> sessionContext = new AtomicReference<>();
 
@@ -97,7 +70,7 @@ public class JDBCSessionDAO extends SessionDAO {
                         ObjectInput ois = null;
                         try {
                             ois = new ObjectInputStream(is);
-                            sessionContext.set((SessionContext)ois.readObject());
+                            sessionContext.set((SessionContext) ois.readObject());
                         } catch (IOException | ClassNotFoundException e) {
                             logger.error("Error while trying to close ObjectInputStream.", e);
                         } finally {
@@ -122,12 +95,32 @@ public class JDBCSessionDAO extends SessionDAO {
     }
 
     @Override
+    public void put(String key, SessionContext session) {
+
+        final String storeSession =
+                "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, SESSION_OBJECT, TIME_CREATED)"
+                + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :" + SESSION_OBJECT + ";, :"
+                + TIME_CREATED + ";)";
+
+        try {
+            jdbcTemplate.executeInsert(storeSession, (namedPreparedStatement) -> {
+                namedPreparedStatement.setString(KEY, key);
+                namedPreparedStatement.setString(OPERATION, "STORE");
+                namedPreparedStatement.setBlob(SESSION_OBJECT, session);
+                namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
+            }, null, false);
+        } catch (DataAccessException e) {
+            throw new GatewayRuntimeException("Error while storing session.", e);
+        }
+    }
+
+    @Override
     public void remove(String key) {
 
         final String deleteSession =
                 "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, TIME_CREATED)"
-                        + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :"
-                        + TIME_CREATED + ";)";
+                + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :"
+                + TIME_CREATED + ";)";
 
         try {
             jdbcTemplate.executeInsert(deleteSession, (namedPreparedStatement) -> {
@@ -138,5 +131,9 @@ public class JDBCSessionDAO extends SessionDAO {
         } catch (DataAccessException e) {
             throw new GatewayRuntimeException("Error while storing session.", e);
         }
+    }
+
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 }

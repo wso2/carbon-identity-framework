@@ -16,13 +16,13 @@ public class CacheBackedIdentitySessionDAO extends IdentityContextDAO {
     }
 
     @Override
-    public void put(String key, GatewayMessageContext context) {
-        asyncSessionDAO.put(key, context);
+    public GatewayMessageContext get(String key) {
+        return asyncSessionDAO.get(key);
     }
 
     @Override
-    public GatewayMessageContext get(String key) {
-        return asyncSessionDAO.get(key);
+    public void put(String key, GatewayMessageContext context) {
+        asyncSessionDAO.put(key, context);
     }
 
     @Override

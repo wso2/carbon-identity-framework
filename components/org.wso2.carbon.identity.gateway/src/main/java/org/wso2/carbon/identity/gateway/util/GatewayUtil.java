@@ -22,9 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.deployment.engine.Artifact;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
-import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
-import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderEntity;
-import org.wso2.carbon.identity.gateway.common.util.*;
 import org.wso2.msf4j.Request;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
@@ -49,7 +46,7 @@ public class GatewayUtil {
      * @throws GatewayServerException
      */
     public static String getProviderName(String fileName) throws GatewayServerException {
-        if(!fileName.endsWith("." + org.wso2.carbon.identity.gateway.common.util.Constants.YAML_EXTENSION)){
+        if (!fileName.endsWith("." + org.wso2.carbon.identity.gateway.common.util.Constants.YAML_EXTENSION)) {
             throw new GatewayServerException("Provider config file should be yaml.");
         }
         return fileName.substring(0, fileName.indexOf(".yaml"));
@@ -67,14 +64,14 @@ public class GatewayUtil {
     public static <T extends Object> T getProvider(Artifact artifact, Class<T> providerClass)
             throws GatewayServerException {
         Path path = Paths.get(artifact.getPath());
-        T provider = null ;
+        T provider = null;
         if (Files.exists(path)) {
             try {
                 Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8);
                 Yaml yaml = new Yaml();
                 yaml.setBeanAccess(BeanAccess.FIELD);
                 provider = yaml.loadAs(in, providerClass);
-                if(provider == null){
+                if (provider == null) {
                     throw new GatewayServerException("Provider is not loaded correctly.");
                 }
             } catch (Exception e) {

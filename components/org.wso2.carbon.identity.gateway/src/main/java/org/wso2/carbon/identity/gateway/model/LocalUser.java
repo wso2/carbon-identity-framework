@@ -29,17 +29,11 @@ import java.util.Set;
 
 public class LocalUser extends User {
 
-    private transient Logger log = LoggerFactory.getLogger(LocalUser.class);
-
     org.wso2.carbon.identity.mgt.User user;
+    private transient Logger log = LoggerFactory.getLogger(LocalUser.class);
 
     public LocalUser(org.wso2.carbon.identity.mgt.User user) {
         this.user = user;
-    }
-
-    @Override
-    public String getUserIdentifier() {
-        return user.getUniqueUserId();
     }
 
     @Override
@@ -52,5 +46,10 @@ public class LocalUser extends User {
         } catch (UserNotFoundException e) {
             throw new GatewayRuntimeException("User cannot be found in local identity store.", e);
         }
+    }
+
+    @Override
+    public String getUserIdentifier() {
+        return user.getUniqueUserId();
     }
 }

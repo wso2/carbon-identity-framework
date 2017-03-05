@@ -39,17 +39,13 @@ public class AsyncSessionDAO extends SessionDAO {
 
     private BlockingDeque<SessionPersistenceTask.SessionJob> sessionJobs = new LinkedBlockingDeque();
 
-    public static SessionDAO getInstance() {
-        return instance;
-    }
-
     private AsyncSessionDAO() {
 
         //
         String poolSizeConfig = "2";
         if (NumberUtils.isNumber(poolSizeConfig)) {
             poolSize = Integer.parseInt(poolSizeConfig);
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Thread pool size for Session Async DAO: " + poolSizeConfig);
             }
         }
@@ -65,15 +61,8 @@ public class AsyncSessionDAO extends SessionDAO {
         }
     }
 
-    @Override
-    public void put(String key, SessionContext context) {
-
-        if(poolSize > 0) {
-            SessionPersistenceTask.SessionJob job = new SessionPersistenceTask.SessionJob(key, context);
-            sessionJobs.add(job);
-        } else {
-            persistentDAO.put(key, context);
-        }
+    public static SessionDAO getInstance() {
+        return instance;
     }
 
     @Override
@@ -82,9 +71,20 @@ public class AsyncSessionDAO extends SessionDAO {
     }
 
     @Override
+    public void put(String key, SessionContext context) {
+
+        if (poolSize > 0) {
+            SessionPersistenceTask.SessionJob job = new SessionPersistenceTask.SessionJob(key, context);
+            sessionJobs.add(job);
+        } else {
+            persistentDAO.put(key, context);
+        }
+    }
+
+    @Override
     public void remove(String key) {
 
-        if(poolSize > 0) {
+        if (poolSize > 0) {
             SessionPersistenceTask.SessionJob job = new SessionPersistenceTask.SessionJob(key);
             sessionJobs.add(job);
         } else {

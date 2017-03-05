@@ -24,17 +24,17 @@ import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
 import org.wso2.carbon.identity.gateway.authentication.StepHandler;
-import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
+import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.session.AbstractSessionHandler;
+import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,13 +52,12 @@ public class GatewayServiceHolder {
     List<RequestPathHandler> requestPathHandlers = new ArrayList<>();
 
 
-
-
     private BundleContext bundleContext = null;
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
     private List<GatewayProcessor> gatewayProcessors = new ArrayList<GatewayProcessor>();
-    private List<GatewayRequestBuilderFactory> httpIdentityRequestFactories = new ArrayList<GatewayRequestBuilderFactory>();
+    private List<GatewayRequestBuilderFactory> httpIdentityRequestFactories
+            = new ArrayList<GatewayRequestBuilderFactory>();
     private List<GatewayResponseBuilderFactory> httpIdentityResponseFactories = new ArrayList<>();
     //Framework handlers
     private List<AbstractRequestValidator> requestHandlers = new ArrayList<>();
@@ -66,9 +65,8 @@ public class GatewayServiceHolder {
     private List<AbstractResponseHandler> responseHandlers = new ArrayList<>();
     private List<AbstractSessionHandler> sessionHandlers = new ArrayList<>();
 
-    private ClaimResolvingService claimResolvingService = null ;
-    private ProfileMgtService profileMgtService = null ;
-
+    private ClaimResolvingService claimResolvingService = null;
+    private ProfileMgtService profileMgtService = null;
 
 
     private GatewayServiceHolder() {
@@ -80,6 +78,9 @@ public class GatewayServiceHolder {
         return instance;
     }
 
+    public List<AuthenticationHandler> getAuthenticationHandlers() {
+        return authenticationHandlers;
+    }
 
     public BundleContext getBundleContext() {
         return bundleContext;
@@ -89,110 +90,12 @@ public class GatewayServiceHolder {
         this.bundleContext = bundleContext;
     }
 
-    public long getNanoTimeReference() {
-        return nanoTimeReference;
-    }
-
-    private void setNanoTimeReference(long nanoTimeReference) {
-        this.nanoTimeReference = nanoTimeReference;
-    }
-
-    public long getUnixTimeReference() {
-        return unixTimeReference;
-    }
-
-    private void setUnixTimeReference(long unixTimeReference) {
-        this.unixTimeReference = unixTimeReference;
-    }
-
-    public List<GatewayRequestBuilderFactory> getHttpIdentityRequestFactories() {
-        return httpIdentityRequestFactories;
-    }
-
-    public List<GatewayProcessor> getGatewayProcessors() {
-        return gatewayProcessors;
-    }
-
-    public List<GatewayResponseBuilderFactory> getHttpIdentityResponseFactories() {
-        return httpIdentityResponseFactories;
-    }
-
-    public List<AuthenticationHandler> getAuthenticationHandlers() {
-        return authenticationHandlers;
-    }
-
-    public List<AbstractRequestValidator> getRequestHandlers() {
-        return requestHandlers;
-    }
-
-    public List<AbstractResponseHandler> getResponseHandlers() {
-        return responseHandlers;
-    }
-
-
-    public List<RequestPathApplicationAuthenticator> getRequestPathApplicationAuthenticators() {
-        return requestPathApplicationAuthenticators;
-    }
-
-    public List<LocalApplicationAuthenticator> getLocalApplicationAuthenticators() {
-        return localApplicationAuthenticators;
-    }
-
-    public List<FederatedApplicationAuthenticator> getFederatedApplicationAuthenticators() {
-        return federatedApplicationAuthenticators;
-    }
-
-    public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
-        return sequenceBuildFactories;
-    }
-
-
-    public List<SequenceManager> getSequenceManagers() {
-        return sequenceManagers;
-    }
-
-    public List<StepHandler> getStepHandlers() {
-        return stepHandlers;
-    }
-
-    public List<RequestPathHandler> getRequestPathHandlers() {
-        return requestPathHandlers;
-    }
-
     public ClaimResolvingService getClaimResolvingService() {
         return claimResolvingService;
     }
 
     public void setClaimResolvingService(ClaimResolvingService claimResolvingService) {
         this.claimResolvingService = claimResolvingService;
-    }
-
-    public ProfileMgtService getProfileMgtService() {
-        return profileMgtService;
-    }
-
-    public void setProfileMgtService(ProfileMgtService profileMgtService) {
-        this.profileMgtService = profileMgtService;
-    }
-
-    public List<AbstractSessionHandler> getSessionHandlers() {
-        return sessionHandlers;
-    }
-
-    public void setSessionHandlers(List<AbstractSessionHandler> sessionHandlers) {
-        this.sessionHandlers = sessionHandlers;
-    }
-
-
-    public LocalApplicationAuthenticator getLocalApplicationAuthenticator(String name) {
-        LocalApplicationAuthenticator localApplicationAuthenticator = null;
-        for (LocalApplicationAuthenticator tmpLocalApplicationAuthenticator : localApplicationAuthenticators) {
-            if (tmpLocalApplicationAuthenticator.getName().equals(name)) {
-                localApplicationAuthenticator = tmpLocalApplicationAuthenticator;
-                break;
-            }
-        }
-        return localApplicationAuthenticator;
     }
 
     public FederatedApplicationAuthenticator getFederatedApplicationAuthenticator(String name) {
@@ -207,6 +110,57 @@ public class GatewayServiceHolder {
         return federatedApplicationAuthenticator;
     }
 
+    public List<FederatedApplicationAuthenticator> getFederatedApplicationAuthenticators() {
+        return federatedApplicationAuthenticators;
+    }
+
+    public List<GatewayProcessor> getGatewayProcessors() {
+        return gatewayProcessors;
+    }
+
+    public List<GatewayRequestBuilderFactory> getHttpIdentityRequestFactories() {
+        return httpIdentityRequestFactories;
+    }
+
+    public List<GatewayResponseBuilderFactory> getHttpIdentityResponseFactories() {
+        return httpIdentityResponseFactories;
+    }
+
+    public LocalApplicationAuthenticator getLocalApplicationAuthenticator(String name) {
+        LocalApplicationAuthenticator localApplicationAuthenticator = null;
+        for (LocalApplicationAuthenticator tmpLocalApplicationAuthenticator : localApplicationAuthenticators) {
+            if (tmpLocalApplicationAuthenticator.getName().equals(name)) {
+                localApplicationAuthenticator = tmpLocalApplicationAuthenticator;
+                break;
+            }
+        }
+        return localApplicationAuthenticator;
+    }
+
+    public List<LocalApplicationAuthenticator> getLocalApplicationAuthenticators() {
+        return localApplicationAuthenticators;
+    }
+
+    public long getNanoTimeReference() {
+        return nanoTimeReference;
+    }
+
+    private void setNanoTimeReference(long nanoTimeReference) {
+        this.nanoTimeReference = nanoTimeReference;
+    }
+
+    public ProfileMgtService getProfileMgtService() {
+        return profileMgtService;
+    }
+
+    public void setProfileMgtService(ProfileMgtService profileMgtService) {
+        this.profileMgtService = profileMgtService;
+    }
+
+    public List<AbstractRequestValidator> getRequestHandlers() {
+        return requestHandlers;
+    }
+
     public RequestPathApplicationAuthenticator getRequestPathApplicationAuthenticator(String name) {
         RequestPathApplicationAuthenticator requestPathApplicationAuthenticator = null;
         for (RequestPathApplicationAuthenticator authenticator : requestPathApplicationAuthenticators) {
@@ -216,5 +170,45 @@ public class GatewayServiceHolder {
             }
         }
         return requestPathApplicationAuthenticator;
+    }
+
+    public List<RequestPathApplicationAuthenticator> getRequestPathApplicationAuthenticators() {
+        return requestPathApplicationAuthenticators;
+    }
+
+    public List<RequestPathHandler> getRequestPathHandlers() {
+        return requestPathHandlers;
+    }
+
+    public List<AbstractResponseHandler> getResponseHandlers() {
+        return responseHandlers;
+    }
+
+    public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
+        return sequenceBuildFactories;
+    }
+
+    public List<SequenceManager> getSequenceManagers() {
+        return sequenceManagers;
+    }
+
+    public List<AbstractSessionHandler> getSessionHandlers() {
+        return sessionHandlers;
+    }
+
+    public void setSessionHandlers(List<AbstractSessionHandler> sessionHandlers) {
+        this.sessionHandlers = sessionHandlers;
+    }
+
+    public List<StepHandler> getStepHandlers() {
+        return stepHandlers;
+    }
+
+    public long getUnixTimeReference() {
+        return unixTimeReference;
+    }
+
+    private void setUnixTimeReference(long unixTimeReference) {
+        this.unixTimeReference = unixTimeReference;
     }
 }

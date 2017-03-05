@@ -40,5 +40,4 @@ public class RequestValidatorException extends GatewayClientException {
     public RequestValidatorException(String errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
     }
-
 }

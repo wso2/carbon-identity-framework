@@ -34,13 +34,13 @@ public class CacheBackedSessionDAO extends SessionDAO {
     }
 
     @Override
-    public void put(String key, SessionContext context) {
-        asyncSessionDAO.put(key, context);
+    public SessionContext get(String key) {
+        return asyncSessionDAO.get(key);
     }
 
     @Override
-    public SessionContext get(String key) {
-        return asyncSessionDAO.get(key);
+    public void put(String key, SessionContext context) {
+        asyncSessionDAO.put(key, context);
     }
 
     @Override

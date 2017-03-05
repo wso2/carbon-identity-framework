@@ -38,10 +38,50 @@ public class DefaultAbstractSequence extends AbstractSequence {
     }
 
     @Override
+    public IdentityProvider getIdentityProvider(int step, String identityProviderName)
+            throws AuthenticationHandlerException {
+        IdentityProvider identityProviderTmp = null;
+        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
+        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
+        for (IdentityProvider identityProvider : identityProviders) {
+            if (identityProvider.getIdentityProviderName().equals(identityProviderName)) {
+                identityProviderTmp = identityProvider;
+            }
+        }
+        return identityProviderTmp;
+    }
+
+    @Override
     public List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig() {
         return null;
     }
 
+    @Override
+    public int getSteps() throws AuthenticationHandlerException {
+        return authenticationContext.getServiceProvider().getAuthenticationConfig().getAuthenticationStepConfigs()
+                .size();
+    }
+
+    @Override
+    public boolean hasNext(int currentStep) throws AuthenticationHandlerException {
+        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
+        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
+        List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
+        if (authenticationStepConfigs.size() >= (currentStep + 1)) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isMultiOption(int step) throws AuthenticationHandlerException {
+        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
+        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
+        if (identityProviders.size() > 1) {
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public boolean isRequestPathAuthenticatorsAvailable() {
@@ -52,61 +92,19 @@ public class DefaultAbstractSequence extends AbstractSequence {
     public boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException {
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
-        if(authenticationConfig.getAuthenticationStepConfigs() != null && authenticationConfig
-                .getAuthenticationStepConfigs().size() > 0){
-            return true ;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean hasNext(int currentStep) throws AuthenticationHandlerException {
-        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
-        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
-        List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
-        if(authenticationStepConfigs.size() >= (currentStep + 1)){
+        if (authenticationConfig.getAuthenticationStepConfigs() != null && authenticationConfig
+                                                                                   .getAuthenticationStepConfigs()
+                                                                                   .size() > 0) {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public boolean isMultiOption(int step) throws AuthenticationHandlerException {
-        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
-        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
-        if(identityProviders.size() > 1){
-            return true ;
-        }
-        return false;
-    }
-
-
-    @Override
-    public IdentityProvider getIdentityProvider(int step, String identityProviderName)
-            throws AuthenticationHandlerException {
-        IdentityProvider identityProviderTmp = null ;
-        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
-        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
-        for(IdentityProvider identityProvider : identityProviders){
-            if(identityProvider.getIdentityProviderName().equals(identityProviderName)){
-                identityProviderTmp = identityProvider ;
-            }
-        }
-        return identityProviderTmp ;
-    }
-
-    @Override
-    public int getSteps() throws AuthenticationHandlerException {
-        return authenticationContext.getServiceProvider().getAuthenticationConfig().getAuthenticationStepConfigs()
-                .size();
     }
 
     private AuthenticationStepConfig getAuthenticationStepConfig(int step) throws AuthenticationHandlerException {
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
         AuthenticationStepConfig authenticationStepConfig = authenticationConfig.getAuthenticationStepConfigs()
-                .get(step-1);
+                .get(step - 1);
         return authenticationStepConfig;
     }
-
 }

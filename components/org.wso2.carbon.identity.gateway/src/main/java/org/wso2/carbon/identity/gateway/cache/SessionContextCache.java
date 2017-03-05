@@ -42,21 +42,21 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
         return instance;
     }
 
-    public void put(String key, SessionContext context) {
-        super.put(key, context);
-        JDBCSessionDAO.getInstance().put(key, context);
+    public void clear(String key) {
+        super.clear(key);
+        JDBCSessionDAO.getInstance().remove(key);
     }
 
     public SessionContext get(String key) {
         SessionContext context = super.get(key);
-        if(context == null) {
+        if (context == null) {
             context = JDBCSessionDAO.getInstance().get(key);
         }
         return context;
     }
 
-    public void clear(String key) {
-        super.clear(key);
-        JDBCSessionDAO.getInstance().remove(key);
+    public void put(String key, SessionContext context) {
+        super.put(key, context);
+        JDBCSessionDAO.getInstance().put(key, context);
     }
 }

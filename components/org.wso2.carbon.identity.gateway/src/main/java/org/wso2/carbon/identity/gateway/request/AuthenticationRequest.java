@@ -34,7 +34,7 @@ public class AuthenticationRequest extends GatewayRequest {
             AuthenticationRequestBuilder builder) {
         super(builder);
         requestKey = builder.requestDataKey;
-        if(requestKey == null){
+        if (requestKey == null) {
             requestKey = UUID.randomUUID().toString();
         }
     }
@@ -45,7 +45,7 @@ public class AuthenticationRequest extends GatewayRequest {
 
     public String getSessionKey() {
         String cookie = this.getHeader("Cookie");
-        if (StringUtils.isNotEmpty(cookie) &&  cookie.contains(Constants.GATEWAY_COOKIE)) {
+        if (StringUtils.isNotEmpty(cookie) && cookie.contains(Constants.GATEWAY_COOKIE)) {
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             cookie = cookie.split(",")[0];
             return cookie;
@@ -58,6 +58,11 @@ public class AuthenticationRequest extends GatewayRequest {
         protected String requestDataKey;
         protected String sessionCookie;
 
+        @Override
+        public AuthenticationRequest build() throws GatewayRuntimeException {
+            return new AuthenticationRequest(this);
+        }
+
         public AuthenticationRequestBuilder setRequestDataKey(String requestDataKey) {
             this.requestDataKey = requestDataKey;
             return this;
@@ -66,11 +71,6 @@ public class AuthenticationRequest extends GatewayRequest {
         public AuthenticationRequestBuilder setSessionKey(String sessionCookie) {
             this.sessionCookie = sessionCookie;
             return this;
-        }
-
-        @Override
-        public AuthenticationRequest build() throws GatewayRuntimeException {
-            return new AuthenticationRequest(this);
         }
     }
 

@@ -4,9 +4,9 @@ import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
 public abstract class IdentityContextDAO {
 
-    public abstract void put(String key, GatewayMessageContext context);
-
     public abstract GatewayMessageContext get(String key);
+
+    public abstract void put(String key, GatewayMessageContext context);
 
     public abstract void remove(String key);
 }

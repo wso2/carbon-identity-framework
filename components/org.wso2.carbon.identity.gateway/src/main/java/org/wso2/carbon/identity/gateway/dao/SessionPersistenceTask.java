@@ -40,7 +40,7 @@ public class SessionPersistenceTask implements Runnable {
     @Override
     public void run() {
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("SessionPersistenceTask is started");
         }
 
@@ -49,12 +49,11 @@ public class SessionPersistenceTask implements Runnable {
             try {
                 job = sessionJobQueue.take();
                 if (job != null) {
-                    if(job.sessionContext != null) {
+                    if (job.sessionContext != null) {
                         persistentDAO.put(job.key, job.sessionContext);
-                    }  else {
+                    } else {
                         persistentDAO.remove(job.key);
                     }
-
                 }
             } catch (InterruptedException | GatewayRuntimeException e) {
                 log.error("Error occurred while running task for SessionJob", e);
@@ -76,5 +75,4 @@ public class SessionPersistenceTask implements Runnable {
             this.sessionContext = sessionContext;
         }
     }
-
 }

@@ -16,7 +16,7 @@
  * under the License.
  */
 package org.wso2.carbon.identity.gateway.authentication;
- 
+
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -38,21 +38,18 @@ public abstract class AbstractSequence implements Serializable {
 
     }
 
+    public abstract IdentityProvider getIdentityProvider(int step, String identityProviderName)
+            throws AuthenticationHandlerException;
+
     public abstract List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig();
 
-    public abstract boolean isRequestPathAuthenticatorsAvailable();
-
-    public abstract boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException;
+    public abstract int getSteps() throws AuthenticationHandlerException;
 
     public abstract boolean hasNext(int currentStep) throws AuthenticationHandlerException;
 
     public abstract boolean isMultiOption(int step) throws AuthenticationHandlerException;
 
+    public abstract boolean isRequestPathAuthenticatorsAvailable();
 
-    public abstract IdentityProvider getIdentityProvider(int step, String identityProviderName)
-            throws AuthenticationHandlerException;
-
-    public abstract int getSteps() throws AuthenticationHandlerException;
-
-
+    public abstract boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException;
 }

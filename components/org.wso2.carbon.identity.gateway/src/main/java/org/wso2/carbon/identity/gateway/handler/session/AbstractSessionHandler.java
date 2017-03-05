@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.gateway.handler.session;
 
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.api.response.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.exception.SessionHandlerException;
 
 public abstract class AbstractSessionHandler extends AbstractGatewayHandler {

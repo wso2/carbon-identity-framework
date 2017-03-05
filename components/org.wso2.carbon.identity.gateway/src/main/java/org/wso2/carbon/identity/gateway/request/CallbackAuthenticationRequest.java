@@ -25,10 +25,10 @@ public class CallbackAuthenticationRequest extends AuthenticationRequest {
 
     protected CallbackAuthenticationRequest(CallbackAuthenticationRequestBuilder builder) {
         super(builder);
-
     }
 
-    public static class CallbackAuthenticationRequestBuilder extends AuthenticationRequest.AuthenticationRequestBuilder {
+    public static class CallbackAuthenticationRequestBuilder
+            extends AuthenticationRequest.AuthenticationRequestBuilder {
 
         public CallbackAuthenticationRequestBuilder() {
             super();
@@ -41,7 +41,8 @@ public class CallbackAuthenticationRequest extends AuthenticationRequest {
         }
     }
 
-    public static class CallbackAuthenticationRequestConstants extends AuthenticationRequest.AuthenticationRequestConstants {
+    public static class CallbackAuthenticationRequestConstants
+            extends AuthenticationRequest.AuthenticationRequestConstants {
 
     }
 }

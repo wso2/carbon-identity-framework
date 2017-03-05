@@ -18,7 +18,6 @@
 package org.wso2.carbon.identity.gateway.context;
 
 
-
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
@@ -41,13 +40,19 @@ public class SequenceContext implements Serializable {
 
     }
 
-    public RequestPathAuthenticatorContext getRequestPathAuthenticator() {
-        return requestPathAuthenticatorContext;
+    public StepContext addStepContext() {
+        StepContext stepContext = new StepContext();
+        stepContext.setStep(++currentStep);
+        stepContextList.add(stepContext);
+        return stepContext;
     }
 
-    public void setRequestPathAuthenticator(
-            RequestPathAuthenticatorContext requestPathAuthenticatorContext) {
-        this.requestPathAuthenticatorContext = requestPathAuthenticatorContext;
+    public Set<Claim> getAllClaims() {
+        Set<Claim> aggregatedClaims = new HashSet<Claim>();
+        stepContextList.stream().forEach(stepContext -> stepContext.getUser().getClaims().forEach(claim ->
+                                                                                                          aggregatedClaims
+                                                                                                                  .add(claim)));
+        return aggregatedClaims;
     }
 
     public int getCurrentStep() {
@@ -58,35 +63,29 @@ public class SequenceContext implements Serializable {
         this.currentStep = currentStep;
     }
 
+    public StepContext getCurrentStepContext() {
+        StepContext stepAuthenticatorsContext = null;
+        if (currentStep > 0 && stepContextList.size() >= currentStep) {
+            stepAuthenticatorsContext = stepContextList.get(stepContextList.size() - 1);
+        }
+        return stepAuthenticatorsContext;
+    }
+
+    public RequestPathAuthenticatorContext getRequestPathAuthenticator() {
+        return requestPathAuthenticatorContext;
+    }
+
+    public void setRequestPathAuthenticator(
+            RequestPathAuthenticatorContext requestPathAuthenticatorContext) {
+        this.requestPathAuthenticatorContext = requestPathAuthenticatorContext;
+    }
+
     public StepContext getStepContext(int step) {
         StepContext stepAuthenticatorsContext = null;
         if (stepContextList.size() >= step && step > 0) {
-            stepAuthenticatorsContext = stepContextList.get(step-1);
+            stepAuthenticatorsContext = stepContextList.get(step - 1);
         }
         return stepAuthenticatorsContext;
-    }
-
-    public StepContext getCurrentStepContext() {
-        StepContext stepAuthenticatorsContext = null;
-        if (currentStep > 0 &&  stepContextList.size() >= currentStep) {
-            stepAuthenticatorsContext = stepContextList.get(stepContextList.size()-1);
-        }
-        return stepAuthenticatorsContext;
-    }
-
-    public StepContext addStepContext() {
-        StepContext stepContext = new StepContext();
-        stepContext.setStep(++currentStep);
-        stepContextList.add(stepContext);
-        return stepContext ;
-    }
-
-
-    public Set<Claim> getAllClaims() {
-        Set<Claim> aggregatedClaims = new HashSet<Claim>();
-        stepContextList.stream().forEach(stepContext -> stepContext.getUser().getClaims().forEach(claim ->
-                aggregatedClaims.add(claim)));
-        return aggregatedClaims;
     }
 
     public static class RequestPathAuthenticatorContext implements Serializable {
@@ -150,14 +149,6 @@ public class SequenceContext implements Serializable {
             this.identityProviderName = identityProviderName;
         }
 
-        public boolean isAuthenticated() {
-            return isAuthenticated;
-        }
-
-        public void setIsAuthenticated(boolean isAuthenticated) {
-            this.isAuthenticated = isAuthenticated;
-        }
-
         public int getStep() {
             return step;
         }
@@ -173,7 +164,13 @@ public class SequenceContext implements Serializable {
         public void setUser(User user) {
             this.user = user;
         }
+
+        public boolean isAuthenticated() {
+            return isAuthenticated;
+        }
+
+        public void setIsAuthenticated(boolean isAuthenticated) {
+            this.isAuthenticated = isAuthenticated;
+        }
     }
-
-
 }

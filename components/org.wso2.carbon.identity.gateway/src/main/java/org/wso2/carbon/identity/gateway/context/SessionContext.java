@@ -27,6 +27,12 @@ public class SessionContext implements Serializable {
 
     private Map<String, SequenceContext> sequenceContexts = new HashMap();
 
+    public void addSequenceContext(String serviceProvider, SequenceContext sequenceContext) {
+        if (sequenceContext != null) {
+            this.sequenceContexts.put(serviceProvider, sequenceContext);
+        }
+    }
+
     public SequenceContext getSequenceContext(String serviceProvider) {
         SequenceContext sequenceContext = sequenceContexts.get(serviceProvider);
         return sequenceContext;
@@ -34,11 +40,5 @@ public class SessionContext implements Serializable {
 
     public Collection<SequenceContext> getSequenceContexts() {
         return sequenceContexts.values();
-    }
-
-    public void addSequenceContext(String serviceProvider, SequenceContext sequenceContext) {
-        if (sequenceContext != null) {
-            this.sequenceContexts.put(serviceProvider, sequenceContext);
-        }
     }
 }

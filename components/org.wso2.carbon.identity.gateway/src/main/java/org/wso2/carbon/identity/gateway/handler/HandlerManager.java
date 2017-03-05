@@ -19,15 +19,15 @@ package org.wso2.carbon.identity.gateway.handler;
 
 
 import org.slf4j.Logger;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
-import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.session.AbstractSessionHandler;
+import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 
 import java.util.List;
 
@@ -40,6 +40,7 @@ public class HandlerManager {
     private HandlerManager() {
 
     }
+
     public static HandlerManager getInstance() {
         return instance;
     }
@@ -53,7 +54,7 @@ public class HandlerManager {
     public AuthenticationHandler getAuthenticationHandler(GatewayMessageContext messageContext) {
         List<AuthenticationHandler> authenticationHandlers =
                 GatewayServiceHolder.getInstance().getAuthenticationHandlers();
-        if(authenticationHandlers != null) {
+        if (authenticationHandlers != null) {
             for (AuthenticationHandler authenticationHandler : authenticationHandlers) {
                 try {
                     if (authenticationHandler.canHandle(messageContext)) {
@@ -61,95 +62,13 @@ public class HandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get Authentication Handler. " +
-                                          throwable.getMessage() ;
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
         throw new GatewayRuntimeException("Cannot find AuthenticationHandler to handle this request.");
     }
-
-
-    /**
-     * Get Response Handler.
-     *
-     * @param authenticationContext
-     * @return
-     */
-    public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext) {
-
-        List<AbstractResponseHandler> responseBuilderHandlers =
-                GatewayServiceHolder.getInstance().getResponseHandlers();
-        if(responseBuilderHandlers != null) {
-            for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
-                try {
-                    if (responseBuilderHandler.canHandle(authenticationContext)) {
-                        return responseBuilderHandler;
-                    }
-                } catch (Throwable throwable) {
-                    String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                                          throwable.getMessage() ;
-                    log.error(errorMessage);
-                }
-            }
-        }
-        throw new GatewayRuntimeException("Can not find a ResponseHandler to handle this request.");
-    }
-
-
-    /**
-     * Get Response Handler.
-     *
-     * @param authenticationContext
-     * @return
-     */
-    public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext, GatewayException e) {
-
-        List<AbstractResponseHandler> responseBuilderHandlers =
-                GatewayServiceHolder.getInstance().getResponseHandlers();
-        if(responseBuilderHandlers != null) {
-            for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
-                try {
-                    if (responseBuilderHandler.canHandle(authenticationContext, e)) {
-                        return responseBuilderHandler;
-                    }
-                } catch (Throwable throwable) {
-                    String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                                          throwable.getMessage() ;
-                    log.error(errorMessage);
-                }
-            }
-        }
-        throw new GatewayRuntimeException("Can not find a ResponseHandler to handle this request.");
-    }
-
-
-    /**
-     * Get Response Handler.
-     *
-     * @param authenticationContext
-     * @return
-     */
-    public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext, GatewayRuntimeException e) {
-
-        List<AbstractResponseHandler> responseBuilderHandlers =
-                GatewayServiceHolder.getInstance().getResponseHandlers();
-        if(responseBuilderHandlers != null) {
-            for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
-                try {
-                    if (responseBuilderHandler.canHandle(authenticationContext, e)) {
-                        return responseBuilderHandler;
-                    }
-                } catch (Throwable throwable) {
-                    String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                                          throwable.getMessage() ;
-                    log.error(errorMessage);
-                }
-            }
-        }
-        throw new GatewayRuntimeException("Can not find a ResponseHandler to handle this request.");
-    }
-
 
     /**
      * Get RequestValidator.
@@ -161,7 +80,7 @@ public class HandlerManager {
 
         List<AbstractRequestValidator> requestHandlers =
                 GatewayServiceHolder.getInstance().getRequestHandlers();
-        if(requestHandlers != null) {
+        if (requestHandlers != null) {
             for (AbstractRequestValidator requestValidator : requestHandlers) {
                 try {
                     if (requestValidator.canHandle(messageContext)) {
@@ -169,12 +88,92 @@ public class HandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get request validator. " +
-                                          throwable.getMessage() ;
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
         throw new GatewayRuntimeException("Can not find AbstractRequestValidator to handle this request.");
+    }
+
+    /**
+     * Get Response Handler.
+     *
+     * @param authenticationContext
+     * @return
+     */
+    public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext, GatewayException e) {
+
+        List<AbstractResponseHandler> responseBuilderHandlers =
+                GatewayServiceHolder.getInstance().getResponseHandlers();
+        if (responseBuilderHandlers != null) {
+            for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
+                try {
+                    if (responseBuilderHandler.canHandle(authenticationContext, e)) {
+                        return responseBuilderHandler;
+                    }
+                } catch (Throwable throwable) {
+                    String errorMessage = "Error occurred while calling can handle to get response handler. " +
+                                          throwable.getMessage();
+                    log.error(errorMessage);
+                }
+            }
+        }
+        throw new GatewayRuntimeException("Can not find a ResponseHandler to handle this request.");
+    }
+
+
+    /**
+     * Get Response Handler.
+     *
+     * @param authenticationContext
+     * @return
+     */
+    public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext,
+                                                      GatewayRuntimeException e) {
+
+        List<AbstractResponseHandler> responseBuilderHandlers =
+                GatewayServiceHolder.getInstance().getResponseHandlers();
+        if (responseBuilderHandlers != null) {
+            for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
+                try {
+                    if (responseBuilderHandler.canHandle(authenticationContext, e)) {
+                        return responseBuilderHandler;
+                    }
+                } catch (Throwable throwable) {
+                    String errorMessage = "Error occurred while calling can handle to get response handler. " +
+                                          throwable.getMessage();
+                    log.error(errorMessage);
+                }
+            }
+        }
+        throw new GatewayRuntimeException("Can not find a ResponseHandler to handle this request.");
+    }
+
+    /**
+     * Get Response Handler.
+     *
+     * @param authenticationContext
+     * @return
+     */
+    public AbstractResponseHandler getResponseHandler(AuthenticationContext authenticationContext) {
+
+        List<AbstractResponseHandler> responseBuilderHandlers =
+                GatewayServiceHolder.getInstance().getResponseHandlers();
+        if (responseBuilderHandlers != null) {
+            for (AbstractResponseHandler responseBuilderHandler : responseBuilderHandlers) {
+                try {
+                    if (responseBuilderHandler.canHandle(authenticationContext)) {
+                        return responseBuilderHandler;
+                    }
+                } catch (Throwable throwable) {
+                    String errorMessage = "Error occurred while calling can handle to get response handler. " +
+                                          throwable.getMessage();
+                    log.error(errorMessage);
+                }
+            }
+        }
+        throw new GatewayRuntimeException("Can not find a ResponseHandler to handle this request.");
     }
 
     /**
@@ -187,21 +186,19 @@ public class HandlerManager {
 
         List<AbstractSessionHandler> sessionHandlers =
                 GatewayServiceHolder.getInstance().getSessionHandlers();
-        if(sessionHandlers != null) {
-            for (AbstractSessionHandler sessionHandler  : sessionHandlers) {
+        if (sessionHandlers != null) {
+            for (AbstractSessionHandler sessionHandler : sessionHandlers) {
                 try {
                     if (sessionHandler.canHandle(messageContext)) {
                         return sessionHandler;
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get session validator. " +
-                                          throwable.getMessage() ;
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
         throw new GatewayRuntimeException("Can not find AbstractSessionHandler to handle this request.");
     }
-
-
 }

@@ -40,5 +40,4 @@ public class SessionHandlerException extends GatewayServerException {
     public SessionHandlerException(String errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
     }
-
 }

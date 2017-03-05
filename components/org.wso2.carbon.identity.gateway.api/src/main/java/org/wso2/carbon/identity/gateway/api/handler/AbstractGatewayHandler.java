@@ -20,8 +20,12 @@ package org.wso2.carbon.identity.gateway.api.handler;
 
 import org.wso2.carbon.identity.common.base.handler.AbstractMessageHandler;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
 public abstract class AbstractGatewayHandler extends AbstractMessageHandler{
 
     public abstract boolean canHandle(MessageContext messageContext) ;
+
+
 }

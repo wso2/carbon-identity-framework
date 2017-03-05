@@ -22,9 +22,9 @@ import org.wso2.carbon.identity.gateway.context.SessionContext;
 
 public abstract class SessionDAO {
 
-    public abstract void put(String key, SessionContext context);
-
     public abstract SessionContext get(String key);
+
+    public abstract void put(String key, SessionContext context);
 
     public abstract void remove(String key);
 }
