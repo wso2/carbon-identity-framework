@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
@@ -184,9 +185,6 @@ public class GatewayServiceHolder {
         return responseHandlers;
     }
 
-    public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
-        return sequenceBuildFactories;
-    }
 
     public List<SequenceManager> getSequenceManagers() {
         return sequenceManagers;
@@ -210,5 +208,9 @@ public class GatewayServiceHolder {
 
     private void setUnixTimeReference(long unixTimeReference) {
         this.unixTimeReference = unixTimeReference;
+    }
+
+    public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
+        return sequenceBuildFactories;
     }
 }

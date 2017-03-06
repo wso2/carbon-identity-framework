@@ -22,6 +22,7 @@ import java.util.List;
 
 public class AuthenticationStepConfig {
 
+    private int step ;
     private String useLocalSubjectIdentifier;
     private String useDomainInLocalSubjectIdentifier;
     private String authStrategy;
@@ -57,5 +58,13 @@ public class AuthenticationStepConfig {
 
     public void setUseLocalSubjectIdentifier(String useLocalSubjectIdentifier) {
         this.useLocalSubjectIdentifier = useLocalSubjectIdentifier;
+    }
+
+    public int getStep() {
+        return step;
+    }
+
+    public void setStep(int step) {
+        this.step = step;
     }
 }

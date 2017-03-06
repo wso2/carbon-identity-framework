@@ -169,11 +169,6 @@ public class GatewayUnitTests {
             Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
         }
         try {
-            HandlerManager.getInstance().getSequenceBuildFactory(new AuthenticationContext(null));
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
-        }
-        try {
             HandlerManager.getInstance().getStepHandler(new AuthenticationContext(null));
         } catch (GatewayRuntimeException e) {
             Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));

@@ -31,7 +31,7 @@ public class SequenceContext implements Serializable {
 
     private static final long serialVersionUID = -3397856701064644528L;
 
-    private int currentStep = 0;
+    private int currentStep = 1;
 
     private RequestPathAuthenticatorContext requestPathAuthenticatorContext = null;
     private List<StepContext> stepContextList = new ArrayList<>();
@@ -42,7 +42,7 @@ public class SequenceContext implements Serializable {
 
     public StepContext addStepContext() {
         StepContext stepContext = new StepContext();
-        stepContext.setStep(++currentStep);
+        stepContext.setStep(currentStep);
         stepContextList.add(stepContext);
         return stepContext;
     }

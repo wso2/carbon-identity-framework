@@ -136,6 +136,7 @@ public class ServiceProviderDeployer implements Deployer {
             logger.debug("Updating ServiceProvider configs.");
         }
         try {
+
             ServiceProviderConfig serviceProviderConfig = getServiceProviderConfig(artifact);
             ServiceProviderConfigStore.getInstance().addServiceProvider(serviceProviderConfig);
         } catch (GatewayServerException e) {

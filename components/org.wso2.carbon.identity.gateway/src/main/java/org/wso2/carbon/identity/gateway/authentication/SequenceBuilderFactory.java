@@ -22,12 +22,12 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
-public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory {
+public class SequenceBuilderFactory extends AbstractSequenceBuildFactory {
     @Override
-    public DefaultAbstractSequence buildSequence(AuthenticationContext authenticationContext)
+    public DefaultSequence buildSequence(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
-        DefaultAbstractSequence defaultAbstractSequence = new DefaultAbstractSequence(authenticationContext);
-        return defaultAbstractSequence;
+        DefaultSequence defaultSequence = new DefaultSequence(authenticationContext);
+        return defaultSequence;
     }
 
     @Override

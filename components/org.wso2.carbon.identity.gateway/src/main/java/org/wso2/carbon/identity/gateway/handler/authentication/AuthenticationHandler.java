@@ -21,11 +21,11 @@ package org.wso2.carbon.identity.gateway.handler.authentication;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.gateway.authentication.HandlerManager;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
-import org.wso2.carbon.identity.gateway.authentication.HandlerManager;
 import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
@@ -38,33 +38,16 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
 
     public GatewayHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
                                                                                               AuthenticationHandlerException {
-
-
-        GatewayHandlerResponse gatewayHandlerResponse = null;
-
         HandlerManager handlerManager = HandlerManager.getInstance();
-
         AbstractSequenceBuildFactory abstractSequenceBuildFactory =
                 handlerManager.getSequenceBuildFactory(authenticationContext);
         AbstractSequence abstractSequence = abstractSequenceBuildFactory.buildSequence(authenticationContext);
-
         authenticationContext.setSequence(abstractSequence);
-
-        /*
-        ContextInitializer contextInitializerHandler =
-                handlerManager.getContextInitializerHandler(authenticationContext);
-        contextInitializerHandler.initialize(authenticationContext);
-        */
         SequenceManager sequenceManager =
                 handlerManager.getSequenceManager(authenticationContext);
-
         AuthenticationResponse authenticationResponse =
                 sequenceManager.handleSequence(authenticationContext);
-
-        gatewayHandlerResponse = buildFrameworkHandlerResponse(authenticationResponse);
-
-
-        return gatewayHandlerResponse;
+        return buildFrameworkHandlerResponse(authenticationResponse);
     }
 
     @Override

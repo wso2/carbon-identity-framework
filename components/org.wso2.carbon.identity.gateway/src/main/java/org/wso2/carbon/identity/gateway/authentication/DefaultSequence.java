@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.gateway.authentication;
 
 
+import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
@@ -27,14 +28,20 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class DefaultAbstractSequence extends AbstractSequence {
+public class DefaultSequence extends AbstractSequence {
 
-    public DefaultAbstractSequence(AuthenticationContext authenticationContext) {
+    public DefaultSequence(AuthenticationContext authenticationContext) {
         super(authenticationContext);
     }
 
-    public DefaultAbstractSequence() {
+    public DefaultSequence() {
+    }
+
+    @Override
+    public boolean canHandle(MessageContext messageContext) {
+        return true;
     }
 
     @Override
@@ -101,10 +108,16 @@ public class DefaultAbstractSequence extends AbstractSequence {
     }
 
     private AuthenticationStepConfig getAuthenticationStepConfig(int step) throws AuthenticationHandlerException {
+        AtomicReference<AuthenticationStepConfig> authenticationStepConfig = new
+                AtomicReference<AuthenticationStepConfig>(null);
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
-        AuthenticationStepConfig authenticationStepConfig = authenticationConfig.getAuthenticationStepConfigs()
-                .get(step - 1);
-        return authenticationStepConfig;
+        List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
+        authenticationStepConfigs.stream().filter(authenticationStepConfigTmp -> authenticationStepConfigTmp.getStep
+                () == step)
+                .forEach(authenticationStepConfigTmp -> {
+                    authenticationStepConfig.set(authenticationStepConfigTmp);
+                });
+        return authenticationStepConfig.get();
     }
 }

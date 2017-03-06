@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.gateway.authentication;
 
+import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -25,7 +26,7 @@ import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException
 import java.io.Serializable;
 import java.util.List;
 
-public abstract class AbstractSequence implements Serializable {
+public abstract class AbstractSequence extends AbstractGatewayHandler implements Serializable {
 
     private static final long serialVersionUID = 855941807514456712L;
     protected transient AuthenticationContext authenticationContext = null;

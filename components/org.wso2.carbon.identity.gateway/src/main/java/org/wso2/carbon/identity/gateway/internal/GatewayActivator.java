@@ -33,9 +33,11 @@ import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.authentication.DefaultSequenceBuilderFactory;
+import org.wso2.carbon.identity.gateway.authentication.SequenceBuilderFactory;
 import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
+import org.wso2.carbon.identity.gateway.authentication.SequenceBuilderFactory;
 import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
 import org.wso2.carbon.identity.gateway.authentication.StepHandler;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
@@ -80,7 +82,7 @@ public class GatewayActivator {
 
 
         //Registering this for demo perposes only
-        bundleContext.registerService(AbstractSequenceBuildFactory.class, new DefaultSequenceBuilderFactory(), null);
+        bundleContext.registerService(AbstractSequenceBuildFactory.class, new SequenceBuilderFactory(), null);
         bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
         bundleContext.registerService(AbstractSessionHandler.class, new DefaultSessionHandler(), null);
         bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
