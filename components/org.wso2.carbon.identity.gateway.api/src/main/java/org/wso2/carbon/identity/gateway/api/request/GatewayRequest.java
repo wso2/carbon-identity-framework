@@ -112,10 +112,10 @@ public class GatewayRequest implements Serializable {
         Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
         Map<String, String> bodyParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
 
-        if (bodyParams.get(paramName) != null) {
+        if (bodyParams != null && bodyParams.get(paramName) != null) {
             return bodyParams.get(paramName);
         } else {
-            if (StringUtils.isNotBlank(queryParams.get(paramName))) {
+            if (queryParams != null && StringUtils.isNotBlank(queryParams.get(paramName))) {
                 try {
                     decode = URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
                 } catch (UnsupportedEncodingException e) {
