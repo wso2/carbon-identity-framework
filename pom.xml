@@ -1549,6 +1549,7 @@
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
         <commons-collections.wso2.osgi.version.range>[3.2.0,4.0.0)</commons-collections.wso2.osgi.version.range>
 
+
         <neethi.osgi.version>2.0.4.wso2v5</neethi.osgi.version>
         <neethi.osgi.version.range>[2.0.4.wso2v4,3.0.0)</neethi.osgi.version.range>
         <libthrift.wso2.version>0.8.0.wso2v1</libthrift.wso2.version>
@@ -1633,11 +1634,7 @@
         <org.apache.cxf.cxf-rt.version>2.7.8</org.apache.cxf.cxf-rt.version>
         <org.apache.cxf.cxf-rt-transports-jetty.version>2.7.15</org.apache.cxf.cxf-rt-transports-jetty.version>
         <io.swagger.version>1.5.8</io.swagger.version>
-
-        <javax.xml.range>[0.0.0,1.0.0)</javax.xml.range>
-        <org.apache.xml.security.range>[0.0.0,2.0.0)</org.apache.xml.security.range>
-
-
+        <org.apache.xerces.impl.version.range>[0.0.0,1.0.0)</org.apache.xerces.impl.version.range>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
 
         <project.scm.id>my-scm-server</project.scm.id>
