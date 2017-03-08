@@ -18,8 +18,8 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Identity-Mgt-Test-Suite">
-    <test name="identity-store-tests" preserve-order="true" parallel="false">
+<suite name="carbon-identity-gateway-test-module">
+    <test name="carbon-identity-gateway" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.gateway.test.module.util.GatewayTests"/>
             <class name="org.wso2.carbon.identity.gateway.test.module.util.GatewayDAOTests"/>

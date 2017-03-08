@@ -19,8 +19,8 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="Carbon-Security-Test-Suite">
-    <test name="carbon-security-tests" preserve-order="true" parallel="false">
+<suite name="carbon-identity-gateway-api-unit-tests">
+    <test name="carbon-identity-gateway-api-tests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.identity.gateway.api.test.unit.GatewayAPIUnitTests"/>
         </classes>
