@@ -67,7 +67,6 @@
     Claim[] identityProviderClaims = null;
     String userIdClaimURI = null;
     String roleClaimURI = null;
-    String provisioningUserStoreIdClaimURI = null;
     ClaimMapping[] claimMappings = null;
     String[] roles = null;
     RoleMapping[] roleMappings = null;
@@ -78,7 +77,6 @@
     String provisioningUserStoreId = null;
     boolean isOpenIdEnabled = false;
     boolean isOpenIdDefault = false;
-    boolean isAdvancedClaimConfigEnable = false;
     String openIdUrl = null;
     boolean isOpenIdUserIdInClaims = false;
     boolean isSAML2SSOEnabled = false;
@@ -149,37 +147,19 @@
     boolean isGoogleProvEnabled = false;
     boolean isGoogleProvDefault = false;
     String googleDomainName = null;
-    String googleUserIDClaim = null;
-    String googleUserIDDefaultValue = null;
     String googleFamilyNameClaim = null;
     String googleFamilyNameDefaultValue = null;
     String googleGivenNameClaim = null;
     String googleGivenNameDefaultValue = null;
-    String googlePasswordClaim = null;
-    String googlePasswordDefaultValue = null;
     String googlePrimaryEmailClaim = null;
-    String googlePrimaryEmailDefaultValue = null;
     String googleProvServiceAccEmail = null;
     String googleProvAdminEmail = null;
     String googleProvApplicationName = null;
     String googleProvPattern = null;
     String googleProvisioningSeparator = null;
     String googleProvPrivateKeyData = null;
-    String googleUniqueID = null;
 
     boolean isSfProvEnabled = false;
-    boolean isSfProvDefault = false;
-    String sfApiVersion = null;
-    String sfDomainName = null;
-    String sfClientId = null;
-    String sfClientSecret = null;
-    String sfUserName = null;
-    String sfProvPattern = null;
-    String sfProvSeparator = null;
-    String sfProvDomainName = null;
-    String sfPassword = null;
-    String sfOauth2TokenEndpoint = null;
-    String sfUniqueID = null;
 
     boolean isScimProvEnabled = false;
     boolean isScimProvDefault = false;
@@ -267,7 +247,6 @@
 
         userIdClaimURI = identityProvider.getClaimConfig().getUserClaimURI();
         roleClaimURI = identityProvider.getClaimConfig().getRoleClaimURI();
-        provisioningUserStoreIdClaimURI = identityProvider.getJustInTimeProvisioningConfig().getUserStoreClaimUri();
 
         claimMappings = identityProvider.getClaimConfig().getClaimMappings();
 
@@ -603,7 +582,6 @@
                         customConfig.setEnabled(fedAuthnConfig.getEnabled());
                         allFedAuthConfigs.put(fedAuthnConfig.getName(), customConfig);
                     }
-
                 }
             }
         }
@@ -684,47 +662,6 @@
             }
         }
 
-        if (salesforce != null) {
-
-            if (identityProvider.getDefaultProvisioningConnectorConfig() != null
-                    && identityProvider.getDefaultProvisioningConnectorConfig().getName() != null) {
-                isSfProvDefault = identityProvider.getDefaultProvisioningConnectorConfig().getName().equals(salesforce.getName());
-            }
-
-            Property[] sfProperties = salesforce.getProvisioningProperties();
-            if (sfProperties != null && sfProperties.length > 0) {
-                for (Property sfProperty : sfProperties) {
-                    if ("sf-api-version".equals(sfProperty.getName())) {
-                        sfApiVersion = sfProperty.getValue();
-                    } else if ("sf-domain-name".equals(sfProperty.getName())) {
-                        sfDomainName = sfProperty.getValue();
-                    } else if ("sf-clientid".equals(sfProperty.getName())) {
-                        sfClientId = sfProperty.getValue();
-                    } else if ("sf-client-secret".equals(sfProperty.getName())) {
-                        sfClientSecret = sfProperty.getValue();
-                    } else if ("sf-username".equals(sfProperty.getName())) {
-                        sfUserName = sfProperty.getValue();
-                    } else if ("sf-password".equals(sfProperty.getName())) {
-                        sfPassword = sfProperty.getValue();
-                    } else if ("sf-token-endpoint".equals(sfProperty.getName())) {
-                        sfOauth2TokenEndpoint = sfProperty.getValue();
-                    } else if ("sf-prov-pattern".equals(sfProperty.getName())) {
-                        sfProvPattern = sfProperty.getValue();
-                    } else if ("sf-prov-separator".equals(sfProperty.getName())) {
-                        sfProvSeparator = sfProperty.getValue();
-                    } else if ("sf-prov-domainName".equals(sfProperty.getName())) {
-                        sfProvDomainName = sfProperty.getValue();
-                    } else if ("UniqueID".equals(sfProperty.getName())) {
-                        sfUniqueID = sfProperty.getValue();
-                    }
-                }
-            }
-            if (salesforce.getEnabled()) {
-                isSfProvEnabled = true;
-            }
-
-        }
-
         if (scim != null) {
 
             if (identityProvider.getDefaultProvisioningConnectorConfig() != null
@@ -769,26 +706,16 @@
         isGoogleProvEnabled = false;
         isGoogleProvDefault = false;
         googleDomainName = "";
-        googleUserIDClaim = "";
-        googleUserIDDefaultValue = "";
         googleFamilyNameClaim = "";
         googleFamilyNameDefaultValue = "";
         googleGivenNameClaim = "";
         googleGivenNameDefaultValue = "";
-        googlePasswordClaim = "";
-        googlePasswordDefaultValue = "";
         googlePrimaryEmailClaim = "";
-        googlePrimaryEmailDefaultValue = "";
         googleProvServiceAccEmail = "";
         googleProvAdminEmail = "";
         googleProvApplicationName = "";
         googleProvPattern = "";
         googleProvisioningSeparator = "";
-        //if(identityProvider.getCertificate() != null){
-        //    googleProvPrivateKeyData = IdPMgtUtil.getCertData(identityProvider.getCertificate());
-        //}
-        //idpClaims = identityProvider.getSystemClaims();
-
 
         if (googleApps != null) {
 
@@ -824,18 +751,13 @@
                         googleProvPattern = googleProperty.getValue();
                     } else if ("google_prov_separator".equals(googleProperty.getName())) {
                         googleProvisioningSeparator = googleProperty.getValue();
-                    } else if ("UniqueID".equals(googleProperty.getName())) {
-                        googleUniqueID = googleProperty.getValue();
                     }
-
-
                 }
             }
 
             if (googleApps.getEnabled()) {
                 isGoogleProvEnabled = true;
             }
-
         }
 
         if (spml != null) {
@@ -865,9 +787,7 @@
             if (spml.getEnabled()) {
                 isSpmlProvEnabled = true;
             }
-
         }
-
     }
 
     if (idPName == null) {
@@ -1204,24 +1124,6 @@
     if (googleDomainName == null) {
         googleDomainName = "";
     }
-    if (googleUserIDClaim == null) {
-        googleUserIDClaim = "";
-    }
-    if (googleUserIDDefaultValue == null) {
-        googleUserIDDefaultValue = "";
-    }
-    if (googlePrimaryEmailClaim == null) {
-        googlePrimaryEmailClaim = "";
-    }
-    if (googlePrimaryEmailDefaultValue == null) {
-        googlePrimaryEmailDefaultValue = "";
-    }
-    if (googlePasswordClaim == null) {
-        googlePasswordClaim = "";
-    }
-    if (googlePasswordDefaultValue == null) {
-        googlePasswordDefaultValue = "";
-    }
     if (googleGivenNameDefaultValue == null) {
         googleGivenNameDefaultValue = "";
     }
@@ -1314,52 +1216,6 @@
         scimDefaultPwd = "";
     }
 
-    String sfProvEnabledChecked = "";
-    String sfProvDefaultDisabled = "";
-    String sfProvDefaultChecked = "disabled=\'disabled\'";
-
-    if (identityProvider != null) {
-        if (isSfProvEnabled) {
-            sfProvEnabledChecked = "checked=\'checked\'";
-            sfProvDefaultChecked = "";
-            if (isSfProvDefault) {
-                sfProvDefaultChecked = "checked=\'checked\'";
-            }
-        }
-    }
-
-    if (sfApiVersion == null) {
-        sfApiVersion = "";
-    }
-    if (sfDomainName == null) {
-        sfDomainName = "";
-    }
-    if (sfClientId == null) {
-        sfClientId = "";
-    }
-    if (sfClientSecret == null) {
-        sfClientSecret = "";
-    }
-    if (sfUserName == null) {
-        sfUserName = "";
-    }
-    if (sfPassword == null) {
-        sfPassword = "";
-    }
-    if (sfOauth2TokenEndpoint == null) {
-        sfOauth2TokenEndpoint = IdentityApplicationConstants.SF_OAUTH2_TOKEN_ENDPOINT;
-    }
-    if (sfProvPattern == null) {
-        sfProvPattern = "";
-    }
-
-    if (sfProvSeparator == null) {
-        sfProvSeparator = "";
-    }
-
-    if (sfProvDomainName == null) {
-        sfProvDomainName = "";
-    }
 %>
 
 <script>
@@ -1724,87 +1580,6 @@
             }
 
         })
-        jQuery('#claimAddTable .claimrow').blur(function () {
-            claimURIDropdownPopulator();
-        });
-        jQuery('#claimMappingDeleteLink').click(function () {
-            $(jQuery('#claimMappingDiv')).toggle();
-            var input = document.createElement('input');
-            input.type = "hidden";
-            input.name = "deleteClaimMappings";
-            input.id = "deleteClaimMappings";
-            input.value = "true";
-            document.forms['idp-mgt-edit-form'].appendChild(input);
-        });
-        jQuery('#roleAddLink').click(function () {
-            roleRowId++;
-            $("#rolemappingrow_id_count").val(roleRowId + 1);
-            jQuery('#roleAddTable').append(jQuery('<tr><td><input type="text" id="rolerowname_' + roleRowId + '" name="rolerowname_' + roleRowId + '"/></td>' +
-                    '<td><input type="text" id="localrowname_' + roleRowId + '" name="localrowname_' + roleRowId + '"/></td>' +
-                    '<td><a onclick="deleteRoleRow(this)" class="icon-link" ' +
-                    'style="background-image: url(images/delete.gif)">' +
-                    'Delete' +
-                    '</a></td></tr>'));
-            if ($(jQuery('#roleAddTable tr')).length == 2) {
-                $(jQuery('#roleAddTable')).toggle();
-            }
-        });
-
-
-        jQuery('#roleMappingDeleteLink').click(function () {
-            $(jQuery('#roleMappingDiv')).toggle();
-            var input = document.createElement('input');
-            input.type = "hidden";
-            input.name = "deleteRoleMappings";
-            input.id = "deleteRoleMappings";
-            input.value = "true";
-            document.forms['idp-mgt-edit-form'].appendChild(input);
-        });
-        jQuery('#provision_disabled').click(function () {
-            jQuery('#provision_static_dropdown').attr('disabled', 'disabled');
-        });
-        jQuery('#provision_static').click(function () {
-            jQuery('#provision_static_dropdown').removeAttr('disabled');
-        });
-
-
-        jQuery('#advancedClaimMappingAddLink').click(function () {
-            var selectedIDPClaimName = $('select[name=idpClaimsList2]').val();
-            if (selectedIDPClaimName == "" || selectedIDPClaimName == null) {
-                CARBON.showWarningDialog('Add valid attribute');
-                return false;
-            }
-            advancedClaimMappinRowID++;
-            $("#advanced_claim_id_count").val(advancedClaimMappinRowID + 1);
-            jQuery('#advancedClaimMappingAddTable').append(jQuery('<tr>' +
-                    '<td><input type="text" style="width: 99%;" value="' + selectedIDPClaimName + '" id="advancnedIdpClaim_' + advancedClaimMappinRowID + '" name="advancnedIdpClaim_' + advancedClaimMappinRowID + '" readonly="readonly" /></td>' +
-                    '<td><input type="text" style="width: 99%;" id="advancedDefault_' + advancedClaimMappinRowID + '" name="advancedDefault_' + advancedClaimMappinRowID + '"/></td> ' +
-                    '<td><a onclick="deleteRow(this);return false;" href="#" class="icon-link" style="background-image: url(images/delete.gif)"> Delete</a></td>' +
-
-                    '</tr>'));
-
-            $(jQuery('#advancedClaimMappingAddTable')).show();
-
-        });
-
-
-        jQuery('#choose_dialet_type1').click(function () {
-            $(".customClaim").hide();
-            $(".role_claim").hide();
-            deleteRows();
-            claimURIDropdownPopulator();
-            $("#advancedClaimMappingAddTable tbody > tr").remove();
-            $('#advancedClaimMappingAddTable').hide();
-
-        });
-
-        jQuery('#choose_dialet_type2').click(function () {
-            $(".customClaim").show();
-            $(".role_claim").show();
-            $("#advancedClaimMappingAddTable tbody > tr").remove();
-            $('#advancedClaimMappingAddTable').hide();
-            claimURIDropdownPopulator();
-        });
 
         claimURIDropdownPopulator();
 
@@ -1812,36 +1587,6 @@
         var $digest_algorithem_dropdown = jQuery('#digest_algorithem_dropdown');
         var $authentication_context_class_dropdown = jQuery('#authentication_context_class_dropdown');
         var $auth_context_comparison_level_dropdown = jQuery('#auth_context_comparison_level_dropdown');
-
-        jQuery('#authnRequestSigned').click(function () {
-            if (jQuery(this).is(":checked") || jQuery("#logoutRequestSigned").is(":checked")) {
-                jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-                jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
-            } else {
-                jQuery('#signature_algorithem_dropdown').attr('disabled', true);
-                jQuery('#digest_algorithem_dropdown').attr('disabled', true);
-            }
-        });
-
-        jQuery('#logoutRequestSigned').click(function () {
-            if (jQuery(this).is(":checked") || jQuery("#authnRequestSigned").is(":checked")) {
-                jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
-                jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
-            } else {
-                jQuery('#signature_algorithem_dropdown').attr('disabled', true);
-                jQuery('#digest_algorithem_dropdown').attr('disabled', true);
-            }
-        });
-
-        jQuery('#includeAuthnCtxNo').click(function () {
-            jQuery('#authentication_context_class_dropdown').attr('disabled', true);
-            jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
-        });
-
-        jQuery('#includeAuthnCtxYes').click(function () {
-            jQuery('#authentication_context_class_dropdown').removeAttr('disabled');
-            jQuery('#auth_context_comparison_level_dropdown').removeAttr('disabled');
-        });
 
         jQuery('#authentication_context_class_dropdown').change(function () {
             var selectedClass = $("#authentication_context_class_dropdown").val();
@@ -1851,11 +1596,6 @@
                 jQuery('#custom_authentication_context_class').val("");
                 jQuery('#custom_authentication_context_class').attr('disabled', true);
             }
-        });
-
-        jQuery('#includeAuthnCtxReq').click(function () {
-            jQuery('#authentication_context_class_dropdown').attr('disabled', true);
-            jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
         });
     })
 
@@ -5372,157 +5112,8 @@
                         </table>
                     </div>
 
-                    <h2 id="sf_prov_head" class="sectionSeperator trigger active"
-                        style="background-color: beige;">
-                        <a href="#"><fmt:message key="sf.provisioning.connector"/></a>
-
-                        <div id="sf_enable_logo" class="enablelogo"
-                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
-                                src="images/ok.png" alt="enable" width="16" height="16"></div>
-                    </h2>
-                    <div class="toggle_container sectionSub"
-                         style="margin-bottom: 10px; display: none;" id="sfProvRow">
-
-                        <table class="carbonFormTable">
-                            <tr>
-                                <td class="leftCol-med labelField"><label
-                                        for="sfProvEnabled"><fmt:message
-                                        key='sf.provisioning.enabled'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="sfProvEnabled" name="sfProvEnabled"
-                                               type="checkbox" <%=sfProvEnabledChecked%>
-                                               onclick="checkProvEnabled(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='sf.provisioning.enabled.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr style="display:none;">
-                                <td class="leftCol-med labelField"><label
-                                        for="sfProvDefault"><fmt:message
-                                        key='sf.provisioning.default'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="sfProvDefault" name="sfProvDefault"
-                                               type="checkbox" <%=sfProvDefaultChecked%>
-                                                <%=sfProvDefaultDisabled%>
-                                               onclick="checkProvDefault(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='sf.provisioning.default.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.api.version'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="sf-api-version"
-                                           name="sf-api-version" type="text"
-                                           value=<%=Encode.forHtmlAttribute(sfApiVersion) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.domain.name'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="sf-domain-name"
-                                           name="sf-domain-name" type="text"
-                                           value=<%=Encode.forHtmlAttribute(sfDomainName) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.client.id'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="sf-clientid"
-                                           name="sf-clientid" type="text"
-                                           value=<%=Encode.forHtmlAttribute(sfClientId) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.client.secret'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="sf-client-secret"
-                                           name="sf-client-secret" type="password" autocomplete="off"
-                                           value=<%=Encode.forHtmlAttribute(sfClientSecret) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.username'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="sf-username"
-                                           name="sf-username" type="text"
-                                           value=<%=Encode.forHtmlAttribute(sfUserName) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.password'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="sf-password"
-                                           name="sf-password" type="password" autocomplete="off"
-                                           value=<%=Encode.forHtmlAttribute(sfPassword) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.oauth.endpoint'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="sf-token-endpoint"
-                                           name="sf-token-endpoint" type="text"
-                                           value=<%=Encode.forHtmlAttribute(sfOauth2TokenEndpoint)%>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.pattern'/>:
-                                </td>
-                                <td>
-                                    <div>
-                                        <input class="text-box-big" id="sf-prov-pattern"
-                                               name="sf-prov-pattern" type="text"
-                                               value=<%=Encode.forHtmlAttribute(sfProvPattern)%>>
-                                    </div>
-                                    <div class="sectionHelp">
-                                        <fmt:message key='sf_prov_pattern.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.separator'/>:
-                                </td>
-                                <td>
-                                    <div>
-                                        <input class="text-box-big" id="sf-prov-separator"
-                                               name="sf-prov-separator" type="text"
-                                               value=<%=Encode.forHtmlAttribute(sfProvSeparator)%>>
-                                    </div>
-                                    <div class="sectionHelp">
-                                        <fmt:message key='sf.provisioning.separator.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='sf.provisioning.domain'/>:
-                                </td>
-                                <td><input class="text-box-big" id="sf-prov-domainName"
-                                           name="sf-prov-domainName" type="text"
-                                           value=<%=Encode.forHtmlAttribute(sfProvDomainName)%>>
-                                    <%if (sfUniqueID != null) {%>
-                                    <input type="hidden" id="sf-unique-id" name="sf-unique-id"
-                                           value=<%=Encode.forHtmlAttribute(sfUniqueID)%>>
-                                    <%}%>
-                                </td>
-                            </tr>
-
-                        </table>
-
-                    </div>
+                        <%--<%@ include file="salesforce.jsp"%>--%>
+                    <jsp:include page="salesforce.jsp"></jsp:include>
 
                     <h2 id="scim_prov_head" class="sectionSeperator trigger active"
                         style="background-color: beige;">
