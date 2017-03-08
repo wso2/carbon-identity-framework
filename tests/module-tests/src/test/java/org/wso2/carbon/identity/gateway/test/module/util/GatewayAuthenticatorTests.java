@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.gateway.test.module.util;
 
 import org.ops4j.pax.exam.Configuration;
@@ -12,11 +30,11 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.sample.outbound.authenticator.SampleFederatedAuthenticator;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
@@ -56,6 +74,9 @@ public class GatewayAuthenticatorTests {
         return optionList.toArray(new Option[optionList.size()]);
     }
 
+    /**
+     * Test a sample local authenticator
+     */
     @Test
     public void testLocalAuthenticatorInit() {
 
@@ -111,7 +132,9 @@ public class GatewayAuthenticatorTests {
         Assert.assertTrue(localApplicationAuthenticator.canHandle(authenticationContext));
     }
 
-
+    /***
+     * Test federated claims transformation to root dialect.
+     */
     @Test
     public void testSampleAuthenticatorClaimTransformation() {
         SampleFederatedAuthenticator sampleFederatedAuthenticator = new SampleFederatedAuthenticator();
@@ -128,6 +151,9 @@ public class GatewayAuthenticatorTests {
         }
     }
 
+    /**
+     * Test a sample request path authenticator
+     */
     @Test
     public void testRequestPathAuthenticatorInit() {
         RequestPathApplicationAuthenticator localApplicationAuthenticator = new RequestPathApplicationAuthenticator() {

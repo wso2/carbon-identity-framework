@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.gateway.test.module.util;
 
 import org.ops4j.pax.exam.Configuration;
@@ -40,6 +58,10 @@ import java.util.List;
 public class GatewayDAOTests {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayDAOTests.class);
+    private final String RANDOM_KEY_1 = "randomKey1";
+    private final String RANDOM_KEY_2 = "randomKey2";
+    private final String RANDOM_KEY_3 = "randomKey3";
+    private final String DATA_SOURCE_NAME = "java:comp/env/jdbc/WSO2CARBON_DB";
 
     @Inject
     private BundleContext bundleContext;
@@ -60,13 +82,15 @@ public class GatewayDAOTests {
         return optionList.toArray(new Option[optionList.size()]);
     }
 
-
+    /**
+     * Initialize DAO by adding templates
+     */
     private void initDAO() {
         JNDIContextManager jndiContextManager = this.bundleContext.getService(bundleContext
                 .getServiceReference(JNDIContextManager.class));
         try {
             Context ctx = jndiContextManager.newInitialContext();
-            DataSource dsObject = (DataSource) ctx.lookup("java:comp/env/jdbc/WSO2CARBON_DB");
+            DataSource dsObject = (DataSource) ctx.lookup(DATA_SOURCE_NAME);
             if (dsObject != null) {
                 JdbcTemplate jdbcTemplate = new JdbcTemplate(dsObject);
                 initializeDao(jdbcTemplate);
@@ -79,67 +103,96 @@ public class GatewayDAOTests {
 
     }
 
+    /**
+     * Add and remove sessions from session data store
+     */
     @Test
     public void testAddRemoveSession() {
-        Assert.assertNull(JDBCSessionDAO.getInstance().get("randomkey1"));
-        JDBCSessionDAO.getInstance().put("randomKey2", new SessionContext());
-        Assert.assertNotNull(JDBCSessionDAO.getInstance().get("randomKey2"));
-        JDBCSessionDAO.getInstance().remove("randomKey2");
-        Assert.assertNull(JDBCSessionDAO.getInstance().get("randomKey2"));
+        Assert.assertNull(JDBCSessionDAO.getInstance().get(RANDOM_KEY_1));
+        JDBCSessionDAO.getInstance().put(RANDOM_KEY_2, new SessionContext());
+        Assert.assertNotNull(JDBCSessionDAO.getInstance().get(RANDOM_KEY_2));
+        JDBCSessionDAO.getInstance().remove(RANDOM_KEY_2);
+        Assert.assertNull(JDBCSessionDAO.getInstance().get(RANDOM_KEY_2));
     }
 
+    /**
+     * Tests for AsyncIdentityContextStore
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void testAsyncIdentityContextStore() throws InterruptedException {
         IdentityContextDAO asyncIdentityContextDAO = AsyncIdentityContextDAO.getInstance();
-        Assert.assertNull(asyncIdentityContextDAO.get("randomkey3"));
-        asyncIdentityContextDAO.put("randomkey3" , new GatewayMessageContext(null));
+        Assert.assertNull(asyncIdentityContextDAO.get(RANDOM_KEY_3));
+        asyncIdentityContextDAO.put(RANDOM_KEY_3, new GatewayMessageContext(null));
+        // Waiting since this is an async operation
         Thread.sleep(100);
-        Assert.assertNotNull(asyncIdentityContextDAO.get("randomkey3"));
-        asyncIdentityContextDAO.remove("randomkey3");
+        Assert.assertNotNull(asyncIdentityContextDAO.get(RANDOM_KEY_3));
+        asyncIdentityContextDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
-        Assert.assertNull(asyncIdentityContextDAO.get("randomkey3"));
+        Assert.assertNull(asyncIdentityContextDAO.get(RANDOM_KEY_3));
 
     }
 
+    /**
+     * Tests for Async Session Context store
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void testAsyncSessionContextStore() throws InterruptedException {
         SessionDAO asyncSessionDAO = AsyncSessionDAO.getInstance();
-        Assert.assertNull(asyncSessionDAO.get("randomkey3"));
-        asyncSessionDAO.put("randomkey3" , new SessionContext());
+        Assert.assertNull(asyncSessionDAO.get(RANDOM_KEY_3));
+        asyncSessionDAO.put(RANDOM_KEY_3, new SessionContext());
         Thread.sleep(100);
-        Assert.assertNotNull(asyncSessionDAO.get("randomkey3"));
-        asyncSessionDAO.remove("randomkey3");
+        Assert.assertNotNull(asyncSessionDAO.get(RANDOM_KEY_3));
+        asyncSessionDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
-        Assert.assertNull(asyncSessionDAO.get("randomkey3"));
+        Assert.assertNull(asyncSessionDAO.get(RANDOM_KEY_3));
 
     }
 
+    /**
+     * Tests for Cache Backed Identity Session DAO
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void testCacheBackedIdentitySessionDAO() throws InterruptedException {
         IdentityContextDAO identityContextDAO = CacheBackedIdentitySessionDAO.getInstance();
-        Assert.assertNull(identityContextDAO.get("randomkey3"));
-        identityContextDAO.put("randomkey3", new GatewayMessageContext(null));
+        Assert.assertNull(identityContextDAO.get(RANDOM_KEY_3));
+        identityContextDAO.put(RANDOM_KEY_3, new GatewayMessageContext(null));
         Thread.sleep(100);
-        Assert.assertNotNull(identityContextDAO.get("randomkey3"));
-        identityContextDAO.remove("randomkey3");
+        Assert.assertNotNull(identityContextDAO.get(RANDOM_KEY_3));
+        identityContextDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
-        Assert.assertNull(identityContextDAO.get("randomkey3"));
+        Assert.assertNull(identityContextDAO.get(RANDOM_KEY_3));
 
     }
 
+    /**
+     * Tests for Cache Backed Session DAO
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void testCacheBackedSessionDAO() throws InterruptedException {
         SessionDAO asyncSessionDAO = CacheBackedSessionDAO.getInstance();
-        Assert.assertNull(asyncSessionDAO.get("randomkey3"));
-        asyncSessionDAO.put("randomkey3" , new SessionContext());
+        Assert.assertNull(asyncSessionDAO.get(RANDOM_KEY_3));
+        asyncSessionDAO.put(RANDOM_KEY_3, new SessionContext());
         Thread.sleep(100);
-        Assert.assertNotNull(asyncSessionDAO.get("randomkey3"));
-        asyncSessionDAO.remove("randomkey3");
+        Assert.assertNotNull(asyncSessionDAO.get(RANDOM_KEY_3));
+        asyncSessionDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
-        Assert.assertNull(asyncSessionDAO.get("randomkey3"));
+        Assert.assertNull(asyncSessionDAO.get(RANDOM_KEY_3));
 
     }
 
+    /**
+     * initialize DAOs by adding template
+     *
+     * @param jdbcTemplate
+     */
     private void initializeDao(JdbcTemplate jdbcTemplate) {
         JDBCSessionDAO.getInstance().setJdbcTemplate(jdbcTemplate);
         JDBCIdentityContextDAO.getInstance().setJdbcTemplate(jdbcTemplate);

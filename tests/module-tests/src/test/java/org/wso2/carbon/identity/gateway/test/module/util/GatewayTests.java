@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.gateway.test.module.util;
 
 import com.google.common.net.HttpHeaders;
@@ -43,7 +61,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Tests the TestService.
+ * General Tests For Gateway.
  */
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
@@ -70,6 +88,10 @@ public class GatewayTests {
         return optionList.toArray(new Option[optionList.size()]);
     }
 
+    /**
+     * Testing overall federated authentication with sample protocol
+     * Asserting on redirection and cookies we get
+     */
     @Test
     public void testFederatedAuthentication() {
         try {
@@ -96,10 +118,14 @@ public class GatewayTests {
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
         } catch (IOException e) {
-            log.error("Error while running federated authentication test case", e);
+            Assert.fail("Error while running federated authentication test case", e);
         }
     }
 
+    /**
+     * Testing overall federated authentication with sample protocol and a post request
+     * Asserting on redirection and cookies we get
+     */
     @Test
     public void testFederatedAuthenticationWithPostRequest() {
         try {
@@ -134,7 +160,11 @@ public class GatewayTests {
     }
 
 
-
+    /**
+     * Testing overall federated authentication, while sending out response to federated request a wrong relay state
+     * will be used
+     * Asserting on errors we get.
+     */
     @Test
     public void illegalRelayState() {
         try {
@@ -151,31 +181,37 @@ public class GatewayTests {
                     (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "="
                             + relayState + "randomString" + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
                             GatewayTestConstants
-                            .ASSERTION + "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+                                    .ASSERTION + "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
 
             Assert.assertEquals(500, urlConnection.getResponseCode());
 
 
         } catch (IOException e) {
-            log.error("Error while running federated authentication test case", e);
+            Assert.fail("Error while running federated authentication test case", e);
         }
     }
 
+    /**
+     * Testing scenario where request factory Can handle fails with a client Exception.
+     */
     @Test
     public void requestFactoryCanHandleClientFail() {
         try {
             HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
-                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true" + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
+                            GatewayTestConstants.SAMPLE_PROTOCOL + "=true" + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
                             "canHandleErrorClient=true",
                     HttpMethod.GET, false);
             Assert.assertEquals(500, urlConnection.getResponseCode());
 
         } catch (IOException e) {
-            log.error("Error while running federated authentication test case", e);
+            Assert.fail("Error while running federated authentication test case", e);
         }
     }
 
 
+    /**
+     * Testing scenario where request factory Can handle fails with a server Exception.
+     */
     @Test
     public void requestFactoryCanHandleServerFail() {
         try {
@@ -186,10 +222,13 @@ public class GatewayTests {
             Assert.assertEquals(500, urlConnection.getResponseCode());
 
         } catch (IOException e) {
-            log.error("Error while running federated authentication test case", e);
+            Assert.fail("Error while running federated authentication test case", e);
         }
     }
 
+    /**
+     * Tests for a scenario where processResponse will throw an exception from the federated authenticator.
+     */
     @Test
     public void failFederatedProcessResponse() {
         try {
@@ -204,7 +243,7 @@ public class GatewayTests {
 
             urlConnection = GatewayTestUtils.request
                     (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "="
-                            + relayState  + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
+                            + relayState + GatewayTestConstants.QUERY_PARAM_SEPARATOR +
                             GatewayTestConstants
                                     .ASSERTION + "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME +
                             GatewayTestConstants.QUERY_PARAM_SEPARATOR + "validation=false", HttpMethod
@@ -214,10 +253,13 @@ public class GatewayTests {
 
 
         } catch (IOException e) {
-            log.error("Error while running federated authentication test case", e);
+            Assert.fail("Error while running federated authentication test case", e);
         }
     }
 
+    /**
+     * Request validation failure response test case.
+     */
     @Test
     public void testRequestValidationFailure() {
         try {
@@ -231,6 +273,9 @@ public class GatewayTests {
         }
     }
 
+    /**
+     * A request which is not getting picked by any of the requestFactories.
+     */
     @Test
     public void testNonExistingProtocolRequest() {
         try {
@@ -245,6 +290,9 @@ public class GatewayTests {
     }
 
 
+    /**
+     * Test authentication with cookie after successfully authenticating at the first time.
+     */
     @Test
     public void testSingleSignOnWithCookie() {
         try {
@@ -279,6 +327,9 @@ public class GatewayTests {
         }
     }
 
+    /**
+     * Test the content of deployed SP yaml file.
+     */
     @Test
     public void testSPYAMLValidation() {
         ServiceProviderConfigStore serviceProviderConfigStore = this.bundleContext.getService(bundleContext
@@ -293,6 +344,9 @@ public class GatewayTests {
 
     }
 
+    /**
+     * Tests for the content of deployed IDP yaml file.
+     */
     @Test
     public void testIDPYAMLValidation() {
         IdentityProviderConfigStore identityProviderConfigStore = this.bundleContext.getService(bundleContext
@@ -305,6 +359,9 @@ public class GatewayTests {
         Assert.assertEquals(identityProviderConfig.getName(), "myidp");
     }
 
+    /**
+     * Test util method to build query string.
+     */
     @Test
     public void testUtils() {
         Map<String, String[]> map = new HashMap<String, String[]>();
@@ -314,8 +371,11 @@ public class GatewayTests {
         Assert.assertTrue(queryString.contains("?param1=value3&param1=value4"));
     }
 
+    /**
+     * Testing gateway claim resolving service. Transforming another dialect to a root dialect
+     */
     @Test
-    public void testClaimService() {
+    public void testClaimServiceTransformToNativiveDialect() {
         GatewayClaimResolverService claimResolverService = this.bundleContext.getService(bundleContext
                 .getServiceReference(GatewayClaimResolverService.class));
         Set<Claim> claims = new HashSet<Claim>();
@@ -330,6 +390,9 @@ public class GatewayTests {
         Assert.assertEquals("harsha@wso2.com", responseClaim.getValue());
     }
 
+    /**
+     * Testing gateway claim resolving service. Transforming from root dielect to root dialect.
+     */
     @Test
     public void testClaimServiceTransformToCustomDialect() {
         GatewayClaimResolverService claimResolverService = this.bundleContext.getService(bundleContext
@@ -346,6 +409,9 @@ public class GatewayTests {
         Assert.assertEquals("harsha@wso2.com", responseClaim.getValue());
     }
 
+    /**
+     * Testing gateway claim resolving service. Transforming to other dialect with a profile.
+     */
     @Test
     public void testClaimServiceTransformToCustomDialectWithProfile() {
         GatewayClaimResolverService claimResolverService = this.bundleContext.getService(bundleContext
@@ -362,8 +428,11 @@ public class GatewayTests {
         Assert.assertEquals("harsha@wso2.com", responseClaim.getValue());
     }
 
+    /**
+     * Testing gateway claim resolving service. Transforming to native dialect with a profile.
+     */
     @Test
-    public void testClaimServiceWithProfile() {
+    public void testClaimServiceTransformToNativeDialectWithProfile() {
         GatewayClaimResolverService claimResolverService = this.bundleContext.getService(bundleContext
                 .getServiceReference(GatewayClaimResolverService.class));
         Set<Claim> claims = new HashSet<Claim>();
@@ -378,6 +447,9 @@ public class GatewayTests {
         Assert.assertEquals("harsha@wso2.com", responseClaim.getValue());
     }
 
+    /**
+     * Update identity provider artifact and see whether it is getting deployed without error.
+     */
     @Test
     public void testIdentityProviderUpdate() {
         IdentityProviderDeployer identityProviderDeployer = new IdentityProviderDeployer();
@@ -387,10 +459,13 @@ public class GatewayTests {
         try {
             identityProviderDeployer.update(artifact);
         } catch (CarbonDeploymentException e) {
-            Assert.fail();
+            Assert.fail("Error while running update identity provider test case");
         }
     }
 
+    /**
+     * Update identity provider artifact and see whether it is getting deployed without error.
+     */
     @Test
     public void testServiceProviderUpdate() {
         ServiceProviderDeployer serviceProviderDeployer = new ServiceProviderDeployer();
@@ -404,6 +479,9 @@ public class GatewayTests {
         }
     }
 
+    /**
+     * Update a non existing service provider.
+     */
     @Test
     public void testWrongServiceProviderUpdate() {
         ServiceProviderDeployer serviceProviderDeployer = new ServiceProviderDeployer();
@@ -412,24 +490,28 @@ public class GatewayTests {
         artifact.setType(new ArtifactType("serviceprovider"));
         try {
             serviceProviderDeployer.update(artifact);
-            Assert.fail();
+            Assert.fail("An error should occur while trying to update wrong artifact");
         } catch (CarbonDeploymentException e) {
             log.info("failed service provider deployment from non existing file");
         }
     }
 
-
-
+    /**
+     * Un-deploy service provider.
+     */
     @Test
     public void testIdentityProviderUnDeploy() {
         IdentityProviderDeployer identityProviderDeployer = new IdentityProviderDeployer();
         try {
             identityProviderDeployer.undeploy("myidp_dummy.yaml");
         } catch (CarbonDeploymentException e) {
-            Assert.fail();
+            Assert.fail("An error occured while un-deploying sidentity provider");
         }
     }
 
+    /**
+     * Trying to update non existing identity provider
+     */
     @Test
     public void testWrongIdentityProviderUpdate() {
         IdentityProviderDeployer identityProviderDeployer = new IdentityProviderDeployer();
@@ -438,21 +520,23 @@ public class GatewayTests {
         artifact.setType(new ArtifactType("identityprovider"));
         try {
             identityProviderDeployer.update(artifact);
-            Assert.fail();
+            Assert.fail("Expected an error while updating non existing identity provider");
         } catch (CarbonDeploymentException e) {
             log.info("Non existing idp deployment failed");
         }
     }
 
+    /**
+     * Un-deploy a service provider
+     */
     @Test
     public void testServiceProviderUnDeploy() {
         ServiceProviderDeployer serviceProviderDeployer = new ServiceProviderDeployer();
         try {
             serviceProviderDeployer.undeploy("sample_dummy.yaml");
         } catch (CarbonDeploymentException e) {
-            Assert.fail();
+            Assert.fail("Error occured while un-deploying service provider artifact");
         }
     }
-
 
 }
