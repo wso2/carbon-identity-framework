@@ -95,6 +95,9 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         } else {
             builder.setQueryString(queryStringParams[0]);
         }
+        if(log.isDebugEnabled()){
+            log.debug("Successfully Updated the request builder in GatewayRequestBuilderFactory.");
+        }
     }
 
     //#TODO: Priority value should be checked to put here.

@@ -36,7 +36,7 @@ import java.util.Map;
 
 public class GatewayUtil {
 
-    private Logger logger = LoggerFactory.getLogger(GatewayUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(GatewayUtil.class);
 
     /**
      * Read provide name by using file name.
@@ -75,7 +75,10 @@ public class GatewayUtil {
                     throw new GatewayServerException("Provider is not loaded correctly.");
                 }
             } catch (Exception e) {
-                throw new GatewayServerException("Error while deploying service provider configuration.");
+                String errorMessage = "Error occurred while loading the " + providerClass.getSimpleName() + " yaml file, " +
+                                      e.getMessage();
+                logger.error(errorMessage ,e);
+                throw new GatewayServerException(errorMessage, e);
             }
         }
         return provider;

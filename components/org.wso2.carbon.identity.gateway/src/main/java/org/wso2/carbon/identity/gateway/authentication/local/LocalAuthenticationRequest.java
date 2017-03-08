@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.gateway.request.local;
+package org.wso2.carbon.identity.gateway.authentication.local;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;

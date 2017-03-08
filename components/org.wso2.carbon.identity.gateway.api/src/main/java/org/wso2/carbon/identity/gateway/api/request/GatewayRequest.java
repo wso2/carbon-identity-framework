@@ -164,7 +164,9 @@ public class GatewayRequest implements Serializable {
 
         public GatewayRequestBuilder addAttribute(String name, Serializable value) {
             if (this.attributes.containsKey(name)) {
-                throw new GatewayRuntimeException("Attributes map trying to override existing key " + name);
+                String errorMessage = "Attributes map trying to override existing key " + name ;
+                log.error(errorMessage);
+                throw new GatewayRuntimeException(errorMessage);
             }
             this.attributes.put(name, value);
             return this;
@@ -173,8 +175,9 @@ public class GatewayRequest implements Serializable {
         public GatewayRequestBuilder addAttributes(Map<String, Serializable> attributes) {
             for (Map.Entry<String, Serializable> attribute : attributes.entrySet()) {
                 if (this.attributes.containsKey(attribute.getKey())) {
-                    throw new GatewayRuntimeException("Attributes map trying to override existing key " + attribute
-                            .getKey());
+                    String errorMessage = "Attributes map trying to override existing key " + attribute.getKey() ;
+                    log.error(errorMessage);
+                    throw new GatewayRuntimeException(errorMessage);
                 }
                 this.attributes.put(attribute.getKey(), attribute.getValue());
             }
@@ -183,7 +186,9 @@ public class GatewayRequest implements Serializable {
 
         public GatewayRequestBuilder addHeader(String name, String value) {
             if (this.headers.containsKey(name)) {
-                throw new GatewayRuntimeException("Headers map trying to override existing header " + name);
+                String errorMessage = "Headers map trying to override existing header " + name ;
+                log.error(errorMessage);
+                throw new GatewayRuntimeException(errorMessage);
             }
             this.headers.put(name, value);
             return this;
@@ -192,8 +197,9 @@ public class GatewayRequest implements Serializable {
         public GatewayRequestBuilder addHeaders(Map<String, String> headers) {
             for (Map.Entry<String, String> header : headers.entrySet()) {
                 if (this.headers.containsKey(header.getKey())) {
-                    throw new GatewayRuntimeException("Headers map trying to override existing header " + header
-                            .getKey());
+                    String errorMessage = "Headers map trying to override existing header " + header.getKey() ;
+                    log.error(errorMessage);
+                    throw new GatewayRuntimeException(errorMessage);
                 }
                 this.headers.put(header.getKey(), header.getValue());
             }
@@ -202,7 +208,9 @@ public class GatewayRequest implements Serializable {
 
         public GatewayRequestBuilder addParameter(String name, Serializable value) {
             if (this.parameters.containsKey(name)) {
-                throw new GatewayRuntimeException("Parameters map trying to override existing key " + name);
+                String errorMessage = "Parameters map trying to override existing key " + name ;
+                log.error(errorMessage);
+                throw new GatewayRuntimeException(errorMessage);
             }
             this.parameters.put(name, value);
             return this;
@@ -211,8 +219,9 @@ public class GatewayRequest implements Serializable {
         public GatewayRequestBuilder addParameters(Map<String, Serializable> parameters) {
             for (Map.Entry<String, Serializable> parameter : parameters.entrySet()) {
                 if (this.parameters.containsKey(parameter.getKey())) {
-                    throw new GatewayRuntimeException("Parameters map trying to override existing key " + parameter
-                            .getKey());
+                    String errorMessage = "Parameters map trying to override existing key " + parameter.getKey();
+                    log.error(errorMessage);
+                    throw new GatewayRuntimeException(errorMessage);
                 }
                 this.parameters.put(parameter.getKey(), parameter.getValue());
             }
@@ -220,6 +229,9 @@ public class GatewayRequest implements Serializable {
         }
 
         public GatewayRequest build() {
+            if(log.isDebugEnabled()){
+                log.debug("Building the GatewayRequest in Builder.");
+            }
             return new GatewayRequest(this);
         }
 

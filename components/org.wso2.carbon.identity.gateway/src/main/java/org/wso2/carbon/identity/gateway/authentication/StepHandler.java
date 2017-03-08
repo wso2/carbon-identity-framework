@@ -18,10 +18,9 @@
 package org.wso2.carbon.identity.gateway.authentication;
 
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
@@ -33,7 +32,6 @@ import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.model.User;
-import org.wso2.carbon.identity.gateway.request.local.LocalAuthenticationRequest;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -78,32 +76,12 @@ public class StepHandler extends AbstractGatewayHandler {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
             } else {
                 if (sequence.isMultiOption(sequenceContext.getCurrentStep())) {
-                    GatewayRequest gatewayRequest = authenticationContext.getIdentityRequest();
-                    String authenticatorName = null;
-                    if (gatewayRequest instanceof LocalAuthenticationRequest) {
-                        LocalAuthenticationRequest localAuthenticationRequest =
-                                (LocalAuthenticationRequest) gatewayRequest;
-                        authenticatorName = localAuthenticationRequest.getAuthenticatorName();
-                        currentStepContext
-                                .setIdentityProviderName(localAuthenticationRequest.getIdentityProviderName());
-                    }
 
-                    if (StringUtils.isNotBlank(authenticatorName)) {
-                        currentStepContext.setAuthenticatorName(authenticatorName);
-                        applicationAuthenticator =
-                                GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(authenticatorName);
-                        if (applicationAuthenticator == null) {
-                            applicationAuthenticator = GatewayServiceHolder.getInstance()
-                                    .getFederatedApplicationAuthenticator(authenticatorName);
-                        }
-                    } else {
-                        if (lookUpSessionValidity(authenticationContext)) {
-                            authenticationResponse = AuthenticationResponse.AUTHENTICATED;
-                        } else {
-                            authenticationResponse = AuthenticationResponse.INCOMPLETE;
-                            //Should set redirect URL ; @Harsha: redirect url for multi option page ??
-                        }
-                    }
+                    GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = new GatewayResponse
+                            .GatewayResponseBuilder();
+
+
+
                 } else {
 
 

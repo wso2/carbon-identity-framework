@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.gateway.request.local;
+package org.wso2.carbon.identity.gateway.authentication.local;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
