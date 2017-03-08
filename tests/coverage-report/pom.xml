@@ -98,7 +98,7 @@
                                                     <include name="jacoco.exec"/>
                                                 </fileset>
                                             </executiondata>
-                                            <structure name="Identity Server Tests">
+                                            <structure name="Identity Server Gateway Tests">
                                                 <classfiles>
                                                     <fileset dir="../../components/org.wso2.carbon.identity.gateway/target/classes">
                                                         <exclude name="**/*Constants.class" />

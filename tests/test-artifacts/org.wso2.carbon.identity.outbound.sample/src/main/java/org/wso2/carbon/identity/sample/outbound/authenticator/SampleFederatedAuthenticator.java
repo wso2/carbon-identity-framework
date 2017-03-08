@@ -117,7 +117,7 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
             log.error("Error while accessing parameters");
         }
         Set<Claim> claims = new HashSet<Claim>();
-        Claim claim = new Claim("http://org.harsha/claims", "http://org.harsha/claims/email" , "harsha@wso2.com");
+        Claim claim = new Claim("http://wso2.org/claims", "http://wso2.org/claims/email" , "harsha@wso2.com");
         claims.add(claim);
         federatedUser.setUserClaims(claims);
         context.getSequenceContext().getCurrentStepContext().setUser(federatedUser);
