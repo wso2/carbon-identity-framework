@@ -937,3 +937,122 @@ function htmlEncode(value) {
 
     return output;
 }
+
+jQuery('#includeAuthnCtxReq').click(function () {
+    jQuery('#authentication_context_class_dropdown').attr('disabled', true);
+    jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+});
+
+
+jQuery('#logoutRequestSigned').click(function () {
+    if (jQuery(this).is(":checked") || jQuery("#authnRequestSigned").is(":checked")) {
+        jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
+        jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+    } else {
+        jQuery('#signature_algorithem_dropdown').attr('disabled', true);
+        jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+    }
+});
+
+jQuery('#includeAuthnCtxNo').click(function () {
+    jQuery('#authentication_context_class_dropdown').attr('disabled', true);
+    jQuery('#auth_context_comparison_level_dropdown').attr('disabled', true);
+});
+
+jQuery('#includeAuthnCtxYes').click(function () {
+    jQuery('#authentication_context_class_dropdown').removeAttr('disabled');
+    jQuery('#auth_context_comparison_level_dropdown').removeAttr('disabled');
+});
+
+jQuery('#authnRequestSigned').click(function () {
+    if (jQuery(this).is(":checked") || jQuery("#logoutRequestSigned").is(":checked")) {
+        jQuery('#signature_algorithem_dropdown').removeAttr('disabled');
+        jQuery('#digest_algorithem_dropdown').removeAttr('disabled');
+    } else {
+        jQuery('#signature_algorithem_dropdown').attr('disabled', true);
+        jQuery('#digest_algorithem_dropdown').attr('disabled', true);
+    }
+});
+
+jQuery('#claimAddTable .claimrow').blur(function () {
+    claimURIDropdownPopulator();
+});
+jQuery('#claimMappingDeleteLink').click(function () {
+    $(jQuery('#claimMappingDiv')).toggle();
+    var input = document.createElement('input');
+    input.type = "hidden";
+    input.name = "deleteClaimMappings";
+    input.id = "deleteClaimMappings";
+    input.value = "true";
+    document.forms['idp-mgt-edit-form'].appendChild(input);
+});
+
+jQuery('#roleMappingDeleteLink').click(function () {
+    $(jQuery('#roleMappingDiv')).toggle();
+    var input = document.createElement('input');
+    input.type = "hidden";
+    input.name = "deleteRoleMappings";
+    input.id = "deleteRoleMappings";
+    input.value = "true";
+    document.forms['idp-mgt-edit-form'].appendChild(input);
+});
+jQuery('#provision_disabled').click(function () {
+    jQuery('#provision_static_dropdown').attr('disabled', 'disabled');
+});
+jQuery('#provision_static').click(function () {
+    jQuery('#provision_static_dropdown').removeAttr('disabled');
+});
+
+
+jQuery('#choose_dialet_type1').click(function () {
+    $(".customClaim").hide();
+    $(".role_claim").hide();
+    deleteRows();
+    claimURIDropdownPopulator();
+    $("#advancedClaimMappingAddTable tbody > tr").remove();
+    $('#advancedClaimMappingAddTable').hide();
+
+});
+
+jQuery('#choose_dialet_type2').click(function () {
+    $(".customClaim").show();
+    $(".role_claim").show();
+    $("#advancedClaimMappingAddTable tbody > tr").remove();
+    $('#advancedClaimMappingAddTable').hide();
+    claimURIDropdownPopulator();
+});
+
+
+jQuery('#advancedClaimMappingAddLink').click(function () {
+    var selectedIDPClaimName = $('select[name=idpClaimsList2]').val();
+    if (selectedIDPClaimName == "" || selectedIDPClaimName == null) {
+        CARBON.showWarningDialog('Add valid attribute');
+        return false;
+    }
+    advancedClaimMappinRowID++;
+    $("#advanced_claim_id_count").val(advancedClaimMappinRowID + 1);
+    jQuery('#advancedClaimMappingAddTable').append(jQuery('<tr>' +
+        '<td><input type="text" style="width: 99%;" value="' + selectedIDPClaimName + '" id="advancnedIdpClaim_' + advancedClaimMappinRowID + '" name="advancnedIdpClaim_' + advancedClaimMappinRowID + '" readonly="readonly" /></td>' +
+        '<td><input type="text" style="width: 99%;" id="advancedDefault_' + advancedClaimMappinRowID + '" name="advancedDefault_' + advancedClaimMappinRowID + '"/></td> ' +
+        '<td><a onclick="deleteRow(this);return false;" href="#" class="icon-link" style="background-image: url(../images/delete.gif)"> Delete</a></td>' +
+
+        '</tr>'));
+
+    $(jQuery('#advancedClaimMappingAddTable')).show();
+
+});
+
+
+jQuery('#roleAddLink').click(function () {
+    roleRowId++;
+    $("#rolemappingrow_id_count").val(roleRowId + 1);
+    jQuery('#roleAddTable').append(jQuery('<tr><td><input type="text" id="rolerowname_' + roleRowId + '" name="rolerowname_' + roleRowId + '"/></td>' +
+        '<td><input type="text" id="localrowname_' + roleRowId + '" name="localrowname_' + roleRowId + '"/></td>' +
+        '<td><a onclick="deleteRoleRow(this)" class="icon-link" ' +
+        'style="background-image: url(../images/delete.gif)">' +
+        'Delete' +
+        '</a></td></tr>'));
+    if ($(jQuery('#roleAddTable tr')).length == 2) {
+        $(jQuery('#roleAddTable')).toggle();
+    }
+});
