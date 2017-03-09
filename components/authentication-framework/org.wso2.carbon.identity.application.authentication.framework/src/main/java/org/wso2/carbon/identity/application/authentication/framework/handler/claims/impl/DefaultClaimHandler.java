@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -319,11 +321,11 @@ public class DefaultClaimHandler implements ClaimHandler {
      */
     private static String getServiceProviderMappedUserRoles(ApplicationConfig applicationConfig,
             List<String> locallyMappedUserRoles, String claimSeparator) throws FrameworkException {
-        if (locallyMappedUserRoles != null && !locallyMappedUserRoles.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
 
             Map<String, String> localToSpRoleMapping = applicationConfig.getRoleMappings();
 
-            if (localToSpRoleMapping == null || localToSpRoleMapping.size() == 0) {
+            if (MapUtils.isEmpty(localToSpRoleMapping)) {
                 return null;
             }
 
@@ -561,7 +563,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
             for (Map.Entry<String, String> entry : allLocalClaims.entrySet()) {
                 //set local2sp role mappings
-                if (entry.getKey().equals(FrameworkConstants.LOCAL_ROLE_CLAIM_URI)) {
+                if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getKey())) {
                     RealmConfiguration realmConfiguration = userStore.getRealmConfiguration();
                     String claimSeparator = realmConfiguration
                             .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
