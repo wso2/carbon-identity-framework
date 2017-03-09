@@ -20,8 +20,11 @@ package org.wso2.carbon.identity.gateway.authentication;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
@@ -35,6 +38,7 @@ import org.wso2.carbon.identity.gateway.model.User;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class StepHandler extends AbstractGatewayHandler {
     @Override
@@ -59,13 +63,15 @@ public class StepHandler extends AbstractGatewayHandler {
 
         if (currentStepContext != null) {
             if (!currentStepContext.isAuthenticated()) {
-                applicationAuthenticator =
-                        GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(currentStepContext
-                                                                                                    .getAuthenticatorName());
-                if (applicationAuthenticator == null) {
-                    applicationAuthenticator =
-                            GatewayServiceHolder.getInstance()
-                                    .getFederatedApplicationAuthenticator(currentStepContext.getAuthenticatorName());
+                if(currentStepContext.getAuthenticatorName() != null) {
+                    applicationAuthenticator = getApplicationAuthenticator(currentStepContext.getAuthenticatorName());
+                }else if(authenticationContext.getIdentityRequest() instanceof LocalAuthenticationRequest){
+                    LocalAuthenticationRequest localAuthenticationRequest = (LocalAuthenticationRequest)
+                            authenticationContext.getIdentityRequest();
+                    currentStepContext.setAuthenticatorName(localAuthenticationRequest.getAuthenticatorName());
+                    currentStepContext.setIdentityProviderName(localAuthenticationRequest.getIdentityProviderName());
+                    applicationAuthenticator = getApplicationAuthenticator(localAuthenticationRequest
+                            .getAuthenticatorName());
                 }
             } else {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
@@ -76,27 +82,24 @@ public class StepHandler extends AbstractGatewayHandler {
                 authenticationResponse = AuthenticationResponse.AUTHENTICATED;
             } else {
                 if (sequence.isMultiOption(sequenceContext.getCurrentStep())) {
+                    if(authenticationContext.getIdentityRequest() instanceof LocalAuthenticationRequest && ((LocalAuthenticationRequest)authenticationContext.getIdentityRequest()).getAuthenticatorName() != null){
+                        LocalAuthenticationRequest localAuthenticationRequest = (LocalAuthenticationRequest)
+                                authenticationContext.getIdentityRequest();
 
-                    GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = new GatewayResponse
-                            .GatewayResponseBuilder();
-
-
+                        currentStepContext.setAuthenticatorName(localAuthenticationRequest.getAuthenticatorName());
+                        currentStepContext.setIdentityProviderName(localAuthenticationRequest.getIdentityProviderName());
+                        applicationAuthenticator = getApplicationAuthenticator(localAuthenticationRequest
+                                                                                       .getAuthenticatorName());
+                    }else{
+                        return buildMultiOptionResponse(authenticationContext);
+                    }
 
                 } else {
-
-
                     AuthenticationStepConfig config = getAuthenticationStepConfig(authenticationContext, sequenceContext
                             .getCurrentStep());
                     IdentityProvider identityProvider = config.getIdentityProviders().get(0);
                     if (identityProvider != null) {
-                        applicationAuthenticator =
-                                GatewayServiceHolder.getInstance()
-                                        .getLocalApplicationAuthenticator(identityProvider.getAuthenticatorName());
-                        if (applicationAuthenticator == null) {
-                            applicationAuthenticator =
-                                    GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator(
-                                            identityProvider.getAuthenticatorName());
-                        }
+                        applicationAuthenticator = getApplicationAuthenticator(identityProvider.getAuthenticatorName());
                         if (applicationAuthenticator != null) {
                             authenticationResponse = AuthenticationResponse.AUTHENTICATED;
                             currentStepContext.setAuthenticatorName(applicationAuthenticator.getName());
@@ -106,6 +109,8 @@ public class StepHandler extends AbstractGatewayHandler {
                 }
             }
         }
+
+
         if (applicationAuthenticator != null) {
             authenticationResponse = applicationAuthenticator.process(authenticationContext);
         }
@@ -114,11 +119,44 @@ public class StepHandler extends AbstractGatewayHandler {
             currentStepContext.setIsAuthenticated(true);
             if (sequence.hasNext(sequenceContext.getCurrentStep())) {
                 sequenceContext.setCurrentStep(sequenceContext.getCurrentStep() + 1);
+
                 authenticationResponse = handleStepAuthentication(authenticationContext);
             }
         }
 
         return authenticationResponse;
+    }
+
+    private ApplicationAuthenticator getApplicationAuthenticator(String applicationAuthenticatorName){
+        ApplicationAuthenticator applicationAuthenticator =
+                GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(applicationAuthenticatorName);
+        if (applicationAuthenticator == null) {
+            applicationAuthenticator =
+                    GatewayServiceHolder.getInstance()
+                            .getFederatedApplicationAuthenticator(applicationAuthenticatorName);
+        }
+        return applicationAuthenticator ;
+    }
+
+    private AuthenticationResponse buildMultiOptionResponse(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException {
+        LocalAuthenticationResponse.LocalAuthenticationResponseBuilder
+                localAuthenticationResponseBuilder = new LocalAuthenticationResponse
+                .LocalAuthenticationResponseBuilder();
+        localAuthenticationResponseBuilder.setRelayState(authenticationContext
+                                                                 .getInitialAuthenticationRequest()
+                                                                 .getRequestKey());
+        List<IdentityProvider> identityProviders = authenticationContext.getSequence()
+                .getIdentityProviders(authenticationContext.getSequenceContext().getCurrentStep());
+        StringBuilder idpList = new StringBuilder();
+        identityProviders.forEach(identityProvider -> idpList.append(identityProvider
+                                                                             .getAuthenticatorName() +
+                                                                     ":" + identityProvider
+                                                                             .getIdentityProviderName()
+                                                                     +","));
+        AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE ;
+        authenticationResponse.setGatewayResponseBuilder(localAuthenticationResponseBuilder);
+        return authenticationResponse ;
     }
 
     protected boolean lookUpSessionValidity(AuthenticationContext authenticationContext) throws

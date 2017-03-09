@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.gateway.resource;
 
+import org.apache.commons.lang.StringUtils;
 import org.osgi.service.component.annotations.Component;
 import org.wso2.msf4j.Microservice;
 import org.wso2.msf4j.Request;
@@ -25,8 +26,16 @@ import org.wso2.msf4j.Request;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.gateway.resource.util.Utils.processParameters;
 
@@ -45,6 +54,39 @@ public class GatewayResource implements Microservice {
 
     private GatewayManager gatewayManager = new GatewayManager();
 
+
+    @GET
+    @Path("/endpoint")
+    public Response endpoint(@QueryParam("callback") String callback,
+                             @QueryParam("state") String sessionDataKey) {
+        if (StringUtils.isBlank(callback)) {
+            return handleBadRequest("Mandatory 'callback' parameter is missing in the request parameters.");
+        }
+
+        if (StringUtils.isBlank(sessionDataKey)) {
+            return handleBadRequest("Mandatory 'sessionDataKey' parameter missing in request parameters.");
+        }
+
+        String loginPage;
+        try {
+            loginPage = getLoginPageContent(callback, sessionDataKey);
+        } catch (IOException e) {
+            return Response.serverError().build();
+        }
+
+        return Response
+                .ok()
+                .entity(loginPage)
+                .header(HttpHeaders.CONTENT_TYPE, "text/html")
+                .header(HttpHeaders.CONTENT_LENGTH, loginPage.getBytes().length)
+                .build();
+    }
+
+
+    private Response handleBadRequest(String errorMessage) {
+
+        return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
+    }
 
     /**
      * All the GET request are come to this API and process by the GatewayManager.
@@ -75,5 +117,31 @@ public class GatewayResource implements Microservice {
         Response response = this.gatewayManager.execute(request);
         return response;
     }
+
+    private String getLoginPageContent(String callbackURL, String state) throws IOException {
+
+        String response =  getLoginPage();
+        if (StringUtils.isNotBlank(state)) {
+            response = response.replace("${sessionDataKey}", state);
+        }
+
+        if (StringUtils.isNotBlank(callbackURL)) {
+            response = response.replace("${callback}", callbackURL);
+        }
+
+        return response;
+    }
+
+    static String getLoginPage() throws IOException {
+
+        InputStream inputStream = GatewayResource.class.getClassLoader()
+                .getResourceAsStream(DEFAULT_LOGIN_PAGE);
+
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
+            return buffer.lines().collect(Collectors.joining("\n"));
+        }
+    }
+    private static final String DEFAULT_LOGIN_PAGE = "login.html";
+
 }
 

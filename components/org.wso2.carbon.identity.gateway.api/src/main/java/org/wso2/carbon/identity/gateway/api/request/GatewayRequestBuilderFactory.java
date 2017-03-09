@@ -103,7 +103,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
     //#TODO: Priority value should be checked to put here.
     @Override
     public int getPriority() {
-        return 100;
+        return 200;
     }
 
     //#TODO: Think about more this exception handling.

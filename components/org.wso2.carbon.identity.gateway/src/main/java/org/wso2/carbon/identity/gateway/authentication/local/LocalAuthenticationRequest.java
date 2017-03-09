@@ -27,10 +27,15 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
     private String authenticatorName;
     private String identityProviderName;
 
+    private String userName ;
+    private String password ;
+
     protected LocalAuthenticationRequest(LocalAuthenticationRequestBuilder builder) {
         super(builder);
         authenticatorName = builder.authenticatorName;
         identityProviderName = builder.identityProviderName;
+        userName = builder.userName ;
+        password = builder.password ;
     }
 
     public String getAuthenticatorName() {
@@ -41,10 +46,20 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
         return identityProviderName;
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
     public static class LocalAuthenticationRequestBuilder extends CallbackAuthenticationRequestBuilder {
 
         private String authenticatorName;
         private String identityProviderName;
+        private String userName ;
+        private String password ;
 
         public LocalAuthenticationRequestBuilder() {
             super();
@@ -64,11 +79,26 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
             this.identityProviderName = identityProviderName;
             return this;
         }
+
+        public LocalAuthenticationRequestBuilder setUserName(String userName) {
+            this.userName = userName;
+            return this;
+        }
+
+        public LocalAuthenticationRequestBuilder setPassword(String password) {
+            this.password = password;
+            return this;
+        }
     }
 
     public static class FrameworkLoginRequestConstants
             extends CallbackAuthenticationRequest.CallbackAuthenticationRequestConstants {
         public static final String AUTHENTICATOR_NAME = "authenticator";
         public static final String IDP_NAME = "idp";
+        public static final String REQUEST_DATA_KEY = "state";
+
+        public static final String USER_NAME = "username";
+
+        public static final String PASSWORD = "password";
     }
 }

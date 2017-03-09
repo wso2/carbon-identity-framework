@@ -59,6 +59,13 @@ public class DefaultSequence extends AbstractSequence {
     }
 
     @Override
+    public List<IdentityProvider> getIdentityProviders(int step) throws AuthenticationHandlerException {
+        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
+        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
+        return identityProviders;
+    }
+
+    @Override
     public List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig() {
         return null;
     }

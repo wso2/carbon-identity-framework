@@ -27,10 +27,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.common.base.handler.HandlerComparator;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.resource.util.Utils;
 
 import java.util.Collections;
 
@@ -67,7 +67,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getGatewayProcessors().add(requestProcessor);
         Collections.sort(GatewayResourceDataHolder.getInstance().getGatewayProcessors(),
-                         Utils.identityProcessor);
+                         new HandlerComparator());
     }
 
     protected void unSetIdentityProcessor(GatewayProcessor requestProcessor) {
@@ -86,7 +86,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         Utils.httpIdentityRequestFactory);
+                         new HandlerComparator());
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayRequestBuilderFactory : " + factory.getName());
         }
@@ -110,7 +110,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         Utils.httpIdentityResponseFactory);
+                         new HandlerComparator());
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayResponseBuilderFactory : " + factory.getName());
         }

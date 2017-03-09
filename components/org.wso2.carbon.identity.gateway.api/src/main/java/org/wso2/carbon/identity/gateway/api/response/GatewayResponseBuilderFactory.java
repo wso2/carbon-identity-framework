@@ -49,7 +49,7 @@ public class GatewayResponseBuilderFactory extends AbstractHandler {
 
     @Override
     public int getPriority() {
-        return 100;
+        return 200;
     }
 
     public Response.ResponseBuilder handleException(GatewayRuntimeException exception) {

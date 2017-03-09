@@ -41,6 +41,8 @@ public abstract class AbstractSequence extends AbstractGatewayHandler implements
 
     public abstract IdentityProvider getIdentityProvider(int step, String identityProviderName)
             throws AuthenticationHandlerException;
+    public abstract List<IdentityProvider> getIdentityProviders(int step)
+            throws AuthenticationHandlerException;
 
     public abstract List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig();
 

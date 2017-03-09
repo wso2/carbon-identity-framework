@@ -39,7 +39,7 @@ public class SampleACSRequestBuilderFactory extends GatewayRequestBuilderFactory
 
     @Override
     public int getPriority() {
-        return 66;
+        return 75;
     }
 
 

@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.SequenceBuilderFactory;
@@ -44,6 +46,8 @@ import org.wso2.carbon.identity.gateway.authentication.authenticator.Application
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
@@ -96,6 +100,10 @@ public class GatewayActivator {
                 .registerService(IdentityProviderConfigStore.class, IdentityProviderConfigStore.getInstance(), null);
         bundleContext
                 .registerService(GatewayClaimResolverService.class, GatewayClaimResolverService.getInstance(), null);
+        bundleContext.registerService(GatewayResponseBuilderFactory.class, new
+                LocalAuthenticationResponseBuilderFactory(), null);
+        bundleContext.registerService(GatewayRequestBuilderFactory.class, new
+                LocalAuthenticationRequestBuilderFactory(), null);
 
         //bundleContext.registerService(GatewayRequestBuilderFactory.class, new
         // LocalAuthenticationRequestBuilderFactory(), null);

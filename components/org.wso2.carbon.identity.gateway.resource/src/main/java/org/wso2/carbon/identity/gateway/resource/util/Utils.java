@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.gateway.resource.util;
 
 
+import org.wso2.carbon.identity.common.base.handler.Handler;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
@@ -131,58 +132,5 @@ public class Utils {
     private static boolean isFormParamRequest(String contentType) {
         return MediaType.APPLICATION_FORM_URLENCODED.equalsIgnoreCase(contentType);
     }
-
-
-
-
-    public static Comparator<GatewayProcessor> identityProcessor =
-            new Comparator<GatewayProcessor>() {
-
-                @Override
-                public int compare(GatewayProcessor gatewayProcessor1,
-                                   GatewayProcessor gatewayProcessor2) {
-
-                    if (gatewayProcessor1.getPriority() > gatewayProcessor2.getPriority()) {
-                        return 1;
-                    } else if (gatewayProcessor1.getPriority() < gatewayProcessor2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    public static Comparator<GatewayRequestBuilderFactory> httpIdentityRequestFactory =
-            new Comparator<GatewayRequestBuilderFactory>() {
-
-                @Override
-                public int compare(GatewayRequestBuilderFactory factory1,
-                                   GatewayRequestBuilderFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-    public static Comparator<GatewayResponseBuilderFactory> httpIdentityResponseFactory =
-            new Comparator<GatewayResponseBuilderFactory>() {
-
-                @Override
-                public int compare(GatewayResponseBuilderFactory factory1,
-                                   GatewayResponseBuilderFactory factory2) {
-
-                    if (factory1.getPriority() > factory2.getPriority()) {
-                        return 1;
-                    } else if (factory1.getPriority() < factory2.getPriority()) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-
 
 }
