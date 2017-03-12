@@ -26,7 +26,8 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
  * Except that, this has AbstractMessageHandler as the super class and all the event based common functionality will
  * be inherited from that.
  */
-public abstract class AbstractGatewayHandler extends AbstractMessageHandler {
+public abstract class AbstractGatewayHandler<T extends MessageContext> extends
+                                                 AbstractMessageHandler {
 
     /**
      * Default canHandle method for all the generic handlers.
@@ -34,5 +35,5 @@ public abstract class AbstractGatewayHandler extends AbstractMessageHandler {
      * @param messageContext
      * @return
      */
-    public abstract boolean canHandle(MessageContext messageContext);
+    public abstract boolean canHandle(T messageContext);
 }

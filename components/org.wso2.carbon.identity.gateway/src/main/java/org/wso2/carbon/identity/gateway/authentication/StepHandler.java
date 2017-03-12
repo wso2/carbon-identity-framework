@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.executer.AbstractExecutionHandler;
 import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
@@ -35,6 +36,7 @@ import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.model.User;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -53,11 +55,40 @@ public class StepHandler extends AbstractGatewayHandler {
 
     public AuthenticationResponse handleStepAuthentication(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
+        AuthenticationResponse authenticationResponse = null;
+        ApplicationAuthenticator applicationAuthenticator = null;
+        AbstractSequence sequence = authenticationContext.getSequence();
+        SequenceContext sequenceContext = authenticationContext.getSequenceContext();
+        sequenceContext.getCurrentStepContext();
+
+        AbstractExecutionHandler executionHandler =
+                HandlerManager.getInstance().getExecutionHandler(authenticationContext);
+        authenticationResponse = executionHandler.execute(authenticationContext);
+
+        if (AuthenticationResponse.AUTHENTICATED.equals(authenticationResponse)) {
+            if (sequence.hasNext(sequenceContext.getCurrentStep())) {
+                sequenceContext.setCurrentStep(sequenceContext.getCurrentStep() + 1);
+                authenticationResponse = handleStepAuthentication(authenticationContext);
+            }
+        }
+
+        return authenticationResponse;
+
+    }
+
+    private ClientAuthenticationRequest buildClientRequest(AuthenticationContext authenticationContext){
+        ClientAuthenticationRequest.ClientAuthenticationRequestBuilder clientAuthenticationRequest = new
+                ClientAuthenticationRequest.ClientAuthenticationRequestBuilder();
+        return clientAuthenticationRequest.build();
+    }
+/*
+
+    public AuthenticationResponse handleStepAuthentication1(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException {
 
         AuthenticationResponse authenticationResponse = null;
         ApplicationAuthenticator applicationAuthenticator = null;
         AbstractSequence sequence = authenticationContext.getSequence();
-
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
@@ -126,17 +157,9 @@ public class StepHandler extends AbstractGatewayHandler {
 
         return authenticationResponse;
     }
+*/
 
-    private ApplicationAuthenticator getApplicationAuthenticator(String applicationAuthenticatorName){
-        ApplicationAuthenticator applicationAuthenticator =
-                GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(applicationAuthenticatorName);
-        if (applicationAuthenticator == null) {
-            applicationAuthenticator =
-                    GatewayServiceHolder.getInstance()
-                            .getFederatedApplicationAuthenticator(applicationAuthenticatorName);
-        }
-        return applicationAuthenticator ;
-    }
+
 
     private AuthenticationResponse buildMultiOptionResponse(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
@@ -186,7 +209,7 @@ public class StepHandler extends AbstractGatewayHandler {
                     authenticationContext.getSequenceContext().getCurrentStepContext().setUser(user);
                     authenticationContext.getSequenceContext().getCurrentStepContext()
                             .setAuthenticatorName(authenticatorName);
-                    authenticationContext.getSequenceContext().getCurrentStepContext().setIsAuthenticated(true);
+                    authenticationContext.getSequenceContext().getCurrentStepContext().setStatus(SequenceContext.Status.AUTHENTICATED);
                     isSessionValid = true;
                     break;
                 }

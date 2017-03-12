@@ -29,11 +29,15 @@ public class AuthenticationRequest extends GatewayRequest {
 
     private static final long serialVersionUID = -8870055537743402153L;
     protected String requestKey;
+    protected String authenticatorName;
+    protected String identityProviderName;
 
     protected AuthenticationRequest(
             AuthenticationRequestBuilder builder) {
         super(builder);
         requestKey = builder.requestDataKey;
+        authenticatorName = builder.authenticatorName;
+        identityProviderName = builder.identityProviderName;
         if (requestKey == null) {
             requestKey = UUID.randomUUID().toString();
         }
@@ -41,6 +45,14 @@ public class AuthenticationRequest extends GatewayRequest {
 
     public String getRequestKey() {
         return requestKey;
+    }
+
+    public String getAuthenticatorName() {
+        return authenticatorName;
+    }
+
+    public String getIdentityProviderName() {
+        return identityProviderName;
     }
 
     public String getSessionKey() {
@@ -57,6 +69,8 @@ public class AuthenticationRequest extends GatewayRequest {
 
         protected String requestDataKey;
         protected String sessionCookie;
+        protected String authenticatorName;
+        protected String identityProviderName;
 
         @Override
         public AuthenticationRequest build() throws GatewayRuntimeException {
@@ -72,9 +86,21 @@ public class AuthenticationRequest extends GatewayRequest {
             this.sessionCookie = sessionCookie;
             return this;
         }
+
+        public AuthenticationRequestBuilder setAuthenticatorName(String authenticatorName) {
+            this.authenticatorName = authenticatorName;
+            return this;
+        }
+
+        public AuthenticationRequestBuilder setIdentityProviderName(String identityProviderName) {
+            this.identityProviderName = identityProviderName;
+            return this;
+        }
     }
 
     public static class AuthenticationRequestConstants extends IdentityRequestConstants {
+        public static final String AUTHENTICATOR_NAME = "authenticator";
+        public static final String IDP_NAME = "idp";
         public static final String REQUEST_DATA_KEY = "RequestDataKey";
         public static final String SESSION_KEY = "SIOWTOSW";
     }

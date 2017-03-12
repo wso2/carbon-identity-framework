@@ -124,14 +124,14 @@ public class SequenceContext implements Serializable {
 
     public static class StepContext implements Serializable {
 
-
         private static final long serialVersionUID = -6517237540622607778L;
-
+        private Status status = Status.INITIAL ;
         private int step;
         private String authenticatorName;
         private String identityProviderName;
         private User user;
-        private boolean isAuthenticated = false;
+        private int retryCount = 0;
+
 
         public String getAuthenticatorName() {
             return authenticatorName;
@@ -166,11 +166,33 @@ public class SequenceContext implements Serializable {
         }
 
         public boolean isAuthenticated() {
-            return isAuthenticated;
+            if(status.equals(Status.AUTHENTICATED)){
+                return true ;
+            }
+            return false ;
         }
 
-        public void setIsAuthenticated(boolean isAuthenticated) {
-            this.isAuthenticated = isAuthenticated;
+        public Status getStatus() {
+            return status;
         }
+
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
+        public int getRetryCount() {
+            return retryCount;
+        }
+
+        public void setRetryCount(int retryCount) {
+            this.retryCount = retryCount;
+        }
+    }
+
+    public static enum Status{
+        INITIAL,
+        INCOMPLETE,
+        AUTHENTICATED,
+        FAILED;
     }
 }

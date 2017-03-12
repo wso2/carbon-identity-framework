@@ -58,7 +58,7 @@ public class GatewayResource implements Microservice {
     @GET
     @Path("/endpoint")
     public Response endpoint(@QueryParam("callback") String callback,
-                             @QueryParam("state") String sessionDataKey) {
+                             @QueryParam("state") String sessionDataKey , @QueryParam("idplist") String idpList) {
         if (StringUtils.isBlank(callback)) {
             return handleBadRequest("Mandatory 'callback' parameter is missing in the request parameters.");
         }
@@ -66,20 +66,22 @@ public class GatewayResource implements Microservice {
         if (StringUtils.isBlank(sessionDataKey)) {
             return handleBadRequest("Mandatory 'sessionDataKey' parameter missing in request parameters.");
         }
+        if(StringUtils.isNotBlank(idpList)) {
+            String loginPage;
+            try {
+                loginPage = getLoginPageContent(callback, sessionDataKey, idpList);
+            } catch (IOException e) {
+                return Response.serverError().build();
+            }
 
-        String loginPage;
-        try {
-            loginPage = getLoginPageContent(callback, sessionDataKey);
-        } catch (IOException e) {
-            return Response.serverError().build();
+            return Response
+                    .ok()
+                    .entity(loginPage)
+                    .header(HttpHeaders.CONTENT_TYPE, "text/html")
+                    .header(HttpHeaders.CONTENT_LENGTH, loginPage.getBytes().length)
+                    .build();
         }
-
-        return Response
-                .ok()
-                .entity(loginPage)
-                .header(HttpHeaders.CONTENT_TYPE, "text/html")
-                .header(HttpHeaders.CONTENT_LENGTH, loginPage.getBytes().length)
-                .build();
+        return Response.serverError().build();
     }
 
 
@@ -118,7 +120,7 @@ public class GatewayResource implements Microservice {
         return response;
     }
 
-    private String getLoginPageContent(String callbackURL, String state) throws IOException {
+    private String getLoginPageContent(String callbackURL, String state, String idps) throws IOException {
 
         String response =  getLoginPage();
         if (StringUtils.isNotBlank(state)) {
@@ -128,6 +130,22 @@ public class GatewayResource implements Microservice {
         if (StringUtils.isNotBlank(callbackURL)) {
             response = response.replace("${callback}", callbackURL);
         }
+
+        String[] split = idps.split(",");
+        StringBuilder idpLinks = new StringBuilder();
+        for(String idp:split){
+            if(idp.equals("BasicAuthenticator:residentidp")){
+                response = response.replace("${basic-authenticator}", "block");
+            }else{
+                String[] aIdp = idp.split(":");
+                String link =
+                        "<a class='btn btn-primary btn-block btn-large'  href='"+callbackURL+"?state="+state+"&authenticator="+aIdp[0]+"&idp="+aIdp[1]+"'>"+aIdp[1]+"</a" +
+                        "><br>";
+                idpLinks.append(link);
+            }
+        }
+        response = response.replace("${basic-authenticator}", "none");
+        response = response.replace("${federated-idps}", idpLinks.toString());
 
         return response;
     }

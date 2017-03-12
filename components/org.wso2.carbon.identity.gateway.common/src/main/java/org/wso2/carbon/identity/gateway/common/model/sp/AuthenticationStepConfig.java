@@ -23,9 +23,11 @@ import java.util.List;
 public class AuthenticationStepConfig {
 
     private int step ;
+    private String executionStrategy ;
     private String useLocalSubjectIdentifier;
     private String useDomainInLocalSubjectIdentifier;
     private String authStrategy;
+    private int retryCount = 0 ;
     private List<IdentityProvider> identityProviders = new ArrayList<>();
 
     public String getAuthStrategy() {
@@ -66,5 +68,21 @@ public class AuthenticationStepConfig {
 
     public void setStep(int step) {
         this.step = step;
+    }
+
+    public String getExecutionStrategy() {
+        return executionStrategy;
+    }
+
+    public void setExecutionStrategy(String executionStrategy) {
+        this.executionStrategy = executionStrategy;
+    }
+
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
     }
 }

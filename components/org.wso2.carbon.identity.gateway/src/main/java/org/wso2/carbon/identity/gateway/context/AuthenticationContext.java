@@ -98,4 +98,5 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
     public void setUniqueId(String uniqueId) {
         this.uniqueId = uniqueId;
     }
+
 }

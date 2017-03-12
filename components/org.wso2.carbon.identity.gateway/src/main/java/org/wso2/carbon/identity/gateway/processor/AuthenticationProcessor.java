@@ -102,29 +102,25 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
                 }
             }
         } catch (GatewayServerException | GatewayClientException exception) {
-            if (log.isDebugEnabled()) {
-                String errorMessage = "Error occurred in AuthenticationProcessor, " + exception.getMessage();
-                log.debug(errorMessage, exception);
-            }
+            String errorMessage = "Error occurred in AuthenticationProcessor, " + exception.getMessage();
+            log.error(errorMessage, exception);
             try {
                 response = gatewayHandlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
                         (authenticationContext, exception);
             } catch (ResponseHandlerException e) {
-                String errorMessage = "Error occurred while processing the response, " + e.getMessage();
-                log.debug(errorMessage, e);
+                errorMessage = "Error occurred while processing the response, " + e.getMessage();
+                log.error(errorMessage, e);
                 throw new GatewayRuntimeException(errorMessage, e);
             }
         } catch (GatewayRuntimeException exception) {
-            if (log.isDebugEnabled()) {
-                String errorMessage = "Error occurred in AuthenticationProcessor, " + exception.getMessage();
-                log.debug(errorMessage, exception);
-            }
+            String errorMessage = "Error occurred in AuthenticationProcessor, " + exception.getMessage();
+            log.error(errorMessage, exception);
             try {
                 response = gatewayHandlerManager.getResponseHandler(authenticationContext, exception).buildErrorResponse
                         (authenticationContext, exception);
             } catch (ResponseHandlerException e) {
-                String errorMessage = "Error occurred while processing the response, " + e.getMessage();
-                log.debug(errorMessage, e);
+                errorMessage = "Error occurred while processing the response, " + e.getMessage();
+                log.error(errorMessage, e);
                 throw new GatewayRuntimeException(errorMessage, e);
             }
         }
@@ -155,7 +151,9 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             authenticationContext =
                     (AuthenticationContext) IdentityMessageContextCache.getInstance().get(requestDataKey);
             if (authenticationContext == null) {
-                throw new GatewayRuntimeException("AuthenticationContext is not available for give state value.");
+                String errorMessage = "AuthenticationContext is not available for give state value." ;
+                log.error(errorMessage);
+                throw new GatewayRuntimeException(errorMessage);
             }
             authenticationContext.setIdentityRequest(authenticationRequest);
         }

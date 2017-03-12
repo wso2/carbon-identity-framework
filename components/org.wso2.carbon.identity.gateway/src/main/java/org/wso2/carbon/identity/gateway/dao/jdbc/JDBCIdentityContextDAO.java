@@ -88,7 +88,9 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
                 namedPreparedStatement.setString(KEY, key);
             });
         } catch (DataAccessException e) {
-            throw new GatewayRuntimeException("Error while retrieving session.", e);
+            String errorMessage = "Error while retrieving session, " + e.getMessage();
+            logger.error(errorMessage, e);
+            throw new GatewayRuntimeException(errorMessage, e);
         }
         return identityMessageContextAtomicReference.get();
     }
@@ -109,7 +111,9 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new GatewayRuntimeException("Error while storing session.", e);
+            String errorMessage = "Error while storing session, " + e.getMessage();
+            logger.error(errorMessage, e);
+            throw new GatewayRuntimeException(errorMessage, e);
         }
     }
 
@@ -128,7 +132,9 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new GatewayRuntimeException("Error while storing session.", e);
+            String errorMessage = "Error while storing session, " + e.getMessage();
+            logger.error(errorMessage, e);
+            throw new GatewayRuntimeException(errorMessage, e);
         }
     }
 

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sample.outbound.authenticator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.model.FederatedUser;
@@ -51,6 +52,11 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
     }
 
     @Override
+    public String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext) {
+        return null;
+    }
+
+    @Override
     public String getFriendlyName() {
         return "SampleFederatedAuthenticator";
     }
@@ -74,16 +80,6 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
     public String getContextIdentifier(AuthenticationContext authenticationContext) {
         return null;
     }
-
-    @Override
-    protected boolean isInitialRequest(AuthenticationContext authenticationContext) {
-
-        if (authenticationContext.getIdentityRequest() instanceof SampleACSRequest) {
-            return false;
-        }
-        return true;
-    }
-
 
     @Override
     protected AuthenticationResponse processRequest(AuthenticationContext context)
@@ -110,12 +106,16 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
         // Access body params and query params in two different ways.
         try {
             context.getIdentityRequest().getQueryParameter("Assertion");
-            context.getIdentityRequest().getBodyParameter("bodyParamName");
-            context.getIdentityRequest().getHeaderNames();
-            context.getIdentityRequest().getHeaders("header");
+
         } catch (UnsupportedEncodingException e) {
-            log.error("Error while accessing parameters");
+            String error = "Error while accessing parameters, " + e.getMessage() ;
+            log.error(error , e);
+            throw new GatewayRuntimeException(error,e);
         }
+        context.getIdentityRequest().getBodyParameter("bodyParamName");
+        context.getIdentityRequest().getHeaderNames();
+        context.getIdentityRequest().getHeaders("header");
+
         Set<Claim> claims = new HashSet<Claim>();
         Claim claim = new Claim("http://wso2.org/claims", "http://wso2.org/claims/email" , "harsha@wso2.com");
         claims.add(claim);

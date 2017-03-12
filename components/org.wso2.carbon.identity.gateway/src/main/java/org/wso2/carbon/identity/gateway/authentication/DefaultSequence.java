@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.gateway.authentication;
 
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultSequence extends AbstractSequence {
@@ -114,7 +116,7 @@ public class DefaultSequence extends AbstractSequence {
         return false;
     }
 
-    private AuthenticationStepConfig getAuthenticationStepConfig(int step) throws AuthenticationHandlerException {
+    public AuthenticationStepConfig getAuthenticationStepConfig(int step)   {
         AtomicReference<AuthenticationStepConfig> authenticationStepConfig = new
                 AtomicReference<AuthenticationStepConfig>(null);
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
@@ -126,5 +128,32 @@ public class DefaultSequence extends AbstractSequence {
                     authenticationStepConfig.set(authenticationStepConfigTmp);
                 });
         return authenticationStepConfig.get();
+    }
+
+    @Override
+    public AuthenticatorConfig getAuthenticatorConfig(int step, String authenticatorName, String
+            identityProviderName) {
+        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
+        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
+        Optional<IdentityProvider> identityProvider = identityProviders.stream().filter(identityProviderTmp ->
+                identityProviderTmp
+                .getIdentityProviderName().equals
+                 (identityProviderName) && identityProviderTmp
+                .getAuthenticatorName().equals(authenticatorName)).findFirst();
+        if(identityProvider.isPresent()){
+            org.wso2.carbon.identity.gateway.common.model.idp.AuthenticationConfig authenticationConfig =
+                    identityProvider.get().getIdentityProviderConfig().getAuthenticationConfig();
+            List<AuthenticatorConfig> authenticatorConfigs = authenticationConfig.getAuthenticatorConfigs();
+            Optional<AuthenticatorConfig> authenticatorConfig = authenticatorConfigs.stream().filter
+                    (authenticatorConfigTmp ->
+                    authenticatorConfigTmp
+                    .getName().equals
+                    (authenticatorName)).findFirst();
+            if(authenticatorConfig.isPresent()){
+                return authenticatorConfig.get();
+            }
+
+        }
+        return null;
     }
 }

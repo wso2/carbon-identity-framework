@@ -125,7 +125,7 @@ public class GatewayUnitTests {
         try {
             gatewayHandlerManager.getRequestValidator(null);
         } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Can not find AbstractRequestValidator"));
+            Assert.assertTrue(e.getMessage().contains("Cannot find AbstractRequestValidator to handle this request."));
         }
     }
 
@@ -136,7 +136,7 @@ public class GatewayUnitTests {
         try {
             gatewayHandlerManager.getResponseHandler(null);
         } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Can not find a ResponseHandler"));
+            Assert.assertTrue(e.getMessage().contains("Cannot find ResponseHandler to handle this request."));
         }
     }
 
@@ -147,7 +147,7 @@ public class GatewayUnitTests {
         try {
             gatewayHandlerManager.getSessionHandler(null);
         } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Can not find AbstractSessionHandler"));
+            Assert.assertTrue(e.getMessage().contains("Cannot find AbstractSessionHandler to handle this request."));
         }
         GatewayServiceHolder gatewayServiceHolder = GatewayServiceHolder.getInstance();
         DefaultSessionHandler defaultSessionHandler = new DefaultSessionHandler();
@@ -159,7 +159,7 @@ public class GatewayUnitTests {
         try {
             gatewayHandlerManager.getSessionHandler(null);
         } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Can not find AbstractSessionHandler"));
+            Assert.assertTrue(e.getMessage().contains("Cannot find AbstractSessionHandler to handle this request."));
         }
     }
 

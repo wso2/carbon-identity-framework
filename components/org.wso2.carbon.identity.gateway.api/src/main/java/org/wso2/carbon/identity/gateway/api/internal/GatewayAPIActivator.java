@@ -27,7 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 
-
+/**
+ * Activator Component.
+ *
+ */
 @Component(
         name = "org.wso2.carbon.identity.gateway.api.internal.GatewayAPIActivator",
         immediate = true

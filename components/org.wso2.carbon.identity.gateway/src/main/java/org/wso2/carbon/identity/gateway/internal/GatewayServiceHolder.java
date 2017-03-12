@@ -32,10 +32,12 @@ import org.wso2.carbon.identity.gateway.authentication.StepHandler;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.executer.AbstractExecutionHandler;
 import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.session.AbstractSessionHandler;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
+import org.wso2.carbon.identity.mgt.RealmService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +45,7 @@ import java.util.List;
 public class GatewayServiceHolder {
     private static GatewayServiceHolder instance = new GatewayServiceHolder();
     //Authenticators
-    List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
+    private List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
     List<LocalApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
     List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
     //SequenceBuilder
@@ -51,6 +53,7 @@ public class GatewayServiceHolder {
     List<SequenceManager> sequenceManagers = new ArrayList<>();
     List<StepHandler> stepHandlers = new ArrayList<>();
     List<RequestPathHandler> requestPathHandlers = new ArrayList<>();
+    List<AbstractExecutionHandler> executionHandlers = new ArrayList<>();
 
 
     private BundleContext bundleContext = null;
@@ -69,6 +72,8 @@ public class GatewayServiceHolder {
     private ClaimResolvingService claimResolvingService = null;
     private ProfileMgtService profileMgtService = null;
 
+
+    private RealmService realmService = null ;
 
     private GatewayServiceHolder() {
         setNanoTimeReference(System.nanoTime());
@@ -212,5 +217,17 @@ public class GatewayServiceHolder {
 
     public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
         return sequenceBuildFactories;
+    }
+
+    public List<AbstractExecutionHandler> getExecutionHandlers() {
+        return executionHandlers;
+    }
+
+    public RealmService getRealmService() {
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 }

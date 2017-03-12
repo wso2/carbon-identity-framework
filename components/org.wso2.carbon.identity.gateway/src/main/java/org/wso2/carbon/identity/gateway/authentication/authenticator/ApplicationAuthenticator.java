@@ -47,4 +47,9 @@ public interface ApplicationAuthenticator {
 
     public AuthenticationResponse process(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException;
+    public default String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext){return "";}
+    //public String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext);
+    public default boolean isRetryEnable(AuthenticationContext authenticationContext){
+        return false ;
+    }
 }

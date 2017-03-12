@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.gateway.authentication;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.authentication.executer.AbstractExecutionHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 
@@ -43,8 +44,7 @@ public class HandlerManager {
     }
 
     public AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
-        return (AbstractSequenceBuildFactory) getHandler(GatewayServiceHolder.getInstance().getSequenceBuildFactories(),
-                                                         authenticationContext);
+        return (AbstractSequenceBuildFactory) getHandler(GatewayServiceHolder.getInstance().getSequenceBuildFactories(), authenticationContext);
     }
 
     public SequenceManager getSequenceManager(AuthenticationContext authenticationContext) {
@@ -56,6 +56,10 @@ public class HandlerManager {
         return (StepHandler) getHandler(GatewayServiceHolder.getInstance().getStepHandlers(), authenticationContext);
     }
 
+    public AbstractExecutionHandler getExecutionHandler(AuthenticationContext authenticationContext) {
+        return (AbstractExecutionHandler) getHandler(GatewayServiceHolder.getInstance().getExecutionHandlers(), authenticationContext);
+    }
+
     private AbstractGatewayHandler getHandler(List<? extends AbstractGatewayHandler> frameworkHandlers,
                                               AuthenticationContext authenticationContext) {
         if (frameworkHandlers != null) {
@@ -65,6 +69,7 @@ public class HandlerManager {
                 }
             }
         }
-        throw new GatewayRuntimeException("Cannot find a Handler to handle this request.");
+        String errorMessage = "Cannot find a Handler to handle this request, getHandler" ;
+        throw new GatewayRuntimeException(errorMessage);
     }
 }

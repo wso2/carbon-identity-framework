@@ -14,30 +14,23 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
-package org.wso2.carbon.identity.gateway.common.model.idp;
-
-import java.util.Properties;
+package org.wso2.carbon.identity.gateway.authentication.executer;
 
 
-public class AuthenticatorConfig extends AuthenticationConfig {
-    private String name;
-    private Properties properties = new Properties();
+public enum ExecutionStrategy {
+    SINGLE("single"),
+    MULTI("multi"),
+    PARALLEL("parallel"),
+    FAILOVER("failover");
 
-    public String getName() {
-        return name;
+    private String executionStrategy ;
+    private ExecutionStrategy(String executionStrategy){
+        this.executionStrategy = executionStrategy ;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
+    public String toString(){
+        return this.executionStrategy ;
     }
 }

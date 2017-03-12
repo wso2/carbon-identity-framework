@@ -14,6 +14,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
 package org.wso2.carbon.identity.gateway.authentication.local;
@@ -24,27 +25,16 @@ import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
 
 public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
 
-    private String authenticatorName;
-    private String identityProviderName;
 
-    private String userName ;
-    private String password ;
+    protected String userName ;
+    protected String password ;
 
     protected LocalAuthenticationRequest(LocalAuthenticationRequestBuilder builder) {
         super(builder);
-        authenticatorName = builder.authenticatorName;
-        identityProviderName = builder.identityProviderName;
         userName = builder.userName ;
         password = builder.password ;
     }
 
-    public String getAuthenticatorName() {
-        return authenticatorName;
-    }
-
-    public String getIdentityProviderName() {
-        return identityProviderName;
-    }
 
     public String getUserName() {
         return userName;
@@ -56,8 +46,6 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
 
     public static class LocalAuthenticationRequestBuilder extends CallbackAuthenticationRequestBuilder {
 
-        private String authenticatorName;
-        private String identityProviderName;
         private String userName ;
         private String password ;
 
@@ -68,16 +56,6 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
         @Override
         public LocalAuthenticationRequest build() throws GatewayRuntimeException {
             return new LocalAuthenticationRequest(this);
-        }
-
-        public LocalAuthenticationRequestBuilder setAuthenticatorName(String authenticatorName) {
-            this.authenticatorName = authenticatorName;
-            return this;
-        }
-
-        public LocalAuthenticationRequestBuilder setIdentityProviderName(String identityProviderName) {
-            this.identityProviderName = identityProviderName;
-            return this;
         }
 
         public LocalAuthenticationRequestBuilder setUserName(String userName) {
@@ -93,12 +71,9 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
 
     public static class FrameworkLoginRequestConstants
             extends CallbackAuthenticationRequest.CallbackAuthenticationRequestConstants {
-        public static final String AUTHENTICATOR_NAME = "authenticator";
-        public static final String IDP_NAME = "idp";
+
         public static final String REQUEST_DATA_KEY = "state";
-
         public static final String USER_NAME = "username";
-
         public static final String PASSWORD = "password";
     }
 }

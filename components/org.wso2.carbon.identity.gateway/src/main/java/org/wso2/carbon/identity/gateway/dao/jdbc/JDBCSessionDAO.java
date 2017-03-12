@@ -89,7 +89,9 @@ public class JDBCSessionDAO extends SessionDAO {
                 namedPreparedStatement.setString(KEY, key);
             });
         } catch (DataAccessException e) {
-            throw new GatewayRuntimeException("Error while retrieving session.", e);
+            String errorMessage = "Error while storing session, " + e.getMessage();
+            logger.error(errorMessage, e);
+            throw new GatewayRuntimeException(errorMessage, e);
         }
         return sessionContext.get();
     }
@@ -110,7 +112,9 @@ public class JDBCSessionDAO extends SessionDAO {
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new GatewayRuntimeException("Error while storing session.", e);
+            String errorMessage = "Error while storing session, " + e.getMessage();
+            logger.error(errorMessage, e);
+            throw new GatewayRuntimeException(errorMessage, e);
         }
     }
 
@@ -129,7 +133,9 @@ public class JDBCSessionDAO extends SessionDAO {
                 namedPreparedStatement.setTimeStamp(TIME_CREATED, new Timestamp(new Date().getTime()));
             }, null, false);
         } catch (DataAccessException e) {
-            throw new GatewayRuntimeException("Error while storing session.", e);
+            String errorMessage = "Error while storing session, " + e.getMessage();
+            logger.error(errorMessage, e);
+            throw new GatewayRuntimeException(errorMessage, e);
         }
     }
 

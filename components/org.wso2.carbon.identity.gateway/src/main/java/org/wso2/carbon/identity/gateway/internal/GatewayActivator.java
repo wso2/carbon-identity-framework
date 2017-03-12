@@ -46,6 +46,10 @@ import org.wso2.carbon.identity.gateway.authentication.authenticator.Application
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.authenticator.impl.BasicAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.executer.AbstractExecutionHandler;
+import org.wso2.carbon.identity.gateway.authentication.executer.MultiOptionExecutionHandler;
+import org.wso2.carbon.identity.gateway.authentication.executer.SingleOptionExecutionHandler;
 import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
@@ -83,6 +87,12 @@ public class GatewayActivator {
         //Registering processor
         AuthenticationProcessor authenticationProcessor = new AuthenticationProcessor();
         bundleContext.registerService(GatewayProcessor.class, authenticationProcessor, null);
+
+        //Register execution handlers
+        bundleContext.registerService(AbstractExecutionHandler.class, new SingleOptionExecutionHandler(), null);
+        bundleContext.registerService(AbstractExecutionHandler.class, new MultiOptionExecutionHandler(), null);
+
+        bundleContext.registerService(ApplicationAuthenticator.class, new BasicAuthenticator(), null);
 
 
         //Registering this for demo perposes only
@@ -418,6 +428,32 @@ public class GatewayActivator {
         }
     }
 
+
+    @Reference(
+            name = "identity.handler.execution",
+            service = AbstractExecutionHandler.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unSetExecutionHandler"
+    )
+    protected void addExecutionHandler(AbstractExecutionHandler executionHandler) {
+
+        GatewayServiceHolder.getInstance().getExecutionHandlers().add(executionHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Added AbstractExecutionHandler : " + AbstractExecutionHandler.class);
+        }
+    }
+
+    protected void unSetExecutionHandler(AbstractExecutionHandler executionHandler) {
+
+        GatewayServiceHolder.getInstance().getExecutionHandlers().remove(executionHandler);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed AbstractExecutionHandler : " + AbstractExecutionHandler.class);
+        }
+    }
+
     @Reference(
             name = "org.wso2.carbon.datasource.jndi",
             service = JNDIContextManager.class,
@@ -459,11 +495,11 @@ public class GatewayActivator {
         if (log.isDebugEnabled()) {
             log.debug("Setting the Realm Service");
         }
-        //dataHolder.setRealmService(realmService);
+        GatewayServiceHolder.getInstance().setRealmService(realmService);
     }
 
     protected void unsetRealmService(RealmService realmService) {
         log.debug("UnSetting the Realm Service");
-        //dataHolder.setRealmService(null);
+        GatewayServiceHolder.getInstance().setRealmService(null);
     }
 }

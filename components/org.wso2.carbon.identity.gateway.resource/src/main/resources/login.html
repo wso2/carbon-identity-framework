@@ -151,6 +151,7 @@
         input:focus {
             box-shadow: inset 0 -5px 45px rgba(100, 100, 100, 0.4), 0 1px 1px rgba(255, 255, 255, 0.2);
         }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
@@ -160,14 +161,20 @@
 <body>
 <div class="login">
     <h1>WSO2 Identity Server</h1>
-    <form method="post" action="${callback}">
-        <input type="text" name="username" placeholder="Username" required="required"/>
-        <input type="password" name="password" placeholder="Password" required="required"/>
-        <input type="hidden" name="state" value="${sessionDataKey}">
-        <input type="hidden" name="authenticator" value="BasicAuthenticator" />
-        <input type="hidden" name="idp" value="myidp" />
-        <button type="submit" class="btn btn-primary btn-block btn-large">Login</button>
-    </form>
+    <div style="display: ${basic-authenticator}">
+        <form method="post" action="${callback}">
+            <input type="text" name="username" placeholder="Username" required="required"/>
+            <input type="password" name="password" placeholder="Password" required="required"/>
+            <input type="hidden" name="state" value="${sessionDataKey}">
+            <input type="hidden" name="authenticator" value="BasicAuthenticator" />
+            <input type="hidden" name="idp" value="residentidp" />
+            <button type="submit" class="btn btn-primary btn-block btn-large">Login</button>
+        </form>
+    </div>
+    <br>
+
+    <br>
+    ${federated-idps}
 </div>
 
 </body>

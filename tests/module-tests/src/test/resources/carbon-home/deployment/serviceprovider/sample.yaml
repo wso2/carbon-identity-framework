@@ -36,6 +36,7 @@ serviceProviderConfig:
         useLocalSubjectIdentifier : "true"
         useDomainInLocalSubjectIdentifier : "true"
         authStrategy : ""
+        executionStrategy : "single"
         identityProviders :
           -
             identityProviderName : "myidp"

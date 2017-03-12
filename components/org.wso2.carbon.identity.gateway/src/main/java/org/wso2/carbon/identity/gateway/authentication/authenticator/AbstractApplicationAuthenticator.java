@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.mgt.claim.Claim;
@@ -82,7 +83,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             }
             return transformedClaimsTmp;
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
-            throw new AuthenticationHandlerException(e.getMessage(), e);
+            String errorMessage = "Error occurred while mapping to root claims, " + e.getMessage() ;
+            log.error(errorMessage, e);
+            throw new AuthenticationHandlerException(errorMessage, e);
         }
     }
 
@@ -98,8 +101,17 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return authenticationResponse;
     }
 
-    protected abstract boolean isInitialRequest(AuthenticationContext authenticationContext)
-            throws AuthenticationHandlerException;
+    protected boolean isInitialRequest(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException {
+        SequenceContext sequenceContext = authenticationContext.getSequenceContext();
+        SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
+        if(currentStepContext.getStatus().equals(SequenceContext.Status.INITIAL) || currentStepContext.getStatus()
+                .equals(SequenceContext.Status.FAILED)){
+            return true ;
+        }
+        return false ;
+    }
+
 
     protected abstract AuthenticationResponse processRequest(AuthenticationContext context)
             throws AuthenticationHandlerException;

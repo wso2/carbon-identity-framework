@@ -21,6 +21,8 @@ import java.io.Serializable;
 import java.util.Properties;
 
 public class RequestValidatorConfig implements Serializable {
+
+
     private String type;
     private String uniquePropertyName;
 

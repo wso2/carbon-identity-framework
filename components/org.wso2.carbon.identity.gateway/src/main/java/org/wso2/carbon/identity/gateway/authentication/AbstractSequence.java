@@ -18,7 +18,10 @@
 package org.wso2.carbon.identity.gateway.authentication;
 
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticationConfig;
+import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
@@ -55,4 +58,11 @@ public abstract class AbstractSequence extends AbstractGatewayHandler implements
     public abstract boolean isRequestPathAuthenticatorsAvailable();
 
     public abstract boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException;
+
+    public abstract AuthenticationStepConfig getAuthenticationStepConfig(int step)   ;
+
+    public abstract AuthenticatorConfig getAuthenticatorConfig(int step, String authenticatorName, String
+            identityProvider)
+            ;
+
 }

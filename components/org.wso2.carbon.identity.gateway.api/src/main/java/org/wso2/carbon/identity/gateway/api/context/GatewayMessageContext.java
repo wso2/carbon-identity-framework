@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.gateway.api.context;
 
+import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 
@@ -73,5 +74,18 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
      */
     public void setIdentityRequest(T3 identityRequest) {
         this.identityRequest = identityRequest;
+    }
+
+
+    //#TODO: We don't have a tmp parameter store to store data until start from the context and store it. We don't
+    // need to restore it after cache.
+    /**
+     * Tmp override until get solution
+     *
+     * @param key
+     * @param value
+     */
+    public void addParameter(T1 key, T2 value) {
+        this.parameters.put(key, value);
     }
 }
