@@ -71,7 +71,7 @@ public class LocalAuthenticationRequestBuilderFactory extends GatewayRequestBuil
 
         LocalAuthenticationRequest.LocalAuthenticationRequestBuilder localAuthenticationRequestBuilder = new
                 LocalAuthenticationRequest.LocalAuthenticationRequestBuilder();
-        this.create(localAuthenticationRequestBuilder,request);
+        this.create(localAuthenticationRequestBuilder, request);
         return localAuthenticationRequestBuilder;
     }
 

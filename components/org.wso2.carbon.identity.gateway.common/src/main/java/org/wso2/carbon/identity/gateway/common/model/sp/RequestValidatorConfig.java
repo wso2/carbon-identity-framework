@@ -22,6 +22,7 @@ import java.util.Properties;
 
 public class RequestValidatorConfig implements Serializable {
 
+    private static final long serialVersionUID = -4069605490920681650L;
 
     private String type;
     private String uniquePropertyName;

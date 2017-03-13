@@ -19,12 +19,7 @@
 package org.wso2.carbon.identity.gateway.internal;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.*;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +30,7 @@ import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.authentication.SequenceBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
-import org.wso2.carbon.identity.gateway.authentication.SequenceBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
-import org.wso2.carbon.identity.gateway.authentication.StepHandler;
+import org.wso2.carbon.identity.gateway.authentication.*;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;

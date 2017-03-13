@@ -56,7 +56,7 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
 
         final String retrieveContext =
                 "SELECT " + "OPERATION, TIME_CREATED, SESSION_OBJECT FROM IDN_CONTEXT WHERE KEY = :" + KEY + "; " +
-                "ORDER BY TIME_CREATED DESC LIMIT 1";
+                        "ORDER BY TIME_CREATED DESC LIMIT 1";
 
         AtomicReference<GatewayMessageContext> identityMessageContextAtomicReference = new AtomicReference<>();
 
@@ -100,8 +100,8 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
 
         final String storeContext =
                 "INSERT INTO IDN_CONTEXT " + "(KEY, OPERATION, SESSION_OBJECT, TIME_CREATED)"
-                + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :" + SESSION_OBJECT + ";, :"
-                + TIME_CREATED + ";)";
+                        + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :" + SESSION_OBJECT + ";, :"
+                        + TIME_CREATED + ";)";
 
         try {
             jdbcTemplate.executeInsert(storeContext, (namedPreparedStatement) -> {
@@ -122,8 +122,8 @@ public class JDBCIdentityContextDAO extends IdentityContextDAO {
 
         final String deleteContext =
                 "INSERT INTO IDN_CONTEXT " + "(KEY, OPERATION, TIME_CREATED)"
-                + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :"
-                + TIME_CREATED + ";)";
+                        + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :"
+                        + TIME_CREATED + ";)";
 
         try {
             jdbcTemplate.executeInsert(deleteContext, (namedPreparedStatement) -> {

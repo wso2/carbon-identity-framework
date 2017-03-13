@@ -21,14 +21,10 @@ package org.wso2.carbon.identity.gateway.handler.authentication;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.authentication.HandlerManager;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
-import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
+import org.wso2.carbon.identity.gateway.authentication.*;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 
 public class AuthenticationHandler extends AbstractGatewayHandler {
     @Override
@@ -37,7 +33,7 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
     }
 
     public GatewayHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
-                                                                                              AuthenticationHandlerException {
+            AuthenticationHandlerException {
         HandlerManager handlerManager = HandlerManager.getInstance();
         AbstractSequenceBuildFactory abstractSequenceBuildFactory =
                 handlerManager.getSequenceBuildFactory(authenticationContext);
@@ -57,11 +53,10 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
 
     private GatewayHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
         GatewayHandlerResponse gatewayHandlerResponse = null;
-        if (AuthenticationResponse.AUTHENTICATED.equals(handlerResponse)) {
-            gatewayHandlerResponse = GatewayHandlerResponse.CONTINUE;
-        } else if (AuthenticationResponse.INCOMPLETE.equals(handlerResponse)) {
-            gatewayHandlerResponse = GatewayHandlerResponse.REDIRECT;
-            gatewayHandlerResponse.setGatewayResponseBuilder(handlerResponse.getGatewayResponseBuilder());
+        if (AuthenticationResponse.Status.AUTHENTICATED.equals(handlerResponse.status)) {
+            gatewayHandlerResponse = new GatewayHandlerResponse();
+        } else if (AuthenticationResponse.Status.INCOMPLETE.equals(handlerResponse.status)) {
+            gatewayHandlerResponse = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, handlerResponse.getGatewayResponseBuilder());
         }
         return gatewayHandlerResponse;
     }

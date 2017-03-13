@@ -20,9 +20,6 @@ package org.wso2.carbon.identity.gateway.model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
-import org.wso2.carbon.identity.mgt.IdentityStore;
-import org.wso2.carbon.identity.mgt.RealmService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
 import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
@@ -32,28 +29,17 @@ import java.util.Set;
 
 public class LocalUser extends User {
 
-    org.wso2.carbon.identity.mgt.User user;
-    private transient Logger log = LoggerFactory.getLogger(LocalUser.class);
+    private  static final long serialVersionUID = -6463173506025377046L;
+
+    private org.wso2.carbon.identity.mgt.User user;
 
     public LocalUser(org.wso2.carbon.identity.mgt.User user) {
         this.user = user;
     }
 
     @Override
-    public Set<Claim> getClaims() {
-        try {
-            /*RealmService realmService = GatewayServiceHolder.getInstance().getRealmService();
-            IdentityStore identityStore = realmService.getIdentityStore();
-            org.wso2.carbon.identity.mgt.User userTmp = identityStore.getUser(this.user.getUniqueUserId());*/
-            return new HashSet(user.getClaims());
-        } catch (IdentityStoreException e) {
-            log.error("Error while reading user claims from local identity store, " + e.getMessage(), e);
-            return new HashSet();
-        } catch (UserNotFoundException e) {
-            String errorMessage = "User cannot be found in local identity store, " + e.getMessage() ;
-            log.error(errorMessage, e);
-            throw new GatewayRuntimeException(errorMessage, e);
-        }
+    public Set<Claim> getClaims() throws IdentityStoreException, UserNotFoundException {
+        return new HashSet(user.getClaims());
     }
 
     @Override

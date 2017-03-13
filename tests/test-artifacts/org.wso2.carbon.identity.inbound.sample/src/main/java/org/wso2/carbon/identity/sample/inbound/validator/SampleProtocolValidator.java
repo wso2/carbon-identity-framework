@@ -40,7 +40,7 @@ public class SampleProtocolValidator extends AbstractRequestValidator {
         }
         // Can access validator configurations.
         getValidatorConfig(authenticationContext);
-        return GatewayHandlerResponse.CONTINUE;
+        return new GatewayHandlerResponse();
     }
 
     @Override

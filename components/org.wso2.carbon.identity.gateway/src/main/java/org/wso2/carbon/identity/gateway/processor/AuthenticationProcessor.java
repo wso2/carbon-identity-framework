@@ -24,12 +24,12 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
@@ -46,7 +46,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
     public boolean canHandle(GatewayRequest gatewayRequest) {
 
         if (gatewayRequest instanceof ClientAuthenticationRequest
-            || gatewayRequest instanceof CallbackAuthenticationRequest) {
+                || gatewayRequest instanceof CallbackAuthenticationRequest) {
             return true;
         }
         return false;
@@ -63,7 +63,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             log.debug("AuthenticationProcessor is starting to process the request.");
         }
         AuthenticationContext authenticationContext = null;
-        GatewayHandlerResponse response = GatewayHandlerResponse.CONTINUE;
+        GatewayHandlerResponse response =new GatewayHandlerResponse(GatewayHandlerResponse.Status.CONTINUE);
         GatewayHandlerManager gatewayHandlerManager = GatewayHandlerManager.getInstance();
         try {
             authenticationContext = loadAuthenticationContext(authenticationRequest);
@@ -77,21 +77,21 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
                     log.debug("AuthenticationProcessor called the validation.");
                 }
             }
-            if (response.equals(GatewayHandlerResponse.CONTINUE)) {
+            if (response.status.equals(GatewayHandlerResponse.Status.CONTINUE)) {
 
                 response = gatewayHandlerManager.getAuthenticationHandler(authenticationContext)
                         .doAuthenticate(authenticationContext);
                 if (log.isDebugEnabled()) {
                     log.debug("AuthenticationProcessor called the authentication.");
                 }
-                if (response.equals(GatewayHandlerResponse.CONTINUE)) {
+                if (response.status.equals(GatewayHandlerResponse.Status.CONTINUE)) {
 
                     response = gatewayHandlerManager.getSessionHandler(authenticationContext)
                             .updateSession(authenticationContext);
                     if (log.isDebugEnabled()) {
                         log.debug("AuthenticationProcessor called the update session.");
                     }
-                    if (response.equals(GatewayHandlerResponse.CONTINUE)) {
+                    if (response.status.equals(GatewayHandlerResponse.Status.CONTINUE)) {
 
                         response = gatewayHandlerManager.getResponseHandler(authenticationContext)
                                 .buildResponse(authenticationContext);
@@ -151,7 +151,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             authenticationContext =
                     (AuthenticationContext) IdentityMessageContextCache.getInstance().get(requestDataKey);
             if (authenticationContext == null) {
-                String errorMessage = "AuthenticationContext is not available for give state value." ;
+                String errorMessage = "AuthenticationContext is not available for give state value.";
                 log.error(errorMessage);
                 throw new GatewayRuntimeException(errorMessage);
             }

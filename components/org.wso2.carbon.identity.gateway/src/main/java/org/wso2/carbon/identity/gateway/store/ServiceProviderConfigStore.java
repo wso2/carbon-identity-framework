@@ -18,12 +18,7 @@
 package org.wso2.carbon.identity.gateway.store;
 
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
-import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidationConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -90,8 +85,8 @@ public class ServiceProviderConfigStore {
         authenticationStepConfigs.forEach(authenticationStepConfig -> {
             List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
             identityProviders.stream().filter(identityProvider -> identityProvider
-                                                                          .getIdentityProviderConfig()
-                                                                  == null)
+                    .getIdentityProviderConfig()
+                    == null)
                     .forEach(this::updateIdentityProvider);
         });
     }

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -23,7 +22,6 @@ package org.wso2.carbon.identity.gateway.authentication.executer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
@@ -42,36 +40,17 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
     @Override
     public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
 
-        ApplicationAuthenticator applicationAuthenticator = null ;
+        ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
         AbstractSequence sequence = authenticationContext.getSequence();
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest)authenticationContext.getIdentityRequest();
+        AuthenticationRequest authenticationRequest = (AuthenticationRequest) authenticationContext.getIdentityRequest();
 
-        if (currentStepContext != null) {
-            if (StringUtils.isNotBlank(currentStepContext.getAuthenticatorName())
-                    && StringUtils.isNotBlank(currentStepContext.getIdentityProviderName())) {
-                applicationAuthenticator = getApplicationAuthenticator(currentStepContext.getAuthenticatorName());
-            }else if(StringUtils.isNotBlank(authenticationRequest.getAuthenticatorName()) && StringUtils.isNotBlank
-                    (authenticationRequest.getIdentityProviderName())){
-                applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
-                currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
-                currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
-            }
-        }else{
-            currentStepContext = sequenceContext.addStepContext();
-            if(authenticationRequest instanceof ClientAuthenticationRequest && StringUtils.isNotBlank(authenticationRequest
-                    .getAuthenticatorName())
-                    &&
-                    StringUtils.isNotBlank
-                    (authenticationRequest.getIdentityProviderName())){
-                applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
-                currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
-                currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
-            }
-        }
+        applicationAuthenticator = getApplicationAuthenticator(authenticationContext);
 
-        if(applicationAuthenticator == null){
+        currentStepContext = sequenceContext.getCurrentStepContext();
+
+        if (applicationAuthenticator == null) {
             AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
             IdentityProvider identityProvider = authenticationStepConfig.getIdentityProviders().get(0);
             currentStepContext.setAuthenticatorName(identityProvider.getAuthenticatorName());
@@ -79,15 +58,15 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
             applicationAuthenticator = getApplicationAuthenticator(identityProvider.getAuthenticatorName());
         }
 
-        if(applicationAuthenticator == null){
+        if (applicationAuthenticator == null) {
             throw new AuthenticationHandlerException("Authenticator not found.");
         }
         AuthenticationResponse response = null;
         try {
             response = applicationAuthenticator.process(authenticationContext);
-            if(AuthenticationResponse.AUTHENTICATED.equals(response)){
+            if (AuthenticationResponse.Status.AUTHENTICATED.equals(response.status)) {
                 sequenceContext.getCurrentStepContext().setStatus(SequenceContext.Status.AUTHENTICATED);
-            }else{
+            } else {
                 sequenceContext.getCurrentStepContext().setStatus(SequenceContext.Status.INCOMPLETE);
             }
         } catch (AuthenticationHandlerException e) {
@@ -97,15 +76,15 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
             //To check enable/disable to retry from authetnicator and try.
             //Retry count for only per step.
             currentStepContext.setStatus(SequenceContext.Status.FAILED);
-            if(applicationAuthenticator.isRetryEnable(authenticationContext)){
+            if (applicationAuthenticator.isRetryEnable(authenticationContext)) {
                 AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
                 int retryCount = authenticationStepConfig.getRetryCount();
-                if(currentStepContext.getRetryCount() <= retryCount){
+                if (currentStepContext.getRetryCount() <= retryCount) {
                     currentStepContext.setRetryCount(retryCount + 1);
                     return execute(authenticationContext);
                 }
 
-            }else{
+            } else {
 
                 throw e;
             }
@@ -115,6 +94,8 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
 
         return response;
     }
+
+
 
     @Override
     public boolean canHandle(AuthenticationContext authenticationContext) {

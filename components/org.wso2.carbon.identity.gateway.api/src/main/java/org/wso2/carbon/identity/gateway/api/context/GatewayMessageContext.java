@@ -35,8 +35,7 @@ import java.util.Map;
  */
 public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends GatewayRequest>
         extends
-        MessageContext<T1, T2>
-        implements Serializable {
+        MessageContext<T1, T2>{
 
     private static final long serialVersionUID = 104614801932285909L;
 

@@ -22,13 +22,13 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuildingConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 
 import java.util.Iterator;
@@ -52,11 +52,11 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
     public abstract boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception);
 
     public ResponseBuilderConfig getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
-                                                                                                        AuthenticationHandlerException {
+            AuthenticationHandlerException {
         ResponseBuilderConfig responseBuilderConfig = null;
         if (authenticationContext.getServiceProvider() == null) {
             throw new AuthenticationHandlerException("Error while getting validator configs : No service provider " +
-                                                     "found with uniqueId : " + authenticationContext.getUniqueId());
+                    "found with uniqueId : " + authenticationContext.getUniqueId());
         }
 
         ResponseBuildingConfig responseBuildingConfig = authenticationContext.getServiceProvider()
@@ -79,6 +79,6 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
                                  AuthenticationContext context) throws ResponseHandlerException {
 
         responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants
-                                                                            .SESSION_KEY));
+                .SESSION_KEY));
     }
 }

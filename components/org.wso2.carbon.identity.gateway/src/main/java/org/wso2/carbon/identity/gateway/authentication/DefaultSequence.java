@@ -34,6 +34,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultSequence extends AbstractSequence {
 
+    private static final long serialVersionUID = -833644147304785568L;
+
     public DefaultSequence(AuthenticationContext authenticationContext) {
         super(authenticationContext);
     }
@@ -109,14 +111,14 @@ public class DefaultSequence extends AbstractSequence {
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
         if (authenticationConfig.getAuthenticationStepConfigs() != null && authenticationConfig
-                                                                                   .getAuthenticationStepConfigs()
-                                                                                   .size() > 0) {
+                .getAuthenticationStepConfigs()
+                .size() > 0) {
             return true;
         }
         return false;
     }
 
-    public AuthenticationStepConfig getAuthenticationStepConfig(int step)   {
+    public AuthenticationStepConfig getAuthenticationStepConfig(int step) {
         AtomicReference<AuthenticationStepConfig> authenticationStepConfig = new
                 AtomicReference<AuthenticationStepConfig>(null);
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
@@ -137,19 +139,19 @@ public class DefaultSequence extends AbstractSequence {
         List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
         Optional<IdentityProvider> identityProvider = identityProviders.stream().filter(identityProviderTmp ->
                 identityProviderTmp
-                .getIdentityProviderName().equals
-                 (identityProviderName) && identityProviderTmp
-                .getAuthenticatorName().equals(authenticatorName)).findFirst();
-        if(identityProvider.isPresent()){
+                        .getIdentityProviderName().equals
+                        (identityProviderName) && identityProviderTmp
+                        .getAuthenticatorName().equals(authenticatorName)).findFirst();
+        if (identityProvider.isPresent()) {
             org.wso2.carbon.identity.gateway.common.model.idp.AuthenticationConfig authenticationConfig =
                     identityProvider.get().getIdentityProviderConfig().getAuthenticationConfig();
             List<AuthenticatorConfig> authenticatorConfigs = authenticationConfig.getAuthenticatorConfigs();
             Optional<AuthenticatorConfig> authenticatorConfig = authenticatorConfigs.stream().filter
                     (authenticatorConfigTmp ->
-                    authenticatorConfigTmp
-                    .getName().equals
-                    (authenticatorName)).findFirst();
-            if(authenticatorConfig.isPresent()){
+                            authenticatorConfigTmp
+                                    .getName().equals
+                                    (authenticatorName)).findFirst();
+            if (authenticatorConfig.isPresent()) {
                 return authenticatorConfig.get();
             }
 

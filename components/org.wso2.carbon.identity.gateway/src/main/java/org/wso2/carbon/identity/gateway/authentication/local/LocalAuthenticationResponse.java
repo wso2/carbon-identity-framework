@@ -23,18 +23,20 @@ import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
 
-public class LocalAuthenticationResponse extends GatewayResponse{
+public class LocalAuthenticationResponse extends GatewayResponse {
+
+    private static final long serialVersionUID = -5705077843359711620L;
     protected String endpointURL;
     protected String relayState;
     //#TODO:This has to be improve to transfer more data to the endpoint. For now this is redirection and must be
     // post with all idp:auth list and the execution strategy. Based on that we may have to do lot of stuff in UI.
-    protected String identityProviderList ;
+    protected String identityProviderList;
 
     protected LocalAuthenticationResponse(LocalAuthenticationResponseBuilder builder) {
         super(builder);
         this.endpointURL = builder.endpointURL;
-        this.relayState = builder.relayState ;
-        this.identityProviderList = builder.identityProviderList ;
+        this.relayState = builder.relayState;
+        this.identityProviderList = builder.identityProviderList;
     }
 
     public String getEndpointURL() {
@@ -51,8 +53,8 @@ public class LocalAuthenticationResponse extends GatewayResponse{
 
     public static class LocalAuthenticationResponseBuilder extends GatewayResponseBuilder {
         protected String endpointURL;
-        protected String relayState ;
-        protected String identityProviderList ;
+        protected String relayState;
+        protected String identityProviderList;
 
         public LocalAuthenticationResponseBuilder(GatewayMessageContext context) {
             this.context = context;
@@ -61,6 +63,7 @@ public class LocalAuthenticationResponse extends GatewayResponse{
         public LocalAuthenticationResponseBuilder() {
 
         }
+
         public GatewayResponseBuilder setEndpointURL(String endpointURL) {
             this.endpointURL = endpointURL;
             return this;
@@ -75,6 +78,7 @@ public class LocalAuthenticationResponse extends GatewayResponse{
             this.relayState = relayState;
             return this;
         }
+
         public LocalAuthenticationResponse build() {
             return new LocalAuthenticationResponse(this);
         }

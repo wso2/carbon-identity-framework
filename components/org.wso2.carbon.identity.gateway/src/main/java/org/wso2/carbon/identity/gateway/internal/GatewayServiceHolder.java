@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
 import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
@@ -44,8 +43,6 @@ import java.util.List;
 
 public class GatewayServiceHolder {
     private static GatewayServiceHolder instance = new GatewayServiceHolder();
-    //Authenticators
-    private List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
     List<LocalApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
     List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
     //SequenceBuilder
@@ -54,8 +51,8 @@ public class GatewayServiceHolder {
     List<StepHandler> stepHandlers = new ArrayList<>();
     List<RequestPathHandler> requestPathHandlers = new ArrayList<>();
     List<AbstractExecutionHandler> executionHandlers = new ArrayList<>();
-
-
+    //Authenticators
+    private List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
     private BundleContext bundleContext = null;
     private long nanoTimeReference = 0;
     private long unixTimeReference = 0;
@@ -73,7 +70,7 @@ public class GatewayServiceHolder {
     private ProfileMgtService profileMgtService = null;
 
 
-    private RealmService realmService = null ;
+    private RealmService realmService = null;
 
     private GatewayServiceHolder() {
         setNanoTimeReference(System.nanoTime());

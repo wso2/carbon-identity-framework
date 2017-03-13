@@ -26,13 +26,14 @@ import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
 public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
 
 
-    protected String userName ;
-    protected String password ;
+    private static final long serialVersionUID = -7234872028785364929L;
+    protected String userName;
+    protected String password;
 
     protected LocalAuthenticationRequest(LocalAuthenticationRequestBuilder builder) {
         super(builder);
-        userName = builder.userName ;
-        password = builder.password ;
+        userName = builder.userName;
+        password = builder.password;
     }
 
 
@@ -46,8 +47,8 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
 
     public static class LocalAuthenticationRequestBuilder extends CallbackAuthenticationRequestBuilder {
 
-        private String userName ;
-        private String password ;
+        private String userName;
+        private String password;
 
         public LocalAuthenticationRequestBuilder() {
             super();

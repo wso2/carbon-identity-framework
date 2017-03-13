@@ -18,11 +18,11 @@
 package org.wso2.carbon.identity.gateway.handler.validator;
 
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 
 import java.util.Iterator;
 import java.util.List;

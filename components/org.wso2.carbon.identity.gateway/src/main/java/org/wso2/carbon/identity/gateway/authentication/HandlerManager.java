@@ -40,7 +40,7 @@ public class HandlerManager {
 
     public RequestPathHandler getRequestPathHandler(AuthenticationContext authenticationContext) {
         return (RequestPathHandler) getHandler(GatewayServiceHolder.getInstance().getRequestPathHandlers(),
-                                               authenticationContext);
+                authenticationContext);
     }
 
     public AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
@@ -49,7 +49,7 @@ public class HandlerManager {
 
     public SequenceManager getSequenceManager(AuthenticationContext authenticationContext) {
         return (SequenceManager) getHandler(GatewayServiceHolder.getInstance().getSequenceManagers(),
-                                            authenticationContext);
+                authenticationContext);
     }
 
     public StepHandler getStepHandler(AuthenticationContext authenticationContext) {
@@ -69,7 +69,7 @@ public class HandlerManager {
                 }
             }
         }
-        String errorMessage = "Cannot find a Handler to handle this request, getHandler" ;
+        String errorMessage = "Cannot find a Handler to handle this request, getHandler";
         throw new GatewayRuntimeException(errorMessage);
     }
 }

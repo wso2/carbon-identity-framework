@@ -21,6 +21,7 @@ import java.io.Serializable;
 
 public class UserClaim implements Serializable {
 
+    private static final long serialVersionUID = 3160947562243688879L;
     private String uri;
     private String value;
 

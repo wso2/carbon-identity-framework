@@ -48,11 +48,11 @@ public class LocalAuthenticationResponseBuilderFactory extends GatewayResponseBu
 
         LocalAuthenticationResponse localAuthenticationResponse = (LocalAuthenticationResponse) gatewayResponse;
         builder.status(302);
-        String url = ((LocalAuthenticationResponse) gatewayResponse).getEndpointURL() + "?callback=" + URLEncoder.encode
-                ("https://localhost:9292/gateway")+
-        "&state=" + (
-                (LocalAuthenticationResponse) gatewayResponse).getRelayState()+"&idplist="+(
-                        (LocalAuthenticationResponse) gatewayResponse).getIdentityProviderList();
+        String url = localAuthenticationResponse.getEndpointURL() + "?callback=" + URLEncoder.encode
+                ("https://localhost:9292/gateway") +
+                "&state=" +
+                localAuthenticationResponse.getRelayState() + "&idplist=" + localAuthenticationResponse
+                        .getIdentityProviderList();
         builder.header(HttpHeaders.LOCATION, url);
 
     }

@@ -84,11 +84,11 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
     @Override
     protected AuthenticationResponse processRequest(AuthenticationContext context)
             throws AuthenticationHandlerException {
-        AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE;
+
         GatewayResponse.GatewayResponseBuilder builder = new SampleProtocolRequestResponse
                 .SampleProtocolRequestResponseBuilder();
         builder.setSessionKey(context.getInitialAuthenticationRequest().getRequestKey());
-        authenticationResponse.setGatewayResponseBuilder(builder);
+        AuthenticationResponse authenticationResponse = new AuthenticationResponse(builder);
         return authenticationResponse;
     }
 
@@ -121,7 +121,7 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
         claims.add(claim);
         federatedUser.setUserClaims(claims);
         context.getSequenceContext().getCurrentStepContext().setUser(federatedUser);
-        AuthenticationResponse authenticationResponse =  AuthenticationResponse.AUTHENTICATED;
+        AuthenticationResponse authenticationResponse =  new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
         return authenticationResponse;
     }
 

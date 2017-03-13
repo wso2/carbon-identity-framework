@@ -24,6 +24,7 @@ import java.util.Set;
 
 public class FederatedUser extends User {
 
+    private static final long serialVersionUID = -5393292585880142557L;
     private String identifier;
     private Set<Claim> claims = new HashSet();
 

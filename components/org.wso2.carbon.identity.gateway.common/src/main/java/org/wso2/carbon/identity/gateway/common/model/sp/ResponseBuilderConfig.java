@@ -22,6 +22,9 @@ import java.io.Serializable;
 import java.util.Properties;
 
 public class ResponseBuilderConfig implements Serializable {
+
+
+    private static final long serialVersionUID = 6814505003736404754L;
     private String type;
     private Properties properties = new Properties();
 

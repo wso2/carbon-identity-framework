@@ -57,7 +57,7 @@ public class JDBCSessionDAO extends SessionDAO {
 
         final String retrieveSession =
                 "SELECT " + "OPERATION, TIME_CREATED, SESSION_OBJECT FROM IDN_SESSION WHERE KEY = :" + KEY + "; " +
-                "ORDER BY TIME_CREATED DESC LIMIT 1";
+                        "ORDER BY TIME_CREATED DESC LIMIT 1";
 
         AtomicReference<SessionContext> sessionContext = new AtomicReference<>();
 
@@ -101,8 +101,8 @@ public class JDBCSessionDAO extends SessionDAO {
 
         final String storeSession =
                 "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, SESSION_OBJECT, TIME_CREATED)"
-                + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :" + SESSION_OBJECT + ";, :"
-                + TIME_CREATED + ";)";
+                        + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :" + SESSION_OBJECT + ";, :"
+                        + TIME_CREATED + ";)";
 
         try {
             jdbcTemplate.executeInsert(storeSession, (namedPreparedStatement) -> {
@@ -123,8 +123,8 @@ public class JDBCSessionDAO extends SessionDAO {
 
         final String deleteSession =
                 "INSERT INTO IDN_SESSION " + "(KEY, OPERATION, TIME_CREATED)"
-                + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :"
-                + TIME_CREATED + ";)";
+                        + "VALUES (:" + KEY + ";, :" + OPERATION + ";, :"
+                        + TIME_CREATED + ";)";
 
         try {
             jdbcTemplate.executeInsert(deleteSession, (namedPreparedStatement) -> {

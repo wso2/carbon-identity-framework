@@ -68,7 +68,6 @@ public class AuthenticationRequest extends GatewayRequest {
     public static class AuthenticationRequestBuilder extends GatewayRequestBuilder {
 
         protected String requestDataKey;
-        protected String sessionCookie;
         protected String authenticatorName;
         protected String identityProviderName;
 
@@ -79,11 +78,6 @@ public class AuthenticationRequest extends GatewayRequest {
 
         public AuthenticationRequestBuilder setRequestDataKey(String requestDataKey) {
             this.requestDataKey = requestDataKey;
-            return this;
-        }
-
-        public AuthenticationRequestBuilder setSessionKey(String sessionCookie) {
-            this.sessionCookie = sessionCookie;
             return this;
         }
 

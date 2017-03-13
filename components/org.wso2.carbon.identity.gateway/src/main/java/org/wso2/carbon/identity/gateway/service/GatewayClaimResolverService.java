@@ -33,12 +33,7 @@ import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GatewayClaimResolverService {
@@ -72,28 +67,28 @@ public class GatewayClaimResolverService {
             otherDialectClaims.stream().filter(claim -> claimMapping.containsKey(claim.getClaimUri()))
                     .forEach(claim -> {
                         Claim tmpClaim = new Claim("http://wso2.org/claims", claimMapping.get(claim.getClaimUri()),
-                                                   claim.getValue());
+                                claim.getValue());
                         transformedClaimsTmp.add(tmpClaim);
                     });
 
             if (profile.isPresent()) {
                 ProfileMgtService profileMgtService = GatewayServiceHolder.getInstance().getProfileMgtService();
                 ProfileEntry profileEntry = profileMgtService.getProfile(profile.get());
-                if(profileEntry != null) {
+                if (profileEntry != null) {
                     List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
                     Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
                     profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
 
                     transformedClaimsTmp.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
                             .forEach(transformedClaims.get()::add);
-                }else{
+                } else {
                     transformedClaims.set(transformedClaimsTmp);
                 }
             } else {
                 transformedClaims.set(transformedClaimsTmp);
             }
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
-            String errorMessage = "Error occurred while calling transformToNativeDialect, " + e.getMessage() ;
+            String errorMessage = "Error occurred while calling transformToNativeDialect, " + e.getMessage();
             log.error(errorMessage, e);
             throw new GatewayRuntimeException(errorMessage);
         }
@@ -136,7 +131,7 @@ public class GatewayClaimResolverService {
                 }
             });
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException | GatewayServerException e) {
-            String errorMessage = "Error occurred while calling transformToOtherDialect, " + e.getMessage() ;
+            String errorMessage = "Error occurred while calling transformToOtherDialect, " + e.getMessage();
             log.error(errorMessage, e);
             throw new GatewayRuntimeException(errorMessage);
         }

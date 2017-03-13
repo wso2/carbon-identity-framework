@@ -18,8 +18,14 @@
 package org.wso2.carbon.identity.gateway.context;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.model.User;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.mgt.claim.Claim;
+import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
+import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -30,7 +36,7 @@ import java.util.Set;
 public class SequenceContext implements Serializable {
 
     private static final long serialVersionUID = -3397856701064644528L;
-
+    private static transient Logger logger = LoggerFactory.getLogger(GatewayUtil.class);
     private int currentStep = 1;
 
     private RequestPathAuthenticatorContext requestPathAuthenticatorContext = null;
@@ -49,9 +55,17 @@ public class SequenceContext implements Serializable {
 
     public Set<Claim> getAllClaims() {
         Set<Claim> aggregatedClaims = new HashSet<Claim>();
-        stepContextList.stream().forEach(stepContext -> stepContext.getUser().getClaims().forEach(claim ->
-                                                                                                          aggregatedClaims
-                                                                                                                  .add(claim)));
+        stepContextList.stream().forEach(stepContext -> {
+            try {
+                stepContext.getUser().getClaims().forEach(claim ->
+                        aggregatedClaims
+                                .add(claim));
+            } catch (IdentityStoreException | UserNotFoundException e) {
+                String errorMessage = "Error occurred while calling to getCliams, " + e.getMessage();
+                logger.error(errorMessage, e);
+                throw new GatewayRuntimeException(errorMessage, e);
+            }
+        });
         return aggregatedClaims;
     }
 
@@ -86,6 +100,13 @@ public class SequenceContext implements Serializable {
             stepAuthenticatorsContext = stepContextList.get(step - 1);
         }
         return stepAuthenticatorsContext;
+    }
+
+    public static enum Status {
+        INITIAL,
+        INCOMPLETE,
+        AUTHENTICATED,
+        FAILED;
     }
 
     public static class RequestPathAuthenticatorContext implements Serializable {
@@ -125,7 +146,7 @@ public class SequenceContext implements Serializable {
     public static class StepContext implements Serializable {
 
         private static final long serialVersionUID = -6517237540622607778L;
-        private Status status = Status.INITIAL ;
+        private Status status = Status.INITIAL;
         private int step;
         private String authenticatorName;
         private String identityProviderName;
@@ -166,10 +187,10 @@ public class SequenceContext implements Serializable {
         }
 
         public boolean isAuthenticated() {
-            if(status.equals(Status.AUTHENTICATED)){
-                return true ;
+            if (status.equals(Status.AUTHENTICATED)) {
+                return true;
             }
-            return false ;
+            return false;
         }
 
         public Status getStatus() {
@@ -187,12 +208,5 @@ public class SequenceContext implements Serializable {
         public void setRetryCount(int retryCount) {
             this.retryCount = retryCount;
         }
-    }
-
-    public static enum Status{
-        INITIAL,
-        INCOMPLETE,
-        AUTHENTICATED,
-        FAILED;
     }
 }

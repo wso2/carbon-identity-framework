@@ -46,6 +46,8 @@ import org.wso2.carbon.identity.mgt.IdentityStore;
 import org.wso2.carbon.identity.mgt.RealmService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.mgt.exception.DomainException;
+import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
+import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
 import org.wso2.carbon.identity.mgt.impl.Domain;
 import org.wso2.carbon.identity.mgt.impl.internal.IdentityMgtDataHolder;
 
@@ -93,9 +95,13 @@ public class GatewayUnitTests {
     @Test
     public void testFederatedUser() {
         User user = new FederatedUser("FederatedUser");
-        user.getClaims().add(new Claim("dialect", "claimUri", "value"));
-        Assert.assertNotNull(user.getClaims());
-        Assert.assertTrue(user.getClaims().size() > 0);
+        try {
+            user.getClaims().add(new Claim("dialect", "claimUri", "value"));
+            Assert.assertNotNull(user.getClaims());
+            Assert.assertTrue(user.getClaims().size() > 0);
+        } catch (IdentityStoreException | UserNotFoundException e) {
+            Assert.fail("Error while getting user claims");
+        }
     }
 
     @Test

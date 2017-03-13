@@ -26,6 +26,7 @@ import org.wso2.msf4j.Request;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -74,10 +75,10 @@ public class GatewayUtil {
                 if (provider == null) {
                     throw new GatewayServerException("Provider is not loaded correctly.");
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 String errorMessage = "Error occurred while loading the " + providerClass.getSimpleName() + " yaml file, " +
-                                      e.getMessage();
-                logger.error(errorMessage ,e);
+                        e.getMessage();
+                logger.error(errorMessage, e);
                 throw new GatewayServerException(errorMessage, e);
             }
         }

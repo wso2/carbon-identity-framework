@@ -92,7 +92,7 @@ public class GatewayAuthenticatorTests {
             @Override
             public AuthenticationResponse process(AuthenticationContext authenticationContext) throws
                     AuthenticationHandlerException {
-                return AuthenticationResponse.AUTHENTICATED;
+                return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
             }
 
             @Override
@@ -167,7 +167,7 @@ public class GatewayAuthenticatorTests {
 
             @Override
             public AuthenticationResponse process(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
-                return AuthenticationResponse.AUTHENTICATED;
+                return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
             }
 
             @Override

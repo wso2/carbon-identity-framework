@@ -25,6 +25,7 @@ import java.util.Map;
 
 public class SessionContext implements Serializable {
 
+    private static final long serialVersionUID = 530738975377939422L;
     private Map<String, SequenceContext> sequenceContexts = new HashMap();
 
     public void addSequenceContext(String serviceProvider, SequenceContext sequenceContext) {

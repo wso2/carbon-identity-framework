@@ -90,7 +90,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         builder.addParameter(Constants.BODY_PARAMETERS, (Serializable) request.getProperty(Constants.BODY_PARAMETERS));
 
         String[] queryStringParams = request.getUri().split("\\?");
-        if (queryStringParams != null && queryStringParams.length > 1) {
+        if (queryStringParams.length > 1) {
             builder.setQueryString(queryStringParams[1]);
         } else {
             builder.setQueryString(queryStringParams[0]);

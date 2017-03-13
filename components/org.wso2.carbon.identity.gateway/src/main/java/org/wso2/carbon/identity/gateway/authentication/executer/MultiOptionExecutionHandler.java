@@ -37,43 +37,24 @@ import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 import java.util.List;
 
 
-public class MultiOptionExecutionHandler extends AbstractExecutionHandler{
+public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(MultiOptionExecutionHandler.class);
+
     @Override
     public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
 
-        ApplicationAuthenticator applicationAuthenticator = null ;
+        ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
         AbstractSequence sequence = authenticationContext.getSequence();
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest)authenticationContext.getIdentityRequest();
+        AuthenticationRequest authenticationRequest = (AuthenticationRequest) authenticationContext.getIdentityRequest();
 
-        if (currentStepContext != null) {
-            if (StringUtils.isNotBlank(currentStepContext.getAuthenticatorName())
-                    && StringUtils.isNotBlank(currentStepContext.getIdentityProviderName())) {
-                applicationAuthenticator = getApplicationAuthenticator(currentStepContext.getAuthenticatorName());
-            }else if(StringUtils.isNotBlank(authenticationRequest.getAuthenticatorName()) && StringUtils.isNotBlank
-                    (authenticationRequest.getIdentityProviderName())){
-                applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
-                currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
-                currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
-            }
+        applicationAuthenticator = getApplicationAuthenticator(authenticationContext);
 
-        }else{
-            currentStepContext = sequenceContext.addStepContext();
-            if(authenticationRequest instanceof ClientAuthenticationRequest && StringUtils.isNotBlank(authenticationRequest
-                    .getAuthenticatorName())
-                    &&
-                    StringUtils.isNotBlank
-                            (authenticationRequest.getIdentityProviderName())){
-                applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
-                currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
-                currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
-            }
-        }
+        currentStepContext = sequenceContext.getCurrentStepContext();
 
-        if(applicationAuthenticator == null) {
+        if (applicationAuthenticator == null) {
             LocalAuthenticationResponse.LocalAuthenticationResponseBuilder
                     localAuthenticationResponseBuilder = new LocalAuthenticationResponse
                     .LocalAuthenticationResponseBuilder();
@@ -88,31 +69,32 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler{
                     .getAuthenticatorName() +
                     ":" + identityProvider
                     .getIdentityProviderName()
-                    +","));
+                    + ","));
             localAuthenticationResponseBuilder.setIdentityProviderList(idpList.toString());
-            AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE ;
-            authenticationResponse.setGatewayResponseBuilder(localAuthenticationResponseBuilder);
+            AuthenticationResponse authenticationResponse = new AuthenticationResponse
+                    (localAuthenticationResponseBuilder);
+
             return authenticationResponse;
         }
 
 
-        if(applicationAuthenticator == null){
+        if (applicationAuthenticator == null) {
             throw new AuthenticationHandlerException("Authenticator not found.");
         }
         AuthenticationResponse response = null;
         try {
             response = applicationAuthenticator.process(authenticationContext);
-            if(AuthenticationResponse.AUTHENTICATED.equals(response)){
+            if (AuthenticationResponse.Status.AUTHENTICATED.equals(response.status)) {
                 sequenceContext.getCurrentStepContext().setStatus(SequenceContext.Status.AUTHENTICATED);
-            }else{
+            } else {
                 sequenceContext.getCurrentStepContext().setStatus(SequenceContext.Status.INCOMPLETE);
             }
         } catch (AuthenticationHandlerException e) {
             currentStepContext.setStatus(SequenceContext.Status.FAILED);
-            if(applicationAuthenticator.isRetryEnable(authenticationContext)){
+            if (applicationAuthenticator.isRetryEnable(authenticationContext)) {
                 AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
                 int retryCount = authenticationStepConfig.getRetryCount();
-                if(currentStepContext.getRetryCount() <= retryCount){
+                if (currentStepContext.getRetryCount() <= retryCount) {
                     currentStepContext.setRetryCount(retryCount + 1);
 
                     LocalAuthenticationResponse.LocalAuthenticationResponseBuilder
@@ -129,14 +111,15 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler{
                             .getAuthenticatorName() +
                             ":" + identityProvider
                             .getIdentityProviderName()
-                            +","));
+                            + ","));
                     localAuthenticationResponseBuilder.setIdentityProviderList(idpList.toString());
-                    AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE ;
-                    authenticationResponse.setGatewayResponseBuilder(localAuthenticationResponseBuilder);
+                    AuthenticationResponse authenticationResponse = new AuthenticationResponse
+                            (localAuthenticationResponseBuilder);
+
                     return authenticationResponse;
                 }
 
-            }else{
+            } else {
                 throw e;
             }
         }
@@ -155,7 +138,7 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler{
         return false;
     }
 
-    public String getMultiOptionEndpoint(){
-        return "https://localhost:9292/gateway/endpoint" ;
+    public String getMultiOptionEndpoint() {
+        return "https://localhost:9292/gateway/endpoint";
     }
 }

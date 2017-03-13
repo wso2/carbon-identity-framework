@@ -25,17 +25,45 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 /**
  * Generic Handler Response
  */
-public enum GatewayHandlerResponse {
-    REDIRECT, CONTINUE;
+public class GatewayHandlerResponse {
+
+    public Status status = Status.CONTINUE ;
 
     private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder;
+
+    public GatewayHandlerResponse(Status status, GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+        this.status = status;
+        this.gatewayResponseBuilder = gatewayResponseBuilder;
+    }
+
+    public GatewayHandlerResponse(Status status) {
+        this.status = status;
+    }
+
+    public GatewayHandlerResponse(GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+        this.gatewayResponseBuilder = gatewayResponseBuilder;
+    }
+
+    public GatewayHandlerResponse() {
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
     public GatewayResponse.GatewayResponseBuilder getGatewayResponseBuilder() {
         return gatewayResponseBuilder;
     }
 
-    public void setGatewayResponseBuilder(
-            GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+    public void setGatewayResponseBuilder(GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
         this.gatewayResponseBuilder = gatewayResponseBuilder;
+    }
+
+    public static enum Status {
+        REDIRECT, CONTINUE;
     }
 }

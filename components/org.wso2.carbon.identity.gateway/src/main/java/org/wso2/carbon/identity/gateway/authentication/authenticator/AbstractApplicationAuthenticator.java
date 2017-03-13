@@ -33,12 +33,7 @@ import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractApplicationAuthenticator implements ApplicationAuthenticator {
     private static final long serialVersionUID = -4406878411547612129L;
@@ -65,7 +60,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     .forEach(claim -> {
                         //#TODO:replace root dialect URI
                         Claim tmpClaim = new Claim("rootdialect", claimMapping.get(claim.getClaimUri()),
-                                                   claim.getValue());
+                                claim.getValue());
                         transformedClaimsTmp.add(tmpClaim);
                     });
 
@@ -83,7 +78,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             }
             return transformedClaimsTmp;
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
-            String errorMessage = "Error occurred while mapping to root claims, " + e.getMessage() ;
+            String errorMessage = "Error occurred while mapping to root claims, " + e.getMessage();
             log.error(errorMessage, e);
             throw new AuthenticationHandlerException(errorMessage, e);
         }
@@ -92,7 +87,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     @Override
     public AuthenticationResponse process(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
-        AuthenticationResponse authenticationResponse = AuthenticationResponse.INCOMPLETE;
+        AuthenticationResponse authenticationResponse  ;
         if (isInitialRequest(authenticationContext)) {
             authenticationResponse = processRequest(authenticationContext);
         } else {
@@ -105,11 +100,11 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             throws AuthenticationHandlerException {
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
-        if(currentStepContext.getStatus().equals(SequenceContext.Status.INITIAL) || currentStepContext.getStatus()
-                .equals(SequenceContext.Status.FAILED)){
-            return true ;
+        if (currentStepContext.getStatus().equals(SequenceContext.Status.INITIAL) || currentStepContext.getStatus()
+                .equals(SequenceContext.Status.FAILED)) {
+            return true;
         }
-        return false ;
+        return false;
     }
 
 

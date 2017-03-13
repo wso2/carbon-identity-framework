@@ -23,6 +23,8 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
 public class CallbackAuthenticationRequest extends AuthenticationRequest {
 
+    private static final long serialVersionUID = 6439844622952952687L;
+
     protected CallbackAuthenticationRequest(CallbackAuthenticationRequestBuilder builder) {
         super(builder);
     }

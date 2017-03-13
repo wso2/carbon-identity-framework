@@ -47,7 +47,7 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
     @Override
     public GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext) throws
                                                                                                ResponseHandlerException {
-        GatewayHandlerResponse response = GatewayHandlerResponse.REDIRECT;
+
         SampleLoginResponse.SampleLoginResponseBuilder builder = new SampleLoginResponse.SampleLoginResponseBuilder
                 (authenticationContext);
         builder.setSubject(authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier());
@@ -57,7 +57,7 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
             throw new ResponseHandlerException("Error while getting response configs");
         }
         addSessionKey(builder, authenticationContext);
-        response.setGatewayResponseBuilder(builder);
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
         return response;
     }
 

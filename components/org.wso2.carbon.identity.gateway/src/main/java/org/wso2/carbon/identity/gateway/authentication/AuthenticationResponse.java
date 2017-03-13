@@ -20,19 +20,39 @@ package org.wso2.carbon.identity.gateway.authentication;
 
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
-public enum AuthenticationResponse {
-    AUTHENTICATED,
-    INCOMPLETE;
+public class AuthenticationResponse {
 
-    private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder;
+    public Status status = Status.INCOMPLETE;
+
+    private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = null;
+
+    public AuthenticationResponse(GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+        this.gatewayResponseBuilder = gatewayResponseBuilder;
+    }
+
+    public AuthenticationResponse() {
+    }
+
+    public AuthenticationResponse(Status status) {
+        this.status = status;
+    }
+
+    public AuthenticationResponse(Status status, GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
+        this.status = status;
+        this.gatewayResponseBuilder = gatewayResponseBuilder;
+    }
 
     public GatewayResponse.GatewayResponseBuilder getGatewayResponseBuilder() {
         return gatewayResponseBuilder;
     }
 
-    public AuthenticationResponse setGatewayResponseBuilder(
+    public void setGatewayResponseBuilder(
             GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
         this.gatewayResponseBuilder = gatewayResponseBuilder;
-        return this;
+    }
+
+    public static enum Status{
+        AUTHENTICATED,
+        INCOMPLETE;
     }
 }

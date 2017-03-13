@@ -21,12 +21,12 @@ package org.wso2.carbon.identity.gateway.handler.session;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.dao.CacheBackedSessionDAO;
 import org.wso2.carbon.identity.gateway.exception.SessionHandlerException;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 
 import java.util.UUID;
@@ -60,15 +60,14 @@ public class DefaultSessionHandler extends AbstractSessionHandler {
         SequenceContext currentSequenceContext = context.getSequenceContext();
         if (existingSequenceContext == null) {
             updateSession(context, sessionContext);
-            existingSequenceContext = sessionContext.getSequenceContext(serviceProviderName);
         }
-        int currentStep = currentSequenceContext.getCurrentStep();
-        boolean isLastStepAuthenticated = existingSequenceContext.getCurrentStepContext().isAuthenticated();
+        //int currentStep = currentSequenceContext.getCurrentStep();
+        //boolean isLastStepAuthenticated = existingSequenceContext.getCurrentStepContext().isAuthenticated();
         //boolean isSequenceCompleted = !context.getSequence().hasNext(currentStep) && isLastStepAuthenticated;
 
         sessionContext.addSequenceContext(serviceProviderName, currentSequenceContext);
         CacheBackedSessionDAO.getInstance().put(sessionKeyHash, sessionContext);
-        return GatewayHandlerResponse.CONTINUE;
+        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.CONTINUE);
 
         //        if(existingSequenceContext == null) { // if new service provider
         //
@@ -116,13 +115,13 @@ public class DefaultSessionHandler extends AbstractSessionHandler {
     private SessionContext createSession(AuthenticationContext authenticationContext) {
         SessionContext sessionContext = new SessionContext();
         sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(),
-                                          authenticationContext.getSequenceContext());
+                authenticationContext.getSequenceContext());
         return sessionContext;
     }
 
     private SessionContext updateSession(AuthenticationContext authenticationContext, SessionContext sessionContext) {
         sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(),
-                                          authenticationContext.getSequenceContext());
+                authenticationContext.getSequenceContext());
         return sessionContext;
     }
 }

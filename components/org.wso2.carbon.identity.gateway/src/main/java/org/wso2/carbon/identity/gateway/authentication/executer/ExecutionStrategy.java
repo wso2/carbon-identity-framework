@@ -26,11 +26,13 @@ public enum ExecutionStrategy {
     PARALLEL("parallel"),
     FAILOVER("failover");
 
-    private String executionStrategy ;
-    private ExecutionStrategy(String executionStrategy){
-        this.executionStrategy = executionStrategy ;
+    private String executionStrategy;
+
+    private ExecutionStrategy(String executionStrategy) {
+        this.executionStrategy = executionStrategy;
     }
-    public String toString(){
-        return this.executionStrategy ;
+
+    public String toString() {
+        return this.executionStrategy;
     }
 }

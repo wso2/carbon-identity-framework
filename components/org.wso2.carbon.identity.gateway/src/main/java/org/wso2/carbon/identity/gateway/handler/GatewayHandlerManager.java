@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
@@ -63,12 +62,12 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get Authentication Handler. " +
-                                          throwable.getMessage();
+                            throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
-        String errorMessage = "Cannot find AuthenticationHandler to handle this request." ;
+        String errorMessage = "Cannot find AuthenticationHandler to handle this request.";
         log.error(errorMessage);
         throw new GatewayRuntimeException(errorMessage);
     }
@@ -91,12 +90,12 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get request validator. " +
-                                          throwable.getMessage();
+                            throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
-        String errorMessage = "Cannot find AbstractRequestValidator to handle this request." ;
+        String errorMessage = "Cannot find AbstractRequestValidator to handle this request.";
         log.error(errorMessage);
         throw new GatewayRuntimeException(errorMessage);
     }
@@ -119,12 +118,12 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                                          throwable.getMessage();
+                            throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
-        String errorMessage = "Cannot find ResponseHandler to handle this request." ;
+        String errorMessage = "Cannot find ResponseHandler to handle this request.";
         log.error(errorMessage);
         throw new GatewayRuntimeException(errorMessage);
     }
@@ -149,12 +148,12 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                                          throwable.getMessage();
+                            throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
-        String errorMessage = "Cannot find ResponseHandler to handle this request." ;
+        String errorMessage = "Cannot find ResponseHandler to handle this request.";
         log.error(errorMessage);
         throw new GatewayRuntimeException(errorMessage);
     }
@@ -177,12 +176,12 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                                          throwable.getMessage();
+                            throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
-        String errorMessage = "Cannot find ResponseHandler to handle this request." ;
+        String errorMessage = "Cannot find ResponseHandler to handle this request.";
         log.error(errorMessage);
         throw new GatewayRuntimeException(errorMessage);
     }
@@ -205,12 +204,12 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get session validator. " +
-                                          throwable.getMessage();
+                            throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
         }
-        String errorMessage = "Cannot find AbstractSessionHandler to handle this request." ;
+        String errorMessage = "Cannot find AbstractSessionHandler to handle this request.";
         log.error(errorMessage);
         throw new GatewayRuntimeException(errorMessage);
     }
