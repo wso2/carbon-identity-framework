@@ -27,7 +27,6 @@ import java.util.List;
 
 /**
  * GatewayResourceDataHolder to hold the services references.
- *
  */
 public class GatewayResourceDataHolder {
 

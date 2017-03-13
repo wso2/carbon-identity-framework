@@ -22,12 +22,12 @@ import java.util.List;
 
 public class AuthenticationStepConfig {
 
-    private int step ;
-    private String executionStrategy ;
+    private int step;
+    private String executionStrategy;
     private String useLocalSubjectIdentifier;
     private String useDomainInLocalSubjectIdentifier;
     private String authStrategy;
-    private int retryCount = 0 ;
+    private int retryCount = 0;
     private List<IdentityProvider> identityProviders = new ArrayList<>();
 
     public String getAuthStrategy() {

@@ -70,7 +70,6 @@ public abstract class AbstractExecutionHandler extends
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
         AuthenticationRequest authenticationRequest = (AuthenticationRequest) authenticationContext.getIdentityRequest();
-
         if (currentStepContext != null) {
             if (StringUtils.isNotBlank(currentStepContext.getAuthenticatorName())
                     && StringUtils.isNotBlank(currentStepContext.getIdentityProviderName())) {
@@ -82,7 +81,7 @@ public abstract class AbstractExecutionHandler extends
                 currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
             }
         } else {
-            sequenceContext.addStepContext();
+            currentStepContext = sequenceContext.addStepContext();
             if (authenticationRequest instanceof ClientAuthenticationRequest && StringUtils.isNotBlank(authenticationRequest
                     .getAuthenticatorName())
                     &&

@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.gateway.authentication.executer;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
@@ -31,7 +30,6 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
 public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
 
@@ -42,13 +40,11 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
 
         ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
-        SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
         AbstractSequence sequence = authenticationContext.getSequence();
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest) authenticationContext.getIdentityRequest();
 
         applicationAuthenticator = getApplicationAuthenticator(authenticationContext);
 
-        currentStepContext = sequenceContext.getCurrentStepContext();
+        SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
         if (applicationAuthenticator == null) {
             AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
@@ -70,11 +66,7 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
                 sequenceContext.getCurrentStepContext().setStatus(SequenceContext.Status.INCOMPLETE);
             }
         } catch (AuthenticationHandlerException e) {
-            //retry stuff
 
-            //If retry == true , then change status INITIAL and call recursive
-            //To check enable/disable to retry from authetnicator and try.
-            //Retry count for only per step.
             currentStepContext.setStatus(SequenceContext.Status.FAILED);
             if (applicationAuthenticator.isRetryEnable(authenticationContext)) {
                 AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
@@ -83,9 +75,7 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
                     currentStepContext.setRetryCount(retryCount + 1);
                     return execute(authenticationContext);
                 }
-
             } else {
-
                 throw e;
             }
 
@@ -94,7 +84,6 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
 
         return response;
     }
-
 
 
     @Override

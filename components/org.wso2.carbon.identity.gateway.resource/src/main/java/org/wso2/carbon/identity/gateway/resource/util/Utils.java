@@ -18,11 +18,7 @@
 package org.wso2.carbon.identity.gateway.resource.util;
 
 
-import org.wso2.carbon.identity.common.base.handler.Handler;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
-import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 import org.wso2.msf4j.Request;
 import org.wso2.msf4j.util.BufferUtil;
 
@@ -31,13 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Resource level Utility.
@@ -60,7 +50,7 @@ public class Utils {
             }
         } else {
             request.setProperty(org.wso2.carbon.identity.gateway.common.util.Constants.BODY_PARAMETERS,
-                                new HashMap<String, String>());
+                    new HashMap<String, String>());
         }
     }
 

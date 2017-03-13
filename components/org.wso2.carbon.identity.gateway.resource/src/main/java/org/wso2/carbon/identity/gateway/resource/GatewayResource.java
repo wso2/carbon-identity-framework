@@ -30,7 +30,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,13 +51,23 @@ import static org.wso2.carbon.identity.gateway.resource.util.Utils.processParame
 public class GatewayResource implements Microservice {
 
 
+    private static final String DEFAULT_LOGIN_PAGE = "login.html";
     private GatewayManager gatewayManager = new GatewayManager();
 
+    static String getLoginPage() throws IOException {
+
+        InputStream inputStream = GatewayResource.class.getClassLoader()
+                .getResourceAsStream(DEFAULT_LOGIN_PAGE);
+
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
+            return buffer.lines().collect(Collectors.joining("\n"));
+        }
+    }
 
     @GET
     @Path("/endpoint")
     public Response endpoint(@QueryParam("callback") String callback,
-                             @QueryParam("state") String sessionDataKey , @QueryParam("idplist") String idpList) {
+                             @QueryParam("state") String sessionDataKey, @QueryParam("idplist") String idpList) {
         if (StringUtils.isBlank(callback)) {
             return handleBadRequest("Mandatory 'callback' parameter is missing in the request parameters.");
         }
@@ -66,7 +75,7 @@ public class GatewayResource implements Microservice {
         if (StringUtils.isBlank(sessionDataKey)) {
             return handleBadRequest("Mandatory 'sessionDataKey' parameter missing in request parameters.");
         }
-        if(StringUtils.isNotBlank(idpList)) {
+        if (StringUtils.isNotBlank(idpList)) {
             String loginPage;
             try {
                 loginPage = getLoginPageContent(callback, sessionDataKey, idpList);
@@ -83,7 +92,6 @@ public class GatewayResource implements Microservice {
         }
         return Response.serverError().build();
     }
-
 
     private Response handleBadRequest(String errorMessage) {
 
@@ -104,12 +112,10 @@ public class GatewayResource implements Microservice {
         return response;
     }
 
-
     /**
      * All the POST request are come to this API and process by the GatewayManager.
      *
-     * @param request
-     *         is an MSF4J request.
+     * @param request is an MSF4J request.
      * @return Response
      */
     @POST
@@ -122,7 +128,7 @@ public class GatewayResource implements Microservice {
 
     private String getLoginPageContent(String callbackURL, String state, String idps) throws IOException {
 
-        String response =  getLoginPage();
+        String response = getLoginPage();
         if (StringUtils.isNotBlank(state)) {
             response = response.replace("${sessionDataKey}", state);
         }
@@ -133,14 +139,14 @@ public class GatewayResource implements Microservice {
 
         String[] split = idps.split(",");
         StringBuilder idpLinks = new StringBuilder();
-        for(String idp:split){
-            if(idp.equals("BasicAuthenticator:residentidp")){
+        for (String idp : split) {
+            if (idp.equals("BasicAuthenticator:residentidp")) {
                 response = response.replace("${basic-authenticator}", "block");
-            }else{
+            } else {
                 String[] aIdp = idp.split(":");
                 String link =
-                        "<a class='btn btn-primary btn-block btn-large'  href='"+callbackURL+"?state="+state+"&authenticator="+aIdp[0]+"&idp="+aIdp[1]+"'>"+aIdp[1]+"</a" +
-                        "><br>";
+                        "<a class='btn btn-primary btn-block btn-large'  href='" + callbackURL + "?state=" + state + "&authenticator=" + aIdp[0] + "&idp=" + aIdp[1] + "'>" + aIdp[1] + "</a" +
+                                "><br>";
                 idpLinks.append(link);
             }
         }
@@ -149,17 +155,6 @@ public class GatewayResource implements Microservice {
 
         return response;
     }
-
-    static String getLoginPage() throws IOException {
-
-        InputStream inputStream = GatewayResource.class.getClassLoader()
-                .getResourceAsStream(DEFAULT_LOGIN_PAGE);
-
-        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
-            return buffer.lines().collect(Collectors.joining("\n"));
-        }
-    }
-    private static final String DEFAULT_LOGIN_PAGE = "login.html";
 
 }
 

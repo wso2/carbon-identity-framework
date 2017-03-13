@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.gateway.handler.session;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
@@ -28,6 +30,7 @@ import org.wso2.carbon.identity.gateway.dao.CacheBackedSessionDAO;
 import org.wso2.carbon.identity.gateway.exception.SessionHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
+import org.wso2.carbon.kernel.runtime.exception.RuntimeServiceException;
 
 import java.util.UUID;
 
@@ -41,75 +44,33 @@ public class DefaultSessionHandler extends AbstractSessionHandler {
     @Override
     public GatewayHandlerResponse updateSession(AuthenticationContext context) throws SessionHandlerException {
 
-        String sessionKey = ((AuthenticationRequest) context.getIdentityRequest()).getSessionKey();
-        String sessionKeyHash = null;
-        if (StringUtils.isBlank(sessionKey)) {
-            sessionKey = UUID.randomUUID().toString();
-        }
-        sessionKeyHash = DigestUtils.sha256Hex(sessionKey);
-        if (context.getParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY) == null) {
-            context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY, sessionKey);
-        }
+        GatewayRequest identityRequest = context.getIdentityRequest();
+        if(identityRequest instanceof AuthenticationRequest) {
+            String sessionKey = ((AuthenticationRequest) identityRequest).getSessionKey();
+            String sessionKeyHash;
+            if (StringUtils.isBlank(sessionKey)) {
+                sessionKey = UUID.randomUUID().toString();
+            }
+            sessionKeyHash = DigestUtils.sha256Hex(sessionKey);
+            if (context.getParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY) == null) {
+                context.addParameter(AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY, sessionKey);
+            }
 
-        String serviceProviderName = context.getServiceProvider().getName();
-        SessionContext sessionContext = context.getSessionContext();
-        if (sessionContext == null) {
-            sessionContext = createSession(context);
+            String serviceProviderName = context.getServiceProvider().getName();
+            SessionContext sessionContext = context.getSessionContext();
+            if (sessionContext == null) {
+                sessionContext = createSession(context);
+            }
+            SequenceContext existingSequenceContext = sessionContext.getSequenceContext(serviceProviderName);
+            SequenceContext currentSequenceContext = context.getSequenceContext();
+            if (existingSequenceContext == null) {
+                updateSession(context, sessionContext);
+            }
+            sessionContext.addSequenceContext(serviceProviderName, currentSequenceContext);
+            CacheBackedSessionDAO.getInstance().put(sessionKeyHash, sessionContext);
+            return new GatewayHandlerResponse(GatewayHandlerResponse.Status.CONTINUE);
         }
-        SequenceContext existingSequenceContext = sessionContext.getSequenceContext(serviceProviderName);
-        SequenceContext currentSequenceContext = context.getSequenceContext();
-        if (existingSequenceContext == null) {
-            updateSession(context, sessionContext);
-        }
-        //int currentStep = currentSequenceContext.getCurrentStep();
-        //boolean isLastStepAuthenticated = existingSequenceContext.getCurrentStepContext().isAuthenticated();
-        //boolean isSequenceCompleted = !context.getSequence().hasNext(currentStep) && isLastStepAuthenticated;
-
-        sessionContext.addSequenceContext(serviceProviderName, currentSequenceContext);
-        CacheBackedSessionDAO.getInstance().put(sessionKeyHash, sessionContext);
-        return new GatewayHandlerResponse(GatewayHandlerResponse.Status.CONTINUE);
-
-        //        if(existingSequenceContext == null) { // if new service provider
-        //
-        //            // insert new service provider to DB. The last step may be authenticated or not based on if the
-        // sequence
-        //            // was completed or not
-        //            context.getSessionContext().addSequenceContext(serviceProviderName, currentSequenceContext);
-        //            CacheBackedSessionDAO.getInstance().put(cookieHash, context.getSessionContext());
-        //
-        //        } else { // if existing service provider
-        //
-        //            if(isSequenceCompleted) { // all steps are successful
-        //
-        //                // check for existing steps of service provider and if IDP is different in any of the steps
-        // update
-        //                // them persist
-        //                // add more steps if needed
-        //                context.getSessionContext().addSequenceContext(serviceProviderName, currentSequenceContext);
-        //                CacheBackedSessionDAO.getInstance().put(cookieHash, context.getSessionContext());
-        //
-        //                for(int i = 1; i == currentStep; i++) {
-        //                    SequenceContext.StepContext existingStepContext = existingSequenceContext
-        // .getStepContext(i);
-        //                    SequenceContext.StepContext currentStepContext = currentSequenceContext.getStepContext(i);
-        //                    if(currentStepContext.isAuthenticated() && existingStepContext != null) {
-        //                        if(!existingStepContext.getIdentityProviderName().equals(currentStepContext
-        //
-        // .getIdentityProviderName())) {
-        //
-        //                        }
-        //
-        //                    }
-        //                }
-        //
-        //            } else { // all steps are not successful
-        //
-        //                // do the above only for the successful steps
-        //
-        //            }
-        //
-        //        }
-
+        throw new GatewayRuntimeException("GatewayRequest is not instance of AuthenticationRequest.");
     }
 
     private SessionContext createSession(AuthenticationContext authenticationContext) {

@@ -116,7 +116,7 @@ public class GatewayManager {
                 }
             } catch (Exception e) {
                 log.error("Error occurred while checking if " + requestProcessor.getName() + " can handle " +
-                          gatewayRequest.toString());
+                        gatewayRequest.toString());
             }
         }
         throw new GatewayRuntimeException("No GatewayProcessor found to process the request.");

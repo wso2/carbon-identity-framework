@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
  */
 public class GatewayHandlerResponse {
 
-    public Status status = Status.CONTINUE ;
+    public Status status = Status.CONTINUE;
 
     private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder;
 

@@ -20,23 +20,16 @@ package org.wso2.carbon.identity.gateway.authentication;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.executer.AbstractExecutionHandler;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponse;
-import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.model.User;
-import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 public class StepHandler extends AbstractGatewayHandler {
     @Override
@@ -52,11 +45,11 @@ public class StepHandler extends AbstractGatewayHandler {
     public AuthenticationResponse handleStepAuthentication(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
 
-        if(lookUpSessionValidity(authenticationContext)){
+        if (lookUpSessionValidity(authenticationContext)) {
             return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
         }
 
-        AuthenticationResponse authenticationResponse ;
+        AuthenticationResponse authenticationResponse;
         AbstractSequence sequence = authenticationContext.getSequence();
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
 
@@ -98,7 +91,7 @@ public class StepHandler extends AbstractGatewayHandler {
                         .getUser();
                 if (identityProvider != null) {
                     SequenceContext.StepContext currentStepContext = authenticationContext.getSequenceContext().getCurrentStepContext();
-                    if(currentStepContext == null){
+                    if (currentStepContext == null) {
                         currentStepContext = authenticationContext.getSequenceContext().addStepContext();
                     }
                     currentStepContext.setIdentityProviderName(idPName);

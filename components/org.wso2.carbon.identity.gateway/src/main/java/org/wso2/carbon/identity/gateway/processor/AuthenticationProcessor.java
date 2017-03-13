@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.gateway.processor;
 
 import org.slf4j.Logger;
+import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
@@ -63,7 +64,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             log.debug("AuthenticationProcessor is starting to process the request.");
         }
         AuthenticationContext authenticationContext = null;
-        GatewayHandlerResponse response =new GatewayHandlerResponse(GatewayHandlerResponse.Status.CONTINUE);
+        GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.CONTINUE);
         GatewayHandlerManager gatewayHandlerManager = GatewayHandlerManager.getInstance();
         try {
             authenticationContext = loadAuthenticationContext(authenticationRequest);
@@ -148,8 +149,11 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
 
             IdentityMessageContextCache.getInstance().put(requestDataKey, authenticationContext);
         } else {
+            GatewayMessageContext gatewayMessageContext =
+                    IdentityMessageContextCache.getInstance().get(requestDataKey);
+            if(gatewayMessageContext instanceof AuthenticationContext)
             authenticationContext =
-                    (AuthenticationContext) IdentityMessageContextCache.getInstance().get(requestDataKey);
+                    (AuthenticationContext)gatewayMessageContext ;
             if (authenticationContext == null) {
                 String errorMessage = "AuthenticationContext is not available for give state value.";
                 log.error(errorMessage);

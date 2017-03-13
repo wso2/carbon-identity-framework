@@ -19,12 +19,7 @@
 package org.wso2.carbon.identity.gateway.resource.internal;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.handler.HandlerComparator;
@@ -67,7 +62,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getGatewayProcessors().add(requestProcessor);
         Collections.sort(GatewayResourceDataHolder.getInstance().getGatewayProcessors(),
-                         new HandlerComparator());
+                new HandlerComparator());
     }
 
     protected void unSetIdentityProcessor(GatewayProcessor requestProcessor) {
@@ -86,7 +81,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                         new HandlerComparator());
+                new HandlerComparator());
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayRequestBuilderFactory : " + factory.getName());
         }
@@ -110,7 +105,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                         new HandlerComparator());
+                new HandlerComparator());
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayResponseBuilderFactory : " + factory.getName());
         }

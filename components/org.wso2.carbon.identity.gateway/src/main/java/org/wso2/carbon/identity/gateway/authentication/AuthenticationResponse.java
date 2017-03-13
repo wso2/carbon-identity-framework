@@ -51,7 +51,7 @@ public class AuthenticationResponse {
         this.gatewayResponseBuilder = gatewayResponseBuilder;
     }
 
-    public static enum Status{
+    public static enum Status {
         AUTHENTICATED,
         INCOMPLETE;
     }

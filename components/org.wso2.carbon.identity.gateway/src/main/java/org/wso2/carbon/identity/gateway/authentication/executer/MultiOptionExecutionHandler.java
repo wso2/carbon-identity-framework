@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.gateway.authentication.executer;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
@@ -32,7 +31,6 @@ import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
 import java.util.List;
 
@@ -44,15 +42,12 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
     @Override
     public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
 
-        ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
-        SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
         AbstractSequence sequence = authenticationContext.getSequence();
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest) authenticationContext.getIdentityRequest();
 
-        applicationAuthenticator = getApplicationAuthenticator(authenticationContext);
+        ApplicationAuthenticator applicationAuthenticator = getApplicationAuthenticator(authenticationContext);
 
-        currentStepContext = sequenceContext.getCurrentStepContext();
+        SequenceContext.StepContext  currentStepContext = sequenceContext.getCurrentStepContext();
 
         if (applicationAuthenticator == null) {
             LocalAuthenticationResponse.LocalAuthenticationResponseBuilder
@@ -75,11 +70,6 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
                     (localAuthenticationResponseBuilder);
 
             return authenticationResponse;
-        }
-
-
-        if (applicationAuthenticator == null) {
-            throw new AuthenticationHandlerException("Authenticator not found.");
         }
         AuthenticationResponse response = null;
         try {
@@ -138,7 +128,7 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
         return false;
     }
 
-    public String getMultiOptionEndpoint() {
+    /*public String getMultiOptionEndpoint() {
         return "https://localhost:9292/gateway/endpoint";
-    }
+    }*/
 }

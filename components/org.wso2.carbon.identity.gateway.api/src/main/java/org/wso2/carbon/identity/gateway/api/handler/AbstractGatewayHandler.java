@@ -27,7 +27,7 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
  * be inherited from that.
  */
 public abstract class AbstractGatewayHandler<T extends MessageContext> extends
-                                                 AbstractMessageHandler {
+        AbstractMessageHandler {
 
     /**
      * Default canHandle method for all the generic handlers.

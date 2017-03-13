@@ -34,8 +34,7 @@ import java.util.Map;
  * GatewayRequestBuilderFactory is a base class to create RequstBuilderFactories based on different
  * Protocols. This also will register as a Service and can be used as a default request builder.
  *
- * @param <T>
- *         Extended type of GatewayRequest.GatewayRequestBuilder
+ * @param <T> Extended type of GatewayRequest.GatewayRequestBuilder
  */
 
 public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayRequestBuilder> extends AbstractHandler {
@@ -86,7 +85,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         builder.setHttpMethod(request.getHttpMethod());
         builder.setAttributes((Map) request.getProperties());
         builder.addParameter(Constants.QUERY_PARAMETERS,
-                             (Serializable) request.getProperty(Constants.QUERY_PARAMETERS));
+                (Serializable) request.getProperty(Constants.QUERY_PARAMETERS));
         builder.addParameter(Constants.BODY_PARAMETERS, (Serializable) request.getProperty(Constants.BODY_PARAMETERS));
 
         String[] queryStringParams = request.getUri().split("\\?");
@@ -95,7 +94,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         } else {
             builder.setQueryString(queryStringParams[0]);
         }
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Successfully Updated the request builder in GatewayRequestBuilderFactory.");
         }
     }

@@ -87,7 +87,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     @Override
     public AuthenticationResponse process(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
-        AuthenticationResponse authenticationResponse  ;
+        AuthenticationResponse authenticationResponse;
         if (isInitialRequest(authenticationContext)) {
             authenticationResponse = processRequest(authenticationContext);
         } else {

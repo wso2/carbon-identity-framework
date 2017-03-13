@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.gateway.api.context;
 
-import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 
@@ -35,7 +34,7 @@ import java.util.Map;
  */
 public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializable, T3 extends GatewayRequest>
         extends
-        MessageContext<T1, T2>{
+        MessageContext<T1, T2> {
 
     private static final long serialVersionUID = 104614801932285909L;
 
@@ -78,6 +77,7 @@ public class GatewayMessageContext<T1 extends Serializable, T2 extends Serializa
 
     //#TODO: We don't have a tmp parameter store to store data until start from the context and store it. We don't
     // need to restore it after cache.
+
     /**
      * Tmp override until get solution
      *

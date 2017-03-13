@@ -52,7 +52,7 @@ public class LocalAuthenticationResponseBuilderFactory extends GatewayResponseBu
                 ("https://localhost:9292/gateway") +
                 "&state=" +
                 localAuthenticationResponse.getRelayState() + "&idplist=" + localAuthenticationResponse
-                        .getIdentityProviderList();
+                .getIdentityProviderList();
         builder.header(HttpHeaders.LOCATION, url);
 
     }

@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFacto
 
 /**
  * Activator Component.
- *
  */
 @Component(
         name = "org.wso2.carbon.identity.gateway.api.internal.GatewayAPIActivator",
