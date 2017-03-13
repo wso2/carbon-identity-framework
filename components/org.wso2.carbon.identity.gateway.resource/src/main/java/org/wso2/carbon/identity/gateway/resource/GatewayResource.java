@@ -34,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.gateway.resource.util.Utils.processParameters;
@@ -59,9 +60,14 @@ public class GatewayResource implements Microservice {
         InputStream inputStream = GatewayResource.class.getClassLoader()
                 .getResourceAsStream(DEFAULT_LOGIN_PAGE);
 
-        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream))) {
-            return buffer.lines().collect(Collectors.joining("\n"));
+        String content = "";
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()))) {
+            content = buffer.lines().collect(Collectors.joining("\n"));
+        } catch (IOException e) {
+            content = "Error" ;
         }
+
+        return content;
     }
 
     @GET
@@ -87,7 +93,7 @@ public class GatewayResource implements Microservice {
                     .ok()
                     .entity(loginPage)
                     .header(HttpHeaders.CONTENT_TYPE, "text/html")
-                    .header(HttpHeaders.CONTENT_LENGTH, loginPage.getBytes().length)
+                    .header(HttpHeaders.CONTENT_LENGTH, loginPage.getBytes(Charset.defaultCharset()).length)
                     .build();
         }
         return Response.serverError().build();

@@ -45,16 +45,16 @@ public class LocalAuthenticationResponseBuilderFactory extends GatewayResponseBu
 
     @Override
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
-
-        LocalAuthenticationResponse localAuthenticationResponse = (LocalAuthenticationResponse) gatewayResponse;
-        builder.status(302);
-        String url = localAuthenticationResponse.getEndpointURL() + "?callback=" + URLEncoder.encode
-                ("https://localhost:9292/gateway") +
-                "&state=" +
-                localAuthenticationResponse.getRelayState() + "&idplist=" + localAuthenticationResponse
-                .getIdentityProviderList();
-        builder.header(HttpHeaders.LOCATION, url);
-
+        if(gatewayResponse instanceof LocalAuthenticationResponse) {
+            LocalAuthenticationResponse localAuthenticationResponse = (LocalAuthenticationResponse) gatewayResponse;
+            builder.status(302);
+            String url = localAuthenticationResponse.getEndpointURL() + "?callback=" + URLEncoder.encode
+                    ("https://localhost:9292/gateway") +
+                    "&state=" +
+                    localAuthenticationResponse.getRelayState() + "&idplist=" + localAuthenticationResponse
+                    .getIdentityProviderList();
+            builder.header(HttpHeaders.LOCATION, url);
+        }
     }
 
 

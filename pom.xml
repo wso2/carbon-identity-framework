@@ -482,7 +482,7 @@
 
     <properties>
         <checkstyle.skip>true</checkstyle.skip>
-        <findbugs.skip>true</findbugs.skip>
+        <findbugs.skip>false</findbugs.skip>
 
         <identity.gateway.version>${project.version}</identity.gateway.version>
         <identity.gateway.export.version>${identity.gateway.version}</identity.gateway.export.version>

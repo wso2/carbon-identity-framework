@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.gateway.context;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
@@ -30,10 +31,7 @@ import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import java.io.Serializable;
 import java.util.Map;
 
-public class AuthenticationContext<T1 extends Serializable, T2 extends Serializable>
-        extends
-
-        GatewayMessageContext<T1, T2, AuthenticationRequest> {
+public class AuthenticationContext extends GatewayMessageContext {
 
     private static final long serialVersionUID = 6821167819709907062L;
 
@@ -43,18 +41,14 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
     private AbstractSequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
 
-    public AuthenticationContext(AuthenticationRequest authenticationRequest, Map<T1, T2> parameters) {
+    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest, Map<Serializable,Serializable> parameters) {
         super(authenticationRequest, parameters);
-        if(authenticationRequest instanceof ClientAuthenticationRequest) {
-            this.initialAuthenticationRequest = (ClientAuthenticationRequest) authenticationRequest;
-        }
+        this.initialAuthenticationRequest = authenticationRequest;
     }
 
-    public AuthenticationContext(AuthenticationRequest authenticationRequest) {
+    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest) {
         super(authenticationRequest);
-        if(authenticationRequest instanceof ClientAuthenticationRequest) {
-            this.initialAuthenticationRequest = (ClientAuthenticationRequest) authenticationRequest;
-        }
+        this.initialAuthenticationRequest = authenticationRequest;
     }
 
     public ClientAuthenticationRequest getInitialAuthenticationRequest() {
@@ -86,10 +80,13 @@ public class AuthenticationContext<T1 extends Serializable, T2 extends Serializa
     }
 
     public SessionContext getSessionContext() {
-        AuthenticationRequest authenticationRequest = getIdentityRequest();
-        String sessionKey = authenticationRequest.getSessionKey();
-        if (StringUtils.isNotBlank(sessionKey)) {
-            return SessionContextCache.getInstance().get(DigestUtils.sha256Hex(sessionKey));
+        GatewayRequest identityRequest = getIdentityRequest();
+        if(identityRequest instanceof AuthenticationRequest) {
+            AuthenticationRequest authenticationRequest = (AuthenticationRequest)identityRequest;
+            String sessionKey = authenticationRequest.getSessionKey();
+            if (StringUtils.isNotBlank(sessionKey)) {
+                return SessionContextCache.getInstance().get(DigestUtils.sha256Hex(sessionKey));
+            }
         }
         return null;
     }

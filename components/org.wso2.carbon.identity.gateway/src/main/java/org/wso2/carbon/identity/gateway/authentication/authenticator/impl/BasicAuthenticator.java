@@ -4,6 +4,7 @@ import org.apache.commons.lang.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.AbstractApplicationAuthenticator;
@@ -71,9 +72,9 @@ public class BasicAuthenticator extends AbstractApplicationAuthenticator impleme
     protected AuthenticationResponse processRequest(AuthenticationContext context)
             throws AuthenticationHandlerException {
 
-
-        if (context.getIdentityRequest() instanceof LocalAuthenticationRequest) {
-            LocalAuthenticationRequest localAuthenticationRequest = (LocalAuthenticationRequest) context.getIdentityRequest();
+        GatewayRequest identityRequest = context.getIdentityRequest();
+        if (identityRequest instanceof LocalAuthenticationRequest) {
+            LocalAuthenticationRequest localAuthenticationRequest = (LocalAuthenticationRequest) identityRequest;
             SequenceContext sequenceContext = context.getSequenceContext();
             SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
@@ -124,34 +125,39 @@ public class BasicAuthenticator extends AbstractApplicationAuthenticator impleme
     @Override
     protected AuthenticationResponse processResponse(AuthenticationContext context)
             throws AuthenticationHandlerException {
-        LocalAuthenticationRequest localAuthenticationRequest = (LocalAuthenticationRequest) context.getIdentityRequest();
-        try {
-            SequenceContext sequenceContext = context.getSequenceContext();
-            SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
-            RealmService realmService = GatewayServiceHolder.getInstance().getRealmService();
-            IdentityStore identityStore = realmService.getIdentityStore();
-            Claim claim = new Claim("http://wso2.org/claims", "http://wso2.org/claims/username",
-                    localAuthenticationRequest.getUserName());
-            PasswordCallback passwordCallback = new PasswordCallback("psasword", false);
-            passwordCallback.setPassword(localAuthenticationRequest.getPassword().toCharArray());
+        GatewayRequest identityRequest = context.getIdentityRequest();
+        if (identityRequest instanceof LocalAuthenticationRequest) {
+            LocalAuthenticationRequest localAuthenticationRequest = (LocalAuthenticationRequest) identityRequest;
+            try {
+                SequenceContext sequenceContext = context.getSequenceContext();
+                SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
-            org.wso2.carbon.identity.mgt.AuthenticationContext context1 = identityStore.authenticate(claim, new
-                    PasswordCallback[]{passwordCallback}, "PRIMARY");
-            if (context1.isAuthenticated()) {
-                User user = context1.getUser();
-                LocalUser localUser = new LocalUser(user);
-                currentStepContext.setUser(localUser);
-                return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
+                RealmService realmService = GatewayServiceHolder.getInstance().getRealmService();
+                IdentityStore identityStore = realmService.getIdentityStore();
+                Claim claim = new Claim("http://wso2.org/claims", "http://wso2.org/claims/username",
+                        localAuthenticationRequest.getUserName());
+                PasswordCallback passwordCallback = new PasswordCallback("psasword", false);
+                passwordCallback.setPassword(localAuthenticationRequest.getPassword().toCharArray());
+
+                org.wso2.carbon.identity.mgt.AuthenticationContext context1 = identityStore.authenticate(claim, new
+                        PasswordCallback[]{passwordCallback}, "PRIMARY");
+                if (context1.isAuthenticated()) {
+                    User user = context1.getUser();
+                    LocalUser localUser = new LocalUser(user);
+                    currentStepContext.setUser(localUser);
+                    return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
+                }
+                throw new AuthenticationHandlerException("Authentication Failed.");
+            } catch (IdentityStoreException e) {
+                String error = "Error occurred while authetnicating the user," + e.getMessage();
+                log.error(error, e);
+                throw new GatewayRuntimeException(error, e);
+            } catch (AuthenticationFailure authenticationFailure) {
+                throw new AuthenticationHandlerException("Authentication Failed.", authenticationFailure);
             }
-            throw new AuthenticationHandlerException("Authentication Failed.");
-        } catch (IdentityStoreException e) {
-            String error = "Error occurred while authetnicating the user," + e.getMessage();
-            log.error(error, e);
-            throw new GatewayRuntimeException(error, e);
-        } catch (AuthenticationFailure authenticationFailure) {
-            throw new AuthenticationHandlerException("Authentication Failed.", authenticationFailure);
         }
+        throw new GatewayRuntimeException("Identity Request should be a LocalAuthenticationRequest.");
     }
 
     @Override

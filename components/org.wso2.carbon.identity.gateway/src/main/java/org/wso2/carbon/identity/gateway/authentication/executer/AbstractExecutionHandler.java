@@ -21,20 +21,17 @@ package org.wso2.carbon.identity.gateway.authentication.executer;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
+import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
 import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
-
-import java.util.List;
 
 public abstract class AbstractExecutionHandler extends
         AbstractGatewayHandler<AuthenticationContext> {
@@ -64,32 +61,37 @@ public abstract class AbstractExecutionHandler extends
         }
         return applicationAuthenticator;
     }
+
     protected ApplicationAuthenticator getApplicationAuthenticator(AuthenticationContext authenticationContext) {
 
         ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
-        AuthenticationRequest authenticationRequest = (AuthenticationRequest) authenticationContext.getIdentityRequest();
-        if (currentStepContext != null) {
-            if (StringUtils.isNotBlank(currentStepContext.getAuthenticatorName())
-                    && StringUtils.isNotBlank(currentStepContext.getIdentityProviderName())) {
-                applicationAuthenticator = getApplicationAuthenticator(currentStepContext.getAuthenticatorName());
-            } else if (StringUtils.isNotBlank(authenticationRequest.getAuthenticatorName()) && StringUtils.isNotBlank
-                    (authenticationRequest.getIdentityProviderName())) {
-                applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
-                currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
-                currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
-            }
-        } else {
-            currentStepContext = sequenceContext.addStepContext();
-            if (authenticationRequest instanceof ClientAuthenticationRequest && StringUtils.isNotBlank(authenticationRequest
-                    .getAuthenticatorName())
-                    &&
-                    StringUtils.isNotBlank
-                            (authenticationRequest.getIdentityProviderName())) {
-                applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
-                currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
-                currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
+        GatewayRequest identityRequest = authenticationContext.getIdentityRequest();
+
+        if (identityRequest instanceof AuthenticationRequest) {
+            AuthenticationRequest authenticationRequest = (AuthenticationRequest) identityRequest;
+            if (currentStepContext != null) {
+                if (StringUtils.isNotBlank(currentStepContext.getAuthenticatorName())
+                        && StringUtils.isNotBlank(currentStepContext.getIdentityProviderName())) {
+                    applicationAuthenticator = getApplicationAuthenticator(currentStepContext.getAuthenticatorName());
+                } else if (StringUtils.isNotBlank(authenticationRequest.getAuthenticatorName()) && StringUtils.isNotBlank
+                        (authenticationRequest.getIdentityProviderName())) {
+                    applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
+                    currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
+                    currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
+                }
+            } else {
+                currentStepContext = sequenceContext.addStepContext();
+                if (authenticationRequest instanceof ClientAuthenticationRequest && StringUtils.isNotBlank(authenticationRequest
+                        .getAuthenticatorName())
+                        &&
+                        StringUtils.isNotBlank
+                                (authenticationRequest.getIdentityProviderName())) {
+                    applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
+                    currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
+                    currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
+                }
             }
         }
         return applicationAuthenticator;
