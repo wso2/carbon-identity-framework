@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.gateway.dao.CacheBackedSessionDAO;
 import org.wso2.carbon.identity.gateway.exception.SessionHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
-import org.wso2.carbon.kernel.runtime.exception.RuntimeServiceException;
 
 import java.util.UUID;
 
@@ -45,7 +44,7 @@ public class DefaultSessionHandler extends AbstractSessionHandler {
     public GatewayHandlerResponse updateSession(AuthenticationContext context) throws SessionHandlerException {
 
         GatewayRequest identityRequest = context.getIdentityRequest();
-        if(identityRequest instanceof AuthenticationRequest) {
+        if (identityRequest instanceof AuthenticationRequest) {
             String sessionKey = ((AuthenticationRequest) identityRequest).getSessionKey();
             String sessionKeyHash;
             if (StringUtils.isBlank(sessionKey)) {

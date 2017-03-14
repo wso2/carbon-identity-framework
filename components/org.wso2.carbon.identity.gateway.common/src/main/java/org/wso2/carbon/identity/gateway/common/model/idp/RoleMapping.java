@@ -18,7 +18,9 @@
 
 
 package org.wso2.carbon.identity.gateway.common.model.idp;
-
+/**
+ * RoleMapping is a IDP model class.
+ */
 public class RoleMapping {
     private String localRoleName;
     private String idpRoleName;

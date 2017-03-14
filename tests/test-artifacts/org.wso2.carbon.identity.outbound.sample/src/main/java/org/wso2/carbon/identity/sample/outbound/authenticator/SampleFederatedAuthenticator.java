@@ -27,9 +27,8 @@ import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.sample.outbound.request.SampleACSRequest;
 import org.wso2.carbon.identity.sample.outbound.response.SampleProtocolRequestResponse;
 
 import java.io.UnsupportedEncodingException;
@@ -51,34 +50,10 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
         return "SampleFederatedAuthenticator";
     }
 
-    @Override
-    public String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext) {
-        return null;
-    }
 
     @Override
     public String getFriendlyName() {
         return "SampleFederatedAuthenticator";
-    }
-
-    @Override
-    public String getClaimDialectURI() {
-        return null;
-    }
-
-    @Override
-    public List<Properties> getConfigurationProperties() {
-        return null;
-    }
-
-    @Override
-    public boolean canHandle(AuthenticationContext authenticationContext) {
-        return true;
-    }
-
-    @Override
-    public String getContextIdentifier(AuthenticationContext authenticationContext) {
-        return null;
     }
 
     @Override

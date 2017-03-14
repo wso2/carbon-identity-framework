@@ -14,8 +14,9 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.carbon.identity.gateway.authentication;
+package org.wso2.carbon.identity.gateway.authentication.sequence;
 
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
@@ -28,18 +29,7 @@ import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException
 import java.io.Serializable;
 import java.util.List;
 
-public abstract class AbstractSequence extends AbstractGatewayHandler implements Serializable {
-
-    private static final long serialVersionUID = 855941807514456712L;
-    protected transient AuthenticationContext authenticationContext = null;
-
-    protected AbstractSequence(AuthenticationContext authenticationContext) {
-        this.authenticationContext = authenticationContext;
-    }
-
-    protected AbstractSequence() {
-
-    }
+public interface Sequence extends Serializable {
 
     public abstract IdentityProvider getIdentityProvider(int step, String identityProviderName)
             throws AuthenticationHandlerException;
@@ -49,11 +39,7 @@ public abstract class AbstractSequence extends AbstractGatewayHandler implements
 
     public abstract List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig();
 
-    public abstract int getSteps() throws AuthenticationHandlerException;
-
     public abstract boolean hasNext(int currentStep) throws AuthenticationHandlerException;
-
-    public abstract boolean isMultiOption(int step) throws AuthenticationHandlerException;
 
     public abstract boolean isRequestPathAuthenticatorsAvailable();
 

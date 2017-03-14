@@ -28,7 +28,12 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Basic Request Object for the Gateway and we can create sub classed of this to handle different protocol request.
@@ -38,8 +43,8 @@ public class GatewayRequest implements Serializable {
     private static final long serialVersionUID = 5418537216546873566L;
 
     private static Logger log = LoggerFactory.getLogger(GatewayRequest.class);
-    protected Map<String, Serializable> headers = new HashMap();
-    protected Map<String, Serializable> parameters = new HashMap();
+    protected Map<String, Serializable> headers = new HashMap<>();
+    protected Map<String, Serializable> parameters = new HashMap<>();
     protected Map<String, Serializable> attributes = new HashMap();
     protected String httpMethod;
     protected String requestURI;
@@ -115,7 +120,10 @@ public class GatewayRequest implements Serializable {
                 try {
                     decode = URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
                 } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                    String errorMessage = "Error occurred while decoding the parameter value," + paramName + " , " +
+                            e.getMessage();
+                    log.error(errorMessage, e);
+                    throw new GatewayRuntimeException(errorMessage, e);
                 }
             }
         }

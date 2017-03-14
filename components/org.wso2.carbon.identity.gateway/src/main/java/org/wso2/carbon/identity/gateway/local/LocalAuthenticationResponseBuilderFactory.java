@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.identity.gateway.authentication.local;
+package org.wso2.carbon.identity.gateway.local;
 
 import com.google.common.net.HttpHeaders;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class LocalAuthenticationResponseBuilderFactory extends GatewayResponseBu
 
     @Override
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
-        if(gatewayResponse instanceof LocalAuthenticationResponse) {
+        if (gatewayResponse instanceof LocalAuthenticationResponse) {
             LocalAuthenticationResponse localAuthenticationResponse = (LocalAuthenticationResponse) gatewayResponse;
             builder.status(302);
             String url = localAuthenticationResponse.getEndpointURL() + "?callback=" + URLEncoder.encode

@@ -29,6 +29,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
+/**
+ * AsyncSessionDAO is the DAO class for Session persistence in async manner.
+ */
 public class AsyncSessionDAO extends SessionDAO {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncSessionDAO.class);

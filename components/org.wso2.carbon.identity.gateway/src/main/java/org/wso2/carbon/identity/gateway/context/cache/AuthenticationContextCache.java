@@ -14,32 +14,33 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
 
-package org.wso2.carbon.identity.gateway.cache;
+package org.wso2.carbon.identity.gateway.context.cache;
 
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCGatewayContextDAO;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class IdentityMessageContextCache extends BaseCache<String, GatewayMessageContext> {
+public class AuthenticationContextCache extends BaseCache<String, GatewayMessageContext> {
 
-    private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "IdentityMessageContextCache";
-    private static volatile IdentityMessageContextCache instance;
+    private static final String IDENTITY_MESSAGE_CONTEXT_CACHE = "AuthenticationContextCache";
+    private static volatile AuthenticationContextCache instance;
     private static Map<String, GatewayMessageContext> authenticationContextMap = new HashMap();
 
-    private IdentityMessageContextCache(String cacheName) {
+    private AuthenticationContextCache(String cacheName) {
         super(cacheName);
     }
 
-    public static IdentityMessageContextCache getInstance() {
+    public static AuthenticationContextCache getInstance() {
         if (instance == null) {
-            synchronized (IdentityMessageContextCache.class) {
+            synchronized (AuthenticationContextCache.class) {
                 if (instance == null) {
-                    instance = new IdentityMessageContextCache(IDENTITY_MESSAGE_CONTEXT_CACHE);
+                    instance = new AuthenticationContextCache(IDENTITY_MESSAGE_CONTEXT_CACHE);
                 }
             }
         }
@@ -48,19 +49,19 @@ public class IdentityMessageContextCache extends BaseCache<String, GatewayMessag
 
     public void clear(String key) {
         super.clear(key);
-        JDBCIdentityContextDAO.getInstance().remove(key);
+        JDBCGatewayContextDAO.getInstance().remove(key);
     }
 
     public GatewayMessageContext get(String key) {
         GatewayMessageContext context = super.get(key);
         if (context == null) {
-            context = JDBCIdentityContextDAO.getInstance().get(key);
+            context = JDBCGatewayContextDAO.getInstance().get(key);
         }
         return context;
     }
 
     public void put(String key, GatewayMessageContext context) {
         super.put(key, context);
-        JDBCIdentityContextDAO.getInstance().put(key, context);
+        JDBCGatewayContextDAO.getInstance().put(key, context);
     }
 }

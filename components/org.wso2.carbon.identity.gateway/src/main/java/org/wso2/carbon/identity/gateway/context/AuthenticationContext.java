@@ -21,9 +21,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.cache.SessionContextCache;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
+import org.wso2.carbon.identity.gateway.context.cache.SessionContextCache;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
@@ -38,10 +38,10 @@ public class AuthenticationContext extends GatewayMessageContext {
     protected ClientAuthenticationRequest initialAuthenticationRequest;
     protected String uniqueId;
 
-    private AbstractSequence sequence = null;
+    private Sequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
 
-    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest, Map<Serializable,Serializable> parameters) {
+    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest, Map<Serializable, Serializable> parameters) {
         super(authenticationRequest, parameters);
         this.initialAuthenticationRequest = authenticationRequest;
     }
@@ -55,12 +55,12 @@ public class AuthenticationContext extends GatewayMessageContext {
         return initialAuthenticationRequest;
     }
 
-    public AbstractSequence getSequence() {
+    public Sequence getSequence() {
         return sequence;
     }
 
     public void setSequence(
-            AbstractSequence sequence) {
+            Sequence sequence) {
         this.sequence = sequence;
     }
 
@@ -81,8 +81,8 @@ public class AuthenticationContext extends GatewayMessageContext {
 
     public SessionContext getSessionContext() {
         GatewayRequest identityRequest = getIdentityRequest();
-        if(identityRequest instanceof AuthenticationRequest) {
-            AuthenticationRequest authenticationRequest = (AuthenticationRequest)identityRequest;
+        if (identityRequest instanceof AuthenticationRequest) {
+            AuthenticationRequest authenticationRequest = (AuthenticationRequest) identityRequest;
             String sessionKey = authenticationRequest.getSessionKey();
             if (StringUtils.isNotBlank(sessionKey)) {
                 return SessionContextCache.getInstance().get(DigestUtils.sha256Hex(sessionKey));

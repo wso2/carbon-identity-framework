@@ -19,11 +19,34 @@ package org.wso2.carbon.identity.gateway.dao;
 
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
-public abstract class IdentityContextDAO {
+/**
+ * CacheBackedGatewaySessionDAO is the proxy level for GatewaySession persistent.
+ */
+public class CacheBackedGatewaySessionDAO extends GatewayContextDAO {
 
-    public abstract GatewayMessageContext get(String key);
+    private static GatewayContextDAO instance = new CacheBackedGatewaySessionDAO();
+    private GatewayContextDAO asyncSessionDAO = AsyncGatewayContextDAO.getInstance();
 
-    public abstract void put(String key, GatewayMessageContext context);
+    private CacheBackedGatewaySessionDAO() {
 
-    public abstract void remove(String key);
+    }
+
+    public static GatewayContextDAO getInstance() {
+        return instance;
+    }
+
+    @Override
+    public GatewayMessageContext get(String key) {
+        return asyncSessionDAO.get(key);
+    }
+
+    @Override
+    public void put(String key, GatewayMessageContext context) {
+        asyncSessionDAO.put(key, context);
+    }
+
+    @Override
+    public void remove(String key) {
+        asyncSessionDAO.remove(key);
+    }
 }

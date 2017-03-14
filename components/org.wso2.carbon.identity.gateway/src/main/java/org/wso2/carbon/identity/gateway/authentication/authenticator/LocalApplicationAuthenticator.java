@@ -17,6 +17,11 @@
  */
 package org.wso2.carbon.identity.gateway.authentication.authenticator;
 
-
+/**
+ * All the local authenticators should be implemented by the LocalApplicationAuthenticator and can be extended by the
+ * AbstractApplicationAuthenticator to get generic implementation.
+ */
 public interface LocalApplicationAuthenticator extends ApplicationAuthenticator {
+
+
 }

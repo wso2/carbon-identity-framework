@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 
 import java.io.Serializable;
 
-/*
+/**
  * Return type of the gateway framework. Processor return this type of instance and each protocol can have its own
  * return sub type of this.
  */

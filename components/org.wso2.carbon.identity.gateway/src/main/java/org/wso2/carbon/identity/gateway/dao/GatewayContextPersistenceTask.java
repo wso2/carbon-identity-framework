@@ -25,15 +25,18 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
 import java.util.concurrent.BlockingDeque;
 
-public class IdentityContextPersistenceTask implements Runnable {
+/**
+ * GatewayContextPersistenceTask is the place that persist the GatewayContext.
+ */
+public class GatewayContextPersistenceTask implements Runnable {
 
-    private static Logger log = LoggerFactory.getLogger(IdentityContextPersistenceTask.class);
+    private static Logger log = LoggerFactory.getLogger(GatewayContextPersistenceTask.class);
 
     private BlockingDeque<IdentityContextJob> identityContextJobQueue;
-    private IdentityContextDAO persistentDAO;
+    private GatewayContextDAO persistentDAO;
 
-    IdentityContextPersistenceTask(BlockingDeque<IdentityContextJob> identityContextJobQueue,
-                                   IdentityContextDAO persistentDAO) {
+    GatewayContextPersistenceTask(BlockingDeque<IdentityContextJob> identityContextJobQueue,
+                                  GatewayContextDAO persistentDAO) {
         this.identityContextJobQueue = identityContextJobQueue;
         this.persistentDAO = persistentDAO;
     }

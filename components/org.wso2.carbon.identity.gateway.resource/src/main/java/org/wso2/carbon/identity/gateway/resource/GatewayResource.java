@@ -64,7 +64,7 @@ public class GatewayResource implements Microservice {
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()))) {
             content = buffer.lines().collect(Collectors.joining("\n"));
         } catch (IOException e) {
-            content = "Error" ;
+            content = "Error";
         }
 
         return content;
@@ -151,8 +151,8 @@ public class GatewayResource implements Microservice {
             } else {
                 String[] aIdp = idp.split(":");
                 String link =
-                        "<a class='btn btn-primary btn-block btn-large'  href='" + callbackURL + "?state=" + state + "&authenticator=" + aIdp[0] + "&idp=" + aIdp[1] + "'>" + aIdp[1] + "</a" +
-                                "><br>";
+                        "<a class='btn btn-primary btn-block btn-large'  href='" + callbackURL + "?state=" + state +
+                                "&authenticator=" + aIdp[0] + "&idp=" + aIdp[1] + "'>" + aIdp[1] + "</a><br>";
                 idpLinks.append(link);
             }
         }

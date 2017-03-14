@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 import java.io.Serializable;
 import java.util.Properties;
 
+/**
+ * RequestValidatorConfig is a SP model class.
+ */
 public class RequestValidatorConfig implements Serializable {
 
     private static final long serialVersionUID = -4069605490920681650L;

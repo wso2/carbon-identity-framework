@@ -14,8 +14,9 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.carbon.identity.gateway.authentication;
+package org.wso2.carbon.identity.gateway.authentication.sequence;
 
 
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
@@ -24,6 +25,6 @@ import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException
 
 
 public abstract class AbstractSequenceBuildFactory extends AbstractGatewayHandler {
-    public abstract AbstractSequence buildSequence(AuthenticationContext authenticationContext)
+    public abstract Sequence buildSequence(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException;
 }

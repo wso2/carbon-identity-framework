@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.request;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
+/**
+ * ClientAuthenticationRequest is the base request to handle initial call to the gateway.
+ */
 public class ClientAuthenticationRequest extends AuthenticationRequest {
 
     private static final long serialVersionUID = 1202704178758481721L;
@@ -28,6 +31,9 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
         super(builder);
     }
 
+    /**
+     * ClientAuthenticationRequestBuilder is the builder class for ClientAuthenticationRequest.
+     */
     public static class ClientAuthenticationRequestBuilder extends AuthenticationRequest.AuthenticationRequestBuilder {
 
         public ClientAuthenticationRequestBuilder() {
@@ -41,6 +47,9 @@ public class ClientAuthenticationRequest extends AuthenticationRequest {
         }
     }
 
+    /**
+     * ClientAuthenticationRequestConstants is hold the constants for ClientAuthenticationRequest.
+     */
     public static class ClientAuthenticationRequestConstants extends AuthenticationRequestConstants {
 
     }

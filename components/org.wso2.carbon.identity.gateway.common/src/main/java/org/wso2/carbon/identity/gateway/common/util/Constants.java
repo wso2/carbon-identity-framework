@@ -15,15 +15,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.gateway.common.util;
 
+
+/**
+ * Constants for common bundle.
+ */
 public class Constants {
     public static final String QUERY_PARAMETERS = "QUERY_PARAMETERS";
     public static final String BODY_PARAMETERS = "BODY_PARAMETERS";
     public static final String REQUEST_BODY = "REQUEST_BODY";
-
     public static final String GATEWAY_COOKIE = "GWSSOSC";
-
-
-    public final static String YAML_EXTENSION = "yaml";
+    public static final String YAML_EXTENSION = "yaml";
 }

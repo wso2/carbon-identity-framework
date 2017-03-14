@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 
 import java.util.Properties;
 
-
+/**
+ * AuthenticatorConfig is a IDP model class.
+ */
 public class AuthenticatorConfig extends AuthenticationConfig {
     private String name;
     private Properties properties = new Properties();

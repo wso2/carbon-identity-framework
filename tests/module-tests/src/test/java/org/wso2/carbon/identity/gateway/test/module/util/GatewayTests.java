@@ -38,12 +38,12 @@ import org.wso2.carbon.deployment.engine.exception.CarbonDeploymentException;
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
-import org.wso2.carbon.identity.gateway.common.util.Utils;
-import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
-import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
+import org.wso2.carbon.identity.gateway.store.deployer.IdentityProviderDeployer;
+import org.wso2.carbon.identity.gateway.store.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
+import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
@@ -367,7 +367,7 @@ public class GatewayTests {
         Map<String, String[]> map = new HashMap<String, String[]>();
         map.put("param1", new String[]{"value1", "value2"});
         map.put("param1", new String[]{"value3", "value4"});
-        String queryString = Utils.buildQueryString(map);
+        String queryString = GatewayUtil.buildQueryString(map);
         Assert.assertTrue(queryString.contains("?param1=value3&param1=value4"));
     }
 

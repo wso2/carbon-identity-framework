@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * AuthenticationConfig is a SP model class.
+ */
 public class AuthenticationConfig {
 
     List<AuthenticationStepConfig> authenticationStepConfigs = new ArrayList<>();

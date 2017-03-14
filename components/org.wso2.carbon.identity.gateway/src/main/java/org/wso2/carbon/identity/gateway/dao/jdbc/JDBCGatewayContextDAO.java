@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.common.jdbc.DataAccessException;
 import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.dao.IdentityContextDAO;
+import org.wso2.carbon.identity.gateway.dao.GatewayContextDAO;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,21 +33,26 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class JDBCIdentityContextDAO extends IdentityContextDAO {
 
-    private static final Logger logger = LoggerFactory.getLogger(JDBCIdentityContextDAO.class);
+/**
+ *
+ *
+ */
+public class JDBCGatewayContextDAO extends GatewayContextDAO {
+
+    private static final Logger logger = LoggerFactory.getLogger(JDBCGatewayContextDAO.class);
     private static final String KEY = "KEY";
     private static final String OPERATION = "OPERATION";
     private static final String SESSION_OBJECT = "SESSION_OBJECT";
     private static final String TIME_CREATED = "TIME_CREATED";
-    private static volatile JDBCIdentityContextDAO instance = new JDBCIdentityContextDAO();
+    private static volatile JDBCGatewayContextDAO instance = new JDBCGatewayContextDAO();
     private JdbcTemplate jdbcTemplate;
 
-    private JDBCIdentityContextDAO() {
+    private JDBCGatewayContextDAO() {
 
     }
 
-    public static JDBCIdentityContextDAO getInstance() {
+    public static JDBCGatewayContextDAO getInstance() {
         return instance;
     }
 

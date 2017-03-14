@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.dao;
 
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 
+/**
+ * CacheBackedSessionDAO is the Cache layer for Session persistent.
+ */
 public class CacheBackedSessionDAO extends SessionDAO {
 
     private static SessionDAO instance = new CacheBackedSessionDAO();

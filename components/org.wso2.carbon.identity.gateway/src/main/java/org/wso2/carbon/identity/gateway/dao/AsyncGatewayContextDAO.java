@@ -22,25 +22,29 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
-import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCGatewayContextDAO;
 
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class AsyncIdentityContextDAO extends IdentityContextDAO {
 
-    private static final Logger log = LoggerFactory.getLogger(AsyncIdentityContextDAO.class);
+/**
+ * AsyncGatewayContextDAO is the class that is done the db operation for GatewayContext in async manner.
+ */
+public class AsyncGatewayContextDAO extends GatewayContextDAO {
 
-    private static IdentityContextDAO instance = new AsyncIdentityContextDAO();
-    private IdentityContextDAO persistentDAO = JDBCIdentityContextDAO.getInstance();
+    private static final Logger log = LoggerFactory.getLogger(AsyncGatewayContextDAO.class);
+
+    private static GatewayContextDAO instance = new AsyncGatewayContextDAO();
+    private GatewayContextDAO persistentDAO = JDBCGatewayContextDAO.getInstance();
     private int poolSize = 0;
 
-    private BlockingDeque<IdentityContextPersistenceTask.IdentityContextJob> identityContextJobs = new
+    private BlockingDeque<GatewayContextPersistenceTask.IdentityContextJob> identityContextJobs = new
             LinkedBlockingDeque();
 
-    private AsyncIdentityContextDAO() {
+    private AsyncGatewayContextDAO() {
 
         //
         String poolSizeConfig = "2";
@@ -53,16 +57,16 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
         if (poolSize > 0) {
             ExecutorService threadPool = Executors.newFixedThreadPool(poolSize);
             for (int i = 0; i < poolSize; i++) {
-                threadPool.execute(new IdentityContextPersistenceTask(identityContextJobs, persistentDAO));
+                threadPool.execute(new GatewayContextPersistenceTask(identityContextJobs, persistentDAO));
             }
             threadPool = Executors.newFixedThreadPool(poolSize);
             for (int i = 0; i < poolSize; i++) {
-                threadPool.execute(new IdentityContextPersistenceTask(identityContextJobs, persistentDAO));
+                threadPool.execute(new GatewayContextPersistenceTask(identityContextJobs, persistentDAO));
             }
         }
     }
 
-    public static IdentityContextDAO getInstance() {
+    public static GatewayContextDAO getInstance() {
         return instance;
     }
 
@@ -75,7 +79,7 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
     public void put(String key, GatewayMessageContext context) {
 
         if (poolSize > 0) {
-            IdentityContextPersistenceTask.IdentityContextJob job = new IdentityContextPersistenceTask
+            GatewayContextPersistenceTask.IdentityContextJob job = new GatewayContextPersistenceTask
                     .IdentityContextJob(key, context);
             identityContextJobs.add(job);
         } else {
@@ -87,7 +91,7 @@ public class AsyncIdentityContextDAO extends IdentityContextDAO {
     public void remove(String key) {
 
         if (poolSize > 0) {
-            IdentityContextPersistenceTask.IdentityContextJob job = new IdentityContextPersistenceTask
+            GatewayContextPersistenceTask.IdentityContextJob job = new GatewayContextPersistenceTask
                     .IdentityContextJob(key);
             identityContextJobs.add(job);
         } else {

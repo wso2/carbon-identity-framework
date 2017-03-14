@@ -30,22 +30,17 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.sample.outbound.authenticator.SampleFederatedAuthenticator;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
 import javax.inject.Inject;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 
 
 @Listeners(PaxExam.class)
@@ -96,11 +91,6 @@ public class GatewayAuthenticatorTests {
             }
 
             @Override
-            public String getContextIdentifier(AuthenticationContext authenticationContext) {
-                return null;
-            }
-
-            @Override
             public String getName() {
                 return "SampleLocalAuthenticator";
             }
@@ -110,21 +100,6 @@ public class GatewayAuthenticatorTests {
                 return "SampleLocalAuthenticator";
             }
 
-            @Override
-            public String getClaimDialectURI() {
-                return "http://org.wso2.carbon";
-            }
-
-            @Override
-            public List<Properties> getConfigurationProperties() {
-                return null;
-            }
-
-            @Override
-            public Set<Claim> getMappedRootClaims(Set<Claim> claims, Optional<String> profile, Optional<String>
-                    dialect) throws AuthenticationHandlerException {
-                return null;
-            }
         };
         Assert.assertEquals(localApplicationAuthenticator.getName(), "SampleLocalAuthenticator");
         AuthenticationContext authenticationContext = new AuthenticationContext(null);
@@ -132,24 +107,7 @@ public class GatewayAuthenticatorTests {
         Assert.assertTrue(localApplicationAuthenticator.canHandle(authenticationContext));
     }
 
-    /***
-     * Test federated claims transformation to root dialect.
-     */
-    @Test
-    public void testSampleAuthenticatorClaimTransformation() {
-        SampleFederatedAuthenticator sampleFederatedAuthenticator = new SampleFederatedAuthenticator();
-        Set<Claim> claims = new HashSet<Claim>();
-        Claim claim = new Claim("http://org.harsha/claims", "http://org.harsha/claims/email", "harsha@wso2.com");
-        claims.add(claim);
-        try {
-            Set<Claim> transformedClaims = sampleFederatedAuthenticator.getMappedRootClaims(claims, Optional.of
-                    ("default"), Optional.of("http://org.harsha/claims"));
-            Assert.assertNotNull(transformedClaims);
-            Assert.assertTrue(!transformedClaims.isEmpty());
-        } catch (AuthenticationHandlerException e) {
-            Assert.fail();
-        }
-    }
+
 
     /**
      * Test a sample request path authenticator
@@ -171,11 +129,6 @@ public class GatewayAuthenticatorTests {
             }
 
             @Override
-            public String getContextIdentifier(AuthenticationContext authenticationContext) {
-                return null;
-            }
-
-            @Override
             public String getName() {
                 return "SampleRequestPathAuthenticator";
             }
@@ -185,21 +138,8 @@ public class GatewayAuthenticatorTests {
                 return "SampleRequestPathAuthenticator";
             }
 
-            @Override
-            public String getClaimDialectURI() {
-                return "http://org.wso2.carbon";
-            }
 
-            @Override
-            public List<Properties> getConfigurationProperties() {
-                return null;
-            }
 
-            @Override
-            public Set<Claim> getMappedRootClaims(Set<Claim> claims, Optional<String> profile, Optional<String>
-                    dialect) throws AuthenticationHandlerException {
-                return null;
-            }
         };
         Assert.assertEquals(localApplicationAuthenticator.getName(), "SampleRequestPathAuthenticator");
         AuthenticationContext authenticationContext = new AuthenticationContext(null);

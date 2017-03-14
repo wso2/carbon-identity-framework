@@ -17,8 +17,8 @@
   ~ under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
@@ -137,7 +137,7 @@
             org.wso2.carbon.identity.gateway.cache.*,
             org.wso2.carbon.identity.gateway.context.*,
             org.wso2.carbon.identity.gateway.dao.*,
-            org.wso2.carbon.identity.gateway.deployer.*,
+            org.wso2.carbon.identity.gateway.store.deployer.*,
             org.wso2.carbon.identity.gateway.exception.*,
             org.wso2.carbon.identity.gateway.handler.*,
             org.wso2.carbon.identity.gateway.model.*,
@@ -145,8 +145,8 @@
             org.wso2.carbon.identity.gateway.request.*,
             org.wso2.carbon.identity.gateway.service.*,
             org.wso2.carbon.identity.gateway.store.*,
-            org.wso2.carbon.identity.gateway.util.*
-
+            org.wso2.carbon.identity.gateway.util.*,
+            org.wso2.carbon.identity.gateway.local.*
         </export.package>
         <import.package>
             org.osgi.framework.*;version="${osgi.framework.package.import.version.range}",

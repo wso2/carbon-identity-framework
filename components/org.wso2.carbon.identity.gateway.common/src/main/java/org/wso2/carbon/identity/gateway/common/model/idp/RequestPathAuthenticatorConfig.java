@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 
 
 import java.util.Properties;
-
+/**
+ * RequestPathAuthenticatorConfig is a IDP model class.
+ */
 public class RequestPathAuthenticatorConfig {
     private String authenticatorName;
     private Properties properties = new Properties();

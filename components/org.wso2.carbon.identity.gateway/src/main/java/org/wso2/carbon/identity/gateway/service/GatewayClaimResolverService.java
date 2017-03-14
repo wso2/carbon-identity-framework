@@ -33,9 +33,18 @@ import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * GatewayClaimResolverService is a service class that is wrapped the claim management service to get some aggregate
+ * operation.
+ */
 public class GatewayClaimResolverService {
     private static Logger log = org.slf4j.LoggerFactory.getLogger(GatewayHandlerManager.class);
     private static GatewayClaimResolverService gatewayClaimResolverService = new GatewayClaimResolverService();
@@ -77,7 +86,8 @@ public class GatewayClaimResolverService {
                 if (profileEntry != null) {
                     List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
                     Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
-                    profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(), profileClaim));
+                    profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(),
+                            profileClaim));
 
                     transformedClaimsTmp.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
                             .forEach(transformedClaims.get()::add);

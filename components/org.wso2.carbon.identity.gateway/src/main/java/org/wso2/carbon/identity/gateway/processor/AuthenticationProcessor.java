@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
-import org.wso2.carbon.identity.gateway.cache.IdentityMessageContextCache;
+import org.wso2.carbon.identity.gateway.context.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
@@ -126,7 +126,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             }
         }
 
-        IdentityMessageContextCache.getInstance().put(authenticationRequest.getRequestKey(), authenticationContext);
+        AuthenticationContextCache.getInstance().put(authenticationRequest.getRequestKey(), authenticationContext);
         if (log.isDebugEnabled()) {
             log.debug("AuthenticationProcessor updated the authentication context.");
         }
@@ -147,19 +147,20 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             authenticationContext = new AuthenticationContext((ClientAuthenticationRequest) authenticationRequest);
             //requestKey is the co-relation key to re-load the context after subsequent call to the system.
 
-            IdentityMessageContextCache.getInstance().put(requestDataKey, authenticationContext);
+            AuthenticationContextCache.getInstance().put(requestDataKey, authenticationContext);
         } else {
             GatewayMessageContext gatewayMessageContext =
-                    IdentityMessageContextCache.getInstance().get(requestDataKey);
-            if(gatewayMessageContext instanceof AuthenticationContext)
-            authenticationContext =
-                    (AuthenticationContext)gatewayMessageContext ;
-            if (authenticationContext == null) {
-                String errorMessage = "AuthenticationContext is not available for give state value.";
-                log.error(errorMessage);
-                throw new GatewayRuntimeException(errorMessage);
+                    AuthenticationContextCache.getInstance().get(requestDataKey);
+            if (gatewayMessageContext instanceof AuthenticationContext) {
+                authenticationContext =
+                        (AuthenticationContext) gatewayMessageContext;
+                if (authenticationContext == null) {
+                    String errorMessage = "AuthenticationContext is not available for give state value.";
+                    log.error(errorMessage);
+                    throw new GatewayRuntimeException(errorMessage);
+                }
+                authenticationContext.setIdentityRequest(authenticationRequest);
             }
-            authenticationContext.setIdentityRequest(authenticationRequest);
         }
         return authenticationContext;
     }

@@ -17,6 +17,10 @@
  */
 package org.wso2.carbon.identity.gateway.authentication.authenticator;
 
-
+/**
+ * All the federate authenticator should implement FederatedApplicationAuthenticator and can be extends
+ * AbstractApplicationAuthenticator to get generic method implementation.
+ */
 public interface FederatedApplicationAuthenticator extends ApplicationAuthenticator {
+
 }

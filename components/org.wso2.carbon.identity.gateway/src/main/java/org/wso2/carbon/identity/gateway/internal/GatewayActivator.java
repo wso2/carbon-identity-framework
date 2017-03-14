@@ -19,7 +19,12 @@
 package org.wso2.carbon.identity.gateway.internal;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.*;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,21 +35,23 @@ import org.wso2.carbon.identity.common.jdbc.JdbcTemplate;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.*;
+import org.wso2.carbon.identity.gateway.authentication.step.AuthenticationStepHandler;
+import org.wso2.carbon.identity.gateway.authentication.sequence.AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.gateway.authentication.sequence.impl.DefaultSequenceBuilderFactory;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.impl.BasicAuthenticator;
+import org.wso2.carbon.identity.gateway.local.demo.BasicAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.executer.AbstractExecutionHandler;
 import org.wso2.carbon.identity.gateway.authentication.executer.MultiOptionExecutionHandler;
 import org.wso2.carbon.identity.gateway.authentication.executer.SingleOptionExecutionHandler;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCIdentityContextDAO;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCGatewayContextDAO;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
-import org.wso2.carbon.identity.gateway.deployer.IdentityProviderDeployer;
-import org.wso2.carbon.identity.gateway.deployer.ServiceProviderDeployer;
+import org.wso2.carbon.identity.gateway.store.deployer.IdentityProviderDeployer;
+import org.wso2.carbon.identity.gateway.store.deployer.ServiceProviderDeployer;
 import org.wso2.carbon.identity.gateway.handler.authentication.AuthenticationHandler;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.handler.session.AbstractSessionHandler;
@@ -61,6 +68,9 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 
+/**
+ * GatewayActivator is the activate class for Gateway bundle.
+ */
 @Component(
         name = "org.wso2.carbon.identity.gateway.internal.GatewayActivator",
         immediate = true
@@ -85,12 +95,10 @@ public class GatewayActivator {
 
 
         //Registering this for demo perposes only
-        bundleContext.registerService(AbstractSequenceBuildFactory.class, new SequenceBuilderFactory(), null);
+        bundleContext.registerService(AbstractSequenceBuildFactory.class, new DefaultSequenceBuilderFactory(), null);
         bundleContext.registerService(AuthenticationHandler.class, new AuthenticationHandler(), null);
         bundleContext.registerService(AbstractSessionHandler.class, new DefaultSessionHandler(), null);
-        bundleContext.registerService(SequenceManager.class, new SequenceManager(), null);
-        bundleContext.registerService(RequestPathHandler.class, new RequestPathHandler(), null);
-        bundleContext.registerService(StepHandler.class, new StepHandler(), null);
+        bundleContext.registerService(AuthenticationStepHandler.class, new AuthenticationStepHandler(), null);
 
         bundleContext.registerService(Deployer.class, new ServiceProviderDeployer(), null);
         bundleContext.registerService(Deployer.class, new IdentityProviderDeployer(), null);
@@ -292,77 +300,27 @@ public class GatewayActivator {
     }
 
     @Reference(
-            name = "identity.handlers.sequence.manager",
-            service = SequenceManager.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetSequenceManager"
-    )
-    protected void addSequenceManager(SequenceManager sequenceManager) {
-
-        GatewayServiceHolder.getInstance().getSequenceManagers().add(sequenceManager);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added SequenceManager : " + sequenceManager.getName());
-        }
-    }
-
-    protected void unSetSequenceManager(SequenceManager sequenceManager) {
-
-        GatewayServiceHolder.getInstance().getSequenceManagers().remove(sequenceManager);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed SequenceManager : " + sequenceManager.getName());
-        }
-    }
-
-    @Reference(
-            name = "identity.handlers.requestpath",
-            service = RequestPathHandler.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unSetRequestPathHandler"
-    )
-    protected void addRequestPathHandler(RequestPathHandler requestPathHandler) {
-
-        GatewayServiceHolder.getInstance().getRequestPathHandlers().add(requestPathHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Added RequestPathHandler : " + requestPathHandler.getName());
-        }
-    }
-
-    protected void unSetRequestPathHandler(RequestPathHandler requestPathHandler) {
-
-        GatewayServiceHolder.getInstance().getRequestPathHandlers().remove(requestPathHandler);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Removed RequestPathHandler : " + requestPathHandler.getName());
-        }
-    }
-
-    @Reference(
             name = "identity.handlers.step",
-            service = StepHandler.class,
+            service = AuthenticationStepHandler.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unSetStepHandler"
     )
-    protected void addStepHandler(StepHandler stepHandler) {
+    protected void addStepHandler(AuthenticationStepHandler authenticationStepHandler) {
 
-        GatewayServiceHolder.getInstance().getStepHandlers().add(stepHandler);
+        GatewayServiceHolder.getInstance().getAuthenticationStepHandlers().add(authenticationStepHandler);
 
         if (log.isDebugEnabled()) {
-            log.debug("Added StepHandler : " + stepHandler.getName());
+            log.debug("Added AuthenticationStepHandler : " + authenticationStepHandler.getName());
         }
     }
 
-    protected void unSetStepHandler(StepHandler stepHandler) {
+    protected void unSetStepHandler(AuthenticationStepHandler authenticationStepHandler) {
 
-        GatewayServiceHolder.getInstance().getStepHandlers().remove(stepHandler);
+        GatewayServiceHolder.getInstance().getAuthenticationStepHandlers().remove(authenticationStepHandler);
 
         if (log.isDebugEnabled()) {
-            log.debug("Removed StepHandler : " + stepHandler.getName());
+            log.debug("Removed AuthenticationStepHandler : " + authenticationStepHandler.getName());
         }
     }
 
@@ -470,7 +428,7 @@ public class GatewayActivator {
 
     private void initializeDao(JdbcTemplate jdbcTemplate) {
         JDBCSessionDAO.getInstance().setJdbcTemplate(jdbcTemplate);
-        JDBCIdentityContextDAO.getInstance().setJdbcTemplate(jdbcTemplate);
+        JDBCGatewayContextDAO.getInstance().setJdbcTemplate(jdbcTemplate);
     }
 
 

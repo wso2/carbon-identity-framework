@@ -1,16 +1,35 @@
-package org.wso2.carbon.identity.gateway.authentication.authenticator.impl;
+/*
+ * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
+package org.wso2.carbon.identity.gateway.local.demo;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponse;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationResponse;
 import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -27,35 +46,15 @@ import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
 
 import javax.security.auth.callback.PasswordCallback;
 import java.util.List;
-import java.util.Properties;
 
 /**
- * Created by harshat on 3/9/17.
+ * This is dummy BasicAuthenticator to cover the local authentication. This should be move to the some other repo.
  */
 public class BasicAuthenticator extends AbstractApplicationAuthenticator implements LocalApplicationAuthenticator {
 
     public static final String IS_RETRY_ENABLE = "isRetryEnable";
     private Logger log = LoggerFactory.getLogger(BasicAuthenticator.class);
 
-    @Override
-    public boolean canHandle(AuthenticationContext authenticationContext) {
-        return true;
-    }
-
-    @Override
-    public String getClaimDialectURI() {
-        return null;
-    }
-
-    @Override
-    public List<Properties> getConfigurationProperties() {
-        return null;
-    }
-
-    @Override
-    public String getContextIdentifier(AuthenticationContext authenticationContext) {
-        return null;
-    }
 
     @Override
     public String getFriendlyName() {
@@ -162,7 +161,7 @@ public class BasicAuthenticator extends AbstractApplicationAuthenticator impleme
 
     @Override
     public boolean isRetryEnable(AuthenticationContext context) {
-        AbstractSequence sequence = context.getSequence();
+        Sequence sequence = context.getSequence();
         SequenceContext.StepContext currentStepContext = context.getSequenceContext().getCurrentStepContext();
         AuthenticatorConfig authenticatorConfig = sequence.getAuthenticatorConfig(currentStepContext.getStep(), currentStepContext
                         .getAuthenticatorName(),

@@ -24,7 +24,9 @@ import org.wso2.carbon.identity.gateway.common.util.Constants;
 
 import java.util.UUID;
 
-
+/**
+ * AuthenticationRequest is the base request type in gateway.
+ */
 public class AuthenticationRequest extends GatewayRequest {
 
     private static final long serialVersionUID = -8870055537743402153L;
@@ -65,6 +67,9 @@ public class AuthenticationRequest extends GatewayRequest {
         return null;
     }
 
+    /**
+     * AuthenticationRequestBuilder is the builder of AuthenticationRequest.
+     */
     public static class AuthenticationRequestBuilder extends GatewayRequestBuilder {
 
         protected String requestDataKey;
@@ -92,10 +97,12 @@ public class AuthenticationRequest extends GatewayRequest {
         }
     }
 
+    /**
+     * AuthenticationRequestConstants is hold the constant to use for AuthenticationRequest.
+     */
     public static class AuthenticationRequestConstants extends IdentityRequestConstants {
         public static final String AUTHENTICATOR_NAME = "authenticator";
         public static final String IDP_NAME = "idp";
-        public static final String REQUEST_DATA_KEY = "RequestDataKey";
         public static final String SESSION_KEY = "SIOWTOSW";
     }
 }

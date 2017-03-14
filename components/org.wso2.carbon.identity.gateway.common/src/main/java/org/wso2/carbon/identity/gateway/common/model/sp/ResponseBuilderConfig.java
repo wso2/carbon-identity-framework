@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 import java.io.Serializable;
 import java.util.Properties;
 
+/**
+ * ResponseBuilderConfig is a SP model class.
+ */
 public class ResponseBuilderConfig implements Serializable {
 
 

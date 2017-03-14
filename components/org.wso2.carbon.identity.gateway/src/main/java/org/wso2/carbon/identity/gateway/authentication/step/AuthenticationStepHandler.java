@@ -14,24 +14,28 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.carbon.identity.gateway.authentication;
+package org.wso2.carbon.identity.gateway.authentication.step;
 
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.authentication.executer.AbstractExecutionHandler;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.model.User;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-public class StepHandler extends AbstractGatewayHandler {
+public class AuthenticationStepHandler extends AbstractGatewayHandler {
     @Override
     public boolean canHandle(MessageContext messageContext) {
         return true;
@@ -50,11 +54,10 @@ public class StepHandler extends AbstractGatewayHandler {
         }
 
         AuthenticationResponse authenticationResponse;
-        AbstractSequence sequence = authenticationContext.getSequence();
+        Sequence sequence = authenticationContext.getSequence();
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
 
-        AbstractExecutionHandler executionHandler =
-                HandlerManager.getInstance().getExecutionHandler(authenticationContext);
+        AbstractExecutionHandler executionHandler = getExecutionHandler(authenticationContext);
         authenticationResponse = executionHandler.execute(authenticationContext);
 
         if (AuthenticationResponse.Status.AUTHENTICATED.equals(authenticationResponse.status)) {
@@ -105,5 +108,10 @@ public class StepHandler extends AbstractGatewayHandler {
         }
         return isSessionValid;
     }
+
+    public AbstractExecutionHandler getExecutionHandler(AuthenticationContext authenticationContext) {
+        return (AbstractExecutionHandler) getHandler(GatewayServiceHolder.getInstance().getExecutionHandlers(), authenticationContext);
+    }
+
 
 }

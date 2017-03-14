@@ -14,11 +14,13 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.carbon.identity.gateway.authentication;
+
+package org.wso2.carbon.identity.gateway.authentication.sequence.impl;
 
 
-import org.wso2.carbon.identity.common.base.message.MessageContext;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
@@ -32,20 +34,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DefaultSequence extends AbstractSequence {
+public class DefaultSequence implements Sequence {
 
     private static final long serialVersionUID = -833644147304785568L;
+    private AuthenticationContext authenticationContext = null ;
 
     public DefaultSequence(AuthenticationContext authenticationContext) {
-        super(authenticationContext);
-    }
-
-    public DefaultSequence() {
-    }
-
-    @Override
-    public boolean canHandle(MessageContext messageContext) {
-        return true;
+        this.authenticationContext = authenticationContext;
     }
 
     @Override
@@ -75,12 +70,6 @@ public class DefaultSequence extends AbstractSequence {
     }
 
     @Override
-    public int getSteps() throws AuthenticationHandlerException {
-        return authenticationContext.getServiceProvider().getAuthenticationConfig().getAuthenticationStepConfigs()
-                .size();
-    }
-
-    @Override
     public boolean hasNext(int currentStep) throws AuthenticationHandlerException {
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
         AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
@@ -91,15 +80,6 @@ public class DefaultSequence extends AbstractSequence {
         return false;
     }
 
-    @Override
-    public boolean isMultiOption(int step) throws AuthenticationHandlerException {
-        AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
-        List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
-        if (identityProviders.size() > 1) {
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public boolean isRequestPathAuthenticatorsAvailable() {

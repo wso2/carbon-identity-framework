@@ -21,20 +21,22 @@ package org.wso2.carbon.identity.gateway.authentication.executer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationResponse;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 
 import java.util.List;
 
-
+/**
+ * MultiOptionExecutionHandler is for handle multi-option authenticators within single step. This is control the
+ * multi-option landing page and handle the retry as well.
+ */
 public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(MultiOptionExecutionHandler.class);
@@ -43,11 +45,11 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
     public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
 
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
-        AbstractSequence sequence = authenticationContext.getSequence();
+        Sequence sequence = authenticationContext.getSequence();
 
-        ApplicationAuthenticator applicationAuthenticator = getApplicationAuthenticator(authenticationContext);
+        ApplicationAuthenticator applicationAuthenticator = getApplicationAuthenticatorInContext(authenticationContext);
 
-        SequenceContext.StepContext  currentStepContext = sequenceContext.getCurrentStepContext();
+        SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
         if (applicationAuthenticator == null) {
             LocalAuthenticationResponse.LocalAuthenticationResponseBuilder
@@ -71,6 +73,7 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
 
             return authenticationResponse;
         }
+
         AuthenticationResponse response = null;
         try {
             response = applicationAuthenticator.process(authenticationContext);

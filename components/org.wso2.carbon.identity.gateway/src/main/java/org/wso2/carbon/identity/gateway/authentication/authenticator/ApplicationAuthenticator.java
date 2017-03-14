@@ -17,42 +17,49 @@
  */
 package org.wso2.carbon.identity.gateway.authentication.authenticator;
 
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.mgt.claim.Claim;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-
+/**
+ * Super interface for all the authenticators by providing generic APIs.
+ */
 public interface ApplicationAuthenticator {
 
-
-    public boolean canHandle(AuthenticationContext authenticationContext);
-
-    public String getClaimDialectURI();
-
-    public List<Properties> getConfigurationProperties();
-
-    public String getContextIdentifier(AuthenticationContext authenticationContext);
-
     public String getFriendlyName();
-
-    public Set<Claim> getMappedRootClaims(Set<Claim> claims, Optional<String> profile, Optional<String> dialect)
-            throws AuthenticationHandlerException;
-
     public String getName();
 
+
+    public default String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext){return "";};
+
+
+    /**
+     * This method is to give the responsibility to tell the possibility of handle the request by the authenticator
+     * itself to the framework.
+     *
+     * @param authenticationContext
+     * @return
+     */
+    public default boolean canHandle(AuthenticationContext authenticationContext) {
+        return true;
+    }
+
+    /**
+     * process is the one we called in authenticator to do the authentication process.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public AuthenticationResponse process(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException;
 
-    public default String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext) {
-        return "";
-    }
-
-    //public String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext);
+    /**
+     * Authenticator wise, it should be able to enable/disable retry.
+     *
+     * @param authenticationContext
+     * @return
+     */
     public default boolean isRetryEnable(AuthenticationContext authenticationContext) {
         return false;
     }

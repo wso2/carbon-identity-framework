@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.identity.gateway.authentication.local;
+package org.wso2.carbon.identity.gateway.local;
 
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;

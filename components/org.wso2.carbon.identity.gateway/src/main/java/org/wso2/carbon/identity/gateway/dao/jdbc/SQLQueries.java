@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.gateway.dao.jdbc;
 
+/**
+ * SQLQueries is hold the SQL queries.
+ */
 public class SQLQueries {
 
     private static final String OPERATION_DELETE = "DELETE";

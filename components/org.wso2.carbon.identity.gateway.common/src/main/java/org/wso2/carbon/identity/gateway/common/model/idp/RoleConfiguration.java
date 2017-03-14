@@ -22,7 +22,9 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * RoleConfiguration is a IDP model class.
+ */
 public class RoleConfiguration {
 
     private List<RoleMapping> roleMappings = new ArrayList<>();

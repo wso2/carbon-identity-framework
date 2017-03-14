@@ -24,10 +24,8 @@ import org.wso2.carbon.identity.claim.service.ProfileMgtService;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequenceBuildFactory;
-import org.wso2.carbon.identity.gateway.authentication.RequestPathHandler;
-import org.wso2.carbon.identity.gateway.authentication.SequenceManager;
-import org.wso2.carbon.identity.gateway.authentication.StepHandler;
+import org.wso2.carbon.identity.gateway.authentication.step.AuthenticationStepHandler;
+import org.wso2.carbon.identity.gateway.authentication.sequence.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
@@ -41,15 +39,19 @@ import org.wso2.carbon.identity.mgt.RealmService;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * GatewayServiceHolder is the Service Holder Point.
+ */
 public class GatewayServiceHolder {
+
     private static GatewayServiceHolder instance = new GatewayServiceHolder();
+
+
     List<LocalApplicationAuthenticator> localApplicationAuthenticators = new ArrayList<>();
     List<FederatedApplicationAuthenticator> federatedApplicationAuthenticators = new ArrayList<>();
     //SequenceBuilder
     List<AbstractSequenceBuildFactory> sequenceBuildFactories = new ArrayList<>();
-    List<SequenceManager> sequenceManagers = new ArrayList<>();
-    List<StepHandler> stepHandlers = new ArrayList<>();
-    List<RequestPathHandler> requestPathHandlers = new ArrayList<>();
+    List<AuthenticationStepHandler> authenticationStepHandlers = new ArrayList<>();
     List<AbstractExecutionHandler> executionHandlers = new ArrayList<>();
     //Authenticators
     private List<RequestPathApplicationAuthenticator> requestPathApplicationAuthenticators = new ArrayList<>();
@@ -179,17 +181,8 @@ public class GatewayServiceHolder {
         return requestPathApplicationAuthenticators;
     }
 
-    public List<RequestPathHandler> getRequestPathHandlers() {
-        return requestPathHandlers;
-    }
-
     public List<AbstractResponseHandler> getResponseHandlers() {
         return responseHandlers;
-    }
-
-
-    public List<SequenceManager> getSequenceManagers() {
-        return sequenceManagers;
     }
 
     public List<AbstractSessionHandler> getSessionHandlers() {
@@ -200,8 +193,8 @@ public class GatewayServiceHolder {
         this.sessionHandlers = sessionHandlers;
     }
 
-    public List<StepHandler> getStepHandlers() {
-        return stepHandlers;
+    public List<AuthenticationStepHandler> getAuthenticationStepHandlers() {
+        return authenticationStepHandlers;
     }
 
     public long getUnixTimeReference() {

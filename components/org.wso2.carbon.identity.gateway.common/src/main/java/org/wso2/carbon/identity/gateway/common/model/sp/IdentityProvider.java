@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.gateway.common.model.sp;
 
 import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 
+/**
+ * IdentityProvider is a SP model class.
+ */
 public class IdentityProvider {
 
     private String identityProviderName;

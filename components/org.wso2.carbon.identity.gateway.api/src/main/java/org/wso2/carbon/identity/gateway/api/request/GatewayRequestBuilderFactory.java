@@ -25,13 +25,13 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.common.util.Constants;
 import org.wso2.msf4j.Request;
-
-import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.util.Map;
+import javax.ws.rs.core.Response;
+
 
 /**
- * GatewayRequestBuilderFactory is a base class to create RequstBuilderFactories based on different
+ * GatewayRequestBuilderFactory is a base class to create GatewayRequestBuilder based on different
  * Protocols. This also will register as a Service and can be used as a default request builder.
  *
  * @param <T> Extended type of GatewayRequest.GatewayRequestBuilder

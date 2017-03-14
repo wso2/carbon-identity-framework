@@ -19,7 +19,9 @@
 
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
-
+/**
+ * ClaimConfig is a IDP model class.
+ */
 public class ClaimConfig {
 
     private String dialectUri;

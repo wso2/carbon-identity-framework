@@ -17,7 +17,9 @@
  */
 
 package org.wso2.carbon.identity.gateway.common.model.idp;
-
+/**
+ * IdentityProviderEntity is a IDP model class.
+ */
 public class IdentityProviderEntity {
 
     private IdentityProviderConfig identityProviderConfig;

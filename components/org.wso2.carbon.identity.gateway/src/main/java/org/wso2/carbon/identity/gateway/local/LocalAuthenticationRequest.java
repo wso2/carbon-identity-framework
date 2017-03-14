@@ -17,12 +17,15 @@
  *
  */
 
-package org.wso2.carbon.identity.gateway.authentication.local;
+package org.wso2.carbon.identity.gateway.local;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
 
-
+/**
+ *
+ *
+ */
 public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
 
 

@@ -21,7 +21,9 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * JITProvisioningConfig is a IDP model class.
+ */
 public class JITProvisioningConfig {
     private List<String> provisioningIdPs = new ArrayList<>();
 

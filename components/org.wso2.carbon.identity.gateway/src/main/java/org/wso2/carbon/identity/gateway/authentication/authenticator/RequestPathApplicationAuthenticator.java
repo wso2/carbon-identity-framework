@@ -18,8 +18,10 @@
 package org.wso2.carbon.identity.gateway.authentication.authenticator;
 
 
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-
+/**
+ * For all request path authenticators should implemented by the RequestPathApplicationAuthenticator and can be
+ * implemented by AbstractApplicationAuthenticator to get generic implementation.
+ */
 public interface RequestPathApplicationAuthenticator extends ApplicationAuthenticator {
-    public boolean canHandle(AuthenticationContext authenticationContext);
+
 }

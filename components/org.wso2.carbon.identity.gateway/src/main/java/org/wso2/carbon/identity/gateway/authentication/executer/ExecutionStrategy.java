@@ -19,19 +19,19 @@
 
 package org.wso2.carbon.identity.gateway.authentication.executer;
 
-
+/**
+ * Default execution strategies that is support by the product out of the box.
+ *
+ */
 public enum ExecutionStrategy {
     SINGLE("single"),
-    MULTI("multi"),
-    PARALLEL("parallel"),
-    FAILOVER("failover");
+    MULTI("multi");
 
     private String executionStrategy;
 
-    private ExecutionStrategy(String executionStrategy) {
+    ExecutionStrategy(String executionStrategy) {
         this.executionStrategy = executionStrategy;
     }
-
     public String toString() {
         return this.executionStrategy;
     }

@@ -18,7 +18,9 @@
 
 package org.wso2.carbon.identity.gateway.common.model.idp;
 
-
+/**
+ * ProvisioningClaimConfig is a IDP model class.
+ */
 public class ProvisioningClaimConfig {
 
     private String claimId;

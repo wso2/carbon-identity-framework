@@ -14,8 +14,10 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.carbon.identity.gateway.cache;
+
+package org.wso2.carbon.identity.gateway.context.cache;
 
 import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.identity.gateway.context.SessionContext;

@@ -19,6 +19,9 @@
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
 
+/**
+ * ClaimConfig is a SP model class.
+ */
 public class ClaimConfig {
 
     private String dialectUri;

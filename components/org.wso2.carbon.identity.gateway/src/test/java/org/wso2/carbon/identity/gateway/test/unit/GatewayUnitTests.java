@@ -29,9 +29,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.authentication.HandlerManager;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.authentication.local.LocalAuthenticationRequestBuilderFactory;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.handler.session.DefaultSessionHandler;
@@ -169,24 +168,6 @@ public class GatewayUnitTests {
         }
     }
 
-    @Test
-    public void testHandlerManager() throws GatewayClientException {
-        try {
-            HandlerManager.getInstance().getRequestPathHandler(new AuthenticationContext(null));
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
-        }
-        try {
-            HandlerManager.getInstance().getStepHandler(new AuthenticationContext(null));
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
-        }
-        try {
-            HandlerManager.getInstance().getSequenceManager(new AuthenticationContext(null));
-        } catch (GatewayRuntimeException e) {
-            Assert.assertTrue(e.getMessage().contains("Cannot find a Handler"));
-        }
-    }
 
     @Test
     public void testLocalAuthentication() {
@@ -229,5 +210,7 @@ public class GatewayUnitTests {
         Assert.assertNull(
                 GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticator("requestPathAuthenticators"));
     }
+
+
 }
 

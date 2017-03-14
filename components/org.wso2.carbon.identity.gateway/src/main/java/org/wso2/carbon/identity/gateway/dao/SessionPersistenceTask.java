@@ -25,6 +25,9 @@ import org.wso2.carbon.identity.gateway.context.SessionContext;
 
 import java.util.concurrent.BlockingDeque;
 
+/**
+ * SessionPersistenceTask is the class that is use to do db operation for the Session.
+ */
 public class SessionPersistenceTask implements Runnable {
 
     private static Logger log = LoggerFactory.getLogger(SessionPersistenceTask.class);

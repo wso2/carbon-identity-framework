@@ -29,10 +29,13 @@ import org.yaml.snakeyaml.introspector.BeanAccess;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.Map;
 
 public class GatewayUtil {
@@ -95,5 +98,36 @@ public class GatewayUtil {
         } else {
             return bodyParams.get(paramName);
         }
+    }
+
+    public static String buildQueryString(Map<String, String[]> parameterMap) {
+        StringBuilder queryString = new StringBuilder("?");
+        try {
+            boolean isFirst = true;
+            Iterator iterator = parameterMap.entrySet().iterator();
+
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                String[] entryValue = (String[]) entry.getValue();
+                int length = entryValue.length;
+
+                for (int i = 0; i < length; ++i) {
+                    String paramValue = entryValue[i];
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        queryString.append("&");
+                    }
+
+                    queryString.append(URLEncoder.encode((String) entry.getKey(), StandardCharsets.UTF_8.name()));
+                    queryString.append("=");
+                    queryString.append(URLEncoder.encode(paramValue, StandardCharsets.UTF_8.name()));
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Error occured while buildQueryString, " + e.getMessage(), e);
+        }
+
+        return queryString.toString();
     }
 }

@@ -14,12 +14,23 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
  */
-package org.wso2.carbon.identity.gateway.authentication;
+package org.wso2.carbon.identity.gateway.authentication.response;
 
 
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
+/**
+ * Each handlers that is execute under the AuthenticationHandler will execute and return this AuthenticationResponse.
+ * This has different status,
+ *
+ *  INCOMPLETE - Refer this as the authentication is not completed yet because of some reason.
+ *  AUTHENTICATED - Refer this to the authentication is completed and can be either continue the steps or return back.
+ *
+ *  This will GatewayResponseBuilder
+ *
+ */
 public class AuthenticationResponse {
 
     public Status status = Status.INCOMPLETE;

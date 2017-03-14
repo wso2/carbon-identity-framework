@@ -21,16 +21,19 @@ package org.wso2.carbon.identity.gateway.authentication.executer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.context.SequenceContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 
+/**
+ * MultiOptionExecutionHandler is for handle multi-option authenticators within single step. This is control the
+ * multi-option landing page and handle the retry as well.
+ */
 public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(SingleOptionExecutionHandler.class);
@@ -40,9 +43,9 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
 
         ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
-        AbstractSequence sequence = authenticationContext.getSequence();
+        Sequence sequence = authenticationContext.getSequence();
 
-        applicationAuthenticator = getApplicationAuthenticator(authenticationContext);
+        applicationAuthenticator = getApplicationAuthenticatorInContext(authenticationContext);
 
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
@@ -51,12 +54,13 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
             IdentityProvider identityProvider = authenticationStepConfig.getIdentityProviders().get(0);
             currentStepContext.setAuthenticatorName(identityProvider.getAuthenticatorName());
             currentStepContext.setIdentityProviderName(identityProvider.getIdentityProviderName());
-            applicationAuthenticator = getApplicationAuthenticator(identityProvider.getAuthenticatorName());
+            applicationAuthenticator = getApplicationAuthenticatorInContext(identityProvider.getAuthenticatorName());
+
+            if (applicationAuthenticator == null) {
+                throw new AuthenticationHandlerException("Authenticator not found.");
+            }
         }
 
-        if (applicationAuthenticator == null) {
-            throw new AuthenticationHandlerException("Authenticator not found.");
-        }
         AuthenticationResponse response = null;
         try {
             response = applicationAuthenticator.process(authenticationContext);
@@ -66,7 +70,6 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
                 sequenceContext.getCurrentStepContext().setStatus(SequenceContext.Status.INCOMPLETE);
             }
         } catch (AuthenticationHandlerException e) {
-
             currentStepContext.setStatus(SequenceContext.Status.FAILED);
             if (applicationAuthenticator.isRetryEnable(authenticationContext)) {
                 AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
@@ -78,10 +81,7 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
             } else {
                 throw e;
             }
-
-
         }
-
         return response;
     }
 

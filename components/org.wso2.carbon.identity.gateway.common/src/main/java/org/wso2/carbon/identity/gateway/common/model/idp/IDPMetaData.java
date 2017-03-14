@@ -23,7 +23,9 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
+/**
+ * IDPMetaData is a IDP model class.
+ */
 public class IDPMetaData {
 
     private List<IDPCertificate> certificates = new ArrayList<>();

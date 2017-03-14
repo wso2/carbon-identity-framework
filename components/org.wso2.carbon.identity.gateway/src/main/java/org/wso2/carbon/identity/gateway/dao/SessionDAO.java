@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.dao;
 
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 
+/**
+ * SessionDAO is an abstract class for Session persistent layer.
+ */
 public abstract class SessionDAO {
 
     public abstract SessionContext get(String key);

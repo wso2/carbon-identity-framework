@@ -22,8 +22,8 @@ package org.wso2.carbon.identity.gateway.authentication.executer;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
-import org.wso2.carbon.identity.gateway.authentication.AbstractSequence;
-import org.wso2.carbon.identity.gateway.authentication.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -33,12 +33,36 @@ import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 
+/**
+ * Within the step handler, we have to execute authenticators based on the given execution strategy. To implement
+ * that we have to provide execution handlers for each execution strategy. AbstractExecutionHandler is provide
+ * generic function to do that.
+ *
+ *
+ */
 public abstract class AbstractExecutionHandler extends
         AbstractGatewayHandler<AuthenticationContext> {
+
+    /**
+     * Execute method is the method that we must trigger from the StepHanlder after checking the canHanlde mehtod.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public abstract AuthenticationResponse execute(AuthenticationContext authenticationContext) throws AuthenticationHandlerException;
 
+
+    /**
+     * Call the can canHanlde method to confirm whether this handler can execute this request or not.
+     *
+     * @param authenticationContext
+     * @param executionStrategy
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public boolean canHandle(AuthenticationContext authenticationContext, String executionStrategy) throws AuthenticationHandlerException {
-        AbstractSequence sequence = authenticationContext.getSequence();
+        Sequence sequence = authenticationContext.getSequence();
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(sequenceContext.getCurrentStep());
         if (authenticationStepConfig != null && executionStrategy.equals(authenticationStepConfig.getExecutionStrategy
@@ -48,10 +72,13 @@ public abstract class AbstractExecutionHandler extends
         return false;
     }
 
-    @Override
-    public abstract boolean canHandle(AuthenticationContext authenticationContext);
-
-    protected ApplicationAuthenticator getApplicationAuthenticator(String applicationAuthenticatorName) {
+    /**
+     * Get the ApplicationAuthenticator for a given authenticator name.
+     * 
+     * @param applicationAuthenticatorName
+     * @return
+     */
+    protected ApplicationAuthenticator getApplicationAuthenticatorInContext(String applicationAuthenticatorName) {
         ApplicationAuthenticator applicationAuthenticator =
                 GatewayServiceHolder.getInstance().getLocalApplicationAuthenticator(applicationAuthenticatorName);
         if (applicationAuthenticator == null) {
@@ -62,7 +89,14 @@ public abstract class AbstractExecutionHandler extends
         return applicationAuthenticator;
     }
 
-    protected ApplicationAuthenticator getApplicationAuthenticator(AuthenticationContext authenticationContext) {
+
+    /**
+     * Get application authenticator from current context.
+     * 
+     * @param authenticationContext
+     * @return
+     */
+    protected ApplicationAuthenticator getApplicationAuthenticatorInContext(AuthenticationContext authenticationContext) {
 
         ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
@@ -74,10 +108,10 @@ public abstract class AbstractExecutionHandler extends
             if (currentStepContext != null) {
                 if (StringUtils.isNotBlank(currentStepContext.getAuthenticatorName())
                         && StringUtils.isNotBlank(currentStepContext.getIdentityProviderName())) {
-                    applicationAuthenticator = getApplicationAuthenticator(currentStepContext.getAuthenticatorName());
+                    applicationAuthenticator = getApplicationAuthenticatorInContext(currentStepContext.getAuthenticatorName());
                 } else if (StringUtils.isNotBlank(authenticationRequest.getAuthenticatorName()) && StringUtils.isNotBlank
                         (authenticationRequest.getIdentityProviderName())) {
-                    applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
+                    applicationAuthenticator = getApplicationAuthenticatorInContext(authenticationRequest.getAuthenticatorName());
                     currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
                     currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
                 }
@@ -88,7 +122,7 @@ public abstract class AbstractExecutionHandler extends
                         &&
                         StringUtils.isNotBlank
                                 (authenticationRequest.getIdentityProviderName())) {
-                    applicationAuthenticator = getApplicationAuthenticator(authenticationRequest.getAuthenticatorName());
+                    applicationAuthenticator = getApplicationAuthenticatorInContext(authenticationRequest.getAuthenticatorName());
                     currentStepContext.setIdentityProviderName(authenticationRequest.getIdentityProviderName());
                     currentStepContext.setAuthenticatorName(authenticationRequest.getAuthenticatorName());
                 }

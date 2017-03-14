@@ -34,6 +34,9 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * JDBCSessionDAO is the template for session dao.
+ */
 public class JDBCSessionDAO extends SessionDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(JDBCSessionDAO.class);

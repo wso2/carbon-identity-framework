@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.identity.gateway.common.model.sp;
 
+/**
+ * ServiceProviderEntity is a SP model class.
+ */
 public class ServiceProviderEntity {
     private ServiceProviderConfig serviceProviderConfig;
 
