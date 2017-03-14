@@ -27,10 +27,15 @@ import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException
 public interface ApplicationAuthenticator {
 
     public String getFriendlyName();
+
     public String getName();
 
 
-    public default String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext){return "";};
+    public default String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext) {
+        return "";
+    }
+
+    ;
 
 
     /**

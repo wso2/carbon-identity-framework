@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.gateway.authentication.executer;
 
 /**
  * Default execution strategies that is support by the product out of the box.
- *
  */
 public enum ExecutionStrategy {
     SINGLE("single"),
@@ -32,6 +31,7 @@ public enum ExecutionStrategy {
     ExecutionStrategy(String executionStrategy) {
         this.executionStrategy = executionStrategy;
     }
+
     public String toString() {
         return this.executionStrategy;
     }

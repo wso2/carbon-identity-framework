@@ -33,6 +33,10 @@ import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 
 import java.util.UUID;
 
+/**
+ * DefaultSessionHandler is provide by the gateway to handle the session.
+ *
+ */
 public class DefaultSessionHandler extends AbstractSessionHandler {
 
     @Override

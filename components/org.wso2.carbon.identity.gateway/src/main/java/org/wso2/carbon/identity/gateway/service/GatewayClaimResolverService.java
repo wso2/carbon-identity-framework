@@ -100,7 +100,6 @@ public class GatewayClaimResolverService {
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException e) {
             String errorMessage = "Error occurred while calling transformToNativeDialect, " + e.getMessage();
             log.error(errorMessage, e);
-            throw new GatewayRuntimeException(errorMessage);
         }
         return transformedClaims.get();
     }
@@ -143,7 +142,6 @@ public class GatewayClaimResolverService {
         } catch (ClaimResolvingServiceException | ProfileMgtServiceException | GatewayServerException e) {
             String errorMessage = "Error occurred while calling transformToOtherDialect, " + e.getMessage();
             log.error(errorMessage, e);
-            throw new GatewayRuntimeException(errorMessage);
         }
 
         return transformedClaims;

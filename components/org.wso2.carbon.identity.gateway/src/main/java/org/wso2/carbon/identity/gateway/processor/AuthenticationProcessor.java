@@ -26,8 +26,8 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.processor.GatewayProcessor;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
-import org.wso2.carbon.identity.gateway.context.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.context.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
@@ -81,7 +81,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
             if (response.status.equals(GatewayHandlerResponse.Status.CONTINUE)) {
 
                 response = gatewayHandlerManager.getAuthenticationHandler(authenticationContext)
-                        .doAuthenticate(authenticationContext);
+                        .authenticate(authenticationContext);
                 if (log.isDebugEnabled()) {
                     log.debug("AuthenticationProcessor called the authentication.");
                 }

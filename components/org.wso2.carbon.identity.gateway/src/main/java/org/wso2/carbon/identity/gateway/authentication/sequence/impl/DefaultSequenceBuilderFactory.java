@@ -22,14 +22,18 @@ package org.wso2.carbon.identity.gateway.authentication.sequence.impl;
 
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.authentication.sequence.AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
 public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory {
     @Override
-    public DefaultSequence buildSequence(AuthenticationContext authenticationContext)
+    public Sequence buildSequence(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
-        DefaultSequence defaultSequence = new DefaultSequence(authenticationContext);
+        Sequence defaultSequence = authenticationContext.getSequence();
+        if(defaultSequence == null) {
+            defaultSequence = new DefaultSequence(authenticationContext);
+        }
         return defaultSequence;
     }
 

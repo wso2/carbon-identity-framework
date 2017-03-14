@@ -21,9 +21,9 @@ package org.wso2.carbon.identity.gateway.authentication.executer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
-import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.ApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -75,7 +75,7 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
                 AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
                 int retryCount = authenticationStepConfig.getRetryCount();
                 if (currentStepContext.getRetryCount() <= retryCount) {
-                    currentStepContext.setRetryCount(retryCount + 1);
+                    currentStepContext.setRetryCount(currentStepContext.getRetryCount() + 1);
                     return execute(authenticationContext);
                 }
             } else {

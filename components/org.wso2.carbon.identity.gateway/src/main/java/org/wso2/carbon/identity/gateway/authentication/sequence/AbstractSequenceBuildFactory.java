@@ -23,8 +23,19 @@ import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
-
+/**
+ * AbstractSequenceBuildFactory is an extension point to put a custom sequence implementation to the flow. We can
+ * implement Sequence interface and extends this class to create custom builder to return custom sequence.
+ */
 public abstract class AbstractSequenceBuildFactory extends AbstractGatewayHandler {
+
+    /**
+     * To return custom sequence, this method should implement and return new sequence type instance.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public abstract Sequence buildSequence(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException;
 }

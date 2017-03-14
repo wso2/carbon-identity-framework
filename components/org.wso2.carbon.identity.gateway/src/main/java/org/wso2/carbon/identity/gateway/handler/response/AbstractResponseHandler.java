@@ -34,16 +34,43 @@ import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * AbstractResponseHandler is handle the response based on the request type.
+ *
+ */
 public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
 
+    /**
+     * Build Error Response based on GatewayException and AuthenticationContext.
+     *
+     * @param authenticationContext
+     * @param exception
+     * @return
+     * @throws ResponseHandlerException
+     */
     public abstract GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
                                                               GatewayException exception)
             throws ResponseHandlerException;
 
+    /**
+     * Build Error Response based on GatewayRuntimeException and AuthenticationContext.
+     *
+     * @param authenticationContext
+     * @param exception
+     * @return
+     * @throws ResponseHandlerException
+     */
     public abstract GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
                                                               GatewayRuntimeException exception)
             throws ResponseHandlerException;
 
+    /**
+     * Build the successful response.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws ResponseHandlerException
+     */
     public abstract GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext)
             throws ResponseHandlerException;
 
@@ -51,6 +78,13 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
 
     public abstract boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception);
 
+    /**
+     * Get the response build configs.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public ResponseBuilderConfig getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
             AuthenticationHandlerException {
         ResponseBuilderConfig responseBuilderConfig = null;
@@ -73,8 +107,20 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
         return responseBuilderConfig;
     }
 
+    /**
+     * Validation type is based on protocol.
+     *
+     * @return
+     */
     protected abstract String getValidatorType();
 
+    /**
+     * Add the session key.
+     *
+     * @param responseBuilder
+     * @param context
+     * @throws ResponseHandlerException
+     */
     protected void addSessionKey(GatewayResponse.GatewayResponseBuilder responseBuilder,
                                  AuthenticationContext context) throws ResponseHandlerException {
 

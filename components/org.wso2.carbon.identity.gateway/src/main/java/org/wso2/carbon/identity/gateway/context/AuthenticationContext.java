@@ -31,6 +31,15 @@ import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import java.io.Serializable;
 import java.util.Map;
 
+
+/**
+ * AuthenticationContext is the context that is shared through whole process of request.
+ *
+ * For the initial request, this context will create and cache. Initial request also stored in this context as
+ * ClientAuthenticationRequest.
+ *
+ *
+ */
 public class AuthenticationContext extends GatewayMessageContext {
 
     private static final long serialVersionUID = 6821167819709907062L;
@@ -51,10 +60,22 @@ public class AuthenticationContext extends GatewayMessageContext {
         this.initialAuthenticationRequest = authenticationRequest;
     }
 
+    /**
+     * This is the initial request to the gateway and it MUST be a ClientAuthenticationRequest. Since we cache the
+     * context until the request is authenticated successfully, any time we can get this initial request for any
+     * handlers.
+     *
+     * @return ClientAuthenticationRequest
+     */
     public ClientAuthenticationRequest getInitialAuthenticationRequest() {
         return initialAuthenticationRequest;
     }
 
+    /**
+     * This return the sequence that is build by the SequenceBuilder.
+     *
+     * @return Sequence
+     */
     public Sequence getSequence() {
         return sequence;
     }
@@ -64,6 +85,11 @@ public class AuthenticationContext extends GatewayMessageContext {
         this.sequence = sequence;
     }
 
+    /**
+     * Return SequenceContext.
+     *
+     * @return SequenceContext
+     */
     public SequenceContext getSequenceContext() {
         return sequenceContext;
     }

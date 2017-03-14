@@ -18,37 +18,69 @@
  */
 package org.wso2.carbon.identity.gateway.authentication.sequence;
 
-import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
-import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Sequence interface should implement to new custom type of sequence to manage
+ * the authentication flow in custom way.
+ */
 public interface Sequence extends Serializable {
 
+    /**
+     * Return the IdentityProvider for given step and idpName.
+     *
+     * @param step
+     * @param identityProviderName
+     * @return IdentityProvider
+     * @throws AuthenticationHandlerException
+     */
     public abstract IdentityProvider getIdentityProvider(int step, String identityProviderName)
             throws AuthenticationHandlerException;
 
+    /**
+     * Return List of IdentityProviders to the given step.
+     *
+     * @param step
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public abstract List<IdentityProvider> getIdentityProviders(int step)
             throws AuthenticationHandlerException;
 
-    public abstract List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig();
 
+    /**
+     * Check whether we have another steps to be authenticate based on current step number.
+     *
+     * @param currentStep
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public abstract boolean hasNext(int currentStep) throws AuthenticationHandlerException;
 
-    public abstract boolean isRequestPathAuthenticatorsAvailable();
-
-    public abstract boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException;
-
+    /**
+     * Return AuthenticationStepConfig for given step.
+     *
+     * @param step
+     * @return
+     */
     public abstract AuthenticationStepConfig getAuthenticationStepConfig(int step);
 
+
+    /**
+     * Return AuthenticatorConfig for given step, authenticatorName, idpName
+     *
+     * @param step
+     * @param authenticatorName
+     * @param identityProvider
+     * @return
+     */
     public abstract AuthenticatorConfig getAuthenticatorConfig(int step, String authenticatorName, String
-            identityProvider)
-            ;
+            identityProvider);
 
 }

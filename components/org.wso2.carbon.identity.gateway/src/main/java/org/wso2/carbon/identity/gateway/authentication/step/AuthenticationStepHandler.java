@@ -35,6 +35,14 @@ import org.wso2.carbon.identity.gateway.model.User;
 import java.util.Collection;
 import java.util.Iterator;
 
+/**
+ * AuthenticationStepHandler is handling the steps in given authentication flow and triggered by
+ * AuthenticationHandler implementation.
+ *
+ * This will find the execution strategy of a given step and execute the relevant handler.
+ * If we need to have a custom step execution, we can extend this and register by changing the priority in OSGi.
+ *
+ */
 public class AuthenticationStepHandler extends AbstractGatewayHandler {
     @Override
     public boolean canHandle(MessageContext messageContext) {
@@ -43,22 +51,28 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
 
     @Override
     public String getName() {
-        return null;
+        return "AuthenticationStepHandler";
     }
 
+    /**
+     * handleStepAuthentication method is called by AuthenticationHandler implementation and will execute the flow.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     public AuthenticationResponse handleStepAuthentication(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
-
-        if (lookUpSessionValidity(authenticationContext)) {
-            return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
-        }
-
-        AuthenticationResponse authenticationResponse;
+        AuthenticationResponse authenticationResponse ;
         Sequence sequence = authenticationContext.getSequence();
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
 
-        AbstractExecutionHandler executionHandler = getExecutionHandler(authenticationContext);
-        authenticationResponse = executionHandler.execute(authenticationContext);
+        if (!lookUpSessionValidity(authenticationContext)) {
+            AbstractExecutionHandler executionHandler = getExecutionHandler(authenticationContext);
+            authenticationResponse = executionHandler.execute(authenticationContext);
+        }else{
+            authenticationResponse = new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
+        }
 
         if (AuthenticationResponse.Status.AUTHENTICATED.equals(authenticationResponse.status)) {
             if (sequence.hasNext(sequenceContext.getCurrentStep())) {
@@ -70,6 +84,17 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
         return authenticationResponse;
     }
 
+    /**
+     * Validating the session context for current step context in all the service providers. This behaviour can be
+     * changed for different algorithm as well.
+     *
+     * As default implementation, we check the current step idps vs same step idps in all the authenticated service
+     * providers in session context.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
     protected boolean lookUpSessionValidity(AuthenticationContext authenticationContext) throws
             AuthenticationHandlerException {
 
@@ -109,7 +134,13 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
         return isSessionValid;
     }
 
-    public AbstractExecutionHandler getExecutionHandler(AuthenticationContext authenticationContext) {
+    /**
+     * Return ExecutionHandler based on context.
+     *
+     * @param authenticationContext
+     * @return
+     */
+    private AbstractExecutionHandler getExecutionHandler(AuthenticationContext authenticationContext) {
         return (AbstractExecutionHandler) getHandler(GatewayServiceHolder.getInstance().getExecutionHandlers(), authenticationContext);
     }
 

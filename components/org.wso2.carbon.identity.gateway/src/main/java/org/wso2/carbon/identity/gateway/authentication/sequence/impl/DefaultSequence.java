@@ -22,7 +22,6 @@ package org.wso2.carbon.identity.gateway.authentication.sequence.impl;
 
 import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
-import org.wso2.carbon.identity.gateway.common.model.idp.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
@@ -34,11 +33,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * DefaultSequence is provide the default flow of the sequence based on the service provider configuration. Here we
+ * have generic API that is used by the gateway to control the authentication flow.
+ * <p>
+ * This implementation completely rely on AuthenticationContext to get the current context details and configs.
+ */
 public class DefaultSequence implements Sequence {
 
     private static final long serialVersionUID = -833644147304785568L;
-    private AuthenticationContext authenticationContext = null ;
 
+    private AuthenticationContext authenticationContext = null;
+
+    /**
+     * No Default constructor and it is mandatory to pass AuthenticationContext to this.
+     *
+     * @param authenticationContext
+     */
     public DefaultSequence(AuthenticationContext authenticationContext) {
         this.authenticationContext = authenticationContext;
     }
@@ -46,6 +57,7 @@ public class DefaultSequence implements Sequence {
     @Override
     public IdentityProvider getIdentityProvider(int step, String identityProviderName)
             throws AuthenticationHandlerException {
+
         IdentityProvider identityProviderTmp = null;
         AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
         List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
@@ -64,10 +76,6 @@ public class DefaultSequence implements Sequence {
         return identityProviders;
     }
 
-    @Override
-    public List<RequestPathAuthenticatorConfig> getRequestPathAuthenticatorConfig() {
-        return null;
-    }
 
     @Override
     public boolean hasNext(int currentStep) throws AuthenticationHandlerException {
@@ -82,22 +90,6 @@ public class DefaultSequence implements Sequence {
 
 
     @Override
-    public boolean isRequestPathAuthenticatorsAvailable() {
-        return false;
-    }
-
-    @Override
-    public boolean isStepAuthenticatorAvailable() throws AuthenticationHandlerException {
-        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
-        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
-        if (authenticationConfig.getAuthenticationStepConfigs() != null && authenticationConfig
-                .getAuthenticationStepConfigs()
-                .size() > 0) {
-            return true;
-        }
-        return false;
-    }
-
     public AuthenticationStepConfig getAuthenticationStepConfig(int step) {
         AtomicReference<AuthenticationStepConfig> authenticationStepConfig = new
                 AtomicReference<AuthenticationStepConfig>(null);

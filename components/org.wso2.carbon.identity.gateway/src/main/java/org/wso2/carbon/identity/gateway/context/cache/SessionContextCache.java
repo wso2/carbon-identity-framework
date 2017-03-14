@@ -23,7 +23,10 @@ import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.identity.gateway.context.SessionContext;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 
-
+/**
+ * SessionContextCache caches the SessionContext and persist in database as well.
+ *
+ */
 public class SessionContextCache extends BaseCache<String, SessionContext> {
 
     private static final String SESSION_CONTEXT_CACHE = "SessionContextCache";
@@ -33,6 +36,10 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
         super(cacheName);
     }
 
+    /**
+     *
+     * @return
+     */
     public static SessionContextCache getInstance() {
         if (instance == null) {
             synchronized (SessionContextCache.class) {
@@ -44,11 +51,20 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
         return instance;
     }
 
+    /**
+     *
+     * @param key
+     */
     public void clear(String key) {
         super.clear(key);
         JDBCSessionDAO.getInstance().remove(key);
     }
 
+    /**
+     *
+     * @param key
+     * @return
+     */
     public SessionContext get(String key) {
         SessionContext context = super.get(key);
         if (context == null) {
@@ -57,6 +73,11 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
         return context;
     }
 
+    /**
+     *
+     * @param key
+     * @param context
+     */
     public void put(String key, SessionContext context) {
         super.put(key, context);
         JDBCSessionDAO.getInstance().put(key, context);

@@ -24,35 +24,57 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 /**
  * Each handlers that is execute under the AuthenticationHandler will execute and return this AuthenticationResponse.
  * This has different status,
- *
- *  INCOMPLETE - Refer this as the authentication is not completed yet because of some reason.
- *  AUTHENTICATED - Refer this to the authentication is completed and can be either continue the steps or return back.
- *
- *  This will GatewayResponseBuilder
- *
+ * <p>
+ * INCOMPLETE - Refer this as the authentication is not completed yet because of some reason.
+ * AUTHENTICATED - Refer this to the authentication is completed and can be either continue the steps or return back.
+ * <p>
+ * This will hold the GatewayResponseBuilder to return response through the API to AuthenticationHandler.
  */
 public class AuthenticationResponse {
 
+    //Default Status is INCOMPLETE.
     public Status status = Status.INCOMPLETE;
 
     private GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder = null;
 
+    /**
+     * Default Constructor. By using this, status will assign to INCOMPLETE.
+     */
+    public AuthenticationResponse() {
+
+    }
+
+    /**
+     * By using this, status will assign to INCOMPLETE.
+     *
+     * @param gatewayResponseBuilder
+     */
     public AuthenticationResponse(GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
         this.gatewayResponseBuilder = gatewayResponseBuilder;
     }
 
-    public AuthenticationResponse() {
-    }
-
-    public AuthenticationResponse(Status status) {
-        this.status = status;
-    }
-
+    /**
+     * @param status                 Status
+     * @param gatewayResponseBuilder GatewayResponse.GatewayResponseBuilder
+     */
     public AuthenticationResponse(Status status, GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
         this.status = status;
         this.gatewayResponseBuilder = gatewayResponseBuilder;
     }
 
+    /**
+     * @param status
+     */
+    public AuthenticationResponse(Status status) {
+        this.status = status;
+    }
+
+
+    /**
+     * Retrieve the GatewayResponse.GatewayResponseBuilder
+     *
+     * @return GatewayResponse.GatewayResponseBuilder
+     */
     public GatewayResponse.GatewayResponseBuilder getGatewayResponseBuilder() {
         return gatewayResponseBuilder;
     }
@@ -62,6 +84,9 @@ public class AuthenticationResponse {
         this.gatewayResponseBuilder = gatewayResponseBuilder;
     }
 
+    /**
+     * Status for AuthenticationResponse.
+     */
     public static enum Status {
         AUTHENTICATED,
         INCOMPLETE;

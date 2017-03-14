@@ -21,29 +21,43 @@ package org.wso2.carbon.identity.gateway.handler.authentication;
 import org.wso2.carbon.identity.common.base.exception.IdentityRuntimeException;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
-import org.wso2.carbon.identity.gateway.authentication.step.AuthenticationStepHandler;
-import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
-import org.wso2.carbon.identity.gateway.authentication.sequence.AbstractSequenceBuildFactory;
 import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.authentication.sequence.AbstractSequenceBuildFactory;
+import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
+import org.wso2.carbon.identity.gateway.authentication.step.AuthenticationStepHandler;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 
+/**
+ * AuthenticationHandler is handle the complete authentication flow of the request. This will trigger by the
+ * AuthenticationProcessor based on the request type.
+ *
+ * Build the sequence and handover the sequence to the step handlers are done by this handler.
+ *
+ */
 public class AuthenticationHandler extends AbstractGatewayHandler {
     @Override
     public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
         return true;
     }
 
-    public GatewayHandlerResponse doAuthenticate(AuthenticationContext authenticationContext) throws
+    /**
+     * authenticate the request.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
+    public GatewayHandlerResponse authenticate(AuthenticationContext authenticationContext) throws
             AuthenticationHandlerException {
 
         AbstractSequenceBuildFactory abstractSequenceBuildFactory = getSequenceBuildFactory(authenticationContext);
         Sequence sequence = abstractSequenceBuildFactory.buildSequence(authenticationContext);
         authenticationContext.setSequence(sequence);
 
-        AuthenticationStepHandler authenticationStepHandler =  getStepHandler(authenticationContext);
+        AuthenticationStepHandler authenticationStepHandler = getStepHandler(authenticationContext);
         AuthenticationResponse authenticationResponse = authenticationStepHandler.handleStepAuthentication(authenticationContext);
 
         return buildFrameworkHandlerResponse(authenticationResponse);
@@ -54,6 +68,14 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
         return null;
     }
 
+    //#TODO: We need to discuss about this how to map the status.
+
+    /**
+     * Map the authentication level status to the handler level status.
+     *
+     * @param handlerResponse
+     * @return
+     */
     private GatewayHandlerResponse buildFrameworkHandlerResponse(AuthenticationResponse handlerResponse) {
         GatewayHandlerResponse gatewayHandlerResponse = null;
         if (AuthenticationResponse.Status.AUTHENTICATED.equals(handlerResponse.status)) {
@@ -64,11 +86,11 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
         return gatewayHandlerResponse;
     }
 
-    public AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
+    private AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
         return (AbstractSequenceBuildFactory) getHandler(GatewayServiceHolder.getInstance().getSequenceBuildFactories(), authenticationContext);
     }
 
-    public AuthenticationStepHandler getStepHandler(AuthenticationContext authenticationContext) {
+    private AuthenticationStepHandler getStepHandler(AuthenticationContext authenticationContext) {
         return (AuthenticationStepHandler) getHandler(GatewayServiceHolder.getInstance().getAuthenticationStepHandlers(), authenticationContext);
     }
 }
