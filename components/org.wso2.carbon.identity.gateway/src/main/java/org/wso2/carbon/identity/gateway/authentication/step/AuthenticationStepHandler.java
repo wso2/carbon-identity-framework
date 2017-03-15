@@ -38,10 +38,9 @@ import java.util.Iterator;
 /**
  * AuthenticationStepHandler is handling the steps in given authentication flow and triggered by
  * AuthenticationHandler implementation.
- *
+ * <p>
  * This will find the execution strategy of a given step and execute the relevant handler.
  * If we need to have a custom step execution, we can extend this and register by changing the priority in OSGi.
- *
  */
 public class AuthenticationStepHandler extends AbstractGatewayHandler {
     @Override
@@ -63,14 +62,14 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
      */
     public AuthenticationResponse handleStepAuthentication(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
-        AuthenticationResponse authenticationResponse ;
+        AuthenticationResponse authenticationResponse;
         Sequence sequence = authenticationContext.getSequence();
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
 
         if (!lookUpSessionValidity(authenticationContext)) {
             AbstractExecutionHandler executionHandler = getExecutionHandler(authenticationContext);
             authenticationResponse = executionHandler.execute(authenticationContext);
-        }else{
+        } else {
             authenticationResponse = new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
         }
 
@@ -87,7 +86,7 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
     /**
      * Validating the session context for current step context in all the service providers. This behaviour can be
      * changed for different algorithm as well.
-     *
+     * <p>
      * As default implementation, we check the current step idps vs same step idps in all the authenticated service
      * providers in session context.
      *

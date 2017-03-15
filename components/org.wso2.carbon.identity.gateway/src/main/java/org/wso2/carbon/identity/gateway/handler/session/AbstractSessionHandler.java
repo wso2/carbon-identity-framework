@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 
 /**
  * Handling the session by this handler and can be plug custom one as well.
- *
  */
 public abstract class AbstractSessionHandler extends AbstractGatewayHandler {
 

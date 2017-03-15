@@ -30,7 +30,6 @@ import java.util.List;
 /**
  * AbstractRequestValidator is the super validator that is user to write a validator and register for different
  * protocols.
- *
  */
 public abstract class AbstractRequestValidator extends AbstractGatewayHandler {
 

@@ -31,7 +31,7 @@ public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory 
     public Sequence buildSequence(AuthenticationContext authenticationContext)
             throws AuthenticationHandlerException {
         Sequence defaultSequence = authenticationContext.getSequence();
-        if(defaultSequence == null) {
+        if (defaultSequence == null) {
             defaultSequence = new DefaultSequence(authenticationContext);
         }
         return defaultSequence;

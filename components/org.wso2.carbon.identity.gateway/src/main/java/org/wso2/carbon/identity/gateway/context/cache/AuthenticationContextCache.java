@@ -23,12 +23,8 @@ import org.wso2.carbon.identity.common.base.cache.BaseCache;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCGatewayContextDAO;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * AuthenticationContextCache caches the AuthenticationContext objects for given request.
- *
  */
 public class AuthenticationContextCache extends BaseCache<String, GatewayMessageContext> {
 
@@ -40,7 +36,6 @@ public class AuthenticationContextCache extends BaseCache<String, GatewayMessage
     }
 
     /**
-     *
      * @return
      */
     public static AuthenticationContextCache getInstance() {
@@ -55,7 +50,6 @@ public class AuthenticationContextCache extends BaseCache<String, GatewayMessage
     }
 
     /**
-     *
      * @param key
      */
     public void clear(String key) {
@@ -64,7 +58,6 @@ public class AuthenticationContextCache extends BaseCache<String, GatewayMessage
     }
 
     /**
-     *
      * @param key
      * @return
      */
@@ -78,7 +71,6 @@ public class AuthenticationContextCache extends BaseCache<String, GatewayMessage
 
 
     /**
-     *
      * @param key
      * @param context
      */

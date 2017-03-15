@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.claim.mapping.profile.ClaimConfigEntry;
 import org.wso2.carbon.identity.claim.mapping.profile.ProfileEntry;
 import org.wso2.carbon.identity.claim.service.ClaimResolvingService;
 import org.wso2.carbon.identity.claim.service.ProfileMgtService;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;

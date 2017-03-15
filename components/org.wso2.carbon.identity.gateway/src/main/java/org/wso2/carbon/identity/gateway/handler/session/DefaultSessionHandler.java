@@ -35,7 +35,6 @@ import java.util.UUID;
 
 /**
  * DefaultSessionHandler is provide by the gateway to handle the session.
- *
  */
 public class DefaultSessionHandler extends AbstractSessionHandler {
 

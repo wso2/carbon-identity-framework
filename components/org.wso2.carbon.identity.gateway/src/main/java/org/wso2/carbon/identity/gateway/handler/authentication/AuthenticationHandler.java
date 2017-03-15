@@ -33,9 +33,8 @@ import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 /**
  * AuthenticationHandler is handle the complete authentication flow of the request. This will trigger by the
  * AuthenticationProcessor based on the request type.
- *
+ * <p>
  * Build the sequence and handover the sequence to the step handlers are done by this handler.
- *
  */
 public class AuthenticationHandler extends AbstractGatewayHandler {
     @Override

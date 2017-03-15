@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 
 /**
  * SessionContextCache caches the SessionContext and persist in database as well.
- *
  */
 public class SessionContextCache extends BaseCache<String, SessionContext> {
 
@@ -37,7 +36,6 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
     }
 
     /**
-     *
      * @return
      */
     public static SessionContextCache getInstance() {
@@ -52,7 +50,6 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
     }
 
     /**
-     *
      * @param key
      */
     public void clear(String key) {
@@ -61,7 +58,6 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
     }
 
     /**
-     *
      * @param key
      * @return
      */
@@ -74,7 +70,6 @@ public class SessionContextCache extends BaseCache<String, SessionContext> {
     }
 
     /**
-     *
      * @param key
      * @param context
      */

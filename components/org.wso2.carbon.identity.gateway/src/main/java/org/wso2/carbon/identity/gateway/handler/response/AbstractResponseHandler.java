@@ -36,7 +36,6 @@ import java.util.List;
 
 /**
  * AbstractResponseHandler is handle the response based on the request type.
- *
  */
 public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
 

@@ -34,11 +34,9 @@ import java.util.Map;
 
 /**
  * AuthenticationContext is the context that is shared through whole process of request.
- *
+ * <p>
  * For the initial request, this context will create and cache. Initial request also stored in this context as
  * ClientAuthenticationRequest.
- *
- *
  */
 public class AuthenticationContext extends GatewayMessageContext {
 
