@@ -89,7 +89,7 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
         ResponseBuilderConfig responseBuilderConfig = null;
         if (authenticationContext.getServiceProvider() == null) {
             throw new AuthenticationHandlerException("Error while getting validator configs : No service provider " +
-                    "found with uniqueId : " + authenticationContext.getUniqueId());
+                    "found with serviceProviderId : " + authenticationContext.getServiceProviderId());
         }
 
         ResponseBuildingConfig responseBuildingConfig = authenticationContext.getServiceProvider()

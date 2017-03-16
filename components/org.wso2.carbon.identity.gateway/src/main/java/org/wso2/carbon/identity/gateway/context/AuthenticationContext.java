@@ -43,7 +43,7 @@ public class AuthenticationContext extends GatewayMessageContext {
     private static final long serialVersionUID = 6821167819709907062L;
 
     protected ClientAuthenticationRequest initialAuthenticationRequest;
-    protected String uniqueId;
+    protected String serviceProviderId;
 
     private Sequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
@@ -98,8 +98,8 @@ public class AuthenticationContext extends GatewayMessageContext {
     }
 
     public ServiceProviderConfig getServiceProvider() {
-        String uniqueId = getUniqueId();
-        ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(uniqueId);
+        String serviceProviderId = getServiceProviderId();
+        ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(serviceProviderId);
         return serviceProvider;
     }
 
@@ -115,12 +115,12 @@ public class AuthenticationContext extends GatewayMessageContext {
         return null;
     }
 
-    public String getUniqueId() {
-        return uniqueId;
+    public String getServiceProviderId() {
+        return serviceProviderId;
     }
 
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
+    public void setServiceProviderId(String serviceProviderId) {
+        this.serviceProviderId = serviceProviderId;
     }
 
 }

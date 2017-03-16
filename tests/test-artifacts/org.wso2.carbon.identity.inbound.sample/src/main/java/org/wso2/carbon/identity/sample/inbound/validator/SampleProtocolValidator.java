@@ -30,7 +30,7 @@ public class SampleProtocolValidator extends AbstractRequestValidator {
     @Override
     public GatewayHandlerResponse validate(AuthenticationContext authenticationContext) throws
                                                                                           RequestValidatorException {
-        authenticationContext.setUniqueId("travelocity.com");
+        authenticationContext.setServiceProviderId("travelocity.com");
         if (authenticationContext.getServiceProvider() == null) {
             throw new RequestValidatorException("No Service Provider Found for this Unique ID");
         }
