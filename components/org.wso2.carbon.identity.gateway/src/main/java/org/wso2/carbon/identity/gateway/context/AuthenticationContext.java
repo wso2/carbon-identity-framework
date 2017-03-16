@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.gateway.context;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
@@ -119,8 +120,13 @@ public class AuthenticationContext extends GatewayMessageContext {
         return serviceProviderId;
     }
 
-    public void setServiceProviderId(String serviceProviderId) {
+    public void setServiceProviderId(String serviceProviderId) throws GatewayClientException {
         this.serviceProviderId = serviceProviderId;
+        ServiceProviderConfig spConfig = getServiceProvider();
+        if(spConfig == null) {
+            this.serviceProviderId = null;
+            throw new GatewayClientException("Invalid serviceProviderId " + serviceProviderId);
+        }
     }
 
 }
