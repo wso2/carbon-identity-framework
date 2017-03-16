@@ -375,7 +375,7 @@
                     headers: {
                         Accept: "text/html"
                     },
-                    data: 'username=' + userName,
+                    data: 'username=' + encodeURIComponent(userName),
                     async: false,
                     success: function (responseText, status) {
                         if (status == "success") {
