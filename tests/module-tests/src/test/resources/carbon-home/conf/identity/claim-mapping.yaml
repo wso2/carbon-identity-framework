@@ -7,12 +7,18 @@ claimMappings:
    fullname: "http://wso2.org/claims/fullname"
    emailaddress: "http://wso2.org/claims/emailaddress"
  -
-  dialectURI: "http://org.harsha/claims"
+  dialectURI: "http://org.sample.idp/claims"
   mappings:
    username: "http://wso2.org/claims/username"
+   fullname: "http://wso2.org/claims/fullname"
+   gender: "http://wso2.org/claims/gender"
    email: "http://wso2.org/claims/email"
+   displayName: "http://wso2.org/claims/displayName"
  -
-  dialectURI: "http://hasintha.org/claims"
+  dialectURI: "http://sample.sp.org/claims"
   mappings:
-   loginName: "http://wso2.org/claims/username"
-   emailAddress: "http://wso2.org/claims/email"
+   username: "http://wso2.org/claims/username"
+   fullname: "http://wso2.org/claims/fullname"
+   gender: "http://wso2.org/claims/gender"
+   email: "http://wso2.org/claims/email"
+   displayName: "http://wso2.org/claims/displayName"

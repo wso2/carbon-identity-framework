@@ -42,8 +42,10 @@ public class SampleProtocolResponseBuilderFactory extends GatewayResponseBuilder
         super.createBuilder(builder,gatewayResponse);
         StringBuilder httpQueryString = new StringBuilder("authenticatedUser=" + ((SampleLoginResponse)
                 gatewayResponse).getSubject());
+        httpQueryString.append("?");
+        httpQueryString.append("claims=" + ((SampleLoginResponse) gatewayResponse).getClaims());
         String location = "https://localhost:9443/response";
-        location = location.concat("?").concat(httpQueryString.toString());
+        location = location.concat("&").concat(httpQueryString.toString());
         builder.status(302);
         builder.header("location", location);
     }

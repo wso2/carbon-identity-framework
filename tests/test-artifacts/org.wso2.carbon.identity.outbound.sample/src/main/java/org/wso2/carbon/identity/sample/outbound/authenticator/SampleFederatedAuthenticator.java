@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.gateway.authentication.authenticator.AbstractApp
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.sample.outbound.response.SampleProtocolRequestResponse;
 
@@ -35,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 
@@ -92,9 +94,20 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
         context.getIdentityRequest().getHeaders("header");
 
         Set<Claim> claims = new HashSet<Claim>();
-        Claim claim = new Claim("http://wso2.org/claims", "http://wso2.org/claims/email" , "harsha@wso2.com");
-        claims.add(claim);
-        federatedUser.setUserClaims(claims);
+        Claim claim1 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/email" , "harsha@wso2.com");
+        claims.add(claim1);
+
+        Claim claim2 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/fullname" ,
+                "harsha_fullname");
+        claims.add(claim2);
+
+        Claim claim3 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/gender" ,
+                "male");
+        claims.add(claim3);
+        GatewayClaimResolverService gatewayClaimResolverService = GatewayClaimResolverService.getInstance();
+        Set<Claim> mappedRootClaims = gatewayClaimResolverService.transformToNativeDialect(claims, "http://org.sample.idp/claims",
+                Optional.<String>empty());
+        federatedUser.setUserClaims(mappedRootClaims);
         context.getSequenceContext().getCurrentStepContext().setUser(federatedUser);
         AuthenticationResponse authenticationResponse =  new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
         return authenticationResponse;

@@ -375,13 +375,13 @@ public class GatewayTests {
      * Testing gateway claim resolving service. Transforming another dialect to a root dialect
      */
     @Test
-    public void testClaimServiceTransformToNativiveDialect() {
+    public void testClaimServiceTransformToNativeDialect() {
         GatewayClaimResolverService claimResolverService = this.bundleContext.getService(bundleContext
                 .getServiceReference(GatewayClaimResolverService.class));
         Set<Claim> claims = new HashSet<Claim>();
-        Claim claim = new Claim("http://org.harsha/claims", "http://org.harsha/claims/email", "harsha@wso2.com");
+        Claim claim = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/email", "harsha@wso2.com");
         claims.add(claim);
-        Set<Claim> transformedClaims = claimResolverService.transformToNativeDialect(claims, "http://org.harsha/claims",
+        Set<Claim> transformedClaims = claimResolverService.transformToNativeDialect(claims, "http://org.sample.idp/claims",
                 Optional.<String>empty());
         Assert.assertTrue(!transformedClaims.isEmpty());
         Claim responseClaim = transformedClaims.iterator().next();
@@ -400,12 +400,12 @@ public class GatewayTests {
         Set<Claim> claims = new HashSet<Claim>();
         Claim claim = new Claim("http://wso2.org/claims", "http://wso2.org/claims/email", "harsha@wso2.com");
         claims.add(claim);
-        Set<Claim> transformedClaims = claimResolverService.transformToOtherDialect(claims, "http://org.harsha/claims",
+        Set<Claim> transformedClaims = claimResolverService.transformToOtherDialect(claims, "http://org.sample.idp/claims",
                 Optional.<String>empty());
         Assert.assertTrue(!transformedClaims.isEmpty());
         Claim responseClaim = transformedClaims.iterator().next();
-        Assert.assertEquals("http://org.harsha/claims/email", responseClaim.getClaimUri());
-        Assert.assertEquals("http://org.harsha/claims", responseClaim.getDialectUri());
+        Assert.assertEquals("http://org.sample.idp/claims/email", responseClaim.getClaimUri());
+        Assert.assertEquals("http://org.sample.idp/claims", responseClaim.getDialectUri());
         Assert.assertEquals("harsha@wso2.com", responseClaim.getValue());
     }
 
@@ -419,12 +419,17 @@ public class GatewayTests {
         Set<Claim> claims = new HashSet<Claim>();
         Claim claim = new Claim("http://wso2.org/claims", "http://wso2.org/claims/email", "harsha@wso2.com");
         claims.add(claim);
-        Set<Claim> transformedClaims = claimResolverService.transformToOtherDialect(claims, "http://org.harsha/claims",
+
+        Claim claim2 = new Claim("http://wso2.org/claims", "http://wso2.org/claims/customclaim", "customValue");
+        claims.add(claim2);
+
+        Set<Claim> transformedClaims = claimResolverService.transformToOtherDialect(claims, "http://org.sample.idp/claims",
                 Optional.of("default"));
         Assert.assertTrue(!transformedClaims.isEmpty());
+        Assert.assertTrue(transformedClaims.size() == 1);
         Claim responseClaim = transformedClaims.iterator().next();
-        Assert.assertEquals("http://org.harsha/claims/email", responseClaim.getClaimUri());
-        Assert.assertEquals("http://org.harsha/claims", responseClaim.getDialectUri());
+        Assert.assertEquals("http://org.sample.idp/claims/email", responseClaim.getClaimUri());
+        Assert.assertEquals("http://org.sample.idp/claims", responseClaim.getDialectUri());
         Assert.assertEquals("harsha@wso2.com", responseClaim.getValue());
     }
 
@@ -436,11 +441,16 @@ public class GatewayTests {
         GatewayClaimResolverService claimResolverService = this.bundleContext.getService(bundleContext
                 .getServiceReference(GatewayClaimResolverService.class));
         Set<Claim> claims = new HashSet<Claim>();
-        Claim claim = new Claim("http://org.harsha/claims", "http://org.harsha/claims/email", "harsha@wso2.com");
+        Claim claim = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/email", "harsha@wso2" +
+                ".com");
         claims.add(claim);
-        Set<Claim> transformedClaims = claimResolverService.transformToNativeDialect(claims, "http://org.harsha/claims",
+        Claim claim2 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/customClaim" ,
+                "customValue");
+        claims.add(claim2);
+        Set<Claim> transformedClaims = claimResolverService.transformToNativeDialect(claims, "http://org.sample.idp/claims",
                 Optional.of("default"));
         Assert.assertTrue(!transformedClaims.isEmpty());
+        Assert.assertTrue(transformedClaims.size() == 1);
         Claim responseClaim = transformedClaims.iterator().next();
         Assert.assertEquals("http://wso2.org/claims/email", responseClaim.getClaimUri());
         Assert.assertEquals("http://wso2.org/claims", responseClaim.getDialectUri());

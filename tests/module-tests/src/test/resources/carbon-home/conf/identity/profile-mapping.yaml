@@ -40,6 +40,18 @@ profiles:
    readonly: true
    regex: "*"
   -
+     claimURI: "http://wso2.org/claims/fullname"
+     displayName: "fullname"
+     required: true
+     readonly: true
+     regex: "*"
+  -
+     claimURI: "http://wso2.org/claims/gender"
+     displayName: "gender"
+     required: true
+     readonly: true
+     regex: "*"
+  -
    claimURI: "http://wso2.org/claims/mobile"
    displayName: "Mobile"
    required: true

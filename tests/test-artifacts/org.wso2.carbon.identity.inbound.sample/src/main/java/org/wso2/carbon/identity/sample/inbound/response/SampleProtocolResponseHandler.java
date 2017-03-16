@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.sample.inbound.response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
@@ -26,11 +28,18 @@ import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
+import org.wso2.carbon.identity.mgt.claim.Claim;
+import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
+import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
 import org.wso2.carbon.identity.sample.inbound.request.SampleProtocolRequest;
+
+import java.util.Optional;
+import java.util.Set;
 
 public class SampleProtocolResponseHandler extends AbstractResponseHandler {
 
-
+    Logger logger = LoggerFactory.getLogger(SampleProtocolResponseHandler.class);
     @Override
     public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
                                                      GatewayException exception) throws ResponseHandlerException {
@@ -51,6 +60,7 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
         SampleLoginResponse.SampleLoginResponseBuilder builder = new SampleLoginResponse.SampleLoginResponseBuilder
                 (authenticationContext);
         builder.setSubject(authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier());
+        setClaims(authenticationContext, builder);
         try {
             getResponseBuilderConfigs(authenticationContext);
         } catch (AuthenticationHandlerException e) {
@@ -83,6 +93,19 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
                     SampleProtocolRequest;
         }
         return false;
+    }
+
+    private void setClaims(AuthenticationContext authenticationContext, SampleLoginResponse
+            .SampleLoginResponseBuilder builder) {
+            Set<Claim> claims = authenticationContext.getSequenceContext().getAllClaims();
+            claims = GatewayClaimResolverService.getInstance().transformToOtherDialect(claims, authenticationContext
+                    .getServiceProvider().getClaimConfig().getDialectUri(), Optional.of(authenticationContext.getServiceProvider
+                    ().getClaimConfig().getProfile()));
+            StringBuilder claimParam = new StringBuilder("");
+            claims.stream().forEach(claim -> claimParam.append(claim.getClaimUri()).append(",").append(claim.getValue
+                    ()).append("-"));
+            builder.setClaims(claimParam.toString());
+
     }
 
 }
