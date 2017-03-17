@@ -111,7 +111,7 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
      *
      * @return
      */
-    protected abstract String getValidatorType();
+    public abstract String getValidatorType();
 
     /**
      * Add the session key.
@@ -121,7 +121,7 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
      * @throws ResponseHandlerException
      */
     protected void addSessionKey(GatewayResponse.GatewayResponseBuilder responseBuilder,
-                                 AuthenticationContext context) throws ResponseHandlerException {
+                                 AuthenticationContext context) {
 
         responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants
                 .SESSION_KEY));

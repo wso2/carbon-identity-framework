@@ -61,7 +61,7 @@ public class SampleProtocolValidator extends AbstractRequestValidator {
     }
 
     @Override
-    protected String getValidatorType() {
+    public String getValidatorType() {
         return "SampleProtocolRequestValidator";
     }
 }

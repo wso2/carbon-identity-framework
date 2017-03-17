@@ -28,7 +28,19 @@ public class AuthenticationHandlerException extends GatewayServerException {
         super(message);
     }
 
+    public AuthenticationHandlerException(Throwable cause) {
+        super(cause);
+    }
+
+    public AuthenticationHandlerException(String errorCode, String message) {
+        super(errorCode, message);
+    }
+
     public AuthenticationHandlerException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public AuthenticationHandlerException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
     }
 }

@@ -82,7 +82,7 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
     }
 
 
-    protected String getValidatorType() {
+    public String getValidatorType() {
         return "SAMPLE";
     }
 

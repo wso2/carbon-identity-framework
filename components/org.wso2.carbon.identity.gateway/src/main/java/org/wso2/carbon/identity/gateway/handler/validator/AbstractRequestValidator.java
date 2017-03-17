@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.gateway.handler.validator;
 
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidationConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.RequestValidatorConfig;
@@ -55,7 +56,7 @@ public abstract class AbstractRequestValidator extends AbstractGatewayHandler {
     }
 
     public abstract GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
-            throws RequestValidatorException;
+            throws RequestValidatorException, GatewayServerException;
 
-    protected abstract String getValidatorType();
+    public abstract String getValidatorType();
 }
