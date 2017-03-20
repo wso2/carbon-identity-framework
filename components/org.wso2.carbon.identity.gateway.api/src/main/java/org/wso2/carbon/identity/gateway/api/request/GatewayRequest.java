@@ -140,8 +140,6 @@ public class GatewayRequest implements Serializable {
 
     public String getQueryParameter(String paramName) throws UnsupportedEncodingException {
         Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.QUERY_PARAMETERS);
-        URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
-
         return queryParams.get(paramName);
     }
 
