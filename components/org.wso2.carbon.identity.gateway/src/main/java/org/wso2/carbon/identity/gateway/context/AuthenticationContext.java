@@ -21,16 +21,25 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
 import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
+import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.cache.SessionContextCache;
+import org.wso2.carbon.identity.gateway.exception.InvalidServiceProviderIdException;
+import org.wso2.carbon.identity.gateway.exception.ServiceProviderIdNotSetException;
+import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
 import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
+import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 
 /**
@@ -99,7 +108,9 @@ public class AuthenticationContext extends GatewayMessageContext {
     }
 
     public ServiceProviderConfig getServiceProvider() {
-        String serviceProviderId = getServiceProviderId();
+        if (StringUtils.isBlank(serviceProviderId)) {
+            throw new ServiceProviderIdNotSetException("ServiceProviderId has not been set.");
+        }
         ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(serviceProviderId);
         return serviceProvider;
     }
@@ -125,8 +136,52 @@ public class AuthenticationContext extends GatewayMessageContext {
         ServiceProviderConfig spConfig = getServiceProvider();
         if(spConfig == null) {
             this.serviceProviderId = null;
-            throw new GatewayClientException("Invalid serviceProviderId " + serviceProviderId);
+            throw new InvalidServiceProviderIdException("Invalid serviceProviderId " + serviceProviderId);
         }
+    }
+
+    public User getSubjectUser() throws GatewayServerException {
+
+        User subject = null;
+        int lastStep = sequenceContext.getCurrentStep();
+        boolean isUserIdStepFound = false;
+        for (int i = 1; i < lastStep + 1; i++) {
+            boolean isSubjectStep = false;
+            AuthenticationStepConfig stepConfig = getSequence().getAuthenticationStepConfig(i);
+            isSubjectStep = true; // update isSubjectStep using stepConfig
+            if (isSubjectStep && isUserIdStepFound) {
+                throw new GatewayServerException("Invalid subject step configuration. Multiple subject steps found.");
+            } else {
+                isUserIdStepFound = true;
+                SequenceContext.StepContext stepContext = sequenceContext.getStepContext(i);
+                subject = stepContext.getUser();
+            }
+        }
+        return subject;
+    }
+
+    public Claim getSubjectClaim() {
+
+        Set<Claim> claims = sequenceContext.getClaims();
+        String subjectClaimUri = getServiceProvider().getClaimConfig().getSubjectClaimUri();
+        for (Claim claim : claims) {
+            if(claim.getClaimUri().equals(subjectClaimUri)) {
+                return claim;
+            }
+        }
+        return null;
+    }
+
+    public Set<Claim> getAttributes(AuthenticationContext context) {
+
+        Set<Claim> aggregatedClaims = context.getSequenceContext().getClaims();
+        String dialect = context.getServiceProvider().getClaimConfig().getDialectUri();
+        String profileName = context.getServiceProvider().getClaimConfig().getProfile();
+
+        aggregatedClaims = GatewayClaimResolverService.getInstance().transformToOtherDialect(
+                aggregatedClaims, dialect, Optional.ofNullable(profileName));
+
+        return aggregatedClaims;
     }
 
 }

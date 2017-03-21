@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.gateway.context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.mgt.claim.Claim;
@@ -53,7 +54,7 @@ public class SequenceContext implements Serializable {
         return stepContext;
     }
 
-    public Set<Claim> getAllClaims() {
+    public Set<Claim> getClaims() {
         Set<Claim> aggregatedClaims = new HashSet<Claim>();
         stepContextList.stream().forEach(stepContext -> {
             try {
