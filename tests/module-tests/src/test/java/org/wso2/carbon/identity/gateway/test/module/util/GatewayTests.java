@@ -88,6 +88,44 @@ public class GatewayTests {
         return optionList.toArray(new Option[optionList.size()]);
     }
 
+/*
+    *//**
+     * Testing overall federated authentication with sample protocol
+     * Asserting on redirection and cookies we get
+     *//*
+    @Test
+    public void testFederatedAuthenticationForMultiOption() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true&uniqueID=travelocity-multi.com&authenticator", HttpMethod.GET,
+                    false);
+            String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.RELAY_STATE));
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.EXTERNAL_IDP));
+
+            String relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
+            relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = GatewayTestUtils.request
+                    (GatewayTestConstants.GATEWAY_ENDPOINT + "?" + GatewayTestConstants.RELAY_STATE + "="
+                            + relayState + GatewayTestConstants.QUERY_PARAM_SEPARATOR + GatewayTestConstants
+                            .ASSERTION + "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME, HttpMethod.GET, false);
+
+            locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.RESPONSE_CONTEXT));
+            Assert.assertTrue(locationHeader.contains(GatewayTestConstants.AUTHENTICATED_USER +
+                    "=" + GatewayTestConstants.AUTHENTICATED_USER_NAME));
+            String cookie = GatewayTestUtils.getResponseHeader(HttpHeaders.SET_COOKIE, urlConnection);
+            Assert.assertNotNull(cookie);
+            cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
+            Assert.assertNotNull(cookie);
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case", e);
+        }
+    }*/
+
+
+
     /**
      * Testing overall federated authentication with sample protocol
      * Asserting on redirection and cookies we get

@@ -1,0 +1,56 @@
+serviceProviderConfig:
+  name: "sample_multi_option"
+  requestValidationConfig:
+    requestValidatorConfigs:
+      -
+          type: "SAML"
+          uniquePropertyName : "issuer"
+          properties:
+            issuer : "travelocity-multi.com"
+            assertionConsumerUrls:
+                - "http://localhost:8080/travelocity.com/home.jsp"
+            defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
+            nameIDformat: "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+            certificateAlias: "wso2carbon"
+            enableAttributesByDefault : "true"
+            idPInitSSOEnabled : "true"
+            attributeConsumingServiceIndex : "2342342"
+  claimConfig:
+   profile : "default"
+   dialectUri : "http://sample.sp.org/claims"
+   subjectClaimUri : "SdsD"
+
+  authenticationConfig:
+    authenticationStepConfigs :
+      -
+        step : 1
+        useLocalSubjectIdentifier : "true"
+        useDomainInLocalSubjectIdentifier : "true"
+        authStrategy : ""
+        executionStrategy : "multi"
+        identityProviders :
+          -
+            identityProviderName : "myidp"
+            authenticatorName : "SampleFederatedAuthenticator"
+          -
+            identityProviderName : "myidp"
+            authenticatorName : "SampleFederatedAuthenticator"
+
+  responseBuildingConfig:
+    responseBuilderConfigs:
+      -
+        type: "SAML"
+        properties:
+          defaultAssertionConsumerUrl : "http://localhost:8080/travelocity.com/home.jsp"
+          certificateAlias : "wso2carbon"
+          doSignResponse : "true"
+          doSingleLogout : "false"
+          doSignAssertions : "true"
+          attributeConsumingServiceIndex : "2342342"
+          enableAttributesByDefault : ""
+          doEnableEncryptedAssertion : "false"
+          signingAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
+          digestAlgorithmUri : "http://www.w3.org/2000/09/xmldsig#sha1"
+          requestedAudiences :
+            - "testing"
+            - "testing2"

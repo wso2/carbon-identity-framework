@@ -91,7 +91,7 @@ public class GatewayActivator {
         bundleContext.registerService(AbstractExecutionHandler.class, new SingleOptionExecutionHandler(), null);
         bundleContext.registerService(AbstractExecutionHandler.class, new MultiOptionExecutionHandler(), null);
 
-        bundleContext.registerService(ApplicationAuthenticator.class, new BasicAuthenticator(), null);
+        //bundleContext.registerService(ApplicationAuthenticator.class, new BasicAuthenticator(), null);
 
 
         //Registering this for demo perposes only

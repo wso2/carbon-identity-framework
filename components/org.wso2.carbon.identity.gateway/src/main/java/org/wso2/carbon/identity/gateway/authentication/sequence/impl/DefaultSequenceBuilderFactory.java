@@ -42,8 +42,4 @@ public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory 
         return true;
     }
 
-    @Override
-    public String getName() {
-        return null;
-    }
 }

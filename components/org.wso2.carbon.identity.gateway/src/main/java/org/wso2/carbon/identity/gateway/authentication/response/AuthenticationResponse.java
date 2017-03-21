@@ -79,10 +79,6 @@ public class AuthenticationResponse {
         return gatewayResponseBuilder;
     }
 
-    public void setGatewayResponseBuilder(
-            GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
-        this.gatewayResponseBuilder = gatewayResponseBuilder;
-    }
 
     /**
      * Status for AuthenticationResponse.
