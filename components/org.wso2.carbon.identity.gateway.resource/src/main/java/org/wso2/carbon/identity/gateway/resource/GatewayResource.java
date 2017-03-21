@@ -55,7 +55,7 @@ public class GatewayResource implements Microservice {
     private static final String DEFAULT_LOGIN_PAGE = "login.html";
     private GatewayManager gatewayManager = new GatewayManager();
 
-    static String getLoginPage() throws IOException {
+  /*  static String getLoginPage() throws IOException {
 
         InputStream inputStream = GatewayResource.class.getClassLoader()
                 .getResourceAsStream(DEFAULT_LOGIN_PAGE);
@@ -68,9 +68,9 @@ public class GatewayResource implements Microservice {
         }
 
         return content;
-    }
+    }*/
 
-    @GET
+  /*  @GET
     @Path("/endpoint")
     public Response endpoint(@QueryParam("callback") String callback,
                              @QueryParam("state") String sessionDataKey, @QueryParam("idplist") String idpList) {
@@ -97,7 +97,7 @@ public class GatewayResource implements Microservice {
                     .build();
         }
         return Response.serverError().build();
-    }
+    }*/
 
     private Response handleBadRequest(String errorMessage) {
 
@@ -132,7 +132,7 @@ public class GatewayResource implements Microservice {
         return response;
     }
 
-    private String getLoginPageContent(String callbackURL, String state, String idps) throws IOException {
+  /*  private String getLoginPageContent(String callbackURL, String state, String idps) throws IOException {
 
         String response = getLoginPage();
         if (StringUtils.isNotBlank(state)) {
@@ -160,7 +160,7 @@ public class GatewayResource implements Microservice {
         response = response.replace("${federated-idps}", idpLinks.toString());
 
         return response;
-    }
+    }*/
 
 }
 

@@ -104,7 +104,7 @@ public class DefaultSequence implements Sequence {
         return authenticationStepConfig.get();
     }
 
-    @Override
+    /*@Override
     public AuthenticatorConfig getAuthenticatorConfig(int step, String authenticatorName, String
             identityProviderName) {
         AuthenticationStepConfig authenticationStepConfig = getAuthenticationStepConfig(step);
@@ -129,5 +129,5 @@ public class DefaultSequence implements Sequence {
 
         }
         return null;
-    }
+    }*/
 }

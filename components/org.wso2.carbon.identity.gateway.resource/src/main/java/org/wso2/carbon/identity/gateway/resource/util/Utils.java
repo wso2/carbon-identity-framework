@@ -60,13 +60,13 @@ public class Utils {
         }
     }
 
-    public static String readRequestBody(Request msf4jRequest) {
+    private static String readRequestBody(Request msf4jRequest) {
 
         ByteBuffer merge = BufferUtil.merge(msf4jRequest.getFullMessageBody());
         return Charset.defaultCharset().decode(merge).toString();
     }
 
-    public static Map<String, String> getRequestParameters(Request request) {
+    private static Map<String, String> getRequestParameters(Request request) {
         return getQueryParamMap(request.getUri());
     }
 
@@ -92,7 +92,7 @@ public class Utils {
         request.setProperty(org.wso2.carbon.identity.gateway.common.util.Constants.BODY_PARAMETERS, bodyParams);
     }
 
-    public static Map<String, String> splitQuery(String queryString) {
+    private static Map<String, String> splitQuery(String queryString) {
 
         if (Optional.ofNullable(queryString).isPresent()) {
             Map<String, String> queryMap = new HashMap<>();
@@ -116,7 +116,7 @@ public class Utils {
         return new AbstractMap.SimpleEntry<String, String>(urlDecode(key), urlDecode(value));
     }
 
-    public static String urlDecode(final String encoded) {
+    private static String urlDecode(final String encoded) {
 
         try {
             return encoded == null ? null : URLDecoder.decode(encoded, "UTF-8");

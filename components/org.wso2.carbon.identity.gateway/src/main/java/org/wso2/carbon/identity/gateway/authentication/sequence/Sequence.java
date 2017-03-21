@@ -72,15 +72,15 @@ public interface Sequence extends Serializable {
     public abstract AuthenticationStepConfig getAuthenticationStepConfig(int step);
 
 
-    /**
+   /* *//**
      * Return AuthenticatorConfig for given step, authenticatorName, idpName
      *
      * @param step
      * @param authenticatorName
      * @param identityProvider
      * @return
-     */
+     *//*
     public abstract AuthenticatorConfig getAuthenticatorConfig(int step, String authenticatorName, String
-            identityProvider);
+            identityProvider);*/
 
 }

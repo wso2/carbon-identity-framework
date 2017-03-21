@@ -50,9 +50,10 @@ import java.util.List;
 /**
  * This is dummy BasicAuthenticator to cover the local authentication. This should be move to the some other repo.
  */
-public class BasicAuthenticator extends AbstractApplicationAuthenticator implements LocalApplicationAuthenticator {
+public class BasicAuthenticator {
 
-    public static final String IS_RETRY_ENABLE = "isRetryEnable";
+    // extends AbstractApplicationAuthenticator implements LocalApplicationAuthenticator
+  /*  public static final String IS_RETRY_ENABLE = "isRetryEnable";
     private Logger log = LoggerFactory.getLogger(BasicAuthenticator.class);
 
 
@@ -169,5 +170,5 @@ public class BasicAuthenticator extends AbstractApplicationAuthenticator impleme
         String retryEnableString = (String) authenticatorConfig.getProperties().get(IS_RETRY_ENABLE);
         boolean isRetryEnable = BooleanUtils.toBoolean(retryEnableString);
         return isRetryEnable;
-    }
+    }*/
 }
