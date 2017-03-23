@@ -136,7 +136,7 @@ public class AuthenticationContext extends GatewayMessageContext {
         ServiceProviderConfig spConfig = getServiceProvider();
         if(spConfig == null) {
             this.serviceProviderId = null;
-            throw new InvalidServiceProviderIdException("Invalid serviceProviderId " + serviceProviderId);
+            throw new InvalidServiceProviderIdException("Invalid serviceProviderId: " + serviceProviderId);
         }
     }
 
