@@ -18,12 +18,14 @@
 
 package org.wso2.carbon.identity.sample.inbound.response;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
@@ -73,11 +75,31 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
 
     @Override
     public boolean canHandle(MessageContext messageContext, GatewayException exception) {
+
+        AuthenticationContext authenticationContext = (AuthenticationContext)messageContext;
+        String generateGatewayClientException = authenticationContext.getIdentityRequest().getParameter
+                ("generateClientException");
+        String exceptionInCanHandle = authenticationContext.getIdentityRequest().getParameter
+                ("exceptionInCanHandle");
+        if(StringUtils.isNotBlank(generateGatewayClientException) && StringUtils.isNotBlank(exceptionInCanHandle)){
+            throw new GatewayRuntimeException("Checked the exception for generate the generateClientException.");
+        }
         return true;
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception) {
+    public boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception)
+    {
+
+        AuthenticationContext authenticationContext = (AuthenticationContext)messageContext;
+        String generateRuntimeException = authenticationContext.getIdentityRequest().getParameter
+                ("generateRuntimeException");
+        String exceptionInCanHandle = authenticationContext.getIdentityRequest().getParameter
+                ("exceptionInCanHandle");
+        if(StringUtils.isNotBlank(generateRuntimeException) && StringUtils.isNotBlank(exceptionInCanHandle)){
+            throw new GatewayRuntimeException("Checked the exception for generate the generateRuntimeException.");
+        }
+
         return true;
     }
 

@@ -29,6 +29,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.authentication.executer.MultiOptionExecutionHandler;
 import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
@@ -39,6 +40,8 @@ import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.model.LocalUser;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.model.UserClaim;
+import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
+import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleSessionHandler;
 import org.wso2.carbon.identity.mgt.IdentityStore;
@@ -210,6 +213,7 @@ public class GatewayUnitTests {
         Assert.assertNull(
                 GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticator("requestPathAuthenticators"));
     }
+
 
 
 }

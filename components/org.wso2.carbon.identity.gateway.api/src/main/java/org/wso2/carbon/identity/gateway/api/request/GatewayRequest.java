@@ -61,18 +61,6 @@ public class GatewayRequest implements Serializable {
         this.queryString = builder.queryString;
     }
 
-    public Serializable getAttribute(String attributeName) {
-        return attributes.get(attributeName);
-    }
-
-    public Map<String, Serializable> getAttributeMap() {
-        return Collections.unmodifiableMap(attributes);
-    }
-
-    public Enumeration<String> getAttributeNames() {
-        return Collections.enumeration(attributes.keySet());
-    }
-
     public String getBodyParameter(String paramName) {
         Map<String, String> queryParams = (Map<String, String>) parameters.get(Constants.BODY_PARAMETERS);
         return queryParams.get(paramName);
@@ -120,22 +108,13 @@ public class GatewayRequest implements Serializable {
                 try {
                     decode = URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
                 } catch (UnsupportedEncodingException e) {
-                    String errorMessage = "Error occurred while decoding the parameter value," + paramName + " , " +
-                            e.getMessage();
+                    String errorMessage = "Error occurred while decoding the parameter value, " + paramName ;
                     log.error(errorMessage, e);
                     throw new GatewayRuntimeException(errorMessage, e);
                 }
             }
         }
         return decode;
-    }
-
-    public Map<String, Serializable> getParameterMap() {
-        return Collections.unmodifiableMap(parameters);
-    }
-
-    public Enumeration<String> getParameterNames() {
-        return Collections.enumeration(parameters.keySet());
     }
 
     public String getQueryParameter(String paramName) throws UnsupportedEncodingException {
@@ -166,7 +145,7 @@ public class GatewayRequest implements Serializable {
 
         public GatewayRequestBuilder addAttribute(String name, Serializable value) {
             if (this.attributes.containsKey(name)) {
-                String errorMessage = "Attributes map trying to override existing key " + name;
+                String errorMessage = "Attributes map trying to override existing key: " + name;
                 log.error(errorMessage);
                 throw new GatewayRuntimeException(errorMessage);
             }
@@ -174,21 +153,10 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public GatewayRequestBuilder addAttributes(Map<String, Serializable> attributes) {
-            for (Map.Entry<String, Serializable> attribute : attributes.entrySet()) {
-                if (this.attributes.containsKey(attribute.getKey())) {
-                    String errorMessage = "Attributes map trying to override existing key " + attribute.getKey();
-                    log.error(errorMessage);
-                    throw new GatewayRuntimeException(errorMessage);
-                }
-                this.attributes.put(attribute.getKey(), attribute.getValue());
-            }
-            return this;
-        }
 
         public GatewayRequestBuilder addHeader(String name, String value) {
             if (this.headers.containsKey(name)) {
-                String errorMessage = "Headers map trying to override existing header " + name;
+                String errorMessage = "Headers map trying to override existing header: " + name;
                 log.error(errorMessage);
                 throw new GatewayRuntimeException(errorMessage);
             }
@@ -196,21 +164,10 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public GatewayRequestBuilder addHeaders(Map<String, String> headers) {
-            for (Map.Entry<String, String> header : headers.entrySet()) {
-                if (this.headers.containsKey(header.getKey())) {
-                    String errorMessage = "Headers map trying to override existing header " + header.getKey();
-                    log.error(errorMessage);
-                    throw new GatewayRuntimeException(errorMessage);
-                }
-                this.headers.put(header.getKey(), header.getValue());
-            }
-            return this;
-        }
 
         public GatewayRequestBuilder addParameter(String name, Serializable value) {
             if (this.parameters.containsKey(name)) {
-                String errorMessage = "Parameters map trying to override existing key " + name;
+                String errorMessage = "Parameters map trying to override existing key: " + name;
                 log.error(errorMessage);
                 throw new GatewayRuntimeException(errorMessage);
             }
@@ -218,22 +175,8 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public GatewayRequestBuilder addParameters(Map<String, Serializable> parameters) {
-            for (Map.Entry<String, Serializable> parameter : parameters.entrySet()) {
-                if (this.parameters.containsKey(parameter.getKey())) {
-                    String errorMessage = "Parameters map trying to override existing key " + parameter.getKey();
-                    log.error(errorMessage);
-                    throw new GatewayRuntimeException(errorMessage);
-                }
-                this.parameters.put(parameter.getKey(), parameter.getValue());
-            }
-            return this;
-        }
 
         public GatewayRequest build() {
-            if (log.isDebugEnabled()) {
-                log.debug("Building the GatewayRequest in Builder.");
-            }
             return new GatewayRequest(this);
         }
 
@@ -252,20 +195,13 @@ public class GatewayRequest implements Serializable {
             return this;
         }
 
-        public GatewayRequestBuilder setHeaders(Map<String, Serializable> responseHeaders) {
-            this.headers = responseHeaders;
-            return this;
-        }
 
         public GatewayRequestBuilder setHttpMethod(String httpMethod) {
             this.httpMethod = httpMethod;
             return this;
         }
 
-        public GatewayRequestBuilder setParameters(Map<String, Serializable> parameters) {
-            this.parameters = parameters;
-            return this;
-        }
+
 
         public GatewayRequestBuilder setQueryString(String queryString) {
             this.queryString = queryString;
@@ -284,4 +220,5 @@ public class GatewayRequest implements Serializable {
     public static class IdentityRequestConstants {
 
     }
+
 }

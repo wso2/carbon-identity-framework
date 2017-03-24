@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
@@ -32,6 +33,26 @@ public class SampleProtocolValidator extends AbstractRequestValidator {
     @Override
     public GatewayHandlerResponse validate(AuthenticationContext authenticationContext) throws
                                                                                           RequestValidatorException {
+        String generateRuntimeException = authenticationContext.getIdentityRequest().getParameter
+                ("generateRuntimeException");
+        if(StringUtils.isNotBlank(generateRuntimeException)){
+            throw new RuntimeException("Checked the exception for generate the generateRuntimeException.");
+        }
+        String generateClientException = authenticationContext.getIdentityRequest().getParameter
+                ("generateClientException");
+        if(StringUtils.isNotBlank(generateClientException)){
+            throw new RequestValidatorException("Checked the exception for generate the generateRuntimeException.");
+        }
+
+        String generateGatewayClientException = authenticationContext.getIdentityRequest().getParameter
+                ("generateGatewayRuntimeException");
+        if(StringUtils.isNotBlank(generateGatewayClientException)){
+            throw new GatewayRuntimeException("Checked the exception for generate the generateGatewayRuntimeException.");
+        }
+
+
+
+
         try {
             String uniqueID = authenticationContext.getIdentityRequest().getParameter("uniqueID");
             if (StringUtils.isNotBlank(uniqueID)) {

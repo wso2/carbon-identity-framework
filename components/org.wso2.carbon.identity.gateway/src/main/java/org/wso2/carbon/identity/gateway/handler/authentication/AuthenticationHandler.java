@@ -62,10 +62,6 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
         return buildFrameworkHandlerResponse(authenticationResponse);
     }
 
-    @Override
-    public String getName() {
-        return null;
-    }
 
     //#TODO: We need to discuss about this how to map the status.
 

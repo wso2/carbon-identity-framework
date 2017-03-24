@@ -88,22 +88,102 @@ public class GatewayTests {
         return optionList.toArray(new Option[optionList.size()]);
     }
 
-/*
-    *//**
-     * Testing overall federated authentication with sample protocol
-     * Asserting on redirection and cookies we get
-     *//*
+
+
+
+    @Test
+    public void testClientExceptionInProcessor() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true&generateClientException=true", HttpMethod.GET, false);
+            int responseCode = urlConnection.getResponseCode();
+            Assert.assertTrue(responseCode==500);
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void testGatewayRuntimeExceptionInProcessor() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true&generateGatewayRuntimeException=true", HttpMethod.GET, false);
+            int responseCode = urlConnection.getResponseCode();
+            Assert.assertTrue(responseCode==500);
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case", e);
+        }
+    }
+
+
+    @Test
+    public void testClientExceptionInCanHandleInResponse() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL +
+                    "=true&generateGatewayRuntimeException=true&exceptionInCanHandle=true", HttpMethod
+                    .GET, false);
+            int responseCode = urlConnection.getResponseCode();
+            Assert.assertTrue(responseCode==500);
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void testRuntimeExceptionInCanHandleInResponse() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
+                    GatewayTestConstants.SAMPLE_PROTOCOL +
+                            "=true&generateClientException=true&exceptionInCanHandle=true", HttpMethod.GET,
+                    false);
+            int responseCode = urlConnection.getResponseCode();
+            Assert.assertTrue(responseCode==500);
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case", e);
+        }
+    }
+
+    @Test
+    public void testRuntimeExceptionInGatewayResource() {
+        try {
+            HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +"generateRuntimeException=true", HttpMethod.GET, false);
+            String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            int responseCode = urlConnection.getResponseCode();
+            Assert.assertTrue(responseCode==500);
+
+        } catch (IOException e) {
+            Assert.fail("Error while running federated authentication test case", e);
+        }
+    }
+
+
     @Test
     public void testFederatedAuthenticationForMultiOption() {
         try {
             HttpURLConnection urlConnection = GatewayTestUtils.request(GatewayTestConstants.GATEWAY_ENDPOINT + "?" +
-                    GatewayTestConstants.SAMPLE_PROTOCOL + "=true&uniqueID=travelocity-multi.com&authenticator", HttpMethod.GET,
+                            GatewayTestConstants.SAMPLE_PROTOCOL + "=true&uniqueID=travelocity-multi.com", HttpMethod.GET,
                     false);
             String locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
+            Assert.assertTrue(locationHeader.contains("idplist"));
+            Assert.assertTrue(locationHeader.contains("https://localhost:9292/gateway/endpoint"));
+
+            String relayState = locationHeader.split("state=")[1];
+            relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
+
+            urlConnection = GatewayTestUtils.request
+                    (GatewayTestConstants.GATEWAY_ENDPOINT + "?state="
+                            + relayState + "&authenticator=SampleFederatedAuthenticator&idp=myidp", HttpMethod.GET, false);
+
+            locationHeader = GatewayTestUtils.getResponseHeader(HttpHeaders.LOCATION, urlConnection);
             Assert.assertTrue(locationHeader.contains(GatewayTestConstants.RELAY_STATE));
             Assert.assertTrue(locationHeader.contains(GatewayTestConstants.EXTERNAL_IDP));
 
-            String relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
+            relayState = locationHeader.split(GatewayTestConstants.RELAY_STATE + "=")[1];
             relayState = relayState.split(GatewayTestConstants.QUERY_PARAM_SEPARATOR)[0];
 
             urlConnection = GatewayTestUtils.request
@@ -119,11 +199,11 @@ public class GatewayTests {
             Assert.assertNotNull(cookie);
             cookie = cookie.split(Constants.GATEWAY_COOKIE + "=")[1];
             Assert.assertNotNull(cookie);
+
         } catch (IOException e) {
             Assert.fail("Error while running federated authentication test case", e);
         }
-    }*/
-
+    }
 
 
     /**
@@ -586,5 +666,7 @@ public class GatewayTests {
             Assert.fail("Error occured while un-deploying service provider artifact");
         }
     }
+
+
 
 }

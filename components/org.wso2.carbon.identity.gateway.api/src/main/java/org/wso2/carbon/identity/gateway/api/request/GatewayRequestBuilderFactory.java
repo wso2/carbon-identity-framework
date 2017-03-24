@@ -72,7 +72,7 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
      * @param request
      * @throws GatewayClientException
      */
-    public void create(T builder, Request request)
+    protected void create(T builder, Request request)
             throws GatewayClientException {
 
         request.getHeaders().getAll().forEach(header -> {
