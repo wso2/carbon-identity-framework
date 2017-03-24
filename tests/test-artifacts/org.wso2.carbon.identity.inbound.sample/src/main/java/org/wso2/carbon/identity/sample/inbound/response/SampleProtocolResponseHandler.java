@@ -32,8 +32,6 @@ import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
-import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
 import org.wso2.carbon.identity.sample.inbound.request.SampleProtocolRequest;
 
 import java.util.Optional;
@@ -63,11 +61,7 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
                 (authenticationContext);
         builder.setSubject(authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier());
         setClaims(authenticationContext, builder);
-        try {
-            getResponseBuilderConfigs(authenticationContext);
-        } catch (AuthenticationHandlerException e) {
-            throw new ResponseHandlerException("Error while getting response configs");
-        }
+        getResponseBuilderConfigs(authenticationContext);
         addSessionKey(builder, authenticationContext);
         GatewayHandlerResponse response = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, builder);
         return response;
@@ -119,7 +113,7 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
 
     private void setClaims(AuthenticationContext authenticationContext, SampleLoginResponse
             .SampleLoginResponseBuilder builder) {
-            Set<Claim> claims = authenticationContext.getSequenceContext().getAllClaims();
+            Set<Claim> claims = authenticationContext.getSequenceContext().getClaims();
             claims = GatewayClaimResolverService.getInstance().transformToOtherDialect(claims, authenticationContext
                     .getServiceProvider().getClaimConfig().getDialectUri(), Optional.of(authenticationContext.getServiceProvider
                     ().getClaimConfig().getProfile()));

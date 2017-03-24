@@ -21,18 +21,26 @@ package org.wso2.carbon.identity.gateway.handler.response;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuildingConfig;
+import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.exception.ServiceProviderIdNotSetException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
+import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
+import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * AbstractResponseHandler is handle the response based on the request type.
@@ -84,14 +92,10 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
      * @return
      * @throws AuthenticationHandlerException
      */
-    public ResponseBuilderConfig getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException {
-        ResponseBuilderConfig responseBuilderConfig = null;
-        if (authenticationContext.getServiceProvider() == null) {
-            throw new AuthenticationHandlerException("Error while getting validator configs : No service provider " +
-                    "found with serviceProviderId : " + authenticationContext.getServiceProviderId());
-        }
+    protected ResponseBuilderConfig getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
+                                                                                                           GatewayRuntimeException {
 
+        ResponseBuilderConfig responseBuilderConfig = null;
         ResponseBuildingConfig responseBuildingConfig = authenticationContext.getServiceProvider()
                 .getResponseBuildingConfig();
         List<ResponseBuilderConfig> responseBuilderConfigs = responseBuildingConfig.getResponseBuilderConfigs();
@@ -125,5 +129,17 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
 
         responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants
                 .SESSION_KEY));
+    }
+
+    protected User getSubjectUser(AuthenticationContext context) throws GatewayServerException {
+        return context.getSubjectUser();
+    }
+
+    protected Claim getSubjectClaim(AuthenticationContext context) {
+        return context.getSubjectClaim();
+    }
+
+    protected Set<Claim> getAttributes(AuthenticationContext context) {
+        return context.getAttributes(context);
     }
 }
