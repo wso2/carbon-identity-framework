@@ -23,9 +23,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Context which stores session related information.
- */
 public class SessionContext implements Serializable {
 
     private static final long serialVersionUID = 530738975377939422L;
@@ -46,4 +43,3 @@ public class SessionContext implements Serializable {
         return sequenceContexts.values();
     }
 }
-

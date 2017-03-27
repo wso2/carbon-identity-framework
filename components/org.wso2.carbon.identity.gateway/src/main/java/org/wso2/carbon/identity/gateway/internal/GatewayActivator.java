@@ -54,6 +54,7 @@ import org.wso2.carbon.identity.gateway.handler.session.DefaultSessionHandler;
 import org.wso2.carbon.identity.gateway.handler.validator.AbstractRequestValidator;
 import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.local.LocalAuthenticationResponseBuilderFactory;
+import org.wso2.carbon.identity.gateway.local.demo.BasicAuthenticator;
 import org.wso2.carbon.identity.gateway.processor.AuthenticationProcessor;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.gateway.store.IdentityProviderConfigStore;

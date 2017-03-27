@@ -38,7 +38,7 @@ import java.util.Iterator;
 /**
  * AuthenticationStepHandler is handling the steps in given authentication flow and triggered by
  * AuthenticationHandler implementation.
- * <p/>
+ * <p>
  * This will find the execution strategy of a given step and execute the relevant handler.
  * If we need to have a custom step execution, we can extend this and register by changing the priority in OSGi.
  */
@@ -86,7 +86,7 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
     /**
      * Validating the session context for current step context in all the service providers. This behaviour can be
      * changed for different algorithm as well.
-     * <p/>
+     * <p>
      * As default implementation, we check the current step idps vs same step idps in all the authenticated service
      * providers in session context.
      *
@@ -117,8 +117,7 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
                 User user = sequenceContext.getStepContext(authenticationContext.getSequenceContext().getCurrentStep())
                         .getUser();
                 if (identityProvider != null) {
-                    SequenceContext.StepContext currentStepContext = authenticationContext.getSequenceContext()
-                            .getCurrentStepContext();
+                    SequenceContext.StepContext currentStepContext = authenticationContext.getSequenceContext().getCurrentStepContext();
                     if (currentStepContext == null) {
                         currentStepContext = authenticationContext.getSequenceContext().addStepContext();
                     }
@@ -141,8 +140,8 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
      * @return
      */
     private AbstractExecutionHandler getExecutionHandler(AuthenticationContext authenticationContext) {
-        return (AbstractExecutionHandler) getHandler(GatewayServiceHolder.getInstance().getExecutionHandlers(),
-                authenticationContext);
+        return (AbstractExecutionHandler) getHandler(GatewayServiceHolder.getInstance().getExecutionHandlers(), authenticationContext);
     }
+
 
 }

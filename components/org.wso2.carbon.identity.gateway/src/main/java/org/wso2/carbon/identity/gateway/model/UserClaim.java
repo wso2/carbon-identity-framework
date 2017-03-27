@@ -17,18 +17,24 @@
  */
 package org.wso2.carbon.identity.gateway.model;
 
-import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
-import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
-
 import java.io.Serializable;
-import java.util.Set;
 
-public abstract class User implements Serializable {
+public class UserClaim implements Serializable {
 
-    private static final long serialVersionUID = 9023615951116124234L;
+    private static final long serialVersionUID = 3160947562243688879L;
+    private String uri;
+    private String value;
 
-    public abstract Set<Claim> getClaims() throws IdentityStoreException, UserNotFoundException;
+    public UserClaim(String uri, String value) {
+        this.uri = uri;
+        this.value = value;
+    }
 
-    public abstract String getUserIdentifier();
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
 }

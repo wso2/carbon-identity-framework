@@ -42,8 +42,7 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
     private static final Logger log = LoggerFactory.getLogger(MultiOptionExecutionHandler.class);
 
     @Override
-    public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException {
+    public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
 
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         Sequence sequence = authenticationContext.getSequence();
@@ -86,8 +85,7 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
         } catch (AuthenticationHandlerException e) {
             currentStepContext.setStatus(SequenceContext.Status.FAILED);
             if (applicationAuthenticator.isRetryEnable(authenticationContext)) {
-                AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig
-                        (currentStepContext.getStep());
+                AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
                 int retryCount = authenticationStepConfig.getRetryCount();
                 if (currentStepContext.getRetryCount() <= retryCount) {
                     currentStepContext.setRetryCount(currentStepContext.getRetryCount() + 1);

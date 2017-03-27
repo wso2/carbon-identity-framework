@@ -108,7 +108,7 @@ public class GatewayRequest implements Serializable {
                 try {
                     decode = URLDecoder.decode(queryParams.get(paramName), StandardCharsets.UTF_8.name());
                 } catch (UnsupportedEncodingException e) {
-                    String errorMessage = "Error occurred while decoding the parameter value, " + paramName;
+                    String errorMessage = "Error occurred while decoding the parameter value, " + paramName ;
                     log.error(errorMessage, e);
                     throw new GatewayRuntimeException(errorMessage, e);
                 }

@@ -24,9 +24,6 @@ import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Represents Local users who resides in local user stores.
- */
 public class LocalUser extends User {
 
     private static final long serialVersionUID = -6463173506025377046L;
