@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
+import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
@@ -59,7 +60,11 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
 
         SampleLoginResponse.SampleLoginResponseBuilder builder = new SampleLoginResponse.SampleLoginResponseBuilder
                 (authenticationContext);
-        builder.setSubject(authenticationContext.getSequenceContext().getStepContext(1).getUser().getUserIdentifier());
+        try {
+            builder.setSubject(getSubjectUser(authenticationContext).getUserIdentifier());
+        } catch (GatewayServerException e) {
+            logger.error("Error while getting subject");
+        }
         setClaims(authenticationContext, builder);
         getResponseBuilderConfigs(authenticationContext);
         addSessionKey(builder, authenticationContext);
