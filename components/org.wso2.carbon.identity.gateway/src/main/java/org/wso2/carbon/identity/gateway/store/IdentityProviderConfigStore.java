@@ -23,6 +23,10 @@ import org.wso2.carbon.identity.gateway.common.model.idp.IdentityProviderConfig;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/**
+ * IdentityProviderConfigStore store the IdentityProvider configs.
+ */
 public class IdentityProviderConfigStore {
     private static IdentityProviderConfigStore identityProviderConfigStore = new IdentityProviderConfigStore();
     private Map<String, IdentityProviderConfig> idpEntityMap = new HashMap<>();

@@ -37,11 +37,6 @@ import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
  * Build the sequence and handover the sequence to the step handlers are done by this handler.
  */
 public class AuthenticationHandler extends AbstractGatewayHandler {
-    @Override
-    public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
-        return true;
-    }
-
     /**
      * authenticate the request.
      *
@@ -49,17 +44,23 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
      * @return
      * @throws AuthenticationHandlerException
      */
-    public GatewayHandlerResponse authenticate(AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException {
+    public GatewayHandlerResponse authenticate(
+            AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
 
         AbstractSequenceBuildFactory abstractSequenceBuildFactory = getSequenceBuildFactory(authenticationContext);
         Sequence sequence = abstractSequenceBuildFactory.buildSequence(authenticationContext);
         authenticationContext.setSequence(sequence);
 
         AuthenticationStepHandler authenticationStepHandler = getStepHandler(authenticationContext);
-        AuthenticationResponse authenticationResponse = authenticationStepHandler.handleStepAuthentication(authenticationContext);
+        AuthenticationResponse authenticationResponse = authenticationStepHandler
+                .handleStepAuthentication(authenticationContext);
 
         return buildFrameworkHandlerResponse(authenticationResponse);
+    }
+
+    @Override
+    public boolean canHandle(MessageContext messageContext) throws IdentityRuntimeException {
+        return true;
     }
 
 
@@ -76,16 +77,19 @@ public class AuthenticationHandler extends AbstractGatewayHandler {
         if (AuthenticationResponse.Status.AUTHENTICATED.equals(handlerResponse.status)) {
             gatewayHandlerResponse = new GatewayHandlerResponse();
         } else if (AuthenticationResponse.Status.INCOMPLETE.equals(handlerResponse.status)) {
-            gatewayHandlerResponse = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT, handlerResponse.getGatewayResponseBuilder());
+            gatewayHandlerResponse = new GatewayHandlerResponse(GatewayHandlerResponse.Status.REDIRECT,
+                                                                handlerResponse.getGatewayResponseBuilder());
         }
         return gatewayHandlerResponse;
     }
 
     private AbstractSequenceBuildFactory getSequenceBuildFactory(AuthenticationContext authenticationContext) {
-        return (AbstractSequenceBuildFactory) getHandler(GatewayServiceHolder.getInstance().getSequenceBuildFactories(), authenticationContext);
+        return (AbstractSequenceBuildFactory) getHandler
+                (GatewayServiceHolder.getInstance().getSequenceBuildFactories(), authenticationContext);
     }
 
     private AuthenticationStepHandler getStepHandler(AuthenticationContext authenticationContext) {
-        return (AuthenticationStepHandler) getHandler(GatewayServiceHolder.getInstance().getAuthenticationStepHandlers(), authenticationContext);
+        return (AuthenticationStepHandler) getHandler(
+                GatewayServiceHolder.getInstance().getAuthenticationStepHandlers(), authenticationContext);
     }
 }

@@ -28,7 +28,6 @@ import javax.ws.rs.core.Response;
 /**
  * GatewayResponseBuilderFactory is a base class to create GatewayResponseBuilder based on different
  * Protocols. This also will register as a Service and can be used as a default request builder.
- *
  */
 public class GatewayResponseBuilderFactory extends AbstractHandler {
 

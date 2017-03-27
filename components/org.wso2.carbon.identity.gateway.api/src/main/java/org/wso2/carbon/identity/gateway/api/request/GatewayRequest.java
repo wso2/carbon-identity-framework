@@ -202,7 +202,6 @@ public class GatewayRequest implements Serializable {
         }
 
 
-
         public GatewayRequestBuilder setQueryString(String queryString) {
             this.queryString = queryString;
             return this;

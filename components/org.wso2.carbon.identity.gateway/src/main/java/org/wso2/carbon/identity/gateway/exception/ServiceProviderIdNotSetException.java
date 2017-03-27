@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.exception;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 
+/**
+ * ServiceProviderIdNotSetException is special for SP validity.
+ */
 public class ServiceProviderIdNotSetException extends GatewayRuntimeException {
 
     public ServiceProviderIdNotSetException(String message) {

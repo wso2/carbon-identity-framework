@@ -19,6 +19,10 @@ package org.wso2.carbon.identity.gateway.exception;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
+
+/**
+ * Session Handler Exception.
+ */
 public class SessionHandlerException extends GatewayServerException {
 
     public SessionHandlerException(String message) {

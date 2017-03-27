@@ -54,8 +54,10 @@ public class AuthenticationResponse {
     }
 
     /**
-     * @param status                 Status
-     * @param gatewayResponseBuilder GatewayResponse.GatewayResponseBuilder
+     * @param status
+     *         Status
+     * @param gatewayResponseBuilder
+     *         GatewayResponse.GatewayResponseBuilder
      */
     public AuthenticationResponse(Status status, GatewayResponse.GatewayResponseBuilder gatewayResponseBuilder) {
         this.status = status;

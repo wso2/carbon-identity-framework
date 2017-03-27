@@ -26,20 +26,15 @@ import org.wso2.carbon.identity.gateway.api.handler.AbstractGatewayHandler;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuilderConfig;
 import org.wso2.carbon.identity.gateway.common.model.sp.ResponseBuildingConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
-import org.wso2.carbon.identity.gateway.exception.ServiceProviderIdNotSetException;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -86,14 +81,21 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
     public abstract boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception);
 
     /**
+     * Validation type is based on protocol.
+     *
+     * @return
+     */
+    public abstract String getValidatorType();
+
+    /**
      * Get the response build configs.
      *
      * @param authenticationContext
      * @return
-     * @throws AuthenticationHandlerException
+     * @throws
      */
-    protected ResponseBuilderConfig getResponseBuilderConfigs(AuthenticationContext authenticationContext) throws
-                                                                                                           GatewayRuntimeException {
+    protected ResponseBuilderConfig getResponseBuilderConfigs(
+            AuthenticationContext authenticationContext) throws GatewayRuntimeException {
 
         ResponseBuilderConfig responseBuilderConfig = null;
         ResponseBuildingConfig responseBuildingConfig = authenticationContext.getServiceProvider()
@@ -111,13 +113,6 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
     }
 
     /**
-     * Validation type is based on protocol.
-     *
-     * @return
-     */
-    public abstract String getValidatorType();
-
-    /**
      * Add the session key.
      *
      * @param responseBuilder
@@ -127,8 +122,8 @@ public abstract class AbstractResponseHandler extends AbstractGatewayHandler {
     protected void addSessionKey(GatewayResponse.GatewayResponseBuilder responseBuilder,
                                  AuthenticationContext context) {
 
-        responseBuilder.setSessionKey((String) context.getParameter(AuthenticationRequest.AuthenticationRequestConstants
-                .SESSION_KEY));
+        responseBuilder.setSessionKey((String) context.getParameter(
+                AuthenticationRequest.AuthenticationRequestConstants.SESSION_KEY));
     }
 
     protected User getSubjectUser(AuthenticationContext context) throws GatewayServerException {

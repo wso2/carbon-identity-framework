@@ -45,16 +45,16 @@ public class AuthenticationRequest extends GatewayRequest {
         }
     }
 
-    public String getRequestKey() {
-        return requestKey;
-    }
-
     public String getAuthenticatorName() {
         return authenticatorName;
     }
 
     public String getIdentityProviderName() {
         return identityProviderName;
+    }
+
+    public String getRequestKey() {
+        return requestKey;
     }
 
     public String getSessionKey() {
@@ -81,11 +81,6 @@ public class AuthenticationRequest extends GatewayRequest {
             return new AuthenticationRequest(this);
         }
 
-        public AuthenticationRequestBuilder setRequestDataKey(String requestDataKey) {
-            this.requestDataKey = requestDataKey;
-            return this;
-        }
-
         public AuthenticationRequestBuilder setAuthenticatorName(String authenticatorName) {
             this.authenticatorName = authenticatorName;
             return this;
@@ -93,6 +88,11 @@ public class AuthenticationRequest extends GatewayRequest {
 
         public AuthenticationRequestBuilder setIdentityProviderName(String identityProviderName) {
             this.identityProviderName = identityProviderName;
+            return this;
+        }
+
+        public AuthenticationRequestBuilder setRequestDataKey(String requestDataKey) {
+            this.requestDataKey = requestDataKey;
             return this;
         }
     }

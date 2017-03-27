@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.exception;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
+/**
+ * ResponseHandlerException for handler response exceptions.
+ */
 public class ResponseHandlerException extends GatewayServerException {
     public ResponseHandlerException(String message) {
         super(message);

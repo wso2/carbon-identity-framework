@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.gateway.exception;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 
+/**
+ * RequestValidatorException is for validation level exception.
+ */
 public class RequestValidatorException extends GatewayClientException {
 
     public RequestValidatorException(String message) {

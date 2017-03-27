@@ -481,7 +481,7 @@
     </build>
 
     <properties>
-        <checkstyle.skip>true</checkstyle.skip>
+        <checkstyle.skip>false</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>
 
         <identity.gateway.version>${project.version}</identity.gateway.version>

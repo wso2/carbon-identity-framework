@@ -27,11 +27,11 @@ public class SQLQueries {
     private static final String OPERATION_STORE = "STORE";
     private static final String SQL_INSERT_STORE_OPERATION =
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE, OPERATION, SESSION_OBJECT, TIME_CREATED, "
-                    + "TENANT_ID) VALUES (?,?,?,?,?,?)";
+            + "TENANT_ID) VALUES (?,?,?,?,?,?)";
     private static final String SQL_INSERT_DELETE_OPERATION =
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED) VALUES (?,?,?,?)";
 
     private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
-                    " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
+            " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
 }

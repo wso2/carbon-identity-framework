@@ -136,7 +136,8 @@ public class BasicAuthenticator {
     public boolean isRetryEnable(AuthenticationContext context) {
         Sequence sequence = context.getSequence();
         SequenceContext.StepContext currentStepContext = context.getSequenceContext().getCurrentStepContext();
-        AuthenticatorConfig authenticatorConfig = sequence.getAuthenticatorConfig(currentStepContext.getStep(), currentStepContext
+        AuthenticatorConfig authenticatorConfig = sequence.getAuthenticatorConfig(currentStepContext.getStep(),
+        currentStepContext
                         .getAuthenticatorName(),
                 currentStepContext.getIdentityProviderName());
         String retryEnableString = (String) authenticatorConfig.getProperties().get(IS_RETRY_ENABLE);

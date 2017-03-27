@@ -33,6 +33,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 
+
 /**
  * GatewayManager manage the MSF4J request to call the gateway.
  * <p>
@@ -116,7 +117,7 @@ public class GatewayManager {
                 }
             } catch (Exception e) {
                 log.error("Error occurred while checking if " + requestProcessor.getName() + " can handle " +
-                        gatewayRequest.toString());
+                          gatewayRequest.toString());
             }
         }
         throw new GatewayRuntimeException("No GatewayProcessor found to process the request.");

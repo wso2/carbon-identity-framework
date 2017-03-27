@@ -31,6 +31,13 @@ import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
 
 import java.util.List;
 
+
+/**
+ *
+ * GatewayHandlerManager to manage handler.
+ *
+ *
+ */
 public class GatewayHandlerManager {
 
 
@@ -62,7 +69,7 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get Authentication Handler. " +
-                            throwable.getMessage();
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
@@ -90,7 +97,7 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get request validator. " +
-                            throwable.getMessage();
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
@@ -118,7 +125,7 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                            throwable.getMessage();
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
@@ -148,7 +155,7 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                            throwable.getMessage();
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
@@ -176,7 +183,7 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get response handler. " +
-                            throwable.getMessage();
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
@@ -204,7 +211,7 @@ public class GatewayHandlerManager {
                     }
                 } catch (Throwable throwable) {
                     String errorMessage = "Error occurred while calling can handle to get session validator. " +
-                            throwable.getMessage();
+                                          throwable.getMessage();
                     log.error(errorMessage);
                 }
             }
@@ -213,5 +220,4 @@ public class GatewayHandlerManager {
         log.error(errorMessage);
         throw new GatewayRuntimeException(errorMessage);
     }
-
 }

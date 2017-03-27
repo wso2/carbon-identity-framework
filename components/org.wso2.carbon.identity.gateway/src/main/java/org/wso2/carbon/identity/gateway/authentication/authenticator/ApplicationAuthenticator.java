@@ -26,18 +26,6 @@ import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException
  */
 public interface ApplicationAuthenticator {
 
-    public String getFriendlyName();
-
-    public String getName();
-
-
-    public default String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext) {
-        return "";
-    }
-
-    ;
-
-
     /**
      * This method is to give the responsibility to tell the possibility of handle the request by the authenticator
      * itself to the framework.
@@ -49,15 +37,15 @@ public interface ApplicationAuthenticator {
         return true;
     }
 
-    /**
-     * process is the one we called in authenticator to do the authentication process.
-     *
-     * @param authenticationContext
-     * @return
-     * @throws AuthenticationHandlerException
-     */
-    public AuthenticationResponse process(AuthenticationContext authenticationContext)
-            throws AuthenticationHandlerException;
+    public default String getAuthenticatorInitEndpoint(AuthenticationContext authenticationContext) {
+        return "";
+    }
+
+    public String getFriendlyName();
+
+    ;
+
+    public String getName();
 
     /**
      * Authenticator wise, it should be able to enable/disable retry.
@@ -68,4 +56,14 @@ public interface ApplicationAuthenticator {
     public default boolean isRetryEnable(AuthenticationContext authenticationContext) {
         return false;
     }
+
+    /**
+     * process is the one we called in authenticator to do the authentication process.
+     *
+     * @param authenticationContext
+     * @return
+     * @throws AuthenticationHandlerException
+     */
+    public AuthenticationResponse process(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException;
 }

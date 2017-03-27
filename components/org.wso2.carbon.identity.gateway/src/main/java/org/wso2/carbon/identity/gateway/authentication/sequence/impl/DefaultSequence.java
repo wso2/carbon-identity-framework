@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * DefaultSequence is provide the default flow of the sequence based on the service provider configuration. Here we
  * have generic API that is used by the gateway to control the authentication flow.
- * <p/>
+ * <p>
  * This implementation completely rely on AuthenticationContext to get the current context details and configs.
  */
 public class DefaultSequence implements Sequence {
@@ -50,6 +50,21 @@ public class DefaultSequence implements Sequence {
      */
     public DefaultSequence(AuthenticationContext authenticationContext) {
         this.authenticationContext = authenticationContext;
+    }
+
+    @Override
+    public AuthenticationStepConfig getAuthenticationStepConfig(int step) {
+        AtomicReference<AuthenticationStepConfig> authenticationStepConfig = new
+                AtomicReference<AuthenticationStepConfig>(null);
+        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
+        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
+        List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
+        authenticationStepConfigs.stream().filter(authenticationStepConfigTmp -> authenticationStepConfigTmp.getStep
+                () == step)
+                .forEach(authenticationStepConfigTmp -> {
+                    authenticationStepConfig.set(authenticationStepConfigTmp);
+                });
+        return authenticationStepConfig.get();
     }
 
     @Override
@@ -74,7 +89,6 @@ public class DefaultSequence implements Sequence {
         return identityProviders;
     }
 
-
     @Override
     public boolean hasNext(int currentStep) throws AuthenticationHandlerException {
         ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
@@ -84,22 +98,6 @@ public class DefaultSequence implements Sequence {
             return true;
         }
         return false;
-    }
-
-
-    @Override
-    public AuthenticationStepConfig getAuthenticationStepConfig(int step) {
-        AtomicReference<AuthenticationStepConfig> authenticationStepConfig = new
-                AtomicReference<AuthenticationStepConfig>(null);
-        ServiceProviderConfig serviceProvider = authenticationContext.getServiceProvider();
-        AuthenticationConfig authenticationConfig = serviceProvider.getAuthenticationConfig();
-        List<AuthenticationStepConfig> authenticationStepConfigs = authenticationConfig.getAuthenticationStepConfigs();
-        authenticationStepConfigs.stream().filter(authenticationStepConfigTmp -> authenticationStepConfigTmp.getStep
-                () == step)
-                .forEach(authenticationStepConfigTmp -> {
-                    authenticationStepConfig.set(authenticationStepConfigTmp);
-                });
-        return authenticationStepConfig.get();
     }
 
     /*@Override

@@ -47,7 +47,7 @@ public class AuthenticationProcessor extends GatewayProcessor<AuthenticationRequ
     public boolean canHandle(GatewayRequest gatewayRequest) {
 
         if (gatewayRequest instanceof ClientAuthenticationRequest
-                || gatewayRequest instanceof CallbackAuthenticationRequest) {
+            || gatewayRequest instanceof CallbackAuthenticationRequest) {
             return true;
         }
         return false;

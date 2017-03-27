@@ -17,6 +17,7 @@
  */
 
 package org.wso2.carbon.identity.gateway.common.model.idp;
+
 /**
  * IDPCertificate is a IDP model class.
  */

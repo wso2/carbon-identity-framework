@@ -105,7 +105,6 @@
                                                         <!-- excluding local authentication related classes since they are not planned for M4-->
                                                         <exclude name="**/*LocalAuthenticationRequestBuilderFactory.class" />
                                                         <exclude name="**/*LocalUser.class" />
-                                                        <exclude name="**/*RequestPathAuthenticatorContext.class" />
                                                         <exclude name="**/org/wso2/carbon/identity/gateway/exception/*"/>
                                                         <exclude name="**/org/wso2/carbon/identity/gateway/local/demo/*"/>
                                                     </fileset>

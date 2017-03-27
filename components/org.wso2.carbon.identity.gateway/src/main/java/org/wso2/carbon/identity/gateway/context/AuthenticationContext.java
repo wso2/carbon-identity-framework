@@ -44,7 +44,7 @@ import java.util.Set;
 
 /**
  * AuthenticationContext is the context that is shared through whole process of request.
- * <p/>
+ * <p>
  * For the initial request, this context will create and cache. Initial request also stored in this context as
  * ClientAuthenticationRequest.
  */
@@ -58,8 +58,8 @@ public class AuthenticationContext extends GatewayMessageContext {
     private Sequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
 
-    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest, Map<Serializable, Serializable>
-            parameters) {
+    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest,
+                                 Map<Serializable, Serializable> parameters) {
         super(authenticationRequest, parameters);
         this.initialAuthenticationRequest = authenticationRequest;
     }
@@ -67,6 +67,18 @@ public class AuthenticationContext extends GatewayMessageContext {
     public AuthenticationContext(ClientAuthenticationRequest authenticationRequest) {
         super(authenticationRequest);
         this.initialAuthenticationRequest = authenticationRequest;
+    }
+
+    public Set<Claim> getAttributes(AuthenticationContext context) {
+
+        Set<Claim> aggregatedClaims = context.getSequenceContext().getClaims();
+        String dialect = context.getServiceProvider().getClaimConfig().getDialectUri();
+        String profileName = context.getServiceProvider().getClaimConfig().getProfile();
+
+        aggregatedClaims = GatewayClaimResolverService.getInstance().transformToOtherDialect(
+                aggregatedClaims, dialect, Optional.ofNullable(profileName));
+
+        return aggregatedClaims;
     }
 
     /**
@@ -112,9 +124,22 @@ public class AuthenticationContext extends GatewayMessageContext {
         if (StringUtils.isBlank(serviceProviderId)) {
             throw new ServiceProviderIdNotSetException("ServiceProviderId has not been set.");
         }
-        ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider
-                (serviceProviderId);
+        ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance()
+                .getServiceProvider(serviceProviderId);
         return serviceProvider;
+    }
+
+    public String getServiceProviderId() {
+        return serviceProviderId;
+    }
+
+    public void setServiceProviderId(String serviceProviderId) throws GatewayClientException {
+        this.serviceProviderId = serviceProviderId;
+        ServiceProviderConfig spConfig = getServiceProvider();
+        if (spConfig == null) {
+            this.serviceProviderId = null;
+            throw new InvalidServiceProviderIdException("Invalid serviceProviderId: " + serviceProviderId);
+        }
     }
 
     public SessionContext getSessionContext() {
@@ -129,17 +154,16 @@ public class AuthenticationContext extends GatewayMessageContext {
         return null;
     }
 
-    public String getServiceProviderId() {
-        return serviceProviderId;
-    }
+    public Claim getSubjectClaim() {
 
-    public void setServiceProviderId(String serviceProviderId) throws GatewayClientException {
-        this.serviceProviderId = serviceProviderId;
-        ServiceProviderConfig spConfig = getServiceProvider();
-        if (spConfig == null) {
-            this.serviceProviderId = null;
-            throw new InvalidServiceProviderIdException("Invalid serviceProviderId: " + serviceProviderId);
+        Set<Claim> claims = sequenceContext.getClaims();
+        String subjectClaimUri = getServiceProvider().getClaimConfig().getSubjectClaimUri();
+        for (Claim claim : claims) {
+            if (claim.getClaimUri().equals(subjectClaimUri)) {
+                return claim;
+            }
         }
+        return null;
     }
 
     public User getSubjectUser() throws GatewayServerException {
@@ -161,29 +185,4 @@ public class AuthenticationContext extends GatewayMessageContext {
         }
         return subject;
     }
-
-    public Claim getSubjectClaim() {
-
-        Set<Claim> claims = sequenceContext.getClaims();
-        String subjectClaimUri = getServiceProvider().getClaimConfig().getSubjectClaimUri();
-        for (Claim claim : claims) {
-            if (claim.getClaimUri().equals(subjectClaimUri)) {
-                return claim;
-            }
-        }
-        return null;
-    }
-
-    public Set<Claim> getAttributes(AuthenticationContext context) {
-
-        Set<Claim> aggregatedClaims = context.getSequenceContext().getClaims();
-        String dialect = context.getServiceProvider().getClaimConfig().getDialectUri();
-        String profileName = context.getServiceProvider().getClaimConfig().getProfile();
-
-        aggregatedClaims = GatewayClaimResolverService.getInstance().transformToOtherDialect(
-                aggregatedClaims, dialect, Optional.ofNullable(profileName));
-
-        return aggregatedClaims;
-    }
-
 }

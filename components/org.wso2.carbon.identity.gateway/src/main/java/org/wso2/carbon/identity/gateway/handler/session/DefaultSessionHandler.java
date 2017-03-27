@@ -78,13 +78,13 @@ public class DefaultSessionHandler extends AbstractSessionHandler {
     private SessionContext createSession(AuthenticationContext authenticationContext) {
         SessionContext sessionContext = new SessionContext();
         sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(),
-                authenticationContext.getSequenceContext());
+                                          authenticationContext.getSequenceContext());
         return sessionContext;
     }
 
     private SessionContext updateSession(AuthenticationContext authenticationContext, SessionContext sessionContext) {
         sessionContext.addSequenceContext(authenticationContext.getServiceProvider().getName(),
-                authenticationContext.getSequenceContext());
+                                          authenticationContext.getSequenceContext());
         return sessionContext;
     }
 }

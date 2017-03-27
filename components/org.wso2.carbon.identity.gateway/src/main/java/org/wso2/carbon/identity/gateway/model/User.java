@@ -25,7 +25,8 @@ import java.io.Serializable;
 import java.util.Set;
 
 /**
- * Base class for different types of users. eg - LocalUser, FederatedUser
+ * Gateway User wrapper.
+ *
  */
 public abstract class User implements Serializable {
 

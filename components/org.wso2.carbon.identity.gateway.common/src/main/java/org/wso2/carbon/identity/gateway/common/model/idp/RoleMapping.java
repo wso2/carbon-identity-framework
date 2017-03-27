@@ -18,6 +18,7 @@
 
 
 package org.wso2.carbon.identity.gateway.common.model.idp;
+
 /**
  * RoleMapping is a IDP model class.
  */

@@ -87,6 +87,10 @@ public class GatewayServiceHolder {
         return authenticationHandlers;
     }
 
+    public List<AuthenticationStepHandler> getAuthenticationStepHandlers() {
+        return authenticationStepHandlers;
+    }
+
     public BundleContext getBundleContext() {
         return bundleContext;
     }
@@ -101,6 +105,10 @@ public class GatewayServiceHolder {
 
     public void setClaimResolvingService(ClaimResolvingService claimResolvingService) {
         this.claimResolvingService = claimResolvingService;
+    }
+
+    public List<AbstractExecutionHandler> getExecutionHandlers() {
+        return executionHandlers;
     }
 
     public FederatedApplicationAuthenticator getFederatedApplicationAuthenticator(String name) {
@@ -162,6 +170,14 @@ public class GatewayServiceHolder {
         this.profileMgtService = profileMgtService;
     }
 
+    public RealmService getRealmService() {
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
+    }
+
     public List<AbstractRequestValidator> getRequestHandlers() {
         return requestHandlers;
     }
@@ -185,6 +201,10 @@ public class GatewayServiceHolder {
         return responseHandlers;
     }
 
+    public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
+        return sequenceBuildFactories;
+    }
+
     public List<AbstractSessionHandler> getSessionHandlers() {
         return sessionHandlers;
     }
@@ -193,31 +213,11 @@ public class GatewayServiceHolder {
         this.sessionHandlers = sessionHandlers;
     }
 
-    public List<AuthenticationStepHandler> getAuthenticationStepHandlers() {
-        return authenticationStepHandlers;
-    }
-
     public long getUnixTimeReference() {
         return unixTimeReference;
     }
 
     private void setUnixTimeReference(long unixTimeReference) {
         this.unixTimeReference = unixTimeReference;
-    }
-
-    public List<AbstractSequenceBuildFactory> getSequenceBuildFactories() {
-        return sequenceBuildFactories;
-    }
-
-    public List<AbstractExecutionHandler> getExecutionHandlers() {
-        return executionHandlers;
-    }
-
-    public RealmService getRealmService() {
-        return realmService;
-    }
-
-    public void setRealmService(RealmService realmService) {
-        this.realmService = realmService;
     }
 }

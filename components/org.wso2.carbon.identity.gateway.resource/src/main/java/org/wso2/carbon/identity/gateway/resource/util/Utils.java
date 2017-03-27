@@ -22,18 +22,17 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.msf4j.Request;
 import org.wso2.msf4j.util.BufferUtil;
 
-import javax.ws.rs.core.MediaType;
-
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.io.UnsupportedEncodingException;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.ws.rs.core.MediaType;
 
 /**
  * Resource level Utility.
@@ -56,7 +55,7 @@ public class Utils {
             }
         } else {
             request.setProperty(org.wso2.carbon.identity.gateway.common.util.Constants.BODY_PARAMETERS,
-                    new HashMap<>());
+                                new HashMap<>());
         }
     }
 
@@ -128,5 +127,4 @@ public class Utils {
     private static boolean isFormParamRequest(String contentType) {
         return MediaType.APPLICATION_FORM_URLENCODED.equalsIgnoreCase(contentType);
     }
-
 }

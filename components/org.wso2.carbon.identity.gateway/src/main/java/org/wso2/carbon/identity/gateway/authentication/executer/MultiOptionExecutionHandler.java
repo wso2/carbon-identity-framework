@@ -42,8 +42,19 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
     private static final Logger log = LoggerFactory.getLogger(MultiOptionExecutionHandler.class);
 
     @Override
-    public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException {
+    public boolean canHandle(AuthenticationContext authenticationContext) {
+        try {
+            return canHandle(authenticationContext, ExecutionStrategy.MULTI.toString());
+        } catch (AuthenticationHandlerException e) {
+            log.error("Error occurred while trying to check the can handle for execution strategy, " + e.getMessage()
+                    , e);
+        }
+        return false;
+    }
+
+    @Override
+    public AuthenticationResponse execute(AuthenticationContext authenticationContext)
+            throws AuthenticationHandlerException {
 
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
         Sequence sequence = authenticationContext.getSequence();
@@ -57,17 +68,17 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
                     localAuthenticationResponseBuilder = new LocalAuthenticationResponse
                     .LocalAuthenticationResponseBuilder();
             localAuthenticationResponseBuilder.setRelayState(authenticationContext
-                    .getInitialAuthenticationRequest()
-                    .getRequestKey());
+                                                                     .getInitialAuthenticationRequest()
+                                                                     .getRequestKey());
             localAuthenticationResponseBuilder.setEndpointURL("https://localhost:9292/gateway/endpoint");
             List<IdentityProvider> identityProviders = authenticationContext.getSequence()
                     .getIdentityProviders(authenticationContext.getSequenceContext().getCurrentStep());
             StringBuilder idpList = new StringBuilder();
             identityProviders.forEach(identityProvider -> idpList.append(identityProvider
-                    .getAuthenticatorName() +
-                    ":" + identityProvider
-                    .getIdentityProviderName()
-                    + ","));
+                                                                                 .getAuthenticatorName() +
+                                                                         ":" + identityProvider
+                                                                                 .getIdentityProviderName()
+                                                                         + ","));
             localAuthenticationResponseBuilder.setIdentityProviderList(idpList.toString());
             AuthenticationResponse authenticationResponse = new AuthenticationResponse
                     (localAuthenticationResponseBuilder);
@@ -86,8 +97,8 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
         } catch (AuthenticationHandlerException e) {
             currentStepContext.setStatus(SequenceContext.Status.FAILED);
             if (applicationAuthenticator.isRetryEnable(authenticationContext)) {
-                AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig
-                        (currentStepContext.getStep());
+                AuthenticationStepConfig authenticationStepConfig = sequence
+                        .getAuthenticationStepConfig(currentStepContext.getStep());
                 int retryCount = authenticationStepConfig.getRetryCount();
                 if (currentStepContext.getRetryCount() <= retryCount) {
                     currentStepContext.setRetryCount(currentStepContext.getRetryCount() + 1);
@@ -96,41 +107,29 @@ public class MultiOptionExecutionHandler extends AbstractExecutionHandler {
                             localAuthenticationResponseBuilder = new LocalAuthenticationResponse
                             .LocalAuthenticationResponseBuilder();
                     localAuthenticationResponseBuilder.setRelayState(authenticationContext
-                            .getInitialAuthenticationRequest()
-                            .getRequestKey());
+                                                                             .getInitialAuthenticationRequest()
+                                                                             .getRequestKey());
                     localAuthenticationResponseBuilder.setEndpointURL("https://localhost:9292/gateway/endpoint");
                     List<IdentityProvider> identityProviders = authenticationContext.getSequence()
                             .getIdentityProviders(authenticationContext.getSequenceContext().getCurrentStep());
                     StringBuilder idpList = new StringBuilder();
                     identityProviders.forEach(identityProvider -> idpList.append(identityProvider
-                            .getAuthenticatorName() +
-                            ":" + identityProvider
-                            .getIdentityProviderName()
-                            + ","));
+                                                                                         .getAuthenticatorName() +
+                                                                                 ":" + identityProvider
+                                                                                         .getIdentityProviderName()
+                                                                                 + ","));
                     localAuthenticationResponseBuilder.setIdentityProviderList(idpList.toString());
                     AuthenticationResponse authenticationResponse = new AuthenticationResponse
                             (localAuthenticationResponseBuilder);
 
                     return authenticationResponse;
                 }
-
             } else {
                 throw e;
             }
         }
 
         return response;
-    }
-
-    @Override
-    public boolean canHandle(AuthenticationContext authenticationContext) {
-        try {
-            return canHandle(authenticationContext, ExecutionStrategy.MULTI.toString());
-        } catch (AuthenticationHandlerException e) {
-            log.error("Error occurred while trying to check the can handle for execution strategy, " + e.getMessage()
-                    , e);
-        }
-        return false;
     }
 
     /*public String getMultiOptionEndpoint() {

@@ -47,14 +47,6 @@ public class GatewayHandlerResponse {
     public GatewayHandlerResponse() {
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
     public GatewayResponse.GatewayResponseBuilder getGatewayResponseBuilder() {
         return gatewayResponseBuilder;
     }
@@ -63,6 +55,18 @@ public class GatewayHandlerResponse {
         this.gatewayResponseBuilder = gatewayResponseBuilder;
     }
 
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    /**
+     * Handler response status.
+     *
+     */
     public static enum Status {
         REDIRECT, CONTINUE;
     }

@@ -20,6 +20,10 @@ package org.wso2.carbon.identity.gateway.exception;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
+/**
+ * AuthenticationHandlerException for athentication handler exception.
+ *
+ */
 public class AuthenticationHandlerException extends GatewayServerException {
 
     private static final long serialVersionUID = -8680134348172156343L;

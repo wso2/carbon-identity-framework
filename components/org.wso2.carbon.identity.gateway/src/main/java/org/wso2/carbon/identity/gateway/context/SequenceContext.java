@@ -34,7 +34,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Context which maintains the information of the sequence.
+ * SequenceContext hold the current context.
+ *
  */
 public class SequenceContext implements Serializable {
 
@@ -42,7 +43,6 @@ public class SequenceContext implements Serializable {
     private static transient Logger logger = LoggerFactory.getLogger(GatewayUtil.class);
     private int currentStep = 1;
 
-    private RequestPathAuthenticatorContext requestPathAuthenticatorContext = null;
     private List<StepContext> stepContextList = new ArrayList<>();
 
     public SequenceContext() {
@@ -61,8 +61,8 @@ public class SequenceContext implements Serializable {
         stepContextList.stream().forEach(stepContext -> {
             try {
                 stepContext.getUser().getClaims().forEach(claim ->
-                        aggregatedClaims
-                                .add(claim));
+                                                                  aggregatedClaims
+                                                                          .add(claim));
             } catch (IdentityStoreException | UserNotFoundException e) {
                 String errorMessage = "Error occurred while calling to getCliams, " + e.getMessage();
                 logger.error(errorMessage, e);
@@ -88,14 +88,6 @@ public class SequenceContext implements Serializable {
         return stepAuthenticatorsContext;
     }
 
-    public RequestPathAuthenticatorContext getRequestPathAuthenticator() {
-        return requestPathAuthenticatorContext;
-    }
-
-    public void setRequestPathAuthenticator(
-            RequestPathAuthenticatorContext requestPathAuthenticatorContext) {
-        this.requestPathAuthenticatorContext = requestPathAuthenticatorContext;
-    }
 
     public StepContext getStepContext(int step) {
         StepContext stepAuthenticatorsContext = null;
@@ -106,7 +98,8 @@ public class SequenceContext implements Serializable {
     }
 
     /**
-     * An Enum which maintains statuses which an authentication context can have.
+     * Current context status.
+     *
      */
     public static enum Status {
         INITIAL,
@@ -115,45 +108,10 @@ public class SequenceContext implements Serializable {
         FAILED;
     }
 
-    /**
-     * Context which maintains information about request path authentication
-     */
-    public static class RequestPathAuthenticatorContext implements Serializable {
-
-
-        private static final long serialVersionUID = 6683606766294458119L;
-
-        private String authenticatorName;
-        private User user;
-        private boolean isAuthenticated = false;
-
-        public String getAuthenticatorName() {
-            return authenticatorName;
-        }
-
-        public void setAuthenticatorName(String authenticatorName) {
-            this.authenticatorName = authenticatorName;
-        }
-
-        public User getUser() {
-            return user;
-        }
-
-        public void setUser(User user) {
-            this.user = user;
-        }
-
-        public boolean isAuthenticated() {
-            return isAuthenticated;
-        }
-
-        public void setIsAuthenticated(boolean isAuthenticated) {
-            this.isAuthenticated = isAuthenticated;
-        }
-    }
 
     /**
-     * Context which stores authentication step related information
+     * Step level context.
+     *
      */
     public static class StepContext implements Serializable {
 
@@ -182,6 +140,22 @@ public class SequenceContext implements Serializable {
             this.identityProviderName = identityProviderName;
         }
 
+        public int getRetryCount() {
+            return retryCount;
+        }
+
+        public void setRetryCount(int retryCount) {
+            this.retryCount = retryCount;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
         public int getStep() {
             return step;
         }
@@ -203,22 +177,6 @@ public class SequenceContext implements Serializable {
                 return true;
             }
             return false;
-        }
-
-        public Status getStatus() {
-            return status;
-        }
-
-        public void setStatus(Status status) {
-            this.status = status;
-        }
-
-        public int getRetryCount() {
-            return retryCount;
-        }
-
-        public void setRetryCount(int retryCount) {
-            this.retryCount = retryCount;
         }
     }
 }

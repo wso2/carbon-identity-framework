@@ -75,7 +75,7 @@ public class GatewayClaimResolverService {
             otherDialectClaims.stream().filter(claim -> claimMapping.containsKey(claim.getClaimUri()))
                     .forEach(claim -> {
                         Claim tmpClaim = new Claim("http://wso2.org/claims", claimMapping.get(claim.getClaimUri()),
-                                claim.getValue());
+                                                   claim.getValue());
                         transformedClaimsTmp.add(tmpClaim);
                     });
 
@@ -86,7 +86,7 @@ public class GatewayClaimResolverService {
                     List<ClaimConfigEntry> profileClaims = profileEntry.getClaims();
                     Map<String, ClaimConfigEntry> profileClaimMap = new HashMap<>();
                     profileClaims.forEach(profileClaim -> profileClaimMap.put(profileClaim.getClaimURI(),
-                            profileClaim));
+                                                                              profileClaim));
 
                     transformedClaimsTmp.stream().filter(claim -> profileClaimMap.containsKey(claim.getClaimUri()))
                             .forEach(transformedClaims.get()::add);

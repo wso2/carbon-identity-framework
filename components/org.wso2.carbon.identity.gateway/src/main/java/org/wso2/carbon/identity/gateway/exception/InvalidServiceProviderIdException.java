@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.gateway.exception;
 
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 
+/**
+ * InvalidServiceProviderIdException for SP identify.
+ */
 public class InvalidServiceProviderIdException extends GatewayClientException {
 
     public InvalidServiceProviderIdException(String message) {

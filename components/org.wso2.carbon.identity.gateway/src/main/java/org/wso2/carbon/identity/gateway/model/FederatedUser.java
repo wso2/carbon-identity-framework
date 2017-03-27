@@ -23,7 +23,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents a federated user who resides in a delegated Identity Provider.
+ * FederatedUser for gateway.
+ *
  */
 public class FederatedUser extends User {
 

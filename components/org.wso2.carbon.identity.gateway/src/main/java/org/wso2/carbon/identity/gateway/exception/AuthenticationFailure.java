@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.gateway.exception;
 
+/**
+ * AuthenticationFailure will send for athentication failed.
+ */
 public class AuthenticationFailure extends AuthenticationHandlerException {
 
     public AuthenticationFailure(String errorCode, String message) {
@@ -28,6 +31,9 @@ public class AuthenticationFailure extends AuthenticationHandlerException {
         super(errorCode, message, cause);
     }
 
+    /**
+     * Athentication status.
+     */
     public static class AuthnStatus {
 
         public static final String INVALID_CREDENTIAL = "INVALID_CREDENTIAL";

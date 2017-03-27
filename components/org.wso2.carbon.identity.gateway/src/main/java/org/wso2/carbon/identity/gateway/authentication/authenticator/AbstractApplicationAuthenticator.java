@@ -83,6 +83,4 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
      */
     protected abstract AuthenticationResponse processResponse(AuthenticationContext context)
             throws AuthenticationHandlerException;
-
-
 }

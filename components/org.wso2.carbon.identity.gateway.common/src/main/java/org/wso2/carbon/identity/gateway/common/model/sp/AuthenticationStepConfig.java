@@ -41,12 +41,36 @@ public class AuthenticationStepConfig {
         this.authStrategy = authStrategy;
     }
 
+    public String getExecutionStrategy() {
+        return executionStrategy;
+    }
+
+    public void setExecutionStrategy(String executionStrategy) {
+        this.executionStrategy = executionStrategy;
+    }
+
     public List<IdentityProvider> getIdentityProviders() {
         return identityProviders;
     }
 
     public void setIdentityProviders(List<IdentityProvider> identityProviders) {
         this.identityProviders = identityProviders;
+    }
+
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    }
+
+    public int getStep() {
+        return step;
+    }
+
+    public void setStep(int step) {
+        this.step = step;
     }
 
     public String getUseDomainInLocalSubjectIdentifier() {
@@ -63,29 +87,5 @@ public class AuthenticationStepConfig {
 
     public void setUseLocalSubjectIdentifier(String useLocalSubjectIdentifier) {
         this.useLocalSubjectIdentifier = useLocalSubjectIdentifier;
-    }
-
-    public int getStep() {
-        return step;
-    }
-
-    public void setStep(int step) {
-        this.step = step;
-    }
-
-    public String getExecutionStrategy() {
-        return executionStrategy;
-    }
-
-    public void setExecutionStrategy(String executionStrategy) {
-        this.executionStrategy = executionStrategy;
-    }
-
-    public int getRetryCount() {
-        return retryCount;
-    }
-
-    public void setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
     }
 }

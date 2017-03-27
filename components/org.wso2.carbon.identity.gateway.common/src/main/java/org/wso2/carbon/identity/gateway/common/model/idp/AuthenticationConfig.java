@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.gateway.common.model.idp;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * AuthenticationConfig is a IDP model class.
  */

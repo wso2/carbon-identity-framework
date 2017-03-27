@@ -38,7 +38,7 @@ import java.util.Iterator;
 /**
  * AuthenticationStepHandler is handling the steps in given authentication flow and triggered by
  * AuthenticationHandler implementation.
- * <p/>
+ * <p>
  * This will find the execution strategy of a given step and execute the relevant handler.
  * If we need to have a custom step execution, we can extend this and register by changing the priority in OSGi.
  */
@@ -86,7 +86,7 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
     /**
      * Validating the session context for current step context in all the service providers. This behaviour can be
      * changed for different algorithm as well.
-     * <p/>
+     * <p>
      * As default implementation, we check the current step idps vs same step idps in all the authenticated service
      * providers in session context.
      *
@@ -94,8 +94,8 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
      * @return
      * @throws AuthenticationHandlerException
      */
-    protected boolean lookUpSessionValidity(AuthenticationContext authenticationContext) throws
-            AuthenticationHandlerException {
+    protected boolean lookUpSessionValidity(AuthenticationContext
+                                                    authenticationContext) throws AuthenticationHandlerException {
 
         boolean isSessionValid = false;
         SessionContext sessionContext = authenticationContext.getSessionContext();
@@ -109,10 +109,10 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
                 String idPName = sequenceContext
                         .getStepContext(authenticationContext.getSequenceContext().getCurrentStep())
                         .getIdentityProviderName();
-                IdentityProvider identityProvider = authenticationContext.getSequence().getIdentityProvider(currentStep,
-                        idPName);
+                IdentityProvider identityProvider = authenticationContext.getSequence().getIdentityProvider
+                        (currentStep, idPName);
                 String authenticatorName = sequenceContext.getStepContext(authenticationContext.getSequenceContext()
-                        .getCurrentStep())
+                                                                                  .getCurrentStep())
                         .getAuthenticatorName();
                 User user = sequenceContext.getStepContext(authenticationContext.getSequenceContext().getCurrentStep())
                         .getUser();
@@ -142,7 +142,6 @@ public class AuthenticationStepHandler extends AbstractGatewayHandler {
      */
     private AbstractExecutionHandler getExecutionHandler(AuthenticationContext authenticationContext) {
         return (AbstractExecutionHandler) getHandler(GatewayServiceHolder.getInstance().getExecutionHandlers(),
-                authenticationContext);
+                                                     authenticationContext);
     }
-
 }

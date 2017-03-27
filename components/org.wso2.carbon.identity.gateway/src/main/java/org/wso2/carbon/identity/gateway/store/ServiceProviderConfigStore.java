@@ -30,6 +30,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ServiceProviderConfigStore store ServiceProvider configs.
+ */
 public class ServiceProviderConfigStore {
     private static ServiceProviderConfigStore serviceProviderConfigStore = new ServiceProviderConfigStore();
 
@@ -90,8 +93,8 @@ public class ServiceProviderConfigStore {
         authenticationStepConfigs.forEach(authenticationStepConfig -> {
             List<IdentityProvider> identityProviders = authenticationStepConfig.getIdentityProviders();
             identityProviders.stream().filter(identityProvider -> identityProvider
-                    .getIdentityProviderConfig()
-                    == null)
+                                                                          .getIdentityProviderConfig()
+                                                                  == null)
                     .forEach(this::updateIdentityProvider);
         });
     }

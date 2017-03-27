@@ -22,7 +22,9 @@ package org.wso2.carbon.identity.gateway.local;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
-
+/**
+ * LocalAuthenticationResponse use to send the response for local athentication.
+ */
 public class LocalAuthenticationResponse extends GatewayResponse {
 
     private static final long serialVersionUID = -5705077843359711620L;
@@ -43,14 +45,17 @@ public class LocalAuthenticationResponse extends GatewayResponse {
         return endpointURL;
     }
 
-    public String getRelayState() {
-        return relayState;
-    }
-
     public String getIdentityProviderList() {
         return identityProviderList;
     }
 
+    public String getRelayState() {
+        return relayState;
+    }
+
+    /**
+     * Response builder for LocalAuthenticationResponse.
+     */
     public static class LocalAuthenticationResponseBuilder extends GatewayResponseBuilder {
         protected String endpointURL;
         protected String relayState;
@@ -62,6 +67,10 @@ public class LocalAuthenticationResponse extends GatewayResponse {
 
         public LocalAuthenticationResponseBuilder() {
 
+        }
+
+        public LocalAuthenticationResponse build() {
+            return new LocalAuthenticationResponse(this);
         }
 
         public GatewayResponseBuilder setEndpointURL(String endpointURL) {
@@ -78,10 +87,5 @@ public class LocalAuthenticationResponse extends GatewayResponse {
             this.relayState = relayState;
             return this;
         }
-
-        public LocalAuthenticationResponse build() {
-            return new LocalAuthenticationResponse(this);
-        }
-
     }
 }

@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Context which stores session related information.
+ * SessionContext share across the request and store in the cache.
  */
 public class SessionContext implements Serializable {
 
@@ -46,4 +46,3 @@ public class SessionContext implements Serializable {
         return sequenceContexts.values();
     }
 }
-

@@ -25,9 +25,13 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 
-import javax.ws.rs.core.Response;
 import java.net.URLEncoder;
+import javax.ws.rs.core.Response;
 
+
+/**
+ * LocalAuthenticationResponseBuilderFactory to build the response builder for local authentication or multi-option.
+ */
 public class LocalAuthenticationResponseBuilderFactory extends GatewayResponseBuilderFactory {
 
     private static Logger log = LoggerFactory.getLogger(LocalAuthenticationResponseBuilderFactory.class);
@@ -50,9 +54,9 @@ public class LocalAuthenticationResponseBuilderFactory extends GatewayResponseBu
             builder.status(302);
             String url = localAuthenticationResponse.getEndpointURL() + "?callback=" + URLEncoder.encode
                     ("https://localhost:9292/gateway") +
-                    "&state=" +
-                    localAuthenticationResponse.getRelayState() + "&idplist=" + localAuthenticationResponse
-                    .getIdentityProviderList();
+                         "&state=" +
+                         localAuthenticationResponse.getRelayState() + "&idplist=" + localAuthenticationResponse
+                                 .getIdentityProviderList();
             builder.header(HttpHeaders.LOCATION, url);
         }
     }

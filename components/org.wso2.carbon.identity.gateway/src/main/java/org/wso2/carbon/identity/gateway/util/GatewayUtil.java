@@ -38,6 +38,9 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Utility class for hole utilities.
+ */
 public class GatewayUtil {
 
     private static Logger logger = LoggerFactory.getLogger(GatewayUtil.class);
@@ -79,8 +82,9 @@ public class GatewayUtil {
                     throw new GatewayServerException("Provider is not loaded correctly.");
                 }
             } catch (IOException e) {
-                String errorMessage = "Error occurred while loading the " + providerClass.getSimpleName() + " yaml file, " +
-                        e.getMessage();
+                String errorMessage = "Error occurred while loading the " + providerClass.getSimpleName()
+                                      + " yaml file, " +
+                                      e.getMessage();
                 logger.error(errorMessage, e);
                 throw new GatewayServerException(errorMessage, e);
             }

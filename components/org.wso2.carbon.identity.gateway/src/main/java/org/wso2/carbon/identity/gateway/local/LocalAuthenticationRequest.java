@@ -23,8 +23,7 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.request.CallbackAuthenticationRequest;
 
 /**
- *
- *
+ * LocalAuthenticationRequest for build a request for local athentication.
  */
 public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
 
@@ -39,15 +38,17 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
         password = builder.password;
     }
 
+    public String getPassword() {
+        return password;
+    }
 
     public String getUserName() {
         return userName;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
+    /**
+     * Request builder for LocalAuthenticationRequest.
+     */
     public static class LocalAuthenticationRequestBuilder extends CallbackAuthenticationRequestBuilder {
 
         private String userName;
@@ -62,17 +63,20 @@ public class LocalAuthenticationRequest extends CallbackAuthenticationRequest {
             return new LocalAuthenticationRequest(this);
         }
 
-        public LocalAuthenticationRequestBuilder setUserName(String userName) {
-            this.userName = userName;
-            return this;
-        }
-
         public LocalAuthenticationRequestBuilder setPassword(String password) {
             this.password = password;
             return this;
         }
+
+        public LocalAuthenticationRequestBuilder setUserName(String userName) {
+            this.userName = userName;
+            return this;
+        }
     }
 
+    /**
+     * Constant for LocalAuthenticationRequest.
+     */
     public static class FrameworkLoginRequestConstants
             extends CallbackAuthenticationRequest.CallbackAuthenticationRequestConstants {
 

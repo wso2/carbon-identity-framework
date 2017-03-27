@@ -25,7 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents Local users who resides in local user stores.
+ * Gateway local user object.
+ *
  */
 public class LocalUser extends User {
 
@@ -47,3 +48,4 @@ public class LocalUser extends User {
         return user.getUniqueUserId();
     }
 }
+

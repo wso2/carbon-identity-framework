@@ -28,11 +28,15 @@ import org.wso2.msf4j.Request;
 import javax.ws.rs.core.Response;
 
 
+/**
+ * Build request for local athentication or multi-options.
+ */
 public class LocalAuthenticationRequestBuilderFactory extends GatewayRequestBuilderFactory<LocalAuthenticationRequest
         .LocalAuthenticationRequestBuilder> {
     @Override
     public boolean canHandle(Request request) throws GatewayClientException {
-        String authenticatorName = GatewayUtil.getParameter(request, LocalAuthenticationRequest.FrameworkLoginRequestConstants
+        String authenticatorName = GatewayUtil.getParameter(request, LocalAuthenticationRequest.
+                FrameworkLoginRequestConstants
                 .AUTHENTICATOR_NAME);
         String idpName = GatewayUtil.getParameter(request, LocalAuthenticationRequest.FrameworkLoginRequestConstants
                 .IDP_NAME);
@@ -48,14 +52,18 @@ public class LocalAuthenticationRequestBuilderFactory extends GatewayRequestBuil
 
         super.create(builder, request);
 
-        builder.setAuthenticatorName(GatewayUtil.getParameter(request, LocalAuthenticationRequest.FrameworkLoginRequestConstants
+        builder.setAuthenticatorName(GatewayUtil.getParameter(request, LocalAuthenticationRequest.
+                FrameworkLoginRequestConstants
                 .AUTHENTICATOR_NAME));
-        builder.setIdentityProviderName(GatewayUtil.getParameter(request, LocalAuthenticationRequest.FrameworkLoginRequestConstants
+        builder.setIdentityProviderName(GatewayUtil.getParameter(request, LocalAuthenticationRequest.
+                FrameworkLoginRequestConstants
                 .IDP_NAME));
-        builder.setRequestDataKey(GatewayUtil.getParameter(request, LocalAuthenticationRequest.FrameworkLoginRequestConstants
+        builder.setRequestDataKey(GatewayUtil.getParameter(request, LocalAuthenticationRequest.
+                FrameworkLoginRequestConstants
                 .REQUEST_DATA_KEY));
 
-        builder.setRequestDataKey(GatewayUtil.getParameter(request, LocalAuthenticationRequest.FrameworkLoginRequestConstants
+        builder.setRequestDataKey(GatewayUtil.getParameter(request, LocalAuthenticationRequest.
+                FrameworkLoginRequestConstants
                 .REQUEST_DATA_KEY));
         builder.setUserName(GatewayUtil.getParameter(request, LocalAuthenticationRequest.FrameworkLoginRequestConstants
                 .USER_NAME));

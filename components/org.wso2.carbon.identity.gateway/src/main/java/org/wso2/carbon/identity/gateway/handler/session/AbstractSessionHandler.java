@@ -35,5 +35,5 @@ public abstract class AbstractSessionHandler extends AbstractGatewayHandler {
     }
 
     public abstract GatewayHandlerResponse updateSession(AuthenticationContext context) throws
-            SessionHandlerException;
+                                                                                        SessionHandlerException;
 }

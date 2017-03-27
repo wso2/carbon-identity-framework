@@ -69,7 +69,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getGatewayProcessors().add(requestProcessor);
         Collections.sort(GatewayResourceDataHolder.getInstance().getGatewayProcessors(),
-                new HandlerComparator());
+                         new HandlerComparator());
     }
 
     protected void unSetIdentityProcessor(GatewayProcessor requestProcessor) {
@@ -88,7 +88,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityRequestFactories(),
-                new HandlerComparator());
+                         new HandlerComparator());
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayRequestBuilderFactory : " + factory.getName());
         }
@@ -112,7 +112,7 @@ public class GatewayResourceComponent {
 
         GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories().add(factory);
         Collections.sort(GatewayResourceDataHolder.getInstance().getHttpIdentityResponseFactories(),
-                new HandlerComparator());
+                         new HandlerComparator());
         if (log.isDebugEnabled()) {
             log.debug("Added GatewayResponseBuilderFactory : " + factory.getName());
         }

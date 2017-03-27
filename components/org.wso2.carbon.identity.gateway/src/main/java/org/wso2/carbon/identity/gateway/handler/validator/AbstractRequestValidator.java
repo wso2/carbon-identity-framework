@@ -55,8 +55,8 @@ public abstract class AbstractRequestValidator extends AbstractGatewayHandler {
         return validationConfig;
     }
 
+    public abstract String getValidatorType();
+
     public abstract GatewayHandlerResponse validate(AuthenticationContext authenticationContext)
             throws RequestValidatorException, GatewayServerException;
-
-    public abstract String getValidatorType();
 }

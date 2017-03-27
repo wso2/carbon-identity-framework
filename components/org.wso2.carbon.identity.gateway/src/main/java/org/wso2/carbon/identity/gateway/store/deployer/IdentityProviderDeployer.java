@@ -52,8 +52,8 @@ public class IdentityProviderDeployer implements Deployer {
             logger.debug("Deploying IdentityProvider configs.");
         }
         try {
-            IdentityProviderConfig IdentityProviderConfig = getIdentityProviderConfig(artifact);
-            IdentityProviderConfigStore.getInstance().addIdentityProvider(IdentityProviderConfig);
+            IdentityProviderConfig identityProviderConfig = getIdentityProviderConfig(artifact);
+            IdentityProviderConfigStore.getInstance().addIdentityProvider(identityProviderConfig);
         } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while deploying Identity Provider. " + e.getMessage();
             logger.error(errorMessage);
@@ -135,8 +135,8 @@ public class IdentityProviderDeployer implements Deployer {
             logger.debug("Updating IdentityProvider configs.");
         }
         try {
-            IdentityProviderConfig IdentityProviderConfig = getIdentityProviderConfig(artifact);
-            IdentityProviderConfigStore.getInstance().addIdentityProvider(IdentityProviderConfig);
+            IdentityProviderConfig identityProviderConfig = getIdentityProviderConfig(artifact);
+            IdentityProviderConfigStore.getInstance().addIdentityProvider(identityProviderConfig);
         } catch (GatewayServerException e) {
             String errorMessage = "Error occurred while updating the Identity Provider. " + e.getMessage();
             throw new CarbonDeploymentException(errorMessage, e);

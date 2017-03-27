@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderF
 import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.model.LocalUser;
 import org.wso2.carbon.identity.gateway.model.User;
+import org.wso2.carbon.identity.gateway.model.UserClaim;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleSessionHandler;
 import org.wso2.carbon.identity.mgt.IdentityStore;
@@ -183,7 +184,7 @@ public class GatewayUnitTests {
         LocalAuthenticationRequestBuilderFactory factory = new LocalAuthenticationRequestBuilderFactory();
         Assert.assertNotNull(factory.getName());
         Response.ResponseBuilder builder = factory.handleException(new GatewayClientException("Error while validating" +
-                " request"));
+                                                                                              " request"));
         Assert.assertNotNull(builder.build());
         Assert.assertNotNull(factory.getPriority());
     }
@@ -194,6 +195,13 @@ public class GatewayUnitTests {
     }
 
     @Test
+    public void testUserClaim() {
+        UserClaim userClaim = new UserClaim("http://org.wso2/claim/username", "testuser");
+        userClaim.setUri("http://org.wso2/claim/username");
+        Assert.assertEquals("http://org.wso2/claim/username", userClaim.getUri());
+    }
+
+    @Test
     public void testUtility() throws GatewayClientException {
         Assert.assertNull(
                 GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator("federatedAuthenticator"));
@@ -201,7 +209,5 @@ public class GatewayUnitTests {
         Assert.assertNull(
                 GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticator("requestPathAuthenticators"));
     }
-
-
 }
 
