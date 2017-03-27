@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.mgt.claim.Claim;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Represents a federated user who resides in a delegated Identity Provider.
+ */
 public class FederatedUser extends User {
 
     private static final long serialVersionUID = -5393292585880142557L;

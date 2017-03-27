@@ -19,34 +19,6 @@
 
 package org.wso2.carbon.identity.gateway.local.demo;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.api.request.GatewayRequest;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.AbstractApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
-import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
-import org.wso2.carbon.identity.gateway.common.model.idp.AuthenticatorConfig;
-import org.wso2.carbon.identity.gateway.common.model.sp.IdentityProvider;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.context.SequenceContext;
-import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
-import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.local.LocalAuthenticationResponse;
-import org.wso2.carbon.identity.gateway.model.LocalUser;
-import org.wso2.carbon.identity.mgt.IdentityStore;
-import org.wso2.carbon.identity.mgt.RealmService;
-import org.wso2.carbon.identity.mgt.User;
-import org.wso2.carbon.identity.mgt.claim.Claim;
-import org.wso2.carbon.identity.mgt.exception.AuthenticationFailure;
-import org.wso2.carbon.identity.mgt.exception.IdentityStoreException;
-
-import javax.security.auth.callback.PasswordCallback;
-import java.util.List;
-
 /**
  * This is dummy BasicAuthenticator to cover the local authentication. This should be move to the some other repo.
  */

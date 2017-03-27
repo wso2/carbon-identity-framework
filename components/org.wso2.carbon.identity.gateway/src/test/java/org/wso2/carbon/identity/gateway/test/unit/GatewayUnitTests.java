@@ -29,19 +29,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayClientException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.authentication.executer.MultiOptionExecutionHandler;
-import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequest;
-import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderFactory;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.handler.GatewayHandlerManager;
 import org.wso2.carbon.identity.gateway.handler.session.DefaultSessionHandler;
 import org.wso2.carbon.identity.gateway.internal.GatewayServiceHolder;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequest;
+import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderFactory;
 import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.model.LocalUser;
 import org.wso2.carbon.identity.gateway.model.User;
-import org.wso2.carbon.identity.gateway.model.UserClaim;
-import org.wso2.carbon.identity.gateway.request.AuthenticationRequest;
-import org.wso2.carbon.identity.gateway.request.ClientAuthenticationRequest;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleSessionHandler;
 import org.wso2.carbon.identity.mgt.IdentityStore;
@@ -199,13 +194,6 @@ public class GatewayUnitTests {
     }
 
     @Test
-    public void testUserClaim() {
-        UserClaim userClaim = new UserClaim("http://org.wso2/claim/username", "testuser");
-        userClaim.setUri("http://org.wso2/claim/username");
-        Assert.assertEquals("http://org.wso2/claim/username", userClaim.getUri());
-    }
-
-    @Test
     public void testUtility() throws GatewayClientException {
         Assert.assertNull(
                 GatewayServiceHolder.getInstance().getFederatedApplicationAuthenticator("federatedAuthenticator"));
@@ -213,7 +201,6 @@ public class GatewayUnitTests {
         Assert.assertNull(
                 GatewayServiceHolder.getInstance().getRequestPathApplicationAuthenticator("requestPathAuthenticators"));
     }
-
 
 
 }

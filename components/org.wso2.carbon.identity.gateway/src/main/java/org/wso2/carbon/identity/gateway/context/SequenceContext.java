@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.gateway.context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
-import org.wso2.carbon.identity.gateway.common.model.sp.AuthenticationStepConfig;
 import org.wso2.carbon.identity.gateway.model.User;
 import org.wso2.carbon.identity.gateway.util.GatewayUtil;
 import org.wso2.carbon.identity.mgt.claim.Claim;
@@ -34,6 +33,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Context which maintains the information of the sequence.
+ */
 public class SequenceContext implements Serializable {
 
     private static final long serialVersionUID = -3397856701064644528L;
@@ -103,6 +105,9 @@ public class SequenceContext implements Serializable {
         return stepAuthenticatorsContext;
     }
 
+    /**
+     * An Enum which maintains statuses which an authentication context can have.
+     */
     public static enum Status {
         INITIAL,
         INCOMPLETE,
@@ -110,6 +115,9 @@ public class SequenceContext implements Serializable {
         FAILED;
     }
 
+    /**
+     * Context which maintains information about request path authentication
+     */
     public static class RequestPathAuthenticatorContext implements Serializable {
 
 
@@ -144,6 +152,9 @@ public class SequenceContext implements Serializable {
         }
     }
 
+    /**
+     * Context which stores authentication step related information
+     */
     public static class StepContext implements Serializable {
 
         private static final long serialVersionUID = -6517237540622607778L;

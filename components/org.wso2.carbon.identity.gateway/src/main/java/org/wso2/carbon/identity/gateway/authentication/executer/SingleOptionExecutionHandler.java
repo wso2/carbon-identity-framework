@@ -39,7 +39,8 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
     private static final Logger log = LoggerFactory.getLogger(SingleOptionExecutionHandler.class);
 
     @Override
-    public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
+    public AuthenticationResponse execute(AuthenticationContext authenticationContext) throws
+            AuthenticationHandlerException {
 
         ApplicationAuthenticator applicationAuthenticator = null;
         SequenceContext sequenceContext = authenticationContext.getSequenceContext();
@@ -50,7 +51,8 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
         SequenceContext.StepContext currentStepContext = sequenceContext.getCurrentStepContext();
 
         if (applicationAuthenticator == null) {
-            AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
+            AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig
+                    (currentStepContext.getStep());
             IdentityProvider identityProvider = authenticationStepConfig.getIdentityProviders().get(0);
             currentStepContext.setAuthenticatorName(identityProvider.getAuthenticatorName());
             currentStepContext.setIdentityProviderName(identityProvider.getIdentityProviderName());
@@ -72,7 +74,8 @@ public class SingleOptionExecutionHandler extends AbstractExecutionHandler {
         } catch (AuthenticationHandlerException e) {
             currentStepContext.setStatus(SequenceContext.Status.FAILED);
             if (applicationAuthenticator.isRetryEnable(authenticationContext)) {
-                AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig(currentStepContext.getStep());
+                AuthenticationStepConfig authenticationStepConfig = sequence.getAuthenticationStepConfig
+                        (currentStepContext.getStep());
                 int retryCount = authenticationStepConfig.getRetryCount();
                 if (currentStepContext.getRetryCount() <= retryCount) {
                     currentStepContext.setRetryCount(currentStepContext.getRetryCount() + 1);

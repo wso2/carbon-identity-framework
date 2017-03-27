@@ -26,6 +26,9 @@ import org.wso2.carbon.identity.gateway.authentication.sequence.Sequence;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 
+/**
+ * The factory which is used to build Default Sequence
+ */
 public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory {
     @Override
     public Sequence buildSequence(AuthenticationContext authenticationContext)
@@ -43,3 +46,4 @@ public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory 
     }
 
 }
+

@@ -44,7 +44,7 @@ import java.util.Set;
 
 /**
  * AuthenticationContext is the context that is shared through whole process of request.
- * <p>
+ * <p/>
  * For the initial request, this context will create and cache. Initial request also stored in this context as
  * ClientAuthenticationRequest.
  */
@@ -58,7 +58,8 @@ public class AuthenticationContext extends GatewayMessageContext {
     private Sequence sequence = null;
     private SequenceContext sequenceContext = new SequenceContext();
 
-    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest, Map<Serializable, Serializable> parameters) {
+    public AuthenticationContext(ClientAuthenticationRequest authenticationRequest, Map<Serializable, Serializable>
+            parameters) {
         super(authenticationRequest, parameters);
         this.initialAuthenticationRequest = authenticationRequest;
     }
@@ -111,7 +112,8 @@ public class AuthenticationContext extends GatewayMessageContext {
         if (StringUtils.isBlank(serviceProviderId)) {
             throw new ServiceProviderIdNotSetException("ServiceProviderId has not been set.");
         }
-        ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider(serviceProviderId);
+        ServiceProviderConfig serviceProvider = ServiceProviderConfigStore.getInstance().getServiceProvider
+                (serviceProviderId);
         return serviceProvider;
     }
 
@@ -134,7 +136,7 @@ public class AuthenticationContext extends GatewayMessageContext {
     public void setServiceProviderId(String serviceProviderId) throws GatewayClientException {
         this.serviceProviderId = serviceProviderId;
         ServiceProviderConfig spConfig = getServiceProvider();
-        if(spConfig == null) {
+        if (spConfig == null) {
             this.serviceProviderId = null;
             throw new InvalidServiceProviderIdException("Invalid serviceProviderId: " + serviceProviderId);
         }
@@ -165,7 +167,7 @@ public class AuthenticationContext extends GatewayMessageContext {
         Set<Claim> claims = sequenceContext.getClaims();
         String subjectClaimUri = getServiceProvider().getClaimConfig().getSubjectClaimUri();
         for (Claim claim : claims) {
-            if(claim.getClaimUri().equals(subjectClaimUri)) {
+            if (claim.getClaimUri().equals(subjectClaimUri)) {
                 return claim;
             }
         }

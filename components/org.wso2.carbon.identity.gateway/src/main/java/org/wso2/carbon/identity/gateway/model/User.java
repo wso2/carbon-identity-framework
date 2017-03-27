@@ -24,6 +24,9 @@ import org.wso2.carbon.identity.mgt.exception.UserNotFoundException;
 import java.io.Serializable;
 import java.util.Set;
 
+/**
+ * Base class for different types of users. eg - LocalUser, FederatedUser
+ */
 public abstract class User implements Serializable {
 
     private static final long serialVersionUID = 9023615951116124234L;
