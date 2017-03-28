@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -36,9 +35,9 @@ import org.wso2.carbon.identity.gateway.common.model.sp.ServiceProviderConfig;
 import org.wso2.carbon.identity.gateway.store.ServiceProviderConfigStore;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
-import javax.inject.Inject;
 import java.nio.file.Paths;
 import java.util.List;
+import javax.inject.Inject;
 
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
@@ -63,8 +62,9 @@ public class ModelObjectTests {
         List<Option> optionList = GatewayOSGiTestUtils.getDefaultSecurityPAXOptions();
 
         optionList.add(CoreOptions.systemProperty("java.security.auth.login.config")
-                .value(Paths.get(GatewayOSGiTestUtils.getCarbonHome(), "conf", "security", "carbon-jaas.config")
-                        .toString()));
+                               .value(Paths.get(GatewayOSGiTestUtils.getCarbonHome(), "conf", "security",
+                                                "carbon-jaas.config")
+                                              .toString()));
 
         return optionList.toArray(new Option[optionList.size()]);
     }
@@ -74,8 +74,9 @@ public class ModelObjectTests {
      */
     @Test
     public void testSPYAMLValidation() {
-        ServiceProviderConfigStore serviceProviderConfigStore = this.bundleContext.getService(bundleContext
-                .getServiceReference(ServiceProviderConfigStore.class));
+        ServiceProviderConfigStore
+                serviceProviderConfigStore = this.bundleContext.
+                getService(bundleContext.getServiceReference(ServiceProviderConfigStore.class));
         Assert.assertNotNull(serviceProviderConfigStore);
         ServiceProviderConfig serviceProviderConfig = serviceProviderConfigStore.getServiceProvider
                 (GatewayTestConstants.SAMPLE_ISSUER_NAME);
@@ -86,36 +87,35 @@ public class ModelObjectTests {
         Assert.assertNotNull(serviceProviderConfig.getClaimConfig().getSubjectClaimUri());
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig());
         Assert.assertNotNull(serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0)
-                .getProperties());
+                                     .getProperties());
         Assert.assertNotNull(serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0)
-                .getType());
+                                     .getType());
         Assert.assertNotNull(serviceProviderConfig.getRequestValidationConfig().getRequestValidatorConfigs().get(0)
-                .getUniquePropertyName());
+                                     .getUniquePropertyName());
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig());
-        Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0).getAuthStrategy());
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
-                .getIdentityProviders().get(0));
+                                     .getAuthStrategy());
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
-                .getIdentityProviders().get(0).getAuthenticatorName());
+                                     .getIdentityProviders().get(0));
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
-                .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
-                .getJitProvisioningConfig().getProvisioningIdPs());
+                                     .getIdentityProviders().get(0).getAuthenticatorName());
+        Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
+                                     .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
+                                     .getJitProvisioningConfig().getProvisioningIdPs());
 
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
-                .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
-                .getProvisionerConfigs().get(0).getProperties());
+                                     .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
+                                     .getProvisionerConfigs().get(0).getProperties());
 
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
-                .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
-                .getProvisioningClaimConfigs().get(0).getClaimId());
+                                     .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
+                                     .getProvisioningClaimConfigs().get(0).getClaimId());
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
-                .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
-                .getProvisioningClaimConfigs().get(0).getDefaultValue());
+                                     .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
+                                     .getProvisioningClaimConfigs().get(0).getDefaultValue());
 
         Assert.assertNotNull(serviceProviderConfig.getAuthenticationConfig().getAuthenticationStepConfigs().get(0)
-                .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
-                .getProvisioningRoles().get(0));
-
+                                     .getIdentityProviders().get(0).getIdentityProviderConfig().getProvisioningConfig()
+                                     .getProvisioningRoles().get(0));
     }
-
 }

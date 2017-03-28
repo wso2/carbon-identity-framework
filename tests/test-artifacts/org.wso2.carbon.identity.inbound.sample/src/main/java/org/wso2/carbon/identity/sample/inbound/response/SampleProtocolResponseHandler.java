@@ -25,11 +25,9 @@ import org.wso2.carbon.identity.common.base.message.MessageContext;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayException;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.exception.RequestValidatorException;
-import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
-import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
-import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.exception.ResponseHandlerException;
+import org.wso2.carbon.identity.gateway.handler.GatewayHandlerResponse;
+import org.wso2.carbon.identity.gateway.handler.response.AbstractResponseHandler;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.sample.inbound.request.SampleProtocolRequest;
@@ -40,6 +38,7 @@ import java.util.Set;
 public class SampleProtocolResponseHandler extends AbstractResponseHandler {
 
     Logger logger = LoggerFactory.getLogger(SampleProtocolResponseHandler.class);
+
     @Override
     public GatewayHandlerResponse buildErrorResponse(AuthenticationContext authenticationContext,
                                                      GatewayException exception) throws ResponseHandlerException {
@@ -55,7 +54,7 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
 
     @Override
     public GatewayHandlerResponse buildResponse(AuthenticationContext authenticationContext) throws
-                                                                                               ResponseHandlerException {
+                                                                                             ResponseHandlerException {
 
         SampleLoginResponse.SampleLoginResponseBuilder builder = new SampleLoginResponse.SampleLoginResponseBuilder
                 (authenticationContext);
@@ -70,38 +69,31 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
     @Override
     public boolean canHandle(MessageContext messageContext, GatewayException exception) {
 
-        AuthenticationContext authenticationContext = (AuthenticationContext)messageContext;
+        AuthenticationContext authenticationContext = (AuthenticationContext) messageContext;
         String generateGatewayClientException = authenticationContext.getIdentityRequest().getParameter
                 ("generateClientException");
         String exceptionInCanHandle = authenticationContext.getIdentityRequest().getParameter
                 ("exceptionInCanHandle");
-        if(StringUtils.isNotBlank(generateGatewayClientException) && StringUtils.isNotBlank(exceptionInCanHandle)){
+        if (StringUtils.isNotBlank(generateGatewayClientException) && StringUtils.isNotBlank(exceptionInCanHandle)) {
             throw new GatewayRuntimeException("Checked the exception for generate the generateClientException.");
         }
         return true;
     }
 
     @Override
-    public boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception)
-    {
+    public boolean canHandle(MessageContext messageContext, GatewayRuntimeException exception) {
 
-        AuthenticationContext authenticationContext = (AuthenticationContext)messageContext;
+        AuthenticationContext authenticationContext = (AuthenticationContext) messageContext;
         String generateRuntimeException = authenticationContext.getIdentityRequest().getParameter
                 ("generateRuntimeException");
         String exceptionInCanHandle = authenticationContext.getIdentityRequest().getParameter
                 ("exceptionInCanHandle");
-        if(StringUtils.isNotBlank(generateRuntimeException) && StringUtils.isNotBlank(exceptionInCanHandle)){
+        if (StringUtils.isNotBlank(generateRuntimeException) && StringUtils.isNotBlank(exceptionInCanHandle)) {
             throw new GatewayRuntimeException("Checked the exception for generate the generateRuntimeException.");
         }
 
         return true;
     }
-
-
-    public String getValidatorType() {
-        return "SAMPLE";
-    }
-
 
     public boolean canHandle(MessageContext messageContext) {
         if (messageContext instanceof AuthenticationContext) {
@@ -111,17 +103,20 @@ public class SampleProtocolResponseHandler extends AbstractResponseHandler {
         return false;
     }
 
-    private void setClaims(AuthenticationContext authenticationContext, SampleLoginResponse
-            .SampleLoginResponseBuilder builder) {
-            Set<Claim> claims = authenticationContext.getSequenceContext().getClaims();
-            claims = GatewayClaimResolverService.getInstance().transformToOtherDialect(claims, authenticationContext
-                    .getServiceProvider().getClaimConfig().getDialectUri(), Optional.of(authenticationContext.getServiceProvider
-                    ().getClaimConfig().getProfile()));
-            StringBuilder claimParam = new StringBuilder("");
-            claims.stream().forEach(claim -> claimParam.append(claim.getClaimUri()).append(",").append(claim.getValue
-                    ()).append("-"));
-            builder.setClaims(claimParam.toString());
-
+    public String getValidatorType() {
+        return "SAMPLE";
     }
 
+    private void setClaims(AuthenticationContext authenticationContext, SampleLoginResponse
+            .SampleLoginResponseBuilder builder) {
+        Set<Claim> claims = authenticationContext.getSequenceContext().getClaims();
+        claims = GatewayClaimResolverService.getInstance().transformToOtherDialect(claims, authenticationContext
+                .getServiceProvider().getClaimConfig().getDialectUri(), Optional.of(
+                authenticationContext.getServiceProvider
+                        ().getClaimConfig().getProfile()));
+        StringBuilder claimParam = new StringBuilder("");
+        claims.stream().forEach(claim -> claimParam.append(claim.getClaimUri()).append(",").append(claim.getValue
+                ()).append("-"));
+        builder.setClaims(claimParam.toString());
+    }
 }

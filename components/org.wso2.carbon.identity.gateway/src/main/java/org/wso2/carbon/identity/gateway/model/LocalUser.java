@@ -26,7 +26,6 @@ import java.util.Set;
 
 /**
  * Gateway local user object.
- *
  */
 public class LocalUser extends User {
 

@@ -33,10 +33,7 @@ import java.util.List;
 
 
 /**
- *
  * GatewayHandlerManager to manage handler.
- *
- *
  */
 public class GatewayHandlerManager {
 

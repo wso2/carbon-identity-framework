@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
@@ -280,10 +280,10 @@
                 <scope>test</scope>
             </dependency>
             <!--<dependency>-->
-                <!--<groupId>io.netty</groupId>-->
-                <!--<artifactId>netty-codec-http</artifactId>-->
-                <!--<version>${netty.version}</version>-->
-                <!--<scope>test</scope>-->
+            <!--<groupId>io.netty</groupId>-->
+            <!--<artifactId>netty-codec-http</artifactId>-->
+            <!--<version>${netty.version}</version>-->
+            <!--<scope>test</scope>-->
             <!--</dependency>-->
             <dependency>
                 <groupId>io.netty</groupId>
@@ -324,10 +324,10 @@
                 <version>${com.h2database.h2.version}</version>
             </dependency>
             <!--<dependency>-->
-                <!--<groupId>org.wso2.carbon.transport</groupId>-->
-                <!--<artifactId>org.wso2.carbon.transport.http.netty</artifactId>-->
-                <!--<version>${carbon.transport.http.netty.version}</version>-->
-                <!--<scope>test</scope>-->
+            <!--<groupId>org.wso2.carbon.transport</groupId>-->
+            <!--<artifactId>org.wso2.carbon.transport.http.netty</artifactId>-->
+            <!--<version>${carbon.transport.http.netty.version}</version>-->
+            <!--<scope>test</scope>-->
             <!--</dependency>-->
             <dependency>
                 <groupId>org.wso2.msf4j</groupId>
@@ -481,7 +481,7 @@
     </build>
 
     <properties>
-        <checkstyle.skip>false</checkstyle.skip>
+        <checkstyle.skip>true</checkstyle.skip>
         <findbugs.skip>true</findbugs.skip>
 
         <identity.gateway.version>${project.version}</identity.gateway.version>
@@ -493,11 +493,13 @@
         <identity.gateway.api.import.version.range>[1.0.0,2.0.0)</identity.gateway.api.import.version.range>
 
         <identity.gateway.common.version>${project.version}</identity.gateway.common.version>
-        <identity.gateway.common.export.version>${identity.gateway.common.version}</identity.gateway.common.export.version>
+        <identity.gateway.common.export.version>${identity.gateway.common.version}
+        </identity.gateway.common.export.version>
         <identity.gateway.common.import.version.range>[1.0.0,2.0.0)</identity.gateway.common.import.version.range>
 
         <identity.gateway.resource.version>${project.version}</identity.gateway.resource.version>
-        <identity.gateway.resource.export.version>${identity.gateway.resource.version}</identity.gateway.resource.export.version>
+        <identity.gateway.resource.export.version>${identity.gateway.resource.version}
+        </identity.gateway.resource.export.version>
         <identity.gateway.resource.import.version.range>[1.0.0,2.0.0)</identity.gateway.resource.import.version.range>
 
         <carbon.identity.mgt.version>0.1.22</carbon.identity.mgt.version>

@@ -37,12 +37,6 @@ public class SampleACSRequestBuilderFactory extends GatewayRequestBuilderFactory
         return false;
     }
 
-    @Override
-    public int getPriority() {
-        return 75;
-    }
-
-
     public SampleACSRequest.SampleACSRequestBuilder create(Request request) throws GatewayClientException {
         super.create(request);
         SampleACSRequest.SampleACSRequestBuilder builder = new SampleACSRequest.SampleACSRequestBuilder();
@@ -50,9 +44,14 @@ public class SampleACSRequestBuilderFactory extends GatewayRequestBuilderFactory
         return builder;
     }
 
-    public void create(SampleACSRequest.SampleACSRequestBuilder builder, Request request) throws GatewayClientException {
+    public void create(SampleACSRequest.SampleACSRequestBuilder builder, Request request)
+            throws GatewayClientException {
         super.create(builder, request);
         builder.setRequestDataKey(GatewayUtil.getParameter(request, "RelayState"));
     }
 
+    @Override
+    public int getPriority() {
+        return 75;
+    }
 }

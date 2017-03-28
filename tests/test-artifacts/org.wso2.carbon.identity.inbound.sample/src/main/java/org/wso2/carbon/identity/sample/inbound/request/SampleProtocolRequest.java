@@ -30,7 +30,7 @@ public class SampleProtocolRequest extends ClientAuthenticationRequest {
 
 
     public static class SampleProtocolRequestBuilder extends ClientAuthenticationRequest
-            .ClientAuthenticationRequestBuilder {
+                                                                     .ClientAuthenticationRequestBuilder {
 
         public SampleProtocolRequestBuilder(Request request) {
             super();
@@ -41,7 +41,4 @@ public class SampleProtocolRequest extends ClientAuthenticationRequest {
             return new SampleProtocolRequest(this);
         }
     }
-
-
-
 }

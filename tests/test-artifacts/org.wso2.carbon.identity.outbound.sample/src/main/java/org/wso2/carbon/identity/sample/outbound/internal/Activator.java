@@ -45,12 +45,13 @@ public class Activator implements BundleActivator {
         try {
 
             bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                    new SampleFederatedAuthenticator(), null);
+                                          new SampleFederatedAuthenticator(), null);
             bundleContext.registerService(AbstractApplicationAuthenticator.class,
-                    new SampleFederatedAuthenticator(), null);
-            bundleContext.registerService(GatewayRequestBuilderFactory.class, new SampleACSRequestBuilderFactory(), null);
-            bundleContext.registerService(GatewayResponseBuilderFactory.class, new ACSRequestResponseBuilderFactory(), null);
-
+                                          new SampleFederatedAuthenticator(), null);
+            bundleContext
+                    .registerService(GatewayRequestBuilderFactory.class, new SampleACSRequestBuilderFactory(), null);
+            bundleContext
+                    .registerService(GatewayResponseBuilderFactory.class, new ACSRequestResponseBuilderFactory(), null);
         } catch (Throwable e) {
             System.out.println("Error while activating sample outbound component");
         }

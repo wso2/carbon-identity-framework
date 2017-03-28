@@ -32,5 +32,4 @@ public class SampleProtocolRequestResponse extends GatewayResponse {
             return new SampleProtocolRequestResponse(this);
         }
     }
-
 }

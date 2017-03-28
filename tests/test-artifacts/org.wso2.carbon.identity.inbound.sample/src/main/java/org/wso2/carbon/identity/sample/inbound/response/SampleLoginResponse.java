@@ -21,20 +21,10 @@ package org.wso2.carbon.identity.sample.inbound.response;
 import org.wso2.carbon.identity.gateway.api.context.GatewayMessageContext;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 
-import java.util.Map;
-
 public class SampleLoginResponse extends GatewayResponse {
 
     private String subject;
     private String claims;
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public String getClaims() {
-        return claims;
-    }
 
     protected SampleLoginResponse(GatewayResponseBuilder builder) {
         super(builder);
@@ -42,20 +32,18 @@ public class SampleLoginResponse extends GatewayResponse {
         this.claims = ((SampleLoginResponseBuilder) builder).claims;
     }
 
+    public String getClaims() {
+        return claims;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
     public static class SampleLoginResponseBuilder extends GatewayResponseBuilder {
 
         private String subject;
         private String claims;
-
-        public SampleLoginResponseBuilder setSubject(String subject) {
-            this.subject = subject;
-            return this;
-        }
-
-        public SampleLoginResponseBuilder setClaims(String claims) {
-            this.claims = claims;
-            return this;
-        }
 
         public SampleLoginResponseBuilder(GatewayMessageContext context) {
             super(context);
@@ -66,6 +54,14 @@ public class SampleLoginResponse extends GatewayResponse {
             return new SampleLoginResponse(this);
         }
 
-    }
+        public SampleLoginResponseBuilder setClaims(String claims) {
+            this.claims = claims;
+            return this;
+        }
 
+        public SampleLoginResponseBuilder setSubject(String subject) {
+            this.subject = subject;
+            return this;
+        }
+    }
 }

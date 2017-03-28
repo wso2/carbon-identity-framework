@@ -45,5 +45,4 @@ public class ACSRequestResponseBuilderFactory extends GatewayResponseBuilderFact
         builder.status(302);
         builder.header("location", location);
     }
-
 }

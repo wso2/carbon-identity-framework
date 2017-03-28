@@ -43,7 +43,6 @@ public class GatewayTestUtils {
             httpURLConnection.setRequestProperty("CONNECTION", "CLOSE");
         }
         return httpURLConnection;
-
     }
 
     public static String getContent(HttpURLConnection urlConn) throws IOException {

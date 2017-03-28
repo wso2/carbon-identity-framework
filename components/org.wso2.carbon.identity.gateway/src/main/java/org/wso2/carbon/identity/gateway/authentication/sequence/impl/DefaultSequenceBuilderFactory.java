@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException
 
 /**
  * Default Sequence build based on configs.
- *
  */
 public class DefaultSequenceBuilderFactory extends AbstractSequenceBuildFactory {
     @Override

@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.gateway.local.LocalAuthenticationRequestBuilderF
 import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.model.LocalUser;
 import org.wso2.carbon.identity.gateway.model.User;
-import org.wso2.carbon.identity.gateway.model.UserClaim;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleAuthenticationHandler;
 import org.wso2.carbon.identity.gateway.test.unit.sample.SampleSessionHandler;
 import org.wso2.carbon.identity.mgt.IdentityStore;
@@ -194,12 +193,7 @@ public class GatewayUnitTests {
         LocalUser localUser = new LocalUser(null);
     }
 
-    @Test
-    public void testUserClaim() {
-        UserClaim userClaim = new UserClaim("http://org.wso2/claim/username", "testuser");
-        userClaim.setUri("http://org.wso2/claim/username");
-        Assert.assertEquals("http://org.wso2/claim/username", userClaim.getUri());
-    }
+
 
     @Test
     public void testUtility() throws GatewayClientException {

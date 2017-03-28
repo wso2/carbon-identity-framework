@@ -44,12 +44,12 @@ import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCGatewayContextDAO;
 import org.wso2.carbon.identity.gateway.dao.jdbc.JDBCSessionDAO;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
+import java.nio.file.Paths;
+import java.util.List;
 import javax.inject.Inject;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import java.nio.file.Paths;
-import java.util.List;
 
 
 @Listeners(PaxExam.class)
@@ -76,31 +76,11 @@ public class GatewayDAOTests {
         List<Option> optionList = GatewayOSGiTestUtils.getDefaultSecurityPAXOptions();
 
         optionList.add(CoreOptions.systemProperty("java.security.auth.login.config")
-                .value(Paths.get(GatewayOSGiTestUtils.getCarbonHome(), "conf", "security", "carbon-jaas.config")
-                        .toString()));
+                               .value(Paths.get(GatewayOSGiTestUtils.getCarbonHome(), "conf", "security",
+                                                "carbon-jaas.config")
+                                              .toString()));
 
         return optionList.toArray(new Option[optionList.size()]);
-    }
-
-    /**
-     * Initialize DAO by adding templates
-     */
-    private void initDAO() {
-        JNDIContextManager jndiContextManager = this.bundleContext.getService(bundleContext
-                .getServiceReference(JNDIContextManager.class));
-        try {
-            Context ctx = jndiContextManager.newInitialContext();
-            DataSource dsObject = (DataSource) ctx.lookup(DATA_SOURCE_NAME);
-            if (dsObject != null) {
-                JdbcTemplate jdbcTemplate = new JdbcTemplate(dsObject);
-                initializeDao(jdbcTemplate);
-            } else {
-                log.error("Could not find WSO2CarbonDB");
-            }
-        } catch (NamingException e) {
-            log.error("Error occurred while looking up the Datasource", e);
-        }
-
     }
 
     /**
@@ -131,7 +111,6 @@ public class GatewayDAOTests {
         asyncGatewayContextDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
         Assert.assertNull(asyncGatewayContextDAO.get(RANDOM_KEY_3));
-
     }
 
     /**
@@ -149,7 +128,6 @@ public class GatewayDAOTests {
         asyncSessionDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
         Assert.assertNull(asyncSessionDAO.get(RANDOM_KEY_3));
-
     }
 
     /**
@@ -167,7 +145,6 @@ public class GatewayDAOTests {
         gatewayContextDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
         Assert.assertNull(gatewayContextDAO.get(RANDOM_KEY_3));
-
     }
 
     /**
@@ -185,7 +162,28 @@ public class GatewayDAOTests {
         asyncSessionDAO.remove(RANDOM_KEY_3);
         Thread.sleep(100);
         Assert.assertNull(asyncSessionDAO.get(RANDOM_KEY_3));
+    }
 
+    /**
+     * Initialize DAO by adding templates
+     */
+    private void initDAO() {
+        JNDIContextManager jndiContextManager = this.bundleContext.getService(bundleContext
+                                                                                      .getServiceReference(
+                                                                                              JNDIContextManager
+                                                                                                      .class));
+        try {
+            Context ctx = jndiContextManager.newInitialContext();
+            DataSource dsObject = (DataSource) ctx.lookup(DATA_SOURCE_NAME);
+            if (dsObject != null) {
+                JdbcTemplate jdbcTemplate = new JdbcTemplate(dsObject);
+                initializeDao(jdbcTemplate);
+            } else {
+                log.error("Could not find WSO2CarbonDB");
+            }
+        } catch (NamingException e) {
+            log.error("Error occurred while looking up the Datasource", e);
+        }
     }
 
     /**

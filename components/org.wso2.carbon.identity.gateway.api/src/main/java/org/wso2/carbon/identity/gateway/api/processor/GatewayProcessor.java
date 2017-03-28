@@ -35,7 +35,8 @@ public abstract class GatewayProcessor<T extends GatewayRequest> extends Abstrac
      * Tells if this processor can handle this GatewayRequest. There can be any extended type of GatewayRequest in
      * runtime and we can check the instance of and accept it.
      *
-     * @param gatewayRequest GatewayRequest
+     * @param gatewayRequest
+     *         GatewayRequest
      * @return can/not handle
      */
     public abstract boolean canHandle(GatewayRequest gatewayRequest);
@@ -43,7 +44,8 @@ public abstract class GatewayProcessor<T extends GatewayRequest> extends Abstrac
     /**
      * Process method can process any subclass of the GatewayRequest if the canHandle method accept it.
      *
-     * @param identityRequest GatewayRequest
+     * @param identityRequest
+     *         GatewayRequest
      * @return GatewayResponseBuilder
      */
     public abstract GatewayResponse.GatewayResponseBuilder process(T identityRequest);

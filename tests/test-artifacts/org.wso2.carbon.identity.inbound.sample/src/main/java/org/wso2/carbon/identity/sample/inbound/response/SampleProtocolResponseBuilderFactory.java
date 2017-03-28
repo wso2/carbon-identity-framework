@@ -39,7 +39,7 @@ public class SampleProtocolResponseBuilderFactory extends GatewayResponseBuilder
 
     @Override
     public void createBuilder(Response.ResponseBuilder builder, GatewayResponse gatewayResponse) {
-        super.createBuilder(builder,gatewayResponse);
+        super.createBuilder(builder, gatewayResponse);
         StringBuilder httpQueryString = new StringBuilder("authenticatedUser=" + ((SampleLoginResponse)
                 gatewayResponse).getSubject());
         httpQueryString.append("?");
@@ -49,5 +49,4 @@ public class SampleProtocolResponseBuilderFactory extends GatewayResponseBuilder
         builder.status(302);
         builder.header("location", location);
     }
-
 }

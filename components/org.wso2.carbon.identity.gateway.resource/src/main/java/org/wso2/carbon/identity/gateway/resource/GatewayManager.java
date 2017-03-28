@@ -29,9 +29,9 @@ import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponseBuilderFactory;
 import org.wso2.carbon.identity.gateway.resource.internal.GatewayResourceDataHolder;
 import org.wso2.msf4j.Request;
+
 import java.util.List;
 import javax.ws.rs.core.Response;
-
 
 
 /**

@@ -24,7 +24,6 @@ import java.util.Set;
 
 /**
  * FederatedUser for gateway.
- *
  */
 public class FederatedUser extends User {
 

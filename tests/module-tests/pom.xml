@@ -44,9 +44,9 @@
             <artifactId>org.wso2.carbon.identity.mgt</artifactId>
         </dependency>
         <!--<dependency>-->
-            <!--<groupId>org.wso2.carbon.transport</groupId>-->
-            <!--<artifactId>org.wso2.carbon.transport.http.netty</artifactId>-->
-            <!--<scope>test</scope>-->
+        <!--<groupId>org.wso2.carbon.transport</groupId>-->
+        <!--<artifactId>org.wso2.carbon.transport.http.netty</artifactId>-->
+        <!--<scope>test</scope>-->
         <!--</dependency>-->
 
 
@@ -151,8 +151,8 @@
             <artifactId>netty-codec</artifactId>
         </dependency>
         <!--<dependency>-->
-            <!--<groupId>io.netty</groupId>-->
-            <!--<artifactId>netty-codec-http</artifactId>-->
+        <!--<groupId>io.netty</groupId>-->
+        <!--<artifactId>netty-codec-http</artifactId>-->
         <!--</dependency>-->
         <dependency>
             <groupId>io.netty</groupId>
@@ -374,47 +374,47 @@
 
 
                     <!--<plugin>-->
-                        <!--<groupId>org.apache.maven.plugins</groupId>-->
-                        <!--<artifactId>maven-antrun-plugin</artifactId>-->
-                        <!--<executions>-->
-                            <!--<execution>-->
-                                <!--<phase>prepare-package</phase>-->
-                                <!--<configuration>-->
-                                    <!--<target xmlns:jacoco="antlib:org.jacoco.ant">-->
-                                        <!--//this task is to provide class/src files locations for jacoco report generation-->
-                                        <!--<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">-->
-                                            <!--<classpath path="${project.build.directory}" />-->
-                                        <!--</taskdef>-->
-                                        <!--<jacoco:report>-->
-                                            <!--<executiondata>-->
-                                                <!--<file file="${project.build.directory}/jacoco.exec" />-->
-                                            <!--</executiondata>-->
-                                            <!--<structure name="Identity Server Tests">-->
-                                                <!--<classfiles>-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.common/target/classes" />-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.provider/target/classes" />-->
-                                                <!--</classfiles>-->
-                                                <!--<sourcefiles encoding="UTF-8">-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.common/src" />-->
-                                                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.provider/src" />-->
-                                                <!--</sourcefiles>-->
-                                            <!--</structure>-->
-                                            <!--<html destdir="${project.build.directory}/site/jacoco" />-->
-                                        <!--</jacoco:report>-->
-                                    <!--</target>-->
-                                <!--</configuration>-->
-                                <!--<goals>-->
-                                    <!--<goal>run</goal>-->
-                                <!--</goals>-->
-                            <!--</execution>-->
-                        <!--</executions>-->
-                        <!--<dependencies>-->
-                            <!--<dependency>-->
-                                <!--<groupId>org.jacoco</groupId>-->
-                                <!--<artifactId>org.jacoco.ant</artifactId>-->
-                                <!--<version>${org.jacoco.ant.version}</version>-->
-                            <!--</dependency>-->
-                        <!--</dependencies>-->
+                    <!--<groupId>org.apache.maven.plugins</groupId>-->
+                    <!--<artifactId>maven-antrun-plugin</artifactId>-->
+                    <!--<executions>-->
+                    <!--<execution>-->
+                    <!--<phase>prepare-package</phase>-->
+                    <!--<configuration>-->
+                    <!--<target xmlns:jacoco="antlib:org.jacoco.ant">-->
+                    <!--//this task is to provide class/src files locations for jacoco report generation-->
+                    <!--<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">-->
+                    <!--<classpath path="${project.build.directory}" />-->
+                    <!--</taskdef>-->
+                    <!--<jacoco:report>-->
+                    <!--<executiondata>-->
+                    <!--<file file="${project.build.directory}/jacoco.exec" />-->
+                    <!--</executiondata>-->
+                    <!--<structure name="Identity Server Tests">-->
+                    <!--<classfiles>-->
+                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.common/target/classes" />-->
+                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.provider/target/classes" />-->
+                    <!--</classfiles>-->
+                    <!--<sourcefiles encoding="UTF-8">-->
+                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.common/src" />-->
+                    <!--<fileset dir="../../components/org.wso2.carbon.identity.inbound.provisioning.scim2.provider/src" />-->
+                    <!--</sourcefiles>-->
+                    <!--</structure>-->
+                    <!--<html destdir="${project.build.directory}/site/jacoco" />-->
+                    <!--</jacoco:report>-->
+                    <!--</target>-->
+                    <!--</configuration>-->
+                    <!--<goals>-->
+                    <!--<goal>run</goal>-->
+                    <!--</goals>-->
+                    <!--</execution>-->
+                    <!--</executions>-->
+                    <!--<dependencies>-->
+                    <!--<dependency>-->
+                    <!--<groupId>org.jacoco</groupId>-->
+                    <!--<artifactId>org.jacoco.ant</artifactId>-->
+                    <!--<version>${org.jacoco.ant.version}</version>-->
+                    <!--</dependency>-->
+                    <!--</dependencies>-->
                     <!--</plugin>-->
                     <plugin>
                         <groupId>org.ops4j.pax.exam</groupId>

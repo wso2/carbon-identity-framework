@@ -35,7 +35,6 @@ import java.util.Set;
 
 /**
  * SequenceContext hold the current context.
- *
  */
 public class SequenceContext implements Serializable {
 
@@ -99,7 +98,6 @@ public class SequenceContext implements Serializable {
 
     /**
      * Current context status.
-     *
      */
     public static enum Status {
         INITIAL,
@@ -111,7 +109,6 @@ public class SequenceContext implements Serializable {
 
     /**
      * Step level context.
-     *
      */
     public static class StepContext implements Serializable {
 

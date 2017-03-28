@@ -35,11 +35,6 @@ public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestB
     private static Logger log = LoggerFactory.getLogger(SampleProtocolIdentityRequestBuilderFactory.class);
 
     @Override
-    public String getName() {
-        return "SampleIdentityRequestBuilderFactory";
-    }
-
-    @Override
     public boolean canHandle(Request request) throws GatewayClientException, GatewayServerException {
         String sampleProtocol = GatewayUtil.getParameter(request, "sampleProtocol");
         String errorWhileCanHandleClient = GatewayUtil.getParameter(request, "canHandleErrorClient");
@@ -58,11 +53,6 @@ public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestB
     }
 
     @Override
-    public int getPriority() {
-        return 50;
-    }
-
-    @Override
     public GatewayRequest.GatewayRequestBuilder create(Request request) throws GatewayClientException {
 
         GatewayRequest.GatewayRequestBuilder builder = new SampleProtocolRequest.SampleProtocolRequestBuilder(request);
@@ -70,7 +60,17 @@ public class SampleProtocolIdentityRequestBuilderFactory extends GatewayRequestB
         return builder;
     }
 
+    @Override
+    public String getName() {
+        return "SampleIdentityRequestBuilderFactory";
+    }
+
+    @Override
+    public int getPriority() {
+        return 50;
+    }
+
     public Response.ResponseBuilder handleException(GatewayClientException exception) {
-      return  super.handleException(exception);
+        return super.handleException(exception);
     }
 }

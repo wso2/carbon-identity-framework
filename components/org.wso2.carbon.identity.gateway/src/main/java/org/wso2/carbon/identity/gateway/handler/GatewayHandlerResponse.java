@@ -65,7 +65,6 @@ public class GatewayHandlerResponse {
 
     /**
      * Handler response status.
-     *
      */
     public static enum Status {
         REDIRECT, CONTINUE;

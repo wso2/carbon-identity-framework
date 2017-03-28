@@ -26,7 +26,6 @@ import java.util.Set;
 
 /**
  * Gateway User wrapper.
- *
  */
 public abstract class User implements Serializable {
 

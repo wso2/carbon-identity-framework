@@ -32,7 +32,7 @@ import java.util.List;
  * @param <T>
  */
 public abstract class AbstractGatewayHandler<T extends MessageContext> extends
-        AbstractMessageHandler {
+                                                                       AbstractMessageHandler {
 
     /**
      * Default canHandle method for all the generic handlers.

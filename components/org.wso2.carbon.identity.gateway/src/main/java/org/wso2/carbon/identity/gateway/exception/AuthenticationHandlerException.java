@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.gateway.api.exception.GatewayServerException;
 
 /**
  * AuthenticationHandlerException for athentication handler exception.
- *
  */
 public class AuthenticationHandlerException extends GatewayServerException {
 

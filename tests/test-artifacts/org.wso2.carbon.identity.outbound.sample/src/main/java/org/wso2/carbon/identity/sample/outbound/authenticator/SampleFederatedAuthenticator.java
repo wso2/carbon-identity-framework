@@ -22,39 +22,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.gateway.api.exception.GatewayRuntimeException;
 import org.wso2.carbon.identity.gateway.api.response.GatewayResponse;
-import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
-import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
+import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
+import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
+import org.wso2.carbon.identity.gateway.model.FederatedUser;
 import org.wso2.carbon.identity.gateway.service.GatewayClaimResolverService;
 import org.wso2.carbon.identity.mgt.claim.Claim;
 import org.wso2.carbon.identity.sample.outbound.response.SampleProtocolRequestResponse;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 
 /**
  * SAML2 SSO Outbound Authenticator.
  */
-public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticator implements FederatedApplicationAuthenticator {
+public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticator
+        implements FederatedApplicationAuthenticator {
 
     private static Logger log = LoggerFactory.getLogger(SampleFederatedAuthenticator.class);
 
     @Override
-    public String getName() {
+    public String getFriendlyName() {
         return "SampleFederatedAuthenticator";
     }
 
-
     @Override
-    public String getFriendlyName() {
+    public String getName() {
         return "SampleFederatedAuthenticator";
     }
 
@@ -70,9 +68,10 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
     }
 
     @Override
-    protected AuthenticationResponse processResponse(AuthenticationContext context) throws AuthenticationHandlerException {
+    protected AuthenticationResponse processResponse(AuthenticationContext context)
+            throws AuthenticationHandlerException {
         FederatedUser federatedUser = new FederatedUser(context.getIdentityRequest()
-                .getParameter("Assertion"));
+                                                                .getParameter("Assertion"));
 
         String validationFail = context.getIdentityRequest().getParameter("validation");
         if (validationFail != null) {
@@ -83,34 +82,35 @@ public class SampleFederatedAuthenticator extends AbstractApplicationAuthenticat
         // Access body params and query params in two different ways.
         try {
             context.getIdentityRequest().getQueryParameter("Assertion");
-
         } catch (UnsupportedEncodingException e) {
-            String error = "Error while accessing parameters, " + e.getMessage() ;
-            log.error(error , e);
-            throw new GatewayRuntimeException(error,e);
+            String error = "Error while accessing parameters, " + e.getMessage();
+            log.error(error, e);
+            throw new GatewayRuntimeException(error, e);
         }
         context.getIdentityRequest().getBodyParameter("bodyParamName");
         context.getIdentityRequest().getHeaderNames();
         context.getIdentityRequest().getHeaders("header");
 
         Set<Claim> claims = new HashSet<Claim>();
-        Claim claim1 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/email" , "harsha@wso2.com");
+        Claim claim1 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/email",
+                                 "harsha@wso2.com");
         claims.add(claim1);
 
-        Claim claim2 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/fullname" ,
-                "harsha_fullname");
+        Claim claim2 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/fullname",
+                                 "harsha_fullname");
         claims.add(claim2);
 
-        Claim claim3 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/gender" ,
-                "male");
+        Claim claim3 = new Claim("http://org.sample.idp/claims", "http://org.sample.idp/claims/gender",
+                                 "male");
         claims.add(claim3);
         GatewayClaimResolverService gatewayClaimResolverService = GatewayClaimResolverService.getInstance();
-        Set<Claim> mappedRootClaims = gatewayClaimResolverService.transformToNativeDialect(claims, "http://org.sample.idp/claims",
-                Optional.<String>empty());
+        Set<Claim> mappedRootClaims = gatewayClaimResolverService
+                .transformToNativeDialect(claims, "http://org.sample.idp/claims",
+                                          Optional.<String>empty());
         federatedUser.setUserClaims(mappedRootClaims);
         context.getSequenceContext().getCurrentStepContext().setUser(federatedUser);
-        AuthenticationResponse authenticationResponse =  new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
+        AuthenticationResponse authenticationResponse = new AuthenticationResponse(
+                AuthenticationResponse.Status.AUTHENTICATED);
         return authenticationResponse;
     }
-
 }

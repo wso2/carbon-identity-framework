@@ -90,7 +90,7 @@ public class GatewayAPIUnitTests {
         builder.setQueryString("param1=param1value&param2=param2value");
         builder.setRequestURI("gateway/someContext");
         GatewayRequest gatewayRequest = builder.build();
-//      /*  Assert.assertEquals(gatewayRequest.getAttribute("testAttribute"),"testAttributeValue");
+        //      /*  Assert.assertEquals(gatewayRequest.getAttribute("testAttribute"),"testAttributeValue");
         Assert.assertEquals(gatewayRequest.getHeader("testHeader"), "testHeaderValue");
         Assert.assertEquals(gatewayRequest.getContentType(), "application/json");
         Assert.assertEquals(gatewayRequest.getRequestURI(), "gateway/someContext");
@@ -100,15 +100,15 @@ public class GatewayAPIUnitTests {
     @Test
     public void testRequestBuilderFactoryErrorHandling() {
         GatewayRequestBuilderFactory gatewayRequestBuilderFactory = new GatewayRequestBuilderFactory();
-        Response.ResponseBuilder responseBuilder = gatewayRequestBuilderFactory.handleException(new
-                GatewayClientException(
+        Response.ResponseBuilder responseBuilder = gatewayRequestBuilderFactory.
+                handleException(new GatewayClientException(
                 "This is a gateway client exception"));
         Response response = responseBuilder.build();
         Assert.assertEquals(400, response.getStatus());
         Assert.assertEquals("This is a gateway client exception", response.getEntity());
 
         responseBuilder = gatewayRequestBuilderFactory.handleException(new
-                GatewayRuntimeException(
+                                                                               GatewayRuntimeException(
                 "This is a gateway runtime exception"));
         response = responseBuilder.build();
         Assert.assertEquals(500, response.getStatus());
@@ -121,7 +121,7 @@ public class GatewayAPIUnitTests {
 
         Response.ResponseBuilder responseBuilder = gatewayResponseBuilderFactory
                 .handleException(new GatewayRuntimeException("This is a " +
-                        "gateway runtime exception"));
+                                                             "gateway runtime exception"));
         Response response = responseBuilder.build();
         Assert.assertEquals(500, response.getStatus());
         Assert.assertEquals("This is a gateway runtime exception", response.getEntity());
@@ -129,7 +129,7 @@ public class GatewayAPIUnitTests {
 
         responseBuilder = gatewayResponseBuilderFactory
                 .handleException(new GatewayRuntimeException("This is a run time " +
-                        "exception"));
+                                                             "exception"));
         response = responseBuilder.build();
         Assert.assertEquals(500, response.getStatus());
         Assert.assertEquals("This is a run time exception", response.getEntity());

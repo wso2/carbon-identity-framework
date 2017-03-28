@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.gateway.api.request;
 
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.common.base.handler.AbstractHandler;
@@ -33,14 +32,12 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 
-
-
-
 /**
  * GatewayRequestBuilderFactory is a base class to create GatewayRequestBuilder based on different
  * Protocols. This also will register as a Service and can be used as a default request builder.
  *
- * @param <T> Extended type of GatewayRequest.GatewayRequestBuilder
+ * @param <T>
+ *         Extended type of GatewayRequest.GatewayRequestBuilder
  */
 
 public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayRequestBuilder> extends AbstractHandler {
@@ -71,47 +68,11 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         return (T) builder;
     }
 
-    /**
-     * Update GatewayRequestBuilder.
-     *
-     * @param builder
-     * @param request
-     * @throws GatewayClientException
-     */
-    protected void create(T builder, Request request)
-            throws GatewayClientException {
-
-        request.getHeaders().getAll().forEach(header -> {
-            builder.addHeader(header.getName(), header.getValue());
-        });
-
-        builder.setHttpMethod(request.getHttpMethod());
-        builder.setContentType(request.getContentType());
-        builder.setRequestURI(request.getUri());
-        builder.setHttpMethod(request.getHttpMethod());
-        builder.setAttributes((Map) request.getProperties());
-        builder.addParameter(Constants.QUERY_PARAMETERS,
-                (Serializable) request.getProperty(Constants.QUERY_PARAMETERS));
-        builder.addParameter(Constants.BODY_PARAMETERS, (Serializable) request.getProperty(Constants.BODY_PARAMETERS));
-
-        String[] queryStringParams = request.getUri().split("\\?");
-        if (queryStringParams.length > 1) {
-            builder.setQueryString(queryStringParams[1]);
-        } else {
-            builder.setQueryString(queryStringParams[0]);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Successfully Updated the request builder in GatewayRequestBuilderFactory.");
-        }
-    }
-
     //#TODO: Priority value should be checked to put here.
     @Override
     public int getPriority() {
         return 200;
     }
-
-    //#TODO: Think about more this exception handling.
 
     /**
      * Handling exception for GatewayClientException.
@@ -139,5 +100,41 @@ public class GatewayRequestBuilderFactory<T extends GatewayRequest.GatewayReques
         builder.status(500);
         builder.entity("something went wrong");
         return builder;
+    }
+
+    //#TODO: Think about more this exception handling.
+
+    /**
+     * Update GatewayRequestBuilder.
+     *
+     * @param builder
+     * @param request
+     * @throws GatewayClientException
+     */
+    protected void create(T builder, Request request)
+            throws GatewayClientException {
+
+        request.getHeaders().getAll().forEach(header -> {
+            builder.addHeader(header.getName(), header.getValue());
+        });
+
+        builder.setHttpMethod(request.getHttpMethod());
+        builder.setContentType(request.getContentType());
+        builder.setRequestURI(request.getUri());
+        builder.setHttpMethod(request.getHttpMethod());
+        builder.setAttributes((Map) request.getProperties());
+        builder.addParameter(Constants.QUERY_PARAMETERS,
+                             (Serializable) request.getProperty(Constants.QUERY_PARAMETERS));
+        builder.addParameter(Constants.BODY_PARAMETERS, (Serializable) request.getProperty(Constants.BODY_PARAMETERS));
+
+        String[] queryStringParams = request.getUri().split("\\?");
+        if (queryStringParams.length > 1) {
+            builder.setQueryString(queryStringParams[1]);
+        } else {
+            builder.setQueryString(queryStringParams[0]);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Successfully Updated the request builder in GatewayRequestBuilderFactory.");
+        }
     }
 }

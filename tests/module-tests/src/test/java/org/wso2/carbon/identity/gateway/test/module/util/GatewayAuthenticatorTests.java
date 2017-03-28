@@ -30,17 +30,16 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
-import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.gateway.authentication.authenticator.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.gateway.authentication.response.AuthenticationResponse;
 import org.wso2.carbon.identity.gateway.context.AuthenticationContext;
 import org.wso2.carbon.identity.gateway.exception.AuthenticationHandlerException;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
-import javax.inject.Inject;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Properties;
+import javax.inject.Inject;
 
 
 @Listeners(PaxExam.class)
@@ -63,8 +62,9 @@ public class GatewayAuthenticatorTests {
         List<Option> optionList = GatewayOSGiTestUtils.getDefaultSecurityPAXOptions();
 
         optionList.add(CoreOptions.systemProperty("java.security.auth.login.config")
-                .value(Paths.get(GatewayOSGiTestUtils.getCarbonHome(), "conf", "security", "carbon-jaas.config")
-                        .toString()));
+                               .value(Paths.get(GatewayOSGiTestUtils.getCarbonHome(), "conf", "security",
+                                                "carbon-jaas.config")
+                                              .toString()));
 
         return optionList.toArray(new Option[optionList.size()]);
     }
@@ -85,9 +85,8 @@ public class GatewayAuthenticatorTests {
             }
 
             @Override
-            public AuthenticationResponse process(AuthenticationContext authenticationContext) throws
-                    AuthenticationHandlerException {
-                return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
+            public String getFriendlyName() {
+                return "SampleLocalAuthenticator";
             }
 
             @Override
@@ -96,17 +95,16 @@ public class GatewayAuthenticatorTests {
             }
 
             @Override
-            public String getFriendlyName() {
-                return "SampleLocalAuthenticator";
+            public AuthenticationResponse process(
+                    AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
+                return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
             }
-
         };
         Assert.assertEquals(localApplicationAuthenticator.getName(), "SampleLocalAuthenticator");
         AuthenticationContext authenticationContext = new AuthenticationContext(null);
         authenticationContext.addParameter("localAuth", true);
         Assert.assertTrue(localApplicationAuthenticator.canHandle(authenticationContext));
     }
-
 
 
     /**
@@ -124,8 +122,8 @@ public class GatewayAuthenticatorTests {
             }
 
             @Override
-            public AuthenticationResponse process(AuthenticationContext authenticationContext) throws AuthenticationHandlerException {
-                return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
+            public String getFriendlyName() {
+                return "SampleRequestPathAuthenticator";
             }
 
             @Override
@@ -134,17 +132,14 @@ public class GatewayAuthenticatorTests {
             }
 
             @Override
-            public String getFriendlyName() {
-                return "SampleRequestPathAuthenticator";
+            public AuthenticationResponse process(AuthenticationContext authenticationContext)
+                    throws AuthenticationHandlerException {
+                return new AuthenticationResponse(AuthenticationResponse.Status.AUTHENTICATED);
             }
-
-
-
         };
         Assert.assertEquals(localApplicationAuthenticator.getName(), "SampleRequestPathAuthenticator");
         AuthenticationContext authenticationContext = new AuthenticationContext(null);
         authenticationContext.addParameter("requestPath", true);
         Assert.assertTrue(localApplicationAuthenticator.canHandle(authenticationContext));
     }
-
 }
