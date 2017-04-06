@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.entitlement.cache;
 
+import org.apache.axis2.clustering.ClusteringFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
+import org.wso2.carbon.identity.entitlement.PolicyStatusClusterMessage;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
+import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -107,15 +110,18 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     /**
      * Do invalidate all policy cache
      */
-    public void invalidateCache(){
+    public void invalidateCache() {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Trigger invalidateCache to tenant :  " + tenantId + " and all policy ");
         }
 
-        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId,"");
-        addToCache(cacheKey,new PolicyStatus());
+        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId, "");
+        // update local cache map of this node.
+        updateLocalPolicyCacheMap(cacheKey, new PolicyStatus());
+        // send out a cluster message to notify other nodes
+        sendClusterMessage(new PolicyStatusClusterMessage(cacheKey, new PolicyStatus()), true);
 
     }
 
@@ -166,16 +172,21 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
                     ": " + action);
         }
 
-        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId,policyId);
-        PolicyStatus policyStatus = (PolicyStatus)getValueFromCache(cacheKey);
+        IdentityCacheKey cacheKey = new IdentityCacheKey(tenantId, policyId);
+        PolicyStatus policyStatus = (PolicyStatus) getValueFromCache(cacheKey);
 
-        if(policyStatus==null) {
-            policyStatus = new PolicyStatus(policyId,0,action);
-        }else{
+        if (policyStatus == null) {
+            policyStatus = new PolicyStatus(policyId, 0, action);
+        } else {
             policyStatus.setStatusCount(policyStatus.getStatusCount() + 1);
             policyStatus.setPolicyAction(action);
         }
-        updateToCache(cacheKey, policyStatus);
+        // update local cache map of this node.
+        updateLocalPolicyCacheMap(cacheKey, policyStatus);
+
+        // send out a cluster message to notify other nodes.
+        sendClusterMessage(new PolicyStatusClusterMessage(cacheKey, policyStatus), true);
+
 
 
         synchronized (localPolicyCacheMap) {
@@ -248,5 +259,26 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
         return newAction ;
     }
 
+
+    /**
+     * Send out policy status change notification to other nodes.
+     *
+     * @param clusterMessage
+     * @param isSync
+     */
+    private void sendClusterMessage(PolicyStatusClusterMessage clusterMessage, boolean isSync) {
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Sending policy status change cluster message to all other nodes");
+            }
+            EntitlementConfigHolder.getInstance()
+                    .getConfigurationContextService()
+                    .getServerConfigContext()
+                    .getAxisConfiguration()
+                    .getClusteringAgent().sendMessage(clusterMessage, isSync);
+        } catch (ClusteringFault clusteringFault) {
+            log.error("Error while sending policy status change cluster message", clusteringFault);
+        }
+    }
 
 }
