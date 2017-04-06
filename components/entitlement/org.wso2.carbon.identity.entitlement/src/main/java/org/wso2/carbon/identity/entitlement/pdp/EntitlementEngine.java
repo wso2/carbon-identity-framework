@@ -59,8 +59,6 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class EntitlementEngine {
 
@@ -538,6 +538,15 @@ public class EntitlementEngine {
                 decisionCache.clearCache();
                 simpleDecisionCache.clearCache();
             }*/
+
+            // Check whether the policy cache is invalidated, if so clear the decision cache.
+            if (EntitlementEngine.getInstance().getPolicyCache().isInvalidate()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Policy Cache is invalidated. Clearing the decision cache.");
+                }
+                decisionCache.clear();
+                return null;
+            }
 
             if (simpleCache) {
                 decision = simpleDecisionCache.getFromCache(tenantRequest);

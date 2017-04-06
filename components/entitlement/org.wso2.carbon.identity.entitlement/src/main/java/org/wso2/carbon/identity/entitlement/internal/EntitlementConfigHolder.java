@@ -32,13 +32,14 @@ import org.wso2.carbon.identity.entitlement.policy.publisher.PublisherVerificati
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
 import org.wso2.carbon.identity.entitlement.policy.store.PolicyStoreManageModule;
 import org.wso2.carbon.identity.entitlement.policy.version.PolicyVersionManager;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
-import javax.xml.validation.Schema;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import javax.xml.validation.Schema;
 
 /**
  * keeps track of the configuration found in entitlement-config.xml
@@ -141,6 +142,16 @@ public class EntitlementConfigHolder {
      */
     private Map<String, List<PublisherDataHolder>> modulePropertyHolderMap =
             new HashMap<String, List<PublisherDataHolder>>();
+
+    private ConfigurationContextService configurationContextService;
+    private static EntitlementConfigHolder instance = new EntitlementConfigHolder();
+
+    private EntitlementConfigHolder() {
+    }
+
+    public static EntitlementConfigHolder getInstance() {
+        return instance;
+    }
 
     public Map<PIPExtension, Properties> getExtensions() {
         return extensions;
@@ -279,5 +290,13 @@ public class EntitlementConfigHolder {
 
     public void addPolicyDataStore(PolicyDataStore policyDataStore, Properties properties) {
         this.policyDataStore.put(policyDataStore, properties);
+    }
+
+    public ConfigurationContextService getConfigurationContextService() {
+        return configurationContextService;
+    }
+
+    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+        this.configurationContextService = configurationContextService;
     }
 }
