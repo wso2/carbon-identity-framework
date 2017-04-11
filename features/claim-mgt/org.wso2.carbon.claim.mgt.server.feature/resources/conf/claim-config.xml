@@ -535,7 +535,12 @@
 				<AttributeID>active</AttributeID>
 				<Description>Status of the account</Description>
 			</Claim>
-
+                        <Claim>
+                                <ClaimURI>http://wso2.org/claims/lastLoginTime</ClaimURI>
+                                <DisplayName>LastLoginTime</DisplayName>
+                                <AttributeID>carLicense</AttributeID>
+                                <Description>Last Login Time</Description>
+                        </Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
