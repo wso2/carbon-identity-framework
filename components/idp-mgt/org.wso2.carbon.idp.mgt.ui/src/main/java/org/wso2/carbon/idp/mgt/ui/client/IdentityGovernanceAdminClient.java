@@ -59,26 +59,27 @@ public class IdentityGovernanceAdminClient {
 
         ConnectorConfig[] configs = stub.getConnectorList();
         Map<String, Map<String, List<ConnectorConfig>>> catMap = new HashMap<String, Map<String, List<ConnectorConfig>>>();
-
-        for (ConnectorConfig conf : configs) {
-            String categoryName = StringUtils.isBlank(conf.getCategory()) ? DEFAULT : conf.getCategory();
-            String subCategoryName = StringUtils.isBlank(conf.getSubCategory()) ? DEFAULT : conf.getSubCategory();
-            if (catMap.containsKey(categoryName)) {
-                Map<String, List<ConnectorConfig>> subCatMap = catMap.get(categoryName);
-                if (subCatMap.containsKey(subCategoryName)) {
-                    List<ConnectorConfig> confList = subCatMap.get(subCategoryName);
-                    confList.add(conf);
+        if (configs != null) {
+            for (ConnectorConfig conf : configs) {
+                String categoryName = StringUtils.isBlank(conf.getCategory()) ? DEFAULT : conf.getCategory();
+                String subCategoryName = StringUtils.isBlank(conf.getSubCategory()) ? DEFAULT : conf.getSubCategory();
+                if (catMap.containsKey(categoryName)) {
+                    Map<String, List<ConnectorConfig>> subCatMap = catMap.get(categoryName);
+                    if (subCatMap.containsKey(subCategoryName)) {
+                        List<ConnectorConfig> confList = subCatMap.get(subCategoryName);
+                        confList.add(conf);
+                    } else {
+                        List<ConnectorConfig> confList = new ArrayList<ConnectorConfig>();
+                        confList.add(conf);
+                        subCatMap.put(subCategoryName, confList);
+                    }
                 } else {
+                    Map<String, List<ConnectorConfig>> subCatMap = new HashMap<String, List<ConnectorConfig>>();
+                    catMap.put(categoryName, subCatMap);
                     List<ConnectorConfig> confList = new ArrayList<ConnectorConfig>();
                     confList.add(conf);
                     subCatMap.put(subCategoryName, confList);
                 }
-            } else {
-                Map<String, List<ConnectorConfig>> subCatMap = new HashMap<String, List<ConnectorConfig>>();
-                catMap.put(categoryName, subCatMap);
-                List<ConnectorConfig> confList = new ArrayList<ConnectorConfig>();
-                confList.add(conf);
-                subCatMap.put(subCategoryName, confList);
             }
         }
         return catMap;
