@@ -567,7 +567,9 @@ public class DefaultClaimHandler implements ClaimHandler {
                     RealmConfiguration realmConfiguration = userStore.getRealmConfiguration();
                     String claimSeparator = realmConfiguration
                             .getUserStoreProperty(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR);
-
+                    if (StringUtils.isBlank(claimSeparator)) {
+                        claimSeparator = IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT;
+                    }
                     String roleClaim = entry.getValue();
                     List<String> rolesList = new LinkedList<>(Arrays.asList(roleClaim.split(claimSeparator)));
                     roleClaim = getServiceProviderMappedUserRoles(appConfig, rolesList, claimSeparator);
