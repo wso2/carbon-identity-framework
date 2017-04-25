@@ -98,11 +98,11 @@ public class SelfRegisterApi {
 
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
 
-        if (headers == null) {
-            headers = new HashMap<>();
-        }
+        Map<String, String> localVarHeaderParams = new HashMap<>();
 
-        Map<String, String> localVarHeaderParams = headers;
+        if (headers != null) {
+            localVarHeaderParams.putAll(headers);
+        }
 
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
