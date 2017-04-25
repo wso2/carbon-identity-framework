@@ -363,4 +363,8 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
     public void clearPolicyCache() {
         EntitlementEngine.getInstance().getPolicyCache().clear();
     }
+
+    public PolicyCollection getPolicyCollection() {
+        return policyCollection;
+    }
 }
