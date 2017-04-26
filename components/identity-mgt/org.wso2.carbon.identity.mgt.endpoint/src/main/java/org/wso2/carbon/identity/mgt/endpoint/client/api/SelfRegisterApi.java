@@ -73,7 +73,7 @@ public class SelfRegisterApi {
      * @return String
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public String mePostCall(SelfUserRegistrationRequest user) throws ApiException {
+    public String mePostCall(SelfUserRegistrationRequest user, Map<String, String> headers) throws ApiException {
         Object localVarPostBody = user;
 
         // verify the required parameter 'user' is set
@@ -98,7 +98,11 @@ public class SelfRegisterApi {
 
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
 
-        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, String> localVarHeaderParams = new HashMap<>();
+
+        if (headers != null) {
+            localVarHeaderParams.putAll(headers);
+        }
 
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 

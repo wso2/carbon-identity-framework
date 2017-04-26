@@ -265,6 +265,20 @@
                     return false;
                 }
 
+                <%
+                if(reCaptchaEnabled) {
+                %>
+                var resp = $("[name='g-recaptcha-response']")[0].value;
+                if (resp.trim() == '') {
+                    error_msg.text("Please select reCaptcha.");
+                    error_msg.show();
+                    $("html, body").animate({scrollTop: error_msg.offset().top}, 'slow');
+                    return false;
+                }
+                <%
+                }
+                %>
+
                 return true;
             });
         });
