@@ -120,7 +120,8 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
             registry.put(policyDataCollection, policyCollection);
 
             // performing cache invalidation
-            EntitlementEngine.getInstance().getPolicyCache().invalidateCache();
+            EntitlementEngine.getInstance().invalidatePolicyCache();
+
         } catch (RegistryException e) {
             log.error("Error while updating Global combing algorithm in policy store ", e);
             throw new EntitlementException("Error while updating combing algorithm in policy store");

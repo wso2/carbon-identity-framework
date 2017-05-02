@@ -60,7 +60,7 @@ public abstract class AbstractPolicyFinderModule implements PolicyFinderModule {
 
     public static void invalidateCache() {
         EntitlementEngine.getInstance().clearDecisionCache();
-        EntitlementEngine.getInstance().getPolicyCache().invalidateCache();
+        EntitlementEngine.getInstance().invalidatePolicyCache();
     }
 
     @Override

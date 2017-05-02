@@ -41,7 +41,7 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     private static Log log = LogFactory.getLog(PolicyCache.class);
     private static final Object lock = new Object();
     private int myHashCode;
-    public static final int INVALID_STATE = 1;
+    private static final int INVALID_STATE = 1;
     private static Map<Integer,Integer> cacheInvalidationState = new HashMap<Integer, Integer>();
     private static Map<Integer,Map<String,PolicyStatus>> localPolicyCacheMap = new HashMap<Integer,Map<String,PolicyStatus>>();
 
