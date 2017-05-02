@@ -41,6 +41,7 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     private static Log log = LogFactory.getLog(PolicyCache.class);
     private static final Object lock = new Object();
     private int myHashCode;
+    public static final int INVALID_STATE = 1;
     private static Map<Integer,Integer> cacheInvalidationState = new HashMap<Integer, Integer>();
     private static Map<Integer,Map<String,PolicyStatus>> localPolicyCacheMap = new HashMap<Integer,Map<String,PolicyStatus>>();
 
@@ -151,7 +152,7 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
             }
         }
 
-        boolean isInvalid = state == 1;
+        boolean isInvalid = (state == INVALID_STATE);
         if (log.isDebugEnabled()) {
             log.debug("Check the invalidation state of all cache, isCacheInvalid: " + isInvalid);
         }
@@ -162,7 +163,6 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     public void resetCacheInvalidateState() {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-
         // since the cache is invalidated already making cacheInvalidationState to '0'
         cacheInvalidationState.put(tenantId, 0);
     }
