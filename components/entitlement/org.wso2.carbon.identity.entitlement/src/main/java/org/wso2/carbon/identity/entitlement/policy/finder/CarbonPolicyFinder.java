@@ -223,6 +223,7 @@ public class CarbonPolicyFinder extends org.wso2.balana.finder.PolicyFinderModul
             init(this.finder);
             policyReferenceCache.clear();
             EntitlementEngine.getInstance().clearDecisionCache();
+            EntitlementEngine.getInstance().resetCacheInvalidateState();
             if (log.isDebugEnabled()) {
                 int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
                 log.debug("Invalidation cache message is received. " +

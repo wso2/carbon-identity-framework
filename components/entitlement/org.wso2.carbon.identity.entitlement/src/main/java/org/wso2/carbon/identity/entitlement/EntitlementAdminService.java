@@ -66,7 +66,7 @@ public class EntitlementAdminService {
      * @throws EntitlementException throws
      */
     public void clearPolicyCache() throws EntitlementException {
-        EntitlementEngine.getInstance().getPolicyCache().invalidateCache();
+        EntitlementEngine.getInstance().invalidatePolicyCache();
         if (log.isDebugEnabled()) {
             log.debug("Decision Caching is cleared by using admin service");
         }

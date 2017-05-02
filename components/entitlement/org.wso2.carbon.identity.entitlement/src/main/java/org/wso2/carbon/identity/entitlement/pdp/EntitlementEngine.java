@@ -101,10 +101,6 @@ public class EntitlementEngine {
         return policyCache;
     }
 
-    public void setPolicyCache(PolicyCache policyCache) {
-        this.policyCache = policyCache;
-    }
-
     public void clearDecisionCache() {
         this.decisionCache.clear();
     }
@@ -643,6 +639,30 @@ public class EntitlementEngine {
         carbonPolicyFinder.setModules(policyModules);
         carbonPolicyFinder.init();
 
+    }
+
+    /**
+     * Check reset cache state
+     */
+    public void resetCacheInvalidateState() {
+
+        if (policyCache != null) {
+            policyCache.resetCacheInvalidateState();
+        } else {
+            log.error("Policy cache is null - Unable to reset cache invalidate state.");
+        }
+    }
+
+    /**
+     * Checking the policy cache status before cache invalidation
+     */
+    public void invalidatePolicyCache() {
+
+        if (policyCache != null) {
+            policyCache.invalidateCache();
+        } else {
+            log.error("Policy cache is null - Unable to invalidate cache.");
+        }
     }
 
 }

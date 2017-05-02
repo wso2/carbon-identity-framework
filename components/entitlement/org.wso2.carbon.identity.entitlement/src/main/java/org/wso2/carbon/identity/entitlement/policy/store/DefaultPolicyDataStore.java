@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.dto.PolicyStoreDTO;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
+import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.RegistryConstants;
@@ -117,6 +118,10 @@ public class DefaultPolicyDataStore implements PolicyDataStore {
             policyCollection.setMediaType(PDPConstants.REGISTRY_MEDIA_TYPE);
             policyCollection.setProperty("globalPolicyCombiningAlgorithm", policyCombiningAlgorithm);
             registry.put(policyDataCollection, policyCollection);
+
+            // performing cache invalidation
+            EntitlementEngine.getInstance().invalidatePolicyCache();
+
         } catch (RegistryException e) {
             log.error("Error while updating Global combing algorithm in policy store ", e);
             throw new EntitlementException("Error while updating combing algorithm in policy store");
