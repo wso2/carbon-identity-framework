@@ -305,7 +305,7 @@ public class CacheClearingUserOperationListener extends AbstractIdentityUserOper
             finder.clearAttributeCache();
             // we need to invalidate policy cache as well. Decision cache is cleared within
             // clearAttributeCache.
-            EntitlementEngine.getInstance().getPolicyCache().invalidateCache();
+            EntitlementEngine.getInstance().invalidatePolicyCache();
         } else {
             // Return if no finders are found
             return;
