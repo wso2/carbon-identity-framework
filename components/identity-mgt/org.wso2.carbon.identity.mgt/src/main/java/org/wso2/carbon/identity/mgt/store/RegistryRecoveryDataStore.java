@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
 import org.wso2.carbon.identity.mgt.dto.UserRecoveryDataDO;
@@ -48,6 +49,8 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
     public void store(UserRecoveryDataDO recoveryDataDO) throws IdentityException {
         Registry registry = null;
         try {
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(recoveryDataDO.getTenantId());
+            IdentityTenantUtil.initializeRegistry(recoveryDataDO.getTenantId(), tenantDomain);
             registry = IdentityMgtServiceComponent.getRegistryService().
                     getConfigSystemRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
             registry.beginTransaction();
@@ -87,7 +90,9 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
         UserRecoveryDataDO dataDO = new UserRecoveryDataDO();
 
         try {
-
+            int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
             registry = IdentityMgtServiceComponent.getRegistryService().
                     getConfigSystemRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
 
