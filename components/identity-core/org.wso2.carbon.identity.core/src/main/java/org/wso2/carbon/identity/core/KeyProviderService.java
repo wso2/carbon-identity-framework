@@ -30,6 +30,6 @@ public interface KeyProviderService {
 
     Key getPrivateKey(String tenantDomain) throws Exception;
 
-    Certificate getCertificate(String alias) throws Exception;
+    Certificate getCertificate(String tenantDomain, String alias) throws Exception;
 
 }
