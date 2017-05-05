@@ -460,6 +460,13 @@
 				<Description>Email Verified</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/phoneVerified</ClaimURI>
+				<DisplayName>Phone Verified</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>imSkype</AttributeID>
+				<Description>Phone Verified</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/accountDisabled</ClaimURI>
 				<DisplayName>Account Disabled</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
@@ -609,7 +616,7 @@
 				<AttributeID>homePhone</AttributeID>
 				<Description>Home Phone</Description>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/phoneNumbers.home</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://schemas.xmlsoap.org/ws/2005/05/identity/claims/otherphone</ClaimURI>
@@ -653,7 +660,7 @@
 				<Description>PPID</Description>
 				<Required />
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/im</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 
@@ -705,7 +712,7 @@
 				<Description>Time Zone</Description>
                                 <DisplayOrder>9</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>dob</ClaimURI>
@@ -723,7 +730,7 @@
 				<Description>Postalcode</Description>
                                 <DisplayOrder>4</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/postalcode</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>gender</ClaimURI>
@@ -741,7 +748,7 @@
 				<Description>Language</Description>
                 <DisplayOrder>7</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 
@@ -787,7 +794,7 @@
 				<DisplayName>Time Zone</DisplayName>
 				<AttributeID>timeZone</AttributeID>
 				<Description>Time Zone</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://axschema.org/birthDate</ClaimURI>
@@ -803,7 +810,7 @@
 				<AttributeID>postalCode</AttributeID>
 				<Description>Postalcode</Description>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/postalcode</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>http://axschema.org/person/gender</ClaimURI>
@@ -819,7 +826,7 @@
 				<AttributeID>prefferedLanguage</AttributeID>
 				<Description>Language</Description>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/preferredLanguage</MappedLocalClaim>
 			</Claim>
 		</Dialect>
         <Dialect dialectURI="urn:scim:schemas:core:1.0">
@@ -1336,7 +1343,7 @@
 				<Description>Middle name(s) of the End-User. Note that in some cultures, people can have multiple middle names; all can be present, with the names being separated by space characters. Also note that in some cultures, middle names are not used.</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/middleName</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>nickname</ClaimURI>
@@ -1355,7 +1362,7 @@
 				<Description>Shorthand name by which the End-User wishes to be referred to at the RP, such as janedoe or j.doe.</Description>
 				<DisplayOrder>7</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/fullname</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>profile</ClaimURI>
@@ -1373,7 +1380,7 @@
 				<Description>URL of the End-User's profile picture. This URL MUST refer to an image file (for example, a PNG, JPEG, or GIF image file)</Description>
 				<DisplayOrder>9</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/photourl</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>website</ClaimURI>
@@ -1396,7 +1403,7 @@
 				<DisplayName>Email Verified</DisplayName>
 				<AttributeID>emailVerified</AttributeID>
 				<Description>True if the End-User's e-mail address has been verified; otherwise false. </Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/identity/emailVerified</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>gender</ClaimURI>
@@ -1412,21 +1419,21 @@
 				<DisplayName>Birth Date</DisplayName>
 				<AttributeID>birthDate</AttributeID>
 				<Description>End-User's birthday, represented as an ISO 8601:2004 [ISO8601-2004] YYYY-MM-DD format. The year MAY be 0000, indicating that it is omitted. To represent only the year, YYYY format is allowed.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/dob</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>zoneinfo</ClaimURI>
 				<DisplayName>Zone Info</DisplayName>
 				<AttributeID>zone</AttributeID>
 				<Description>String from zoneinfo time zone database representing the End-User's time zone. For example, Europe/Paris or America/Los_Angeles.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/timeZone</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>locale</ClaimURI>
 				<DisplayName>Locale</DisplayName>
 				<AttributeID>locale</AttributeID>
 				<Description>End-User's locale, For example, en-US or fr-CA, en_US</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/local</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>phone_number</ClaimURI>
@@ -1440,14 +1447,14 @@
 				<DisplayName>Phone Number Verified</DisplayName>
 				<AttributeID>phoneVerififed</AttributeID>
 				<Description>True if the End-User's phone number has been verified; otherwise false.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/identity/phoneVerified</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>address</ClaimURI>
 				<DisplayName>Address</DisplayName>
 				<AttributeID>address</AttributeID>
 				<Description>True if the End-User's phone number has been verified; otherwise false. </Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/addresses</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>updated_at</ClaimURI>
@@ -1461,14 +1468,14 @@
 				<DisplayName>Address Formatted</DisplayName>
 				<AttributeID>formatted</AttributeID>
 				<Description>Full mailing address, formatted for display or use on a mailing label. This field MAY contain multiple lines, separated by newlines.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/addresses.formatted</MappedLocalClaim>
 		    </Claim>
 		    <Claim>
 				<ClaimURI>street_address</ClaimURI>
 				<DisplayName>Street Address</DisplayName>
 				<AttributeID>street</AttributeID>
 				<Description>Full street address component, which MAY include house number, street name, Post Office Box, and multi-line extended street address information.</Description>
-				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/streetaddress</MappedLocalClaim>
 		    </Claim>
 		    <Claim>
 				<ClaimURI>locality</ClaimURI>
