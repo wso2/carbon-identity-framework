@@ -1314,11 +1314,11 @@
 			<Claim>
 				<ClaimURI>given_name</ClaimURI>
 				<DisplayName>Given Name</DisplayName>
-				<AttributeID>cn</AttributeID>
+				<AttributeID>givenName</AttributeID>
 				<Description>Given name(s) or first name(s) of the End-User. Note that in some cultures, people can have multiple given names; all can be present, with the names being separated by space characters.</Description>
 				<DisplayOrder>3</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/fullname</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/givenname</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>family_name</ClaimURI>
