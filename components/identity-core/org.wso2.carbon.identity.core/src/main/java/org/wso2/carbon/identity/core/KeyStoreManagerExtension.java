@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -24,10 +24,10 @@ import java.security.Key;
 import java.security.cert.Certificate;
 
 /**
- * This interface is the advised service from the Identity Framework for the keys to be used to generate/sign tokens.
- * This should be used for OAuth/JWT token handling.
+ * Extension point to be supplied by an extension to be used instead of the default implementation of the key provider.
+ *
  */
-public interface KeyProviderService {
+public interface KeyStoreManagerExtension {
 
     /**
      * Returns the Private Key for the given tenant domain.
