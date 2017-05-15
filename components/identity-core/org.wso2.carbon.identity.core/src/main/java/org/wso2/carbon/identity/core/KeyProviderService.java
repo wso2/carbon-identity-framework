@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.core;
 
 import org.wso2.carbon.identity.base.IdentityException;
 
-import java.security.Key;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 
@@ -43,9 +42,8 @@ public interface KeyProviderService {
      * Returns the Public certificate for the given tenant domain.
      *
      * @param tenantDomain  the tenant domain
-     * @param alias the alias used in the key-store to lookup the certificate.
      * @return
      * @throws IdentityException upon any error accessing the underlying key store
      */
-    Certificate getCertificate(String tenantDomain, String alias) throws IdentityException;
+    Certificate getCertificate(String tenantDomain) throws IdentityException;
 }

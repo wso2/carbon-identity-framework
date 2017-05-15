@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.core.internal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -27,7 +25,6 @@ import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
-import java.security.Key;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 
@@ -69,7 +66,7 @@ public class DefaultKeystoreManagerExtension implements KeyStoreManagerExtension
     }
 
     @Override
-    public Certificate getCertificate(String tenantDomain, String alias) throws IdentityException {
+    public Certificate getCertificate(String tenantDomain) throws IdentityException {
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);

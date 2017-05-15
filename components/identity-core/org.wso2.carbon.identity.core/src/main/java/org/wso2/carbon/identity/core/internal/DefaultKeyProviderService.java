@@ -24,7 +24,6 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
 
-import java.security.Key;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 
@@ -71,7 +70,7 @@ public class DefaultKeyProviderService implements KeyProviderService {
     }
 
     @Override
-    public Certificate getCertificate(String tenantDomain, String alias) throws IdentityException {
-        return keyStoreManagerExtension.getCertificate(tenantDomain, alias);
+    public Certificate getCertificate(String tenantDomain) throws IdentityException {
+        return keyStoreManagerExtension.getCertificate(tenantDomain);
     }
 }
