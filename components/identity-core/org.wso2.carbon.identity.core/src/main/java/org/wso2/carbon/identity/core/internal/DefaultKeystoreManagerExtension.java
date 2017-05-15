@@ -46,8 +46,8 @@ public class DefaultKeystoreManagerExtension implements KeyStoreManagerExtension
     }
 
     @Override
-    public Key getPrivateKey(String tenantDomain) throws IdentityException {
-        Key privateKey;
+    public PrivateKey getPrivateKey(String tenantDomain) throws IdentityException {
+        PrivateKey privateKey;
 
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
