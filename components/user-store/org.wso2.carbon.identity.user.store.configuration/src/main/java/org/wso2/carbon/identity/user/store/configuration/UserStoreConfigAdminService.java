@@ -252,6 +252,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         String domainName = userStoreDTO.getDomainId();
         try {
             xmlProcessorUtils.isValidDomain(domainName, true);
+            validateForFederatedDomain(domainName);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             log.error(errorMessage, e);
@@ -293,6 +294,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         try {
             isValidDomain = xmlProcessorUtils.isValidDomain(domainName, false);
+            validateForFederatedDomain(domainName);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             log.error(errorMessage, e);
@@ -339,6 +341,14 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         String domainName = userStoreDTO.getDomainId();
         if (isDebugEnabled) {
             log.debug("Changing user store " + previousDomainName + " to " + domainName);
+        }
+
+        try {
+            validateForFederatedDomain(domainName);
+        } catch (UserStoreException e) {
+            String errorMessage = e.getMessage();
+            log.error(errorMessage, e);
+            throw new IdentityUserStoreMgtException(errorMessage);
         }
 
         File userStoreConfigFile = null;
@@ -520,6 +530,18 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
         return true;
 
+    }
+
+    /**
+     * Should not allow to have domain prefixed with 'FEDERATED', to avoid conflicting with federated user domain.
+     * @param domain : domain name
+     * @return
+     */
+    private void validateForFederatedDomain(String domain) throws UserStoreException {
+        if (IdentityUtil.isNotBlank(domain) && domain.toUpperCase().startsWith("FEDERATED")) {
+            throw new UserStoreException("'FEDERATED' is a reserved user domain prefix. "
+                    + "Please start the domain name in a different manner.");
+        }
     }
 
     /**
