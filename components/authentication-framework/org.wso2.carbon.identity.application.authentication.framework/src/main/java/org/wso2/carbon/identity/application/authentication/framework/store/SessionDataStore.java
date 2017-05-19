@@ -23,11 +23,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.user.api.Tenant;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -93,8 +98,19 @@ public class SessionDataStore {
             "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
 
-    private static final String SQL_DELETE_EXPIRED_DATA_TASK =
-            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED<?";
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_MYSQL =
+            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID=? LIMIT %d";
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_MSSQL =
+            "DELETE TOP %d FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID = ?";
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_ORACLE = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_INFOMIXSQL = "DELETE FROM (SELECT SESSION_ID, " +
+            "SESSION_TYPE, OPERATION, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE TIME_CREATED < ? AND TENANT_ID =" +
+            " ? LIMIT %d) ";
+    private static final String SQL_DELETE_EXPIRED_DATA_TASK_DB2SQL =
+            "DELETE FROM IDN_AUTH_SESSION_STORE WHERE (SESSION_ID, SESSION_TYPE, OPERATION, TIME_CREATED) IN " +
+                    "(SELECT SESSION_ID, SESSION_TYPE, OPERATION, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE " +
+                    "TIME_CREATED < ? AND TENANT_ID = ? FETCH FIRST %d ROWS ONLY)";
     private static final String MYSQL_DATABASE = "MySQL";
     private static final String H2_DATABASE = "H2";
     private static final String DB2_DATABASE = "DB2";
@@ -103,10 +119,8 @@ public class SessionDataStore {
     private static final String POSTGRESQL_DATABASE = "PostgreSQL";
     private static final String INFORMIX_DATABASE = "Informix";
 
+    private static final int DEFAULT_DELETE_LIMIT = 50000;
     private static int maxPoolSize = 100;
-    private long operationCleanUpPeriod = 720;
-    private String defaultCleanUpEnabled ="true";
-    private String defaultOperationCleanUpEnabled ="false";
     private static BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
     private static volatile SessionDataStore instance;
     private boolean enablePersist;
@@ -116,6 +130,9 @@ public class SessionDataStore {
     private String sqlDeleteDELETETask;
     private String sqlSelect;
     private String sqlDeleteExpiredDataTask;
+    private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
+    private boolean sessionDataCleanupEnabled = true;
+    private boolean operationDataCleanupEnabled = false;
 
     static {
         try {
@@ -131,7 +148,6 @@ public class SessionDataStore {
         }
         if (maxPoolSize > 0) {
             log.info("Thread pool size for session persistent consumer : " + maxPoolSize);
-
             ExecutorService threadPool = Executors.newFixedThreadPool(maxPoolSize);
             for (int i = 0; i < maxPoolSize; i++) {
                 threadPool.execute(new SessionDataPersistTask(sessionContextQueue));
@@ -180,10 +196,14 @@ public class SessionDataStore {
             sqlSelect = selectSQL;
         }
 
-        if (!StringUtils.isBlank(deleteExpiredDataTaskSQL)) {
-            sqlDeleteExpiredDataTask = deleteExpiredDataTaskSQL;
-        } else {
-            sqlDeleteExpiredDataTask = SQL_DELETE_EXPIRED_DATA_TASK;
+        String deleteChunkSizeString = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist" +
+                ".SessionDataCleanUp.DeleteChunkSize");
+        if (StringUtils.isNotBlank(deleteChunkSizeString)) {
+            deleteChunkSize = Integer.parseInt(deleteChunkSizeString);
+        }
+
+        if (StringUtils.isNotBlank(deleteExpiredDataTaskSQL)) {
+            sqlDeleteExpiredDataTask = String.format(deleteExpiredDataTaskSQL, deleteChunkSize);
         }
 
         if (!enablePersist) {
@@ -193,31 +213,25 @@ public class SessionDataStore {
 
         String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
 
-        if (StringUtils.isBlank(isCleanUpEnabledVal)) {
-            isCleanUpEnabledVal = defaultCleanUpEnabled;
+        if (StringUtils.isNotBlank(isCleanUpEnabledVal)) {
+            sessionDataCleanupEnabled = Boolean.parseBoolean(isCleanUpEnabledVal);
         }
-        if (StringUtils.isBlank(isOperationCleanUpEnabledVal)) {
-            isOperationCleanUpEnabledVal = defaultOperationCleanUpEnabled;
+        if (StringUtils.isNotBlank(isOperationCleanUpEnabledVal)) {
+            operationDataCleanupEnabled = Boolean.parseBoolean(isOperationCleanUpEnabledVal);
         }
 
-        if (Boolean.parseBoolean(isCleanUpEnabledVal)) {
+        if (sessionDataCleanupEnabled || operationDataCleanupEnabled) {
             long sessionCleanupPeriod = IdentityUtil.getCleanUpPeriod(
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-            SessionCleanUpService sessionCleanUpService = new SessionCleanUpService(sessionCleanupPeriod/4,
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Session clean up task enabled to run in %d minutes intervals",
+                        sessionCleanupPeriod));
+            }
+            SessionCleanUpService sessionCleanUpService = new SessionCleanUpService(sessionCleanupPeriod / 4,
                     sessionCleanupPeriod);
             sessionCleanUpService.activateCleanUp();
-        } else {
-            log.info("Session Data CleanUp Task of Authentication framework is not enabled.");
         }
-        if (Boolean.parseBoolean(isOperationCleanUpEnabledVal)) {
-            long operationCleanUpPeriod = IdentityUtil.getOperationCleanUpPeriod(
-                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
-            OperationCleanUpService operationCleanUpService = new OperationCleanUpService(operationCleanUpPeriod/4,
-                    operationCleanUpPeriod);
-            operationCleanUpService.activateCleanUp();
-        } else {
-            log.info("Session Data Operations CleanUp Task of Authentication framework is not enabled.");
-        }
+
     }
 
     public static SessionDataStore getInstance() {
@@ -317,35 +331,148 @@ public class SessionDataStore {
         }
     }
 
-    public void removeExpiredSessionData() {
+    /**
+     * Gets the DB specific query for the session data removal, this may be overridden by the configuration
+     * "JDBCPersistenceManager.SessionDataPersist.SQL.DeleteExpiredDataTask"
+     *
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    private String getDBSpecificSessionDataRemovalQuery() throws IdentityApplicationManagementException {
+
+        Connection connection = null;
+        try {
+            connection = IdentityDatabaseUtil.getDBConnection();
+            String nonFormattedQuery;
+            if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)
+                    || connection.getMetaData().getDriverName().contains(H2_DATABASE)) {
+                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
+            } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
+                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_DB2SQL;
+            } else if (connection.getMetaData().getDriverName().contains(MS_SQL_DATABASE)
+                    || connection.getMetaData().getDriverName().contains(MICROSOFT_DATABASE)) {
+                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MSSQL;
+            } else if (connection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE)) {
+                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL;
+            } else if (connection.getMetaData().getDriverName().contains(INFORMIX_DATABASE)) {
+                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_INFOMIXSQL;
+            } else {
+                nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_ORACLE;
+            }
+            return String.format(nonFormattedQuery, deleteChunkSize);
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving DB connection meta-data", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, null);
+        }
+    }
+
+    /**
+     * Removes all records related to expired sessions from DB
+     */
+    private void removeExpiredRememberMeSessions() {
+
+        if (StringUtils.isBlank(sqlDeleteExpiredDataTask)) {
+            try {
+                sqlDeleteExpiredDataTask = getDBSpecificSessionDataRemovalQuery();
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Error when initializing the db specific cleanup query.", e);
+            }
+        }
+
+        try {
+            Tenant[] tenants =
+                    FrameworkServiceDataHolder.getInstance().getRealmService().getTenantManager().getAllTenants();
+            for (Tenant tenant : tenants) {
+                removeExpiredRememberMeSessions(tenant.getId());
+            }
+        } catch (UserStoreException e) {
+            log.error("Error while listing tenants for session clean up task", e);
+        }
+
+        //The above method doesn't return the super tenant, hence we have to specifically do the clean up for
+        // super tenant
+        removeExpiredRememberMeSessions(MultitenantConstants.SUPER_TENANT_ID);
+        //remove the entries for invalid tenant.
+        removeExpiredRememberMeSessions(MultitenantConstants.INVALID_TENANT_ID);
+    }
+
+    /**
+     * Removes the records of a given tenant related to expired sessions from DB
+     * @param tenantId The tenant Id of whose data needs to be removed
+     */
+    private void removeExpiredRememberMeSessions(int tenantId) {
+
         Connection connection = null;
         PreparedStatement statement = null;
+
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return;
         }
+
+        //If the entries are tenant independent, we are using the value from the configuration, If not the tenant's
+        // remember me timeout is used
         long cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
                 TimeUnit.MINUTES.toNanos(IdentityUtil.getCleanUpTimeout());
+
+        if (tenantId != MultitenantConstants.INVALID_TENANT_ID) {
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+            cleanupLimitNano = FrameworkUtils.getCurrentStandardNano() -
+                    TimeUnit.SECONDS.toNanos(IdPManagementUtil.getRememberMeTimeout(tenantDomain));
+        }
         try {
-            statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
-            statement.setLong(1, cleanupLimitNano);
-            statement.execute();
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+            boolean deleteCompleted = false;
+            int totalDeletedEntries = 0;
+            while (!deleteCompleted) {
+                statement = connection.prepareStatement(sqlDeleteExpiredDataTask);
+                statement.setLong(1, cleanupLimitNano);
+                statement.setInt(2, tenantId);
+                int noOfDeletedRecords = statement.executeUpdate();
+                deleteCompleted = noOfDeletedRecords < deleteChunkSize;
+                totalDeletedEntries += noOfDeletedRecords;
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Removed %d expired session records for tenant id: %d.",
+                            noOfDeletedRecords, tenantId));
+                }
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            }
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Deleted total of %d entries for the tenant id: %d", totalDeletedEntries,
+                        tenantId));
             }
         } catch (SQLException e) {
             log.error("Error while removing session data from the database for nano time " + cleanupLimitNano, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
-
         }
     }
 
+    /**
+     * Cleans the session data and operation data (if enabled) from the DB
+     */
+    public void removeExpiredSessionData() {
+
+        if (sessionDataCleanupEnabled) {
+            removeExpiredRememberMeSessions();
+        }
+        if (operationDataCleanupEnabled) {
+            deleteSTOREOperationsTask();
+            deleteDELETEOperationsTask();
+        }
+    }
+
+    /**
+     * @deprecated This is now run as a part of the {@link #removeExpiredSessionData()} due to a possible deadlock as
+     * mentioned in IDENTITY-5131
+     */
+    @Deprecated
     public void removeExpiredOperationData() {
-        deleteSTOREOperationsTask();
-        deleteDELETEOperationsTask();
+
     }
 
     public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
@@ -360,7 +487,6 @@ public class SessionDataStore {
             return;
         }
         PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
         try {
             preparedStatement = connection.prepareStatement(sqlInsertSTORE);
             preparedStatement.setString(1, key);
@@ -376,7 +502,7 @@ public class SessionDataStore {
         } catch (SQLException | IOException e) {
             log.error("Error while storing session data", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
     }
 

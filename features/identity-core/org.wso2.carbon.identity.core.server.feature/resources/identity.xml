@@ -35,10 +35,12 @@
                 <Enable>true</Enable>
                 <CleanUpTimeout>20160</CleanUpTimeout>
                 <CleanUpPeriod>1140</CleanUpPeriod>
+                <!--Instead of deleting all the records at once, we are deleting the records in chunks to prevent the -->
+                <!--possible deadlock and lock scenarios. The following property defines the chunk size.-->
+                <DeleteChunkSize>50000</DeleteChunkSize>
             </SessionDataCleanUp>
             <OperationDataCleanUp>
                 <Enable>true</Enable>
-                <CleanUpPeriod>720</CleanUpPeriod>
             </OperationDataCleanUp>
         </SessionDataPersist>
     </JDBCPersistenceManager>
