@@ -320,33 +320,21 @@ public class DefaultClaimHandler implements ClaimHandler {
      * @return
      */
     private static String getServiceProviderMappedUserRoles(ApplicationConfig applicationConfig,
-            List<String> locallyMappedUserRoles, String claimSeparator) throws FrameworkException {
-        if (CollectionUtils.isNotEmpty(locallyMappedUserRoles)) {
+                                                            List<String> locallyMappedUserRoles, String claimSeparator)
+            throws FrameworkException {
 
-            Map<String, String> localToSpRoleMapping = applicationConfig.getRoleMappings();
+        Map<String, String> localToSpRoleMapping = applicationConfig.getRoleMappings();
 
-            if (MapUtils.isEmpty(localToSpRoleMapping)) {
-                return null;
-            }
-
-            StringBuilder spMappedUserRoles = new StringBuilder();
+        if (!MapUtils.isEmpty(localToSpRoleMapping)) {
             for (Map.Entry<String, String> roleMapping : localToSpRoleMapping.entrySet()) {
                 if (locallyMappedUserRoles.contains(roleMapping.getKey())) {
-                    spMappedUserRoles.append(roleMapping.getValue()).append(claimSeparator);
                     locallyMappedUserRoles.remove(roleMapping.getKey());
+                    locallyMappedUserRoles.add(roleMapping.getValue());
                 }
             }
-
-            for (String remainingRole : locallyMappedUserRoles) {
-                spMappedUserRoles.append(remainingRole).append(claimSeparator);
-            }
-
-            return spMappedUserRoles.length() > 0 ?
-                    spMappedUserRoles.toString().substring(0, spMappedUserRoles.length() - 1) :
-                    null;
         }
 
-        return null;
+        return StringUtils.join(locallyMappedUserRoles, claimSeparator);
     }
 
     /**
