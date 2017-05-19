@@ -41,6 +41,7 @@ public class DefaultKeyProviderService implements KeyProviderService {
 
     public DefaultKeyProviderService(KeyStoreManagerExtension defaultKeyStoreManagerExtension) {
         this.defaultKeyStoreManagerExtension = defaultKeyStoreManagerExtension;
+        this.keyStoreManagerExtension = defaultKeyStoreManagerExtension;
     }
 
     /**
