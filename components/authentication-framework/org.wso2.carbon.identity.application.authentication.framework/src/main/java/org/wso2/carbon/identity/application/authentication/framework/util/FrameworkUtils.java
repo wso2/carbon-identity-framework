@@ -459,7 +459,7 @@ public class FrameworkUtils {
 
         PostAuthenticationHandler postAuthenticationHandler = null;
         Object obj = ConfigurationFacade.getInstance().getExtensions()
-                .get(FrameworkConstants.Config.QNAME_EXT_AUTHORIZATION_HANDLER);
+                .get(FrameworkConstants.Config.QNAME_EXT_POST_AUTHENTICATION_HANDLER);
 
         if (obj instanceof PostAuthenticationHandler) {
             postAuthenticationHandler = (PostAuthenticationHandler) obj;
