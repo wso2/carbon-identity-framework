@@ -518,6 +518,10 @@ public class IdentityMgtEventListener extends AbstractIdentityUserOperationEvent
         if (log.isDebugEnabled()) {
             log.debug("Pre add user is called in IdentityMgtEventListener");
         }
+
+        //Removing existing thread local before setting
+        IdentityUtil.threadLocalProperties.get().remove(EMPTY_PASSWORD_USED);
+        
         IdentityMgtConfig config = IdentityMgtConfig.getInstance();
         try {
             // Enforcing the password policies.
