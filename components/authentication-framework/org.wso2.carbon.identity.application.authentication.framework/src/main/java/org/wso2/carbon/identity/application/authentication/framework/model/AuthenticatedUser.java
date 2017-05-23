@@ -162,6 +162,30 @@ public class AuthenticatedUser extends User {
     }
 
     /**
+     * Set authenticated subject identifier according to the useTenantDomainInLocalSubjectIdentifier and
+     * useUserstoreDomainInLocalSubjectIdentifier properties.
+     *
+     * @param authenticatedSubjectIdentifier             authenticatedSubjectIdentifier
+     * @param useTenantDomainInLocalSubjectIdentifier    useTenantDomainInLocalSubjectIdentifier
+     * @param useUserstoreDomainInLocalSubjectIdentifier useUserstoreDomainInLocalSubjectIdentifier
+     */
+    public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier,
+                                                  boolean useTenantDomainInLocalSubjectIdentifier,
+                                                  boolean useUserstoreDomainInLocalSubjectIdentifier) {
+        if (!isFederatedUser()) {
+            if (useUserstoreDomainInLocalSubjectIdentifier && userStoreDomain != null) {
+                authenticatedSubjectIdentifier = UserCoreUtil.addDomainToName(authenticatedSubjectIdentifier,
+                        userStoreDomain);
+            }
+            if (useTenantDomainInLocalSubjectIdentifier && tenantDomain != null) {
+                authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
+                        tenantDomain);
+            }
+        }
+        this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
+    }
+
+    /**
      * Returns the user attributes of the authenticated user as a map.
      * The map holds the respective ClaimMapping object as the key and the attribute as the value.
      *
