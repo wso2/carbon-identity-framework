@@ -174,19 +174,15 @@ public class AuthenticatedUser extends User {
                                                   boolean useUserstoreDomainInLocalSubjectIdentifier) {
         if (!isFederatedUser()) {
             if (useUserstoreDomainInLocalSubjectIdentifier && userStoreDomain != null) {
-                this.authenticatedSubjectIdentifier = UserCoreUtil.addDomainToName(authenticatedSubjectIdentifier,
+                authenticatedSubjectIdentifier = UserCoreUtil.addDomainToName(authenticatedSubjectIdentifier,
                         userStoreDomain);
             }
             if (useTenantDomainInLocalSubjectIdentifier && tenantDomain != null) {
-                this.authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
+                authenticatedSubjectIdentifier = UserCoreUtil.addTenantDomainToEntry(authenticatedSubjectIdentifier,
                         tenantDomain);
             }
-            if (!useUserstoreDomainInLocalSubjectIdentifier && !useTenantDomainInLocalSubjectIdentifier) {
-                this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
-            }
-        } else {
-            this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
         }
+        this.authenticatedSubjectIdentifier = authenticatedSubjectIdentifier;
     }
 
     /**
