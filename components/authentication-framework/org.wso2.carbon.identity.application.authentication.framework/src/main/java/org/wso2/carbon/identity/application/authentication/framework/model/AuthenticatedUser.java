@@ -171,6 +171,7 @@ public class AuthenticatedUser extends User {
      */
 
     public void setAuthenticatedSubjectIdentifier(String authenticatedSubjectIdentifier, ServiceProvider serviceProvider) {
+
         if (!isFederatedUser() && serviceProvider != null) {
             boolean useUserstoreDomainInLocalSubjectIdentifier = serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                     .isUseUserstoreDomainInLocalSubjectIdentifier();
