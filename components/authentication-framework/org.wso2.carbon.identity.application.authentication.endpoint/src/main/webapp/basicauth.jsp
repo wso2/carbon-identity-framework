@@ -30,6 +30,13 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
 
+<script>
+        function submitCredentials () {
+            var userName = document.getElementById("username");
+            userName.value = userName.value.trim();
+            document.getElementById("loginForm").submit();
+        }
+</script>
 
 <%
     String resendUsername = request.getParameter("resend_username");
@@ -132,7 +139,7 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit">Sign in
+                    type="submit" onclick="submitCredentials()">Sign in
             </button>
         </div>
     </div>
