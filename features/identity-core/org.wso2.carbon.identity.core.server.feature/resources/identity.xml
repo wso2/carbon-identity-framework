@@ -166,7 +166,7 @@
         <!-- Validity period for refresh token -->
         <RefreshTokenValidityPeriod>84600</RefreshTokenValidityPeriod>
         <!-- Timestamp skew in seconds -->
-        <TimestampSkew>300</TimestampSkew>
+        <TimestampSkew>0</TimestampSkew>
         <!-- Enable OAuth caching -->
         <EnableOAuthCache>false</EnableOAuthCache>
         <!-- Enable renewal of refresh token for refresh_token grant -->
