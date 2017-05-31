@@ -22,6 +22,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -32,11 +33,15 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.api.Collection;
 import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.RegistryConstants;
+import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -220,6 +225,8 @@ public class ApplicationMgtUtil {
     }
 
     /**
+     * Stores the permissions to applications.
+     *
      * @param applicationName
      * @param permissionsConfig
      * @throws IdentityApplicationManagementException
@@ -227,6 +234,16 @@ public class ApplicationMgtUtil {
     public static void storePermissions(String applicationName, String username, PermissionsAndRoleConfig permissionsConfig)
             throws IdentityApplicationManagementException {
 
+        int tenantId = MultitenantConstants.INVALID_TENANT_ID;
+        try {
+            tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+            RegistryUtils.initializeTenant(
+                    (RegistryService) ApplicationManagementServiceComponentHolder.getInstance().getRegistryService(),
+                    tenantId);
+        } catch (RegistryException e) {
+            throw new IdentityApplicationManagementException("Error loading tenant registry for tenant domain: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId), e);
+        }
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
 
