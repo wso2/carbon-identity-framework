@@ -62,12 +62,7 @@ import org.xml.sax.SAXException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -88,6 +83,8 @@ public class EntitlementEngine {
     private List<ResourceFinderModule> resourceModules = new ArrayList<ResourceFinderModule>();
     private static EntitlementEngineCache entitlementEngines = EntitlementEngineCache.getInstance();
     private static EntitlementEngine entitlementEngine;
+    private static CarbonPolicyFinder tmpCarbonPolicyFinder;
+    private static HashMap<Integer, CarbonPolicyFinder> tmpCarbonPolicyFinderMap = new HashMap<Integer, CarbonPolicyFinder>();
 
     private DecisionCache decisionCache = null;
     private PolicyCache policyCache = null;
@@ -239,6 +236,18 @@ public class EntitlementEngine {
         }
     }
 
+    public static CarbonPolicyFinder getTmpCarbonPolicyFinder() {
+        return tmpCarbonPolicyFinder;
+    }
+
+    private static void addTmpCarbonPolicyFinderInstance(int tenantId, CarbonPolicyFinder tmpCarbonPolicyFinder) {
+        tmpCarbonPolicyFinderMap.put(tenantId, tmpCarbonPolicyFinder);
+    }
+
+    public static CarbonPolicyFinder getTmpCarbonPolicyFinderInstance(){
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        return tmpCarbonPolicyFinderMap.get(tenantId);
+    }
 
     /**
      * Test request for PDP
@@ -634,7 +643,9 @@ public class EntitlementEngine {
 
         carbonPolicyFinder = new PolicyFinder();
         Set<PolicyFinderModule> policyModules = new HashSet<PolicyFinderModule>();
-        CarbonPolicyFinder tmpCarbonPolicyFinder = new CarbonPolicyFinder();
+        tmpCarbonPolicyFinder = new CarbonPolicyFinder();
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        addTmpCarbonPolicyFinderInstance(tenantId, tmpCarbonPolicyFinder);
         policyModules.add(tmpCarbonPolicyFinder);
         carbonPolicyFinder.setModules(policyModules);
         carbonPolicyFinder.init();

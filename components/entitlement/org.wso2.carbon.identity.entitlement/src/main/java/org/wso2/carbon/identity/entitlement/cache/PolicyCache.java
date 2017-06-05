@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.PolicyStatusClusterMessage;
 import org.wso2.carbon.identity.entitlement.common.EntitlementConstants;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementConfigHolder;
+import org.wso2.carbon.identity.entitlement.pdp.EntitlementEngine;
+import org.wso2.carbon.identity.entitlement.policy.store.PolicyDataStore;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -143,6 +145,14 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         int state = 0;
+
+
+        for (PolicyDataStore policyDataStore : EntitlementConfigHolder.getInstance().getPolicyDataStore().keySet()) {
+
+            EntitlementEngine.getTmpCarbonPolicyFinderInstance().getPolicyCollection().setPolicyCombiningAlgorithm
+                    (policyDataStore.getGlobalPolicyAlgorithm());
+
+        }
 
         synchronized (cacheInvalidationState) {
             if (cacheInvalidationState.get(tenantId) != null) {
