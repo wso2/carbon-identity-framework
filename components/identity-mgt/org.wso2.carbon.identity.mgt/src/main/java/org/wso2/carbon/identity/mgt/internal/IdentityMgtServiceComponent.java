@@ -25,7 +25,9 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfigException;
 import org.wso2.carbon.identity.mgt.IdentityMgtEventListener;
@@ -130,11 +132,19 @@ public class IdentityMgtServiceComponent {
                 UserIdentityManagementUtil.loadDefaultChallenges();
             }
 
-            Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
-            EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
-            emailNotificationConfig.setProperties(emailConfigFile.getProperties());
-            ConfigBuilder.getInstance().saveConfiguration(StorageType.REGISTRY, MultitenantConstants.SUPER_TENANT_ID,
-                                                          emailNotificationConfig);
+            IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
+                    (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
+
+            if (identityEventListenerConfig != null) {
+                if (Boolean.parseBoolean(identityEventListenerConfig.getEnable()) && !registry.resourceExists
+                        (IdentityMgtConstants.EMAIL_TEMPLATE_PATH)) {
+                    Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
+                    EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
+                    emailNotificationConfig.setProperties(emailConfigFile.getProperties());
+                    ConfigBuilder.getInstance().saveConfiguration(StorageType.REGISTRY, MultitenantConstants.SUPER_TENANT_ID,
+                            emailNotificationConfig);
+                }
+            }
 
         } catch (RegistryException e) {
             log.error("Error while creating registry collection for org.wso2.carbon.identity.mgt component", e);
