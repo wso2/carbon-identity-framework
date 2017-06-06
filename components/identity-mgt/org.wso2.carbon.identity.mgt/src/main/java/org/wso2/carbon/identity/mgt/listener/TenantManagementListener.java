@@ -29,7 +29,11 @@ import org.wso2.carbon.identity.mgt.config.Config;
 import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
 import org.wso2.carbon.identity.mgt.config.EmailNotificationConfig;
 import org.wso2.carbon.identity.mgt.config.StorageType;
+import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
+import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
+import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 import org.wso2.carbon.stratos.common.exception.StratosException;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -47,16 +51,21 @@ public class TenantManagementListener implements TenantMgtListener {
     @Override
     public void onTenantCreate(TenantInfoBean tenantInfo) throws StratosException {
         try {
+            Registry registry;
+
             PrivilegedCarbonContext.getThreadLocalCarbonContext().startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantInfo.getTenantDomain());
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantInfo.getTenantId());
             UserIdentityManagementUtil.loadDefaultChallenges();
 
+            registry = IdentityMgtServiceComponent.getRegistryService().getConfigSystemRegistry();
+
             IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                     (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
 
             if (identityEventListenerConfig != null) {
-                if (Boolean.parseBoolean(identityEventListenerConfig.getEnable())) {
+                if (Boolean.parseBoolean(identityEventListenerConfig.getEnable()) &&
+                        !registry.resourceExists(IdentityMgtConstants.EMAIL_TEMPLATE_PATH)) {
                     Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
                     EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
                     emailNotificationConfig.setProperties(emailConfigFile.getProperties());
@@ -67,6 +76,9 @@ public class TenantManagementListener implements TenantMgtListener {
         } catch (IdentityMgtConfigException e) {
             log.error("Error occurred while saving default email templates in registry for tenant: "
                       + tenantInfo.getTenantDomain());
+        } catch (RegistryException e) {
+            log.error("Error occurred while saving default email templates in registry for super tenant: "
+                    + tenantInfo.getTenantDomain());
         } finally {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().endTenantFlow();
         }
