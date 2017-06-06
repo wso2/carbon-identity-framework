@@ -136,7 +136,8 @@ public class IdentityMgtServiceComponent {
                     (UserOperationEventListener.class.getName(), IdentityMgtEventListener.class.getName());
 
             if (identityEventListenerConfig != null) {
-                if (Boolean.parseBoolean(identityEventListenerConfig.getEnable())) {
+                if (Boolean.parseBoolean(identityEventListenerConfig.getEnable()) && !registry.resourceExists
+                        (IdentityMgtConstants.EMAIL_TEMPLATE_PATH)) {
                     Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
                     EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
                     emailNotificationConfig.setProperties(emailConfigFile.getProperties());
