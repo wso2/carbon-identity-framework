@@ -48,6 +48,9 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.UUID" %>
+<%@ page
+        import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
 <link href="css/idpmgt.css" rel="stylesheet" type="text/css" media="all"/>
 
 <carbon:breadcrumb label="identity.providers" resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
@@ -83,6 +86,7 @@
     boolean isSAMLSSODefault = false;
     String idPEntityId = null;
     String spEntityId = null;
+    String nameIdFormat = null;
     String ssoUrl = null;
     boolean isAuthnRequestSigned = false;
     boolean isEnableAssertionEncription = false;
@@ -431,6 +435,11 @@
                             IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID);
                     if (spEntityIdProp != null) {
                         spEntityId = spEntityIdProp.getValue();
+                    }
+                    Property nameIDFormatProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE);
+                    if (nameIDFormatProp != null) {
+                        nameIdFormat = nameIDFormatProp.getValue();
                     }
                     Property ssoUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
@@ -898,6 +907,24 @@
     if (spEntityId == null) {
         spEntityId = "";
     }
+
+    if (StringUtils.isBlank(nameIdFormat)) {
+
+        // check whether a global default value for NameIdType is set in the application-authentication.xml file
+        AuthenticatorConfig authenticatorConfig = FileBasedConfigurationBuilder.getInstance()
+                .getAuthenticatorConfigMap().get(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+
+        if (authenticatorConfig != null) {
+            nameIdFormat = authenticatorConfig.getParameterMap()
+                    .get(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE);
+        }
+
+        if (StringUtils.isBlank(nameIdFormat)) {
+            // Going with the default value
+            nameIdFormat = IdentityApplicationConstants.Authenticator.SAML2SSO.UNSPECIFIED_NAME_ID_FORMAT;
+        }
+    }
+
     if (StringUtils.isBlank(ssoUrl)) {
         ssoUrl = StringUtils.EMPTY;
     }
@@ -3664,6 +3691,18 @@
 
                                         <div class="sectionHelp">
                                             <fmt:message key='sp.entity.id.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField"><fmt:message key='name.id.format'/>:<span
+                                            class="required">*</span></td>
+                                    <td>
+                                        <input id="NameIDType" name="NameIDType" type="text" size="70"
+                                               value=<%=Encode.forHtmlAttribute(nameIdFormat)%>>
+
+                                        <div class="sectionHelp">
+                                            <fmt:message key='name.id.format.help'/>
                                         </div>
                                     </td>
                                 </tr>
