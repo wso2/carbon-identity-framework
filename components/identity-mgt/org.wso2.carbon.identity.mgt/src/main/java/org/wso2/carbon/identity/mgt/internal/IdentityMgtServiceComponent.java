@@ -130,13 +130,11 @@ public class IdentityMgtServiceComponent {
                 UserIdentityManagementUtil.loadDefaultChallenges();
             }
 
-            if (!registry.resourceExists(IdentityMgtConstants.EMAIL_TEMPLATE_PATH)) {
-                Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
-                EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
-                emailNotificationConfig.setProperties(emailConfigFile.getProperties());
-                ConfigBuilder.getInstance().saveConfiguration(StorageType.REGISTRY, MultitenantConstants.SUPER_TENANT_ID,
-                        emailNotificationConfig);
-            }
+            Config emailConfigFile = ConfigBuilder.getInstance().loadEmailConfigFile();
+            EmailNotificationConfig emailNotificationConfig = new EmailNotificationConfig();
+            emailNotificationConfig.setProperties(emailConfigFile.getProperties());
+            ConfigBuilder.getInstance().saveConfiguration(StorageType.REGISTRY, MultitenantConstants.SUPER_TENANT_ID,
+                                                          emailNotificationConfig);
 
         } catch (RegistryException e) {
             log.error("Error while creating registry collection for org.wso2.carbon.identity.mgt component", e);
