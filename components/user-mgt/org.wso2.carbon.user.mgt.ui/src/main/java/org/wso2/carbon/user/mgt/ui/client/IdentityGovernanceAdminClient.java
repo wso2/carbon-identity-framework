@@ -39,18 +39,19 @@ public class IdentityGovernanceAdminClient {
     public static final String IDENTITY_MGT_ADMIN_SERVICE_URL = "IdentityGovernanceAdminService";
     public static final String DEFAULT = "DEFAULT";
 
-    protected static Log log = LogFactory.getLog(IdentityGovernanceAdminClient.class);
+    private static final Log log = LogFactory.getLog(IdentityGovernanceAdminClient.class);
 
     public IdentityGovernanceAdminClient(String cookie, String backendServerURL, ConfigurationContext configContext)
             throws Exception {
         try {
-            stub = new IdentityGovernanceAdminServiceStub(configContext, backendServerURL + IDENTITY_MGT_ADMIN_SERVICE_URL);
+            stub = new IdentityGovernanceAdminServiceStub(configContext,
+                                                          backendServerURL + IDENTITY_MGT_ADMIN_SERVICE_URL);
             ServiceClient client = stub._getServiceClient();
             Options option = client.getOptions();
             option.setManageSession(true);
             option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, cookie);
         } catch (Exception e) {
-            throw new Exception("Error occurred while creating TenantIdentityMgtClient Object", e);
+            throw new Exception("Error occurred while creating IdentityGovernanceAdminClient Object", e);
         }
     }
 
@@ -58,28 +59,22 @@ public class IdentityGovernanceAdminClient {
             throws RemoteException, IdentityGovernanceAdminServiceIdentityGovernanceExceptionException {
 
         ConnectorConfig[] configs = stub.getConnectorList();
-        Map<String, Map<String, List<ConnectorConfig>>> catMap = new HashMap<String, Map<String, List<ConnectorConfig>>>();
+        Map<String, Map<String, List<ConnectorConfig>>> catMap = new HashMap<>();
         if (configs != null) {
             for (ConnectorConfig conf : configs) {
                 String categoryName = StringUtils.isBlank(conf.getCategory()) ? DEFAULT : conf.getCategory();
                 String subCategoryName = StringUtils.isBlank(conf.getSubCategory()) ? DEFAULT : conf.getSubCategory();
-                if (catMap.containsKey(categoryName)) {
-                    Map<String, List<ConnectorConfig>> subCatMap = catMap.get(categoryName);
-                    if (subCatMap.containsKey(subCategoryName)) {
-                        List<ConnectorConfig> confList = subCatMap.get(subCategoryName);
-                        confList.add(conf);
-                    } else {
-                        List<ConnectorConfig> confList = new ArrayList<ConnectorConfig>();
-                        confList.add(conf);
-                        subCatMap.put(subCategoryName, confList);
-                    }
-                } else {
-                    Map<String, List<ConnectorConfig>> subCatMap = new HashMap<String, List<ConnectorConfig>>();
-                    catMap.put(categoryName, subCatMap);
-                    List<ConnectorConfig> confList = new ArrayList<ConnectorConfig>();
-                    confList.add(conf);
+                Map<String, List<ConnectorConfig>> subCatMap = catMap.get(categoryName);
+                List confList = subCatMap.get(subCategoryName);
+                if (subCatMap == null) {
+                    subCatMap = new HashMap<>();
                     subCatMap.put(subCategoryName, confList);
                 }
+                if(confList == null) {
+                    confList = new ArrayList();
+                    subCatMap.put(subCategoryName, confList);
+                }
+                confList.add(conf);
             }
         }
         return catMap;

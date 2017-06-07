@@ -53,7 +53,7 @@
 
         ClaimValue[] claims = null;
         String userPassword = (userBean.getPassword());
-        boolean isUserOnBoardingEnabled = Util.getUserOnBoarding(session);
+        boolean isUserOnBoardingEnabled = Util.getUserOnBoardingFromSession(session);
         if(userBean.getEmail().trim().length() > 0 ){
             ClaimValue emailClaim = new ClaimValue();
             emailClaim.setClaimURI(UserAdminUIConstants.EMAIL_CLAIM_URI);

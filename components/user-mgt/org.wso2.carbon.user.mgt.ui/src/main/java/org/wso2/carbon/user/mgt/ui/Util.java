@@ -229,9 +229,11 @@ public class Util {
                     new IdentityGovernanceAdminClient(cookie, backendServerURL, configContext);
             connectorList = client.getConnectorList();
         } catch (RemoteException e) {
-            throw new Exception("Error while calling governance service", e);
+            throw new Exception("Error while getting connector list from governance service, at URL :" +
+                                backendServerURL, e);
         } catch (IdentityGovernanceAdminServiceIdentityGovernanceExceptionException e) {
-            throw new Exception("Error while calling governance service", e);
+            throw new Exception("Error while getting connector list from governance service, at URL :" +
+                                backendServerURL, e);
         }
 
         if (connectorList != null) {
@@ -242,7 +244,7 @@ public class Util {
                     for (ConnectorConfig connectorConfig : connectorConfigs) {
                         Property[] properties = connectorConfig.getProperties();
                         for (Property property : properties) {
-                            if (property.getName().equals(EMAIL_VERIFICATION_ENABLE_PROP_NAME)) {
+                            if (EMAIL_VERIFICATION_ENABLE_PROP_NAME.equals(property.getName())) {
                                 String propValue = property.getValue();
                                 boolean isEmailVerificationEnabled = false;
                                 if (!StringUtils.isEmpty(propValue)) {
@@ -261,7 +263,7 @@ public class Util {
     }
 
 
-    public static Boolean getUserOnBoarding(HttpSession session) {
+    public static Boolean getUserOnBoardingFromSession(HttpSession session) {
         Object emailVerificationEnabledObj = session.getAttribute(EMAIL_VERIFICATION_ENABLE_PROP_NAME);
         if (emailVerificationEnabledObj != null) {
             return Boolean.parseBoolean(String.valueOf(emailVerificationEnabledObj));
