@@ -65,11 +65,13 @@ public class IdentityGovernanceAdminClient {
                 String categoryName = StringUtils.isBlank(conf.getCategory()) ? DEFAULT : conf.getCategory();
                 String subCategoryName = StringUtils.isBlank(conf.getSubCategory()) ? DEFAULT : conf.getSubCategory();
                 Map<String, List<ConnectorConfig>> subCatMap = catMap.get(categoryName);
-                List confList = subCatMap.get(subCategoryName);
+                List confList;
                 if (subCatMap == null) {
                     subCatMap = new HashMap<>();
+                    confList = new ArrayList();
                     subCatMap.put(subCategoryName, confList);
                 }
+                confList = subCatMap.get(subCategoryName);
                 if(confList == null) {
                     confList = new ArrayList();
                     subCatMap.put(subCategoryName, confList);
