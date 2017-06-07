@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.KeyProviderService;
 import org.wso2.carbon.identity.core.KeyStoreManagerExtension;
+import org.wso2.carbon.utils.CarbonUtils;
 
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -37,41 +38,47 @@ public class DefaultKeyProviderService implements KeyProviderService {
     private static final Log log = LogFactory.getLog(DefaultKeyProviderService.class);
 
     private KeyStoreManagerExtension keyStoreManagerExtension;
-    private KeyStoreManagerExtension defaultKeyStoreManagerExtension;
 
     public DefaultKeyProviderService(KeyStoreManagerExtension defaultKeyStoreManagerExtension) {
-        this.defaultKeyStoreManagerExtension = defaultKeyStoreManagerExtension;
+        if (defaultKeyStoreManagerExtension == null) {
+            throw new NullPointerException(
+                    "The " + DefaultKeyProviderService.class.getName() + " can not be constructed with null "
+                            + KeyStoreManagerExtension.class.getName());
+        }
         this.keyStoreManagerExtension = defaultKeyStoreManagerExtension;
     }
 
     /**
-     * Updates the current used KeyStoreManagerExtension with the new extension.
-     * Updating with null value will cause the KeyProviderService to revert to using the default
-     * KeyStoreManagerExtension.
-     * @param keyStoreManagerExtension the new KeyStoreManagerExtension, or null to select the default one.
+     * Sets the current used KeyStoreManagerExtension with the new extension.
+     *
+     * Care must be taken not to set KeyStoreManagerExtension to null as it throws a NullPointerException.
+     * 
+     * @param keyStoreManagerExtension the new KeyStoreManagerExtension, can not be set to null,
+     *                                 it has to be valid KeyStoreManagerExtension reference..
      */
-    public void updateKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+    protected void setKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
+        CarbonUtils.checkSecurity();
         if (log.isDebugEnabled()) {
-            log.debug("Updating the current KeyStoreManagerExtension with new KeyStoreManagerExtension : "
+            log.debug("Setting the current KeyStoreManagerExtension with new KeyStoreManagerExtension : "
                     + keyStoreManagerExtension);
         }
         if (keyStoreManagerExtension == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("The new KeyStoreManagerExtension is null hence using the default : "
-                        + defaultKeyStoreManagerExtension);
-            }
-            keyStoreManagerExtension = defaultKeyStoreManagerExtension;
+            throw new NullPointerException(
+                    "The " + DefaultKeyProviderService.class.getName() + " can not be set with null "
+                            + KeyStoreManagerExtension.class.getName());
         }
         this.keyStoreManagerExtension = keyStoreManagerExtension;
     }
 
     @Override
     public PrivateKey getPrivateKey(String tenantDomain) throws IdentityException {
+        CarbonUtils.checkSecurity();
         return keyStoreManagerExtension.getPrivateKey(tenantDomain);
     }
 
     @Override
     public Certificate getCertificate(String tenantDomain) throws IdentityException {
+        CarbonUtils.checkSecurity();
         return keyStoreManagerExtension.getCertificate(tenantDomain);
     }
 }

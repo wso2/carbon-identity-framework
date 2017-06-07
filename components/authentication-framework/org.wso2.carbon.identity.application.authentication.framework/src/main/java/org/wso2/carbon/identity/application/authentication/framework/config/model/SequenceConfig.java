@@ -38,7 +38,9 @@ public class SequenceConfig implements Serializable {
     private boolean isCheckAuthn;
     private String applicationId;
     private Map<Integer, StepConfig> stepMap = new HashMap<>();
+    private Map<String, AuthenticationChain> authenticationChainMap = new HashMap<>();
     private List<AuthenticatorConfig> reqPathAuthenticators = new ArrayList<>();
+    private Map<String, String>  acrToAuthenticationChainMap = new HashMap<>();
     private ApplicationConfig applicationConfig = null;
     private boolean completed;
 
@@ -138,6 +140,27 @@ public class SequenceConfig implements Serializable {
     public void setAuthenticatedReqPathAuthenticator(
             AuthenticatorConfig authenticatedReqPathAuthenticator) {
         this.authenticatedReqPathAuthenticator = authenticatedReqPathAuthenticator;
+    }
+
+    public Map<String, AuthenticationChain> getAuthenticationChainMap() {
+        return authenticationChainMap;
+    }
+
+    public void addAuthenticationChain(String name, AuthenticationChain authenticationChain) {
+        authenticationChainMap.put(name, authenticationChain);
+    }
+
+    public AuthenticationChain getChainForAcr(String acr) {
+        String chainName = acrToAuthenticationChainMap.get(acr);
+        if(chainName != null) {
+            return authenticationChainMap.get(chainName);
+        }
+
+        return null;
+    }
+
+    public void addChainToAcr(AuthenticationChain authenticationChain, String acr) {
+        acrToAuthenticationChainMap.put(acr, authenticationChain.getName());
     }
 
     /**

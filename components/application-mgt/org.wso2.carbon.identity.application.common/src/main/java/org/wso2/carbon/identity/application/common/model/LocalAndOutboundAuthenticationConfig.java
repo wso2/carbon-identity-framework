@@ -37,8 +37,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String AUTHENTICATION_STEP_FOR_ATTRIBUTES = "AuthenticationStepForAttributes";
     private static final String AUTHENTICATION_STEP_FOR_SUBJECT = "AuthenticationStepForSubject";
     private static final String AUTHENTICATION_STEPS = "AuthenticationSteps";
+    private static final String AUTHENTICATION_CHAINS = "AuthenticationChains";
 
     private AuthenticationStep[] authenticationSteps = new AuthenticationStep[0];
+    private AuthenticationChainConfig[] authenticationChainConfigs = new AuthenticationChainConfig[0];
     private String authenticationType;
     private AuthenticationStep authenticationStepForSubject;
     private AuthenticationStep authenticationStepForAttributes;
@@ -70,7 +72,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         while (iter.hasNext()) {
             OMElement member = (OMElement) iter.next();
 
-            if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {
+            if (AUTHENTICATION_CHAINS.equals(member.getLocalName())) {
+                readAuthenticationChains(localAndOutboundAuthenticationConfig, member);
+            }else if (AUTHENTICATION_STEPS.equals(member.getLocalName())) {
 
                 Iterator<?> authenticationStepsIter = member.getChildElements();
                 List<AuthenticationStep> authenticationStepsArrList = new ArrayList<AuthenticationStep>();
@@ -130,6 +134,27 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         }
 
         return localAndOutboundAuthenticationConfig;
+    }
+
+    private static void readAuthenticationChains(
+            LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig, OMElement member) {
+        Iterator<?> authenticationChainIter = member.getChildElements();
+        List<AuthenticationChainConfig> authenticationChainsArrList = new ArrayList<AuthenticationChainConfig>();
+
+        if (authenticationChainIter != null) {
+            while (authenticationChainIter.hasNext()) {
+                OMElement authenticationChainElement = (OMElement) (authenticationChainIter.next());
+                AuthenticationChainConfig chainConfig = AuthenticationChainConfig.build(authenticationChainElement);
+                if (chainConfig != null) {
+                    authenticationChainsArrList.add(chainConfig);
+                }
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(authenticationChainsArrList)) {
+            localAndOutboundAuthenticationConfig.setAuthenticationChainConfigs(authenticationChainsArrList
+                    .toArray(new AuthenticationChainConfig[authenticationChainsArrList.size()]));
+        }
     }
 
     /**
@@ -241,5 +266,13 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setEnableAuthorization(boolean enableAuthorization) {
 
         this.enableAuthorization = enableAuthorization;
+    }
+
+    public AuthenticationChainConfig[] getAuthenticationChainConfigs() {
+        return authenticationChainConfigs;
+    }
+
+    public void setAuthenticationChainConfigs(AuthenticationChainConfig[] authenticationChainConfigs) {
+        this.authenticationChainConfigs = authenticationChainConfigs;
     }
 }

@@ -31,6 +31,9 @@ public interface KeyStoreManagerExtension {
 
     /**
      * Returns the Private Key for the given tenant domain.
+     * System ensures that the call to this method is performed by acceptable code, when system security
+     * manager is activated, depending on security manager policies.
+     * However implementer may chose to add additional security mechanisms in the implementation.
      *
      * @param tenantDomain  the tenant domain
      * @return
@@ -40,6 +43,9 @@ public interface KeyStoreManagerExtension {
 
     /**
      * Returns the Public certificate for the given tenant domain.
+     * System ensures that the call to this method is performed by acceptable code, when system security
+     * manager is activated, depending on security manager policies.
+     * However implementer may chose to add additional security mechanisms in the implementation.
      *
      * @param tenantDomain  the tenant domain
      * @return

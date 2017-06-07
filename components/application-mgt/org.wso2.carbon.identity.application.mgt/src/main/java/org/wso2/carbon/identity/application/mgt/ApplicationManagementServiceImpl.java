@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
@@ -838,18 +839,26 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             if (serviceProvider != null) {
                 // if "Authentication Type" is "Default" we must get the steps from the default SP
-                AuthenticationStep[] authenticationSteps = serviceProvider
-                        .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider
+                        .getLocalAndOutBoundAuthenticationConfig();
+                AuthenticationStep[] authenticationSteps = localAndOutboundAuthenticationConfig
+                        .getAuthenticationSteps();
 
                 loadApplicationPermissions(serviceProviderName, serviceProvider);
 
                 if (authenticationSteps == null || authenticationSteps.length == 0) {
-                    ServiceProvider defaultSP = ApplicationManagementServiceComponent
-                            .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                    authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                            .getAuthenticationSteps();
+                    ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
+                            .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                    authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                             .setAuthenticationSteps(authenticationSteps);
+                }
+                if (localAndOutboundAuthenticationConfig.getAuthenticationChainConfigs() != null
+                        && localAndOutboundAuthenticationConfig.getAuthenticationChainConfigs().length <= 0) {
+                    ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
+                            .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                    localAndOutboundAuthenticationConfig.setAuthenticationChainConfigs(
+                            defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationChainConfigs());
                 }
             }
         }
@@ -862,6 +871,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     serviceProviderName);
         }
 
+        //TODO: Ruwan: Check why this?
         endTenantFlow();
 
         try {

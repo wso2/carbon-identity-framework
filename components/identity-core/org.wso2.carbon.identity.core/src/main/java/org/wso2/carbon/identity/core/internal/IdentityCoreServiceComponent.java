@@ -262,10 +262,10 @@ public class IdentityCoreServiceComponent {
             log.debug("KeyStoreManagerExtension is being set by an OSGI component. The extension class is: "
                     + keyStoreManagerExtension);
         }
-        defaultKeyProviderService.updateKeyStoreManagerExtension(keyStoreManagerExtension);
+        defaultKeyProviderService.setKeyStoreManagerExtension(keyStoreManagerExtension);
     }
 
     protected void unsetKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
-        defaultKeyProviderService.updateKeyStoreManagerExtension(keyStoreManagerExtension);
+        defaultKeyProviderService.setKeyStoreManagerExtension(defaultKeystoreManagerExtension);
     }
 }

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthorizationException;
@@ -44,15 +45,15 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -291,8 +292,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                                                                sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                sessionContext.setAuthenticationStepHistory(AuthHistory
+                        .merge(sessionContext.getAuthenticationStepHistory(), context.getAuthenticationStepHistory()));
                 long updatedSessionTime = System.currentTimeMillis();
-                if(!context.isPreviousAuthTime()) {
+                if (!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
                 // TODO add to cache?
@@ -313,6 +316,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
+                sessionContext.setAuthenticationStepHistory(AuthHistory
+                        .merge(sessionContext.getAuthenticationStepHistory(), context.getAuthenticationStepHistory()));
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
                 String applicationTenantDomain = context.getTenantDomain();

@@ -40,15 +40,17 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Request Coordinator
@@ -234,6 +236,15 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
         context.setTenantDomain(tenantDomain);
+        if (StringUtils.isNotBlank(request.getParameter("acr_values")) && !"null".equals(request.getParameter
+                ("acr_values"))) {
+            String[] acrValues = request.getParameter("acr_values").split(" ");
+            LinkedHashSet list = new LinkedHashSet();
+            for (String acrValue : acrValues) {
+                list.add(acrValue);
+            }
+            context.setAcrRequested(new LinkedList<String>(list));
+        }
 
         // generate a new key to hold the context data object
         String contextId = UUIDGenerator.generateUUID();
@@ -320,10 +331,8 @@ public class DefaultRequestCoordinator implements RequestCoordinator {
                                                     AuthenticationContext context) throws FrameworkException {
 
         // Get service provider chain
-        SequenceConfig sequenceConfig = ConfigurationFacade.getInstance().getSequenceConfig(
-                context.getRequestType(),
-                request.getParameter(FrameworkConstants.RequestParams.ISSUER),
-                context.getTenantDomain());
+        SequenceConfig sequenceConfig = ConfigurationFacade.getInstance()
+                .getSequenceConfig(context, request.getParameterMap());
 
         Cookie cookie = FrameworkUtils.getAuthCookie(request);
 

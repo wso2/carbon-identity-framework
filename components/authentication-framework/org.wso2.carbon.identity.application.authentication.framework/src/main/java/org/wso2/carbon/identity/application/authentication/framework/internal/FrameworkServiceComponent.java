@@ -37,6 +37,8 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.DefaultAuthStepsSelector;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLoginResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkLogoutResponseFactory;
@@ -171,6 +173,9 @@ public class FrameworkServiceComponent {
                 FrameworkLoginResponseFactory());
         FrameworkServiceDataHolder.getInstance().getHttpIdentityResponseFactories().add(new
                 FrameworkLogoutResponseFactory());
+        UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
+        uiBasedConfigurationLoader.setAuthenticationStepsSelector(new DefaultAuthStepsSelector());
+        FrameworkServiceDataHolder.getInstance().setSequenceLoader(uiBasedConfigurationLoader);
 
         //this is done to load SessionDataStore class and start the cleanup tasks.
         SessionDataStore.getInstance();
