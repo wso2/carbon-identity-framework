@@ -288,7 +288,7 @@
             var emailInput = document.getElementsByName('email')[0];
             var passwordMethod = document.getElementById('askFromUser');
             if (passwordMethod.checked) {
-                skipPasswordValidation = <%=isUserOnBoardingEnabled%>;
+                skipPasswordValidation = <%=!isUserOnBoardingEnabled%>;
                 jQuery('#passwordRow').hide();
                 jQuery('#password').val(generatedPwd);
                 jQuery('#retypeRow').hide();
