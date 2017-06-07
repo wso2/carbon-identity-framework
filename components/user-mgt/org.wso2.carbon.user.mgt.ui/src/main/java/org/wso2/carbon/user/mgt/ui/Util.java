@@ -18,33 +18,45 @@
 
 package org.wso2.carbon.user.mgt.ui;
 
+import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.governance.stub.IdentityGovernanceAdminServiceIdentityGovernanceExceptionException;
+import org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig;
+import org.wso2.carbon.identity.governance.stub.bean.Property;
+import org.wso2.carbon.ui.CarbonUIUtil;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.mgt.stub.types.carbon.FlaggedName;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserRealmInfo;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo;
+import org.wso2.carbon.user.mgt.ui.client.IdentityGovernanceAdminClient;
 import org.wso2.carbon.utils.DataPaginator;
+import org.wso2.carbon.utils.ServerConstants;
+import org.wso2.carbon.utils.xml.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.mail.util.ByteArrayDataSource;
-
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
 
 public class Util {
 
     public static final String ALL = "ALL";
     private static final Log log = LogFactory.getLog(Util.class);
+    public static final String EMAIL_VERIFICATION_ENABLE_PROP_NAME = "EmailVerification.Enable";
     private static boolean isAskPasswordEnabled = true;
 
     static {
@@ -198,8 +210,63 @@ public class Util {
         }
     }
 
-    public static boolean isAskPasswordEnabled(){
+    public static boolean isAskPasswordEnabled() {
         return isAskPasswordEnabled;
+    }
+
+    public static boolean isUserOnBoardingEnabled(ServletContext context, HttpSession session) throws Exception {
+        Object emailVerificationEnabledObj = session.getAttribute(EMAIL_VERIFICATION_ENABLE_PROP_NAME);
+        if (emailVerificationEnabledObj != null) {
+            return Boolean.parseBoolean(String.valueOf(emailVerificationEnabledObj));
+        }
+        String backendServerURL = CarbonUIUtil.getServerURL(context, session);
+        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+        ConfigurationContext configContext =
+                (ConfigurationContext) context.getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+        Map<String, Map<String, List<ConnectorConfig>>> connectorList;
+        try {
+            IdentityGovernanceAdminClient client =
+                    new IdentityGovernanceAdminClient(cookie, backendServerURL, configContext);
+            connectorList = client.getConnectorList();
+        } catch (RemoteException e) {
+            throw new Exception("Error while calling governance service", e);
+        } catch (IdentityGovernanceAdminServiceIdentityGovernanceExceptionException e) {
+            throw new Exception("Error while calling governance service", e);
+        }
+
+        if (connectorList != null) {
+            for (String key : connectorList.keySet()) {
+                Map<String, List<ConnectorConfig>> subCatList = connectorList.get(key);
+                for (String subCatKey : subCatList.keySet()) {
+                    List<ConnectorConfig> connectorConfigs = subCatList.get(subCatKey);
+                    for (ConnectorConfig connectorConfig : connectorConfigs) {
+                        Property[] properties = connectorConfig.getProperties();
+                        for (Property property : properties) {
+                            if (property.getName().equals(EMAIL_VERIFICATION_ENABLE_PROP_NAME)) {
+                                String propValue = property.getValue();
+                                boolean isEmailVerificationEnabled = false;
+                                if (!StringUtils.isEmpty(propValue)) {
+                                    isEmailVerificationEnabled = Boolean.parseBoolean(propValue);
+                                    session.setAttribute(EMAIL_VERIFICATION_ENABLE_PROP_NAME,
+                                                         isEmailVerificationEnabled);
+                                }
+                                return isEmailVerificationEnabled;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+    public static Boolean getUserOnBoarding(HttpSession session) {
+        Object emailVerificationEnabledObj = session.getAttribute(EMAIL_VERIFICATION_ENABLE_PROP_NAME);
+        if (emailVerificationEnabledObj != null) {
+            return Boolean.parseBoolean(String.valueOf(emailVerificationEnabledObj));
+        }
+        return false;
     }
 
 }

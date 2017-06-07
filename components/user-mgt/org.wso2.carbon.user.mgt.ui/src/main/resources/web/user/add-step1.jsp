@@ -41,6 +41,7 @@
 
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="js/randexp.min.js"></script>
 <%
     UserStoreInfo userStoreInfo = null;
     UserRealmInfo userRealmInfo = null;
@@ -48,15 +49,17 @@
 
     List<String> domainNames = null;
     String selectedDomain = null;
+    boolean isAskPasswordEnabled = false;
+    boolean isUserOnBoardingEnabled = false;
 
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
     try {
         userRealmInfo = (UserRealmInfo) session.getAttribute(UserAdminUIConstants.USER_STORE_INFO);
+        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+        String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         if (userRealmInfo == null) {
-            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-            String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
             ConfigurationContext configContext =
                     (ConfigurationContext) config.getServletContext()
                                                  .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
@@ -94,6 +97,12 @@
             selectedDomain = primaryDomainName;
         }
 
+        isAskPasswordEnabled = Util.isAskPasswordEnabled();
+        isUserOnBoardingEnabled = Util.isUserOnBoardingEnabled(config.getServletContext(), session);
+        if (!isAskPasswordEnabled) {
+            isAskPasswordEnabled = isUserOnBoardingEnabled;
+        }
+
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.while.loading.user.store.info"),
                                               e.getMessage());
@@ -117,6 +126,9 @@
     <script type="text/javascript">
 
         var skipPasswordValidation = false;
+        var passwordRegEx = "<%=Encode.forJavaScriptBlock(userStoreInfo.getPasswordRegEx())%>";
+
+        var generatedPwd = new RandExp(passwordRegEx).gen();
 
         function validateString(fld1name, regString) {
             var stringValue = document.getElementsByName(fld1name)[0].value;
@@ -146,7 +158,6 @@
 
             var e = document.getElementById("domain");
 
-            var passwordRegEx = "<%=Encode.forJavaScriptBlock(userStoreInfo.getPasswordRegEx())%>";
             var usrRegEx = "<%=Encode.forJavaScriptBlock(userStoreInfo.getUserNameRegEx())%>";
 
             if (e != null) {
@@ -268,6 +279,8 @@
                 jQuery('#emailRow').hide();
                 jQuery('#passwordRow').show();
                 jQuery('#retypeRow').show();
+                jQuery('#password').val("");
+                jQuery('#password-repeat').val("");
             }
         }
 
@@ -275,9 +288,11 @@
             var emailInput = document.getElementsByName('email')[0];
             var passwordMethod = document.getElementById('askFromUser');
             if (passwordMethod.checked) {
-                skipPasswordValidation = true;
+                skipPasswordValidation = <%=isUserOnBoardingEnabled%>;
                 jQuery('#passwordRow').hide();
+                jQuery('#password').val(generatedPwd);
                 jQuery('#retypeRow').hide();
+                jQuery('#password-repeat').val(generatedPwd);
                 if (emailInput == null) {
                     var mainTable = document.getElementById('mainTable');
                     var newTr = mainTable.insertRow(mainTable.rows.length);
@@ -378,7 +393,7 @@
                                                style="width:150px"/></td>
                                 </tr>
                                 <%
-                                    if (Util.isAskPasswordEnabled()) {
+                                    if (isAskPasswordEnabled) {
                                 %>
 
                                 <tr>
@@ -401,11 +416,11 @@
                                 %>
                                 <tr id="passwordRow">
                                     <td><fmt:message key="password"/><font color="red">*</font></td>
-                                    <td><input type="password" name="password" style="width:150px" autocomplete="off"/></td>
+                                    <td><input type="password" name="password" id="password" style="width:150px" autocomplete="off"/></td>
                                 </tr>
                                 <tr id="retypeRow">
                                     <td><fmt:message key="password.repeat"/><font color="red">*</font></td>
-                                    <td><input type="password" autocomplete="off" name="retype" style="width:150px"/></td>
+                                    <td><input type="password" id="password-repeat" autocomplete="off" name="retype" style="width:150px"/></td>
                                 </tr>
                             </table>
                         </td>
