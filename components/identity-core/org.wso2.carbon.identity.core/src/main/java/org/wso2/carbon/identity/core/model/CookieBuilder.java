@@ -29,9 +29,9 @@ public class CookieBuilder {
     private String domain;
     private int maxAge = -1;
     private String path = "/";
-    private boolean secure = true;
+    private boolean secure = false;
     private int version = 0;
-    private boolean isHttpOnly = true;
+    private boolean isHttpOnly = false;
 
     public CookieBuilder(String name, String value) {
         this.name = name;
