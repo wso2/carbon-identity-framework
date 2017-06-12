@@ -45,7 +45,7 @@ public class ClaimAdminService {
         List<ClaimDialect> claims = null;
         ClaimDialect dto = null;
 
-        claimMappings = null;
+        claimMappings = ClaimManagerHandler.getInstance().getAllClaimMappings();
 
         if (claimMappings == null || claimMappings.length == 0) {
             return new ClaimDialectDTO[0];
@@ -100,7 +100,34 @@ public class ClaimAdminService {
     public ClaimDialectDTO getClaimMappingByDialect(String dialectUri) throws ClaimManagementException {
         ClaimMapping[] claimMappings;
         ClaimDialect claimDialect;
-        return null;
+
+        claimMappings = ClaimManagerHandler.getInstance().getAllSupportedClaimMappings(dialectUri);
+
+        class ClaimComparator implements Comparator<ClaimMapping> {
+            @Override
+            public int compare(ClaimMapping claimMapping1, ClaimMapping claimMapping2) {
+                return claimMapping1.getClaim().getDisplayTag().compareTo(claimMapping2.getClaim().getDisplayTag());
+            }
+        }
+        // Sort the claims in the alphabetical order
+        Arrays.sort(claimMappings, new Comparator<ClaimMapping>() {
+            @Override
+            public int compare(ClaimMapping claimMapping1, ClaimMapping claimMapping2) {
+                return claimMapping1.getClaim().getDescription().toLowerCase().compareTo(
+                        claimMapping2.getClaim().getDescription().toLowerCase());
+            }
+        });
+
+        if (claimMappings.length == 0) {
+            return null;
+        }
+
+        claimDialect = new ClaimDialect();
+        claimDialect.setClaimMapping(claimMappings);
+        claimDialect.setDialectUri(dialectUri);
+        /*Convert the ClaimDialect type to ClaimDialectDTO type for simplicity of structure
+        when exposing through the web service as a data structure.*/
+        return convertClaimDialectToClaimDialectDTO(claimDialect);
     }
 
     /**
@@ -111,7 +138,7 @@ public class ClaimAdminService {
         /*Convert the simple structure of ClaimMapping received, to the complex structure
         of ClaimMapping which is used in the back end. */
         ClaimMapping claimMapping = convertClaimMappingDTOToClaimMapping(claimMappingDTO);
-//        ClaimManagerHandler.getInstance().updateClaimMapping(claimMapping);
+        ClaimManagerHandler.getInstance().updateClaimMapping(claimMapping);
     }
 
     /**
@@ -123,12 +150,13 @@ public class ClaimAdminService {
         of ClaimMapping which is used in the back end. */
         ClaimMapping claimMapping = convertClaimMappingDTOToClaimMapping(claimMappingDTO);
         ClaimManagerHandler handler = ClaimManagerHandler.getInstance();
-        ClaimMapping currentMapping = null;
+        ClaimMapping currentMapping = handler.getClaimMapping(
+                claimMapping.getClaim().getClaimUri());
         if (currentMapping != null) {
             throw new ClaimManagementException(
                     "Duplicate claim exist in the system. Please pick a different Claim Uri");
         }
-//        handler.addNewClaimMapping(claimMapping);
+        handler.addNewClaimMapping(claimMapping);
     }
 
     /**
@@ -137,7 +165,7 @@ public class ClaimAdminService {
      * @throws ClaimManagementException
      */
     public void removeClaimMapping(String dialectUri, String claimUri) throws ClaimManagementException {
-//        ClaimManagerHandler.getInstance().removeClaimMapping(dialectUri, claimUri);
+        ClaimManagerHandler.getInstance().removeClaimMapping(dialectUri, claimUri);
     }
 
     /**
@@ -147,14 +175,14 @@ public class ClaimAdminService {
         /*Convert the simple structure of ClaimDialectDTO received, to the complex structure
         of ClaimDialect which is used in the back end. */
         ClaimDialect claimDialect = convertClaimDialectDTOToClaimDialect(claimDialectDTO);
-//        ClaimManagerHandler.getInstance().addNewClaimDialect(claimDialect);
+        ClaimManagerHandler.getInstance().addNewClaimDialect(claimDialect);
     }
 
     /**
      * @param
      */
     public void removeClaimDialect(String dialectUri) throws ClaimManagementException {
-//        ClaimManagerHandler.getInstance().removeClaimDialect(dialectUri);
+        ClaimManagerHandler.getInstance().removeClaimDialect(dialectUri);
     }
 
     private ClaimDialectDTO[] convertClaimDialectArrayToClaimDialectDTOArray(
