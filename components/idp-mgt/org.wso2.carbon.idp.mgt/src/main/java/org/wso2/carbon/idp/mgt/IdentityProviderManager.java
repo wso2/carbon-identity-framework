@@ -899,6 +899,37 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * @param property     IDP authenticator property (E.g.: IdPEntityId)
+     * @param value        Value associated with given Property
+     * @param tenantDomain
+     * @param authenticator
+     * @return <code>IdentityProvider</code> Identity Provider information
+     * @throws IdentityProviderManagementException Error when getting Identity Provider
+     *                                             information by authenticator property value
+     */
+    public IdentityProvider getIdPByAuthenticatorPropertyValue(String property, String value, String tenantDomain,
+                                                               String authenticator, boolean ignoreFileBasedIdps)
+            throws IdentityProviderManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        if (StringUtils.isEmpty(property) || StringUtils.isEmpty(value) || StringUtils.isEmpty(authenticator)) {
+            String msg = "Invalid argument: Authenticator property, property value or authenticator name is empty";
+            throw new IdentityProviderManagementException(msg);
+        }
+
+        IdentityProvider identityProvider = dao.getIdPByAuthenticatorPropertyValue(
+                null, property, value, authenticator, tenantId, tenantDomain);
+
+        if (identityProvider == null && !ignoreFileBasedIdps) {
+            identityProvider = new FileBasedIdPMgtDAO()
+                    .getIdPByAuthenticatorPropertyValue(property, value, tenantDomain);
+        }
+
+        return identityProvider;
+    }
+
+    /**
      * Retrieves Enabled Identity provider information about a given tenant by Identity Provider name
      *
      * @param idPName      Unique name of the Identity provider of whose information is requested
