@@ -1637,6 +1637,38 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
+    /**
+     * Force delete an Identity Provider from a given tenant. This will remove any associations this Identity
+     * Provider has with any Service Providers in authentication steps or provisioning.
+     *
+     * @param idpName name of IDP to be deleted
+     * @param tenantDomain tenantDomain to which the IDP belongs to
+     */
+    public void forceDeleteIdp(String idpName, String tenantDomain) throws IdentityProviderManagementException {
+
+        // invoking the pre listeners
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteIdP(idpName, tenantDomain)) {
+                return;
+            }
+        }
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if(SAML2SSOMetadataConverter!=null) {
+            SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idpName.toString());
+        }
+
+        dao.forceDeleteIdP(idpName, tenantId, tenantDomain);
+
+        // invoking the post listeners
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteIdP(idpName, tenantDomain)) {
+                return;
+            }
+        }
+    }
+
 
     /**
      * Updates a given Identity Provider information

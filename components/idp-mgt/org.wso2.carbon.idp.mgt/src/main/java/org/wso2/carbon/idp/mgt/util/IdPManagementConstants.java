@@ -164,6 +164,17 @@ public class IdPManagementConstants {
 
         public static final String DELETE_IDP_SQL = "DELETE FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
 
+        public static final String DELETE_IDP_SP_AUTH_ASSOCIATIONS = "DELETE FROM SP_FEDERATED_IDP where " +
+                "AUTHENTICATOR_ID in (SELECT ID FROM IDP_AUTHENTICATOR where IDP_ID=(SELECT ID FROM IDP WHERE NAME=? " +
+                "AND TENANT_ID=?))";
+
+        public static final String REMOVE_EMPTY_SP_AUTH_STEPS =
+                "DELETE FROM SP_AUTH_STEP where ID NOT IN (SELECT ID FROM SP_FEDERATED_IDP)";
+
+
+        public static final String DELETE_IDP_SP_PROVISIONING_ASSOCIATIONS = "DELETE FROM SP_PROVISIONING_CONNECTOR " +
+                "where IDP_NAME=? AND TENANT_ID=?";
+
         public static final String GET_IDP_ROW_ID_SQL = "SELECT ID FROM IDP WHERE ((TENANT_ID = ? OR (TENANT_ID = ? " +
                 "AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME = ?)";
 
