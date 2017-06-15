@@ -69,7 +69,8 @@ public abstract class FrameworkConstants {
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
 
-    public static final String USE_TENANT_DOMAIN_IN_SUBJECT_IDENTIFIER = "isUseTenantDomainInLocalSubjectIdentifier";
+    public static final String USE_TENANT_DOMAIN_IN_SUBJECT_IDENTIFIER = "UseTenantDomainInLocalSubjectIdentifier";
+    public static final String USE_USERSTORE_DOMAIN_IN_SUBJECT_IDENTIFIER = "UseUserstoreDomainInSubjectIdentifier";
 
     private FrameworkConstants() {
 

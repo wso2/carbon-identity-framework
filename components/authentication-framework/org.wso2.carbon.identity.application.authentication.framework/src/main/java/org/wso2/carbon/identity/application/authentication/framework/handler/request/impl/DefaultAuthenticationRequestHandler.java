@@ -277,6 +277,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
                             .isUseTenantDomainInLocalSubjectIdentifier());
 
+            // Add the value of SP configuration whether the user store domain should be appended to the subject
+            // identifier. As same as the tenant domain this is currently used in SAML to detect this configuration and
+            // append the user store domain.
+            authenticationResult.addProperty(FrameworkConstants.USE_USERSTORE_DOMAIN_IN_SUBJECT_IDENTIFIER,
+                    appConfig.getServiceProvider().getLocalAndOutBoundAuthenticationConfig()
+                            .isUseUserstoreDomainInLocalSubjectIdentifier());
+
             // SessionContext is retained across different SP requests in the same browser session.
             // it is tracked by a cookie
 
