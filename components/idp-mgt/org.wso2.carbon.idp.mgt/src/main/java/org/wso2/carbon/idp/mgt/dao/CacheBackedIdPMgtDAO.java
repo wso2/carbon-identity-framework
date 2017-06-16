@@ -192,8 +192,8 @@ public class CacheBackedIdPMgtDAO {
      * @return
      * @throws IdentityProviderManagementException
      */
-    public IdentityProvider getIdPByAuthenticatorPropertyValue(Connection dbConnection, String property, String
-            authenticator,  String value, int tenantId, String tenantDomain)
+    public IdentityProvider getIdPByAuthenticatorPropertyValue(Connection dbConnection, String property, String value,
+                                                               String authenticator, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
         IdPAuthPropertyCacheKey cacheKey = new IdPAuthPropertyCacheKey(property, value, tenantDomain);
