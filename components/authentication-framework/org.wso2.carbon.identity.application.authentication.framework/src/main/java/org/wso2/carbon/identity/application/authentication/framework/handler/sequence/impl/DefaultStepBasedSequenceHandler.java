@@ -44,16 +44,17 @@ import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
@@ -480,6 +481,21 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         if (StringUtils.isNotBlank(subjectClaimURI)) {
             if (subjectValue != null) {
                 sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(subjectValue);
+
+                // Check whether the tenant domain should be appended to the subject identifier for this SP and if yes,
+                // append it.
+                if (sequenceConfig.getApplicationConfig().isUseTenantDomainInLocalSubjectIdentifier()) {
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
+                            .addTenantDomainToEntry(subjectValue, sequenceConfig.getAuthenticatedUser()
+                                    .getTenantDomain()));
+                }
+
+                // Check whether the user store domain should be appended to the subject identifier for this SP and
+                // if yes, append it.
+                if (sequenceConfig.getApplicationConfig().isUseUserstoreDomainInLocalSubjectIdentifier()) {
+                    sequenceConfig.getAuthenticatedUser().setAuthenticatedSubjectIdentifier(UserCoreUtil
+                            .addDomainToName(subjectValue, sequenceConfig.getAuthenticatedUser().getUserStoreDomain()));
+                }
 
                 if (log.isDebugEnabled()) {
                     log.debug("Authenticated User: " +
