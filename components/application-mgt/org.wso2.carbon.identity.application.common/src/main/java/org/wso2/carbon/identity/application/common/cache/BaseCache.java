@@ -18,30 +18,38 @@
 
 package org.wso2.carbon.identity.application.common.cache;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.caching.impl.CacheImpl;
 import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.common.internal.DataHolder;
 import org.wso2.carbon.identity.application.common.listener.AbstractCacheListener;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
 import javax.cache.CacheConfiguration;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A base class for all cache implementations in Identity Application Management modules.
  */
 public class BaseCache<K extends Serializable, V extends Serializable> {
 
+    private static final Log log = LogFactory.getLog(BaseCache.class);
+
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
+    private static final String DEFAULT_CACHE_TIMEOUT_STRING = "Cache.DefaultCacheTimeout";
+    private int defaultCacheTimeout = getDefaultCacheTimeout();
+
     private CacheBuilder<K, V> cacheBuilder;
     private String cacheName;
     private List<AbstractCacheListener> cacheListeners = new ArrayList<AbstractCacheListener>();
@@ -67,7 +75,8 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
             CacheManager cacheManager = Caching.getCacheManagerFactory()
                     .getCacheManager(CACHE_MANAGER_NAME);
 
-            if (getCacheTimeout() > 0 && cacheBuilder == null) {
+            if (cacheBuilder == null) {
+                addListener(new ClusterCacheInvalidationRequestSender());
                 synchronized (cacheName.intern()) {
                     if (cacheBuilder == null) {
                         cacheManager.removeCache(cacheName);
@@ -87,17 +96,15 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
                             }
                         }
 
-                        setCapacity((CacheImpl) cache);
+                        setCapacity(cache);
                     } else {
                         cache = cacheManager.getCache(cacheName);
-                        setCapacity((CacheImpl) cache);
+                        setCapacity(cache);
                     }
                 }
-
             } else {
                 cache = cacheManager.getCache(cacheName);
-                setCapacity((CacheImpl) cache);
-
+                setCapacity(cache);
             }
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
@@ -212,37 +219,53 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
         }
     }
 
-    public void addListener(AbstractCacheListener listener){
+    private void addListener(AbstractCacheListener listener){
+        if (log.isDebugEnabled()) {
+            log.debug("Adding identity cache listener " + listener.getClass().getName());
+        }
         cacheListeners.add(listener);
     }
 
-    public boolean isEnabled() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
-        if (identityCacheConfig != null) {
-            return identityCacheConfig.isEnabled();
+    private void setCapacity(Cache cache) {
+        if (! (cache instanceof CacheImpl)) {
+            return;
         }
-        return true;
+
+        long capacity = 5000L;
+        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
+        if (identityCacheConfig != null && identityCacheConfig.getCapacity() > 0) {
+            capacity = identityCacheConfig.getCapacity();
+        }
+
+        ((CacheImpl) cache).setCapacity(capacity);
     }
 
-    public int getCacheTimeout() {
+    private boolean isEnabled() {
+        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
+        return identityCacheConfig == null || identityCacheConfig.isEnabled();
+    }
+
+    private int getCacheTimeout() {
         IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && identityCacheConfig.getTimeout() > 0) {
             return identityCacheConfig.getTimeout();
         }
-        return -1;
+        return defaultCacheTimeout;
     }
 
-    public int getCapacity() {
-        IdentityCacheConfig identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
-        if (identityCacheConfig != null && identityCacheConfig.getCapacity() > 0) {
-            return identityCacheConfig.getCapacity();
+    /**
+     * get default cache timeout in seconds from carbon.xml
+     */
+    private int getDefaultCacheTimeout() {
+        try {
+            String timeoutStr = DataHolder.getInstance().getServerConfigurationService()
+                    .getFirstProperty(DEFAULT_CACHE_TIMEOUT_STRING);
+            int timeout = Integer.parseInt(timeoutStr);
+            return timeout * 60;
+        } catch (NumberFormatException | NullPointerException e) {
+            //default
+            return 15 * 60;
         }
-        return -1;
     }
 
-    public void setCapacity(CacheImpl cache) {
-        if (getCapacity() > 0) {
-            cache.setCapacity(getCapacity());
-        }
-    }
 }
