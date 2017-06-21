@@ -465,25 +465,32 @@
     </EventListeners>
 
     <CacheConfig>
+        <!-- Identity cache configuration.
+             Timeouts are in seconds.
+             Capacity is the maximum cache size.
+             Unless specifically mentioned, you do not need to set the isDistributed flag.
+         -->
         <CacheManager name="IdentityApplicationManagementCacheManager">
-            <Cache name="AppAuthFrameworkSessionContextCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="AuthenticationContextCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="AuthenticationRequestCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="AuthenticationResultCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="AppInfoCache" enable="true" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="AuthorizationGrantCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="OAuthCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="OAuthSessionDataCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="SAMLSSOParticipantCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="SAMLSSOSessionIndexCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="SAMLSSOSessionDataCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="ServiceProviderCache" enable="true" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="ProvisioningConnectorCache" enable="true" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="ProvisioningEntityCache" enable="false" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="ServiceProviderProvisioningConnectorCache" enable="true" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="IdPCacheByAuthProperty" enable="true" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="IdPCacheByHRI" enable="true" timeout="1" capacity="5000" isDistributed="false"/>
-            <Cache name="IdPCacheByName" enable="true" timeout="1" capacity="5000" isDistributed="false"/>
+            <Cache name="AppAuthFrameworkSessionContextCache" enable="false" timeout="60" capacity="5000"
+                   isDistributed="false"/>
+            <Cache name="AuthenticationContextCache" enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="AuthenticationRequestCache" enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="AuthenticationResultCache"  enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="AppInfoCache"               enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="AuthorizationGrantCache"    enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="OAuthCache"                 enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="OAuthSessionDataCache"      enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="SAMLSSOParticipantCache"    enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="SAMLSSOSessionIndexCache"   enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="SAMLSSOSessionDataCache"    enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="ServiceProviderCache"       enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="ProvisioningConnectorCache" enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="ProvisioningEntityCache"    enable="false" timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="ServiceProviderProvisioningConnectorCache"
+                                                     enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="IdPCacheByAuthProperty"     enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="IdPCacheByHRI"              enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
+            <Cache name="IdPCacheByName"             enable="true"  timeout="60" capacity="5000" isDistributed="false"/>
         </CacheManager>
     </CacheConfig>
 
