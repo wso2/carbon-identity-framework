@@ -413,7 +413,7 @@
                     <tr>
                         <td class="buttonRow">
                             <%
-                                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
+                                if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
                             %>
                             <input type="button" class="button" value="<fmt:message key="next"/> >"
                                    onclick="doNext();"/>

@@ -704,7 +704,7 @@
                                 key="edit.roles"/></a>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
                         %>
                         <a href="view-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -804,7 +804,7 @@
                         %>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
                         %>
                         <a href="edit-user-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
@@ -815,7 +815,7 @@
                         %>
 
                         <%
-                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity")) {
+                            if (CarbonUIUtil.isUserAuthorized(request, "/permission/admin/manage/identity/rolemgt")) {
                         %>
                         <a href="view-roles.jsp?username=<%=Encode.forUriComponent(userName)%>&displayName=<%=Encode.forUriComponent(displayName)%>"
                            class="icon-link"
