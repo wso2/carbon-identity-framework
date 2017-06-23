@@ -543,6 +543,9 @@ public class UserRealmProxy {
                     CarbonConstants.UI_PERMISSION_ACTION) ||
                     realm.getAuthorizationManager().isUserAuthorized(userName,
                             "/permission/admin/manage/identity/usermgt/profiles",
+                            CarbonConstants.UI_PERMISSION_ACTION) ||
+                    realm.getAuthorizationManager().isUserAuthorized(userName,
+                            "/permission/admin/manage/identity/rolemgt",
                             CarbonConstants.UI_PERMISSION_ACTION)) {
 
                 userRealmInfo.setAdminRole(realmConfig.getAdminRoleName());
