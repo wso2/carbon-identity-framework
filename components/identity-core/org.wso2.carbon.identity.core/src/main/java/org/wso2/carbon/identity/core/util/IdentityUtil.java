@@ -914,4 +914,23 @@ public class IdentityUtil {
         }
         return Integer.parseInt(clockSkewConfigValue);
     }
+
+    /**
+     * Returns whether the passed operation is supported by userstore or not
+     *
+     * @param userStoreManager User Store
+     * @param operation        Operation name
+     * @return true if the operation is supported by userstore. False if it doesnt
+     */
+    public static boolean isSupportedByUserStore(UserStoreManager userStoreManager, String operation) {
+        boolean isOperationSupported = true;
+        if (userStoreManager != null) {
+            String isOperationSupportedProperty = userStoreManager.getRealmConfiguration().getUserStoreProperty
+                    (operation);
+            if (StringUtils.isNotBlank(isOperationSupportedProperty)) {
+                isOperationSupported = Boolean.parseBoolean(isOperationSupportedProperty);
+            }
+        }
+        return isOperationSupported;
+    }
 }
