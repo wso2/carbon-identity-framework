@@ -25,6 +25,7 @@ import org.wso2.balana.utils.policy.PolicyBuilder;
 import org.wso2.balana.utils.policy.dto.RequestElementDTO;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.common.EntitlementPolicyConstants;
 import org.wso2.carbon.identity.entitlement.common.dto.RequestDTO;
@@ -237,7 +238,8 @@ public class XACMLBasedRuleHandler {
     private boolean evaluateXACMLResponse(String xacmlResponse) throws IdentityProvisioningException {
 
         try {
-            DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            DocumentBuilderFactory documentBuilderFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
+            DocumentBuilder db = documentBuilderFactory.newDocumentBuilder();
             // DocumentBuilder db = IdentityUtil.getSecuredDocumentBuilderFactory().newDocumentBuilder();
             InputSource is = new InputSource();
             is.setCharacterStream(new StringReader(xacmlResponse));
