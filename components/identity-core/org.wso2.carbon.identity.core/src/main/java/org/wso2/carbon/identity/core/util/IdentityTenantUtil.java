@@ -172,10 +172,17 @@ public class IdentityTenantUtil {
         IdentityTenantUtil.registryService = registryService;
     }
 
+    /**
+     *
+     * @return
+     * @deprecated Please use OSGI wiring to get the realm service for your component.
+     */
+    @Deprecated
     public static RealmService getRealmService() {
         return realmService;
     }
 
+    @Deprecated
     public static void setRealmService(RealmService realmService) {
         IdentityTenantUtil.realmService = realmService;
     }

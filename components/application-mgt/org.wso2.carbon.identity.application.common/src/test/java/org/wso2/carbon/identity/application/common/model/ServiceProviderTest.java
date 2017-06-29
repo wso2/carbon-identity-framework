@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.application.common.model;
 import junit.framework.TestCase;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.wso2.carbon.identity.application.common.model.graph.AuthenticationGraphConfig;
+import org.wso2.carbon.identity.application.common.model.graph.StepNode;
 
 import java.io.InputStream;
 import javax.xml.stream.XMLStreamException;
@@ -28,37 +30,35 @@ import javax.xml.stream.XMLStreamException;
 public class ServiceProviderTest extends TestCase {
 
     public void testBuild() throws Exception {
-        ServiceProvider sp = getTestServiceProvider();
+        ServiceProvider sp = getTestServiceProvider("test-sp-1.xml");
         assertNotNull(sp);
     }
 
-    public void testGetLocalAndOutBoundAuthenticationConfig_AuthenticationChainConfigs() throws Exception {
-        ServiceProvider sp = getTestServiceProvider();
-        assertNotNull(sp.getLocalAndOutBoundAuthenticationConfig());
-        assertNotNull(sp.getLocalAndOutBoundAuthenticationConfig().getAuthenticationChainConfigs());
-        AuthenticationChainConfig[] chainConfigs = sp.getLocalAndOutBoundAuthenticationConfig()
-                .getAuthenticationChainConfigs();
-        assertEquals(3, chainConfigs.length);
-        assertEquals("chain1", chainConfigs[0].getName());
-        assertEquals("chain2", chainConfigs[1].getName());
-        assertEquals("chain3", chainConfigs[2].getName());
+    public void testGetLocalAndOutBoundAuthenticationConfig_AuthenticationGraph() throws Exception {
+        ServiceProvider sp = getTestServiceProvider("graph-sp-1.xml");
+        assertNotNull(sp.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
 
-        assertNotNull(chainConfigs[0].getStepConfigs());
-        assertEquals(2, chainConfigs[0].getStepConfigs().length);
-        assertEquals(1, chainConfigs[1].getStepConfigs().length);
+        AuthenticationGraphConfig graph = sp.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig();
+        assertNotNull(graph.getStartNode());
+        assertEquals("basic_auth", graph.getStartNode().getName());
 
-        assertNotNull(chainConfigs[0].getAcr());
-        assertEquals(1, chainConfigs[0].getAcr().length);
-        assertEquals(3, chainConfigs[1].getAcr().length);
-        assertEquals(0, chainConfigs[2].getAcr().length);
+        assertTrue(graph.getStartNode() instanceof StepNode);
 
-        assertEquals("acr2", chainConfigs[1].getAcr()[0]);
-        assertEquals("none", chainConfigs[1].getAcr()[1]);
-        assertEquals("foobar", chainConfigs[1].getAcr()[2]);
+        StepNode stepNode = (StepNode) graph.getStartNode();
+        assertNotNull(stepNode.getNext());
+        assertNotNull(stepNode.getAuthenticationStep());
     }
 
-    private ServiceProvider getTestServiceProvider() throws XMLStreamException {
-        InputStream inputStream = ServiceProviderTest.class.getResourceAsStream("test-sp-1.xml");
+    public void testGetLocalAndOutBoundAuthenticationConfig_AuthenticationGraph_InfiniteLoop() throws Exception {
+        ServiceProvider sp2 = getTestServiceProvider("graph-sp-2-infinite-loop.xml");
+        assertNull(sp2.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+
+        ServiceProvider sp3 = getTestServiceProvider("graph-sp-3-infinite-loop.xml");
+        assertNull(sp3.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
+    }
+
+    private ServiceProvider getTestServiceProvider(String name) throws XMLStreamException {
+        InputStream inputStream = ServiceProviderTest.class.getResourceAsStream(name);
         OMElement documentElement = new StAXOMBuilder(inputStream).getDocumentElement();
         return ServiceProvider.build(documentElement);
     }

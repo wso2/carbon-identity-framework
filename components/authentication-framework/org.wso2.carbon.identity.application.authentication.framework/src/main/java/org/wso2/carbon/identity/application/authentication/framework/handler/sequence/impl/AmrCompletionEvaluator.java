@@ -18,18 +18,19 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.graph.DecisionNode;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+public class AmrCompletionEvaluator implements AuthenticationDecisionEvaluator {
 
-public class AdaptiveStepBasedSequenceHandler implements StepBasedSequenceHandler {
+    private static final Log log = LogFactory.getLog(AmrCompletionEvaluator.class);
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
-            throws FrameworkException {
-
+    public String evaluate(AuthenticationContext context, ServiceProvider serviceProvider, DecisionNode config) {
+        return null;
     }
 }

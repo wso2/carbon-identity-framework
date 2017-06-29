@@ -20,20 +20,23 @@ package org.wso2.carbon.identity.application.authentication.framework.config.loa
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationStepsSelector;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.common.model.AuthenticationChainConfig;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -51,11 +54,6 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
     private static final Log log = LogFactory.getLog(UIBasedConfigurationLoader.class);
 
-    private AuthenticationStepsSelector authenticationStepsSelector;
-
-    public void setAuthenticationStepsSelector(AuthenticationStepsSelector authenticationStepsSelector) {
-        this.authenticationStepsSelector = authenticationStepsSelector;
-    }
 
     @Override
     public SequenceConfig getSequenceConfig(AuthenticationContext context, Map<String, String[]> parameterMap,
@@ -65,24 +63,34 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
 
         AuthenticationStep[] authenticationSteps = null;
 
-        if (authenticationStepsSelector != null) {
-            AuthenticationChainConfig  selectedChain = authenticationStepsSelector
-                    .resolveSequenceChain(context, serviceProvider);
-            if (log.isDebugEnabled()) {
-                String chainName = selectedChain == null? null : selectedChain.getName();
-                log.debug("Adaptive Authenticator selects the chain: " + chainName + " for acr_values: " + context
-                        .getAcrRequested() + ". Service Provider App Name: " + serviceProvider.getApplicationName());
-            }
-            if (selectedChain != null) {
-                authenticationSteps = selectedChain.getStepConfigs();
-            }
-        }
-
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider
+                .getLocalAndOutBoundAuthenticationConfig();
         if (authenticationSteps == null) {
-            //Use the default steps when there are no chains configured.
-            authenticationSteps = serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+            if (localAndOutboundAuthenticationConfig.getAuthenticationSteps() != null
+                    && localAndOutboundAuthenticationConfig.getAuthenticationSteps().length > 0) {
+                //Use the default steps when there are no chains configured.
+                authenticationSteps = localAndOutboundAuthenticationConfig.getAuthenticationSteps();
+            }
         }
-        return getSequence(serviceProvider, tenantDomain, authenticationSteps);
+        SequenceConfig sequenceConfig = getSequence(serviceProvider, tenantDomain, authenticationSteps);
+
+        //Load the authentication graph only if the Steps Array is not present.
+        if ((authenticationSteps == null || authenticationSteps.length <= 0)
+                && localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig() != null) {
+            GraphBuilder graphBuilder = new GraphBuilder();
+            AuthenticationGraph graph = graphBuilder
+                    .createWith(localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig());
+            for (AuthGraphNode node : graphBuilder.getNodes()) {
+                if (node instanceof StepConfigGraphNode) {
+                    StepConfigGraphNode stepConfigGraphNode = (StepConfigGraphNode) node;
+                    AuthenticationStep authenticationStep = stepConfigGraphNode.getConfig().getAuthenticationStep();
+                    loadFederatedAuthenticators(authenticationStep, stepConfigGraphNode, tenantDomain);
+                    loadLocalAuthenticators(authenticationStep, stepConfigGraphNode);
+                }
+            }
+            sequenceConfig.setAuthenticationGraph(graph);
+        }
+        return sequenceConfig;
     }
 
     /**

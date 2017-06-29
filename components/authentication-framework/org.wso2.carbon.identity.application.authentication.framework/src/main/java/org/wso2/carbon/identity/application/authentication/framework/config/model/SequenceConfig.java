@@ -18,10 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +40,8 @@ public class SequenceConfig implements Serializable {
     private boolean isCheckAuthn;
     private String applicationId;
     private Map<Integer, StepConfig> stepMap = new HashMap<>();
-    private Map<String, AuthenticationChain> authenticationChainMap = new HashMap<>();
+    private AuthenticationGraph authenticationGraph;
     private List<AuthenticatorConfig> reqPathAuthenticators = new ArrayList<>();
-    private Map<String, String>  acrToAuthenticationChainMap = new HashMap<>();
     private ApplicationConfig applicationConfig = null;
     private boolean completed;
 
@@ -48,6 +49,7 @@ public class SequenceConfig implements Serializable {
     private String authenticatedIdPs;
 
     private AuthenticatorConfig authenticatedReqPathAuthenticator;
+    private List<String> requestedAcr;
 
     public SequenceConfig() {
     }
@@ -142,25 +144,26 @@ public class SequenceConfig implements Serializable {
         this.authenticatedReqPathAuthenticator = authenticatedReqPathAuthenticator;
     }
 
-    public Map<String, AuthenticationChain> getAuthenticationChainMap() {
-        return authenticationChainMap;
+    public AuthenticationGraph getAuthenticationGraph() {
+        return authenticationGraph;
     }
 
-    public void addAuthenticationChain(String name, AuthenticationChain authenticationChain) {
-        authenticationChainMap.put(name, authenticationChain);
+    public void setAuthenticationGraph(AuthenticationGraph authenticationGraph) {
+        this.authenticationGraph = authenticationGraph;
     }
 
-    public AuthenticationChain getChainForAcr(String acr) {
-        String chainName = acrToAuthenticationChainMap.get(acr);
-        if(chainName != null) {
-            return authenticationChainMap.get(chainName);
+    public List<String> getRequestedAcr() {
+        if (requestedAcr == null) {
+            return Collections.EMPTY_LIST;
         }
-
-        return null;
+        return Collections.unmodifiableList(requestedAcr);
     }
 
-    public void addChainToAcr(AuthenticationChain authenticationChain, String acr) {
-        acrToAuthenticationChainMap.put(acr, authenticationChain.getName());
+    public void addRequestedAcr(String acr) {
+        if (requestedAcr == null) {
+            requestedAcr = new ArrayList<>();
+        }
+        requestedAcr.add(acr);
     }
 
     /**
@@ -182,6 +185,7 @@ public class SequenceConfig implements Serializable {
         sequenceConfig.setAuthenticatedUser(this.getAuthenticatedUser());
         sequenceConfig.setAuthenticatedIdPs(this.getAuthenticatedIdPs());
         sequenceConfig.setAuthenticatedReqPathAuthenticator(this.getAuthenticatedReqPathAuthenticator());
+        sequenceConfig.requestedAcr = new ArrayList<>(this.getRequestedAcr());
         return sequenceConfig;
     }
 

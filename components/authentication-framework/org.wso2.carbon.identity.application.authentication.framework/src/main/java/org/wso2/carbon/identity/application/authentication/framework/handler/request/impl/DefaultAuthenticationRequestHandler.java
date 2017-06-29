@@ -292,8 +292,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                                                                sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
-                sessionContext.setAuthenticationStepHistory(AuthHistory
-                        .merge(sessionContext.getAuthenticationStepHistory(), context.getAuthenticationStepHistory()));
+                sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
+                        .merge(sessionContext.getSessionAuthHistory().getHistory(),
+                                context.getAuthenticationStepHistory()));
+                if(context.getSelectedAcr() != null) {
+                    sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
+                }
                 long updatedSessionTime = System.currentTimeMillis();
                 if (!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
@@ -316,8 +320,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
-                sessionContext.setAuthenticationStepHistory(AuthHistory
-                        .merge(sessionContext.getAuthenticationStepHistory(), context.getAuthenticationStepHistory()));
+                sessionContext.getSessionAuthHistory().resetHistory(
+                        AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
+                        context.getAuthenticationStepHistory()));
+                if(context.getSelectedAcr() != null) {
+                    sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
+                }
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext);
 
                 String applicationTenantDomain = context.getTenantDomain();

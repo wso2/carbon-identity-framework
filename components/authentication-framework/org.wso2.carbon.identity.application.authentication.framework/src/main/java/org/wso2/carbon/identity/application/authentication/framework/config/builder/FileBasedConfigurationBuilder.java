@@ -24,7 +24,6 @@ import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticationChain;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -148,7 +147,8 @@ public class FileBasedConfigurationBuilder {
                 inStream = new FileInputStream(configFile);
             }
             if (inStream == null) {
-                String message = "Identity Application Authentication Framework configuration not found";
+                String message = "Identity Application Authentication Framework configuration not found. File Name: "
+                        +configFile.getAbsolutePath();
                 log.error(message);
                 throw new FileNotFoundException(message);
             }
@@ -615,38 +615,7 @@ public class FileBasedConfigurationBuilder {
                 sequenceConfig.getStepMap().put(stepConfig.getOrder(), stepConfig);
             }
         }
-
-        // For each Authenticator Chain,
-        for (Iterator chainElements = sequenceElem.getChildrenWithLocalName(FrameworkConstants.Config.ELEM_AUTHENTICATION_CHAIN);
-             chainElements.hasNext(); ) {
-            processAuthChain(sequenceConfig, (OMElement) chainElements.next());
-        }
-
         return sequenceConfig;
-    }
-
-    private void processAuthChain(SequenceConfig sequenceConfig, OMElement authChainElement) {
-        String name = authChainElement.getAttributeValue(new QName(FrameworkConstants.Config.ATTR_PARAMETER_NAME));
-        AuthenticationChain authenticationChain = new AuthenticationChain();
-        authenticationChain.setName(name);
-
-        String acrString = authChainElement.getAttributeValue(new QName(FrameworkConstants.Config.ATTR_ACR_LIST));
-        if(StringUtils.isNotEmpty(acrString)) {
-            String[] acrValues = acrString.split(",|\\p{Space}");
-            for(String s: acrValues) {
-                sequenceConfig.addChainToAcr(authenticationChain, s.trim());
-            }
-        }
-
-        for (Iterator stepElements = authChainElement.getChildrenWithLocalName(FrameworkConstants.Config.ELEM_STEP);
-             stepElements.hasNext(); ) {
-            StepConfig stepConfig = processStepElement((OMElement) stepElements.next());
-
-            if (stepConfig != null) {
-                authenticationChain.getStepConfigList().add(stepConfig);
-            }
-        }
-        sequenceConfig.addAuthenticationChain(name, authenticationChain);
     }
 
     /**

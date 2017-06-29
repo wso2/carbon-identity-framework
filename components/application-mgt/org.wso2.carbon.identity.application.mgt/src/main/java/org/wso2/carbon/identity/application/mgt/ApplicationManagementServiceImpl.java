@@ -853,12 +853,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                             .setAuthenticationSteps(authenticationSteps);
                 }
-                if (localAndOutboundAuthenticationConfig.getAuthenticationChainConfigs() != null
-                        && localAndOutboundAuthenticationConfig.getAuthenticationChainConfigs().length <= 0) {
+
+                if(localAndOutboundAuthenticationConfig.getAuthenticationGraphConfig() == null ) {
                     ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
                             .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                    localAndOutboundAuthenticationConfig.setAuthenticationChainConfigs(
-                            defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationChainConfigs());
+                    localAndOutboundAuthenticationConfig.setAuthenticationGraphConfig(
+                            defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationGraphConfig());
                 }
             }
         }

@@ -16,23 +16,16 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model;
+package org.wso2.carbon.identity.application.common.model.graph;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * Authentication chain represents a cain of steps which serves as a pre configured Sequence.
- * The difference between SequenceConfig and Authentication Chain is that the cain is a static information configured
- * by Identity Admin, and saved. The SequenceConfig is the selected Chain which current Authentication Context runs with.
- *
- *  @see SequenceConfig
+ * Abstract definition of a graph node.
  */
-public class AuthenticationChain {
+public abstract class Node implements Serializable {
 
     private String name;
-    private List<StepConfig> stepConfigList = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -40,9 +33,5 @@ public class AuthenticationChain {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<StepConfig> getStepConfigList() {
-        return stepConfigList;
     }
 }
