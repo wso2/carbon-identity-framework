@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.apache.commons.lang.StringUtils;
+import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -136,7 +137,7 @@ public class IdentityServlet extends HttpServlet {
             try {
                 PrintWriter out = response.getWriter();
                 if(StringUtils.isNotBlank(httpIdentityResponse.getBody())) {
-                    out.print(httpIdentityResponse.getBody());
+                    out.print(Encode.forHtml(httpIdentityResponse.getBody()));
                 }
             } catch (IOException e) {
                 throw FrameworkRuntimeException.error("Error occurred while getting Response writer object", e);
