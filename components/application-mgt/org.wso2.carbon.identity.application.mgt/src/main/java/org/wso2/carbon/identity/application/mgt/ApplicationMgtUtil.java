@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.registry.api.Collection;
 import org.wso2.carbon.registry.api.Registry;
@@ -159,6 +160,12 @@ public class ApplicationMgtUtil {
      */
     public static void deleteAppRole(String applicationName) throws IdentityApplicationManagementException {
         String roleName = getAppRoleName(applicationName);
+        String defaultRoleName = UserMgtConstants.APPLICATION_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR +
+                                 IdentityApplicationConstants.DEFAULT_SP_CONFIG;
+
+        if(roleName.equals(defaultRoleName)){
+            return;
+        }
 
         try {
             if (log.isDebugEnabled()) {
