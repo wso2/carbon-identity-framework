@@ -66,6 +66,9 @@ public class AuthenticationMethodNameTranslatorImpl implements AuthenticationMet
     }
 
     void initializeConfigs(OMElement mappingsElement) {
+        if (mappingsElement == null) {
+            return;
+        }
         if (mappingsElement.getLocalName().equals("Server")) {
             mappingsElement = mappingsElement.getFirstChildWithName(AUTH_CTX_QNAME);
         }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import junit.framework.TestCase;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 
 import java.io.InputStream;
 import javax.xml.stream.XMLStreamException;
@@ -30,6 +31,15 @@ import javax.xml.stream.XMLStreamException;
  *
  */
 public class AuthenticationMethodNameTranslatorImplTest extends TestCase {
+
+    public void testInitializeConfigsWithServerConfig_NoContextMapping() throws Exception {
+        AuthenticationMethodNameTranslatorImpl translator = new AuthenticationMethodNameTranslatorImpl();
+        String path = this.getClass().getResource("identity-no-context-mappings.xml").getFile();
+
+        IdentityConfigParser.getInstance(path);
+        translator.initializeConfigsWithServerConfig();
+        assertNull(translator.translateToInternalAcr("urn:oasis:names:tc:SAML:2.0:ac:classes:Password", "openid"));
+    }
 
     public void testTranslateToInternalAcr() throws Exception {
         AuthenticationMethodNameTranslatorImpl translator = getTranslator("identity-xml-test1.xml");

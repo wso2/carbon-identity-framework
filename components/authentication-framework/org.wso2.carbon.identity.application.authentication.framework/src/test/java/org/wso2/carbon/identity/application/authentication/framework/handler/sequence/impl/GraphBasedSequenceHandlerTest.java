@@ -118,11 +118,11 @@ public class GraphBasedSequenceHandlerTest extends AbstractFrameworkTest {
         ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
 
         AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
-        context.getSequenceConfig().addRequestedAcr("pwd");
 
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
+        context.getSequenceConfig().addRequestedAcr("pwd");
 
         HttpServletRequest req = mock(HttpServletRequest.class);
 
@@ -141,11 +141,11 @@ public class GraphBasedSequenceHandlerTest extends AbstractFrameworkTest {
         ServiceProvider sp1 = getTestServiceProvider("graph-sp-1.xml");
 
         AuthenticationContext context = getAuthenticationContext("", APPLICATION_AUTHENTICATION_FILE_NAME, sp1);
-        context.getSequenceConfig().addRequestedAcr("hwk");
 
         SequenceConfig sequenceConfig = configurationLoader
                 .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
         context.setSequenceConfig(sequenceConfig);
+        context.getSequenceConfig().addRequestedAcr("hwk");
 
         HttpServletRequest req = mock(HttpServletRequest.class);
 
