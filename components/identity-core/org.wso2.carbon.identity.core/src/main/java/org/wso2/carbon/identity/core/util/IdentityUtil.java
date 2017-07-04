@@ -930,6 +930,8 @@ public class IdentityUtil {
             if (StringUtils.isNotBlank(isOperationSupportedProperty)) {
                 isOperationSupported = Boolean.parseBoolean(isOperationSupportedProperty);
             }
+        } else {
+            isOperationSupported = false;
         }
         return isOperationSupported;
     }
