@@ -19,11 +19,13 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 
 <%
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
     String callback = (String) request.getAttribute("callback");
+    String tenantDomain = (String) request.getAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN);
 
 %>
 
@@ -98,7 +100,15 @@
                             <%
                                 }
                             %>
-
+                            <%
+                                if (tenantDomain != null) {
+                            %>
+                            <div>
+                                <input type="hidden" name="tenantdomain" value="<%=tenantDomain %>"/>
+                            </div>
+                            <%
+                                }
+                            %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <label class="control-label">Confirm Password</label>
                                 <input id="reset-password2" name="reset-password2" type="password" class="form-control"
