@@ -57,6 +57,9 @@
 
         Property tenantProperty = new Property();
         tenantProperty.setKey(IdentityManagementEndpointConstants.TENANT_DOMAIN);
+        if (tenantDomain == null) {
+            tenantDomain = IdentityManagementEndpointConstants.SUPER_TENANT;
+        }
         tenantProperty.setValue(URLEncoder.encode(tenantDomain, "UTF-8"));
         properties.add(tenantProperty);
 
